@@ -100,7 +100,7 @@ export default class DatabaseDeltaSnapshot {
 
   numChildren(): number {
     let val = this.val();
-    return _.isPlainObject(val) ? 0 : Object.keys(val).length;
+    return _.isPlainObject(val) ? Object.keys(val).length : 0;
   }
 
   private _dup(prior?: boolean, childPath?: string): DatabaseDeltaSnapshot {

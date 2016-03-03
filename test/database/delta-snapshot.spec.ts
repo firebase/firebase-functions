@@ -100,4 +100,16 @@ describe("DatabaseDeltaSnapshot", () => {
       expect(count).to.eq(0);
     });
   });
+
+  describe("#numChildren()", () => {
+    it("should be key count for objects", () => {
+      populate(null, {a: "b", c: "d"});
+      expect(subject.numChildren()).to.eq(2);
+    });
+
+    it("should be 0 for non-objects", () => {
+      populate(null, 23);
+      expect(subject.numChildren()).to.eq(0);
+    });
+  });
 });
