@@ -6,7 +6,6 @@ import {normalizePath} from "../utils";
 import {env} from "../index";
 
 export default class DatabaseBuilder {
-  private _instance: string;
   private _path: string;
   private _condition: string;
   private _filter: string;
@@ -16,10 +15,6 @@ export default class DatabaseBuilder {
       path: this._path,
       event: event || "write"
     };
-  }
-
-  constructor(instance?: string) {
-    this._instance = instance;
   }
 
   path(path: string): DatabaseBuilder {
