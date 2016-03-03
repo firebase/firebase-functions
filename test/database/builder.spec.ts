@@ -22,4 +22,12 @@ describe("DatabaseBuilder", () => {
       expect(subject._toConfig().event).to.eq("write");
     });
   });
+
+  describe("#on()", () => {
+    it("should throw if path has not been called", () => {
+      expect(() => {
+        subject.on("write", evt => _.noop());
+      }).to.throw("Must call .path(pathValue)");
+    });
+  });
 });

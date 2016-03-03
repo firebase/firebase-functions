@@ -24,6 +24,10 @@ export default class DatabaseBuilder {
   }
 
   on(event: string, handler: (FirebaseEvent) => any): GCFHandler {
+    if (!this._path) {
+      throw new Error("Must call .path(pathValue) before .on() for database function definitions.");
+    }
+
     let wrappedHandler: GCFHandler = function(context, data) {
       let event = new FirebaseEvent({
         source: "database",
