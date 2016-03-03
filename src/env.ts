@@ -1,6 +1,6 @@
-import {resolve, dirname} from "path";
-import * as fs from "fs";
-import * as _ from "lodash";
+import {resolve, dirname} from 'path';
+import * as fs from 'fs';
+import * as _ from 'lodash';
 
 export default class FirebaseEnv {
   private _env: Object;
@@ -15,7 +15,7 @@ export default class FirebaseEnv {
     let source: Object;
 
     while (!source && cur !== prev) {
-      let envPath = resolve(cur, "../env.json");
+      let envPath = resolve(cur, '../env.json');
       try {
         source = require(envPath);
       } catch (e) {
@@ -28,17 +28,17 @@ export default class FirebaseEnv {
   }
 
   get(path?: string, fallback?: any) {
-    let segments = path.split(".");
+    let segments = path.split('.');
     let cur: Object = this._env;
     for (let i = 0; i < segments.length; i++) {
       if (_.has(cur, segments[i])) {
         cur = cur[segments[i]];
       } else {
-        if (typeof fallback !== "undefined") {
-          console.log("Using fallback for '" + path + "' environment value");
+        if (typeof fallback !== 'undefined') {
+          console.log('Using fallback for "' + path + '" environment value');
           return fallback;
         }
-        throw new Error("Environment value '" + path + "' is not configured.");
+        throw new Error('Environment value "' + path + '" is not configured.');
       }
     }
     return cur;

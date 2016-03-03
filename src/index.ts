@@ -1,5 +1,5 @@
-import FirebaseEnv from "./env";
-import DatabaseBuilder from "./database/builder";
+import FirebaseEnv from './env';
+import DatabaseBuilder from './database/builder';
 
 export function database() {
   return new DatabaseBuilder();

@@ -9,6 +9,7 @@ declare interface GCFContext {
 }
 
 declare interface GCFDatabasePayload {
+  type: string;
   path: string;
   authToken: string;
   oldData: any;

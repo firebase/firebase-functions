@@ -17,7 +17,7 @@ export default class DatabaseDeltaSnapshot {
   private _isPrior: boolean;
 
   private static _populateRef(path: string, token?: string, context?: string) {
-    let ref = new Firebase(env().get("firebase.database.url"), context || token).child(path);
+    let ref = new Firebase(env().get('firebase.database.url'), context || token).child(path);
     if (token) {
       ref.authWithCustomToken(token, () => {});
     }
@@ -37,13 +37,13 @@ export default class DatabaseDeltaSnapshot {
   ref(): Firebase {
     this._ref = this._ref || this._authToken ?
       DatabaseDeltaSnapshot._populateRef(this._fullPath(), this._authToken) :
-      DatabaseDeltaSnapshot._populateRef(this._fullPath(), null, "__noauth__");
+      DatabaseDeltaSnapshot._populateRef(this._fullPath(), null, '__noauth__');
     return this._ref;
   }
 
   adminRef(): Firebase {
     this._adminRef = this._adminRef || DatabaseDeltaSnapshot._populateRef(
-      this._fullPath(), env().get("firebase.database.secret"), "__admin__"
+      this._fullPath(), env().get('firebase.database.secret'), '__admin__'
     );
     return this._adminRef;
   }
@@ -90,8 +90,9 @@ export default class DatabaseDeltaSnapshot {
   }
 
   key(): string {
-    let fullPath = this._fullPath();
-    return _.last(fullPath) || null;
+    let fullPath = this._fullPath().substring(1).split('/');
+    let last = _.last(fullPath);
+    return (!last || last === '') ? null : last;
   }
 
   name(): string {
@@ -113,7 +114,7 @@ export default class DatabaseDeltaSnapshot {
     }
 
     if (childPath) {
-      dup._childPath = dup._childPath || "";
+      dup._childPath = dup._childPath || '';
       dup._childPath += normalizePath(childPath);
     }
 
@@ -121,6 +122,10 @@ export default class DatabaseDeltaSnapshot {
   }
 
   private _fullPath(): string {
-    return this._path + (this._childPath || "");
+    let out = (this._path || '') + (this._childPath || '');
+    if (out === '') {
+      out = '/';
+    }
+    return out;
   }
 }
