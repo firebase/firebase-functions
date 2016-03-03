@@ -31,7 +31,10 @@ export default class DatabaseBuilder {
         instance: env().get("firebase.database.url"),
         data: new DatabaseDeltaSnapshot(data)
       });
-      handler(event).then(context.success, context.error);
+      handler(event).then(
+        result => context.success(result),
+        err => context.error(err)
+      );
     };
 
     wrappedHandler.__trigger = this._toConfig();
