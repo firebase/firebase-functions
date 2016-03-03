@@ -103,7 +103,7 @@ export default class DatabaseDeltaSnapshot {
     return _.isPlainObject(val) ? Object.keys(val).length : 0;
   }
 
-  private _dup(prior?: boolean, childPath?: string): DatabaseDeltaSnapshot {
+  private _dup(prior: boolean, childPath?: string): DatabaseDeltaSnapshot {
     let dup = new DatabaseDeltaSnapshot();
     [dup._path, dup._authToken, dup._oldData, dup._change, dup._childPath, dup._newData] =
       [this._path, this._authToken, this._oldData, this._change, this._childPath, this._newData];

@@ -1,4 +1,5 @@
 /// <reference path="../gcf.d.ts" />
+/// <reference path="../../typings/main.d.ts" />
 
 import FirebaseEvent from "../event";
 import DatabaseDeltaSnapshot from "./delta-snapshot";
@@ -35,6 +36,7 @@ export default class DatabaseBuilder {
         instance: env().get("firebase.database.url"),
         data: new DatabaseDeltaSnapshot(data)
       });
+
       handler(event).then(
         result => context.success(result),
         err => context.error(err)
