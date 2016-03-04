@@ -8,8 +8,8 @@ describe('DatabaseDeltaSnapshot', () => {
   let populate = (old: any, change: any) => {
     subject = new DatabaseDeltaSnapshot({
       path: '/foo',
-      oldData: old,
-      change: change,
+      data: old,
+      delta: change,
       authToken: null,
       type: 'write'
     });
@@ -153,8 +153,8 @@ describe('DatabaseDeltaSnapshot', () => {
     it('should return null for explicit root', () => {
       expect(new DatabaseDeltaSnapshot({
         path: '/',
-        oldData: null,
-        change: {},
+        data: null,
+        delta: {},
         authToken: null,
         type: 'write'
       }).key()).to.be.null;

@@ -12,6 +12,6 @@ declare interface GCFDatabasePayload {
   type: string;
   path: string;
   authToken: string;
-  oldData: any;
-  change: any;
+  data: any;
+  delta: any;
 }

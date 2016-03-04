@@ -9,8 +9,8 @@ export default class DatabaseDeltaSnapshot {
   private _ref: Firebase;
   private _path: string;
   private _authToken: string;
-  private _oldData: any;
-  private _change: any;
+  private _data: any;
+  private _delta: any;
   private _newData: any;
 
   private _childPath: string;
@@ -28,9 +28,9 @@ export default class DatabaseDeltaSnapshot {
     if (eventData) {
       this._path = eventData.path;
       this._authToken = eventData.authToken;
-      this._oldData = eventData.oldData;
-      this._change = eventData.change;
-      this._newData = applyChange(this._oldData, this._change);
+      this._data = eventData.data;
+      this._delta = eventData.delta;
+      this._newData = applyChange(this._data, this._delta);
     }
   }
 
@@ -50,7 +50,7 @@ export default class DatabaseDeltaSnapshot {
 
   val(): any {
     let parts = pathParts(this._childPath);
-    let source = this._isPrior ? this._oldData : this._newData;
+    let source = this._isPrior ? this._data : this._newData;
     return _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
   }
 
@@ -70,7 +70,7 @@ export default class DatabaseDeltaSnapshot {
   }
 
   changed(): boolean {
-    return valAt(this._change, this._childPath) !== undefined;
+    return valAt(this._delta, this._childPath) !== undefined;
   }
 
   forEach(childAction: Function) {
@@ -106,8 +106,8 @@ export default class DatabaseDeltaSnapshot {
 
   private _dup(prior: boolean, childPath?: string): DatabaseDeltaSnapshot {
     let dup = new DatabaseDeltaSnapshot();
-    [dup._path, dup._authToken, dup._oldData, dup._change, dup._childPath, dup._newData] =
-      [this._path, this._authToken, this._oldData, this._change, this._childPath, this._newData];
+    [dup._path, dup._authToken, dup._data, dup._delta, dup._childPath, dup._newData] =
+      [this._path, this._authToken, this._data, this._delta, this._childPath, this._newData];
 
     if (prior) {
       dup._isPrior = true;
