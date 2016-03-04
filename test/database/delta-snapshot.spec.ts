@@ -76,6 +76,18 @@ describe('DatabaseDeltaSnapshot', () => {
     });
   });
 
+  describe('#current(): DatabaseDeltaSnapshot', () => {
+    it('should cause a prior() snapshot to return new data', () => {
+      populate({a: 'b'}, {a: 'c', d: 'c'});
+      expect(subject.prior().child('a').current().val()).to.equal('c');
+    });
+
+    it('should return a null if the new value is null', () => {
+      populate(23, null);
+      expect(subject.prior().current().val()).to.be.null;
+    });
+  });
+
   describe('#changed(): boolean', () => {
     it('should be true only when the current value has changed', () => {
       populate({a: {b: 'c'}}, {a: {d: 'e'}});

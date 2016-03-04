@@ -69,6 +69,10 @@ export default class DatabaseDeltaSnapshot {
     return this._isPrior ? this : this._dup(true);
   }
 
+  current(): DatabaseDeltaSnapshot {
+    return this._isPrior ? this._dup(false) : this;
+  }
+
   changed(): boolean {
     return valAt(this._delta, this._childPath) !== undefined;
   }
