@@ -1,11 +1,6 @@
 declare interface GCFHandler {
-  (context: GCFContext, data: GCFDatabasePayload);
+  (data: GCFDatabasePayload);
   __trigger?: Object;
-}
-
-declare interface GCFContext {
-  success: (out?: any) => void;
-  error: (err?: any) => void;
 }
 
 declare interface GCFDatabasePayload {

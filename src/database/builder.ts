@@ -29,7 +29,7 @@ export default class DatabaseBuilder {
       throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
     }
 
-    let wrappedHandler: GCFHandler = function(context, data) {
+    let wrappedHandler: GCFHandler = function(data: GCFDatabasePayload) {
       let event = new FirebaseEvent({
         source: 'database',
         type: data['event'],
@@ -37,10 +37,7 @@ export default class DatabaseBuilder {
         data: new DatabaseDeltaSnapshot(data)
       });
 
-      handler(event).then(
-        result => context.success(result),
-        err => context.error(err)
-      );
+      return handler(event);
     };
 
     wrappedHandler.__trigger = this._toConfig();
