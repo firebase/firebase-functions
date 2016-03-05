@@ -31,7 +31,7 @@ export default class DatabaseBuilder {
 
     let wrappedHandler: GCFHandler = function(data: GCFDatabasePayload) {
       let event = new FirebaseEvent({
-        source: 'database',
+        service: 'firebase.database',
         type: data['event'],
         instance: env().get('firebase.database.url'),
         data: new DatabaseDeltaSnapshot(data)
