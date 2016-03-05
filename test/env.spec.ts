@@ -7,8 +7,8 @@ import {expect} from 'chai';
 describe('FirebaseEnv', () => {
   let subject;
 
-  it('should load by walking up the directory tree', () => {
-    subject = FirebaseEnv.loadFromDirectory(resolve(__dirname, './fixtures/env/node_modules/firebase-functions'));
+  it('should load from the specific path', () => {
+    subject = FirebaseEnv.loadPath(resolve(__dirname, './fixtures/env/env.json'));
     expect(subject.get('firebase.database.secret')).to.equal('123SECRET');
   });
 });

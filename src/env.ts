@@ -1,4 +1,3 @@
-import {resolve, dirname} from 'path';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
@@ -9,22 +8,15 @@ export default class FirebaseEnv {
     this._env = env;
   }
 
-  static loadFromDirectory(start?: string) {
-    let cur: string = start;
-    let prev: string;
-    let source: Object;
-
-    while (!source && cur !== prev) {
-      let envPath = resolve(cur, '../env.json');
-      try {
-        source = require(envPath);
-      } catch (e) {
-        prev = cur;
-        cur = dirname(cur);
-      }
+  static loadPath(envPath: string) {
+    let source;
+    try {
+      source = require(envPath);
+    } catch (e) {
+      source = {};
     }
 
-    return new FirebaseEnv(source || {});
+    return new FirebaseEnv(source);
   }
 
   get(path?: string, fallback?: any) {
