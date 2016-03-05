@@ -1,0 +1,40 @@
+{
+  "name": "firebase-functions",
+  "version": "0.1.0-alpha",
+  "description": "Node helpers for Firebase Functions.",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "pretest": "tsc test/index.spec.ts --outDir .tmp && cp -r test/fixtures .tmp/test",
+    "test": "mocha .tmp/test/index.spec.js",
+    "posttest": "rm -rf .tmp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/firebase/firebase-functions.git"
+  },
+  "keywords": [
+    "firebase",
+    "functions"
+  ],
+  "author": "Firebase Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-functions/issues"
+  },
+  "homepage": "https://github.com/firebase/firebase-functions#readme",
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "^5.2.0",
+    "istanbul": "^0.4.2",
+    "mocha": "^2.4.5",
+    "typescript": "^1.8.6",
+    "typings": "^0.6.8"
+  },
+  "peerDependencies": {
+    "firebase": "^2.4"
+  },
+  "dependencies": {
+    "lodash": "^4.6.1"
+  }
+}
