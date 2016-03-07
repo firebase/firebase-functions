@@ -14,7 +14,7 @@ export default class DatabaseDeltaSnapshot {
   private _newData: any;
 
   private _childPath: string;
-  private _isPrior: boolean;
+  private _isPrevious: boolean;
 
   private static _populateRef(path: string, token?: string, context?: string) {
     let ref = new Firebase(env().get('firebase.database.url'), context || token).child(path);
@@ -50,7 +50,7 @@ export default class DatabaseDeltaSnapshot {
 
   val(): any {
     let parts = pathParts(this._childPath);
-    let source = this._isPrior ? this._data : this._newData;
+    let source = this._isPrevious ? this._data : this._newData;
     return _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
   }
 
@@ -62,15 +62,15 @@ export default class DatabaseDeltaSnapshot {
     if (!childPath) {
       return this;
     }
-    return this._dup(this._isPrior, childPath);
+    return this._dup(this._isPrevious, childPath);
   }
 
-  prior(): DatabaseDeltaSnapshot {
-    return this._isPrior ? this : this._dup(true);
+  previous(): DatabaseDeltaSnapshot {
+    return this._isPrevious ? this : this._dup(true);
   }
 
   current(): DatabaseDeltaSnapshot {
-    return this._isPrior ? this._dup(false) : this;
+    return this._isPrevious ? this._dup(false) : this;
   }
 
   changed(): boolean {
@@ -108,13 +108,13 @@ export default class DatabaseDeltaSnapshot {
     return _.isPlainObject(val) ? Object.keys(val).length : 0;
   }
 
-  private _dup(prior: boolean, childPath?: string): DatabaseDeltaSnapshot {
+  private _dup(previous: boolean, childPath?: string): DatabaseDeltaSnapshot {
     let dup = new DatabaseDeltaSnapshot();
     [dup._path, dup._authToken, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._authToken, this._data, this._delta, this._childPath, this._newData];
 
-    if (prior) {
-      dup._isPrior = true;
+    if (previous) {
+      dup._isPrevious = true;
     }
 
     if (childPath) {
