@@ -7,18 +7,20 @@ import DatabaseDeltaSnapshot from './delta-snapshot';
 import {normalizePath} from '../utils';
 import {env} from '../index';
 
+interface DatabaseTriggerDefinition extends FirebaseTriggerDefinition {
+  path: string;
+}
+
 export default class DatabaseBuilder {
   private _path: string;
   private _condition: string;
   private _filter: string;
 
-  _toConfig(event?: string): FirebaseTriggerDefinition {
+  _toConfig(event?: string): DatabaseTriggerDefinition {
     return {
       service: 'firebase.database',
       event: event || 'write',
-      options: {
-        path: this._path
-      }
+      path: this._path
     };
   }
 
@@ -28,13 +30,13 @@ export default class DatabaseBuilder {
     return this;
   }
 
-  on(event: string, handler: (FirebaseEvent) => any): GCFHandler {
+  on(event: string, handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): GCFHandler {
     if (!this._path) {
       throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
     }
 
     let wrappedHandler: GCFHandler = function(data: GCFDatabasePayload) {
-      let event = new FirebaseEvent({
+      let event = new FirebaseEvent<DatabaseDeltaSnapshot>({
         service: 'firebase.database',
         type: data['event'],
         instance: env().get('firebase.database.url'),

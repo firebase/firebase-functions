@@ -7,13 +7,13 @@ interface FirebaseEventOptions {
   data?: any;
 }
 
-export default class FirebaseEvent {
+export default class FirebaseEvent<T> {
   service: string;
   type: string;
   instance: string;
   uid: string;
   deviceId: string;
-  data: any;
+  data: T;
 
   constructor(options: FirebaseEventOptions) {
     [this.service, this.type, this.instance, this.uid, this.deviceId, this.data] =
