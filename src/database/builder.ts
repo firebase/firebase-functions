@@ -1,5 +1,6 @@
 /// <reference path="../gcf.d.ts" />
 /// <reference path="../../typings/main.d.ts" />
+/// <reference path="../trigger.d.ts" />
 
 import FirebaseEvent from '../event';
 import DatabaseDeltaSnapshot from './delta-snapshot';
@@ -11,10 +12,13 @@ export default class DatabaseBuilder {
   private _condition: string;
   private _filter: string;
 
-  _toConfig(event?: string): any {
+  _toConfig(event?: string): FirebaseTriggerDefinition {
     return {
-      path: this._path,
-      event: event || 'write'
+      service: 'firebase.database',
+      event: event || 'write',
+      options: {
+        path: this._path
+      }
     };
   }
 

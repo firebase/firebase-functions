@@ -13,7 +13,13 @@ describe('DatabaseBuilder', () => {
     it('should append paths if called multiple times', () => {
       subject.path('first/bit');
       subject.path('{id}/second/bit');
-      return expect(subject._toConfig().path).to.eq('/first/bit/{id}/second/bit');
+      return expect(subject._toConfig()).to.deep.equal({
+        service: 'firebase.database',
+        event: 'write',
+        options: {
+          path: '/first/bit/{id}/second/bit'
+        }
+      });
     });
   });
 
