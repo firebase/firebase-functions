@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "pretest": "tsc test/index.spec.ts --outDir .tmp && cp -r test/fixtures .tmp/test",
-    "test": "mocha .tmp/test/index.spec.js",
+    "test": "tslint src/**/*.ts test/**/*.ts && mocha .tmp/test/index.spec.js",
     "posttest": "rm -rf .tmp"
   },
   "repository": {
@@ -28,6 +28,7 @@
     "chai-as-promised": "^5.2.0",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
+    "tslint": "^3.5.0",
     "typescript": "^1.8.6",
     "typings": "^0.6.8"
   },

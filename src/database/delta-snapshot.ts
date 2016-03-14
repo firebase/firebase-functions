@@ -1,8 +1,8 @@
 /// <reference path="../../typings/main.d.ts" />
 
-import {env} from "../index";
-import * as _ from "lodash";
-import {normalizePath, pathParts, applyChange, valAt} from "../utils";
+import {env} from '../index';
+import * as _ from 'lodash';
+import {normalizePath, pathParts, applyChange, valAt} from '../utils';
 
 export default class DatabaseDeltaSnapshot {
   private _adminRef: Firebase;

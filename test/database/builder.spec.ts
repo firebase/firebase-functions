@@ -16,9 +16,7 @@ describe('DatabaseBuilder', () => {
       return expect(subject._toConfig()).to.deep.equal({
         service: 'firebase.database',
         event: 'write',
-        options: {
-          path: '/first/bit/{id}/second/bit'
-        }
+        path: '/first/bit/{id}/second/bit'
       });
     });
   });
