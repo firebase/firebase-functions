@@ -3,6 +3,7 @@
 import {env} from '../index';
 import * as _ from 'lodash';
 import {normalizePath, pathParts, applyChange, valAt} from '../utils';
+import * as Firebase from 'firebase';
 
 export default class DatabaseDeltaSnapshot {
   private _adminRef: Firebase;

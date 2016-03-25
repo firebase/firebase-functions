@@ -30,7 +30,8 @@
     "mocha": "^2.4.5",
     "tslint": "^3.5.0",
     "typescript": "^1.8.6",
-    "typings": "^0.6.8"
+    "typings": "^0.6.8",
+    "firebase": "^2.4"
   },
   "peerDependencies": {
     "firebase": "^2.4"

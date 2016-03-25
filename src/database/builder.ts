@@ -40,7 +40,8 @@ export default class DatabaseBuilder {
         service: 'firebase.database',
         type: data['event'],
         instance: env().get('firebase.database.url'),
-        data: new DatabaseDeltaSnapshot(data)
+        data: new DatabaseDeltaSnapshot(data),
+        params: data.params
       });
 
       return handler(event);
