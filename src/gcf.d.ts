@@ -9,4 +9,5 @@ declare interface GCFDatabasePayload {
   authToken: string;
   data: any;
   delta: any;
+  params?: any;
 }

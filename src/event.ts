@@ -5,6 +5,7 @@ interface FirebaseEventOptions {
   uid?: string;
   deviceId?: string;
   data?: any;
+  params?: {[option: string]: any};
 }
 
 export default class FirebaseEvent<T> {
@@ -14,9 +15,10 @@ export default class FirebaseEvent<T> {
   uid: string;
   deviceId: string;
   data: T;
+  params: {[option: string]: any};
 
   constructor(options: FirebaseEventOptions) {
-    [this.service, this.type, this.instance, this.uid, this.deviceId, this.data] =
-      [options.service, options.type, options.instance, options.uid, options.deviceId, options.data];
+    [this.service, this.type, this.instance, this.uid, this.deviceId, this.data, this.params] =
+      [options.service, options.type, options.instance, options.uid, options.deviceId, options.data, options.params || {}];
   }
 }
