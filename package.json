@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "tsc",
-    "pretest": "tsc test/index.spec.ts --outDir .tmp && cp -r test/fixtures .tmp/test",
+    "pretest": "tsc test/index.spec.ts --target es5 --outDir .tmp && cp -r test/fixtures .tmp/test",
     "test": "tslint src/**/*.ts test/**/*.ts && mocha .tmp/test/index.spec.js",
     "posttest": "rm -rf .tmp"
   },

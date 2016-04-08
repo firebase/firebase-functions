@@ -35,18 +35,24 @@ export default class DatabaseDeltaSnapshot {
     }
   }
 
-  ref(): Firebase {
+  get ref(): Firebase {
     this._ref = this._ref || this._authToken ?
       DatabaseDeltaSnapshot._populateRef(this._fullPath(), this._authToken) :
       DatabaseDeltaSnapshot._populateRef(this._fullPath(), null, '__noauth__');
     return this._ref;
   }
 
-  adminRef(): Firebase {
+  get adminRef(): Firebase {
     this._adminRef = this._adminRef || DatabaseDeltaSnapshot._populateRef(
       this._fullPath(), env().get('firebase.database.secret'), '__admin__'
     );
     return this._adminRef;
+  }
+
+  get key(): string {
+    let fullPath = this._fullPath().substring(1).split('/');
+    let last = _.last(fullPath);
+    return (!last || last === '') ? null : last;
   }
 
   val(): any {
@@ -92,16 +98,6 @@ export default class DatabaseDeltaSnapshot {
   hasChildren(): boolean {
     let val = this.val();
     return _.isPlainObject(val) && _.keys(val).length > 0;
-  }
-
-  key(): string {
-    let fullPath = this._fullPath().substring(1).split('/');
-    let last = _.last(fullPath);
-    return (!last || last === '') ? null : last;
-  }
-
-  name(): string {
-    return this.key();
   }
 
   numChildren(): number {

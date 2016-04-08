@@ -153,13 +153,13 @@ describe('DatabaseDeltaSnapshot', () => {
     });
   });
 
-  describe('#key(): string', () => {
+  describe('#key: string', () => {
     it('should return the key name', () => {
-      expect(subject.key()).to.equal('foo');
+      expect(subject.key).to.equal('foo');
     });
 
     it('should return null for the root', () => {
-      expect(new DatabaseDeltaSnapshot().key()).to.be.null;
+      expect(new DatabaseDeltaSnapshot().key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
@@ -169,11 +169,11 @@ describe('DatabaseDeltaSnapshot', () => {
         delta: {},
         authToken: null,
         type: 'write'
-      }).key()).to.be.null;
+      }).key).to.be.null;
     });
 
     it('should work for child paths', () => {
-      expect(subject.child('foo/bar').key()).to.equal('bar');
+      expect(subject.child('foo/bar').key).to.equal('bar');
     });
   });
 });
