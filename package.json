@@ -30,13 +30,14 @@
     "mocha": "^2.4.5",
     "tslint": "^3.5.0",
     "typescript": "^1.8.6",
-    "typings": "^0.6.8",
-    "firebase": "^2.4"
+    "typings": "^1.0.4",
+    "firebase": "^3.0.2"
   },
   "peerDependencies": {
-    "firebase": "^2.4"
+    "firebase": "^3.0.2"
   },
   "dependencies": {
-    "lodash": "^4.6.1"
+    "lodash": "^4.6.1",
+    "request-promise": "^3.0.0"
   }
 }

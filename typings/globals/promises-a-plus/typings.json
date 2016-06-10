@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/56068d3354648384ff32db20b6fcda4262856f33/promises-a-plus/promises-a-plus.d.ts",
+    "raw": "github:DefinitelyTyped/DefinitelyTyped/promises-a-plus/promises-a-plus.d.ts#56068d3354648384ff32db20b6fcda4262856f33",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/56068d3354648384ff32db20b6fcda4262856f33/promises-a-plus/promises-a-plus.d.ts"
+  }
+}

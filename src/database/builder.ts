@@ -1,11 +1,11 @@
 /// <reference path="../gcf.d.ts" />
-/// <reference path="../../typings/main.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 /// <reference path="../trigger.d.ts" />
 
 import FirebaseEvent from '../event';
 import DatabaseDeltaSnapshot from './delta-snapshot';
-import {normalizePath} from '../utils';
-import {env} from '../index';
+import {normalizePath, tokenToApp} from '../utils';
+import * as functions from '../index';
 
 interface DatabaseTriggerDefinition extends FirebaseTriggerDefinition {
   path: string;
@@ -39,9 +39,10 @@ export default class DatabaseBuilder {
       let event = new FirebaseEvent<DatabaseDeltaSnapshot>({
         service: 'firebase.database',
         type: data['event'],
-        instance: env().get('firebase.database.url'),
+        instance: functions.env.get('firebase.database.url'),
         data: new DatabaseDeltaSnapshot(data),
-        params: data.params
+        params: data.params,
+        app: tokenToApp(data.authToken)
       });
 
       return handler(event);

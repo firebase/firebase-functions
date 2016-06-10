@@ -1,0 +1,8 @@
+{
+  "resolution": "main",
+  "tree": {
+    "src": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/d6e3f732183ca0ee4c4b438323253b384f5b4091/chai-as-promised/chai-as-promised.d.ts",
+    "raw": "github:DefinitelyTyped/DefinitelyTyped/chai-as-promised/chai-as-promised.d.ts#d6e3f732183ca0ee4c4b438323253b384f5b4091",
+    "typings": "https://raw.githubusercontent.com/DefinitelyTyped/DefinitelyTyped/d6e3f732183ca0ee4c4b438323253b384f5b4091/chai-as-promised/chai-as-promised.d.ts"
+  }
+}

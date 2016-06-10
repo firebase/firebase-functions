@@ -1,4 +1,4 @@
-/// <reference path="../../typings/main.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 
 import DatabaseBuilder from '../../src/database/builder';
 import {expect as expect} from 'chai';

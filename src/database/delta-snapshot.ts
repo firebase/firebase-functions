@@ -1,13 +1,13 @@
-/// <reference path="../../typings/main.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
+/// <reference path="../firebase.d.ts" />
 
-import {env} from '../index';
 import * as _ from 'lodash';
-import {normalizePath, pathParts, applyChange, valAt} from '../utils';
-import * as Firebase from 'firebase';
+import {normalizePath, pathParts, applyChange, valAt, tokenToApp} from '../utils';
+import * as firebase from 'firebase';
 
 export default class DatabaseDeltaSnapshot {
-  private _adminRef: Firebase;
-  private _ref: Firebase;
+  private _adminRef: firebase.DatabaseReference;
+  private _ref: firebase.DatabaseReference;
   private _path: string;
   private _authToken: string;
   private _data: any;
@@ -16,14 +16,6 @@ export default class DatabaseDeltaSnapshot {
 
   private _childPath: string;
   private _isPrevious: boolean;
-
-  private static _populateRef(path: string, token?: string, context?: string) {
-    let ref = new Firebase(env().get('firebase.database.url'), context || token).child(path);
-    if (token) {
-      ref.authWithCustomToken(token, () => {});
-    }
-    return ref;
-  }
 
   constructor(eventData?: GCFDatabasePayload) {
     if (eventData) {
@@ -35,18 +27,17 @@ export default class DatabaseDeltaSnapshot {
     }
   }
 
-  get ref(): Firebase {
-    this._ref = this._ref || this._authToken ?
-      DatabaseDeltaSnapshot._populateRef(this._fullPath(), this._authToken) :
-      DatabaseDeltaSnapshot._populateRef(this._fullPath(), null, '__noauth__');
+  get ref(): firebase.DatabaseReference {
+    if (this._ref) {
+      return this._ref;
+    }
+
+    this._ref = tokenToApp(this._authToken).database().ref(this._fullPath());
     return this._ref;
   }
 
-  get adminRef(): Firebase {
-    this._adminRef = this._adminRef || DatabaseDeltaSnapshot._populateRef(
-      this._fullPath(), env().get('firebase.database.secret'), '__admin__'
-    );
-    return this._adminRef;
+  get adminRef(): firebase.DatabaseReference {
+    return firebase.app().database().ref(this._fullPath());
   }
 
   get key(): string {

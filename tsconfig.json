@@ -3,11 +3,10 @@
         "module": "commonjs",
         "target": "es5",
         "noImplicitAny": false,
-        "inlineSourceMap": true,
         "outDir": "lib"
     },
     "files": [
-      "typings/main.d.ts",
+      "typings/index.d.ts",
       "src/index.ts"
     ]
 }

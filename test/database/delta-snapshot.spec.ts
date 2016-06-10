@@ -1,4 +1,4 @@
-/// <reference path="../../typings/main.d.ts" />
+/// <reference path="../../typings/index.d.ts" />
 
 import DatabaseDeltaSnapshot from '../../src/database/delta-snapshot';
 import {expect as expect} from 'chai';
