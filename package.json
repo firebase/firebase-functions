@@ -34,7 +34,7 @@
     "firebase": "^3.0.2"
   },
   "peerDependencies": {
-    "firebase": "^3.0.2"
+    "firebase": "3.1.0-functions"
   },
   "dependencies": {
     "lodash": "^4.6.1",
