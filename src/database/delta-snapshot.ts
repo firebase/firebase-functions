@@ -63,11 +63,11 @@ export default class DatabaseDeltaSnapshot {
     return this._dup(this._isPrevious, childPath);
   }
 
-  previous(): DatabaseDeltaSnapshot {
+  get previous(): DatabaseDeltaSnapshot {
     return this._isPrevious ? this : this._dup(true);
   }
 
-  current(): DatabaseDeltaSnapshot {
+  get current(): DatabaseDeltaSnapshot {
     return this._isPrevious ? this._dup(false) : this;
   }
 

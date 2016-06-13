@@ -64,27 +64,27 @@ describe('DatabaseDeltaSnapshot', () => {
     });
   });
 
-  describe('#previous(): DatabaseDeltaSnapshot', () => {
+  describe('#previous: DatabaseDeltaSnapshot', () => {
     it('should cause val() to return old data only', () => {
       populate({a: 'b'}, {a: 'c', d: 'c'});
-      expect(subject.previous().child('a').val()).to.equal('b');
+      expect(subject.previous.child('a').val()).to.equal('b');
     });
 
     it('should return a null if the new value is present', () => {
       populate(null, 23);
-      expect(subject.previous().val()).to.be.null;
+      expect(subject.previous.val()).to.be.null;
     });
   });
 
-  describe('#current(): DatabaseDeltaSnapshot', () => {
-    it('should cause a previous() snapshot to return new data', () => {
+  describe('#current: DatabaseDeltaSnapshot', () => {
+    it('should cause a previous snapshot to return new data', () => {
       populate({a: 'b'}, {a: 'c', d: 'c'});
-      expect(subject.previous().child('a').current().val()).to.equal('c');
+      expect(subject.previous.child('a').current.val()).to.equal('c');
     });
 
     it('should return a null if the new value is null', () => {
       populate(23, null);
-      expect(subject.previous().current().val()).to.be.null;
+      expect(subject.previous.current.val()).to.be.null;
     });
   });
 
