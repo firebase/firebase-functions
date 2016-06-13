@@ -5,7 +5,7 @@
 import FirebaseEvent from '../event';
 import DatabaseDeltaSnapshot from './delta-snapshot';
 import {normalizePath, tokenToApp} from '../utils';
-import * as functions from '../index';
+import internal from '../internal';
 
 interface DatabaseTriggerDefinition extends FirebaseTriggerDefinition {
   path: string;
@@ -39,7 +39,7 @@ export default class DatabaseBuilder {
       let event = new FirebaseEvent<DatabaseDeltaSnapshot>({
         service: 'firebase.database',
         type: data['event'],
-        instance: functions.env.get('firebase.database.url'),
+        instance: internal.env.get('firebase.database.url'),
         data: new DatabaseDeltaSnapshot(data),
         params: data.params,
         app: tokenToApp(data.authToken)

@@ -2,9 +2,9 @@
 
 import * as _ from 'lodash';
 import * as firebase from 'firebase';
-import * as functions from './index';
-import * as apps from './apps';
 import DefaultCredential from './default-credential';
+import * as functions from './index';
+import internal from './internal';
 
 export function normalizePath(path: string): string {
   path = path.replace(/\/$/, '');
@@ -74,7 +74,7 @@ export function valAt(source: any, path?: string) {
 
 export function tokenToApp(token: string): firebase.App {
   if (!token) {
-    return apps.noauth;
+    return internal.apps.noauth;
   }
 
   try {

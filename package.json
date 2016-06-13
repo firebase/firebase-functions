@@ -31,7 +31,7 @@
     "tslint": "^3.5.0",
     "typescript": "^1.8.6",
     "typings": "^1.0.4",
-    "firebase": "^3.0.2"
+    "firebase": "https://gstatic.com/firebasejs/staging/3.1.0-functions/firebase.tgz"
   },
   "peerDependencies": {
     "firebase": "3.1.0-functions"
