@@ -4,6 +4,7 @@
 import * as _ from 'lodash';
 import {normalizePath, pathParts, applyChange, valAt, tokenToApp} from '../utils';
 import * as firebase from 'firebase';
+import internal from '../internal';
 
 export default class DatabaseDeltaSnapshot {
   private _adminRef: firebase.DatabaseReference;
@@ -28,16 +29,17 @@ export default class DatabaseDeltaSnapshot {
   }
 
   get ref(): firebase.DatabaseReference {
-    if (this._ref) {
-      return this._ref;
+    if (!this._ref) {
+      this._ref = tokenToApp(this._authToken).database().ref(this._fullPath());
     }
-
-    this._ref = tokenToApp(this._authToken).database().ref(this._fullPath());
     return this._ref;
   }
 
   get adminRef(): firebase.DatabaseReference {
-    return firebase.app().database().ref(this._fullPath());
+    if (!this._adminRef) {
+      this._adminRef = internal.apps.admin.database().ref(this._fullPath());
+    }
+    return this._adminRef;
   }
 
   get key(): string {
