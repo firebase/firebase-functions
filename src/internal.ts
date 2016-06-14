@@ -7,8 +7,8 @@ export module internal {
     export let env = FirebaseEnv.loadPath(process.env.FIREBASE_ENV_PATH || resolve(__dirname, '../../../env.json'));
 
     class Apps {
-        admin_: firebase.App
-        noauth_: firebase.App
+        admin_: firebase.App;
+        noauth_: firebase.App;
         get admin(): firebase.App {
             this.admin_ = this.admin_ || firebase.initializeApp({
                     databaseURL: env.get('firebase.database.url'),

@@ -81,7 +81,7 @@ export function tokenToApp(token: string): firebase.App {
     return firebase.app(token);
   } catch (e) {
     return firebase.initializeApp({
-      databaseURL: functions.env.get('firebase.database.url'),
+      databaseURL: internal.env.get('firebase.database.url'),
       databaseAuthVariableOverride: tokenToAuthOverrides(token),
       credential: new DefaultCredential()
     }, token);
