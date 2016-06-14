@@ -3,7 +3,6 @@
 import * as _ from 'lodash';
 import * as firebase from 'firebase';
 import DefaultCredential from './default-credential';
-import * as functions from './index';
 import internal from './internal';
 
 export function normalizePath(path: string): string {
