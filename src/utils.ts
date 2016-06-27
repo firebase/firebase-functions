@@ -1,9 +1,6 @@
 /// <reference path="../typings/index.d.ts" />
 
 import * as _ from 'lodash';
-import * as firebase from 'firebase';
-import DefaultCredential from './default-credential';
-import internal from './internal';
 
 export function normalizePath(path: string): string {
   path = path.replace(/\/$/, '');
@@ -69,57 +66,4 @@ export function valAt(source: any, path?: string) {
     }
   }
   return leaf;
-}
-
-export function tokenToApp(token: string): firebase.App {
-  if (!token) {
-    return internal.apps.noauth;
-  }
-
-  try {
-    return firebase.app(token);
-  } catch (e) {
-    return firebase.initializeApp({
-      databaseURL: internal.env.get('firebase.database.url'),
-      databaseAuthVariableOverride: tokenToAuthOverrides(token),
-      credential: new DefaultCredential()
-    }, token);
-  }
-}
-
-export function tokenToAuthOverrides(token: string): Object {
-  if (!token) {
-    return {};
-  }
-  let parts = token.split('.');
-  if (!parts[1]) {
-    throw new Error('ID token format invalid.');
-  }
-
-  let claims = JSON.parse(new Buffer(parts[1], 'base64').toString('utf8'));
-  let overrides = {
-    uid: claims['sub'],
-    token: claims
-  };
-
-  // copy over sugared top-level claim keys
-  for (let key of ['email', 'email_verified', 'name']) {
-    if (_.has(claims, key)) {
-      overrides[key] = claims[key];
-    }
-  }
-
-  // pick a provider for the top-level key
-  let identities = _.get(claims, 'firebase.identities');
-  if (!identities) {
-    overrides['provider'] = 'anonymous';
-  } else {
-    for (let provider of ['email', 'google.com', 'facebook.com', 'github.com', 'twitter.com']) {
-      if (_.has(identities, provider)) {
-        overrides['provider'] = provider.replace('.com', '');
-      }
-    }
-  }
-
-  return overrides;
 }

@@ -1,6 +1,6 @@
 /// <reference path="../typings/index.d.ts" />
 
-import {normalizePath, pathParts, valAt, applyChange, tokenToAuthOverrides} from '../src/utils';
+import {normalizePath, pathParts, valAt, applyChange} from '../src/utils';
 import {expect} from 'chai';
 
 describe ('utils', () => {
@@ -55,60 +55,6 @@ describe ('utils', () => {
       let to = {a: {b: 'bar', c: null}, d: null, e: {f: 'g'}};
       let result = {a: {b: 'bar', d: 444}, e: {f: 'g'}};
       expect(applyChange(from, to)).to.deep.equal(result);
-    });
-  });
-
-  describe('.tokenToAuthOverrides(token: string): Object', () => {
-    let encodeToken: (Object) => string = claims => '.' + new Buffer(JSON.stringify(claims)).toString('base64');
-
-    it('should populate uid and token if only sub is available', () => {
-      let claims = {
-        sub: 'abcdef'
-      };
-
-      expect(tokenToAuthOverrides(encodeToken(claims))).to.deep.equal({uid: 'abcdef', provider: 'anonymous', token: claims});
-    });
-
-    it('should populate email, email_verified, and name if available', () => {
-      let claims = {
-        sub: 'abcdef',
-        email: 'foo@example.com',
-        email_verified: false,
-        name: 'Sally User',
-        firebase: {
-          identities: {'email': ['foo@example.com']}
-        }
-      };
-
-      expect(tokenToAuthOverrides(encodeToken(claims))).to.deep.equal({
-        uid: 'abcdef',
-        provider: 'email',
-        email: 'foo@example.com',
-        email_verified: false,
-        name: 'Sally User',
-        token: claims
-      });
-    });
-
-    it('should populate a provider if one is available', () => {
-      let claims = {
-        sub: 'abcdef',
-        email: 'foo@example.com',
-        email_verified: false,
-        name: 'Sally User',
-        firebase: {
-          identities: {'google.com': ['abcdef']}
-        }
-      };
-
-      expect(tokenToAuthOverrides(encodeToken(claims))).to.deep.equal({
-        uid: 'abcdef',
-        provider: 'google',
-        email: 'foo@example.com',
-        email_verified: false,
-        name: 'Sally User',
-        token: claims
-      });
     });
   });
 });

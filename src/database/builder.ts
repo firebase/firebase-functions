@@ -42,7 +42,7 @@ export default class DatabaseBuilder {
         instance: internal.env.get('firebase.database.url'),
         data: new DatabaseDeltaSnapshot(data),
         params: data.params,
-        authToken: data.authToken
+        auth: data.auth
       });
 
       return handler(event);

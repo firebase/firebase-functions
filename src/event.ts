@@ -1,17 +1,16 @@
 /// <reference path="firebase.d.ts" />
 
 import {App} from 'firebase';
-import {tokenToApp} from './utils';
+import internal from './internal';
 
 interface FirebaseEventOptions {
   service: string;
   type: string;
   instance?: string;
-  uid?: string;
   deviceId?: string;
   data?: any;
   params?: {[option: string]: any};
-  authToken?: string;
+  auth?: AuthMode;
 }
 
 export default class FirebaseEvent<T> {
@@ -22,17 +21,20 @@ export default class FirebaseEvent<T> {
   deviceId: string;
   data: T;
   params: {[option: string]: any};
-  authToken: string;
+  auth: any;
   _app: App;
 
   constructor(options: FirebaseEventOptions) {
-    [this.service, this.type, this.instance, this.uid, this.deviceId, this.data, this.params, this.authToken] =
-      [options.service, options.type, options.instance, options.uid, options.deviceId, options.data, options.params || {}, options.authToken];
+    [this.service, this.type, this.instance, this.deviceId, this.data, this.params, this.auth] =
+      [options.service, options.type, options.instance, options.deviceId, options.data, options.params || {}, options.auth.variable];
+    if (typeof options.auth.variable === 'object' && options.auth.variable.hasOwnProperty('uid')) {
+      this.uid = options.auth.variable.uid;
+    }
   }
 
   get app(): App {
     if (!this._app) {
-      this._app = tokenToApp(this.authToken);
+      this._app = internal.apps.forMode(this.auth);
     }
     return this._app;
   }

@@ -3,10 +3,15 @@ declare interface GCFHandler {
   __trigger?: Object;
 }
 
+declare interface AuthMode {
+  admin: boolean;
+  variable?: any;
+}
+
 declare interface GCFDatabasePayload {
   type: string;
   path: string;
-  authToken: string;
+  auth: AuthMode;
   data: any;
   delta: any;
   params?: any;

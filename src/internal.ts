@@ -22,6 +22,25 @@ export module internal {
                 }, '__noauth__');
             return this.noauth_;
         }
+        forMode(auth: AuthMode): firebase.App {
+            if (auth.admin) {
+                return this.admin;
+            }
+            if (!auth.variable) {
+                return this.noauth;
+            }
+
+            const key = JSON.stringify(auth.variable);
+            try {
+                return firebase.app(key);
+            } catch (e) {
+                return firebase.initializeApp({
+                    databaseURL: internal.env.get('firebase.database.url'),
+                    databaseAuthVariableOverride: auth.variable,
+                    credential: new DefaultCredential()
+                }, key);
+            }
+        }
     }
 
     export let apps = new Apps();

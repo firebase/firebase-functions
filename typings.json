@@ -9,7 +9,8 @@
     "lodash": "github:DefinitelyTyped/DefinitelyTyped/lodash/lodash-3.10.d.ts#86dbea8fc37d9473fee465da4f0a21bea4f8cbd9",
     "node": "github:DefinitelyTyped/DefinitelyTyped/node/node.d.ts#48c1e3c1d6baefa4f1a126f188c27c4fefd36bff",
     "promises-a-plus": "github:DefinitelyTyped/DefinitelyTyped/promises-a-plus/promises-a-plus.d.ts#56068d3354648384ff32db20b6fcda4262856f33",
-    "request-promise": "registry:dt/request-promise#0.4.2+20160316155526"
+    "request-promise": "registry:dt/request-promise#0.4.2+20160316155526",
+    "sinon": "registry:dt/sinon#1.16.0+20160517064723"
   },
   "dependencies": {
     "request": "registry:npm/request#2.69.0+20160428223725"

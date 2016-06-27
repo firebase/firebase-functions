@@ -10,7 +10,7 @@ describe('DatabaseDeltaSnapshot', () => {
       path: '/foo',
       data: old,
       delta: change,
-      authToken: null,
+      auth: {admin: false},
       type: 'write'
     });
   };
@@ -167,7 +167,7 @@ describe('DatabaseDeltaSnapshot', () => {
         path: '/',
         data: null,
         delta: {},
-        authToken: null,
+        auth: {admin: false},
         type: 'write'
       }).key).to.be.null;
     });
