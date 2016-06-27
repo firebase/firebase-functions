@@ -1,3 +1,4 @@
+import * as cloud from './cloud';
 import DatabaseBuilder from './database/builder';
 import FirebaseEnv from './env'
 import internal from './internal'
@@ -8,14 +9,16 @@ import * as firebase from 'firebase';
 // which breaks in node 0.12. This method helps bridge older JS and TypeScript.
 interface FirebaseFunctions {
   database():DatabaseBuilder
+  cloud:cloud.CloudBuilders
   app:firebase.App
   env:FirebaseEnv
 }
 
-let functions = <FirebaseFunctions>{
+const functions = <FirebaseFunctions>{
   database(): DatabaseBuilder {
     return new DatabaseBuilder();
-  }
+  },
+  cloud: cloud
 };
 
 Object.defineProperty(functions, 'app', {

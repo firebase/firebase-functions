@@ -1,4 +1,4 @@
-declare interface FirebaseTriggerDefinition {
+declare interface TriggerDefinition {
   service: string;
   event: string;
 }

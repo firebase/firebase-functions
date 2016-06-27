@@ -7,7 +7,7 @@ import DatabaseDeltaSnapshot from './delta-snapshot';
 import {normalizePath} from '../utils';
 import internal from '../internal';
 
-interface DatabaseTriggerDefinition extends FirebaseTriggerDefinition {
+interface DatabaseTriggerDefinition extends TriggerDefinition {
   path: string;
 }
 
@@ -31,6 +31,10 @@ export default class DatabaseBuilder {
   }
 
   on(event: string, handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): GCFHandler {
+    if (event !== 'write') {
+      throw new Error(`Provider database does not support event type "${event}"`);
+    }
+
     if (!this._path) {
       throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
     }
