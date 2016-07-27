@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Node helpers for Firebase Functions.",
   "main": "lib/index.js",
   "scripts": {
@@ -32,10 +32,10 @@
     "tslint": "^3.5.0",
     "typescript": "^1.8.6",
     "typings": "^1.0.4",
-    "firebase": "https://gstatic.com/firebasejs/staging/3.1.0-functions/firebase.tgz"
+    "firebase": "^3.1.0"
   },
   "peerDependencies": {
-    "firebase": "3.1.0-functions"
+    "firebase": "^3.1.0"
   },
   "dependencies": {
     "lodash": "^4.6.1",
