@@ -23,6 +23,9 @@ export module internal {
             return this.noauth_;
         }
         forMode(auth: AuthMode): firebase.App {
+            if (typeof auth !== 'object') {
+                return this.noauth;
+            }
             if (auth.admin) {
                 return this.admin;
             }

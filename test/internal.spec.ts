@@ -3,7 +3,7 @@
 import {expect} from 'chai';
 import * as sinon from 'sinon';
 import FirebaseEnv from '../src/env';
-import {internal} from '../src/internal';
+import internal from '../src/internal';
 import * as firebase from 'firebase';
 
 describe('internal.apps', () => {

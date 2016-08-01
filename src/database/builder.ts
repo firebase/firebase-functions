@@ -6,6 +6,8 @@ import FirebaseEvent from '../event';
 import DatabaseDeltaSnapshot from './delta-snapshot';
 import {normalizePath} from '../utils';
 import internal from '../internal';
+import * as _ from 'lodash';
+import {FirebaseEventMetadata} from '../event';
 
 interface DatabaseTriggerDefinition extends TriggerDefinition {
   path: string;
@@ -39,16 +41,15 @@ export default class DatabaseBuilder {
       throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
     }
 
-    let wrappedHandler: GCFHandler = function(data: GCFDatabasePayload) {
-      let event = new FirebaseEvent<DatabaseDeltaSnapshot>({
+    let wrappedHandler: GCFHandler = function(payload: GCFDatabasePayload) {
+      // TODO(thomas/bleigh) 'instance' isn't part of the wire protocol. Should it be? It should also probably be
+      // resource
+      // TODO(thomas) add service to the wire protocol (http://b/30482184)
+      const metadata = <FirebaseEventMetadata>_.extend({}, payload, {
         service: 'firebase.database',
-        type: data['event'],
-        instance: internal.env.get('firebase.database.url'),
-        data: new DatabaseDeltaSnapshot(data),
-        params: data.params,
-        auth: data.auth
+        instance: internal.env.get('firebase.database.url')
       });
-
+      const event = new FirebaseEvent(metadata, new DatabaseDeltaSnapshot(payload));
       return handler(event);
     };
 
