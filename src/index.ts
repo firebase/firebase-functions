@@ -7,10 +7,10 @@ import * as firebase from 'firebase';
 // There are a few rough edges around exporting top-level properties in TypeScript.
 // You can get around this with a var, but the emitted JS still uses `get property()` syntax,
 // which breaks in node 0.12. This method helps bridge older JS and TypeScript.
-interface FirebaseFunctions {
+export interface FirebaseFunctions {
   database():DatabaseBuilder
   cloud:cloud.CloudBuilders
-  app:firebase.App
+  app:firebase.app.App
   env:FirebaseEnv
 }
 
@@ -31,4 +31,4 @@ Object.defineProperty(functions, 'env', {
   get: () => internal.env
 });
 
-export = functions;
+export default functions;

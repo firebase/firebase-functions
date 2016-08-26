@@ -1,3 +1,5 @@
+import { TriggerDefinition } from '../trigger';
+
 export interface CloudStorageHandler {
   (data: Object): void;
   __trigger?: CloudStorageTriggerDefinition;

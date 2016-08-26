@@ -1,14 +1,12 @@
-/// <reference path="../../typings/index.d.ts" />
-/// <reference path="../firebase.d.ts" />
-
 import * as _ from 'lodash';
 import {normalizePath, pathParts, applyChange, valAt} from '../utils';
 import * as firebase from 'firebase';
 import internal from '../internal';
+import {AuthMode, GCFDatabasePayload} from '../gcf';
 
 export default class DatabaseDeltaSnapshot {
-  private _adminRef: firebase.DatabaseReference;
-  private _ref: firebase.DatabaseReference;
+  private _adminRef: firebase.database.Reference;
+  private _ref: firebase.database.Reference;
   private _path: string;
   private _auth: AuthMode;
   private _data: any;
@@ -28,14 +26,14 @@ export default class DatabaseDeltaSnapshot {
     }
   }
 
-  get ref(): firebase.DatabaseReference {
+  get ref(): firebase.database.Reference {
     if (!this._ref) {
       this._ref = internal.apps.forMode(this._auth).database().ref(this._fullPath());
     }
     return this._ref;
   }
 
-  get adminRef(): firebase.DatabaseReference {
+  get adminRef(): firebase.database.Reference {
     if (!this._adminRef) {
       this._adminRef = internal.apps.admin.database().ref(this._fullPath());
     }

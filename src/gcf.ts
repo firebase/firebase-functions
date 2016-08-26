@@ -1,14 +1,14 @@
-declare interface GCFHandler {
+export interface GCFHandler {
   (data: GCFDatabasePayload);
   __trigger?: Object;
 }
 
-declare interface AuthMode {
+export interface AuthMode {
   admin: boolean;
   variable?: any;
 }
 
-declare interface GCFDatabasePayload {
+export interface GCFDatabasePayload {
   type: string;
   path: string;
   auth: AuthMode;

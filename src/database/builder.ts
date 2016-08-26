@@ -1,7 +1,5 @@
-/// <reference path="../gcf.d.ts" />
-/// <reference path="../../typings/index.d.ts" />
-/// <reference path="../trigger.d.ts" />
-
+import {TriggerDefinition} from '../trigger';
+import {GCFHandler, GCFDatabasePayload} from '../gcf';
 import FirebaseEvent from '../event';
 import DatabaseDeltaSnapshot from './delta-snapshot';
 import {normalizePath} from '../utils';
@@ -9,7 +7,7 @@ import internal from '../internal';
 import * as _ from 'lodash';
 import {FirebaseEventMetadata} from '../event';
 
-interface DatabaseTriggerDefinition extends TriggerDefinition {
+export interface DatabaseTriggerDefinition extends TriggerDefinition {
   path: string;
 }
 

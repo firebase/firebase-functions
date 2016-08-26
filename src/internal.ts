@@ -2,27 +2,27 @@ import DefaultCredential from './default-credential';
 import FirebaseEnv from './env'
 import {resolve} from 'path';
 import * as firebase from 'firebase';
-
+import {AuthMode} from './gcf';
 export module internal {
     export let env = FirebaseEnv.loadPath(process.env.FIREBASE_ENV_PATH || resolve(__dirname, '../../../env.json'));
 
-    class Apps {
-        admin_: firebase.App;
-        noauth_: firebase.App;
-        get admin(): firebase.App {
+    export class Apps {
+        admin_: firebase.app.App;
+        noauth_: firebase.app.App;
+        get admin(): firebase.app.App {
             this.admin_ = this.admin_ || firebase.initializeApp({
                     databaseURL: env.get('firebase.database.url'),
                     credential: new DefaultCredential()
                 }, '__admin__');
             return this.admin_;
         }
-        get noauth(): firebase.App {
+        get noauth(): firebase.app.App {
             this.noauth_ = this.noauth_ || firebase.initializeApp({
                     databaseURL: env.get('firebase.database.url')
                 }, '__noauth__');
             return this.noauth_;
         }
-        forMode(auth: AuthMode): firebase.App {
+        forMode(auth: AuthMode): firebase.app.App {
             if (typeof auth !== 'object') {
                 return this.noauth;
             }

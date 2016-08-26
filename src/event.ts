@@ -1,8 +1,7 @@
-/// <reference path="firebase.d.ts" />
-
-import {App} from 'firebase';
+import * as firebase from 'firebase';
 import internal from './internal';
 import * as _ from 'lodash';
+import { AuthMode } from './gcf';
 
 export interface FirebaseEventMetadata {
   service: string;
@@ -22,7 +21,7 @@ export default class FirebaseEvent<T> {
   data: T;
   params: {[option: string]: any};
   private _auth: AuthMode; // we have not yet agreed on what we want to expose here
-  private _app: App;
+  private _app: firebase.app.App;
 
   constructor(metadata: FirebaseEventMetadata, data: T) {
     [this.service, this.type, this.instance, this.deviceId, this.data, this.params, this._auth] =
@@ -33,7 +32,7 @@ export default class FirebaseEvent<T> {
     }
   }
 
-  get app(): App {
+  get app(): firebase.app.App {
     if (!this._app) {
       this._app = internal.apps.forMode(this._auth);
     }

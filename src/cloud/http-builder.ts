@@ -1,4 +1,4 @@
-/// <reference path="../trigger.d.ts" />
+import { TriggerDefinition } from '../trigger';
 
 export interface CloudHttpHandler {
   (req: any, res: any): any;
