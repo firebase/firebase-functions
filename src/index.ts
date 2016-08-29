@@ -1,34 +1,4 @@
-import * as cloud from './cloud';
-import DatabaseBuilder from './database/builder';
-import FirebaseEnv from './env'
-import internal from './internal'
-import * as firebase from 'firebase';
+import FirebaseFunctions from './functions';
 
-// There are a few rough edges around exporting top-level properties in TypeScript.
-// You can get around this with a var, but the emitted JS still uses `get property()` syntax,
-// which breaks in node 0.12. This method helps bridge older JS and TypeScript.
-export interface FirebaseFunctions {
-  database():DatabaseBuilder
-  cloud:cloud.CloudBuilders
-  app:firebase.app.App
-  env:FirebaseEnv
-}
-
-const functions = <FirebaseFunctions>{
-  database(): DatabaseBuilder {
-    return new DatabaseBuilder();
-  },
-  cloud: cloud
-};
-
-Object.defineProperty(functions, 'app', {
-  enumerable: true,
-  get: () => internal.apps.admin
-});
-
-Object.defineProperty(functions, 'env', {
-  enumerable: true,
-  get: () => internal.env
-});
-
-export default functions;
+const functionsApi:FirebaseFunctions = new FirebaseFunctions();
+export = functionsApi;
