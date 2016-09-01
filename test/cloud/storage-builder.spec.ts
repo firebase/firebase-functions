@@ -14,15 +14,9 @@ describe('CloudHttpBuilder', () => {
     }
   });
 
-  describe('#on', () => {
-    it('should throw on an event type other than "change"', () => {
-      expect(() => {
-        subject.on('foo', handler)
-      }).to.throw('Provider cloud.storage does not support event type "foo"');
-    });
-
+  describe('#onChange', () => {
     it('should return a CloudStorageTriggerDefinition with appropriate values', () => {
-      expect(subject.on('change', handler));
+      expect(subject.onChange(handler));
       expect(handler.__trigger).to.deep.equal({
         service: 'cloud.storage',
         event: 'change',

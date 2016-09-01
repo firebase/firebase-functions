@@ -24,12 +24,17 @@ export default class CloudStorageBuilder {
     this.bucket = bucket;
   }
 
-  on(event: string, handler: CloudStorageHandler) {
+  on(event: string, handler: CloudStorageHandler): CloudStorageHandler {
     if (event !== 'change') {
       throw new Error(`Provider cloud.storage does not support event type "${event}"`);
     }
 
-    handler.__trigger = this._toConfig(event);
+    console.warn('DEPRECATION NOTICE: cloud.storage("bucket").on("change", handler) is deprecated, use cloud.storage("bucket").onChange(handler)');
+    return this.onChange(handler);
+  }
+
+  onChange(handler: CloudStorageHandler): CloudStorageHandler {
+    handler.__trigger = this._toConfig('change');
     return handler;
   }
 }

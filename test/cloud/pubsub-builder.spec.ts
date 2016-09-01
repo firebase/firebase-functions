@@ -14,15 +14,9 @@ describe('CloudHttpBuilder', () => {
     }
   });
 
-  describe('#on', () => {
-    it('should throw on an event type other than "message"', () => {
-      expect(() => {
-        subject.on('foo', handler)
-      }).to.throw('Provider cloud.pubsub does not support event type "foo"');
-    });
-
+  describe('#onMessage', () => {
     it('should return a CloudPubsubTriggerDefinition with appropriate values', () => {
-      expect(subject.on('message', handler));
+      expect(subject.onMessage(handler));
       expect(handler.__trigger).to.deep.equal({
         service: 'cloud.pubsub',
         event: 'message',

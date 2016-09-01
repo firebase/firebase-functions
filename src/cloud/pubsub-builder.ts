@@ -25,12 +25,17 @@ export default class CloudPubsubBuilder {
     }
   }
 
-  on(event: string, handler: CloudPubsubHandler) {
+  on(event: string, handler: CloudPubsubHandler): CloudPubsubHandler {
     if (event !== 'message') {
       throw new Error(`Provider cloud.pubsub does not support event type "${event}"`);
     }
 
-    handler.__trigger = this._toConfig(event);
+    console.warn('DEPRECATION NOTICE: cloud.pubsub("topic").on("message", handler) is deprecated, use cloud.pubsub("topic").onMessage(handler)');
+    return this.onMessage(handler);
+  }
+
+  onMessage(handler: CloudPubsubHandler): CloudPubsubHandler {
+    handler.__trigger = this._toConfig('message');
     return handler;
   }
 }

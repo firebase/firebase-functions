@@ -14,15 +14,9 @@ describe('CloudHttpBuilder', () => {
     }
   });
 
-  describe('#on', () => {
-    it('should throw on an event type other than "request"', () => {
-      expect(() => {
-        subject.on('foo', handler)
-      }).to.throw('Provider cloud.http does not support event type "foo"');
-    });
-
+  describe('#onRequest', () => {
     it('should return a TriggerDefinition with appropriate values', () => {
-      expect(subject.on('request', handler));
+      expect(subject.onRequest(handler));
       expect(handler.__trigger).to.deep.equal({
         service: 'cloud.http',
         event: 'request'

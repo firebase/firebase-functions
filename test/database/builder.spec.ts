@@ -27,10 +27,10 @@ describe('DatabaseBuilder', () => {
     });
   });
 
-  describe('#on()', () => {
+  describe('#onWrite()', () => {
     it('should throw if path has not been called', () => {
       expect(() => {
-        subject.on('write', evt => _.noop());
+        subject.onWrite(evt => _.noop());
       }).to.throw('Must call .path(pathValue)');
     });
   });

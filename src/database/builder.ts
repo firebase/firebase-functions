@@ -35,6 +35,11 @@ export default class DatabaseBuilder {
       throw new Error(`Provider database does not support event type "${event}"`);
     }
 
+    console.warn('DEPRECATION NOTICE: database().on("write", handler) is deprecated, use database().onWrite(handler)');
+    return this.onWrite(handler);
+  }
+
+  onWrite(handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): GCFHandler {
     if (!this._path) {
       throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
     }
