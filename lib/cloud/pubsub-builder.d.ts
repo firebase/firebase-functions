@@ -12,4 +12,5 @@ export default class CloudPubsubBuilder {
     constructor(topic: string);
     _toConfig(event: string): CloudPubsubTriggerDefinition;
     on(event: string, handler: CloudPubsubHandler): CloudPubsubHandler;
+    onMessage(handler: CloudPubsubHandler): CloudPubsubHandler;
 }

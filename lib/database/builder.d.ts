@@ -12,4 +12,5 @@ export default class DatabaseBuilder {
     _toConfig(event?: string): DatabaseTriggerDefinition;
     path(path: string): DatabaseBuilder;
     on(event: string, handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): GCFHandler;
+    onWrite(handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): GCFHandler;
 }

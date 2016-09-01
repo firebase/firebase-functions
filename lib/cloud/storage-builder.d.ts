@@ -11,4 +11,5 @@ export default class CloudStorageBuilder {
     _toConfig(event: string): CloudStorageTriggerDefinition;
     constructor(bucket: string);
     on(event: string, handler: CloudStorageHandler): CloudStorageHandler;
+    onChange(handler: CloudStorageHandler): CloudStorageHandler;
 }

@@ -6,4 +6,5 @@ export interface CloudHttpHandler {
 export default class CloudHttpBuilder {
     private _toConfig(event);
     on(event: string, handler: CloudHttpHandler): CloudHttpHandler;
+    onRequest(handler: CloudHttpHandler): CloudHttpHandler;
 }
