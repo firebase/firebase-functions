@@ -4,9 +4,10 @@
   "description": "Node helpers for Firebase Functions.",
   "main": "lib/index.js",
   "scripts": {
-    "build": "tsc",
-    "pretest": "tsc test/index.spec.ts --target es5 --outDir .tmp && cp -r test/fixtures .tmp/test",
-    "test": "tslint src/**/*.ts test/**/*.ts && mocha .tmp/test/index.spec.js",
+    "build": "node_modules/.bin/tsc",
+    "lint": "node_modules/.bin/tslint src/{**/*,*}.ts test/{**/*,*}.ts",
+    "pretest": "node_modules/.bin/tsc test/index.spec.ts --target es5 --outDir .tmp && cp -r test/fixtures .tmp/test",
+    "test": "npm run lint && mocha .tmp/test/index.spec.js",
     "posttest": "rm -rf .tmp"
   },
   "repository": {
@@ -24,21 +25,29 @@
   },
   "homepage": "https://github.com/firebase/firebase-functions#readme",
   "devDependencies": {
+    "@types/chai": "^3.4.32",
+    "@types/chai-as-promised": "0.0.28",
+    "@types/mocha": "^2.2.31",
+    "@types/sinon": "^1.16.29",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
+    "firebase": "^3.3",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "sinon": "^1.17.4",
-    "tslint": "^3.5.0",
-    "typescript": "^2.0.0",
-    "typings": "^1.0.4",
-    "firebase": "^3.3"
+    "tslint": "^3.15.1",
+    "typescript": "^2.0.0"
   },
   "peerDependencies": {
     "firebase": "^3.3"
   },
   "dependencies": {
+    "@types/bluebird": "^3.0.32",
+    "@types/es6-promise": "0.0.31",
     "@types/lodash": "^4.14.34",
+    "@types/node": "^6.0.38",
+    "@types/request": "0.0.30",
+    "@types/request-promise": "^3.0.30",
     "lodash": "^4.6.1",
     "request-promise": "^3.0.0"
   },

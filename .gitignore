@@ -1,5 +1,8 @@
 .idea
 .tmp
-node_modules
-coverage
 .npm
+/lib
+
+coverage
+node_modules
+typings
