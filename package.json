@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "0.2.2",
+  "version": "0.3.0-alpha.1",
   "description": "Node helpers for Firebase Functions.",
   "main": "lib/index.js",
   "scripts": {
@@ -28,12 +28,14 @@
     "@types/chai": "^3.4.32",
     "@types/chai-as-promised": "0.0.28",
     "@types/mocha": "^2.2.31",
+    "@types/nock": "^0.54.32",
     "@types/sinon": "^1.16.29",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
     "firebase": "^3.3",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
+    "nock": "^8.0.0",
     "sinon": "^1.17.4",
     "tslint": "^3.15.1",
     "typescript": "^2.0.0"
@@ -43,13 +45,14 @@
   },
   "dependencies": {
     "@types/bluebird": "^3.0.32",
-    "@types/es6-promise": "0.0.31",
     "@types/lodash": "^4.14.34",
     "@types/node": "^6.0.38",
     "@types/request": "0.0.30",
     "@types/request-promise": "^3.0.30",
+    "bluebird": "^3.4.6",
     "lodash": "^4.6.1",
-    "request-promise": "^3.0.0"
+    "request": "^2.74.0",
+    "request-promise": "^4.1.1"
   },
   "typings": "lib/index.d.ts"
 }

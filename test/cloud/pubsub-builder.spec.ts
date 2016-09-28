@@ -1,26 +1,28 @@
-/// <reference path="../../typings/index.d.ts" />
-
-import {default as CloudPubsubBuilder, CloudPubsubHandler} from '../../src/cloud/pubsub-builder';
-import {expect as expect} from 'chai';
+import CloudPubsubBuilder from '../../src/cloud/pubsub-builder';
+import { expect as expect } from 'chai';
+import { FakeEnv } from '../support/helpers';
+import { FunctionHandler } from './../../src/builder';
 
 describe('CloudHttpBuilder', () => {
   let subject: CloudPubsubBuilder;
-  let handler: CloudPubsubHandler;
+  let handler: FunctionHandler;
+  let env: FakeEnv;
 
   beforeEach(() => {
-    subject = new CloudPubsubBuilder('toppy');
+    env = new FakeEnv();
+    subject = new CloudPubsubBuilder(env, 'toppy');
     handler = (data: Object) => {
       return true;
-    }
+    };
   });
 
   describe('#onMessage', () => {
     it('should return a CloudPubsubTriggerDefinition with appropriate values', () => {
-      expect(subject.onMessage(handler));
-      expect(handler.__trigger).to.deep.equal({
+      let result = subject.onMessage(handler);
+      expect(result.__trigger).to.deep.equal({
         service: 'cloud.pubsub',
         event: 'message',
-        topic: 'toppy'
+        topic: 'toppy',
       });
     });
   });

@@ -1,17 +1,16 @@
-/// <reference path="../../typings/index.d.ts" />
-
 import DatabaseDeltaSnapshot from '../../src/database/delta-snapshot';
-import {expect as expect} from 'chai';
+import { expect as expect } from 'chai';
+import { FakeEnv } from '../support/helpers';
 
 describe('DatabaseDeltaSnapshot', () => {
   let subject;
   let populate = (old: any, change: any) => {
-    subject = new DatabaseDeltaSnapshot({
+    subject = new DatabaseDeltaSnapshot(new FakeEnv(), {
       path: '/foo',
       data: old,
       delta: change,
       auth: {admin: false},
-      type: 'write'
+      type: 'write',
     });
   };
 
@@ -159,16 +158,16 @@ describe('DatabaseDeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      expect(new DatabaseDeltaSnapshot().key).to.be.null;
+      expect(new DatabaseDeltaSnapshot(new FakeEnv()).key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
-      expect(new DatabaseDeltaSnapshot({
+      expect(new DatabaseDeltaSnapshot(new FakeEnv(), {
         path: '/',
         data: null,
         delta: {},
         auth: {admin: false},
-        type: 'write'
+        type: 'write',
       }).key).to.be.null;
     });
 

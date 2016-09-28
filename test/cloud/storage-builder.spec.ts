@@ -1,26 +1,28 @@
-/// <reference path="../../typings/index.d.ts" />
-
-import {default as CloudStorageBuilder, CloudStorageHandler} from '../../src/cloud/storage-builder';
+import CloudStorageBuilder from '../../src/cloud/storage-builder';
 import {expect as expect} from 'chai';
+import { FakeEnv } from '../support/helpers';
+import { FunctionHandler } from './../../src/builder';
 
 describe('CloudHttpBuilder', () => {
   let subject: CloudStorageBuilder;
-  let handler: CloudStorageHandler;
+  let handler: FunctionHandler;
+  let env: FakeEnv;
 
   beforeEach(() => {
-    subject = new CloudStorageBuilder('bucky');
+    env = new FakeEnv();
+    subject = new CloudStorageBuilder(env, 'bucky');
     handler = (data: Object) => {
       return true;
-    }
+    };
   });
 
   describe('#onChange', () => {
     it('should return a CloudStorageTriggerDefinition with appropriate values', () => {
-      expect(subject.onChange(handler));
-      expect(handler.__trigger).to.deep.equal({
+      let result = subject.onChange(handler);
+      expect(result.__trigger).to.deep.equal({
         service: 'cloud.storage',
         event: 'change',
-        bucket: 'bucky'
+        bucket: 'bucky',
       });
     });
   });

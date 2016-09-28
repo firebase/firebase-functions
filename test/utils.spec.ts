@@ -1,5 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-
 import {normalizePath, pathParts, valAt, applyChange} from '../src/utils';
 import {expect} from 'chai';
 

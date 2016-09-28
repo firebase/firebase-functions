@@ -1,11 +1,15 @@
 import * as _ from 'lodash';
-import {normalizePath, pathParts, applyChange, valAt} from '../utils';
 import * as firebase from 'firebase';
-import internal from '../internal';
-import {AuthMode, GCFDatabasePayload} from '../gcf';
+
+import { AuthMode, default as Apps } from '../apps';
+import { DatabasePayload } from './builder';
+import { FirebaseEnv } from '../env';
+import { normalizePath, pathParts, applyChange, valAt } from '../utils';
 
 export default class DatabaseDeltaSnapshot {
   private _adminRef: firebase.database.Reference;
+  private _apps: Apps;
+  private _env: FirebaseEnv;
   private _ref: firebase.database.Reference;
   private _path: string;
   private _auth: AuthMode;
@@ -16,7 +20,10 @@ export default class DatabaseDeltaSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(eventData?: GCFDatabasePayload) {
+  constructor(env: FirebaseEnv, eventData?: DatabasePayload) {
+    this._env = env;
+    this._apps = new Apps(this._env);
+
     if (eventData) {
       this._path = eventData.path;
       this._auth = eventData.auth;
@@ -28,14 +35,14 @@ export default class DatabaseDeltaSnapshot {
 
   get ref(): firebase.database.Reference {
     if (!this._ref) {
-      this._ref = internal.apps.forMode(this._auth).database().ref(this._fullPath());
+      this._ref = this._apps.forMode(this._auth).database().ref(this._fullPath());
     }
     return this._ref;
   }
 
   get adminRef(): firebase.database.Reference {
     if (!this._adminRef) {
-      this._adminRef = internal.apps.admin.database().ref(this._fullPath());
+      this._adminRef = this._apps.admin.database().ref(this._fullPath());
     }
     return this._adminRef;
   }
@@ -97,7 +104,7 @@ export default class DatabaseDeltaSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DatabaseDeltaSnapshot {
-    let dup = new DatabaseDeltaSnapshot();
+    let dup = new DatabaseDeltaSnapshot(this._env);
     [dup._path, dup._auth, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._auth, this._data, this._delta, this._childPath, this._newData];
 
