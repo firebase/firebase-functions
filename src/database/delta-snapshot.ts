@@ -20,9 +20,9 @@ export default class DatabaseDeltaSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(env: FirebaseEnv, eventData?: DatabasePayload) {
+  constructor(apps: Apps, env: FirebaseEnv, eventData?: DatabasePayload) {
     this._env = env;
-    this._apps = new Apps(this._env);
+    this._apps = apps;
 
     if (eventData) {
       this._path = eventData.path;
@@ -104,7 +104,7 @@ export default class DatabaseDeltaSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DatabaseDeltaSnapshot {
-    let dup = new DatabaseDeltaSnapshot(this._env);
+    let dup = new DatabaseDeltaSnapshot(this._apps, this._env);
     [dup._path, dup._auth, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._auth, this._data, this._delta, this._childPath, this._newData];
 

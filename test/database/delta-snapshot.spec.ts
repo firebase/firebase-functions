@@ -1,11 +1,16 @@
 import DatabaseDeltaSnapshot from '../../src/database/delta-snapshot';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
+import Apps from '../../src/apps';
+import { UnauthenticatedCredential } from '../../src/credential';
 
 describe('DatabaseDeltaSnapshot', () => {
   let subject;
+  const env = new FakeEnv();
+  const apps = new Apps(new UnauthenticatedCredential(), env);
+
   let populate = (old: any, change: any) => {
-    subject = new DatabaseDeltaSnapshot(new FakeEnv(), {
+    subject = new DatabaseDeltaSnapshot(apps, env, {
       path: '/foo',
       data: old,
       delta: change,
@@ -158,11 +163,11 @@ describe('DatabaseDeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      expect(new DatabaseDeltaSnapshot(new FakeEnv()).key).to.be.null;
+      expect(new DatabaseDeltaSnapshot(apps, env).key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
-      expect(new DatabaseDeltaSnapshot(new FakeEnv(), {
+      expect(new DatabaseDeltaSnapshot(apps, env, {
         path: '/',
         data: null,
         delta: {},

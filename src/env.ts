@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as request from 'request-promise';
 import * as Promise from 'bluebird';
 
-import { Credential } from './default-credential';
+import { Credential } from './credential';
 
 export interface FirebaseEnv {
   data: FirebaseEnvData;

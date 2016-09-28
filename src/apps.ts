@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
 import * as firebase from 'firebase';
-
-import DefaultCredential from './default-credential';
+import { Credential } from './credential';
 import { FirebaseEnv } from './env';
 
 export interface AuthMode {
@@ -14,15 +13,17 @@ export default class Apps {
   private static _admin: firebase.app.App;
 
   private _env: FirebaseEnv;
+  private _credential: Credential;
 
-  constructor(env: FirebaseEnv) {
+  constructor(credential: Credential, env: FirebaseEnv) {
     this._env = env;
+    this._credential = credential;
   }
 
   get admin(): firebase.app.App {
     Apps._admin = Apps._admin || firebase.initializeApp({
       databaseURL: _.get(this._env.data, 'firebase.databaseURL'),
-      credential: new DefaultCredential(),
+      credential: this._credential,
     }, '__admin__');
     return Apps._admin;
   }
@@ -52,7 +53,7 @@ export default class Apps {
       return firebase.initializeApp({
         databaseURL: _.get(this._env.data, 'firebase.databaseURL'),
         databaseAuthVariableOverride: auth.variable,
-        credential: new DefaultCredential(),
+        credential: this._credential,
       }, key);
     }
   }

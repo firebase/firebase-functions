@@ -45,11 +45,13 @@
   },
   "dependencies": {
     "@types/bluebird": "^3.0.32",
+    "@types/jsonwebtoken": "^7.1.32",
     "@types/lodash": "^4.14.34",
     "@types/node": "^6.0.38",
     "@types/request": "0.0.30",
     "@types/request-promise": "^3.0.30",
     "bluebird": "^3.4.6",
+    "jsonwebtoken": "^7.1.9",
     "lodash": "^4.6.1",
     "request": "^2.74.0",
     "request-promise": "^4.1.1"

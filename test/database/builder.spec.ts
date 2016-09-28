@@ -1,14 +1,18 @@
 import DatabaseBuilder from '../../src/database/builder';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
+import { UnauthenticatedCredential } from '../../src/credential';
+import Apps from '../../src/apps';
 
 describe('DatabaseBuilder', () => {
   let subject: DatabaseBuilder;
   let env: FakeEnv;
+  let apps: Apps;
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new DatabaseBuilder(env);
+    apps = new Apps(new UnauthenticatedCredential(), env);
+    subject = new DatabaseBuilder(env, apps);
   });
 
   describe('#path()', () => {

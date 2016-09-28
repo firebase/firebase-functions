@@ -1,10 +1,11 @@
 import * as _ from 'lodash';
 
-import { AuthMode } from '../apps';
+import { AuthMode, default as Apps } from '../apps';
 import DatabaseDeltaSnapshot from './delta-snapshot';
-import { FirebaseEventMetadata, default as FirebaseEvent } from '../event';
+import { FirebaseEventMetadata, FirebaseEvent } from '../event';
 import { FunctionBuilder, FunctionHandler, TriggerDefinition } from '../builder';
 import { normalizePath } from '../utils';
+import { FirebaseEnv } from '../env';
 
 export interface DatabasePayload {
   type: string;
@@ -21,6 +22,12 @@ export interface DatabaseTriggerDefinition extends TriggerDefinition {
 
 export default class DatabaseBuilder extends FunctionBuilder {
   private _path: string;
+  private _apps: Apps;
+
+  constructor(env: FirebaseEnv, apps: Apps) {
+    super(env);
+    this._apps = apps;
+  }
 
   path(path: string): DatabaseBuilder {
     this._path = this._path || '';
@@ -50,7 +57,8 @@ export default class DatabaseBuilder extends FunctionBuilder {
         service: 'firebase.database',
         instance: <string>_.get(this._env.data, 'firebase.databaseURL'),
       });
-      const event = new FirebaseEvent(this._env, metadata, new DatabaseDeltaSnapshot(this._env, payload));
+      const event = new FirebaseEvent(
+        this._apps, metadata, new DatabaseDeltaSnapshot(this._apps, this._env, payload));
       return handler(event);
     }, 'write');
   }

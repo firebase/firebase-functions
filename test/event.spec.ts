@@ -1,10 +1,15 @@
-import FirebaseEvent from '../src/event';
+import { FirebaseEvent } from '../src/event';
 import { expect } from 'chai';
 import { FakeEnv } from './support/helpers';
+import Apps from '../src/apps';
+import {UnauthenticatedCredential} from '../src/credential';
 
 describe('FirebaseEvent<T>', () => {
+  const env = new FakeEnv();
+  const apps = new Apps(new UnauthenticatedCredential(), env);
+
   it('can be constructed with a minimal payload', () => {
-    const event = new FirebaseEvent(new FakeEnv(), {
+    const event = new FirebaseEvent(apps, {
       service: 'firebase.database',
       type: 'write',
     }, undefined);
@@ -16,7 +21,7 @@ describe('FirebaseEvent<T>', () => {
   });
 
   it('can be constructed with an admin auth payload', () => {
-    const event = new FirebaseEvent(new FakeEnv(), {
+    const event = new FirebaseEvent(apps, {
       service: 'firebase.database',
       type: 'write',
       auth: {
@@ -32,7 +37,7 @@ describe('FirebaseEvent<T>', () => {
 
   it('can be constructed with an explicit anonymous auth payload', () => {
     [undefined, { admin: false }].forEach(function (auth) {
-      const event = new FirebaseEvent<Number>(new FakeEnv(), {
+      const event = new FirebaseEvent<Number>(apps, {
         service: 'firebase.database',
         type: 'write',
         auth: auth,
@@ -54,7 +59,7 @@ describe('FirebaseEvent<T>', () => {
         variable: user,
       },
     ].forEach(function (auth) {
-      const event = new FirebaseEvent<Number>(new FakeEnv(), {
+      const event = new FirebaseEvent<Number>(apps, {
         service: 'firebase.database',
         type: 'write',
         auth: <any>auth,
@@ -68,7 +73,7 @@ describe('FirebaseEvent<T>', () => {
   });
 
   it('exposes optional forwarded params', () => {
-    const event = new FirebaseEvent<Number>(new FakeEnv(), {
+    const event = new FirebaseEvent<Number>(apps, {
       service: 'firebase.database',
       type: 'write',
       instance: 'instance',

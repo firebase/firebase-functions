@@ -3,11 +3,12 @@ import { expect } from 'chai';
 import { FakeEnv } from './support/helpers';
 import Apps from '../src/apps';
 import * as firebase from 'firebase';
+import {UnauthenticatedCredential} from '../src/credential';
 
 describe('apps', () => {
   let apps;
   beforeEach(() => {
-    apps = new Apps(new FakeEnv());
+    apps = new Apps(new UnauthenticatedCredential(), new FakeEnv());
   });
 
   it('should load the admin app for admin impersonation', function () {

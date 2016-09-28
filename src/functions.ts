@@ -23,7 +23,7 @@ export default class FirebaseFunctions {
    * Create a builder for a Firebase Realtime Databse function.
    */
   database(): DatabaseBuilder {
-    return new DatabaseBuilder(this._env);
+    return new DatabaseBuilder(this._env, this._apps);
   }
 
   /**

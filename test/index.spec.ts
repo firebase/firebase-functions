@@ -11,6 +11,7 @@ import './apps.spec';
 import './builder.spec';
 import './env.spec';
 import './event.spec';
+import './credential.spec';
 import './cloud/https-builder.spec';
 import './cloud/pubsub-builder.spec';
 import './cloud/storage-builder.spec';

@@ -1,5 +1,5 @@
 import * as nock from 'nock';
-import { AccessToken } from '../../src/default-credential';
+import { AccessToken } from '../../src/credential';
 
 export function mockCredentialFetch(tokenToReturn: AccessToken): nock.Scope {
   return nock('http://metadata.google.internal')
@@ -52,4 +52,20 @@ export function mockMetaVariableWatchTimeout(projectId: string, delay: number, t
   }
 
   return mock.delay(delay).reply(502);
+}
+
+export function mockCreateToken(token: AccessToken = {access_token: 'aToken', expires_in: 3600}): nock.Scope {
+  let mock: nock.Scope = nock('https://accounts.google.com').post('/o/oauth2/token');
+  return mock.reply(200, token);
+}
+
+export function mockRefreshToken(token: AccessToken = {access_token: 'aToken', expires_in: 3600}): nock.Scope {
+  let mock: nock.Scope = nock('https://www.googleapis.com').post('/oauth2/v4/token');
+  return mock.reply(200, token);
+}
+
+export function mockMetadataServiceToken(token: AccessToken = {access_token: 'aToken', expires_in: 3600}): nock.Scope {
+  let mock: nock.Scope = nock('http://metadata.google.internal')
+    .get('/computeMetadata/v1beta1/instance/service-accounts/default/token');
+  return mock.reply(200, token);
 }

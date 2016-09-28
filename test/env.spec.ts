@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as nock from 'nock';
 import * as Promise from 'bluebird';
 
-import { Credential } from '../src/default-credential';
+import { Credential } from '../src/credential';
 import { AbstractEnv, RuntimeConfigEnv } from '../src/env';
 import { expect } from 'chai';
 import { async } from './support/helpers';
@@ -98,6 +98,7 @@ describe('RuntimeConfigEnv', () => {
           access_token: 'thetoken',
         });
       },
+      getCertificate: () => null,
     };
 
     beforeEach(() => {
