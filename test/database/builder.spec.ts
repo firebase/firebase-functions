@@ -1,8 +1,9 @@
 import DatabaseBuilder from '../../src/database/builder';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { UnauthenticatedCredential } from '../../src/credential';
+import { FirebaseEvent } from '../../src/event';
 import Apps from '../../src/apps';
+import { UnauthenticatedCredential } from '../../src/credential';
 
 describe('DatabaseBuilder', () => {
   let subject: DatabaseBuilder;
@@ -42,6 +43,56 @@ describe('DatabaseBuilder', () => {
 
     it('should return a handler that emits events with a proper DatabaseDeltaSnapshot', () => {
       let handler = subject.path('/users/{id}').onWrite(event => {
+        expect(event.data.val()).to.deep.equal({foo: 'bar'});
+      });
+
+      env.makeReady();
+      return handler({data: null, delta: {foo: 'bar'}});
+    });
+
+    it('should preserve data when handling a legacy event', (done) => {
+      let handler = (payload: FirebaseEvent<Object>) => {
+        return payload.data;
+      };
+      let path = '/';
+      let legacyEvent = {
+        data: null,
+        path: path,
+        delta: 'data',
+      };
+      let result = subject.path(path).onWrite(handler);
+      env.makeReady();
+      return result(legacyEvent).then(function(res) {
+        expect(res.val()).to.deep.equal('data');
+        done();
+      });
+    });
+
+    it('should handle new format events', () => {
+      let handler = (payload: FirebaseEvent<Object>) => {
+        return payload.data;
+      };
+      let path = '/';
+      let newEvent = {
+        action: 'sources/firebase.database/actions/write',
+        resource: 'projects/sample',
+        path: path,
+        data: {
+          data: null,
+          path: path,
+          delta: 'data',
+        },
+      };
+      let result = subject.path(path).onWrite(handler);
+      env.makeReady();
+      return result(newEvent).then(function(res) {
+        expect(res.val()).to.deep.equal('data');
+      });
+    });
+
+    it('should return a handler that emits events with a proper DatabaseDeltaSnapshot', () => {
+      let handler = subject.path('/users/{id}').onWrite(event => {
+        process.stdout.write('\nHELLO' + JSON.stringify(event.data.val()));
         expect(event.data.val()).to.deep.equal({foo: 'bar'});
       });
 

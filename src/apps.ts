@@ -21,6 +21,8 @@ export default class Apps {
   }
 
   get admin(): firebase.app.App {
+    // TODO(inlined) this should be initializeApp(env.data.firebase)
+    // TODO(inlined) add credentail to env
     Apps._admin = Apps._admin || firebase.initializeApp({
       databaseURL: _.get(this._env.data, 'firebase.databaseURL'),
       credential: this._credential,

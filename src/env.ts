@@ -105,6 +105,7 @@ export class RuntimeConfigEnv extends AbstractEnv {
         }
       }, err => {
         if (_.get(err, 'response.statusCode') === 502) {
+
           return Promise.resolve();
         }
 
@@ -146,6 +147,7 @@ export class RuntimeConfigEnv extends AbstractEnv {
         return JSON.parse(response.text);
       } catch (e) {
         console.log('Firebase: invalid stored environment config content:', response.text);
+
         return null;
       }
     });

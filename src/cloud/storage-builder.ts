@@ -1,5 +1,62 @@
 import { FunctionBuilder, FunctionHandler, TriggerDefinition } from '../builder';
+import { Event } from '../event';
 import { FirebaseEnv } from '../env';
+
+export interface StorageObjectAccessControl {
+  kind: string;
+  id: string;
+  role: string;
+  selfLink?: string;
+  bucket?: string;
+  object?: string;
+  generation?: number;
+  entity?: string;
+  email?: string;
+  entityId?: string;
+  domain?: string;
+  projectTeam?: {
+    projectNumber?: string,
+    team?: string,
+  };
+  etag?: string;
+}
+
+export interface StorageObject {
+  kind: string;
+  id: string;
+  selfLink?: string;
+  name?: string;
+  bucket: string;
+  generation?: number;
+  metageneration?: number;
+  contentType?: string;
+  timeCreated?: string;
+  updated?: string;
+  timeDeleted?: string;
+  storageClass?: string;
+  size?: number;
+  md5Hash?: string;
+  mediaLink?: string;
+  contentEncoding?: string;
+  contentDisposition?: string;
+  contentLanguage?: string;
+  cacheControl?: string;
+  metadata?: {
+    [key: string]: string,
+  };
+  acl?: Array<StorageObjectAccessControl>;
+  owner?: {
+    entity?: string,
+    entityId?: string,
+  };
+  crc32c?: string;
+  componentCount?: number;
+  etag?: string;
+  customerEncryption?: {
+    encryptionAlgorithm?: string,
+    keySha256?: string,
+  };
+}
 
 export interface CloudStorageTriggerDefinition extends TriggerDefinition {
   bucket: string;
@@ -22,11 +79,14 @@ export default class CloudStorageBuilder extends FunctionBuilder {
       'DEPRECATION NOTICE: cloud.storage("bucket").on("change", handler) is deprecated,' +
       'use cloud.storage("bucket").onChange(handler)'
     );
-    return this.onChange(handler);
+    return this._makeHandler(handler, 'change');
   }
 
-  onChange(handler: FunctionHandler): FunctionHandler {
-    return this._makeHandler(handler, 'change');
+  onChange(handler: (event: Event<StorageObject>) => any): FunctionHandler {
+    return this._wrapHandler(handler, 'change', {
+        action: 'sources/cloud.storage/actions/change',
+        resource: 'projects/' + process.env.GCLOUD_PROJECT + '/buckets/' + this.bucket,
+    });
   }
 
   protected _toTrigger(event: string): CloudStorageTriggerDefinition {

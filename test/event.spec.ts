@@ -2,7 +2,7 @@ import { FirebaseEvent } from '../src/event';
 import { expect } from 'chai';
 import { FakeEnv } from './support/helpers';
 import Apps from '../src/apps';
-import {UnauthenticatedCredential} from '../src/credential';
+import { UnauthenticatedCredential } from '../src/credential';
 
 describe('FirebaseEvent<T>', () => {
   const env = new FakeEnv();
@@ -10,11 +10,13 @@ describe('FirebaseEvent<T>', () => {
 
   it('can be constructed with a minimal payload', () => {
     const event = new FirebaseEvent(apps, {
-      service: 'firebase.database',
-      type: 'write',
+      action: 'sources/firebase.database/actions/write',
+      resource: 'projects/project1',
+      path: '/path',
     }, undefined);
-    expect(event.service).to.equal('firebase.database');
-    expect(event.type).to.equal('write');
+    expect(event.action).to.equal('sources/firebase.database/actions/write');
+    expect(event.resource).to.equal('projects/project1');
+    expect(event.path).to.equal('/path');
     expect(event.app).to.equal(event['_apps'].noauth);
     expect(event.uid).to.be.undefined;
     expect(event.data).to.be.undefined;
@@ -22,14 +24,16 @@ describe('FirebaseEvent<T>', () => {
 
   it('can be constructed with an admin auth payload', () => {
     const event = new FirebaseEvent(apps, {
-      service: 'firebase.database',
-      type: 'write',
+      action: 'sources/firebase.database/actions/write',
+      resource: 'projects/project1',
+      path: '/path',
       auth: {
         admin: true,
       },
     }, undefined);
-    expect(event.service).to.equal('firebase.database');
-    expect(event.type).to.equal('write');
+    expect(event.action).to.equal('sources/firebase.database/actions/write');
+    expect(event.resource).to.equal('projects/project1');
+    expect(event.path).to.equal('/path');
     expect(event.app).to.equal(event['_apps'].admin);
     expect(event.uid).to.be.undefined;
     expect(event.data).to.be.undefined;
@@ -38,12 +42,14 @@ describe('FirebaseEvent<T>', () => {
   it('can be constructed with an explicit anonymous auth payload', () => {
     [undefined, { admin: false }].forEach(function (auth) {
       const event = new FirebaseEvent<Number>(apps, {
-        service: 'firebase.database',
-        type: 'write',
+        action: 'sources/firebase.database/actions/write',
+        resource: 'projects/project1',
+        path: '/path',
         auth: auth,
       }, undefined);
-      expect(event.service).to.equal('firebase.database');
-      expect(event.type).to.equal('write');
+      expect(event.action).to.equal('sources/firebase.database/actions/write');
+      expect(event.resource).to.equal('projects/project1');
+      expect(event.path).to.equal('/path');
       expect(event.app).to.equal(event['_apps'].noauth);
       expect(event.uid).to.be.undefined;
       expect(event.data).to.be.undefined;
@@ -60,12 +66,14 @@ describe('FirebaseEvent<T>', () => {
       },
     ].forEach(function (auth) {
       const event = new FirebaseEvent<Number>(apps, {
-        service: 'firebase.database',
-        type: 'write',
+        action: 'sources/firebase.database/actions/write',
+        resource: 'projects/project1',
+        path: '/path',
         auth: <any>auth,
       }, undefined);
-      expect(event.service).to.equal('firebase.database');
-      expect(event.type).to.equal('write');
+      expect(event.action).to.equal('sources/firebase.database/actions/write');
+      expect(event.resource).to.equal('projects/project1');
+      expect(event.path).to.equal('/path');
       expect(event.app).to.deep.equal(event['_apps'].forMode(<any>auth));
       expect(event.uid).to.equal(user.uid);
       expect(event.data).to.be.undefined;
@@ -74,15 +82,12 @@ describe('FirebaseEvent<T>', () => {
 
   it('exposes optional forwarded params', () => {
     const event = new FirebaseEvent<Number>(apps, {
-      service: 'firebase.database',
-      type: 'write',
-      instance: 'instance',
-      deviceId: 'deviceId',
+      action: 'sources/firebase.database/actions/write',
+      resource: 'projects/project1',
+      path: '/path',
       params: { param: 'value' },
     }, 42);
     expect(event.data).to.equal(42);
-    expect(event.instance).to.equal('instance');
-    expect(event.deviceId).to.equal('deviceId');
     expect(event.params).to.deep.equal({ param: 'value' });
   });
 });

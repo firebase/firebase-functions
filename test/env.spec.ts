@@ -18,7 +18,6 @@ describe('AbstractEnv', () => {
     it('should not call before ready', () => {
       let called = false;
       subject.ready().then(() => called = true);
-
       return async().then(() => {
         expect(called).to.eq(false);
       });
@@ -135,4 +134,51 @@ describe('RuntimeConfigEnv', () => {
       });
     });
   });
+});
+
+describe('AbstractEnv', () => {
+  let subject: AbstractEnv;
+  beforeEach(() => {
+    subject = new AbstractEnv();
+  });
+
+  describe('#_wrapHandler(handler: FunctionHandler, event: string)', () => {
+    it('should not call before ready', () => {
+      let called = false;
+      subject.ready().then(() => called = true);
+    });
+
+    it('should call when _notifyReady() has been called', () => {
+      let called = false;
+      subject.ready().then(() => {
+        called = true;
+      });
+      subject['_notifyReady']();
+      return async().then(() => {
+        expect(called).to.eq(true);
+      });
+    });
+  });
+
+  describe('#data', () => {
+    it('should throw an unimplemented error', () => {
+      expect(() => {
+        // tslint:disable-next-line
+        subject.data;
+      }).to.throw('Firebase: unimplemented data getter in environment');
+    });
+  });
+
+  describe('#data', () => {
+    it('should throw an unimplemented error', () => {
+      expect(() => {
+        // tslint:disable-next-line
+        subject.data;
+      }).to.throw('Firebase: unimplemented data getter in environment');
+    });
+  });
+});
+
+describe('RuntimeConfigEnv', () => {
+  xit('does stuff');
 });

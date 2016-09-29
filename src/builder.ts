@@ -1,4 +1,8 @@
+import * as _ from 'lodash';
+
 import { FirebaseEnv } from './env';
+import { FirebaseEventMetadata, Event } from './event';
+import { FunctionHandler } from './builder';
 
 export interface FunctionHandler {
   (...args: any[]);
@@ -17,16 +21,29 @@ export class FunctionBuilder {
     this._env = env;
   }
 
+  protected _isEventNewFormat(event: {action?: string}): boolean {
+    return /sources\/[^/]+\/actions\/[^/]+/.test(event.action);
+  }
+
   protected _toTrigger(event?: string): TriggerDefinition {
     throw new Error('Unimplemented _toTrigger');
   }
 
+  protected _wrapHandler( handler: (event: Event<any>) => any,
+                          event: string,
+                          additionalMeta: FirebaseEventMetadata,
+                          payloadTransform = (i: any) => { return i; }): FunctionHandler {
+
+    return this._makeHandler((payload) => {
+      const metadata = <FirebaseEventMetadata>_.extend({}, additionalMeta, payload);
+      return handler(new Event(metadata, payloadTransform(payload)));
+    }, event);
+  }
+
   protected _makeHandler(fn: Function, event: string): FunctionHandler {
-    const env = this._env;
-    const handler: FunctionHandler = function() {
-      const args = arguments;
-      return env.ready().then(function() {
-        return fn.apply(undefined, args);
+    const handler: FunctionHandler = (payload) => {
+      return this._env.ready().then(function() {
+        return fn(payload);
       });
     };
     handler.__trigger = this._toTrigger(event);

@@ -5,28 +5,32 @@ import Apps from './apps';
 import { AuthMode } from './apps';
 
 export interface FirebaseEventMetadata {
-  service: string;
-  type: string;
-  instance?: string;
-  deviceId?: string;
-  params?: {[option: string]: any};
+  action: string;
+  resource: string;
+  path?: string;
+  params?: {[option: string]: string}; // value type used to be any, need to test this on all events to ensure it's okay
   auth?: AuthMode;
+  timestamp?: string;
 }
 
 export class Event<T> {
-  service: string;
-  type: string;
-  instance: string;
+  requestId?: string;
+  timestamp: string;
+  authentication?: Object;
   uid: string;
-  deviceId: string;
+  action: string;
+  resource: string;
+  path?: string;
+  params?: {[option: string]: any};
   data: T;
-  params: {[option: string]: any};
 
   protected _auth: AuthMode; // we have not yet agreed on what we want to expose here
 
   constructor(metadata: FirebaseEventMetadata, data: T) {
-    [this.service, this.type, this.instance, this.deviceId, this.data, this.params, this._auth] = [
-      metadata.service, metadata.type, metadata.instance, metadata.deviceId, data, metadata.params || {}, metadata.auth,
+    this.timestamp = metadata.timestamp ? metadata.timestamp : new Date().toISOString();
+
+    [this.action, this.resource, this.path, this.data, this.params, this._auth] = [
+      metadata.action, metadata.resource, metadata.path, data, metadata.params || {}, metadata.auth,
     ];
 
     if (_.has(this._auth, 'variable.uid')) {

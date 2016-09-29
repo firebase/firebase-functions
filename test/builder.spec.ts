@@ -2,6 +2,7 @@ import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { FakeEnv, async } from './support/helpers';
 import { FunctionBuilder, FunctionHandler } from '../src/builder';
+import { Event } from '../src/event';
 
 describe('FunctionBuilder', () => {
   let subject;
@@ -47,6 +48,24 @@ describe('FunctionBuilder', () => {
       return async().then(() => {
         expect(called).to.be.true;
       });
+    });
+  });
+
+  describe('__isEventNewFormat(event: GenericEvent): boolean', () => {
+    it('should return true when event is in new format', () => {
+      const event = new Event({
+        action: 'sources/firebase.database/actions/write',
+        resource: 'projects/project1',
+        path: '/path',
+      }, undefined);
+      expect(subject._isEventNewFormat(event)).to.equal(true);
+    });
+
+    it('should return false when event is not in new format', () => {
+      const event = {
+        service: 'database',
+      };
+      expect(subject._isEventNewFormat(event)).to.equal(false);
     });
   });
 });

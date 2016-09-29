@@ -3,13 +3,11 @@ import * as firebase from 'firebase';
 
 import { AuthMode, default as Apps } from '../apps';
 import { DatabasePayload } from './builder';
-import { FirebaseEnv } from '../env';
 import { normalizePath, pathParts, applyChange, valAt } from '../utils';
 
 export default class DatabaseDeltaSnapshot {
   private _adminRef: firebase.database.Reference;
   private _apps: Apps;
-  private _env: FirebaseEnv;
   private _ref: firebase.database.Reference;
   private _path: string;
   private _auth: AuthMode;
@@ -20,8 +18,7 @@ export default class DatabaseDeltaSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(apps: Apps, env: FirebaseEnv, eventData?: DatabasePayload) {
-    this._env = env;
+  constructor(apps: Apps, eventData?: DatabasePayload) {
     this._apps = apps;
 
     if (eventData) {
@@ -104,7 +101,7 @@ export default class DatabaseDeltaSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DatabaseDeltaSnapshot {
-    let dup = new DatabaseDeltaSnapshot(this._apps, this._env);
+    let dup = new DatabaseDeltaSnapshot(this._apps);
     [dup._path, dup._auth, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._auth, this._data, this._delta, this._childPath, this._newData];
 
