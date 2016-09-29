@@ -1,7 +1,7 @@
 .idea
 .tmp
 .npm
-/lib
+lib
 
 coverage
 node_modules
