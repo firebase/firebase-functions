@@ -4,6 +4,17 @@ import * as _ from 'lodash';
 import Apps from './apps';
 import { AuthMode } from './apps';
 
+export interface RawEvent {
+  requestId?: string;
+  timestamp?: string;
+  authentication?: Object;
+  action: string;
+  resource: string;
+  path?: string;
+  params?: {[option: string]: any};
+  data: any;
+}
+
 export interface FirebaseEventMetadata {
   action: string;
   resource: string;

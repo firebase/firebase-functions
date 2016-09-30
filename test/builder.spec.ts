@@ -1,7 +1,7 @@
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { FakeEnv, async } from './support/helpers';
-import { FunctionBuilder, FunctionHandler } from '../src/builder';
+import { FunctionBuilder } from '../src/builder';
 import { Event } from '../src/event';
 
 describe('FunctionBuilder', () => {
@@ -20,7 +20,7 @@ describe('FunctionBuilder', () => {
         .withArgs('evee')
         .returns({worked: true});
 
-      let fn: FunctionHandler = function() { /* do nothing */ };
+      let fn = function() { /* do nothing */ };
       expect(subject['_makeHandler'](fn, 'evee').__trigger)
         .to.deep.equal({worked: true});
     });

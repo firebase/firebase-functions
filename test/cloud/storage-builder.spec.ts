@@ -1,17 +1,18 @@
 import CloudStorageBuilder from '../../src/cloud/storage-builder';
-import {expect as expect} from 'chai';
+import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { FunctionHandler } from './../../src/builder';
+import { StorageObject } from '../../src/cloud/storage-builder';
+import { Event } from '../../src/event';
 
 describe('CloudHttpBuilder', () => {
   let subject: CloudStorageBuilder;
-  let handler: FunctionHandler;
+  let handler: (e: Event<StorageObject>) => PromiseLike<any> | any;
   let env: FakeEnv;
 
   beforeEach(() => {
     env = new FakeEnv();
     subject = new CloudStorageBuilder(env, 'bucky');
-    handler = (data: Object) => {
+    handler = (data) => {
       return true;
     };
   });

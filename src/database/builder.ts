@@ -1,7 +1,7 @@
 import { AuthMode, default as Apps } from '../apps';
 import DatabaseDeltaSnapshot from './delta-snapshot';
-import { FirebaseEvent } from '../event';
-import { FunctionBuilder, FunctionHandler, TriggerDefinition } from '../builder';
+import { FirebaseEvent, RawEvent } from '../event';
+import { FunctionBuilder, TriggerDefinition, TriggerAnnotated } from '../builder';
 import { normalizePath } from '../utils';
 import { FirebaseEnv } from '../env';
 
@@ -18,6 +18,8 @@ export interface DatabaseTriggerDefinition extends TriggerDefinition {
   path: string;
 }
 
+type DatabaseWriteEventHandler = (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any | PromiseLike<any>;
+
 export default class DatabaseBuilder extends FunctionBuilder {
   private _path: string;
   private _apps: Apps;
@@ -33,7 +35,9 @@ export default class DatabaseBuilder extends FunctionBuilder {
     return this;
   }
 
-  on(event: string, handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): FunctionHandler {
+  on(
+    event: string, handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any,
+  ): TriggerAnnotated & ((event: DatabasePayload | RawEvent) => any) {
     if (event !== 'write') {
       throw new Error(`Provider database does not support event type "${event}"`);
     }
@@ -42,17 +46,16 @@ export default class DatabaseBuilder extends FunctionBuilder {
     return this.onWrite(handler);
   }
 
-  onWrite(handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => any): FunctionHandler {
+  onWrite(
+    handler: (event: FirebaseEvent<DatabaseDeltaSnapshot>) => PromiseLike<any> | any
+  ): TriggerAnnotated & ((event: DatabasePayload | RawEvent) => PromiseLike<any> | any) {
     if (!this._path) {
       throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
     }
-    // TODO(thomas/bleigh) 'instance' isn't part of the wire protocol. Should it be? It should also probably be
-    // resource
-    // TODO(thomas) add service to the wire protocol (http://b/30482184)
     return this._wrapHandler(handler, 'write', {
-        action: 'sources/firebase.database/actions/write',
-        resource: 'projects/' + process.env.GCLOUD_PROJECT,
-        path: this._path,
+      action: 'sources/firebase.database/actions/write',
+      resource: 'projects/' + process.env.GCLOUD_PROJECT,
+      path: this._path,
     }, (payload: DatabasePayload) => {
       if (this._isEventNewFormat(payload)) {
         return new DatabaseDeltaSnapshot(this._apps, payload.data);

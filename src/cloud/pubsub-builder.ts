@@ -1,5 +1,5 @@
-import { FunctionBuilder, FunctionHandler, TriggerDefinition } from '../builder';
-import { Event } from '../event';
+import { FunctionBuilder, TriggerAnnotated, TriggerDefinition } from '../builder';
+import { Event, RawEvent } from '../event';
 import { FirebaseEnv } from '../env';
 
 export interface PubsubMessage {
@@ -20,7 +20,9 @@ export default class CloudPubsubBuilder extends FunctionBuilder {
     this.topic = topic;
   }
 
-  on(event: string, handler: FunctionHandler): FunctionHandler {
+  on(
+    event: string, handler: (event: Event<PubsubMessage>) => PromiseLike<any> | any,
+  ): TriggerAnnotated & ((event: RawEvent | any) => PromiseLike<any> | any) {
     if (event !== 'message') {
       throw new Error(`Provider cloud.pubsub does not support event type "${event}"`);
     }
@@ -32,7 +34,9 @@ export default class CloudPubsubBuilder extends FunctionBuilder {
     return this._makeHandler(handler, 'message');
   }
 
-  onPublish(handler: (event: Event<PubsubMessage>) => any): FunctionHandler {
+  onPublish(
+    handler: (event: Event<PubsubMessage>) => PromiseLike<any> | any
+  ): TriggerAnnotated & ((event: RawEvent | any) => PromiseLike<any> | any) {
     const payloadTransform = function (payload: any): PubsubMessage {
         return {
           data: payload, // pending GCF approval for format

@@ -1,12 +1,10 @@
 import * as _ from 'lodash';
 
 import { FirebaseEnv } from './env';
-import { FirebaseEventMetadata, Event } from './event';
-import { FunctionHandler } from './builder';
+import { FirebaseEventMetadata, Event, RawEvent } from './event';
 
-export interface FunctionHandler {
-  (...args: any[]);
-  __trigger?: {[key: string]: any};
+export interface TriggerAnnotated {
+  __trigger: TriggerDefinition;
 }
 
 export interface TriggerDefinition {
@@ -29,19 +27,25 @@ export class FunctionBuilder {
     throw new Error('Unimplemented _toTrigger');
   }
 
-  protected _wrapHandler( handler: (event: Event<any>) => any,
-                          event: string,
-                          additionalMeta: FirebaseEventMetadata,
-                          payloadTransform = (i: any) => { return i; }): FunctionHandler {
-
-    return this._makeHandler((payload) => {
+  protected _wrapHandler<EventData, OldRawType>(
+    handler: (event: Event<EventData>) => PromiseLike<any> | any,
+    event: string,
+    additionalMeta: FirebaseEventMetadata,
+    dataConstructor: (raw: OldRawType | RawEvent) => EventData = i => <any>i,
+  ): TriggerAnnotated & ((raw: OldRawType | RawEvent) => PromiseLike<any> | any) {
+    const wrapped: any = (payload: OldRawType | RawEvent) => {
       const metadata = <FirebaseEventMetadata>_.extend({}, additionalMeta, payload);
-      return handler(new Event(metadata, payloadTransform(payload)));
-    }, event);
+      return handler(new Event(metadata, dataConstructor(payload)));
+    };
+
+    return this._makeHandler<EventData>(wrapped, event);
   }
 
-  protected _makeHandler(fn: Function, event: string): FunctionHandler {
-    const handler: FunctionHandler = (payload) => {
+  protected _makeHandler<EventData>(
+    fn: (event: Event<EventData>) => PromiseLike<any> | any,
+    event: string,
+  ): TriggerAnnotated & ((raw: RawEvent) => PromiseLike<any> | any) {
+    let handler: any = (payload) => {
       return this._env.ready().then(function() {
         return fn(payload);
       });

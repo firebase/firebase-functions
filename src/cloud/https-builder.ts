@@ -1,11 +1,15 @@
-import { FunctionHandler, FunctionBuilder, TriggerDefinition } from '../builder';
+import { TriggerAnnotated, FunctionBuilder, TriggerDefinition } from '../builder';
+import { Request, Response } from 'express';
 
-export interface CloudHttpsHandler extends FunctionHandler {
-  (req: any, res: any): any;
+export {
+  Request,
+  Response,
 }
 
 export default class CloudHttpsBuilder extends FunctionBuilder {
-  on(event: string, handler: CloudHttpsHandler): CloudHttpsHandler {
+  on(
+    event: string, handler: (req: Request, resp: Response) => void
+  ): ((req: Request, resp: Response) => void) & TriggerAnnotated {
     if (event !== 'request') {
       throw new Error(`Provider cloud.http does not support event type "${event}"`);
     }
@@ -17,8 +21,10 @@ export default class CloudHttpsBuilder extends FunctionBuilder {
     return this.onRequest(handler);
   }
 
-  onRequest(handler: CloudHttpsHandler): CloudHttpsHandler {
-    let wrappedHandler: CloudHttpsHandler = (req, res) => {
+  onRequest(
+    handler: (req: Request, resp: Response) => void
+  ): ((req: Request, resp: Response) => void) & TriggerAnnotated {
+    let wrappedHandler: any = (req, res) => {
       this._env.ready().then(() => {
         handler(req, res);
       }, err => {

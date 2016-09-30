@@ -47,7 +47,7 @@ describe('DatabaseBuilder', () => {
       });
 
       env.makeReady();
-      return handler({data: null, delta: {foo: 'bar'}});
+      return handler(<any>{data: null, delta: {foo: 'bar'}});
     });
 
     it('should preserve data when handling a legacy event', (done) => {
@@ -62,7 +62,7 @@ describe('DatabaseBuilder', () => {
       };
       let result = subject.path(path).onWrite(handler);
       env.makeReady();
-      return result(legacyEvent).then(function(res) {
+      return result(<any>legacyEvent).then(function(res) {
         expect(res.val()).to.deep.equal('data');
         done();
       });
@@ -92,12 +92,17 @@ describe('DatabaseBuilder', () => {
 
     it('should return a handler that emits events with a proper DatabaseDeltaSnapshot', () => {
       let handler = subject.path('/users/{id}').onWrite(event => {
-        process.stdout.write('\nHELLO' + JSON.stringify(event.data.val()));
         expect(event.data.val()).to.deep.equal({foo: 'bar'});
       });
 
       env.makeReady();
-      return handler({data: null, delta: {foo: 'bar'}});
+      return handler({
+        type: 'write',
+        data: null,
+        delta: {foo: 'bar'},
+        path: '/',
+        auth: null,
+      });
     });
   });
 });

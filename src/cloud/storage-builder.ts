@@ -1,5 +1,5 @@
-import { FunctionBuilder, FunctionHandler, TriggerDefinition } from '../builder';
-import { Event } from '../event';
+import { FunctionBuilder, TriggerDefinition, TriggerAnnotated } from '../builder';
+import { Event, RawEvent } from '../event';
 import { FirebaseEnv } from '../env';
 
 export interface StorageObjectAccessControl {
@@ -70,7 +70,9 @@ export default class CloudStorageBuilder extends FunctionBuilder {
     this.bucket = bucket;
   }
 
-  on(event: string, handler: FunctionHandler): FunctionHandler {
+  on(
+    event: string, handler: (event: Event<StorageObject>) => PromiseLike<any> | any
+  ): TriggerAnnotated & ((event: RawEvent) => PromiseLike<any> | any) {
     if (event !== 'change') {
       throw new Error(`Provider cloud.storage does not support event type "${event}"`);
     }
@@ -82,7 +84,9 @@ export default class CloudStorageBuilder extends FunctionBuilder {
     return this._makeHandler(handler, 'change');
   }
 
-  onChange(handler: (event: Event<StorageObject>) => any): FunctionHandler {
+  onChange(
+    handler: (event: Event<StorageObject>) => PromiseLike<any>
+  ): TriggerAnnotated & ((event: Event<StorageObject>) => PromiseLike<any> | any) {
     return this._wrapHandler(handler, 'change', {
         action: 'sources/cloud.storage/actions/change',
         resource: 'projects/' + process.env.GCLOUD_PROJECT + '/buckets/' + this.bucket,
