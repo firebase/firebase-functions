@@ -31,11 +31,10 @@ export class FunctionBuilder {
     handler: (event: Event<EventData>) => PromiseLike<any> | any,
     event: string,
     additionalMeta: FirebaseEventMetadata,
-    dataConstructor: (raw: OldRawType | RawEvent) => EventData = i => <any>i,
   ): TriggerAnnotated & ((raw: OldRawType | RawEvent) => PromiseLike<any> | any) {
     const wrapped: any = (payload: OldRawType | RawEvent) => {
       const metadata = <FirebaseEventMetadata>_.extend({}, additionalMeta, payload);
-      return handler(new Event(metadata, dataConstructor(payload)));
+      return handler(new Event(metadata, this._dataConstructor<EventData, OldRawType>(payload)));
     };
 
     return this._makeHandler<EventData>(wrapped, event);
@@ -53,5 +52,9 @@ export class FunctionBuilder {
     handler.__trigger = this._toTrigger(event);
 
     return handler;
+  }
+
+  protected _dataConstructor<EventData, OldRawType>(raw: OldRawType | RawEvent): EventData {
+    return <any>raw;
   }
 }

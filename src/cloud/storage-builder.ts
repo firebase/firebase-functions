@@ -88,8 +88,8 @@ export default class CloudStorageBuilder extends FunctionBuilder {
     handler: (event: Event<StorageObject>) => PromiseLike<any>
   ): TriggerAnnotated & ((event: Event<StorageObject>) => PromiseLike<any> | any) {
     return this._wrapHandler(handler, 'change', {
-        action: 'sources/cloud.storage/actions/change',
-        resource: 'projects/' + process.env.GCLOUD_PROJECT + '/buckets/' + this.bucket,
+      action: 'sources/cloud.storage/actions/change',
+      resource: 'projects/' + process.env.GCLOUD_PROJECT + '/buckets/' + this.bucket,
     });
   }
 

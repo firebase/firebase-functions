@@ -56,11 +56,6 @@ export default class DatabaseBuilder extends FunctionBuilder {
       action: 'sources/firebase.database/actions/write',
       resource: 'projects/' + process.env.GCLOUD_PROJECT,
       path: this._path,
-    }, (payload: DatabasePayload) => {
-      if (this._isEventNewFormat(payload)) {
-        return new DatabaseDeltaSnapshot(this._apps, payload.data);
-      }
-      return new DatabaseDeltaSnapshot(this._apps, payload);
     });
   }
 
@@ -70,5 +65,12 @@ export default class DatabaseBuilder extends FunctionBuilder {
       event: event || 'write',
       path: this._path,
     };
+  }
+
+  protected _dataConstructor(payload: any): DatabaseDeltaSnapshot {
+    if (this._isEventNewFormat(payload)) {
+      return new DatabaseDeltaSnapshot(this._apps, payload.data);
+    }
+    return new DatabaseDeltaSnapshot(this._apps, payload);
   }
 }

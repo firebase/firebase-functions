@@ -3,6 +3,46 @@ import { expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 import { Event } from '../../src/event';
 
+describe('PubsubMessage', () => {
+  describe('#json', () => {
+    it('should return json decoded from base64', () => {
+      let message = new PubsubMessage({
+        data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
+      });
+
+      expect(message.json.hello).to.equal('world');
+    });
+
+    it('should preserve passed in json', () => {
+      let message = new PubsubMessage({
+        data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
+        json: {goodbye: 'world'},
+      });
+
+      expect(message.json.goodbye).to.equal('world');
+    });
+  });
+
+  describe('#toJSON', () => {
+    it('should be JSON stringify-able', () => {
+      let encoded = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+      let publishTime = new Date().toISOString();
+      let message = new PubsubMessage({
+        data: encoded,
+        messageId: 'abc',
+        publishTime,
+      });
+
+      expect(JSON.parse(JSON.stringify(message))).to.deep.equal({
+        data: encoded,
+        attributes: {},
+        messageId: 'abc',
+        publishTime,
+      });
+    });
+  });
+});
+
 describe('CloudHttpBuilder', () => {
   let subject: CloudPubsubBuilder;
   let env: FakeEnv;
@@ -25,14 +65,41 @@ describe('CloudHttpBuilder', () => {
       });
     });
 
-    it('should preserve message when handling a legacy event', (done) => {
+    it('should properly handle a new-style event', () => {
+      let handler = (ev: Event<PubsubMessage>) => {
+        return {
+          raw: ev.data.data,
+          json: ev.data.json,
+          attributes: ev.data.attributes,
+        };
+      };
+      let raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+      let event = {
+        action: 'sources/cloud.pubsub/actions/publish',
+        data: {
+          data: raw,
+          attributes: {
+            foo: 'bar',
+          },
+        },
+      };
+      let result = subject.onPublish(handler);
+      env.makeReady();
+      return expect(result(event)).to.eventually.deep.equal({
+        raw,
+        json: {hello: 'world'},
+        attributes: {foo: 'bar'},
+      });
+    });
+
+    it('should preserve message when handling a legacy event', () => {
       let handler = (payload: Event<PubsubMessage>) => {
-        return payload.data.data;
+        return payload.data.json;
       };
       let legacyEvent = {message: 'hi'};
       let result = subject.onPublish(handler);
       env.makeReady();
-      expect(result(legacyEvent)).to.eventually.deep.equal({'message': 'hi'}).notify(done);
+      return expect(result(legacyEvent)).to.eventually.deep.equal({'message': 'hi'});
     });
   });
 });
