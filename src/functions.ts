@@ -16,6 +16,7 @@ export default class FirebaseFunctions {
 
   constructor(env: FirebaseEnv, apps: Apps) {
     this._env = env;
+    this._apps = apps;
     this.cloud = new CloudBuilders(this._env);
   }
 
