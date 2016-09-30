@@ -108,7 +108,7 @@ describe('RuntimeConfigEnv', () => {
       nocks.push(mockMetaVariableWatch('example', {reserved: {foo: 'bar'}}));
       mockMetaVariableWatchTimeout('example', 10000);
       return subject.ready().then(() => {
-        expect(subject.data).to.deep.equal({foo: 'bar'});
+        expect(subject.data).to.deep.equal({foo: 'bar', firebase: {credential: stubCredential}});
         expect(subject.version).to.equal('v0');
       });
     });
@@ -118,7 +118,7 @@ describe('RuntimeConfigEnv', () => {
       nocks.push(mockRCVariableFetch('example', 'v1', {foo: 'bar'}));
       mockMetaVariableWatchTimeout('example', 10000);
       return subject.ready().then(() => {
-        expect(subject.data).to.deep.equal({foo: 'bar'});
+        expect(subject.data).to.deep.equal({foo: 'bar', firebase: {credential: stubCredential}});
       });
     });
 
@@ -130,6 +130,7 @@ describe('RuntimeConfigEnv', () => {
         expect(subject.data).to.deep.equal({
           foo: 'bar',
           baz: 'qux',
+          firebase: {credential: stubCredential},
         });
       });
     });

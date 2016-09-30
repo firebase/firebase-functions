@@ -3,7 +3,6 @@ import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 import { FirebaseEvent } from '../../src/event';
 import Apps from '../../src/apps';
-import { UnauthenticatedCredential } from '../../src/credential';
 
 describe('DatabaseBuilder', () => {
   let subject: DatabaseBuilder;
@@ -12,7 +11,7 @@ describe('DatabaseBuilder', () => {
 
   beforeEach(() => {
     env = new FakeEnv();
-    apps = new Apps(new UnauthenticatedCredential(), env);
+    apps = new Apps(env);
     subject = new DatabaseBuilder(env, apps);
   });
 

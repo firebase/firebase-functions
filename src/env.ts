@@ -10,6 +10,7 @@ export interface FirebaseEnv {
 }
 
 export interface FirebaseEnvData {
+  firebase?: Object;
   [key: string]: any;
 }
 
@@ -167,6 +168,9 @@ export class RuntimeConfigEnv extends AbstractEnv {
     }
 
     this._merged = _.assign({}, this._custom, this._reserved);
+    if (this.credential) {
+      _.set(this._merged, 'firebase.credential', this.credential);
+    }
     return this._merged;
   }
 

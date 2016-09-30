@@ -5,7 +5,7 @@ import { RuntimeConfigEnv } from './env';
 
 const credential = new ApplicationDefaultCredential();
 const env = new RuntimeConfigEnv(credential, process.env.GCLOUD_PROJECT);
-const apps = new Apps(credential, env);
+const apps = new Apps(env);
 
 const functionsApi: FirebaseFunctions = new FirebaseFunctions(env, apps);
 export = functionsApi;

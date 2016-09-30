@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import * as firebase from 'firebase';
-import { Credential } from './credential';
 import { FirebaseEnv } from './env';
 
 export interface AuthMode {
@@ -13,27 +12,20 @@ export default class Apps {
   private static _admin: firebase.app.App;
 
   private _env: FirebaseEnv;
-  private _credential: Credential;
 
-  constructor(credential: Credential, env: FirebaseEnv) {
+  constructor(env: FirebaseEnv) {
     this._env = env;
-    this._credential = credential;
   }
 
   get admin(): firebase.app.App {
-    // TODO(inlined) this should be initializeApp(env.data.firebase)
-    // TODO(inlined) add credentail to env
-    Apps._admin = Apps._admin || firebase.initializeApp({
-      databaseURL: _.get(this._env.data, 'firebase.databaseURL'),
-      credential: this._credential,
-    }, '__admin__');
+    // TODO(inlined) add credential to env
+    Apps._admin = Apps._admin || firebase.initializeApp(this.firebaseArgs, '__admin__');
     return Apps._admin;
   }
 
   get noauth(): firebase.app.App {
-    Apps._noauth = Apps._noauth || firebase.initializeApp({
-      databaseURL: _.get(this._env.data, 'firebase.databaseURL'),
-    }, '__noauth__');
+    Apps._noauth = Apps._noauth ||
+                  firebase.initializeApp(_.omit(this.firebaseArgs, 'credential'), '__noauth__');
     return Apps._noauth;
   }
 
@@ -52,11 +44,12 @@ export default class Apps {
     try {
       return firebase.app(key);
     } catch (e) {
-      return firebase.initializeApp({
-        databaseURL: _.get(this._env.data, 'firebase.databaseURL'),
-        databaseAuthVariableOverride: auth.variable,
-        credential: this._credential,
-      }, key);
+      const param = _.extend({}, this.firebaseArgs, {databaseAuthVariableOverride: auth.variable});
+      return firebase.initializeApp(param, key);
     }
+  }
+
+  private get firebaseArgs() {
+    return _.get(this._env.data, 'firebase', {});
   }
 }

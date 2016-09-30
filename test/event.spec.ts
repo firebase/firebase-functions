@@ -2,11 +2,10 @@ import { FirebaseEvent } from '../src/event';
 import { expect } from 'chai';
 import { FakeEnv } from './support/helpers';
 import Apps from '../src/apps';
-import { UnauthenticatedCredential } from '../src/credential';
 
 describe('FirebaseEvent<T>', () => {
   const env = new FakeEnv();
-  const apps = new Apps(new UnauthenticatedCredential(), env);
+  const apps = new Apps(env);
 
   it('can be constructed with a minimal payload', () => {
     const event = new FirebaseEvent(apps, {

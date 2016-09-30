@@ -3,12 +3,11 @@ import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 
 import Apps from '../../src/apps';
-import { UnauthenticatedCredential } from '../../src/credential';
 
 describe('DatabaseDeltaSnapshot', () => {
   let subject;
   const env = new FakeEnv();
-  const apps = new Apps(new UnauthenticatedCredential(), env);
+  const apps = new Apps(env);
 
   let populate = (old: any, change: any) => {
     subject = new DatabaseDeltaSnapshot(apps, {
