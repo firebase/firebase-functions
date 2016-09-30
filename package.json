@@ -4,7 +4,7 @@
   "description": "Node helpers for Firebase Functions.",
   "main": "lib/index.js",
   "scripts": {
-    "build": "npm prune --production; npm install tsc; node_modules/.bin/tsc; npm install",
+    "build": "npm prune --production; npm install typescript; node_modules/.bin/tsc; npm install",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts test/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc test/index.spec.ts --target es5 --outDir .tmp && cp -r test/fixtures .tmp/test",
     "test": "npm run lint && mocha .tmp/test/index.spec.js",
