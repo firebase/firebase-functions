@@ -130,12 +130,15 @@ describe('Credential', () => {
       });
     });
 
-    it('should create access tokens', () => {
+    it('should create access tokens and cache the response', () => {
       const c = new CertCredential(new Certificate(TEST_CERTIFICATE_OBJECT));
       mockCreateToken();
-      return c.getAccessToken().then((token) => {
+      return c.getAccessToken().then(token => {
         expect(token.access_token).to.be.a('string').and.to.not.be.empty;
         expect(token.expires_in).to.equal(ONE_HOUR_IN_SECONDS);
+        return c.getAccessToken().then(newToken => {
+          expect(newToken).to.equal(token);
+        });
       });
     });
   });
@@ -158,12 +161,15 @@ describe('Credential', () => {
       expect(c.getCertificate()).to.be.null;
     });
 
-    it('should create access tokens', () => {
+    it('should create access tokens and cache the response', () => {
       const c = new RefreshTokenCredential(new RefreshToken(TEST_GCLOUD_CREDENTIALS));
       mockRefreshToken();
-      return c.getAccessToken().then(function(token) {
+      return c.getAccessToken().then(token => {
         expect(token.access_token).to.be.a('string').and.to.not.be.empty;
         expect(token.expires_in).to.equal(ONE_HOUR_IN_SECONDS);
+        return c.getAccessToken().then(newToken => {
+          expect(newToken).to.equal(token);
+        });
       });
     });
   });
@@ -174,16 +180,19 @@ describe('Credential', () => {
       expect(c.getCertificate()).to.be.null;
     });
 
-    it('should create access tokens', () => {
+    it('should create access tokens and cache the response', () => {
       mockMetadataServiceToken({
         access_token: 'anAccessToken',
-        expires_in: 42,
+        expires_in: 900,
       });
 
       const c = new MetadataServiceCredential();
       return c.getAccessToken().then(function(token) {
         expect(token.access_token).to.equal('anAccessToken');
-        expect(token.expires_in).to.equal(42);
+        expect(token.expires_in).to.equal(900);
+        return c.getAccessToken().then(newToken => {
+          expect(newToken).to.equal(token);
+        });
       });
     });
   });

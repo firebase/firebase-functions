@@ -7,6 +7,7 @@
     "object-literal-sort-keys": false,
     "whitespace": [true],
     "member-access": [false],
-    "no-string-literal": false
+    "no-string-literal": false,
+    "no-console": [false]
   }
 }

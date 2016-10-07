@@ -140,6 +140,7 @@ export class Certificate {
   }
 }
 
+const GRACE_PERIOD: number = 3 * 60000; // 3 minutes
 /**
  * Interface for things that generate access tokens.
  * Should possibly be moved to a Credential namespace before making public.
@@ -147,6 +148,23 @@ export class Certificate {
 export interface Credential {
   getAccessToken(): PromiseLike<AccessToken>;
   getCertificate(): Certificate;
+}
+
+class CachedCredential {
+  protected _token: AccessToken;
+  protected _expiresAt: number;
+
+  get token(): AccessToken {
+    if ((Date.now() + GRACE_PERIOD) < this._expiresAt) {
+      return this._token;
+    }
+    return null;
+  }
+
+  set token(token: AccessToken) {
+    this._token = token;
+    this._expiresAt = Date.now() + token.expires_in * 1000;
+  }
 }
 
 /**
@@ -175,27 +193,35 @@ function requestAccessToken(options): PromiseLike<AccessToken> {
  */
 export class CertCredential implements Credential {
   private _certificate: Certificate;
+  private _cachedCredential: CachedCredential;
 
   constructor(certificate: Certificate) {
     this._certificate = certificate;
+    this._cachedCredential = new CachedCredential();
   }
 
   public getAccessToken(): PromiseLike<AccessToken> {
-    return requestAccessToken({
-      method: 'POST',
-      uri: GOOGLE_AUTH_TOKEN_URL,
-      form: {
-        grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        assertion: this.createAuthJwt_(),
-      },
-    });
+    return Promise.resolve(
+      this._cachedCredential.token ||
+      requestAccessToken({
+        method: 'POST',
+        uri: GOOGLE_AUTH_TOKEN_URL,
+        form: {
+          grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+          assertion: this._createAuthJwt(),
+        },
+      }).then(token => {
+        this._cachedCredential.token = token;
+        return token;
+      })
+    );
   }
 
   public getCertificate(): Certificate {
     return this._certificate;
   }
 
-  private createAuthJwt_(): string {
+  private _createAuthJwt(): string {
     const claims = {
       scope: AUTH_SCOPES.join(' '),
     };
@@ -228,25 +254,33 @@ export class UnauthenticatedCredential implements Credential {
  */
 export class RefreshTokenCredential implements Credential {
   private _refreshToken: RefreshToken;
+  private _cachedCredential: CachedCredential;
 
   constructor(refreshToken: RefreshToken) {
     this._refreshToken = refreshToken;
+    this._cachedCredential = new CachedCredential();
   }
 
   public getAccessToken(): PromiseLike<AccessToken> {
-    return requestAccessToken({
-      method: 'POST',
-      uri: REFRESH_TOKEN_URL,
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      form: {
-        client_id: this._refreshToken.clientId,
-        client_secret: this._refreshToken.clientSecret,
-        refresh_token: this._refreshToken.refreshToken,
-        grant_type: 'refresh_token',
-      },
-    });
+    return Promise.resolve(
+      this._cachedCredential.token ||
+      requestAccessToken({
+        method: 'POST',
+        uri: REFRESH_TOKEN_URL,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        form: {
+          client_id: this._refreshToken.clientId,
+          client_secret: this._refreshToken.clientSecret,
+          refresh_token: this._refreshToken.refreshToken,
+          grant_type: 'refresh_token',
+        },
+      }).then(token => {
+        this._cachedCredential.token = token;
+        return token;
+      })
+    );
   };
 
   public getCertificate(): Certificate {
@@ -260,11 +294,23 @@ export class RefreshTokenCredential implements Credential {
  * of an App Engine instance or Google Compute Engine machine.
  */
 export class MetadataServiceCredential implements Credential {
+  private _cachedCredential: CachedCredential;
+
+  constructor() {
+    this._cachedCredential = new CachedCredential();
+  }
+
   public getAccessToken(): PromiseLike<AccessToken> {
-    return requestAccessToken({
-      method: 'GET',
-      uri: GOOGLE_METADATA_SERVICE_URL,
-    });
+    return Promise.resolve(
+      this._cachedCredential.token ||
+      requestAccessToken({
+        method: 'GET',
+        uri: GOOGLE_METADATA_SERVICE_URL,
+      }).then(token => {
+        this._cachedCredential.token = token;
+        return token;
+      })
+    );
   }
 
   public getCertificate(): Certificate {
