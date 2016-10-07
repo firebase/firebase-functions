@@ -17,6 +17,7 @@ export interface FirebaseEnvData {
 interface FirebaseEnvMetadata {
   version: string;
   reserved?: FirebaseEnvData;
+  latest?: FirebaseEnvData;
 }
 
 export class AbstractEnv implements FirebaseEnv {
@@ -57,6 +58,7 @@ export class RuntimeConfigEnv extends AbstractEnv {
   projectId: string;
   version: string;
   private _custom: FirebaseEnvData;
+  private _customFromMeta: FirebaseEnvData;
   private _reserved: FirebaseEnvData;
   private _merged: FirebaseEnvData;
   private _watching: boolean;
@@ -97,7 +99,7 @@ export class RuntimeConfigEnv extends AbstractEnv {
           this._meta = JSON.parse(response.text);
           this.lastUpdated = response.updateTime;
 
-          console.log(`Firebase: detected new environment version ${this.version}, fetching...`);
+          console.log(`Firebase: detected environment version ${this.version}, activating...`);
           this.fetch();
         } else if (response.state === 'DELETED') {
           this._custom = {};
@@ -119,8 +121,10 @@ export class RuntimeConfigEnv extends AbstractEnv {
   }
 
   private fetch(): PromiseLike<FirebaseEnv> {
-    return this.fetchVar(this.version).then((data: FirebaseEnvData) => {
-      console.log('Firebase: updated environment configuration, now using', this.version);
+    let fetched = Promise.resolve(this._customFromMeta || this.fetchVar(this.version));
+
+    return fetched.then((data: FirebaseEnvData) => {
+      console.log('Firebase: activated environment configuration', this.version);
       this._merged = null;
       this._custom = data || {};
       this._notifyReady();
@@ -158,6 +162,10 @@ export class RuntimeConfigEnv extends AbstractEnv {
     this.version = meta.version || 'v0';
     this._reserved = meta.reserved || {};
     this._merged = null;
+
+    if (meta.latest) {
+      this._customFromMeta = meta.latest;
+    }
   }
 
   get data(): FirebaseEnvData {

@@ -1,6 +1,7 @@
 .idea
 .tmp
 .npm
+npm-debug.log
 lib
 
 coverage

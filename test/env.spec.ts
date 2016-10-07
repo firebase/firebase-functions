@@ -122,6 +122,15 @@ describe('RuntimeConfigEnv', () => {
       });
     });
 
+    it('should use "latest" from meta if available', () => {
+      nocks.push(mockMetaVariableWatch('example', {version: 'v1', latest: {foo: 'bar', baz: 'qux'}}));
+      mockMetaVariableWatchTimeout('example', 10000);
+      return subject.ready().then(() => {
+        expect(subject.data['foo']).to.equal('bar');
+        expect(subject.data['baz']).to.equal('qux');
+      });
+    });
+
     it('should merge in reserved data returned by meta', () => {
       nocks.push(mockMetaVariableWatch('example', {version: 'v1', reserved: {foo: 'bar'}}));
       nocks.push(mockRCVariableFetch('example', 'v1', {baz: 'qux'}));
