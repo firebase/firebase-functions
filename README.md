@@ -17,9 +17,9 @@ var notifyUsers = require('./notify-users');
 
 exports.newPost = functions.database()
   .path('/posts/{postId}')
-  .on('write', function(event) {
+  .onWrite(function(event) {
     // only execute function on creation
-    if (!event.data.prior().exists()) {
+    if (!event.data.previous.exists()) {
       notifyUsers(event.data.val());
     }
   });
