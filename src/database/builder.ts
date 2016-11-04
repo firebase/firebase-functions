@@ -6,9 +6,9 @@ import { normalizePath } from '../utils';
 import { FirebaseEnv } from '../env';
 
 export interface DatabasePayload {
-  type: string;
-  path: string;
-  auth: AuthMode;
+  type?: string;
+  path?: string;
+  auth?: AuthMode;
   data: any;
   delta: any;
   params?: any;
@@ -69,7 +69,7 @@ export default class DatabaseBuilder extends FunctionBuilder {
 
   protected _dataConstructor(payload: any): DatabaseDeltaSnapshot {
     if (this._isEventNewFormat(payload)) {
-      return new DatabaseDeltaSnapshot(this._apps, payload.data);
+      return new DatabaseDeltaSnapshot(this._apps, payload.data, payload.path);
     }
     return new DatabaseDeltaSnapshot(this._apps, payload);
   }
