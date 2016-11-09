@@ -29,6 +29,16 @@ describe('DatabaseDeltaSnapshot', () => {
     expect(snap['_path']).to.equal('/users/foo');
   });
 
+  it('should allow auth to be defined by the payload', () => {
+    let snap = new DatabaseDeltaSnapshot(apps, {data: null, delta: 'foo', path: '/users/foo', auth: {admin: true}});
+    expect(snap['_auth']).to.deep.equal({admin: true});
+  });
+
+  it('should allow auth to be defined by an optional fourth argument', () => {
+    let snap = new DatabaseDeltaSnapshot(apps, {data: null, delta: 'foo'}, '/users/foo', {admin: true});
+    expect(snap['_auth']).to.deep.equal({admin: true});
+  });
+
   describe('#val(): any', () => {
     it('should return child values based on the child path', () => {
       populate({a: {b: 'c'}}, {a: {d: 'e'}});

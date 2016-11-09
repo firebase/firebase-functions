@@ -69,7 +69,7 @@ export default class DatabaseBuilder extends FunctionBuilder {
 
   protected _dataConstructor(payload: any): DatabaseDeltaSnapshot {
     if (this._isEventNewFormat(payload)) {
-      return new DatabaseDeltaSnapshot(this._apps, payload.data, payload.path);
+      return new DatabaseDeltaSnapshot(this._apps, payload.data, payload.path, payload.auth);
     }
     return new DatabaseDeltaSnapshot(this._apps, payload);
   }

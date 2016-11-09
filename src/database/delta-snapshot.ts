@@ -18,12 +18,12 @@ export default class DatabaseDeltaSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(apps: Apps, eventData?: DatabasePayload, path?: string) {
+  constructor(apps: Apps, eventData?: DatabasePayload, path?: string, auth?: AuthMode) {
     this._apps = apps;
 
     if (eventData) {
       this._path = path || eventData.path;
-      this._auth = eventData.auth;
+      this._auth = auth || eventData.auth;
       this._data = eventData.data;
       this._delta = eventData.delta;
       this._newData = applyChange(this._data, this._delta);
