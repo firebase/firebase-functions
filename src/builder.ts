@@ -30,7 +30,7 @@ export class FunctionBuilder {
   protected _wrapHandler<EventData, OldRawType>(
     handler: (event: Event<EventData>) => PromiseLike<any> | any,
     event: string,
-    additionalMeta: FirebaseEventMetadata,
+    additionalMeta?: FirebaseEventMetadata,
   ): TriggerAnnotated & ((raw: OldRawType | RawEvent) => PromiseLike<any> | any) {
     const wrapped: any = (payload: OldRawType | RawEvent) => {
       const metadata = <FirebaseEventMetadata>_.extend({}, additionalMeta, payload);

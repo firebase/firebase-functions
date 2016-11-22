@@ -3,6 +3,7 @@ import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 import { FirebaseEvent } from '../../src/event';
 import Apps from '../../src/apps';
+import * as _ from 'lodash';
 
 describe('DatabaseBuilder', () => {
   let subject: DatabaseBuilder;

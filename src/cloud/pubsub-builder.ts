@@ -64,10 +64,7 @@ export default class CloudPubsubBuilder extends FunctionBuilder {
   onPublish(
     handler: (event: Event<PubsubMessage>) => PromiseLike<any> | any
   ): TriggerAnnotated & ((event: RawEvent | any) => PromiseLike<any> | any) {
-    return this._wrapHandler(handler, 'message', {
-      action: 'sources/cloud.pubsub/actions/publish',
-      resource: 'projects/' + process.env.GCLOUD_PROJECT + '/topics/' + this.topic,
-    });
+    return this._wrapHandler(handler, 'message');
   }
 
   protected _toTrigger(event: string): CloudPubsubTriggerDefinition {
@@ -79,13 +76,6 @@ export default class CloudPubsubBuilder extends FunctionBuilder {
   }
 
   protected _dataConstructor(payload: any): PubsubMessage {
-    if (this._isEventNewFormat(payload)) {
-      return new PubsubMessage(payload.data);
-    }
-
-    return new PubsubMessage({
-      data: new Buffer(JSON.stringify(payload), 'utf8').toString('base64'),
-      attributes: {},
-    });
+    return new PubsubMessage(payload.data);
   }
 }
