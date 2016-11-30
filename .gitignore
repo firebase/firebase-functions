@@ -7,3 +7,4 @@ lib
 coverage
 node_modules
 typings
+.vscode

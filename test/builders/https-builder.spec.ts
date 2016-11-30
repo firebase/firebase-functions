@@ -1,4 +1,4 @@
-import { default as CloudHttpsBuilder } from '../../src/cloud/https-builder';
+import { default as CloudHttpsBuilder } from '../../src/builders/https-builder';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 

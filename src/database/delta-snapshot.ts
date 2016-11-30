@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import * as firebase from 'firebase';
 
 import { AuthMode, default as Apps } from '../apps';
-import { DatabasePayload } from './builder';
+import { DatabaseEvent } from '../builders/database-builder';
 import { normalizePath, pathParts, applyChange, valAt } from '../utils';
 
 export default class DatabaseDeltaSnapshot {
@@ -18,14 +18,14 @@ export default class DatabaseDeltaSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(apps: Apps, eventData?: DatabasePayload) {
+  constructor(apps: Apps, event?: DatabaseEvent) {
     this._apps = apps;
 
-    if (eventData) {
-      this._path = eventData.path;
-      this._auth = eventData.auth;
-      this._data = eventData.data;
-      this._delta = eventData.delta;
+    if (event) {
+      this._path = event.path;
+      this._auth = event.auth;
+      this._data = event.data.data;
+      this._delta = event.data.delta;
       this._newData = applyChange(this._data, this._delta);
     }
   }

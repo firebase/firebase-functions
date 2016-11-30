@@ -7,20 +7,6 @@ export {
 }
 
 export default class CloudHttpsBuilder extends FunctionBuilder {
-  on(
-    event: string, handler: (req: Request, resp: Response) => void
-  ): ((req: Request, resp: Response) => void) & TriggerAnnotated {
-    if (event !== 'request') {
-      throw new Error(`Provider cloud.http does not support event type "${event}"`);
-    }
-
-    console.warn(
-      'DEPRECATION NOTICE: cloud.http().on("request", handler) is deprecated, use cloud.http().onRequest(handler)'
-    );
-
-    return this.onRequest(handler);
-  }
-
   onRequest(
     handler: (req: Request, resp: Response) => void
   ): ((req: Request, resp: Response) => void) & TriggerAnnotated {

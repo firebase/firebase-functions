@@ -2,7 +2,7 @@ import * as sinon from 'sinon';
 import { expect } from 'chai';
 import { FakeEnv, async } from './support/helpers';
 import { FunctionBuilder } from '../src/builder';
-import { Event } from '../src/event';
+import { RawEvent } from '../src/event';
 
 describe('FunctionBuilder', () => {
   let subject;
@@ -40,32 +40,50 @@ describe('FunctionBuilder', () => {
     it('should run handler after env ready', () => {
       sinon.stub(subject, '_toTrigger').returns({});
       let called = false;
-      let handler = subject['_makeHandler'](() => {
+      let handler = subject['_makeHandler']((payload) => {
         called = true;
       });
-      handler();
+      handler({});
       env.makeReady();
       return async().then(() => {
         expect(called).to.be.true;
       });
     });
-  });
 
-  describe('__isEventNewFormat(event: GenericEvent): boolean', () => {
-    it('should return true when event is in new format', () => {
-      const event = new Event({
-        action: 'sources/firebase.database/actions/write',
-        resource: 'projects/project1',
-        path: '/path',
-      }, undefined);
-      expect(subject._isEventNewFormat(event)).to.equal(true);
-    });
-
-    it('should return false when event is not in new format', () => {
-      const event = {
-        service: 'database',
+    it('should preserve payload metadata', () => {
+      sinon.stub(subject, '_toTrigger').returns({});
+      let event: RawEvent = {
+        eventId: '00000',
+        timestamp: '2016-11-04T21:29:03.496Z',
+        auth: {
+          admin: true,
+        },
+        eventType: 'providers/provider/eventTypes/event',
+        resource: 'resource',
+        path: 'path',
+        params: {
+          foo: 'bar',
+        },
+        data: 'data',
       };
-      expect(subject._isEventNewFormat(event)).to.equal(false);
+      let handler = subject['_makeHandler']((e) => {
+        return e;
+      });
+      env.makeReady();
+      return expect(handler(event)).to.eventually.deep.equal({
+        eventId: '00000',
+        timestamp: '2016-11-04T21:29:03.496Z',
+        auth: {
+          admin: true,
+        },
+        eventType: 'providers/provider/eventTypes/event',
+        resource: 'resource',
+        path: 'path',
+        params: {
+          foo: 'bar',
+        },
+        data: 'data',
+      });
     });
   });
 });

@@ -1,69 +1,50 @@
-import * as firebase from 'firebase';
 import * as _ from 'lodash';
 
-import Apps from './apps';
 import { AuthMode } from './apps';
 
+/* Incoming event, no uid and _auth */
 export interface RawEvent {
-  requestId?: string;
+  eventId?: string;
   timestamp?: string;
-  authentication?: Object;
-  action: string;
-  resource: string;
+  auth?: AuthMode;
+  eventType?: string;
+  resource?: string;
   path?: string;
   params?: {[option: string]: any};
   data: any;
 }
 
-export interface FirebaseEventMetadata {
-  action: string;
-  resource: string;
-  path?: string;
-  params?: {[option: string]: string}; // value type used to be any, need to test this on all events to ensure it's okay
-  auth?: AuthMode;
+/* Has all fields of RawEvent except data, used to construct new Events by 
+   FunctionBuilder._makeHandler */
+export interface EventMetadata {
+  eventId?: string;
   timestamp?: string;
+  auth?: AuthMode;
+  eventType?: string;
+  resource?: string;
+  path?: string;
+  params?: {[option: string]: any};
 }
 
 export class Event<T> {
-  requestId?: string;
-  timestamp: string;
-  authentication?: Object;
-  uid: string;
-  action: string;
-  resource: string;
+  eventId?: string;
+  timestamp?: string;
+  auth?: AuthMode;
+  eventType?: string;
+  resource?: string;
   path?: string;
   params?: {[option: string]: any};
   data: T;
+  uid?: string;
 
-  protected _auth: AuthMode; // we have not yet agreed on what we want to expose here
+  protected _auth?: AuthMode; // we have not yet agreed on what we want to expose here
 
-  constructor(metadata: FirebaseEventMetadata, data: T) {
-    this.timestamp = metadata.timestamp ? metadata.timestamp : new Date().toISOString();
-
-    [this.action, this.resource, this.path, this.data, this.params, this._auth] = [
-      metadata.action, metadata.resource, metadata.path, data, metadata.params || {}, metadata.auth,
-    ];
-
+  constructor(metadata: EventMetadata, data: T) {
+    _.assign(this, metadata);
+    this.data = data;
+    this.params = this.params || {};
     if (_.has(this._auth, 'variable.uid')) {
       this.uid = metadata.auth.variable.uid;
     }
-  }
-}
-
-// FirebaseEvent<T> adds access to Firebase-specific helpers like the app.
-export class FirebaseEvent<T> extends Event<T> {
-  private _app: firebase.app.App;
-  private _apps: Apps;
-
-  constructor(apps: Apps, metadata: FirebaseEventMetadata, data: T) {
-    super(metadata, data);
-    this._apps = apps;
-  }
-
-  get app(): firebase.app.App {
-    if (!this._app) {
-      this._app = this._apps.forMode(this._auth);
-    }
-    return this._app;
   }
 }

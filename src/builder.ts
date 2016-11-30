@@ -1,7 +1,5 @@
-import * as _ from 'lodash';
-
 import { FirebaseEnv } from './env';
-import { FirebaseEventMetadata, Event, RawEvent } from './event';
+import { Event, RawEvent } from './event';
 
 export interface TriggerAnnotated {
   __trigger: TriggerDefinition;
@@ -12,6 +10,10 @@ export interface TriggerDefinition {
   event: string;
 }
 
+/* A CloudFunction is both an object that exports its trigger definitions at __trigger and
+   can be called as a function using the raw JS API for Google Cloud Functions. */
+export type CloudFunction = TriggerAnnotated & ((event: RawEvent) => PromiseLike<any> | any);
+
 export class FunctionBuilder {
   protected _env: FirebaseEnv;
 
@@ -19,34 +21,20 @@ export class FunctionBuilder {
     this._env = env;
   }
 
-  protected _isEventNewFormat(event: {action?: string}): boolean {
-    return /sources\/[^/]+\/actions\/[^/]+/.test(event.action);
-  }
-
   protected _toTrigger(event?: string): TriggerDefinition {
     throw new Error('Unimplemented _toTrigger');
   }
 
-  protected _wrapHandler<EventData, OldRawType>(
-    handler: (event: Event<EventData>) => PromiseLike<any> | any,
-    event: string,
-    additionalMeta: FirebaseEventMetadata,
-  ): TriggerAnnotated & ((raw: OldRawType | RawEvent) => PromiseLike<any> | any) {
-    const wrapped: any = (payload: OldRawType | RawEvent) => {
-      const metadata = <FirebaseEventMetadata>_.extend({}, additionalMeta, payload);
-      return handler(new Event(metadata, this._dataConstructor<EventData, OldRawType>(payload)));
-    };
-
-    return this._makeHandler<EventData>(wrapped, event);
-  }
-
   protected _makeHandler<EventData>(
-    fn: (event: Event<EventData>) => PromiseLike<any> | any,
+    fn: (event?: Event<EventData>) => PromiseLike<any> | any,
     event: string,
-  ): TriggerAnnotated & ((raw: RawEvent) => PromiseLike<any> | any) {
+  ): CloudFunction {
+    let fnWithDataConstructor: any = (payload: RawEvent) => {
+      return fn(new Event(payload, this._dataConstructor<EventData>(payload)));
+    };
     let handler: any = (payload) => {
       return this._env.ready().then(function() {
-        return fn(payload);
+        return fnWithDataConstructor(payload);
       });
     };
     handler.__trigger = this._toTrigger(event);
@@ -54,7 +42,7 @@ export class FunctionBuilder {
     return handler;
   }
 
-  protected _dataConstructor<EventData, OldRawType>(raw: OldRawType | RawEvent): EventData {
-    return <any>raw;
+  protected _dataConstructor<EventData>(raw: RawEvent): EventData {
+    return raw.data;
   }
 }

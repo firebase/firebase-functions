@@ -1,7 +1,7 @@
-import CloudStorageBuilder from '../../src/cloud/storage-builder';
+import CloudStorageBuilder from '../../src/builders/storage-builder';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { StorageObject } from '../../src/cloud/storage-builder';
+import { StorageObject } from '../../src/builders/storage-builder';
 import { Event } from '../../src/event';
 
 describe('CloudHttpBuilder', () => {
@@ -22,7 +22,7 @@ describe('CloudHttpBuilder', () => {
       let result = subject.onChange(handler);
       expect(result.__trigger).to.deep.equal({
         service: 'cloud.storage',
-        event: 'change',
+        event: 'object',
         bucket: 'bucky',
       });
     });
