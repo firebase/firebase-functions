@@ -1,6 +1,9 @@
 import { FirebaseEnv } from './env';
 import { Event, RawEvent } from './event';
 
+// We export a type that uses RawEvent so it must itself be exported from this module.
+export { RawEvent } from './event';
+
 export interface TriggerAnnotated {
   __trigger: TriggerDefinition;
 }
