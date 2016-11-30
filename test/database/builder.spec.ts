@@ -47,7 +47,7 @@ describe('DatabaseBuilder', () => {
       });
 
       env.makeReady();
-      return handler(<any>{path: '/users/foo', data: null, delta: {foo: 'bar'}});
+      return handler(<any>{data: null, delta: {foo: 'bar'}});
     });
 
     it('should preserve data when handling a legacy event', (done) => {

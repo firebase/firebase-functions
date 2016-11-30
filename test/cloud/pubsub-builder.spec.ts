@@ -75,6 +75,7 @@ describe('CloudHttpBuilder', () => {
       };
       let raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
       let event = {
+        action: 'sources/cloud.pubsub/actions/publish',
         data: {
           data: raw,
           attributes: {
@@ -89,6 +90,16 @@ describe('CloudHttpBuilder', () => {
         json: {hello: 'world'},
         attributes: {foo: 'bar'},
       });
+    });
+
+    it('should preserve message when handling a legacy event', () => {
+      let handler = (payload: Event<PubsubMessage>) => {
+        return payload.data.json;
+      };
+      let legacyEvent = {message: 'hi'};
+      let result = subject.onPublish(handler);
+      env.makeReady();
+      return expect(result(legacyEvent)).to.eventually.deep.equal({'message': 'hi'});
     });
   });
 });
