@@ -5,13 +5,11 @@ import { FirebaseEnv } from '../env';
 export class PubsubMessage {
   data: string;
   attributes: { [key: string]: string };
-  publishTime: string;
-  messageId: string;
   private _json: any;
 
   constructor(data: any) {
-    [this.data, this.attributes, this.publishTime, this.messageId, this._json] =
-      [data.data, data.attributes || {}, data.publishTime || null, data.messageId || null, data.json];
+    [this.data, this.attributes, this._json] =
+      [data.data, data.attributes || {}, data.json];
   }
 
   get json(): any {
@@ -28,8 +26,6 @@ export class PubsubMessage {
     return {
       data: this.data,
       attributes: this.attributes,
-      publishTime: this.publishTime,
-      messageId: this.messageId,
     };
   }
 }
