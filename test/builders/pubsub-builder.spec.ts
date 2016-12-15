@@ -26,18 +26,13 @@ describe('PubsubMessage', () => {
   describe('#toJSON', () => {
     it('should be JSON stringify-able', () => {
       let encoded = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-      let publishTime = new Date().toISOString();
       let message = new PubsubMessage({
         data: encoded,
-        messageId: 'abc',
-        publishTime,
       });
 
       expect(JSON.parse(JSON.stringify(message))).to.deep.equal({
         data: encoded,
         attributes: {},
-        messageId: 'abc',
-        publishTime,
       });
     });
   });
