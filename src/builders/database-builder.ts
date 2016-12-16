@@ -37,7 +37,7 @@ export default class DatabaseBuilder extends FunctionBuilder {
     handler: (event: Event<DatabaseDeltaSnapshot>) => PromiseLike<any> | any
   ): CloudFunction {
     if (!this._path) {
-      throw new Error('Must call .path(pathValue) before .on() for database function definitions.');
+      throw new Error('Must call .path(pathValue) before .onWrite() for database function definitions.');
     }
     return this._makeHandler(handler, 'data.write');
   }
