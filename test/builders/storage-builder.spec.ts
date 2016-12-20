@@ -21,9 +21,10 @@ describe('CloudHttpBuilder', () => {
     it('should return a CloudStorageTriggerDefinition with appropriate values', () => {
       let result = subject.onChange(handler);
       expect(result.__trigger).to.deep.equal({
-        service: 'cloud.storage',
-        event: 'object',
-        bucket: 'bucky',
+        eventTrigger: {
+          eventType: 'providers/cloud.storage/eventTypes/object.change',
+          resource: 'projects/undefined/buckets/bucky',
+        },
       });
     });
   });

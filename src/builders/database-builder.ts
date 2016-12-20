@@ -42,11 +42,13 @@ export default class DatabaseBuilder extends FunctionBuilder {
     return this._makeHandler(handler, 'data.write');
   }
 
-  protected _toTrigger(event?: string): DatabaseTriggerDefinition {
+  protected _toTrigger(event: string): TriggerDefinition {
     return {
-      service: 'firebase.database',
-      event: 'write',
-      path: this._path,
+      eventTrigger: {
+        eventType: 'providers/firebase.database/eventTypes/' + event,
+        resource: 'projects/' + process.env.GCLOUD_PROJECT,
+        path: this._path,
+      },
     };
   }
 

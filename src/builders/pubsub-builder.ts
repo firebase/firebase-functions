@@ -30,10 +30,6 @@ export class PubsubMessage {
   }
 }
 
-export interface CloudPubsubTriggerDefinition extends TriggerDefinition {
-  topic: string;
-}
-
 export default class PubsubBuilder extends FunctionBuilder {
   topic: string;
   event: string;
@@ -48,11 +44,12 @@ export default class PubsubBuilder extends FunctionBuilder {
     return this._makeHandler(handler, 'topic.publish');
   }
 
-  protected _toTrigger(event: string): CloudPubsubTriggerDefinition {
+  protected _toTrigger(event: string): TriggerDefinition {
     return {
-      service: 'cloud.pubsub',
-      event: 'message',
-      topic: this.topic,
+      eventTrigger: {
+        eventType: 'providers/cloud.pubsub/eventTypes/' + event,
+        resource: 'projects/' + process.env.GCLOUD_PROJECT + '/topics/' + this.topic,
+      },
     };
   }
 

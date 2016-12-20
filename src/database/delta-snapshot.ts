@@ -53,7 +53,43 @@ export default class DatabaseDeltaSnapshot {
   val(): any {
     let parts = pathParts(this._childPath);
     let source = this._isPrevious ? this._data : this._newData;
-    return _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
+    let node = _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
+    return this._checkAndConvertToArray(node);
+  }
+
+  /* Recursive function to check if keys are numeric & convert node object to array if they are */
+  _checkAndConvertToArray(node): any {
+    if (!node) {
+      return null;
+    }
+    if (typeof node !== 'object') {
+      return node;
+    }
+    let obj = { };
+    let numKeys = 0;
+    let maxKey = 0;
+    let allIntegerKeys = true;
+    _.forEach(node, (childNode, key) => {
+      obj[key] = this._checkAndConvertToArray(childNode);
+      numKeys++;
+      const integerRegExp = /^(0|[1-9]\d*)$/;
+      if (allIntegerKeys && integerRegExp.test(key)) {
+        maxKey = Math.max(maxKey, Number(key));
+      } else {
+        allIntegerKeys = false;
+      }
+    });
+
+    if (allIntegerKeys && maxKey < 2 * numKeys) {
+      // convert to array.
+      let array = [];
+      _.forOwn(obj, (val, key) => {
+        array[key] = val;
+      });
+
+      return array;
+    }
+    return obj;
   }
 
   exists(): boolean {

@@ -58,10 +58,6 @@ export interface StorageObject {
   };
 }
 
-export interface CloudStorageTriggerDefinition extends TriggerDefinition {
-  bucket: string;
-}
-
 export default class CloudStorageBuilder extends FunctionBuilder {
   bucket: string;
 
@@ -76,11 +72,12 @@ export default class CloudStorageBuilder extends FunctionBuilder {
     return this._makeHandler(handler, 'object.change');
   }
 
-  protected _toTrigger(event: string): CloudStorageTriggerDefinition {
+  protected _toTrigger(event: string): TriggerDefinition {
     return {
-      service: 'cloud.storage',
-      bucket: this.bucket,
-      event: 'object',
+      eventTrigger: {
+        eventType: 'providers/cloud.storage/eventTypes/' + event,
+        resource: this.bucket? 'projects/' + process.env.GCLOUD_PROJECT + '/buckets/' + this.bucket: null,
+      },
     };
   }
 }

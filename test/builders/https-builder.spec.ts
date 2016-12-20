@@ -16,10 +16,7 @@ describe('CloudHttpsBuilder', () => {
       let result = subject.onRequest((req, resp) => {
         resp.send(200);
       });
-      expect(result.__trigger).to.deep.equal({
-        service: 'cloud.http',
-        event: 'request',
-      });
+      expect(result.__trigger).to.deep.equal({httpsTrigger: {}});
     });
   });
 });

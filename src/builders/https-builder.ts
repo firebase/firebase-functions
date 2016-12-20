@@ -24,15 +24,14 @@ export default class CloudHttpsBuilder extends FunctionBuilder {
         });
       });
     };
-    wrappedHandler.__trigger = this._toTrigger('request');
+    wrappedHandler.__trigger = this._toTrigger();
 
     return wrappedHandler;
   }
 
-  protected _toTrigger(event: string): TriggerDefinition {
+  protected _toTrigger(): TriggerDefinition {
     return {
-      service: 'cloud.http',
-      event,
+      httpsTrigger: {},
     };
   }
 }

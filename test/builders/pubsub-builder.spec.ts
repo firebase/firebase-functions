@@ -38,7 +38,7 @@ describe('PubsubMessage', () => {
   });
 });
 
-describe('CloudHttpBuilder', () => {
+describe('CloudPubsubBuilder', () => {
   let subject: CloudPubsubBuilder;
   let env: FakeEnv;
 
@@ -54,9 +54,10 @@ describe('CloudHttpBuilder', () => {
       };
       let result = subject.onPublish(handler);
       expect(result.__trigger).to.deep.equal({
-        service: 'cloud.pubsub',
-        event: 'message',
-        topic: 'toppy',
+        eventTrigger: {
+          eventType: 'providers/cloud.pubsub/eventTypes/topic.publish',
+          resource: 'projects/undefined/topics/toppy',
+        },
       });
     });
 

@@ -38,6 +38,15 @@ describe('DatabaseDeltaSnapshot', () => {
       populate({a: 23}, {b: 23, a: null});
       expect(subject.child('b').val()).to.eq(23);
     });
+
+    it ('should coerce object into array if all keys are integers', () => {
+      populate(null, {0: 'a', 1: 'b', 2: {c: 'd'}});
+      expect(subject.val()).to.deep.equal(['a', 'b', {c: 'd'}]);
+      populate(null, {0: 'a', 2: 'b', 3: {c: 'd'}});
+      expect(subject.val()).to.deep.equal(['a', ,'b', {c: 'd'}]);
+      populate(null, {'foo': {0: 'a', 1: 'b'}});
+      expect(subject.val()).to.deep.equal({foo: ['a', 'b']});
+    });
   });
 
   describe('#child(): DatabaseDeltaSnapshot', () => {

@@ -8,9 +8,14 @@ export interface TriggerAnnotated {
   __trigger: TriggerDefinition;
 }
 
+export interface EventTriggerDefinition {
+  eventType: string;
+  resource: string;
+  path?: string;
+}
 export interface TriggerDefinition {
-  service: string;
-  event: string;
+  httpsTrigger?: Object;
+  eventTrigger?: EventTriggerDefinition;
 }
 
 /* A CloudFunction is both an object that exports its trigger definitions at __trigger and

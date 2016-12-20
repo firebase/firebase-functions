@@ -19,17 +19,14 @@ describe('DatabaseBuilder', () => {
     it('should append paths if called multiple times', () => {
       subject.path('first/bit');
       subject.path('{id}/second/bit');
-      return expect(subject['_toTrigger']()).to.deep.equal({
-        service: 'firebase.database',
-        event: 'write',
-        path: '/first/bit/{id}/second/bit',
-      });
+      return expect(subject['_toTrigger']('data.write').eventTrigger.path).to.equal('/first/bit/{id}/second/bit');
     });
   });
 
   describe('#_toTrigger()', () => {
     it('should return "write" as the default event type', () => {
-      expect(subject['_toTrigger']().event).to.eq('write');
+      let eventType = subject['_toTrigger']('data.write').eventTrigger.eventType;
+      expect(eventType).to.eq('providers/firebase.database/eventTypes/data.write');
     });
   });
 
