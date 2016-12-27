@@ -73,10 +73,21 @@ export default class CloudStorageBuilder extends FunctionBuilder {
   }
 
   protected _toTrigger(event: string): TriggerDefinition {
+    let bucket;
+    if (this.bucket) {
+      const format = new RegExp('^(projects/_/buckets/)?([^/]+)$');
+      let match = this.bucket.match(format);
+      if (!match) {
+        const errorString = 'bucket names must either have the format of'
+        + ' "bucketId" or "projects/_/buckets/<bucketId>".';
+        throw new Error(errorString);
+      }
+      bucket = match[2];
+    }
     return {
       eventTrigger: {
         eventType: 'providers/cloud.storage/eventTypes/' + event,
-        resource: this.bucket? 'projects/' + process.env.GCLOUD_PROJECT + '/buckets/' + this.bucket: null,
+        resource: this.bucket? 'projects/_/buckets/' + bucket: null,
       },
     };
   }

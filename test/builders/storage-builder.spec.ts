@@ -18,14 +18,41 @@ describe('CloudHttpBuilder', () => {
   });
 
   describe('#onChange', () => {
-    it('should return a CloudStorageTriggerDefinition with appropriate values', () => {
+    it('should return a TriggerDefinition with appropriate values', () => {
       let result = subject.onChange(handler);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
           eventType: 'providers/cloud.storage/eventTypes/object.change',
-          resource: 'projects/undefined/buckets/bucky',
+          resource: 'projects/_/buckets/bucky',
         },
       });
+    });
+
+    it ('should allow fully qualified bucket names', () => {
+      let subjectQualified = new CloudStorageBuilder(env, 'projects/_/buckets/bucky');
+      let result = subjectQualified.onChange(handler);
+      expect(result.__trigger).to.deep.equal({
+        eventTrigger: {
+          eventType: 'providers/cloud.storage/eventTypes/object.change',
+          resource: 'projects/_/buckets/bucky',
+        },
+      });
+    });
+
+    it ('should throw with improperly formatted buckets', () => {
+      let func = () => {
+        let badSubject = new CloudStorageBuilder(env, 'bad/bucket/format');
+        return badSubject.onChange(handler);
+      };
+      expect(func).to.throw(Error);
+    });
+
+    it ('should throw with when using bucket not in _ project', () => {
+      let func = () => {
+        let badSubject = new CloudStorageBuilder(env, 'projects/anotherProject/buckets/bucky');
+        return badSubject.onChange(handler);
+      };
+      expect(func).to.throw(Error);
     });
   });
 });

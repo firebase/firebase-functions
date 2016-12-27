@@ -41,28 +41,61 @@ describe('PubsubMessage', () => {
 describe('CloudPubsubBuilder', () => {
   let subject: CloudPubsubBuilder;
   let env: FakeEnv;
+  let handler: (any) => any;
 
   beforeEach(() => {
     env = new FakeEnv();
     subject = new CloudPubsubBuilder(env, 'toppy');
+    handler = (data: Object) => {
+      return true;
+    };
+    process.env.GCLOUD_PROJECT = 'project1';
+  });
+
+  afterEach(() => {
+    delete process.env.GCLOUD_PROJECT;
   });
 
   describe('#onPublish', () => {
-    it('should return a CloudPubsubTriggerDefinition with appropriate values', () => {
-      let handler = (data: Object) => {
-        return true;
-      };
+    it('should return a TriggerDefinition with appropriate values', () => {
       let result = subject.onPublish(handler);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
           eventType: 'providers/cloud.pubsub/eventTypes/topic.publish',
-          resource: 'projects/undefined/topics/toppy',
+          resource: 'projects/project1/topics/toppy',
         },
       });
     });
 
+    it ('should allow fully qualified topic names', () => {
+      let subjectQualified = new CloudPubsubBuilder(env, 'projects/project1/topics/toppy');
+      let result = subjectQualified.onPublish(handler);
+      expect(result.__trigger).to.deep.equal({
+        eventTrigger: {
+          eventType: 'providers/cloud.pubsub/eventTypes/topic.publish',
+          resource: 'projects/project1/topics/toppy',
+        },
+      });
+    });
+
+    it ('should throw with improperly formatted topics', () => {
+      let func = () => {
+        let badSubject = new CloudPubsubBuilder(env, 'bad/topic/format');
+        return badSubject.onPublish(handler);
+      };
+      expect(func).to.throw(Error);
+    });
+
+    it ('should throw with when using topic in another project', () => {
+      let func = () => {
+        let badSubject = new CloudPubsubBuilder(env, 'projects/anotherProject/topics/toppy');
+        return badSubject.onPublish(handler);
+      };
+      expect(func).to.throw(Error);
+    });
+
     it('should properly handle a new-style event', () => {
-      let handler = (ev: Event<PubsubMessage>) => {
+      let handler2 = (ev: Event<PubsubMessage>) => {
         return {
           raw: ev.data.data,
           json: ev.data.json,
@@ -78,7 +111,7 @@ describe('CloudPubsubBuilder', () => {
           },
         },
       };
-      let result = subject.onPublish(handler);
+      let result = subject.onPublish(handler2);
       env.makeReady();
       return expect(result(event)).to.eventually.deep.equal({
         raw,

@@ -45,10 +45,21 @@ export default class PubsubBuilder extends FunctionBuilder {
   }
 
   protected _toTrigger(event: string): TriggerDefinition {
+    const format = new RegExp('^(projects/([^/]+)/topics/)?([^/]+)$');
+    let match = this.topic.match(format);
+    if (!match) {
+      const errorString = 'Topic names must either have the format of'
+      + ' "topicId" or "projects/<projectId>/topics/<topicId>".';
+      throw new Error(errorString);
+    }
+    let [,,project, topic] = match;
+    if (project && project !== process.env.GCLOUD_PROJECT) {
+      throw new Error('Cannot use a topic that does not belong to this project.');
+    }
     return {
       eventTrigger: {
         eventType: 'providers/cloud.pubsub/eventTypes/' + event,
-        resource: 'projects/' + process.env.GCLOUD_PROJECT + '/topics/' + this.topic,
+        resource: 'projects/' + process.env.GCLOUD_PROJECT + '/topics/' + topic,
       },
     };
   }
