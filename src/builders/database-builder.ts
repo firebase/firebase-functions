@@ -46,7 +46,7 @@ export default class DatabaseBuilder extends FunctionBuilder {
     return {
       eventTrigger: {
         eventType: 'providers/firebase.database/eventTypes/' + event,
-        resource: 'projects/' + process.env.GCLOUD_PROJECT,
+        resource: 'projects/_/databases/' + process.env.DB_NAMESPACE,
         path: this._path,
       },
     };
