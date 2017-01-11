@@ -44,7 +44,8 @@ const ONE_HOUR_IN_SECONDS = 60 * 60;
 const JWT_ALGORITHM = 'RS256';
 const AUTH_SCOPES = [
   'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/firebase.database',
+  'https://www.googleapis.com/auth/cloudruntimeconfig',
+  'https://www.googleapis.com/auth/firebase',
 ];
 
 /**
