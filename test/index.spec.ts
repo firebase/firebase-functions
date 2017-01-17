@@ -12,6 +12,7 @@ import './builder.spec';
 import './env.spec';
 import './event.spec';
 import './credential.spec';
+import './builders/auth-builder.spec';
 import './builders/https-builder.spec';
 import './builders/pubsub-builder.spec';
 import './builders/storage-builder.spec';
