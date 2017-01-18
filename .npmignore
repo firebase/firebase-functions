@@ -3,4 +3,4 @@ coverage
 .vscode
 
 # The SDK's internal unit tests might confuse users looking for the testing/ module.
-test
+spec

@@ -1,16 +1,16 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es5",
-        "noImplicitAny": false,
-        "outDir": "lib",
-        "declaration": true,
-        "typeRoots": [
-            "node_modules/@types"
-        ]
-    },
-    "files": [
-        "src/index.ts",
-        "src/testing.ts"
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "noImplicitAny": false,
+    "outDir": "lib",
+    "declaration": true,
+    "typeRoots": [
+      "node_modules/@types"
     ]
+  },
+  "files": [
+    "src/index.ts",
+    "src/testing.ts"
+  ]
 }
