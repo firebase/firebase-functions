@@ -1,0 +1,9 @@
+{
+  "name": "firebase-functions-testing",
+  "version": "0.4.1",
+  "description": "Node helpers for Firebase Functions unit testing. See ../package.json for more information",
+  "main": "../lib/testing.js",
+  "author": "Firebase Team",
+  "license": "MIT",
+  "typings": "../lib/testing.d.ts"
+}
