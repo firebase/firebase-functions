@@ -2,6 +2,7 @@ import * as firebase from 'firebase';
 
 import Apps from './apps';
 import { FirebaseEnv, FirebaseEnvData } from './env';
+import AuthBuilder from './builders/auth-builder';
 import DatabaseBuilder from './builders/database-builder';
 import HttpsBuilder from './builders/https-builder';
 import PubsubBuilder from './builders/pubsub-builder';
@@ -14,6 +15,13 @@ export default class FirebaseFunctions {
   constructor(env: FirebaseEnv, apps: Apps) {
     this._env = env;
     this._apps = apps;
+  }
+
+  /**
+   * Create a builder for a Firebase Authentication function.
+   */
+  auth(): AuthBuilder {
+    return new AuthBuilder(this._env);
   }
 
   /**
