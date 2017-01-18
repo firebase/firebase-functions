@@ -1,4 +1,4 @@
-import * as firebase from 'firebase';
+import * as firebase from 'firebase-admin';
 
 import Apps from './apps';
 import { FirebaseEnv, FirebaseEnvData } from './env';

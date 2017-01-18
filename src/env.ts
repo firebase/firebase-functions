@@ -1,8 +1,7 @@
 import * as _ from 'lodash';
 import * as request from 'request-promise';
 import * as Promise from 'bluebird';
-
-import { Credential } from './credential';
+import * as firebase from 'firebase-admin';
 
 export interface FirebaseEnv {
   data: FirebaseEnvData;
@@ -53,7 +52,7 @@ export class AbstractEnv implements FirebaseEnv {
 }
 
 export class RuntimeConfigEnv extends AbstractEnv {
-  credential: Credential;
+  credential: firebase.credential.Credential;
   lastUpdated: string;
   projectId: string;
   version: string;

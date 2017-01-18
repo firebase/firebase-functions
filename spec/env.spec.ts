@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import * as nock from 'nock';
 import * as Promise from 'bluebird';
 
-import { Credential } from '../src/credential';
 import { AbstractEnv, RuntimeConfigEnv } from '../src/env';
 import { expect } from 'chai';
 import { async } from './support/helpers';
@@ -90,7 +89,7 @@ describe('RuntimeConfigEnv', () => {
   });
 
   describe('with a stub credential', () => {
-    let stubCredential: Credential = {
+    let stubCredential = {
       getAccessToken: () => {
         return Promise.resolve({
           expires_in: 3600,

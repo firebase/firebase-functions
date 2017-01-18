@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import * as firebase from 'firebase';
+import * as firebase from 'firebase-admin';
 
 import { AuthMode, default as Apps } from '../apps';
 import { DatabaseEvent } from '../builders/database-builder';

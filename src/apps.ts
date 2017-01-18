@@ -1,5 +1,5 @@
 import * as _ from 'lodash';
-import * as firebase from 'firebase';
+import * as firebase from 'firebase-admin';
 import { FirebaseEnv } from './env';
 
 export interface AuthMode {
@@ -18,14 +18,15 @@ export default class Apps {
   }
 
   get admin(): firebase.app.App {
-    // TODO(inlined) add credential to env
     Apps._admin = Apps._admin || firebase.initializeApp(this.firebaseArgs, '__admin__');
     return Apps._admin;
   }
 
   get noauth(): firebase.app.App {
-    Apps._noauth = Apps._noauth ||
-                  firebase.initializeApp(_.omit(this.firebaseArgs, 'credential'), '__noauth__');
+    const param = _.extend({}, this.firebaseArgs, {
+      databaseAuthVariableOverride: null,
+    });
+    Apps._noauth = Apps._noauth || firebase.initializeApp(param, '__noauth__');
     return Apps._noauth;
   }
 
@@ -44,7 +45,9 @@ export default class Apps {
     try {
       return firebase.app(key);
     } catch (e) {
-      const param = _.extend({}, this.firebaseArgs, {databaseAuthVariableOverride: auth.variable});
+      const param = _.extend({}, this.firebaseArgs, {
+        databaseAuthVariableOverride: auth.variable,
+      });
       return firebase.initializeApp(param, key);
     }
   }

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 
 import { FakeEnv } from './support/helpers';
 import Apps from '../src/apps';
-import * as firebase from 'firebase';
+import * as firebase from 'firebase-admin';
 
 describe('apps', () => {
   let apps;
