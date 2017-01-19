@@ -1,12 +1,12 @@
-import { PubsubMessage, default as CloudPubsubBuilder } from '../../src/builders/pubsub-builder';
+import { pubsub } from '../../src/providers/pubsub';
 import { expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 import { Event } from '../../src/event';
 
-describe('PubsubMessage', () => {
+describe('pubsub.Message', () => {
   describe('#json', () => {
     it('should return json decoded from base64', () => {
-      let message = new PubsubMessage({
+      let message = new pubsub.Message({
         data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
       });
 
@@ -14,7 +14,7 @@ describe('PubsubMessage', () => {
     });
 
     it('should preserve passed in json', () => {
-      let message = new PubsubMessage({
+      let message = new pubsub.Message({
         data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
         json: {goodbye: 'world'},
       });
@@ -26,7 +26,7 @@ describe('PubsubMessage', () => {
   describe('#toJSON', () => {
     it('should be JSON stringify-able', () => {
       let encoded = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-      let message = new PubsubMessage({
+      let message = new pubsub.Message({
         data: encoded,
       });
 
@@ -38,14 +38,14 @@ describe('PubsubMessage', () => {
   });
 });
 
-describe('CloudPubsubBuilder', () => {
-  let subject: CloudPubsubBuilder;
+describe('pubsub.FunctionBuilder', () => {
+  let subject: pubsub.FunctionBuilder;
   let env: FakeEnv;
   let handler: (any) => any;
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new CloudPubsubBuilder(env, 'toppy');
+    subject = new pubsub.FunctionBuilder(env, 'toppy');
     handler = (data: Object) => {
       return true;
     };
@@ -68,7 +68,7 @@ describe('CloudPubsubBuilder', () => {
     });
 
     it ('should allow fully qualified topic names', () => {
-      let subjectQualified = new CloudPubsubBuilder(env, 'projects/project1/topics/toppy');
+      let subjectQualified = new pubsub.FunctionBuilder(env, 'projects/project1/topics/toppy');
       let result = subjectQualified.onPublish(handler);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
@@ -80,7 +80,7 @@ describe('CloudPubsubBuilder', () => {
 
     it ('should throw with improperly formatted topics', () => {
       let func = () => {
-        let badSubject = new CloudPubsubBuilder(env, 'bad/topic/format');
+        let badSubject = new pubsub.FunctionBuilder(env, 'bad/topic/format');
         return badSubject.onPublish(handler);
       };
       expect(func).to.throw(Error);
@@ -88,14 +88,14 @@ describe('CloudPubsubBuilder', () => {
 
     it ('should throw with when using topic in another project', () => {
       let func = () => {
-        let badSubject = new CloudPubsubBuilder(env, 'projects/anotherProject/topics/toppy');
+        let badSubject = new pubsub.FunctionBuilder(env, 'projects/anotherProject/topics/toppy');
         return badSubject.onPublish(handler);
       };
       expect(func).to.throw(Error);
     });
 
     it('should properly handle a new-style event', () => {
-      let handler2 = (ev: Event<PubsubMessage>) => {
+      let handler2 = (ev: Event<pubsub.Message>) => {
         return {
           raw: ev.data.data,
           json: ev.data.json,

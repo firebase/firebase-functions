@@ -1,11 +1,11 @@
 import * as Promise from 'bluebird';
-import { AbstractEnv, FirebaseEnvData } from '../../src/env';
 import * as _ from 'lodash';
+import { env } from '../../src/env';
 
-export class FakeEnv extends AbstractEnv {
-  private _data: FirebaseEnvData;
+export class FakeEnv extends env.AbstractEnv {
+  private _data: env.Data;
 
-  constructor(data?: FirebaseEnvData) {
+  constructor(data?: env.Data) {
     super();
     this._data = _.extend({}, data, {
       firebase: {
@@ -22,17 +22,12 @@ export class FakeEnv extends AbstractEnv {
     this._notifyReady();
   }
 
-  set data(val: FirebaseEnvData) {
-    this._data = val;
+  set data(data: env.Data) {
+    this._data = data;
+    this._notifyObservers(data);
   }
 
   get data() {
     return this._data;
   }
-}
-
-export function async() {
-  return new Promise(resolve => {
-    setTimeout(resolve, 0);
-  });
 }

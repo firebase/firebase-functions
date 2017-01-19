@@ -8,6 +8,7 @@
     "whitespace": [true],
     "member-access": [false],
     "no-string-literal": false,
-    "no-console": [false]
+    "no-console": [false],
+    "no-namespace": [false]
   }
 }

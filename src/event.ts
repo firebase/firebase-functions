@@ -1,12 +1,12 @@
 import * as _ from 'lodash';
 
-import { AuthMode } from './apps';
+import { apps } from './apps';
 
 /* Incoming event, no uid and _auth */
 export interface RawEvent {
   eventId?: string;
   timestamp?: string;
-  auth?: AuthMode;
+  auth?: apps.AuthMode;
   eventType?: string;
   resource?: string;
   path?: string;
@@ -14,12 +14,12 @@ export interface RawEvent {
   data: any;
 }
 
-/* Has all fields of RawEvent except data, used to construct new Events by 
-   FunctionBuilder._makeHandler */
+/* Has all fields of RawEvent except data, used to construct new Events by
+   AbstractFunctionBuilder._makeHandler */
 export interface EventMetadata {
   eventId?: string;
   timestamp?: string;
-  auth?: AuthMode;
+  auth?: apps.AuthMode;
   eventType?: string;
   resource?: string;
   path?: string;
@@ -29,7 +29,7 @@ export interface EventMetadata {
 export class Event<T> {
   eventId?: string;
   timestamp?: string;
-  auth?: AuthMode;
+  auth?: apps.AuthMode;
   eventType?: string;
   resource?: string;
   path?: string;
@@ -37,7 +37,7 @@ export class Event<T> {
   data: T;
   uid?: string;
 
-  protected _auth?: AuthMode; // we have not yet agreed on what we want to expose here
+  protected _auth?: apps.AuthMode; // we have not yet agreed on what we want to expose here
 
   constructor(metadata: EventMetadata, data: T) {
     _.assign(this, metadata);
