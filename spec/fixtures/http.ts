@@ -1,5 +1,9 @@
 import * as nock from 'nock';
-import { AccessToken } from '../../src/credential';
+
+interface AccessToken {
+  access_token: string;
+  expires_in: number;
+}
 
 export function mockCredentialFetch(tokenToReturn: AccessToken): nock.Scope {
   return nock('http://metadata.google.internal')

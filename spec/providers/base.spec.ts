@@ -1,16 +1,17 @@
 import * as sinon from 'sinon';
+import * as Promise from 'bluebird';
 import { expect } from 'chai';
-import { FakeEnv, async } from './support/helpers';
-import { FunctionBuilder } from '../src/builder';
-import { RawEvent } from '../src/event';
+import { FakeEnv } from '../support/helpers';
+import { AbstractFunctionBuilder } from '../../src/providers/base';
+import { RawEvent } from '../../src/event';
 
-describe('FunctionBuilder', () => {
+describe('AbstractFunctionBuilder', () => {
   let subject;
   let env;
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new FunctionBuilder(env);
+    subject = new AbstractFunctionBuilder(env);
   });
 
   describe('_makeHandler(handler: Function, event: string)', () => {
@@ -32,7 +33,7 @@ describe('FunctionBuilder', () => {
         called = true;
       });
       handler();
-      return async().then(() => {
+      return Promise.resolve().then(() => {
         expect(called).to.be.false;
       });
     });
@@ -45,7 +46,7 @@ describe('FunctionBuilder', () => {
       });
       handler({});
       env.makeReady();
-      return async().then(() => {
+      return Promise.resolve().then(() => {
         expect(called).to.be.true;
       });
     });

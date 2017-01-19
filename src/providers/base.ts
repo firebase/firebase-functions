@@ -1,35 +1,35 @@
-import { FirebaseEnv } from './env';
-import { Event, RawEvent } from './event';
+import { env } from '../env';
+import { Event, RawEvent } from '../event';
 
 // We export a type that uses RawEvent so it must itself be exported from this module.
-export { RawEvent } from './event';
+export { RawEvent } from '../event';
 
 export interface TriggerAnnotated {
-  __trigger: TriggerDefinition;
+  __trigger: Trigger;
 }
 
-export interface EventTriggerDefinition {
+export interface EventTrigger {
   eventType: string;
   resource: string;
   path?: string;
 }
-export interface TriggerDefinition {
+export interface Trigger {
   httpsTrigger?: Object;
-  eventTrigger?: EventTriggerDefinition;
+  eventTrigger?: EventTrigger;
 }
 
 /* A CloudFunction is both an object that exports its trigger definitions at __trigger and
    can be called as a function using the raw JS API for Google Cloud Functions. */
 export type CloudFunction = TriggerAnnotated & ((event: RawEvent) => PromiseLike<any> | any);
 
-export class FunctionBuilder {
-  protected _env: FirebaseEnv;
+export class AbstractFunctionBuilder {
+  protected _env: env.Env;
 
-  constructor(env: FirebaseEnv) {
+  constructor(env: env.Env) {
     this._env = env;
   }
 
-  protected _toTrigger(event?: string): TriggerDefinition {
+  protected _toTrigger(event?: string): Trigger {
     throw new Error('Unimplemented _toTrigger');
   }
 

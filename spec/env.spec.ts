@@ -1,24 +1,21 @@
 import * as _ from 'lodash';
 import * as nock from 'nock';
 import * as Promise from 'bluebird';
-
-import { Credential } from '../src/credential';
-import { AbstractEnv, RuntimeConfigEnv } from '../src/env';
+import { env } from '../src/env';
 import { expect } from 'chai';
-import { async } from './support/helpers';
 import { mockRCVariableFetch, mockMetaVariableWatch, mockMetaVariableWatchTimeout } from './fixtures/http';
 
 describe('AbstractEnv', () => {
-  let subject: AbstractEnv;
+  let subject: env.AbstractEnv;
   beforeEach(() => {
-    subject = new AbstractEnv();
+    subject = new env.AbstractEnv();
   });
 
   describe('#_wrapHandler(handler: FunctionHandler, event: string)', () => {
     it('should not call before ready', () => {
       let called = false;
       subject.ready().then(() => called = true);
-      return async().then(() => {
+      return Promise.resolve().then(() => {
         expect(called).to.eq(false);
       });
     });
@@ -30,7 +27,7 @@ describe('AbstractEnv', () => {
       });
       subject['_notifyReady']();
 
-      return async().then(() => {
+      return Promise.resolve().then(() => {
         expect(called).to.eq(true);
       });
     });
@@ -47,7 +44,7 @@ describe('AbstractEnv', () => {
 });
 
 describe('RuntimeConfigEnv', () => {
-  let subject: RuntimeConfigEnv;
+  let subject: env.RuntimeConfigEnv;
   let nocks: nock.Scope[];
 
   beforeEach(() => {
@@ -60,13 +57,13 @@ describe('RuntimeConfigEnv', () => {
 
   describe('with a null credential', () => {
     beforeEach(() => {
-      subject = new RuntimeConfigEnv(null, 'example');
+      subject = new env.RuntimeConfigEnv(null, 'example');
     });
 
     describe('#data', () => {
       it('throws an error if not ready', () => {
         expect(() => {
-          _.noop(new RuntimeConfigEnv(null, null).data);
+          _.noop(new env.RuntimeConfigEnv(null, null).data);
         }).to.throw('cannot access env before it is ready');
       });
 
@@ -90,7 +87,7 @@ describe('RuntimeConfigEnv', () => {
   });
 
   describe('with a stub credential', () => {
-    let stubCredential: Credential = {
+    let stubCredential = {
       getAccessToken: () => {
         return Promise.resolve({
           expires_in: 3600,
@@ -101,7 +98,7 @@ describe('RuntimeConfigEnv', () => {
     };
 
     beforeEach(() => {
-      subject = new RuntimeConfigEnv(stubCredential, 'example');
+      subject = new env.RuntimeConfigEnv(stubCredential, 'example');
     });
 
     it('should default to v0 (empty) if meta does not contain a version', () => {
@@ -147,9 +144,9 @@ describe('RuntimeConfigEnv', () => {
 });
 
 describe('AbstractEnv', () => {
-  let subject: AbstractEnv;
+  let subject: env.AbstractEnv;
   beforeEach(() => {
-    subject = new AbstractEnv();
+    subject = new env.AbstractEnv();
   });
 
   describe('#_wrapHandler(handler: FunctionHandler, event: string)', () => {
@@ -164,7 +161,7 @@ describe('AbstractEnv', () => {
         called = true;
       });
       subject['_notifyReady']();
-      return async().then(() => {
+      return Promise.resolve().then(() => {
         expect(called).to.eq(true);
       });
     });
