@@ -1,33 +1,25 @@
 import * as Promise from 'bluebird';
-import * as _ from 'lodash';
-import { env } from '../../src/env';
+import { AbstractEnv, FirebaseEnvData } from '../../src/env';
 
-export class FakeEnv extends env.AbstractEnv {
-  private _data: env.Data;
+export class FakeEnv extends AbstractEnv {
+  private _data: FirebaseEnvData;
 
-  constructor(data?: env.Data) {
+  constructor(data?: FirebaseEnvData) {
     super();
-    this._data = _.extend({}, data, {
-      firebase: {
-        credential: {
-          getAccessToken: () => {
-            return Promise.resolve('fakeToken');
-          },
-        },
-      },
-    });
+    this.data = data || {};
   }
 
   makeReady() {
     this._notifyReady();
   }
 
-  set data(data: env.Data) {
-    this._data = data;
-    this._notifyObservers(data);
+  set data(val: FirebaseEnvData) {
+    this._data = val;
   }
+}
 
-  get data() {
-    return this._data;
-  }
+export function async() {
+  return new Promise(resolve => {
+    setTimeout(resolve, 0);
+  });
 }

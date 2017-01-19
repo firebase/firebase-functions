@@ -1,17 +1,18 @@
-import { auth } from '../../src/providers/auth';
-import { expect } from 'chai';
+import AuthBuilder from '../../src/builders/auth-builder';
+import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
+import { AuthEventData } from '../../src/builders/auth-builder';
 import { Event } from '../../src/event';
 import * as Promise from 'bluebird';
 
 describe('AuthBuilder', () => {
-  let subject: auth.FunctionBuilder;
-  let handler: (e: Event<auth.UserRecord>) => PromiseLike<any> | any;
+  let subject: AuthBuilder;
+  let handler: (e: Event<AuthEventData>) => PromiseLike<any> | any;
   let env: FakeEnv;
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new auth.FunctionBuilder(env);
+    subject = new AuthBuilder(env);
     handler = () => {
       return true;
     };
@@ -48,7 +49,7 @@ describe('AuthBuilder', () => {
 
   describe('#_dataConstructor', () => {
     it('should handle an event with the appropriate fields', () => {
-      let func = subject.onCreate((ev: Event<auth.UserRecord>) => {
+      let func = subject.onCreate((ev: Event<AuthEventData>) => {
         return Promise.resolve(ev.data);
       });
       env.makeReady();
@@ -88,7 +89,7 @@ describe('AuthBuilder', () => {
     // This isn't expected to happen in production, but if it does we should
     // handle it gracefully.
     it('should tolerate missing fields in the payload', () => {
-      let func = subject.onCreate((ev: Event<auth.UserRecord>) => {
+      let func = subject.onCreate((ev: Event<AuthEventData>) => {
         return Promise.resolve(ev.data);
       });
       env.makeReady();
@@ -102,7 +103,7 @@ describe('AuthBuilder', () => {
         },
       };
 
-      return expect(func(event as Event<auth.UserRecord>)).to.eventually.deep.equal(event.data);
+      return expect(func(<Event<AuthEventData>>event)).to.eventually.deep.equal(event.data);
     });
   });
 });

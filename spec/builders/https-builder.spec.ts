@@ -1,18 +1,18 @@
-import { https } from '../../src/providers/https';
+import { default as CloudHttpsBuilder } from '../../src/builders/https-builder';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 
 describe('CloudHttpsBuilder', () => {
-  let subject: https.FunctionBuilder;
+  let subject: CloudHttpsBuilder;
   let env: FakeEnv;
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new https.FunctionBuilder(env);
+    subject = new CloudHttpsBuilder(env);
   });
 
   describe('#onRequest', () => {
-    it('should return a Trigger with appropriate values', () => {
+    it('should return a TriggerDefinition with appropriate values', () => {
       let result = subject.onRequest((req, resp) => {
         resp.send(200);
       });

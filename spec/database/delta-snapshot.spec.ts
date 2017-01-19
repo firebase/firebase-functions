@@ -1,61 +1,16 @@
-import { database } from '../../src/providers/database';
+import DatabaseDeltaSnapshot from '../../src/database/delta-snapshot';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { apps as appsNamespace } from '../../src/apps';
-import * as _ from 'lodash';
 
-describe('DatabaseBuilder', () => {
-  let subject: database.FunctionBuilder;
-  let env: FakeEnv;
+import Apps from '../../src/apps';
 
-  beforeEach(() => {
-    env = new FakeEnv();
-    subject = new database.FunctionBuilder(env, new appsNamespace.Apps(env));
-  });
-
-  describe('#path()', () => {
-    it('should append paths if called multiple times', () => {
-      subject.path('first/bit');
-      subject.path('{id}/second/bit');
-      return expect(subject['_toTrigger']('data.write').eventTrigger.path).to.equal('/first/bit/{id}/second/bit');
-    });
-  });
-
-  describe('#_toTrigger()', () => {
-    it('should return "write" as the default event type', () => {
-      let eventType = subject['_toTrigger']('data.write').eventTrigger.eventType;
-      expect(eventType).to.eq('providers/firebase.database/eventTypes/data.write');
-    });
-  });
-
-  describe('#onWrite()', () => {
-    it('should throw if path has not been called', () => {
-      expect(() => {
-        subject.onWrite(evt => _.noop());
-      }).to.throw('Must call .path(pathValue)');
-    });
-
-    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
-      let handler = subject.path('/users/{id}').onWrite(event => {
-        expect(event.data.val()).to.deep.equal({foo: 'bar'});
-      });
-
-      env.makeReady();
-      return handler(<any>{data: {
-        data: null,
-        delta: {foo: 'bar'},
-      }});
-    });
-  });
-});
-
-describe('DeltaSnapshot', () => {
+describe('DatabaseDeltaSnapshot', () => {
   let subject;
   const env = new FakeEnv();
-  const apps = new appsNamespace.Apps(env);
+  const apps = new Apps(env);
 
   let populate = (old: any, change: any) => {
-    subject = new database.DeltaSnapshot(apps, {
+    subject = new DatabaseDeltaSnapshot(apps, {
       path: '/foo',
       data: {
         data: old,
@@ -92,21 +47,9 @@ describe('DeltaSnapshot', () => {
       populate(null, {'foo': {0: 'a', 1: 'b'}});
       expect(subject.val()).to.deep.equal({foo: ['a', 'b']});
     });
-
-    // Regression test: zero-values (including children) were accidentally forwarded as 'null'.
-    it ('should deal with zero-values appropriately', () => {
-      populate(null, 0);
-      expect(subject.val()).to.equal(0);
-      populate(null, {myKey: 0});
-      expect(subject.val()).to.deep.equal({myKey: 0});
-
-      // Null values are still reported as null.
-      populate({myKey: 'foo', myOtherKey: 'bar'}, {myKey: null});
-      expect(subject.val()).to.deep.equal({myOtherKey: 'bar'});
-    });
   });
 
-  describe('#child(): DeltaSnapshot', () => {
+  describe('#child(): DatabaseDeltaSnapshot', () => {
     it('should work with multiple calls', () => {
       populate(null, {a: {b: {c: 'd'}}});
       expect(subject.child('a').child('b/c').val()).to.equal('d');
@@ -135,7 +78,7 @@ describe('DeltaSnapshot', () => {
     });
   });
 
-  describe('#previous: DeltaSnapshot', () => {
+  describe('#previous: DatabaseDeltaSnapshot', () => {
     it('should cause val() to return old data only', () => {
       populate({a: 'b'}, {a: 'c', d: 'c'});
       expect(subject.previous.child('a').val()).to.equal('b');
@@ -147,7 +90,7 @@ describe('DeltaSnapshot', () => {
     });
   });
 
-  describe('#current: DeltaSnapshot', () => {
+  describe('#current: DatabaseDeltaSnapshot', () => {
     it('should cause a previous snapshot to return new data', () => {
       populate({a: 'b'}, {a: 'c', d: 'c'});
       expect(subject.previous.child('a').current.val()).to.equal('c');
@@ -230,11 +173,11 @@ describe('DeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      expect(new database.DeltaSnapshot(apps).key).to.be.null;
+      expect(new DatabaseDeltaSnapshot(apps).key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
-      expect(new database.DeltaSnapshot(apps, {
+      expect(new DatabaseDeltaSnapshot(apps, {
         path: '/',
         data: {
           data: null,

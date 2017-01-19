@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 
 import { FakeEnv } from './support/helpers';
-import { apps as appsNamespace } from '../src/apps';
-import * as firebase from 'firebase-admin';
+import Apps from '../src/apps';
+import * as firebase from 'firebase';
 
 describe('apps', () => {
-  let apps: appsNamespace.Apps;
+  let apps;
   beforeEach(() => {
-    apps = new appsNamespace.Apps(new FakeEnv());
+    apps = new Apps(new FakeEnv());
   });
 
   it('should load the admin app for admin impersonation', function () {
