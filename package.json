@@ -33,7 +33,7 @@
     "@types/sinon": "^1.16.29",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
-    "firebase": "^3.3",
+    "firebase-admin": "^4.0.5",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "nock": "^8.0.0",
