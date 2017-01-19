@@ -59,13 +59,13 @@ export default class DatabaseDeltaSnapshot {
 
   /* Recursive function to check if keys are numeric & convert node object to array if they are */
   _checkAndConvertToArray(node): any {
-    if (!node) {
+    if (node === null || node === undefined) {
       return null;
     }
     if (typeof node !== 'object') {
       return node;
     }
-    let obj = { };
+    let obj = {};
     let numKeys = 0;
     let maxKey = 0;
     let allIntegerKeys = true;

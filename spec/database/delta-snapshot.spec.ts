@@ -47,6 +47,18 @@ describe('DatabaseDeltaSnapshot', () => {
       populate(null, {'foo': {0: 'a', 1: 'b'}});
       expect(subject.val()).to.deep.equal({foo: ['a', 'b']});
     });
+
+    // Regression test: zero-values (including children) were accidentally forwarded as 'null'.
+    it ('should deal with zero-values appropriately', () => {
+      populate(null, 0);
+      expect(subject.val()).to.equal(0);
+      populate(null, {myKey: 0});
+      expect(subject.val()).to.deep.equal({myKey: 0});
+
+      // Null values are still reported as null.
+      populate({myKey: 'foo', myOtherKey: 'bar'}, {myKey: null});
+      expect(subject.val()).to.deep.equal({myOtherKey: 'bar'});
+    });
   });
 
   describe('#child(): DatabaseDeltaSnapshot', () => {
