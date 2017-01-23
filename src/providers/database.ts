@@ -3,11 +3,10 @@ import { apps } from '../apps';
 import {Event, RawEvent} from '../event';
 import { AbstractFunctionBuilder, Trigger, CloudFunction } from './base';
 import {normalizePath, applyChange, pathParts, valAt} from '../utils';
-import {env} from '../env';
 import * as firebase from 'firebase-admin';
 
 export function database() {
-  return new database.FunctionBuilder(env(), apps());
+  return new database.FunctionBuilder(apps());
 }
 
 export namespace database {
@@ -15,8 +14,8 @@ export namespace database {
     private _path: string;
     private _apps: apps.Apps;
 
-    constructor(env: env.Env, apps: apps.Apps) {
-      super(env);
+    constructor(apps: apps.Apps) {
+      super();
       this._apps = apps;
     }
 

@@ -5,9 +5,6 @@ import { credential } from 'firebase-admin';
 const cred = credential.applicationDefault();
 cred.getAccessToken();
 
-import { RuntimeConfigEnv } from './env';
-const env = new RuntimeConfigEnv(cred, process.env.GCLOUD_PROJECT);
-
 // Because env isn't a function we can't actually export all the types correctly.
 // TODO(inlined) should we swap to functions.env().foo.bar? That lets us hang types off of functions.env.Foo.Bar
 import {env as firebaseEnv} from './env';

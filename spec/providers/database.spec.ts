@@ -6,11 +6,19 @@ import * as _ from 'lodash';
 
 describe('DatabaseBuilder', () => {
   let subject: database.FunctionBuilder;
-  let env: FakeEnv;
+  let env: FakeEnv = new FakeEnv();
+
+  before(() => {
+    env.makeReady();
+    env.stubSingleton();
+  });
+
+  after(() => {
+    env.restoreSingleton();
+  });
 
   beforeEach(() => {
-    env = new FakeEnv();
-    subject = new database.FunctionBuilder(env, new appsNamespace.Apps(env));
+    subject = new database.FunctionBuilder(new appsNamespace.Apps(env));
   });
 
   describe('#path()', () => {
@@ -40,7 +48,6 @@ describe('DatabaseBuilder', () => {
         expect(event.data.val()).to.deep.equal({foo: 'bar'});
       });
 
-      env.makeReady();
       return handler(<any>{data: {
         data: null,
         delta: {foo: 'bar'},

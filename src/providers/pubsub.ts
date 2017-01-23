@@ -1,9 +1,8 @@
 import { Trigger, CloudFunction, AbstractFunctionBuilder } from './base';
 import { Event } from '../event';
-import { env } from '../env';
 
 export function pubsub(topic: string) {
-  return new pubsub.FunctionBuilder(env(), topic);
+  return new pubsub.FunctionBuilder(topic);
 }
 
 export namespace pubsub {
@@ -36,12 +35,10 @@ export namespace pubsub {
   }
 
   export class FunctionBuilder extends AbstractFunctionBuilder {
-    topic: string;
     event: string;
 
-    constructor(env: env.Env, topic: string) {
-      super(env);
-      this.topic = topic;
+    constructor(private topic: string) {
+      super();
     }
 
     onPublish(handler: (event: Event<Message>) => PromiseLike<any> | any): CloudFunction {

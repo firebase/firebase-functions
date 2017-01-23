@@ -6,11 +6,20 @@ import { Event } from '../../src/event';
 describe('storage.FunctionBuilder', () => {
   let subject: storage.FunctionBuilder;
   let handler: (e: Event<storage.Object>) => PromiseLike<any> | any;
-  let env: FakeEnv;
+  let env = new FakeEnv();
+
+  before(() => {
+    env.makeReady();
+    env.stubSingleton();
+  });
+
+  after(() => {
+    env.restoreSingleton();
+  });
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new storage.FunctionBuilder(env, 'bucky');
+    subject = new storage.FunctionBuilder('bucky');
     handler = (data) => {
       return true;
     };
@@ -28,7 +37,7 @@ describe('storage.FunctionBuilder', () => {
     });
 
     it ('should allow fully qualified bucket names', () => {
-      let subjectQualified = new storage.FunctionBuilder(env, 'projects/_/buckets/bucky');
+      let subjectQualified = new storage.FunctionBuilder('projects/_/buckets/bucky');
       let result = subjectQualified.onChange(handler);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
@@ -40,7 +49,7 @@ describe('storage.FunctionBuilder', () => {
 
     it ('should throw with improperly formatted buckets', () => {
       let func = () => {
-        let badSubject = new storage.FunctionBuilder(env, 'bad/bucket/format');
+        let badSubject = new storage.FunctionBuilder('bad/bucket/format');
         return badSubject.onChange(handler);
       };
       expect(func).to.throw(Error);
@@ -48,7 +57,7 @@ describe('storage.FunctionBuilder', () => {
 
     it ('should throw with when using bucket not in _ project', () => {
       let func = () => {
-        let badSubject = new storage.FunctionBuilder(env, 'projects/anotherProject/buckets/bucky');
+        let badSubject = new storage.FunctionBuilder('projects/anotherProject/buckets/bucky');
         return badSubject.onChange(handler);
       };
       expect(func).to.throw(Error);

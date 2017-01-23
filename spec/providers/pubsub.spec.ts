@@ -40,12 +40,20 @@ describe('pubsub.Message', () => {
 
 describe('pubsub.FunctionBuilder', () => {
   let subject: pubsub.FunctionBuilder;
-  let env: FakeEnv;
+  let env = new FakeEnv();
   let handler: (any) => any;
 
+  before(() => {
+    env.makeReady();
+    env.stubSingleton();
+  });
+
+  after(() => {
+    env.restoreSingleton();
+  });
+
   beforeEach(() => {
-    env = new FakeEnv();
-    subject = new pubsub.FunctionBuilder(env, 'toppy');
+    subject = new pubsub.FunctionBuilder('toppy');
     handler = (data: Object) => {
       return true;
     };
@@ -68,7 +76,7 @@ describe('pubsub.FunctionBuilder', () => {
     });
 
     it ('should allow fully qualified topic names', () => {
-      let subjectQualified = new pubsub.FunctionBuilder(env, 'projects/project1/topics/toppy');
+      let subjectQualified = new pubsub.FunctionBuilder('projects/project1/topics/toppy');
       let result = subjectQualified.onPublish(handler);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
@@ -80,7 +88,7 @@ describe('pubsub.FunctionBuilder', () => {
 
     it ('should throw with improperly formatted topics', () => {
       let func = () => {
-        let badSubject = new pubsub.FunctionBuilder(env, 'bad/topic/format');
+        let badSubject = new pubsub.FunctionBuilder('bad/topic/format');
         return badSubject.onPublish(handler);
       };
       expect(func).to.throw(Error);
@@ -88,7 +96,7 @@ describe('pubsub.FunctionBuilder', () => {
 
     it ('should throw with when using topic in another project', () => {
       let func = () => {
-        let badSubject = new pubsub.FunctionBuilder(env, 'projects/anotherProject/topics/toppy');
+        let badSubject = new pubsub.FunctionBuilder('projects/anotherProject/topics/toppy');
         return badSubject.onPublish(handler);
       };
       expect(func).to.throw(Error);
@@ -112,7 +120,6 @@ describe('pubsub.FunctionBuilder', () => {
         },
       };
       let result = subject.onPublish(handler2);
-      env.makeReady();
       return expect(result(event)).to.eventually.deep.equal({
         raw,
         json: {hello: 'world'},

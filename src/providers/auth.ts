@@ -1,9 +1,8 @@
 import { Event } from '../event';
-import { env } from '../env';
 import { AbstractFunctionBuilder, Trigger, CloudFunction } from './base';
 
 export function auth() {
-  return new auth.FunctionBuilder(env());
+  return new auth.FunctionBuilder();
 }
 
 export namespace auth {
@@ -30,11 +29,6 @@ export namespace auth {
   }
 
   export class FunctionBuilder extends AbstractFunctionBuilder {
-
-    constructor(env: env.Env) {
-      super(env);
-    }
-
     onCreate(handler: (event: Event<UserRecord>) => PromiseLike<any>): CloudFunction {
       return this._makeHandler(handler, 'user.create');
     }

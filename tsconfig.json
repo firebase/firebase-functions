@@ -7,7 +7,8 @@
     "declaration": true,
     "typeRoots": [
       "node_modules/@types"
-    ]
+    ],
+    "stripInternal": true
   },
   "files": [
     "src/index.ts",

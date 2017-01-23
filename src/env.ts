@@ -3,13 +3,14 @@ import * as request from 'request-promise';
 import * as Promise from 'bluebird';
 import * as firebase from 'firebase-admin';
 
-let singleton: env.Env;
-
 export function env(): env.Env {
-  return singleton;
+  return env.singleton;
 }
 
 export namespace env {
+  /** @internal */
+  export let singleton: env.Env;
+
   export let init = (credential: firebase.credential.Credential) => {
     singleton = new RuntimeConfigEnv(credential, process.env.GCLOUD_PROJECT);
   };

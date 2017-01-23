@@ -22,13 +22,9 @@ export interface Trigger {
    can be called as a function using the raw JS API for Google Cloud Functions. */
 export type CloudFunction = TriggerAnnotated & ((event: RawEvent) => PromiseLike<any> | any);
 
+// TODO(inlined): Now that this is stateless it probably doesn't need to be a class.
+/** @internal */
 export class AbstractFunctionBuilder {
-  protected _env: env.Env;
-
-  constructor(env: env.Env) {
-    this._env = env;
-  }
-
   protected _toTrigger(event?: string): Trigger {
     throw new Error('Unimplemented _toTrigger');
   }
@@ -41,7 +37,7 @@ export class AbstractFunctionBuilder {
       return fn(new Event(payload, this._dataConstructor<EventData>(payload)));
     };
     let handler: any = (payload) => {
-      return this._env.ready().then(function() {
+      return env().ready().then(function() {
         return fnWithDataConstructor(payload);
       });
     };

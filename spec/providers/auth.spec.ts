@@ -7,11 +7,19 @@ import * as Promise from 'bluebird';
 describe('AuthBuilder', () => {
   let subject: auth.FunctionBuilder;
   let handler: (e: Event<auth.UserRecord>) => PromiseLike<any> | any;
-  let env: FakeEnv;
+  let env = new FakeEnv();
+
+  before(() => {
+    env.stubSingleton();
+    env.makeReady();
+  });
+
+  after(() => {
+    env.restoreSingleton();
+  });
 
   beforeEach(() => {
-    env = new FakeEnv();
-    subject = new auth.FunctionBuilder(env);
+    subject = new auth.FunctionBuilder();
     handler = () => {
       return true;
     };
@@ -51,7 +59,6 @@ describe('AuthBuilder', () => {
       let func = subject.onCreate((ev: Event<auth.UserRecord>) => {
         return Promise.resolve(ev.data);
       });
-      env.makeReady();
 
       // The event data delivered over the wire will be the JSON for a UserRecord:
       // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
@@ -91,7 +98,6 @@ describe('AuthBuilder', () => {
       let func = subject.onCreate((ev: Event<auth.UserRecord>) => {
         return Promise.resolve(ev.data);
       });
-      env.makeReady();
 
       let event = {
         data:  {

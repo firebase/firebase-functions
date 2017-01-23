@@ -1,9 +1,8 @@
 import { AbstractFunctionBuilder, Trigger, CloudFunction } from './base';
 import { Event } from '../event';
-import { env } from '../env';
 
 export function storage(bucket?: string) {
-  return new storage.FunctionBuilder(env(), bucket);
+  return new storage.FunctionBuilder(bucket);
 }
 
 export namespace storage {
@@ -11,8 +10,8 @@ export namespace storage {
 
     // TODO(inlined/longlauren): bucket should have a fallback that fetches the real bucket rather than expecting the
     // CLI to populate it.
-    constructor(env: env.Env, private bucket?: string) {
-      super(env);
+    constructor(private bucket?: string) {
+      super();
     }
 
     onChange(handler: (event: Event<storage.Object>) => PromiseLike<any>): CloudFunction {

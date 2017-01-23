@@ -4,11 +4,19 @@ import { FakeEnv } from '../support/helpers';
 
 describe('CloudHttpsBuilder', () => {
   let subject: https.FunctionBuilder;
-  let env: FakeEnv;
+  let env = new FakeEnv();
+
+  before(() => {
+    env.makeReady();
+    env.stubSingleton();
+  });
+
+  after(() => {
+    env.restoreSingleton();
+  });
 
   beforeEach(() => {
-    env = new FakeEnv();
-    subject = new https.FunctionBuilder(env);
+    subject = new https.FunctionBuilder();
   });
 
   describe('#onRequest', () => {

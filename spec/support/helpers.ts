@@ -4,6 +4,7 @@ import { env } from '../../src/env';
 
 export class FakeEnv extends env.AbstractEnv {
   private _data: env.Data;
+  private oldSingleton = env.singleton;
 
   constructor(data?: env.Data) {
     super();
@@ -16,6 +17,14 @@ export class FakeEnv extends env.AbstractEnv {
         },
       },
     });
+  }
+
+  stubSingleton() {
+    env.singleton = this;
+  }
+
+  restoreSingleton() {
+    env.singleton = this.oldSingleton;
   }
 
   makeReady() {

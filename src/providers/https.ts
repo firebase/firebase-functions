@@ -3,7 +3,7 @@ import {env} from '../env';
 import {Request, Response} from 'express';
 
 export function https() {
-  return new https.FunctionBuilder(env());
+  return new https.FunctionBuilder();
 }
 
 export namespace https {
@@ -12,7 +12,7 @@ export namespace https {
       handler: (req: Request, resp: Response) => void
     ): ((req: Request, resp: Response) => void) & TriggerAnnotated {
       let wrappedHandler: any = (req, res) => {
-        this._env.ready().then(() => {
+        env().ready().then(() => {
           handler(req, res);
         }, err => {
           console.log('Firebase: HTTP function environment configuration failed to load, sending 500 response.');

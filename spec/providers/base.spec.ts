@@ -7,11 +7,16 @@ import { RawEvent } from '../../src/event';
 
 describe('AbstractFunctionBuilder', () => {
   let subject;
-  let env;
+  let env: FakeEnv;
 
   beforeEach(() => {
     env = new FakeEnv();
-    subject = new AbstractFunctionBuilder(env);
+    env.stubSingleton();
+    subject = new AbstractFunctionBuilder();
+  });
+
+  afterEach(() => {
+    env.restoreSingleton();
   });
 
   describe('_makeHandler(handler: Function, event: string)', () => {
