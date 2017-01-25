@@ -14,7 +14,6 @@ firebaseEnv().observe((data) => env = data);
 
 import {apps} from './apps';
 apps.init(firebaseEnv());
-export let app = apps().admin;
 
 // Providers:
 export {auth} from './providers/auth';
