@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 import { apps } from '../apps';
+import { env } from '../env';
 import {Event, RawEvent} from '../event';
 import { AbstractFunctionBuilder, Trigger, CloudFunction } from './base';
 import {normalizePath, applyChange, pathParts, valAt} from '../utils';
@@ -29,7 +30,23 @@ export namespace database {
       if (!this._path) {
         throw new Error('Must call .path(pathValue) before .onWrite() for database function definitions.');
       }
-      return this._makeHandler(handler, 'data.write');
+      let fnWithDataConstructor: any = (payload: RawEvent) => {
+        let e: Event<DeltaSnapshot> = new Event(payload, this._dataConstructor(payload));
+        return handler(e);
+      };
+      let handlerWithRefCounting: any = (payload) => {
+        return env().ready()
+        .then(() => {
+          this._apps.retain(payload);
+          return fnWithDataConstructor(payload);
+        }).then((res) => {
+          this._apps.release(payload);
+        }, (err) => {
+          this._apps.release(payload);
+        });
+      };
+      handlerWithRefCounting.__trigger = this._toTrigger('data.write');
+      return handlerWithRefCounting;
     }
 
     protected _toTrigger(event: string): Trigger {

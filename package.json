@@ -56,7 +56,8 @@
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.6.1",
     "request": "^2.74.0",
-    "request-promise": "^4.1.1"
+    "request-promise": "^4.1.1",
+    "sha1": "^1.1.1"
   },
   "typings": "lib/index.d.ts"
 }

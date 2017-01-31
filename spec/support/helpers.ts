@@ -12,7 +12,10 @@ export class FakeEnv extends env.AbstractEnv {
       firebase: {
         credential: {
           getAccessToken: () => {
-            return Promise.resolve('fakeToken');
+            return Promise.resolve({
+              expires_in: 1000,
+              access_token: 'fake',
+            });
           },
         },
       },

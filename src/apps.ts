@@ -1,6 +1,8 @@
 import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { env } from './env';
+import * as Promise from 'bluebird';
+import * as sha1 from 'sha1';
 
 let singleton: apps.Apps;
 
@@ -14,30 +16,103 @@ export namespace apps {
   export interface AuthMode {
     admin: boolean;
     variable?: any;
+  };
+
+  /** @internal */
+  export interface RefCounter {
+    [appName: string]: number;
   }
 
   export class Apps {
-    private static _noauth: firebase.app.App;
-    private static _admin: firebase.app.App;
-
     private _env: env.Env;
+    private _refCounter: RefCounter;
 
     constructor(env: env.Env) {
       this._env = env;
+      this._refCounter = {};
+    }
+
+    /** @internal */
+    _appAlive(appName: string): boolean {
+      try {
+        let app = firebase.app(appName);
+        return !_.get(app, 'isDeleted_');
+      } catch (e) {
+        return false;
+      }
+    }
+
+    /** @internal */
+    _appName(auth: AuthMode): string {
+      if (!auth || typeof auth !== 'object') {
+        return '__noauth__';
+      } else if (auth.admin) {
+        return '__admin__';
+      } else if (!auth.variable) {
+        return '__noauth__';
+      } else {
+        // Use hash of auth variable as name of user-authenticated app
+        return sha1(JSON.stringify(auth.variable));
+      }
+    }
+
+    /** @internal */
+    _waitToDestroyApp(appName: string) {
+      if (!this._appAlive(appName)) {
+        return Promise.resolve();
+      }
+      return Promise.delay(120000).then(() => {
+        if (!this._appAlive(appName)) {
+          return;
+        }
+        if (_.get(this._refCounter, appName) === 0) {
+          return firebase.app(appName).delete().catch(_.noop);
+        }
+      });
+    }
+
+    /** @internal */
+    retain(payload) {
+      let auth: AuthMode = _.get(payload, 'auth', null);
+      let increment = n => {
+        return (n || 0) + 1;
+      };
+      // Increment counter for admin because function might use event.data.adminRef
+      _.update(this._refCounter, '__admin__', increment);
+      // Increment counter for according to auth type because function might use event.data.ref
+      _.update(this._refCounter, this._appName(auth), increment);
+    }
+
+    /** @internal */
+    release(payload) {
+      let auth: AuthMode = _.get(payload, 'auth', null);
+      let decrement = n => {
+        return n - 1;
+      };
+      _.update(this._refCounter, '__admin__', decrement);
+      _.update(this._refCounter, this._appName(auth), decrement);
+      _.forEach(this._refCounter, (count, key) => {
+        if (count === 0) {
+          this._waitToDestroyApp(key);
+        }
+      });
     }
 
     get admin(): firebase.app.App {
-      // TODO(inlined) add credential to env
-      Apps._admin = Apps._admin || firebase.initializeApp(this.firebaseArgs, '__admin__');
-      return Apps._admin;
+      if (this._appAlive('__admin__')) {
+        return firebase.app('__admin__');
+      }
+      return firebase.initializeApp(this.firebaseArgs, '__admin__');
     }
 
     get noauth(): firebase.app.App {
+      if (this._appAlive('__noauth__')) {
+        return firebase.app('__noauth__');
+      }
       const param = _.extend({}, this.firebaseArgs, {
         databaseAuthVariableOverride: null,
-        });
-      Apps._noauth = Apps._noauth || firebase.initializeApp(param, '__noauth__');
-      return Apps._noauth;
+      });
+      return firebase.initializeApp(param, '__noauth__');
     }
 
     forMode(auth: AuthMode): firebase.app.App {
@@ -51,15 +126,14 @@ export namespace apps {
         return this.noauth;
       }
 
-      const key = JSON.stringify(auth.variable);
-      try {
-        return firebase.app(key);
-      } catch (e) {
-        const param = _.extend({}, this.firebaseArgs, {
-          databaseAuthVariableOverride: auth.variable,
-        });
-        return firebase.initializeApp(param, key);
+      const appName = this._appName(auth);
+      if (this._appAlive(appName)) {
+        return firebase.app(appName);
       }
+      const param = _.extend({}, this.firebaseArgs, {
+        databaseAuthVariableOverride: auth.variable,
+      });
+      return firebase.initializeApp(param, appName);
     }
 
     private get firebaseArgs() {
