@@ -1,57 +1,46 @@
-import { database } from '../../src/providers/database';
+import * as database from '../../src/providers/database';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { apps as appsNamespace } from '../../src/apps';
-import * as _ from 'lodash';
+import {apps as appsNamespace} from '../../src/apps';
 
 describe('DatabaseBuilder', () => {
-  let subject: database.FunctionBuilder;
   let env: FakeEnv = new FakeEnv();
 
   before(() => {
     env.makeReady();
     env.stubSingleton();
+    appsNamespace.init(env);
   });
 
   after(() => {
     env.restoreSingleton();
-  });
-
-  beforeEach(() => {
-    subject = new database.FunctionBuilder(new appsNamespace.Apps(env));
-  });
-
-  describe('#path()', () => {
-    it('should append paths if called multiple times', () => {
-      subject.path('first/bit');
-      subject.path('{id}/second/bit');
-      return expect(subject['_toTrigger']('data.write').eventTrigger.path).to.equal('/first/bit/{id}/second/bit');
-    });
-  });
-
-  describe('#_toTrigger()', () => {
-    it('should return "write" as the default event type', () => {
-      let eventType = subject['_toTrigger']('data.write').eventTrigger.eventType;
-      expect(eventType).to.eq('providers/firebase.database/eventTypes/data.write');
-    });
+    delete appsNamespace.singleton;
   });
 
   describe('#onWrite()', () => {
-    it('should throw if path has not been called', () => {
-      expect(() => {
-        subject.onWrite(evt => _.noop());
-      }).to.throw('Must call .path(pathValue)');
+    it('should return "ref.write" as the event type', () => {
+      let eventType = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.write');
+    });
+
+    it('should construct a proper resource path', () => {
+      process.env.GCLOUD_PROJECT = 'myProject';
+      process.env.DB_NAMESPACE = 'subdomain';
+      let resource = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
     });
 
     it('should return a handler that emits events with a proper DeltaSnapshot', () => {
-      let handler = subject.path('/users/{id}').onWrite(event => {
+      let handler = database.ref('/users/{id}').onWrite(event => {
         expect(event.data.val()).to.deep.equal({foo: 'bar'});
       });
 
-      return handler(<any>{data: {
-        data: null,
-        delta: {foo: 'bar'},
-      }});
+      return handler({data:
+        {
+          data: null,
+          delta: {foo: 'bar'},
+        },
+      } as any);
     });
   });
 });
@@ -63,7 +52,7 @@ describe('DeltaSnapshot', () => {
 
   let populate = (old: any, change: any) => {
     subject = new database.DeltaSnapshot(apps, {
-      path: '/foo',
+      resource: 'projects/_/instances/mySubdomain/refs/foo',
       data: {
         data: old,
         delta: change,
@@ -237,12 +226,12 @@ describe('DeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      expect(new database.DeltaSnapshot(apps).key).to.be.null;
+      expect(new database.DeltaSnapshot(apps, {resource: 'projects/_/instances/foo/refs', data: {}}).key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
       expect(new database.DeltaSnapshot(apps, {
-        path: '/',
+        resource: 'projects/_/instances/foo/refs',
         data: {
           data: null,
           delta: {},

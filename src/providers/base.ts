@@ -11,7 +11,6 @@ export interface TriggerAnnotated {
 export interface EventTrigger {
   eventType: string;
   resource: string;
-  path?: string;
 }
 export interface Trigger {
   httpsTrigger?: Object;
@@ -22,31 +21,40 @@ export interface Trigger {
    can be called as a function using the raw JS API for Google Cloud Functions. */
 export type CloudFunction = TriggerAnnotated & ((event: RawEvent) => PromiseLike<any> | any);
 
-// TODO(inlined): Now that this is stateless it probably doesn't need to be a class.
 /** @internal */
-export class AbstractFunctionBuilder {
-  protected _toTrigger(event?: string): Trigger {
-    throw new Error('Unimplemented _toTrigger');
-  }
+export interface MakeCloudFunctionArgs<EventData> {
+  provider: string;
+  eventType: string;
+  resource: string;
+  dataConstructor?: (raw: RawEvent) => EventData;
+  handler: (event?: Event<EventData>) => PromiseLike<any> | any;
+  before?: (raw: RawEvent) => void;
+  after?: (raw: RawEvent) => void;
+}
 
-  protected _makeHandler<EventData>(
-    fn: (event?: Event<EventData>) => PromiseLike<any> | any,
-    event: string,
-  ): CloudFunction {
-    let fnWithDataConstructor: any = (payload: RawEvent) => {
-      return fn(new Event(payload, this._dataConstructor<EventData>(payload)));
-    };
-    let handler: any = (payload) => {
-      return env().ready().then(function() {
-        return fnWithDataConstructor(payload);
-      });
-    };
-    handler.__trigger = this._toTrigger(event);
+/** @internal */
+export function makeCloudFunction<EventData>({
+  provider,
+  eventType,
+  resource,
+  dataConstructor = (raw: RawEvent) => raw.data,
+  handler,
+  before,
+  after,
+}: MakeCloudFunctionArgs<EventData>): CloudFunction {
+  let cloudFunction: any = (payload) => {
+    return env().ready().then(before).then(() => {
+      let data = dataConstructor(payload);
+      let event = new Event(payload, data);
+      return handler(event);
+    }).then(after, after);
+  };
+  cloudFunction.__trigger = {
+    eventTrigger: {
+      resource,
+      eventType: `providers/${provider}/eventTypes/${eventType}`,
+    },
+  };
 
-    return handler;
-  }
-
-  protected _dataConstructor<EventData>(raw: RawEvent): EventData {
-    return raw.data;
-  }
+  return cloudFunction;
 }

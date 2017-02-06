@@ -1,97 +1,103 @@
-import { AbstractFunctionBuilder, Trigger, CloudFunction } from './base';
+import {CloudFunction, makeCloudFunction} from './base';
 import { Event } from '../event';
 
-export function storage(bucket?: string) {
-  return new storage.FunctionBuilder(bucket);
+/** @internal */
+export const provider = 'cloud.storage';
+
+export interface AccessControl {
+  kind: string;
+  id: string;
+  role: string;
+  selfLink?: string;
+  bucket?: string;
+  object?: string;
+  generation?: number;
+  entity?: string;
+  email?: string;
+  entityId?: string;
+  domain?: string;
+  projectTeam?: {
+    projectNumber?: string,
+    team?: string,
+  };
+  etag?: string;
 }
 
-export namespace storage {
-  export class FunctionBuilder extends AbstractFunctionBuilder {
+// NOTE: for TypeScript to work correctly this must appear before the Builders. Otherwise
+// Object is resolved to the global class.
 
-    // TODO(inlined/longlauren): bucket should have a fallback that fetches the real bucket rather than expecting the
-    // CLI to populate it.
-    constructor(private bucket?: string) {
-      super();
-    }
+export interface Object {
+  kind: string;
+  id: string;
+  selfLink?: string;
+  name?: string;
+  bucket: string;
+  generation?: number;
+  metageneration?: number;
+  contentType?: string;
+  timeCreated?: string;
+  updated?: string;
+  timeDeleted?: string;
+  storageClass?: string;
+  size?: number;
+  md5Hash?: string;
+  mediaLink?: string;
+  contentEncoding?: string;
+  contentDisposition?: string;
+  contentLanguage?: string;
+  cacheControl?: string;
+  metadata?: {
+    [key: string]: string;
+  };
+  acl?: Array<AccessControl>;
+  owner?: {
+    entity?: string,
+    entityId?: string,
+  };
+  crc32c?: string;
+  componentCount?: number;
+  etag?: string;
+  customerEncryption?: {
+    encryptionAlgorithm?: string,
+    keySha256?: string,
+  };
+}
 
-    onChange(handler: (event: Event<storage.Object>) => PromiseLike<any>): CloudFunction {
-      return this._makeHandler(handler, 'object.change');
-    }
-
-    protected _toTrigger(event: string): Trigger {
-      let bucket;
-      if (this.bucket) {
-        const format = new RegExp('^(projects/_/buckets/)?([^/]+)$');
-        let match;
-        [match,,bucket] = this.bucket.match(format);
-        if (!match) {
-          const errorString = 'bucket names must either have the format of'
-            + ' "bucketId" or "projects/_/buckets/<bucketId>".';
-          throw new Error(errorString);
-        }
-      }
-      return {
-        eventTrigger: {
-          eventType: 'providers/cloud.storage/eventTypes/' + event,
-          resource: bucket ? 'projects/_/buckets/' + bucket : null,
-        },
-      };
-    }
+/**
+ * The optional bucket function allows you to choose which buckets' events to handle.
+ * This step can be bypassed by calling object() directly, which will use the bucket that
+ * the Firebase SDK for Cloud Storage uses.
+ */
+export function bucket(bucket: string): BucketBuilder {
+  if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
+    throw new Error('Invalid bucket name ${bucket}');
   }
+  return new BucketBuilder(`projects/_/buckets/${bucket}`);
+}
 
-  export interface AccessControl {
-    kind: string;
-    id: string;
-    role: string;
-    selfLink?: string;
-    bucket?: string;
-    object?: string;
-    generation?: number;
-    entity?: string;
-    email?: string;
-    entityId?: string;
-    domain?: string;
-    projectTeam?: {
-      projectNumber?: string,
-      team?: string,
-    };
-    etag?: string;
+export function object(): ObjectBuilder {
+  // TODO(inlined): THIS DOESN'T EXIST!
+  return bucket(process.env.GCLOUD_BUCKET).object();
+}
+
+export class BucketBuilder {
+  /** internal */
+  constructor(private resource) { }
+
+  /** Handle events for objects in this bucket. */
+  object() {
+    return new ObjectBuilder(this.resource);
   }
+}
 
-  export interface Object {
-    kind: string;
-    id: string;
-    selfLink?: string;
-    name?: string;
-    bucket: string;
-    generation?: number;
-    metageneration?: number;
-    contentType?: string;
-    timeCreated?: string;
-    updated?: string;
-    timeDeleted?: string;
-    storageClass?: string;
-    size?: number;
-    md5Hash?: string;
-    mediaLink?: string;
-    contentEncoding?: string;
-    contentDisposition?: string;
-    contentLanguage?: string;
-    cacheControl?: string;
-    metadata?: {
-      [key: string]: string;
-    };
-    acl?: Array<AccessControl>;
-    owner?: {
-      entity?: string,
-      entityId?: string,
-    };
-    crc32c?: string;
-    componentCount?: number;
-    etag?: string;
-    customerEncryption?: {
-      encryptionAlgorithm?: string,
-      keySha256?: string,
-    };
+export class ObjectBuilder {
+  /** internal */
+  constructor(private resource) { }
+
+  /**
+   * Handle any change to any object.
+   */
+  onChange(handler: (event: Event<Object>) => PromiseLike<any>): CloudFunction {
+    return makeCloudFunction({provider, handler, resource: this.resource, eventType: 'object.change'});
   }
 }

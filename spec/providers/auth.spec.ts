@@ -1,41 +1,30 @@
-import { auth } from '../../src/providers/auth';
+import * as auth from '../../src/providers/auth';
 import { expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 import { Event } from '../../src/event';
-import * as Promise from 'bluebird';
+import * as firebase from 'firebase-admin';
 
 describe('AuthBuilder', () => {
-  let subject: auth.FunctionBuilder;
-  let handler: (e: Event<auth.UserRecord>) => PromiseLike<any> | any;
+  let handler: (e: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any;
   let env = new FakeEnv();
 
   before(() => {
     env.stubSingleton();
     env.makeReady();
+    process.env.GCLOUD_PROJECT = 'project1';
   });
 
   after(() => {
     env.restoreSingleton();
-  });
-
-  beforeEach(() => {
-    subject = new auth.FunctionBuilder();
-    handler = () => {
-      return true;
-    };
-    process.env.GCLOUD_PROJECT = 'project1';
-  });
-
-  afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
   });
 
   describe('#onCreate', () => {
     it('should return a TriggerDefinition with appropriate values', () => {
-      let result = subject.onCreate(handler);
-      expect(result.__trigger).to.deep.equal({
+      const cloudFunction = auth.user().onCreate(() => null);
+      expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.create',
+            eventType: 'providers/google.firebase.auth/eventTypes/user.create',
             resource: 'projects/project1',
         },
       });
@@ -44,10 +33,10 @@ describe('AuthBuilder', () => {
 
   describe('#onDelete', () => {
     it('should return a TriggerDefinition with appropriate values', () => {
-      let result = subject.onDelete(handler);
-      expect(result.__trigger).to.deep.equal({
+      const cloudFunction = auth.user().onDelete(handler);
+      expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.delete',
+            eventType: 'providers/google.firebase.auth/eventTypes/user.delete',
             resource: 'projects/project1',
         },
       });
@@ -56,9 +45,7 @@ describe('AuthBuilder', () => {
 
   describe('#_dataConstructor', () => {
     it('should handle an event with the appropriate fields', () => {
-      let func = subject.onCreate((ev: Event<auth.UserRecord>) => {
-        return Promise.resolve(ev.data);
-      });
+      const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
 
       // The event data delivered over the wire will be the JSON for a UserRecord:
       // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
@@ -89,26 +76,31 @@ describe('AuthBuilder', () => {
         },
       };
 
-      return expect(func(event)).to.eventually.deep.equal(event.data);
+      return expect(cloudFunction(event)).to.eventually.deep.equal(event.data);
     });
 
     // This isn't expected to happen in production, but if it does we should
     // handle it gracefully.
     it('should tolerate missing fields in the payload', () => {
-      let func = subject.onCreate((ev: Event<auth.UserRecord>) => {
-        return Promise.resolve(ev.data);
-      });
+      const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
 
-      let event = {
+      let event: Event<firebase.auth.UserRecord> = {
         data:  {
           uid: 'abcde12345',
           metadata:  {
-            createdAt: '2016-12-15T19:37:37.059Z',
+            // TODO(inlined) We'll need to manually parse these!
+            createdAt: new Date(),
+            lastSignedInAt: new Date(),
           },
+          email: 'nobody@google.com',
+          emailVerified: false,
+          displayName: 'sample user',
+          photoURL: '',
+          disabled: false,
         },
-      };
+      } as any;
 
-      return expect(func(event as Event<auth.UserRecord>)).to.eventually.deep.equal(event.data);
+      return expect(cloudFunction(event)).to.eventually.deep.equal(event.data);
     });
   });
 });

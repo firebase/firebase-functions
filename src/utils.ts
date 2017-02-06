@@ -1,18 +1,21 @@
 import * as _ from 'lodash';
 
 export function normalizePath(path: string): string {
-  path = path.replace(/\/$/, '');
-  if (path.indexOf('/') !== 0) {
-    path = '/' + path;
+  if (!path) {
+    return '';
   }
-  return path;
+  return path.replace(/^\//,'').replace(/\/$/, '');
 }
 
 export function pathParts(path: string): string[] {
   if (!path || path === '' || path === '/') {
     return [];
   }
-  return normalizePath(path).substring(1).split('/');
+  return normalizePath(path).split('/');
+}
+
+export function joinPath(base: string, child: string) {
+  return pathParts(base).concat(pathParts(child)).join('/');
 }
 
 export function applyChange(src: any, dest: any) {

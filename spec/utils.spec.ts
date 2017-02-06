@@ -3,8 +3,8 @@ import {expect} from 'chai';
 
 describe ('utils', () => {
   describe('.normalizePath(path: string)', () => {
-    it('should add leading slash and strip trailing slash', () => {
-      expect(normalizePath('my/path/is/{rad}/')).to.eq('/my/path/is/{rad}');
+    it('should strip leading and trailing slash', () => {
+      expect(normalizePath('/my/path/is/{rad}/')).to.eq('my/path/is/{rad}');
     });
   });
 

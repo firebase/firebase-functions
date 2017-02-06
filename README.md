@@ -15,8 +15,8 @@ In your Firebase project's `functions` directory, run:
 var functions = require('firebase-functions');
 var notifyUsers = require('./notify-users');
 
-exports.newPost = functions.database()
-  .path('/posts/{postId}')
+exports.newPost = functions.database
+  .ref('/posts/{postId}')
   .onWrite(function(event) {
     // only execute function on creation
     if (!event.data.previous.exists()) {

@@ -2,27 +2,30 @@ import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { env } from './env';
 import * as Promise from 'bluebird';
-import * as sha1 from 'sha1';
+import sha1 = require('sha1');
 
-let singleton: apps.Apps;
-
+/** @internal */
 export function apps(): apps.Apps {
-  return singleton;
+  return apps.singleton;
 }
 
+/** @internal */
 export namespace apps {
+  export let singleton: apps.Apps;
+
   export let init = (env: env.Env) => singleton = new Apps(env);
 
   export interface AuthMode {
     admin: boolean;
     variable?: any;
-  };
+  }
 
   /** @internal */
   export interface RefCounter {
     [appName: string]: number;
   }
 
+  /** @internal */
   export class Apps {
     private _env: env.Env;
     private _refCounter: RefCounter;
@@ -32,7 +35,6 @@ export namespace apps {
       this._refCounter = {};
     }
 
-    /** @internal */
     _appAlive(appName: string): boolean {
       try {
         let app = firebase.app(appName);
@@ -42,7 +44,6 @@ export namespace apps {
       }
     }
 
-    /** @internal */
     _appName(auth: AuthMode): string {
       if (!auth || typeof auth !== 'object') {
         return '__noauth__';
@@ -52,11 +53,10 @@ export namespace apps {
         return '__noauth__';
       } else {
         // Use hash of auth variable as name of user-authenticated app
-        return sha1(JSON.stringify(auth.variable));
+        return sha1(JSON.stringify(auth.variable)) as string;
       }
     }
 
-    /** @internal */
     _waitToDestroyApp(appName: string) {
       if (!this._appAlive(appName)) {
         return Promise.resolve();
@@ -71,7 +71,6 @@ export namespace apps {
       });
     }
 
-    /** @internal */
     retain(payload) {
       let auth: AuthMode = _.get(payload, 'auth', null);
       let increment = n => {
@@ -83,7 +82,6 @@ export namespace apps {
       _.update(this._refCounter, this._appName(auth), increment);
     }
 
-    /** @internal */
     release(payload) {
       let auth: AuthMode = _.get(payload, 'auth', null);
       let decrement = n => {

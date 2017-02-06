@@ -1,49 +1,35 @@
 import { Event } from '../event';
-import { AbstractFunctionBuilder, Trigger, CloudFunction } from './base';
+import { makeCloudFunction, CloudFunction } from './base';
+import * as firebase from 'firebase-admin';
 
-export function auth() {
-  return new auth.FunctionBuilder();
+/** @internal */
+export const provider = 'google.firebase.auth';
+
+/** Handle events in the Firebase Auth user lifecycle. */
+export function user() {
+  return new UserBuilder('projects/' + process.env.GCLOUD_PROJECT);
 }
 
-export namespace auth {
-  export interface UserInfo {
-    uid: string;
-    email: string;
-    displayName?: string;
-    photoURL?: string;
-    providerId: string;
+/** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
+export class UserBuilder {
+  /** @internal */
+  constructor(private resource: string) { }
+
+  /** Respond to the creation of a Firebase Auth user. */
+  onCreate(handler: (event: Event<firebase.auth.UserRecord>) => any | PromiseLike<any>): CloudFunction {
+    return makeCloudFunction({
+      provider, handler,
+      resource: this.resource,
+      eventType: 'user.create',
+    });
   }
 
-  export interface UserRecord {
-    uid: string;
-    email: string;
-    emailVerified: boolean;
-    displayName?: string;
-    photoURL?: string;
-    disabled: boolean;
-    metadata: {
-      createdAt: string;
-      lastSignedInAt: string;
-    };
-    providerData?: Array<UserInfo>;
-  }
-
-  export class FunctionBuilder extends AbstractFunctionBuilder {
-    onCreate(handler: (event: Event<UserRecord>) => PromiseLike<any>): CloudFunction {
-      return this._makeHandler(handler, 'user.create');
-    }
-
-    onDelete(handler: (event: Event<UserRecord>) => PromiseLike<any>): CloudFunction {
-      return this._makeHandler(handler, 'user.delete');
-    }
-
-    protected _toTrigger(event: string): Trigger {
-      return {
-        eventTrigger: {
-          eventType: 'providers/firebase.auth/eventTypes/' + event,
-          resource: 'projects/' + process.env.GCLOUD_PROJECT,
-        },
-      };
-    }
+  /** Respond to the deletion of a Firebase Auth user. */
+  onDelete(handler: (event: Event<firebase.auth.UserRecord>) => any | PromiseLike<any>): CloudFunction {
+    return makeCloudFunction({
+      provider, handler,
+      resource: this.resource,
+      eventType: 'user.delete',
+    });
   }
 }

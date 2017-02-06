@@ -1,7 +1,6 @@
-import { pubsub } from '../../src/providers/pubsub';
+import * as pubsub from '../../src/providers/pubsub';
 import { expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { Event } from '../../src/event';
 
 describe('pubsub.Message', () => {
   describe('#json', () => {
@@ -39,45 +38,23 @@ describe('pubsub.Message', () => {
 });
 
 describe('pubsub.FunctionBuilder', () => {
-  let subject: pubsub.FunctionBuilder;
   let env = new FakeEnv();
-  let handler: (any) => any;
 
   before(() => {
     env.makeReady();
     env.stubSingleton();
+    process.env.GCLOUD_PROJECT = 'project1';
   });
 
   after(() => {
     env.restoreSingleton();
-  });
-
-  beforeEach(() => {
-    subject = new pubsub.FunctionBuilder('toppy');
-    handler = (data: Object) => {
-      return true;
-    };
-    process.env.GCLOUD_PROJECT = 'project1';
-  });
-
-  afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
   });
 
   describe('#onPublish', () => {
     it('should return a TriggerDefinition with appropriate values', () => {
-      let result = subject.onPublish(handler);
-      expect(result.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/cloud.pubsub/eventTypes/topic.publish',
-          resource: 'projects/project1/topics/toppy',
-        },
-      });
-    });
-
-    it ('should allow fully qualified topic names', () => {
-      let subjectQualified = new pubsub.FunctionBuilder('projects/project1/topics/toppy');
-      let result = subjectQualified.onPublish(handler);
+      // Pick up project from process.env.GCLOUD_PROJECT
+      const result = pubsub.topic('toppy').onPublish(() => null);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
           eventType: 'providers/cloud.pubsub/eventTypes/topic.publish',
@@ -87,31 +64,12 @@ describe('pubsub.FunctionBuilder', () => {
     });
 
     it ('should throw with improperly formatted topics', () => {
-      let func = () => {
-        let badSubject = new pubsub.FunctionBuilder('bad/topic/format');
-        return badSubject.onPublish(handler);
-      };
-      expect(func).to.throw(Error);
-    });
-
-    it ('should throw with when using topic in another project', () => {
-      let func = () => {
-        let badSubject = new pubsub.FunctionBuilder('projects/anotherProject/topics/toppy');
-        return badSubject.onPublish(handler);
-      };
-      expect(func).to.throw(Error);
+      expect(() => pubsub.topic('bad/topic/format')).to.throw(Error);
     });
 
     it('should properly handle a new-style event', () => {
-      let handler2 = (ev: Event<pubsub.Message>) => {
-        return {
-          raw: ev.data.data,
-          json: ev.data.json,
-          attributes: ev.data.attributes,
-        };
-      };
-      let raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-      let event = {
+      const raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+      const event = {
         data: {
           data: raw,
           attributes: {
@@ -119,7 +77,15 @@ describe('pubsub.FunctionBuilder', () => {
           },
         },
       };
-      let result = subject.onPublish(handler2);
+
+      const result = pubsub.topic('toppy').onPublish(ev => {
+        return {
+          raw: ev.data.data,
+          json: ev.data.json,
+          attributes: ev.data.attributes,
+        };
+      });
+
       return expect(result(event)).to.eventually.deep.equal({
         raw,
         json: {hello: 'world'},
