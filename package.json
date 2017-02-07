@@ -7,7 +7,7 @@
     "build": "node_modules/.bin/tsc",
     "build:pack": "npm prune --production && npm install typescript && node_modules/.bin/tsc && npm pack && npm install",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts",
-    "pretest": "node_modules/.bin/tsc spec/index.spec.ts --target es5 --outDir .tmp && cp -r spec/fixtures .tmp/spec",
+    "pretest": "node_modules/.bin/tsc -p tsconfig.spec.json && cp -r spec/fixtures .tmp/spec",
     "test": "npm run lint && mocha .tmp/spec/index.spec.js",
     "posttest": "rm -rf .tmp"
   },
@@ -28,8 +28,15 @@
   "devDependencies": {
     "@types/chai": "^3.4.32",
     "@types/chai-as-promised": "0.0.28",
+    "@types/express": "^4.0.33",
+    "@types/jsonwebtoken": "^7.1.32",
+    "@types/lodash": "^4.14.34",
     "@types/mocha": "^2.2.31",
     "@types/nock": "^0.54.32",
+    "@types/node": "^6.0.38",
+    "@types/request": "0.0.30",
+    "@types/request-promise": "^3.0.30",
+    "@types/sha1": "^1.1.0",
     "@types/sinon": "^1.16.29",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
@@ -39,20 +46,12 @@
     "nock": "^8.0.0",
     "sinon": "^1.17.4",
     "tslint": "^3.15.1",
-    "typescript": "^2.0.0"
+    "typescript": "^2.0.3"
   },
   "peerDependencies": {
     "firebase-admin": "^4.0.5"
   },
   "dependencies": {
-    "@types/bluebird": "^3.0.32",
-    "@types/express": "^4.0.33",
-    "@types/jsonwebtoken": "^7.1.32",
-    "@types/lodash": "^4.14.34",
-    "@types/node": "^6.0.38",
-    "@types/request": "0.0.30",
-    "@types/request-promise": "^3.0.30",
-    "bluebird": "^3.4.6",
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.6.1",
     "request": "^2.74.0",

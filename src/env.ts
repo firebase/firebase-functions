@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import * as request from 'request-promise';
-import * as Promise from 'bluebird';
 import * as firebase from 'firebase-admin';
 
 export function env(): env.Env {

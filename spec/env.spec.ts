@@ -1,6 +1,5 @@
 import * as _ from 'lodash';
 import * as nock from 'nock';
-import * as Promise from 'bluebird';
 import { env } from '../src/env';
 import { expect } from 'chai';
 import { mockRCVariableFetch, mockMetaVariableWatch, mockMetaVariableWatchTimeout } from './fixtures/http';

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { FakeEnv } from './support/helpers';
-import { apps as appsNamespace, apps } from '../src/apps';
+import {apps as appsNamespace, apps} from '../src/apps';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import * as sinon from 'sinon';
@@ -101,27 +101,32 @@ describe('apps', () => {
     it('should delete app after 2 minutes and not earlier', function() {
       apps['_refCounter'] = { '__noauth__': 0 };
       apps._waitToDestroyApp('__noauth__');
-      clock.tick(100000);
+      clock.tick(appsNamespace.garbageCollectionInterval - 1);
       expect(noauthApp.delete.called).to.be.false;
-      clock.tick(20000);
-      expect(noauthApp.delete.called).to.be.true;
+      clock.tick(1);
+
+      // Technically the delete happens on the next tick *after* 2 min
+      return Promise.resolve().then(() => {
+        expect(noauthApp.delete.called).to.be.true;
+      });
     });
 
     it('should exit right away if app was already deleted', function() {
       return deleteNoauth().then(() => {
-        apps._waitToDestroyApp('__noauth__').then(() => {
-          expect(noauthApp.delete.called).to.be.false;
-        });
+        let spy = sinon.spy(appsNamespace, 'delay');
+        apps._waitToDestroyApp('__noauth__');
+        spy.restore();
+        expect(spy.called).to.be.false;
       });
     });
 
-    it('should not delete app if it gets deleted while function is waiting', function(done) {
+    it('should not delete app if it gets deleted while function is waiting', function() {
       apps._waitToDestroyApp('__noauth__');
-      clock.tick(100000);
       deleteNoauth();
-      clock.tick(20000);
-      expect(noauthApp.delete.called).to.be.false;
-      done();
+      clock.tick(appsNamespace.garbageCollectionInterval);
+      return Promise.resolve().then(() => {
+        expect(noauthApp.delete.called).to.be.false;
+      });
     });
 
     it('should not delete app if ref count rises above 0', function() {
@@ -130,8 +135,10 @@ describe('apps', () => {
         '__noauth__': 1,
       };
       apps._waitToDestroyApp('__noauth__');
-      clock.tick(120000);
-      expect(noauthApp.delete.called).to.be.false;
+      clock.tick(appsNamespace.garbageCollectionInterval);
+      return Promise.resolve().then(() => {
+        expect(noauthApp.delete.called).to.be.false;
+      });
     });
   });
 });

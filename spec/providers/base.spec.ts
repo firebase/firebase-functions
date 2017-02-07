@@ -1,4 +1,3 @@
-import * as Promise from 'bluebird';
 import { expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
 import { makeCloudFunction, MakeCloudFunctionArgs } from '../../src/providers/base';

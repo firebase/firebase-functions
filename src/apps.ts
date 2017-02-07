@@ -1,7 +1,6 @@
 import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { env } from './env';
-import * as Promise from 'bluebird';
 import sha1 = require('sha1');
 
 /** @internal */
@@ -11,6 +10,16 @@ export function apps(): apps.Apps {
 
 /** @internal */
 export namespace apps {
+  /** @internal */
+  export const garbageCollectionInterval = 2 * 60 * 1000;
+
+  /** @internal */
+  export function delay(delay: number) {
+    return new Promise(resolve => {
+      setTimeout(resolve, delay);
+    });
+  }
+
   export let singleton: apps.Apps;
 
   export let init = (env: env.Env) => singleton = new Apps(env);
@@ -61,11 +70,12 @@ export namespace apps {
       if (!this._appAlive(appName)) {
         return Promise.resolve();
       }
-      return Promise.delay(120000).then(() => {
+      return delay(120000).then(() => {
         if (!this._appAlive(appName)) {
           return;
         }
         if (_.get(this._refCounter, appName) === 0) {
+          delete this._refCounter[appName];
           return firebase.app(appName).delete().catch(_.noop);
         }
       });
