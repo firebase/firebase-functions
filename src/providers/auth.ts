@@ -24,7 +24,7 @@ import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 
 /** @internal */
-export const provider = 'google.firebase.auth';
+export const provider = 'firebase.auth';
 
 /** Handle events in the Firebase Auth user lifecycle. */
 export function user() {
