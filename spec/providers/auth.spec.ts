@@ -23,7 +23,7 @@
 import * as auth from '../../src/providers/auth';
 import { expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { Event } from '../../src/event';
+import { Event } from '../../src/cloud-functions';
 import * as firebase from 'firebase-admin';
 
 describe('AuthBuilder', () => {

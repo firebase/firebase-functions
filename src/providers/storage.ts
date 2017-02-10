@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {CloudFunction, makeCloudFunction} from './base';
-import { Event } from '../event';
+import { Event, CloudFunction, makeCloudFunction } from '../cloud-functions';
 
 /** @internal */
 export const provider = 'cloud.storage';
@@ -103,7 +102,7 @@ export function object(): ObjectBuilder {
 }
 
 export class BucketBuilder {
-  /** internal */
+  /** @internal */
   constructor(private resource) { }
 
   /** Handle events for objects in this bucket. */
@@ -113,13 +112,13 @@ export class BucketBuilder {
 }
 
 export class ObjectBuilder {
-  /** internal */
+  /** @internal */
   constructor(private resource) { }
 
   /**
    * Handle any change to any object.
    */
-  onChange(handler: (event: Event<Object>) => PromiseLike<any>): CloudFunction {
+  onChange(handler: (event: Event<Object>) => PromiseLike<any> | any): CloudFunction<Object> {
     return makeCloudFunction({provider, handler, resource: this.resource, eventType: 'object.change'});
   }
 }

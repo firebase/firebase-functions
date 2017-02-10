@@ -20,8 +20,7 @@
  // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  // SOFTWARE.
 
-import { Event } from '../event';
-import { makeCloudFunction, CloudFunction } from './base';
+import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 
 /** @internal */
@@ -38,7 +37,9 @@ export class UserBuilder {
   constructor(private resource: string) { }
 
   /** Respond to the creation of a Firebase Auth user. */
-  onCreate(handler: (event: Event<firebase.auth.UserRecord>) => any | PromiseLike<any>): CloudFunction {
+  onCreate(
+    handler: (event: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any
+  ): CloudFunction<firebase.auth.UserRecord> {
     return makeCloudFunction({
       provider, handler,
       resource: this.resource,
@@ -47,7 +48,9 @@ export class UserBuilder {
   }
 
   /** Respond to the deletion of a Firebase Auth user. */
-  onDelete(handler: (event: Event<firebase.auth.UserRecord>) => any | PromiseLike<any>): CloudFunction {
+  onDelete(
+    handler: (event: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any
+  ): CloudFunction<firebase.auth.UserRecord> {
     return makeCloudFunction({
       provider, handler,
       resource: this.resource,

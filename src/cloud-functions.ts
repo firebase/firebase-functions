@@ -20,38 +20,50 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { env } from '../env';
-import { Event, RawEvent } from '../event';
+import { env } from './env';
+import { apps } from './apps';
+import * as _ from 'lodash';
 
-// We export a type that uses RawEvent so it must itself be exported from this module.
-export { RawEvent } from '../event';
+/** An event to be handled in a developer's Cloud Function */
+export interface Event<T> {
+  eventId?: string;
+  timestamp?: string;
+  eventType?: string;
+  resource?: string;
+  path?: string;
+  params?: {[option: string]: any};
+  data: T;
 
+  /** @internal */
+  auth?: apps.AuthMode;
+}
+
+/** TriggerAnnotated is used internally by the firebase CLI to understand what type of Cloud Function to deploy. */
 export interface TriggerAnnotated {
-  __trigger: Trigger;
+  __trigger: {
+    httpsTrigger?: {},
+    eventTrigger?: {
+      eventType: string;
+      resource: string;
+    }
+  };
 }
 
-export interface EventTrigger {
-  eventType: string;
-  resource: string;
-}
-export interface Trigger {
-  httpsTrigger?: Object;
-  eventTrigger?: EventTrigger;
-}
-
-/* A CloudFunction is both an object that exports its trigger definitions at __trigger and
-   can be called as a function using the raw JS API for Google Cloud Functions. */
-export type CloudFunction = TriggerAnnotated & ((event: RawEvent) => PromiseLike<any> | any);
+/**
+ * A CloudFunction is both an object that exports its trigger definitions at __trigger and
+ * can be called as a function using the raw JS API for Google Cloud Functions.
+ */
+export type CloudFunction<T> = TriggerAnnotated & ((event: Event<any> | Event<T>) => PromiseLike<any> | any);
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
   provider: string;
   eventType: string;
   resource: string;
-  dataConstructor?: (raw: RawEvent) => EventData;
+  dataConstructor?: (raw: Event<any>) => EventData;
   handler: (event?: Event<EventData>) => PromiseLike<any> | any;
-  before?: (raw: RawEvent) => void;
-  after?: (raw: RawEvent) => void;
+  before?: (raw: Event<any>) => void;
+  after?: (raw: Event<any>) => void;
 }
 
 /** @internal */
@@ -59,16 +71,18 @@ export function makeCloudFunction<EventData>({
   provider,
   eventType,
   resource,
-  dataConstructor = (raw: RawEvent) => raw.data,
+  dataConstructor = (raw: Event<any>) => raw.data,
   handler,
   before,
   after,
-}: MakeCloudFunctionArgs<EventData>): CloudFunction {
-  let cloudFunction: any = (payload) => {
+}: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
+  let cloudFunction: any = (event: Event<any>) => {
     return env().ready().then(before).then(() => {
-      let data = dataConstructor(payload);
-      let event = new Event(payload, data);
-      return handler(event);
+      let typedEvent: Event<EventData> = _.assign({}, event);
+      // TODO(inlined) can we avoid the data constructor if we already have the right type?
+      typedEvent.data = dataConstructor(event);
+      typedEvent.params = event.params || {};
+      return handler(typedEvent);
     }).then(after, after);
   };
   cloudFunction.__trigger = {

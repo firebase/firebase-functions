@@ -22,8 +22,7 @@
 
 import * as _ from 'lodash';
 import { apps } from '../apps';
-import {Event, RawEvent} from '../event';
-import {CloudFunction, makeCloudFunction} from './base';
+import {Event, CloudFunction, makeCloudFunction} from '../cloud-functions';
 import {normalizePath, applyChange, pathParts, valAt, joinPath} from '../utils';
 import * as firebase from 'firebase-admin';
 
@@ -61,12 +60,18 @@ export class RefBuilder {
   constructor(private apps: apps.Apps, private resource) {}
 
   /** Respond to any write that affects a ref. */
-  onWrite(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction {
+  onWrite(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
+    const dataConstructor  = (raw: Event<any>) => {
+      if (raw.data instanceof DeltaSnapshot) {
+        return raw.data;
+      }
+      return new DeltaSnapshot(this.apps.forMode(raw.auth), this.apps.admin, raw);
+    };
     return makeCloudFunction({
       provider, handler,
       eventType: 'ref.write',
       resource: this.resource,
-      dataConstructor: (raw) => new DeltaSnapshot(this.apps.forMode(raw.auth), this.apps.admin, raw),
+      dataConstructor,
       before: (payload) => this.apps.retain(payload),
       after: (payload) => this.apps.release(payload),
     });
@@ -84,7 +89,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(private app: firebase.app.App, private adminApp: firebase.app.App, event: RawEvent) {
+  constructor(private app: firebase.app.App, private adminApp: firebase.app.App, event: Event<any>) {
     if (event) {
       let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
       let match = event.resource.match(new RegExp(resourceRegex));

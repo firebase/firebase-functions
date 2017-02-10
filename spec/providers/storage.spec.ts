@@ -23,7 +23,7 @@
 import * as storage from '../../src/providers/storage';
 import { expect as expect } from 'chai';
 import { FakeEnv } from '../support/helpers';
-import { Event } from '../../src/event';
+import { Event } from '../../src/cloud-functions';
 
 describe('storage.FunctionBuilder', () => {
   let subject: storage.ObjectBuilder;

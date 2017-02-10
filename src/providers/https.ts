@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { TriggerAnnotated } from './base';
+import { TriggerAnnotated } from '../cloud-functions';
 import {env} from '../env';
 import {Request, Response} from 'express';
 

@@ -20,8 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {CloudFunction, makeCloudFunction} from './base';
-import { Event } from '../event';
+import {Event, CloudFunction, makeCloudFunction} from '../cloud-functions';
 
 /** @internal */
 export const provider = 'cloud.pubsub';
@@ -42,12 +41,12 @@ export class TopicBuilder {
   constructor(private resource: string) { }
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
-  onPublish(handler: (event: Event<Message>) => PromiseLike<any> | any): CloudFunction {
+  onPublish(handler: (event: Event<Message>) => PromiseLike<any> | any): CloudFunction<Message> {
     return makeCloudFunction({
       provider, handler,
       resource: this.resource,
       eventType: 'topic.publish',
-      dataConstructor: (raw) => new Message(raw.data),
+      dataConstructor: (raw) => raw.data instanceof Message ? raw.data : new Message(raw.data),
     });
   }
 }

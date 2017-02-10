@@ -51,5 +51,4 @@ export const storage = storageProvider;
 export const https = httpsProvider;
 
 // Exported root types:
-export {CloudFunction} from './providers/base';
-export {Event} from './event';
+export * from './cloud-functions'

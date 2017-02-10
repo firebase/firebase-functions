@@ -20,11 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import { FakeEnv } from '../support/helpers';
-import { makeCloudFunction, MakeCloudFunctionArgs } from '../../src/providers/base';
-import { RawEvent } from '../../src/event';
 import * as _ from 'lodash';
+import { expect } from 'chai';
+import { FakeEnv } from './support/helpers';
+import { Event, makeCloudFunction, MakeCloudFunctionArgs } from '../src/cloud-functions';
 
 describe('makeCloudFunction', () => {
   let env: FakeEnv;
@@ -85,7 +84,7 @@ describe('makeCloudFunction', () => {
   it('should preserve payload metadata', () => {
     let args: any = _.assign({}, cloudFunctionArgs, {handler: (e) => e});
     let cf = makeCloudFunction(args);
-    let test: RawEvent = {
+    let test: Event<string> = {
       eventId: '00000',
       timestamp: '2016-11-04T21:29:03.496Z',
       auth: {
