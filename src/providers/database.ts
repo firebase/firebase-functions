@@ -66,7 +66,7 @@ export class RefBuilder {
       provider, handler,
       eventType: 'ref.write',
       resource: this.resource,
-      dataConstructor: (raw) => new DeltaSnapshot(this.apps, raw),
+      dataConstructor: (raw) => new DeltaSnapshot(this.apps.forMode(raw.auth), this.apps.admin, raw),
       before: (payload) => this.apps.retain(payload),
       after: (payload) => this.apps.release(payload),
     });
@@ -75,20 +75,16 @@ export class RefBuilder {
 
 export class DeltaSnapshot implements firebase.database.DataSnapshot {
   private _adminRef: firebase.database.Reference;
-  private _apps: apps.Apps;
   private _ref: firebase.database.Reference;
   private _path: string;
   private _data: any;
   private _delta: any;
   private _newData: any;
-  private _auth: apps.AuthMode;
 
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(apps: apps.Apps, event: RawEvent) {
-    this._apps = apps;
-
+  constructor(private app: firebase.app.App, private adminApp: firebase.app.App, event: RawEvent) {
     if (event) {
       let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
       let match = event.resource.match(new RegExp(resourceRegex));
@@ -102,7 +98,6 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
       }
 
       this._path = normalizePath(ref);
-      this._auth = event.auth;
       this._data = event.data.data;
       this._delta = event.data.delta;
       this._newData = applyChange(this._data, this._delta);
@@ -111,14 +106,14 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
 
   get ref(): firebase.database.Reference {
     if (!this._ref) {
-      this._ref = this._apps.forMode(this._auth).database().ref(this._fullPath());
+      this._ref = this.app.database().ref(this._fullPath());
     }
     return this._ref;
   }
 
   get adminRef(): firebase.database.Reference {
     if (!this._adminRef) {
-      this._adminRef = this._apps.admin.database().ref(this._fullPath());
+      this._adminRef = this.adminApp.database().ref(this._fullPath());
     }
     return this._adminRef;
   }
@@ -225,9 +220,9 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DeltaSnapshot {
-    let dup = new DeltaSnapshot(this._apps, null);
-    [dup._path, dup._auth, dup._data, dup._delta, dup._childPath, dup._newData] =
-      [this._path, this._auth, this._data, this._delta, this._childPath, this._newData];
+    let dup = new DeltaSnapshot(this.app, this.adminApp, null);
+    [dup._path, dup._data, dup._delta, dup._childPath, dup._newData] =
+      [this._path, this._data, this._delta, this._childPath, this._newData];
 
     if (previous) {
       dup._isPrevious = true;

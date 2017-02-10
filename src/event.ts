@@ -28,12 +28,14 @@ import { apps } from './apps';
 export interface RawEvent {
   eventId?: string;
   timestamp?: string;
-  auth?: apps.AuthMode;
   eventType?: string;
   resource?: string;
   path?: string;
   params?: {[option: string]: any};
   data: any;
+
+  /** @internal */
+  auth?: apps.AuthMode;
 }
 
 /* Has all fields of RawEvent except data, used to construct new Events by
@@ -41,17 +43,18 @@ export interface RawEvent {
 export interface EventMetadata {
   eventId?: string;
   timestamp?: string;
-  auth?: apps.AuthMode;
   eventType?: string;
   resource?: string;
   path?: string;
   params?: {[option: string]: any};
+
+  /** @internal */
+  auth?: apps.AuthMode;
 }
 
 export class Event<T> {
   eventId?: string;
   timestamp?: string;
-  auth?: apps.AuthMode;
   eventType?: string;
   resource?: string;
   path?: string;
@@ -59,13 +62,14 @@ export class Event<T> {
   data: T;
   uid?: string;
 
-  protected _auth?: apps.AuthMode; // we have not yet agreed on what we want to expose here
+  /** @internal */
+  auth?: apps.AuthMode; // we have not yet agreed on what we want to expose here
 
   constructor(metadata: EventMetadata, data: T) {
     _.assign(this, metadata);
     this.data = data;
     this.params = this.params || {};
-    if (_.has(this._auth, 'variable.uid')) {
+    if (_.has(this.auth, 'variable.uid')) {
       this.uid = metadata.auth.variable.uid;
     }
   }

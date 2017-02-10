@@ -73,7 +73,7 @@ describe('DeltaSnapshot', () => {
   const apps = new appsNamespace.Apps(env);
 
   let populate = (old: any, change: any) => {
-    subject = new database.DeltaSnapshot(apps, {
+    subject = new database.DeltaSnapshot(apps.admin, apps.admin, {
       resource: 'projects/_/instances/mySubdomain/refs/foo',
       data: {
         data: old,
@@ -248,11 +248,15 @@ describe('DeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      expect(new database.DeltaSnapshot(apps, {resource: 'projects/_/instances/foo/refs', data: {}}).key).to.be.null;
+      const snapshot = new database.DeltaSnapshot(apps.admin, apps.admin, {
+        resource: 'projects/_/instances/foo/refs',
+        data: {}},
+      );
+      expect(snapshot.key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
-      expect(new database.DeltaSnapshot(apps, {
+      expect(new database.DeltaSnapshot(apps.admin, apps.admin, {
         resource: 'projects/_/instances/foo/refs',
         data: {
           data: null,
