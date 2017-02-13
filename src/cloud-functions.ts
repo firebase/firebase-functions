@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { env } from './env';
 import { apps } from './apps';
 import * as _ from 'lodash';
 
@@ -77,13 +76,21 @@ export function makeCloudFunction<EventData>({
   after,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   let cloudFunction: any = (event: Event<any>) => {
-    return env().ready().then(before).then(() => {
+    return Promise.resolve(event)
+    .then(before)
+    .then(() => {
       let typedEvent: Event<EventData> = _.assign({}, event);
       // TODO(inlined) can we avoid the data constructor if we already have the right type?
       typedEvent.data = dataConstructor(event);
       typedEvent.params = event.params || {};
       return handler(typedEvent);
-    }).then(after, after);
+    }).then(result => {
+      if (after) { after(event); };
+      return result;
+    }, err => {
+      if (after) { after(event); };
+      return err;
+    });
   };
   cloudFunction.__trigger = {
     eventTrigger: {

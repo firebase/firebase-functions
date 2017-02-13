@@ -22,22 +22,17 @@
 
 import * as auth from '../../src/providers/auth';
 import { expect } from 'chai';
-import { FakeEnv } from '../support/helpers';
 import { Event } from '../../src/cloud-functions';
 import * as firebase from 'firebase-admin';
 
 describe('AuthBuilder', () => {
   let handler: (e: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any;
-  let env = new FakeEnv();
 
   before(() => {
-    env.stubSingleton();
-    env.makeReady();
     process.env.GCLOUD_PROJECT = 'project1';
   });
 
   after(() => {
-    env.restoreSingleton();
     delete process.env.GCLOUD_PROJECT;
   });
 
@@ -46,7 +41,7 @@ describe('AuthBuilder', () => {
       const cloudFunction = auth.user().onCreate(() => null);
       expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
-            eventType: 'providers/google.firebase.auth/eventTypes/user.create',
+            eventType: 'providers/firebase.auth/eventTypes/user.create',
             resource: 'projects/project1',
         },
       });
@@ -58,7 +53,7 @@ describe('AuthBuilder', () => {
       const cloudFunction = auth.user().onDelete(handler);
       expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
-            eventType: 'providers/google.firebase.auth/eventTypes/user.delete',
+            eventType: 'providers/firebase.auth/eventTypes/user.delete',
             resource: 'projects/project1',
         },
       });

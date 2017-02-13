@@ -20,23 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// The Firebase Functions runtime is currently a bit slow at resolving requires. Make sure we
-// kick off the fetch for Credential and RuntimeConfig while it's also fetching other
-// dependencies.
-import { credential } from 'firebase-admin';
-const cred = credential.applicationDefault();
-cred.getAccessToken();
-
-// Because env isn't a function we can't actually export all the types correctly.
-// TODO(inlined) should we swap to functions.env().foo.bar? That lets us hang types off of functions.env.Foo.Bar
-import {env as firebaseEnv} from './env';
-firebaseEnv.init(cred);
-export let env: firebaseEnv.Data;
-firebaseEnv().observe((data) => env = data);
-
-import {apps} from './apps';
-apps.init(firebaseEnv());
-
 // Providers:
 import * as authProvider from './providers/auth';
 import * as databaseProvider from './providers/database';
@@ -51,4 +34,5 @@ export const storage = storageProvider;
 export const https = httpsProvider;
 
 // Exported root types:
-export * from './cloud-functions'
+export * from './config';
+export * from './cloud-functions';

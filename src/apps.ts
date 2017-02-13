@@ -22,11 +22,14 @@
 
 import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
-import { env } from './env';
+import {config} from './config';
 import sha1 = require('sha1');
 
 /** @internal */
 export function apps(): apps.Apps {
+  if (typeof apps.singleton === 'undefined') {
+    apps.init(config());
+  }
   return apps.singleton;
 }
 
@@ -44,7 +47,7 @@ export namespace apps {
 
   export let singleton: apps.Apps;
 
-  export let init = (env: env.Env) => singleton = new Apps(env);
+  export let init = (config: config.Config) => singleton = new Apps(config);
 
   export interface AuthMode {
     admin: boolean;
@@ -58,11 +61,11 @@ export namespace apps {
 
   /** @internal */
   export class Apps {
-    private _env: env.Env;
+    private _config: config.Config;
     private _refCounter: RefCounter;
 
-    constructor(env: env.Env) {
-      this._env = env;
+    constructor(config: config.Config) {
+      this._config = config;
       this._refCounter = {};
     }
 
@@ -167,7 +170,7 @@ export namespace apps {
     }
 
     private get firebaseArgs() {
-      return _.get(this._env.data, 'firebase', {});
+      return _.get(this._config, 'firebase', {});
     }
   }
 }

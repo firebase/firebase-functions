@@ -22,25 +22,13 @@
 
 import * as storage from '../../src/providers/storage';
 import { expect as expect } from 'chai';
-import { FakeEnv } from '../support/helpers';
 import { Event } from '../../src/cloud-functions';
 
 describe('storage.FunctionBuilder', () => {
   let subject: storage.ObjectBuilder;
   let handler: (e: Event<storage.Object>) => PromiseLike<any> | any;
-  let env = new FakeEnv();
-
-  before(() => {
-    env.makeReady();
-    env.stubSingleton();
-  });
-
-  after(() => {
-    env.restoreSingleton();
-  });
 
   beforeEach(() => {
-    env = new FakeEnv();
     subject = storage.bucket('bucky').object();
     handler = () => true;
   });

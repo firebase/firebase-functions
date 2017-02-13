@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { FakeEnv } from './support/helpers';
+import { fakeConfig } from './support/helpers';
 import {apps as appsNamespace, apps} from '../src/apps';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
@@ -31,7 +31,7 @@ describe('apps', () => {
   let apps: appsNamespace.Apps;
   let claims;
   beforeEach(() => {
-    apps = new appsNamespace.Apps(new FakeEnv());
+    apps = new appsNamespace.Apps(fakeConfig());
     // mock claims intentionally contains dots, square brackets, and nested paths
     claims = {'token': {'firebase': {'identities':{'google.com':['111']}}}};
   });

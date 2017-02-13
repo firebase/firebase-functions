@@ -22,27 +22,15 @@
 
 import * as _ from 'lodash';
 import { expect } from 'chai';
-import { FakeEnv } from './support/helpers';
 import { Event, makeCloudFunction, MakeCloudFunctionArgs } from '../src/cloud-functions';
 
 describe('makeCloudFunction', () => {
-  let env: FakeEnv;
-  let event = {data: {}};
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
     provider: 'mock.provider',
     eventType: 'mock.event',
     resource: 'resource',
     handler: () => null,
   };
-
-  beforeEach(() => {
-    env = new FakeEnv();
-    env.stubSingleton();
-  });
-
-  afterEach(() => {
-    env.restoreSingleton();
-  });
 
   it('should put a __trigger on the returned CloudFunction', () => {
     let cf = makeCloudFunction(cloudFunctionArgs);
@@ -52,33 +40,6 @@ describe('makeCloudFunction', () => {
         resource: 'resource',
       },
     });
-  });
-
-  it('should not run handlers before env ready', () => {
-    let called = false;
-    let args = _.assign({}, cloudFunctionArgs, {handler: () => called = true});
-    let cf = makeCloudFunction(args);
-    cf(event);
-
-    // Let one tick to pass to verify the work is not yet even queued
-    return Promise.resolve().then(() => {
-      expect(called).to.be.false;
-    });
-  });
-
-  it('should run handler after env ready', () => {
-    let called = false;
-    let handler = () => {
-      called = true;
-      return 42;
-    };
-    let args = _.assign({}, cloudFunctionArgs, {handler});
-    let cf = makeCloudFunction(args);
-    let result = cf(event);
-    expect(called).to.be.false;
-    env.makeReady();
-
-    expect(result).to.eventually.equal(42);
   });
 
   it('should preserve payload metadata', () => {
@@ -98,7 +59,7 @@ describe('makeCloudFunction', () => {
       },
       data: 'data',
     };
-    env.makeReady();
+
     return expect(cf(test)).to.eventually.deep.equal({
       eventId: '00000',
       timestamp: '2016-11-04T21:29:03.496Z',

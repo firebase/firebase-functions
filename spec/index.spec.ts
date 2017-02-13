@@ -31,7 +31,7 @@ import 'mocha';
 import './utils.spec';
 import './apps.spec';
 import './cloud-functions.spec';
-import './env.spec';
+import './config.spec';
 import './testing.spec';
 import './providers/auth.spec';
 import './providers/https.spec';

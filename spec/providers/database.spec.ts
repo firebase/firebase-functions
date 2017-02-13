@@ -22,20 +22,16 @@
 
 import * as database from '../../src/providers/database';
 import { expect as expect } from 'chai';
-import { FakeEnv } from '../support/helpers';
+import { fakeConfig } from '../support/helpers';
 import {apps as appsNamespace} from '../../src/apps';
 
 describe('DatabaseBuilder', () => {
-  let env: FakeEnv = new FakeEnv();
 
   before(() => {
-    env.makeReady();
-    env.stubSingleton();
-    appsNamespace.init(env);
+    appsNamespace.init(fakeConfig());
   });
 
   after(() => {
-    env.restoreSingleton();
     delete appsNamespace.singleton;
   });
 
@@ -69,8 +65,7 @@ describe('DatabaseBuilder', () => {
 
 describe('DeltaSnapshot', () => {
   let subject;
-  const env = new FakeEnv();
-  const apps = new appsNamespace.Apps(env);
+  const apps = new appsNamespace.Apps(fakeConfig());
 
   let populate = (old: any, change: any) => {
     subject = new database.DeltaSnapshot(apps.admin, apps.admin, {

@@ -22,7 +22,6 @@
 
 import * as pubsub from '../../src/providers/pubsub';
 import { expect } from 'chai';
-import { FakeEnv } from '../support/helpers';
 
 describe('pubsub.Message', () => {
   describe('#json', () => {
@@ -60,16 +59,12 @@ describe('pubsub.Message', () => {
 });
 
 describe('pubsub.FunctionBuilder', () => {
-  let env = new FakeEnv();
 
   before(() => {
-    env.makeReady();
-    env.stubSingleton();
     process.env.GCLOUD_PROJECT = 'project1';
   });
 
   after(() => {
-    env.restoreSingleton();
     delete process.env.GCLOUD_PROJECT;
   });
 

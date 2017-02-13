@@ -21,23 +21,38 @@
 // SOFTWARE.
 
 import * as _ from 'lodash';
-import { config } from '../../src/config';
+import * as firebase from 'firebase-admin';
 
-export function fakeConfig(data?: Object) {
-  return _.extend({}, data, {
-    firebase: {
-      credential: {
-        getAccessToken: () => {
-          return Promise.resolve({
-            expires_in: 1000,
-            access_token: 'fake',
-          });
-        },
-      },
-    },
-  });
+export function config(): config.Config {
+  if (typeof config.singleton === 'undefined') {
+    const cred = firebase.credential.applicationDefault();
+    init(cred);
+  }
+  return config.singleton;
 }
 
-export function unsetSingleton() {
-  delete config.singleton;
+export namespace config {
+  // Config type is usable as a object (dot notation allowed), and firebase
+  // property will also code complete.
+  export type Config = Object & {firebase?: firebase.AppOptions};
+
+  /** @internal */
+  export let singleton: config.Config;
+}
+
+function init (credential: firebase.credential.Credential) {
+  let loaded: any;
+  try {
+    loaded = require('../../../config.json');
+  } catch (e) {
+    throw new Error ('functions.config() is not available. '
+      + 'Please use the Firebase CLI to deploy, or manually '
+      + 'add a config.json to your functions directory.');
+  }
+  if (!_.has(loaded, 'firebase')) {
+    throw new Error('Firebase config variables are missing.');
+  }
+
+  _.set(loaded, 'firebase.credential', credential);
+  config.singleton = loaded;
 }
