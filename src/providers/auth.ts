@@ -38,8 +38,8 @@ export class UserBuilder {
 
   /** Respond to the creation of a Firebase Auth user. */
   onCreate(
-    handler: (event: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any
-  ): CloudFunction<firebase.auth.UserRecord> {
+    handler: (event: Event<UserRecord>) => PromiseLike<any> | any
+  ): CloudFunction<UserRecord> {
     return makeCloudFunction({
       provider, handler,
       resource: this.resource,
@@ -50,7 +50,7 @@ export class UserBuilder {
   /** Respond to the deletion of a Firebase Auth user. */
   onDelete(
     handler: (event: Event<UserRecord>) => PromiseLike<any> | any
-  ): CloudFunction<firebase.auth.UserRecord> {
+  ): CloudFunction<UserRecord> {
     return makeCloudFunction({
       provider, handler,
       resource: this.resource,
