@@ -22,21 +22,22 @@
 
 import * as storage from '../../src/providers/storage';
 import { expect as expect } from 'chai';
-import { Event } from '../../src/cloud-functions';
+import {fakeConfig} from '../support/helpers';
+import {config} from '../../src/config';
 
 describe('storage.FunctionBuilder', () => {
-  let subject: storage.ObjectBuilder;
-  let handler: (e: Event<storage.Object>) => PromiseLike<any> | any;
+  before(() => {
+    config.singleton = fakeConfig();
+  });
 
-  beforeEach(() => {
-    subject = storage.bucket('bucky').object();
-    handler = () => true;
+  after(() => {
+    delete config.singleton;
   });
 
   describe('#onChange', () => {
     it('should return a TriggerDefinition with appropriate values', () => {
-      let result = subject.onChange(handler);
-      expect(result.__trigger).to.deep.equal({
+      let cloudFunction = storage.bucket('bucky').object().onChange(() => null);
+      expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
           eventType: 'providers/cloud.storage/eventTypes/object.change',
           resource: 'projects/_/buckets/bucky',
@@ -44,9 +45,19 @@ describe('storage.FunctionBuilder', () => {
       });
     });
 
+    it('should use the default bucket when none is provided', () => {
+      let cloudFunction = storage.object().onChange(() => null);
+      expect(cloudFunction.__trigger).to.deep.equal({
+        eventTrigger: {
+          eventType: 'providers/cloud.storage/eventTypes/object.change',
+          resource: 'projects/_/buckets/bucket',
+        },
+      });
+    });
+
     it ('should allow fully qualified bucket names', () => {
       let subjectQualified = new storage.ObjectBuilder('projects/_/buckets/bucky');
-      let result = subjectQualified.onChange(handler);
+      let result = subjectQualified.onChange(() => null);
       expect(result.__trigger).to.deep.equal({
         eventTrigger: {
           eventType: 'providers/cloud.storage/eventTypes/object.change',

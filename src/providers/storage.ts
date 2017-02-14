@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { Event, CloudFunction, makeCloudFunction } from '../cloud-functions';
+import {config} from '../index';
 
 /** @internal */
 export const provider = 'cloud.storage';
@@ -97,8 +98,7 @@ export function bucket(bucket: string): BucketBuilder {
 }
 
 export function object(): ObjectBuilder {
-  // TODO(inlined): THIS DOESN'T EXIST!
-  return bucket(process.env.GCLOUD_BUCKET).object();
+  return bucket(config().firebase.storageBucket).object();
 }
 
 export class BucketBuilder {

@@ -25,9 +25,13 @@ import { apps } from '../apps';
 import {Event, CloudFunction, makeCloudFunction} from '../cloud-functions';
 import {normalizePath, applyChange, pathParts, valAt, joinPath} from '../utils';
 import * as firebase from 'firebase-admin';
+import {config} from '../index';
 
 /** @internal */
 export const provider = 'google.firebase.database';
+
+// NOTE(inlined): Should we relax this a bit to allow staging or alternate implementations of our API?
+const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
 
 /**
  * Handle events at a Firebase Realtime Database ref.
@@ -49,8 +53,17 @@ export const provider = 'google.firebase.database';
  *    previous event data as well as the user who triggered the change.
  */
 export function ref(ref: string): RefBuilder {
-  let normalized = normalizePath(ref);
-  let resource = `projects/_/instances/${process.env.DB_NAMESPACE}/refs/${normalized}`;
+  const normalized = normalizePath(ref);
+  const databaseURL = config().firebase.databaseURL;
+  if (!databaseURL) {
+    throw new Error('Missing expected config value firebase.databaseURL');
+  }
+  const match = databaseURL.match(databaseURLRegex);
+  if (!match) {
+    throw new Error('Invalid value for config firebase.databaseURL: ' + databaseURL);
+  }
+  const subdomain = match[1];
+  let resource = `projects/_/instances/${subdomain}/refs/${normalized}`;
   return new RefBuilder(apps(), resource);
 }
 

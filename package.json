@@ -29,6 +29,7 @@
     "@types/chai": "^3.4.32",
     "@types/chai-as-promised": "0.0.28",
     "@types/mocha": "^2.2.31",
+    "@types/mock-require": "^1.3.3",
     "@types/nock": "^0.54.32",
     "@types/node": "^6.0.38",
     "@types/request": "0.0.30",

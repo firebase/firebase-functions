@@ -24,15 +24,18 @@ import * as database from '../../src/providers/database';
 import { expect as expect } from 'chai';
 import { fakeConfig } from '../support/helpers';
 import {apps as appsNamespace} from '../../src/apps';
+import {config} from '../../src/config';
 
 describe('DatabaseBuilder', () => {
 
   before(() => {
-    appsNamespace.init(fakeConfig());
+    config.singleton = fakeConfig();
+    appsNamespace.init(config.singleton);
   });
 
   after(() => {
     delete appsNamespace.singleton;
+    delete config.singleton;
   });
 
   describe('#onWrite()', () => {
