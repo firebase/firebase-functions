@@ -35,13 +35,7 @@ export function config(): config.Config {
 export namespace config {
   // Config type is usable as a object (dot notation allowed), and firebase
   // property will also code complete.
-  export type Config = Object & {
-    firebase?: firebase.AppOptions & {
-      // NOTE: firebase-admin currently only defines app options for features it exposes, not the full set
-      // of firebase features. This shim can be removed in the next version of firebase-admin.
-      storageBucket: string,
-    }
-  };
+  export type Config = Object & { firebase?: firebase.AppOptions };
 
   /** @internal */
   export let singleton: config.Config;

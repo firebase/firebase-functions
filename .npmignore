@@ -1,8 +1,10 @@
 .tmp
 coverage
 .vscode
+.idea
 tsconfig.*
 tslint.*
+.travis.yml
 
 # Don't include the raw typescript
 src
