@@ -1,17 +1,38 @@
-// The Firebase Functions runtime is currently a bit slow at resolving requires. Make sure we
-// kick off the fetch for Credential and RuntimeConfig while it's also fetching other
-// dependencies.
-import { ApplicationDefaultCredential } from './credential';
-const credential = new ApplicationDefaultCredential();
-credential.getAccessToken();
+// The MIT License (MIT)
+//
+// Copyright (c) 2015 Firebase
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
 
-import { RuntimeConfigEnv } from './env';
-const env = new RuntimeConfigEnv(credential, process.env.GCLOUD_PROJECT);
+// Providers:
+import * as authProvider from './providers/auth';
+import * as databaseProvider from './providers/database';
+import * as pubsubProvider from './providers/pubsub';
+import * as storageProvider from './providers/storage';
+import * as httpsProvider from './providers/https';
 
-import Apps from './apps';
-import FirebaseFunctions from './functions';
+export const auth = authProvider;
+export const database = databaseProvider;
+export const pubsub = pubsubProvider;
+export const storage = storageProvider;
+export const https = httpsProvider;
 
-const apps = new Apps(env);
-
-const functionsApi: FirebaseFunctions = new FirebaseFunctions(env, apps);
-export = functionsApi;
+// Exported root types:
+export * from './config';
+export * from './cloud-functions';

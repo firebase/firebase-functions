@@ -1,17 +1,95 @@
-import DatabaseDeltaSnapshot from '../../src/database/delta-snapshot';
+// The MIT License (MIT)
+//
+// Copyright (c) 2015 Firebase
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+import * as database from '../../src/providers/database';
 import { expect as expect } from 'chai';
-import { FakeEnv } from '../support/helpers';
+import { fakeConfig } from '../support/helpers';
+import {apps as appsNamespace} from '../../src/apps';
+import {config} from '../../src/config';
 
-import Apps from '../../src/apps';
+describe('DatabaseBuilder', () => {
 
-describe('DatabaseDeltaSnapshot', () => {
+  before(() => {
+    config.singleton = fakeConfig();
+    appsNamespace.init(config.singleton);
+  });
+
+  after(() => {
+    delete appsNamespace.singleton;
+    delete config.singleton;
+  });
+
+  describe('#onWrite()', () => {
+    it('should return "ref.write" as the event type', () => {
+      let eventType = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.write');
+    });
+
+    it('should construct a proper resource path', () => {
+      process.env.GCLOUD_PROJECT = 'myProject';
+      process.env.DB_NAMESPACE = 'subdomain';
+      let resource = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+    });
+
+    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
+      let handler = database.ref('/users/{id}').onWrite(event => {
+        expect(event.data.val()).to.deep.equal({foo: 'bar'});
+      });
+
+      return handler({data:
+        {
+          data: null,
+          delta: {foo: 'bar'},
+        },
+      } as any);
+    });
+
+    it('should interpolate params until the server does it', () => {
+      let handler = database.ref('/users/{id}').onWrite(event => {
+        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: 'hello',
+        },
+        resource: 'projects/_/instances/subdomains/refs/users/{id}',
+        params: {
+          id: 'aUserId',
+        },
+      });
+    });
+  });
+});
+
+describe('DeltaSnapshot', () => {
   let subject;
-  const env = new FakeEnv();
-  const apps = new Apps(env);
+  const apps = new appsNamespace.Apps(fakeConfig());
 
   let populate = (old: any, change: any) => {
-    subject = new DatabaseDeltaSnapshot(apps, {
-      path: '/foo',
+    subject = new database.DeltaSnapshot(apps.admin, apps.admin, {
+      resource: 'projects/_/instances/mySubdomain/refs/foo',
       data: {
         data: old,
         delta: change,
@@ -47,9 +125,21 @@ describe('DatabaseDeltaSnapshot', () => {
       populate(null, {'foo': {0: 'a', 1: 'b'}});
       expect(subject.val()).to.deep.equal({foo: ['a', 'b']});
     });
+
+    // Regression test: zero-values (including children) were accidentally forwarded as 'null'.
+    it ('should deal with zero-values appropriately', () => {
+      populate(null, 0);
+      expect(subject.val()).to.equal(0);
+      populate(null, {myKey: 0});
+      expect(subject.val()).to.deep.equal({myKey: 0});
+
+      // Null values are still reported as null.
+      populate({myKey: 'foo', myOtherKey: 'bar'}, {myKey: null});
+      expect(subject.val()).to.deep.equal({myOtherKey: 'bar'});
+    });
   });
 
-  describe('#child(): DatabaseDeltaSnapshot', () => {
+  describe('#child(): DeltaSnapshot', () => {
     it('should work with multiple calls', () => {
       populate(null, {a: {b: {c: 'd'}}});
       expect(subject.child('a').child('b/c').val()).to.equal('d');
@@ -78,7 +168,7 @@ describe('DatabaseDeltaSnapshot', () => {
     });
   });
 
-  describe('#previous: DatabaseDeltaSnapshot', () => {
+  describe('#previous: DeltaSnapshot', () => {
     it('should cause val() to return old data only', () => {
       populate({a: 'b'}, {a: 'c', d: 'c'});
       expect(subject.previous.child('a').val()).to.equal('b');
@@ -90,7 +180,7 @@ describe('DatabaseDeltaSnapshot', () => {
     });
   });
 
-  describe('#current: DatabaseDeltaSnapshot', () => {
+  describe('#current: DeltaSnapshot', () => {
     it('should cause a previous snapshot to return new data', () => {
       populate({a: 'b'}, {a: 'c', d: 'c'});
       expect(subject.previous.child('a').current.val()).to.equal('c');
@@ -173,12 +263,16 @@ describe('DatabaseDeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      expect(new DatabaseDeltaSnapshot(apps).key).to.be.null;
+      const snapshot = new database.DeltaSnapshot(apps.admin, apps.admin, {
+        resource: 'projects/_/instances/foo/refs',
+        data: {}},
+      );
+      expect(snapshot.key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
-      expect(new DatabaseDeltaSnapshot(apps, {
-        path: '/',
+      expect(new database.DeltaSnapshot(apps.admin, apps.admin, {
+        resource: 'projects/_/instances/foo/refs',
         data: {
           data: null,
           delta: {},

@@ -20,26 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
-import { config } from '../../src/config';
+import * as https from '../../src/providers/https';
+import { expect as expect } from 'chai';
 
-export function fakeConfig(data?: Object) {
-  return _.extend({}, data, {
-    firebase: {
-      databaseURL: 'https://subdomain.firebaseio.com',
-      storageBucket: 'bucket',
-      credential: {
-        getAccessToken: () => {
-          return Promise.resolve({
-            expires_in: 1000,
-            access_token: 'fake',
-          });
-        },
-      },
-    },
+describe('CloudHttpsBuilder', () => {
+  describe('#onRequest', () => {
+    it('should return a Trigger with appropriate values', () => {
+      let result = https.onRequest((req, resp) => {
+        resp.send(200);
+      });
+      expect(result.__trigger).to.deep.equal({httpsTrigger: {}});
+    });
   });
-}
-
-export function unsetSingleton() {
-  delete config.singleton;
-}
+});

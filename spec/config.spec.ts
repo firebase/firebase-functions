@@ -20,26 +20,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
-import { config } from '../../src/config';
+import * as mockRequire from 'mock-require';
+import { expect } from 'chai';
+import { config } from '../src/config';
+import { unsetSingleton } from './support/helpers';
 
-export function fakeConfig(data?: Object) {
-  return _.extend({}, data, {
-    firebase: {
-      databaseURL: 'https://subdomain.firebaseio.com',
-      storageBucket: 'bucket',
-      credential: {
-        getAccessToken: () => {
-          return Promise.resolve({
-            expires_in: 1000,
-            access_token: 'fake',
-          });
-        },
-      },
-    },
+describe('config()', () => {
+
+  afterEach(() => {
+    mockRequire.stopAll();
+    unsetSingleton();
   });
-}
 
-export function unsetSingleton() {
-  delete config.singleton;
-}
+  it('loads config values from config.json', () => {
+    mockRequire('../../../config.json', { foo: 'bar', firebase: {} });
+    let loaded = config();
+    expect(loaded).to.have.property('firebase');
+    expect(loaded).to.have.property('foo','bar');
+  });
+
+  it('injects a Firebase credential', () => {
+    mockRequire('../../../config.json', { firebase: {} });
+    expect(config()).to.deep.property('firebase.credential');
+  });
+
+  it('throws an error if config.json not present', () => {
+    mockRequire('../../../config.json', 'does-not-exist');
+    expect(config).to.throw('not available');
+  });
+
+  it('throws an error if Firebase configs not present', () => {
+    mockRequire('../../../config.json', {});
+    expect(config).to.throw('Firebase config variables are missing.');
+  });
+});

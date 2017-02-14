@@ -20,26 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
-import { config } from '../../src/config';
+import { TriggerAnnotated } from '../cloud-functions';
+import {Request, Response} from 'express';
 
-export function fakeConfig(data?: Object) {
-  return _.extend({}, data, {
-    firebase: {
-      databaseURL: 'https://subdomain.firebaseio.com',
-      storageBucket: 'bucket',
-      credential: {
-        getAccessToken: () => {
-          return Promise.resolve({
-            expires_in: 1000,
-            access_token: 'fake',
-          });
-        },
-      },
-    },
-  });
-}
+export function onRequest(
+  handler: (req: Request, resp: Response) => void
+): ((req: Request, resp: Response) => void) & TriggerAnnotated {
+  // lets us add __trigger without altering handler:
+  let cloudFunction: any = (req, res) => { handler(req, res); };
+  cloudFunction.__trigger = {httpsTrigger: {}};
 
-export function unsetSingleton() {
-  delete config.singleton;
+  return cloudFunction;
 }

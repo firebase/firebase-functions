@@ -1,18 +1,17 @@
 {
   "compilerOptions": {
-    "declaration": true,
     "lib": ["es6", "es2015.promise"],
     "module": "commonjs",
     "noImplicitAny": false,
-    "outDir": "lib",
-    "stripInternal": true,
+    "outDir": ".tmp",
+    "sourceMap": true,
     "target": "es5",
     "typeRoots": [
       "node_modules/@types"
     ]
   },
-  "files": [
-    "src/index.ts",
-    "src/testing.ts"
+  "include": [
+    "src/**/*.ts",
+    "spec/**/*.ts"
   ]
 }
