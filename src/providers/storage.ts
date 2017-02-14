@@ -26,6 +26,44 @@ import {config} from '../index';
 /** @internal */
 export const provider = 'cloud.storage';
 
+/**
+ * The optional bucket function allows you to choose which buckets' events to handle.
+ * This step can be bypassed by calling object() directly, which will use the bucket that
+ * the Firebase SDK for Cloud Storage uses.
+ */
+export function bucket(bucket: string): BucketBuilder {
+  if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
+    throw new Error('Invalid bucket name ${bucket}');
+  }
+  return new BucketBuilder(`projects/_/buckets/${bucket}`);
+}
+
+export function object(): ObjectBuilder {
+  return bucket(config().firebase.storageBucket).object();
+}
+
+export class BucketBuilder {
+  /** @internal */
+  constructor(private resource) { }
+
+  /** Handle events for objects in this bucket. */
+  object() {
+    return new ObjectBuilder(this.resource);
+  }
+}
+
+export class ObjectBuilder {
+  /** @internal */
+  constructor(private resource) { }
+
+  /**
+   * Handle any change to any object.
+   */
+  onChange(handler: (event: Event<ObjectMetadata>) => PromiseLike<any> | any): CloudFunction<ObjectMetadata> {
+    return makeCloudFunction({provider, handler, resource: this.resource, eventType: 'object.change'});
+  }
+}
+
 export interface AccessControl {
   kind: string;
   id: string;
@@ -45,10 +83,7 @@ export interface AccessControl {
   etag?: string;
 }
 
-// NOTE: for TypeScript to work correctly this must appear before the Builders. Otherwise
-// Object is resolved to the global class.
-
-export interface Object {
+export interface ObjectMetadata {
   kind: string;
   id: string;
   selfLink?: string;
@@ -83,42 +118,4 @@ export interface Object {
     encryptionAlgorithm?: string,
     keySha256?: string,
   };
-}
-
-/**
- * The optional bucket function allows you to choose which buckets' events to handle.
- * This step can be bypassed by calling object() directly, which will use the bucket that
- * the Firebase SDK for Cloud Storage uses.
- */
-export function bucket(bucket: string): BucketBuilder {
-  if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
-    throw new Error('Invalid bucket name ${bucket}');
-  }
-  return new BucketBuilder(`projects/_/buckets/${bucket}`);
-}
-
-export function object(): ObjectBuilder {
-  return bucket(config().firebase.storageBucket).object();
-}
-
-export class BucketBuilder {
-  /** @internal */
-  constructor(private resource) { }
-
-  /** Handle events for objects in this bucket. */
-  object() {
-    return new ObjectBuilder(this.resource);
-  }
-}
-
-export class ObjectBuilder {
-  /** @internal */
-  constructor(private resource) { }
-
-  /**
-   * Handle any change to any object.
-   */
-  onChange(handler: (event: Event<Object>) => PromiseLike<any> | any): CloudFunction<Object> {
-    return makeCloudFunction({provider, handler, resource: this.resource, eventType: 'object.change'});
-  }
 }

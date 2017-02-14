@@ -80,7 +80,6 @@ export function makeCloudFunction<EventData>({
     .then(before)
     .then(() => {
       let typedEvent: Event<EventData> = _.assign({}, event);
-      // TODO(inlined) can we avoid the data constructor if we already have the right type?
       typedEvent.data = dataConstructor(event);
       typedEvent.params = event.params || {};
       return handler(typedEvent);

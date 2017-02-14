@@ -49,7 +49,7 @@ export class UserBuilder {
 
   /** Respond to the deletion of a Firebase Auth user. */
   onDelete(
-    handler: (event: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any
+    handler: (event: Event<UserRecord>) => PromiseLike<any> | any
   ): CloudFunction<firebase.auth.UserRecord> {
     return makeCloudFunction({
       provider, handler,
@@ -58,3 +58,9 @@ export class UserBuilder {
     });
   }
 }
+
+ /**
+  * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
+  * SDK.
+  */
+export type UserRecord = firebase.auth.UserRecord;
