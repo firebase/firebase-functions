@@ -52,8 +52,8 @@ const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
  *    SDK. E.g. the snapshot passed to a Cloud Function has access to the
  *    previous event data as well as the user who triggered the change.
  */
-export function ref(ref: string): RefBuilder {
-  const normalized = normalizePath(ref);
+export function ref(path: string): RefBuilder {
+  const normalized = normalizePath(path);
   const databaseURL = config().firebase.databaseURL;
   if (!databaseURL) {
     throw new Error('Missing expected config value firebase.databaseURL');
