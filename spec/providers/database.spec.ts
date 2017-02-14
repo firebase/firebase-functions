@@ -63,6 +63,23 @@ describe('DatabaseBuilder', () => {
         },
       } as any);
     });
+
+    it('should interpolate params until the server does it', () => {
+      let handler = database.ref('/users/{id}').onWrite(event => {
+        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: 'hello',
+        },
+        resource: 'projects/_/instances/subdomains/refs/users/{id}',
+        params: {
+          id: 'aUserId',
+        },
+      });
+    });
   });
 });
 

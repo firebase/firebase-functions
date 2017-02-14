@@ -105,6 +105,9 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   constructor(private app: firebase.app.App, private adminApp: firebase.app.App, event: Event<any>) {
     if (event) {
       let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
+      _.forEach(event.params, (val, key) => {
+        event.resource = _.replace(event.resource, `{${key}}`, val);
+      });
       let match = event.resource.match(new RegExp(resourceRegex));
       if (!match) {
         throw new Error(`Unexpected resource string for Firebase Realtime Database event: ${event.resource}. ` +
