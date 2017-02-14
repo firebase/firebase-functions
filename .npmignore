@@ -1,6 +1,11 @@
 .tmp
 coverage
 .vscode
+tsconfig.*
+tslint.*
 
-# The SDK's internal unit tests might confuse users looking for the testing/ module.
+# Don't include the raw typescript
+src
 spec
+# TODO(rjh) add back once testing isn't just a joke
+testing

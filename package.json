@@ -5,7 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "node_modules/.bin/tsc",
-    "build:pack": "npm prune --production && npm install typescript && node_modules/.bin/tsc && npm pack && npm install",
+    "build:pack": "npm prune --production && rm -rf lib && npm install typescript && node_modules/.bin/tsc && npm pack && npm install",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc -p tsconfig.spec.json && cp -r spec/fixtures .tmp/spec",
     "test": "npm run lint && mocha .tmp/spec/index.spec.js",
