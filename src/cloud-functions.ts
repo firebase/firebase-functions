@@ -88,7 +88,7 @@ export function makeCloudFunction<EventData>({
       return result;
     }, err => {
       if (after) { after(event); };
-      return err;
+      return Promise.reject(err);
     });
   };
   cloudFunction.__trigger = {

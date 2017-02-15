@@ -56,11 +56,12 @@ describe('DatabaseBuilder', () => {
         expect(event.data.val()).to.deep.equal({foo: 'bar'});
       });
 
-      return handler({data:
-        {
+      return handler({
+        data: {
           data: null,
           delta: {foo: 'bar'},
         },
+        resource: 'projects/_/instances/subdomains/refs/users',
       } as any);
     });
 
@@ -74,7 +75,7 @@ describe('DatabaseBuilder', () => {
           data: null,
           delta: 'hello',
         },
-        resource: 'projects/_/instances/subdomains/refs/users/{id}',
+        resource: 'projects/_/instances/subdomain/refs/users/{id}',
         params: {
           id: 'aUserId',
         },
