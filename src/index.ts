@@ -21,17 +21,12 @@
 // SOFTWARE.
 
 // Providers:
-import * as authProvider from './providers/auth';
-import * as databaseProvider from './providers/database';
-import * as pubsubProvider from './providers/pubsub';
-import * as storageProvider from './providers/storage';
-import * as httpsProvider from './providers/https';
-
-export const auth = authProvider;
-export const database = databaseProvider;
-export const pubsub = pubsubProvider;
-export const storage = storageProvider;
-export const https = httpsProvider;
+import * as auth from './providers/auth';
+import * as database from './providers/database';
+import * as pubsub from './providers/pubsub';
+import * as storage from './providers/storage';
+import * as https from './providers/https';
+export {auth, database, pubsub, storage, https};
 
 // Exported root types:
 export * from './config';
