@@ -22,6 +22,7 @@
 
 import { TriggerAnnotated } from '../cloud-functions';
 import {Request, Response} from 'express';
+export {Request, Response};
 
 export function onRequest(
   handler: (req: Request, resp: Response) => void
