@@ -32,6 +32,13 @@ describe('config()', () => {
     unsetSingleton();
   });
 
+  it('loads config values from .runtimeconfig.json', () => {
+    mockRequire('../../../.runtimeconfig.json', { foo: 'bar', firebase: {} });
+    let loaded = config();
+    expect(loaded).to.have.property('firebase');
+    expect(loaded).to.have.property('foo','bar');
+  });
+
   it('loads config values from config.json', () => {
     mockRequire('../../../config.json', { foo: 'bar', firebase: {} });
     let loaded = config();
@@ -40,17 +47,17 @@ describe('config()', () => {
   });
 
   it('injects a Firebase credential', () => {
-    mockRequire('../../../config.json', { firebase: {} });
+    mockRequire('../../../.runtimeconfig.json', { firebase: {} });
     expect(config()).to.deep.property('firebase.credential');
   });
 
   it('throws an error if config.json not present', () => {
-    mockRequire('../../../config.json', 'does-not-exist');
+    mockRequire('../../../.runtimeconfig.json', 'does-not-exist');
     expect(config).to.throw('not available');
   });
 
   it('throws an error if Firebase configs not present', () => {
-    mockRequire('../../../config.json', {});
+    mockRequire('../../../.runtimeconfig.json', {});
     expect(config).to.throw('Firebase config variables are missing.');
   });
 });

@@ -44,11 +44,16 @@ export namespace config {
 function init (credential: firebase.credential.Credential) {
   let loaded: any;
   try {
-    loaded = require('../../../config.json');
+    loaded = require('../../../.runtimeconfig.json');
   } catch (e) {
-    throw new Error ('functions.config() is not available. '
-      + 'Please use the Firebase CLI to deploy, or manually '
-      + 'add a config.json to your functions directory.');
+    try {
+      loaded = require('../../../config.json');
+    } catch (e) {
+      throw new Error(
+        'functions.config() is not available. ' +
+        'Please use the latest version of the Firebase CLI to deploy this function.'
+      );
+    }
   }
   if (!_.has(loaded, 'firebase')) {
     throw new Error('Firebase config variables are missing.');

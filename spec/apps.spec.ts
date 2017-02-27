@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 import { fakeConfig } from './support/helpers';
-import {apps as appsNamespace, apps} from '../src/apps';
+import { apps as appsNamespace } from '../src/apps';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import * as sinon from 'sinon';
