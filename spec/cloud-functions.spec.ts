@@ -53,7 +53,6 @@ describe('makeCloudFunction', () => {
       },
       eventType: 'providers/provider/eventTypes/event',
       resource: 'resource',
-      path: 'path',
       params: {
         foo: 'bar',
       },
@@ -68,7 +67,6 @@ describe('makeCloudFunction', () => {
       },
       eventType: 'providers/provider/eventTypes/event',
       resource: 'resource',
-      path: 'path',
       params: {
         foo: 'bar',
       },

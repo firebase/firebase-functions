@@ -29,7 +29,6 @@ export interface Event<T> {
   timestamp?: string;
   eventType?: string;
   resource?: string;
-  path?: string;
   params?: {[option: string]: any};
   data: T;
 

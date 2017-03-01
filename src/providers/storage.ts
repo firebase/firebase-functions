@@ -64,25 +64,6 @@ export class ObjectBuilder {
   }
 }
 
-export interface AccessControl {
-  kind: string;
-  id: string;
-  role: string;
-  selfLink?: string;
-  bucket?: string;
-  object?: string;
-  generation?: number;
-  entity?: string;
-  email?: string;
-  entityId?: string;
-  domain?: string;
-  projectTeam?: {
-    projectNumber?: string,
-    team?: string,
-  };
-  etag?: string;
-}
-
 export interface ObjectMetadata {
   kind: string;
   id: string;
@@ -105,11 +86,6 @@ export interface ObjectMetadata {
   cacheControl?: string;
   metadata?: {
     [key: string]: string;
-  };
-  acl?: Array<AccessControl>;
-  owner?: {
-    entity?: string,
-    entityId?: string,
   };
   crc32c?: string;
   componentCount?: number;
