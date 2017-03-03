@@ -89,14 +89,13 @@ describe('DeltaSnapshot', () => {
   const apps = new appsNamespace.Apps(fakeConfig());
 
   let populate = (old: any, change: any) => {
-    subject = new database.DeltaSnapshot(apps.admin, apps.admin, {
-      resource: 'projects/_/instances/mySubdomain/refs/foo',
-      data: {
-        data: old,
-        delta: change,
-      },
-      auth: {admin: false},
-    });
+    subject = new database.DeltaSnapshot(
+        apps.admin,
+        apps.admin,
+        old,
+        change,
+        database.resourceToPath('projects/_/instances/mySubdomain/refs/foo')
+      );
   };
 
   describe('#val(): any', () => {
@@ -264,22 +263,24 @@ describe('DeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
-      const snapshot = new database.DeltaSnapshot(apps.admin, apps.admin, {
-        resource: 'projects/_/instances/foo/refs',
-        data: {}},
+      const snapshot = new database.DeltaSnapshot(
+        apps.admin,
+        apps.admin,
+        null,
+        null,
+        database.resourceToPath('projects/_/instances/foo/refs')
       );
       expect(snapshot.key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
-      expect(new database.DeltaSnapshot(apps.admin, apps.admin, {
-        resource: 'projects/_/instances/foo/refs',
-        data: {
-          data: null,
-          delta: {},
-        },
-        auth: {admin: false},
-      }).key).to.be.null;
+      expect(new database.DeltaSnapshot(
+        apps.admin,
+        apps.admin,
+        null,
+        {},
+        database.resourceToPath('projects/_/instances/foo/refs')
+      ).key).to.be.null;
     });
 
     it('should work for child paths', () => {

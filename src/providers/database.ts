@@ -78,7 +78,13 @@ export class RefBuilder {
       if (raw.data instanceof DeltaSnapshot) {
         return raw.data;
       }
-      return new DeltaSnapshot(this.apps.forMode(raw.auth), this.apps.admin, raw);
+      return new DeltaSnapshot(
+        this.apps.forMode(raw.auth),
+        this.apps.admin,
+        raw.data.data,
+        raw.data.delta,
+        resourceToPath(raw.resource),
+      );
     };
     return makeCloudFunction({
       provider, handler,
@@ -96,6 +102,22 @@ export class RefBuilder {
   }
 }
 
+/* Utility function to extract database reference from resource string */
+/** @internal */
+export function resourceToPath(resource) {
+  let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
+  let match = resource.match(new RegExp(resourceRegex));
+  if (!match) {
+    throw new Error(`Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
+      'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"');
+  }
+  let [, project, /* instance */ , path] = match;
+  if (project !== '_') {
+    throw new Error(`Expect project to be '_' in a Firebase Realtime Database event`);
+  }
+  return path;
+}
+
 export class DeltaSnapshot implements firebase.database.DataSnapshot {
   private _adminRef: firebase.database.Reference;
   private _ref: firebase.database.Reference;
@@ -107,22 +129,17 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   private _childPath: string;
   private _isPrevious: boolean;
 
-  constructor(private app: firebase.app.App, private adminApp: firebase.app.App, event: Event<any>) {
-    if (event) {
-      let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
-      let match = event.resource.match(new RegExp(resourceRegex));
-      if (!match) {
-        throw new Error(`Unexpected resource string for Firebase Realtime Database event: ${event.resource}. ` +
-          'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"');
-      }
-      let [, project, /* instance */ , ref] = match;
-      if (project !== '_') {
-        throw new Error(`Expect project to be '_' in a Firebase Realtime Database event`);
-      }
-
-      this._path = normalizePath(ref);
-      this._data = event.data.data;
-      this._delta = event.data.delta;
+  constructor(
+    private app: firebase.app.App,
+    private adminApp: firebase.app.App,
+    data: any,
+    delta: any,
+    path?: string // path will be undefined for the database root
+  ) {
+    if (delta !== undefined) {
+      this._path = path;
+      this._data = data;
+      this._delta = delta;
       this._newData = applyChange(this._data, this._delta);
     }
   }
@@ -243,7 +260,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DeltaSnapshot {
-    let dup = new DeltaSnapshot(this.app, this.adminApp, null);
+    let dup = new DeltaSnapshot(this.app, this.adminApp, undefined, undefined);
     [dup._path, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._data, this._delta, this._childPath, this._newData];
 
