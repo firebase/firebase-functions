@@ -24,7 +24,7 @@ import * as database from '../../src/providers/database';
 import { expect as expect } from 'chai';
 import { fakeConfig } from '../support/helpers';
 import {apps as appsNamespace} from '../../src/apps';
-import {config} from '../../src/config';
+import {config} from '../../src/index';
 
 describe('DatabaseBuilder', () => {
 

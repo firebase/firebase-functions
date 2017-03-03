@@ -22,7 +22,7 @@
 
 import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
-import {config} from './config';
+import {config} from './index';
 import sha1 = require('sha1');
 
 /** @internal */

@@ -23,7 +23,7 @@
 import * as storage from '../../src/providers/storage';
 import { expect as expect } from 'chai';
 import {fakeConfig} from '../support/helpers';
-import {config} from '../../src/config';
+import {config} from '../../src/index';
 
 describe('storage.FunctionBuilder', () => {
   before(() => {
