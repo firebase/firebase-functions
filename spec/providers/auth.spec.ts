@@ -41,8 +41,8 @@ describe('AuthBuilder', () => {
       const cloudFunction = auth.user().onCreate(() => null);
       expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.create',
-            resource: 'projects/project1',
+          eventType: 'providers/firebase.auth/eventTypes/user.create',
+          resource: 'projects/project1',
         },
       });
     });
@@ -53,8 +53,8 @@ describe('AuthBuilder', () => {
       const cloudFunction = auth.user().onDelete(handler);
       expect(cloudFunction.__trigger).to.deep.equal({
         eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.delete',
-            resource: 'projects/project1',
+          eventType: 'providers/firebase.auth/eventTypes/user.delete',
+          resource: 'projects/project1',
         },
       });
     });
@@ -62,7 +62,8 @@ describe('AuthBuilder', () => {
 
   describe('#_dataConstructor', () => {
     it('should handle an event with the appropriate fields', () => {
-      const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
+      const cloudFunctionCreate = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
+      const cloudFunctionDelete = auth.user().onDelete((ev: Event<firebase.auth.UserRecord>) => ev.data);
 
       // The event data delivered over the wire will be the JSON for a UserRecord:
       // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
@@ -93,7 +94,33 @@ describe('AuthBuilder', () => {
         },
       };
 
-      return expect(cloudFunction(event)).to.eventually.deep.equal(event.data);
+      const expectedData = {
+        uid: 'abcde12345',
+        email: 'foo@bar.baz',
+        emailVerified: false,
+        displayName: 'My Display Name',
+        photoURL: 'bar.baz/foo.jpg',
+        disabled: false,
+        metadata: {
+          // Gotcha's:
+          // - JS Date is, by default, local-time based, not UTC-based.
+          // - JS Date's month is zero-based.
+          createdAt: new Date(Date.UTC(2016, 11, 15, 19, 37, 37, 59)),
+          lastSignedInAt: new Date(Date.UTC(2017, 0, 1)),
+        },
+        providerData: [{
+          uid: 'g-abcde12345',
+          email: 'foo@gmail.com',
+          displayName: 'My Google Provider Display Name',
+          photoURL: 'googleusercontent.com/foo.jpg',
+          providerId: 'google.com',
+        }],
+      };
+
+      return Promise.all([
+        expect(cloudFunctionCreate(event)).to.eventually.deep.equal(expectedData),
+        expect(cloudFunctionDelete(event)).to.eventually.deep.equal(expectedData),
+      ]);
     });
 
     // This isn't expected to happen in production, but if it does we should
@@ -102,9 +129,9 @@ describe('AuthBuilder', () => {
       const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
 
       let event: Event<firebase.auth.UserRecord> = {
-        data:  {
+        data: {
           uid: 'abcde12345',
-          metadata:  {
+          metadata: {
             // TODO(inlined) We'll need to manually parse these!
             createdAt: new Date(),
             lastSignedInAt: new Date(),

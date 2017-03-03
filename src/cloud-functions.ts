@@ -29,7 +29,7 @@ export interface Event<T> {
   timestamp?: string;
   eventType?: string;
   resource?: string;
-  params?: {[option: string]: any};
+  params?: { [option: string]: any };
   data: T;
 
   /** @internal */
@@ -76,19 +76,19 @@ export function makeCloudFunction<EventData>({
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   let cloudFunction: any = (event: Event<any>) => {
     return Promise.resolve(event)
-    .then(before)
-    .then(() => {
-      let typedEvent: Event<EventData> = _.assign({}, event);
-      typedEvent.data = dataConstructor(event);
-      typedEvent.params = event.params || {};
-      return handler(typedEvent);
-    }).then(result => {
-      if (after) { after(event); };
-      return result;
-    }, err => {
-      if (after) { after(event); };
-      return Promise.reject(err);
-    });
+      .then(before)
+      .then(() => {
+        let typedEvent: Event<EventData> = _.cloneDeep(event);
+        typedEvent.data = dataConstructor(event);
+        typedEvent.params = event.params || {};
+        return handler(typedEvent);
+      }).then(result => {
+        if (after) { after(event); };
+        return result;
+      }, err => {
+        if (after) { after(event); };
+        return Promise.reject(err);
+      });
   };
   cloudFunction.__trigger = {
     eventTrigger: {
