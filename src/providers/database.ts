@@ -22,10 +22,10 @@
 
 import * as _ from 'lodash';
 import { apps } from '../apps';
-import {Event, CloudFunction, makeCloudFunction} from '../cloud-functions';
-import {normalizePath, applyChange, pathParts, valAt, joinPath} from '../utils';
+import { Event, CloudFunction, makeCloudFunction } from '../cloud-functions';
+import { normalizePath, applyChange, pathParts, valAt, joinPath } from '../utils';
 import * as firebase from 'firebase-admin';
-import {config} from '../index';
+import { config } from '../index';
 
 /** @internal */
 export const provider = 'google.firebase.database';
@@ -70,11 +70,11 @@ export function ref(path: string): RefBuilder {
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
 export class RefBuilder {
   /** @internal */
-  constructor(private apps: apps.Apps, private resource) {}
+  constructor(private apps: apps.Apps, private resource) { }
 
   /** Respond to any write that affects a ref. */
   onWrite(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
-    const dataConstructor  = (raw: Event<any>) => {
+    const dataConstructor = (raw: Event<any>) => {
       if (raw.data instanceof DeltaSnapshot) {
         return raw.data;
       }
@@ -111,7 +111,7 @@ export function resourceToPath(resource) {
     throw new Error(`Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
       'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"');
   }
-  let [, project, /* instance */ , path] = match;
+  let [, project, /* instance */, path] = match;
   if (project !== '_') {
     throw new Error(`Expect project to be '_' in a Firebase Realtime Database event`);
   }
@@ -222,6 +222,13 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   numChildren(): number {
     let val = this.val();
     return _.isPlainObject(val) ? Object.keys(val).length : 0;
+  }
+
+  /** Prints the value of the snapshot; use '.previous' and '.current' to explicitly see
+   *  the previous and current values.
+   */
+  toJSON(): Object {
+    return this.val();
   }
 
   /* Recursive function to check if keys are numeric & convert node object to array if they are */
