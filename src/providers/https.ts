@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {HttpsFunction} from '../cloud-functions';
-import {Request, Response} from 'express';
+import { HttpsFunction } from '../cloud-functions';
+import { Request, Response } from 'express';
 
 export function onRequest(handler: (req: Request, resp: Response) => void): HttpsFunction {
   // lets us add __trigger without altering handler:

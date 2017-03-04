@@ -22,8 +22,8 @@
 
 import { apps } from './apps';
 import * as _ from 'lodash';
-import {Request, Response} from 'express';
-export {Request, Response};
+import { Request, Response } from 'express';
+export { Request, Response };
 
 /** An event to be handled in a developer's Cloud Function */
 export interface Event<T> {
