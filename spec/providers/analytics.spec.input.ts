@@ -125,7 +125,7 @@ export const fullPayload = JSON.parse(`{
 
 // The event data that we expect would be constructed if the payload above were to arrive.
 export const fullEventData: AnalyticsEvent = {
-  date: '20170202',
+  reportingDate: '20170202',
   name: 'Loaded_In_Background',
   params: {
     build: '1350',

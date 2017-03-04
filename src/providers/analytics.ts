@@ -240,7 +240,7 @@ export class AnalyticsEvent {
   /** The date on which the event.was logged.
    *  (YYYYMMDD format in the registered timezone of your app.)
    */
-  date: string;
+  reportingDate: string;
 
   /** The name of the event. */
   name: string;
@@ -269,9 +269,10 @@ export class AnalyticsEvent {
     if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
       // If there's an eventDim, there'll always be exactly one.
       let eventDim = wireFormat.eventDim[0];
-      copyFields(eventDim, this, ['date', 'name']);
+      copyField(eventDim, this, 'name');
       copyField(eventDim, this, 'params', p => _.mapValues(p, unwrapValue));
       copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
+      copyFieldTo(eventDim, this, 'date', 'reportingDate');
       copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
       copyTimestampToString(eventDim, this, 'previousTimestampMicros', 'previousLogTime');
     }

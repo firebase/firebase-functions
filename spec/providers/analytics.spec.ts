@@ -116,7 +116,7 @@ describe('AnalyticsEventBuilder', () => {
       };
 
       return expect(cloudFunction(event)).to.eventually.deep.equal({
-        date: '20170202',
+        reportingDate: '20170202',
         name: 'Loaded_In_Background',
         params: {
           build: '1350',
@@ -163,7 +163,7 @@ describe('AnalyticsEventBuilder', () => {
       };
 
       return expect(cloudFunction(event)).to.eventually.deep.equal({
-        date: '20170202',
+        reportingDate: '20170202',
         name: 'Loaded_In_Background',
         params: {},
         logTime: '2017-03-09T17:30:00.000Z',
@@ -214,7 +214,7 @@ describe('AnalyticsEventBuilder', () => {
       };
 
       return expect(cloudFunction(event)).to.eventually.deep.equal({
-        date: '20170202',
+        reportingDate: '20170202',
         name: 'Loaded_In_Background',
         params: {},
         valueInUSD: 123.4,  // Field renamed Usd -> USD.
