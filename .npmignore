@@ -12,3 +12,4 @@ spec
 # TODO(rjh) add back once testing isn't just a joke
 testing
 lib/testing.*
+*.tgz

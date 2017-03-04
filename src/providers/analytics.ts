@@ -23,6 +23,9 @@
 import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 import * as _ from 'lodash';
 
+/** @internal */
+export const provider = 'google.firebase.analytics';
+
 /** Handle events sent to Firebase Analytics. */
 export function event(analyticsEventType: string) {
   return new AnalyticsEventBuilder(
@@ -50,8 +53,102 @@ export class AnalyticsEventBuilder {
   }
 }
 
-/** @internal */
-export const provider = 'google.firebase.analytics';
+/** A collection of information about a Firebase Analytics event that was logged for a specific user. */
+export class AnalyticsEvent {
+  /** The date on which the event.was logged.
+   *  (YYYYMMDD format in the registered timezone of your app.)
+   */
+  reportingDate: string;
+
+  /** The name of the event. */
+  name: string;
+
+  /** A repeated record of the parameters associated with the event.
+   *  Note: this value is cast to its most appropriate type, which due to the nature of JavaScript's number
+   *  handling might entail a loss of precision in case of very large integers.
+   */
+  params: { [key: string]: any };
+
+  /** UTC client time when the event happened. */
+  logTime: string;
+
+  /** UTC client time when the previous event happened. */
+  previousLogTime?: string;
+
+  /** Value param in USD. */
+  valueInUSD?: number;
+
+  /** User related dimensions. */
+  user?: UserDimensions;
+
+  /** @internal */
+  constructor(wireFormat: any) {
+    this.params = {};  // In case of absent field, show empty (not absent) map.
+    if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
+      // If there's an eventDim, there'll always be exactly one.
+      let eventDim = wireFormat.eventDim[0];
+      copyField(eventDim, this, 'name');
+      copyField(eventDim, this, 'params', p => _.mapValues(p, unwrapValue));
+      copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
+      copyFieldTo(eventDim, this, 'date', 'reportingDate');
+      copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
+      copyTimestampToString(eventDim, this, 'previousTimestampMicros', 'previousLogTime');
+    }
+    copyFieldTo(wireFormat, this, 'userDim', 'user', dim => new UserDimensions(dim));
+  }
+}
+
+/** A collection of information about the user who triggered these events. */
+export class UserDimensions {
+  /* tslint:disable:max-line-length */
+  /** The user ID set via the setUserId API.
+   *  https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.html#setUserId(java.lang.String)
+   *  https://firebase.google.com/docs/reference/ios/firebaseanalytics/api/reference/Classes/FIRAnalytics#/c:objc(cs)FIRAnalytics(cm)setUserID
+   */
+  userId?: string;
+  /* tslint:enable:max-line-length */
+
+  /** The time (in UTC) at which the user first opened the app. */
+  firstOpenTime?: string;
+
+  /** A repeated record of user properties set with the setUserProperty API.
+   *  https://firebase.google.com/docs/analytics/android/properties
+   */
+  userProperties: { [key: string]: UserPropertyValue };
+
+  /** Device information. */
+  deviceInfo: DeviceInfo;
+
+  /** User's geographic information. */
+  geoInfo: GeoInfo;
+
+  /** App information. */
+  appInfo?: AppInfo;
+
+  /** Information about the marketing campaign which acquired the user. */
+  trafficSource?: TrafficSource;
+
+  /** Information regarding the bundle in which these events were uploaded. */
+  bundleInfo: ExportBundleInfo;
+
+  /** Lifetime Value revenue of this user, in USD. */
+  ltvInUSD?: number;
+
+  /** @internal */
+  constructor(wireFormat: any) {
+    // These are interfaces or primitives, no transformation needed.
+    copyFields(wireFormat, this, ['userId', 'deviceInfo', 'geoInfo', 'appInfo', 'trafficSource']);
+
+    // The following fields do need transformations of some sort.
+    copyTimestampToString(wireFormat, this, 'firstOpenTimestampMicros', 'firstOpenTime');
+    this.userProperties = {};  // With no entries in the wire format, present an empty (as opposed to absent) map.
+    copyField(wireFormat, this, 'userProperties', r => _.mapValues(r, p => new UserPropertyValue(p)));
+    copyField(wireFormat, this, 'bundleInfo', r => new ExportBundleInfo(r));
+    if (wireFormat.ltvInfo && wireFormat.ltvInfo.currency === 'USD') {
+      this.ltvInUSD = wireFormat.ltvInfo.revenue;
+    }
+  }
+}
 
 /** Predefined (eg: LTV) or custom properties (eg: birthday) stored on client side and associated with
  *  subsequent HitBundles.
@@ -180,103 +277,6 @@ export class ExportBundleInfo {
   constructor(wireFormat: any) {
     copyField(wireFormat, this, 'bundleSequenceId');
     copyTimestampToMillis(wireFormat, this, 'serverTimestampOffsetMicros', 'serverTimestampOffset');
-  }
-}
-
-/** A collection of information about the user who triggered these events. */
-export class UserDimensions {
-  /* tslint:disable:max-line-length */
-  /** The user ID set via the setUserId API.
-   *  https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.html#setUserId(java.lang.String)
-   *  https://firebase.google.com/docs/reference/ios/firebaseanalytics/api/reference/Classes/FIRAnalytics#/c:objc(cs)FIRAnalytics(cm)setUserID
-   */
-  userId?: string;
-  /* tslint:enable:max-line-length */
-
-  /** The time (in UTC) at which the user first opened the app. */
-  firstOpenTime?: string;
-
-  /** A repeated record of user properties set with the setUserProperty API.
-   *  https://firebase.google.com/docs/analytics/android/properties
-   */
-  userProperties: { [key: string]: UserPropertyValue };
-
-  /** Device information. */
-  deviceInfo: DeviceInfo;
-
-  /** User's geographic information. */
-  geoInfo: GeoInfo;
-
-  /** App information. */
-  appInfo?: AppInfo;
-
-  /** Information about the marketing campaign which acquired the user. */
-  trafficSource?: TrafficSource;
-
-  /** Information regarding the bundle in which these events were uploaded. */
-  bundleInfo: ExportBundleInfo;
-
-  /** Lifetime Value revenue of this user, in USD. */
-  ltvInUSD?: number;
-
-  /** @internal */
-  constructor(wireFormat: any) {
-    // These are interfaces or primitives, no transformation needed.
-    copyFields(wireFormat, this, ['userId', 'deviceInfo', 'geoInfo', 'appInfo', 'trafficSource']);
-
-    // The following fields do need transformations of some sort.
-    copyTimestampToString(wireFormat, this, 'firstOpenTimestampMicros', 'firstOpenTime');
-    this.userProperties = {};  // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, 'userProperties', r => _.mapValues(r, p => new UserPropertyValue(p)));
-    copyField(wireFormat, this, 'bundleInfo', r => new ExportBundleInfo(r));
-    if (wireFormat.ltvInfo && wireFormat.ltvInfo.currency === 'USD') {
-      this.ltvInUSD = wireFormat.ltvInfo.revenue;
-    }
-  }
-}
-
-/** A collection of information about a Firebase Analytics event that was logged for a specific user. */
-export class AnalyticsEvent {
-  /** The date on which the event.was logged.
-   *  (YYYYMMDD format in the registered timezone of your app.)
-   */
-  reportingDate: string;
-
-  /** The name of the event. */
-  name: string;
-
-  /** A repeated record of the parameters associated with the event.
-   *  Note: this value is cast to its most appropriate type, which due to the nature of JavaScript's number
-   *  handling might entail a loss of precision in case of very large integers.
-   */
-  params: { [key: string]: any };
-
-  /** UTC client time when the event happened. */
-  logTime: string;
-
-  /** UTC client time when the previous event happened. */
-  previousLogTime?: string;
-
-  /** Value param in USD. */
-  valueInUSD?: number;
-
-  /** User related dimensions. */
-  user?: UserDimensions;
-
-  /** @internal */
-  constructor(wireFormat: any) {
-    this.params = {};  // In case of absent field, show empty (not absent) map.
-    if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
-      // If there's an eventDim, there'll always be exactly one.
-      let eventDim = wireFormat.eventDim[0];
-      copyField(eventDim, this, 'name');
-      copyField(eventDim, this, 'params', p => _.mapValues(p, unwrapValue));
-      copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
-      copyFieldTo(eventDim, this, 'date', 'reportingDate');
-      copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
-      copyTimestampToString(eventDim, this, 'previousTimestampMicros', 'previousLogTime');
-    }
-    copyFieldTo(wireFormat, this, 'userDim', 'user', dim => new UserDimensions(dim));
   }
 }
 

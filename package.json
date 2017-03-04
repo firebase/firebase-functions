@@ -1,15 +1,15 @@
 {
   "name": "firebase-functions",
   "version": "0.5.1-rc1",
-  "description": "Node helpers for Firebase Functions.",
+  "description": "Firebase SDK for Cloud Functions",
   "main": "lib/index.js",
   "scripts": {
-    "build": "node_modules/.bin/tsc",
-    "build:pack": "npm prune --production && rm -rf lib && npm install typescript && node_modules/.bin/tsc && npm pack && npm install",
+    "build": "node_modules/.bin/tsc -p tsconfig.release.json",
+    "build:pack": "npm prune --production && rm -rf lib && npm install typescript && node_modules/.bin/tsc -p tsconfig.release.json && npm pack && npm install",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts",
-    "pretest": "node_modules/.bin/tsc -p tsconfig.spec.json && cp -r spec/fixtures .tmp/spec",
-    "test": "npm run lint && mocha .tmp/spec/index.spec.js",
-    "posttest": "rm -rf .tmp"
+    "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
+    "test": "mocha .tmp/spec/index.spec.js",
+    "posttest": "npm run lint && rm -rf .tmp"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,9 @@
   },
   "keywords": [
     "firebase",
-    "functions"
+    "functions",
+    "google",
+    "cloud"
   ],
   "author": "Firebase Team",
   "license": "MIT",
@@ -35,7 +37,7 @@
     "@types/sinon": "^1.16.29",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
-    "firebase-admin": "^4.1.1",
+    "firebase-admin": "^4.1.2",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "mock-require": "^2.0.1",
@@ -45,7 +47,7 @@
     "typescript": "^2.0.3"
   },
   "peerDependencies": {
-    "firebase-admin": "^4.1.1"
+    "firebase-admin": "^4.1.2"
   },
   "dependencies": {
     "@types/express": "^4.0.33",

@@ -91,10 +91,10 @@ export function makeCloudFunction<EventData>({
         typedEvent.params = event.params || {};
         return handler(typedEvent);
       }).then(result => {
-        if (after) { after(event); };
+        if (after) { after(event); }
         return result;
       }, err => {
-        if (after) { after(event); };
+        if (after) { after(event); }
         return Promise.reject(err);
       });
   };
