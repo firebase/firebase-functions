@@ -21,12 +21,13 @@
 // SOFTWARE.
 
 // Providers:
+import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as database from './providers/database';
+import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as storage from './providers/storage';
-import * as https from './providers/https';
-export {auth, database, pubsub, storage, https};
+export { analytics, auth, database, https, pubsub, storage };
 
 // Exported root types:
 export * from './config';
