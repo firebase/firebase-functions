@@ -20,13 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { TriggerAnnotated } from '../cloud-functions';
-import {Request, Response} from 'express';
-export {Request, Response};
+import { HttpsFunction } from '../cloud-functions';
+import { Request, Response } from 'express';
 
-export function onRequest(
-  handler: (req: Request, resp: Response) => void
-): ((req: Request, resp: Response) => void) & TriggerAnnotated {
+export function onRequest(handler: (req: Request, resp: Response) => void): HttpsFunction {
   // lets us add __trigger without altering handler:
   let cloudFunction: any = (req, res) => { handler(req, res); };
   cloudFunction.__trigger = {httpsTrigger: {}};
