@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { Event, CloudFunction, makeCloudFunction } from '../cloud-functions';
-import {config} from '../index';
+import { config } from '../index';
 
 /** @internal */
 export const provider = 'cloud.storage';
@@ -60,7 +60,19 @@ export class ObjectBuilder {
    * Handle any change to any object.
    */
   onChange(handler: (event: Event<ObjectMetadata>) => PromiseLike<any> | any): CloudFunction<ObjectMetadata> {
-    return makeCloudFunction({provider, handler, resource: this.resource, eventType: 'object.change'});
+    // This is a temporary shim to filter out spurious events due to Functions deployments.
+    // BUG(34123812): clean this up when backend fix for bug is deployed.
+    let filterDeployEvents = (event: Event<ObjectMetadata>) => {
+      if (event.data.timeCreated === '1970-01-01T00:00:00.000Z' && event.data.crc32c === 'AAAAAA==') {
+        console.log(
+          'Function triggered unneccessarily by Cloud Function deployment; function execution elided. ' +
+          'This is a spurious event that will go away soon, sorry for the spam!');
+        return null;
+      }
+      return handler(event);
+    };
+    return makeCloudFunction(
+      { provider, handler: filterDeployEvents, resource: this.resource, eventType: 'object.change' });
   }
 }
 
