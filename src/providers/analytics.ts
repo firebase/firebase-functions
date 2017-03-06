@@ -147,6 +147,13 @@ export class UserDimensions {
     if (wireFormat.ltvInfo && wireFormat.ltvInfo.currency === 'USD') {
       this.ltvInUSD = wireFormat.ltvInfo.revenue;
     }
+
+    // BUG(36000368) Remove when no longer necessary
+    /* tslint:disable:no-string-literal */
+    if (!this.userId && this.userProperties['user_id']) {
+      this.userId = this.userProperties['user_id'].value;
+    }
+    /* tslint:enable:no-string-literal */
   }
 }
 
