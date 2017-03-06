@@ -89,7 +89,6 @@ export interface ObjectMetadata {
   };
   crc32c?: string;
   componentCount?: number;
-  etag?: string;
   customerEncryption?: {
     encryptionAlgorithm?: string,
     keySha256?: string,
