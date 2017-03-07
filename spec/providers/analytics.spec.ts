@@ -204,12 +204,6 @@ describe('AnalyticsEventBuilder', () => {
               valueInUsd: 123.4,
             },
           ],
-          userDim: {
-            ltvInfo: {
-              revenue: 987.6,
-              currency: 'USD',
-            },
-          },
         },
       };
 
@@ -218,10 +212,6 @@ describe('AnalyticsEventBuilder', () => {
         name: 'Loaded_In_Background',
         params: {},
         valueInUSD: 123.4,  // Field renamed Usd -> USD.
-        user: {
-          ltvInUSD: 987.6,  // USD value extracted.
-          userProperties: {},
-        },
       });
     });
 

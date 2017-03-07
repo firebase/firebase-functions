@@ -140,28 +140,19 @@ export class UserDimensions {
   /** App information. */
   appInfo?: AppInfo;
 
-  /** Information about the marketing campaign which acquired the user. */
-  trafficSource?: TrafficSource;
-
   /** Information regarding the bundle in which these events were uploaded. */
   bundleInfo: ExportBundleInfo;
-
-  /** Lifetime Value revenue of this user, in USD. */
-  ltvInUSD?: number;
 
   /** @internal */
   constructor(wireFormat: any) {
     // These are interfaces or primitives, no transformation needed.
-    copyFields(wireFormat, this, ['userId', 'deviceInfo', 'geoInfo', 'appInfo', 'trafficSource']);
+    copyFields(wireFormat, this, ['userId', 'deviceInfo', 'geoInfo', 'appInfo']);
 
     // The following fields do need transformations of some sort.
     copyTimestampToString(wireFormat, this, 'firstOpenTimestampMicros', 'firstOpenTime');
     this.userProperties = {};  // With no entries in the wire format, present an empty (as opposed to absent) map.
     copyField(wireFormat, this, 'userProperties', r => _.mapValues(r, p => new UserPropertyValue(p)));
     copyField(wireFormat, this, 'bundleInfo', r => new ExportBundleInfo(r));
-    if (wireFormat.ltvInfo && wireFormat.ltvInfo.currency === 'USD') {
-      this.ltvInUSD = wireFormat.ltvInfo.revenue;
-    }
 
     // BUG(36000368) Remove when no longer necessary
     /* tslint:disable:no-string-literal */

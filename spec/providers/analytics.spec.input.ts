@@ -152,11 +152,6 @@ export const fullEvent: Event<AnalyticsEvent> = {
         appStore: 'iTunes',
         appVersion: '5.2.0',
       },
-      trafficSource: {
-        userAcquiredSource: 'Pizza Everywhere',
-        userAcquiredCampaign: 'Functions launch party',
-        userAcquiredMedium: 'Free food',
-      },
       bundleInfo: {
         bundleSequenceId: 6034,
         serverTimestampOffset: 371,
@@ -195,7 +190,6 @@ export const fullEvent: Event<AnalyticsEvent> = {
           value: '5.2.0',
         },
       },
-      ltvInUSD: 133.7,
     },
   },
 };
