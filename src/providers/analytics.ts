@@ -26,18 +26,39 @@ import * as _ from 'lodash';
 /** @internal */
 export const provider = 'google.firebase.analytics';
 
-/** Handle events sent to Firebase Analytics. */
+/**
+ * Registers a Cloud Function to handle analytics events.
+ *
+ * @param {string} analyticsEventType Name of the analytics event type to which
+ *   this Cloud Function is scoped.
+ *
+ * @return {!functions.analytics.AnalyticsEventBuilder} Analytics event builder
+ *   interface.
+ */
 export function event(analyticsEventType: string) {
   return new AnalyticsEventBuilder(
     'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType);
 }
 
-/** Builder used to create Cloud Functions that trigger from Firebase Analytics events. */
+/**
+ * The Firebase Analytics event builder interface.
+ *
+ * Access via [`functions.analytics.event()`](functions.analytics#event).
+ */
 export class AnalyticsEventBuilder {
   /** @internal */
   constructor(private resource: string) { }
 
-  /** Respond to the user logging an Analytics event. */
+  /**
+   * Event handler that fires every time a Firebase Analytics event occurs.
+   *
+   * @param {!function(!functions.Event<!functions.analytics.AnalyticsEvent>)}
+   *   handler Event handler that fires every time a Firebase Analytics event
+   *   occurs.
+   *
+   * @return {!functions.CloudFunction<!functions.analytics.AnalyticsEvent>} A
+   *   Cloud Function you can export.
+   */
   onLog(
     handler: (event: Event<AnalyticsEvent>) => PromiseLike<any> | any
   ): CloudFunction<AnalyticsEvent> {
@@ -68,19 +89,25 @@ export class AnalyticsEventBuilder {
   }
 }
 
-/** A collection of information about a Firebase Analytics event that was logged for a specific user. */
+/**
+ * Interface representing a Firebase Analytics event that was logged for a specific user.
+ */
 export class AnalyticsEvent {
-  /** The date on which the event.was logged.
-   *  (YYYYMMDD format in the registered timezone of your app.)
+  /**
+   *  The date on which the event.was logged.
+   *  (`YYYYMMDD` format in the registered timezone of your app).
    */
   reportingDate: string;
 
   /** The name of the event. */
   name: string;
 
-  /** A repeated record of the parameters associated with the event.
-   *  Note: this value is cast to its most appropriate type, which due to the nature of JavaScript's number
-   *  handling might entail a loss of precision in case of very large integers.
+  /**
+   * A map of parameters and their values associated with the event.
+   *
+   * Note: Values in this map are cast to the most appropriate type. Due to
+   * the nature of JavaScript's number handling, this might entail a loss of
+   * precision in cases of very large integers.
    */
   params: { [key: string]: any };
 
@@ -90,10 +117,10 @@ export class AnalyticsEvent {
   /** UTC client time when the previous event happened. */
   previousLogTime?: string;
 
-  /** Value param in USD. */
+  /** Value parameter in USD. */
   valueInUSD?: number;
 
-  /** User related dimensions. */
+  /** User-related dimensions. */
   user?: UserDimensions;
 
   /** @internal */
@@ -113,12 +140,15 @@ export class AnalyticsEvent {
   }
 }
 
-/** A collection of information about the user who triggered these events. */
+/**
+ * Interface representing the user who triggered the events.
+ */
 export class UserDimensions {
   /* tslint:disable:max-line-length */
-  /** The user ID set via the setUserId API.
-   *  https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.html#setUserId(java.lang.String)
-   *  https://firebase.google.com/docs/reference/ios/firebaseanalytics/api/reference/Classes/FIRAnalytics#/c:objc(cs)FIRAnalytics(cm)setUserID
+  /**
+   *  The user ID set via the `setUserId` API.
+   *  [Android](https://firebase.google.com/docs/reference/android/com/google/firebase/analytics/FirebaseAnalytics.html#setUserId(java.lang.String))
+   *  [iOS](https://firebase.google.com/docs/reference/ios/firebaseanalytics/api/reference/Classes/FIRAnalytics#/c:objc(cs)FIRAnalytics(cm)setUserID)
    */
   userId?: string;
   /* tslint:enable:max-line-length */
@@ -126,8 +156,11 @@ export class UserDimensions {
   /** The time (in UTC) at which the user first opened the app. */
   firstOpenTime?: string;
 
-  /** A repeated record of user properties set with the setUserProperty API.
-   *  https://firebase.google.com/docs/analytics/android/properties
+  /**
+   * A map of user properties set with the
+   * [`setUserProperty`](https://firebase.google.com/docs/analytics/android/properties) API.
+   *
+   * All values are [`UserPropertyValue`](functions.analytics.UserPropertyValue) objects.
    */
   userProperties: { [key: string]: UserPropertyValue };
 
@@ -163,14 +196,14 @@ export class UserDimensions {
   }
 }
 
-/** Predefined (eg: LTV) or custom properties (eg: birthday) stored on client side and associated with
- *  subsequent HitBundles.
+/**
+ * Predefined or custom properties stored on the client side.
  */
 export class UserPropertyValue {
-  /** Last set value of user property. */
+  /** Last set value of a user property. */
   value: string;
 
-  /** UTC client time when user property was last set. */
+  /** UTC client time when the user property was last set. */
   setTime: string;
 
   /** @internal */
@@ -180,86 +213,122 @@ export class UserPropertyValue {
   }
 }
 
-/** A collection of information about the device that triggered these events. */
+/**
+ * Interface representing the device that triggered these Firebase Analytics events.
+ */
 export interface DeviceInfo {
-  /** Device category. Eg. 'tablet' or 'mobile'. */
+  /**
+   * Device category.
+   * Examples: "tablet" or "mobile".
+   */
   deviceCategory?: string;
 
-  /** Device brand name. Eg. 'Samsung', 'HTC', etc. */
+  /**
+   * Device brand name.
+   * Examples: "Samsung", "HTC"
+   */
   mobileBrandName?: string;
 
-  /** Device model name. Eg. 'GT-I9192'. */
+  /**
+   * Device model name in human-readable format.
+   * Example: "iPhone 7"
+   */
   mobileModelName?: string;
 
-  /** Device marketing name. Eg. 'Galaxy S4 Mini'. */
+  /**
+   * Device marketing name.
+   * Example: "Galaxy S4 Mini"
+   */
   mobileMarketingName?: string;
 
-  /** Device model. Eg. 'GT-I9192' */
+  /**
+   * Device model, as read from the OS.
+   * Example: "iPhone9,1"
+   */
   deviceModel?: string;
 
-  /** Device OS version when data capture ended. Eg. '4.4.2'. */
+  /**
+   * Device OS version when data capture ended.
+   * Example: "4.4.2"
+   */
   platformVersion?: string;
 
-  /** Vendor specific device identifier. This is IDFV on iOS. Not used for Android.
-   *  Example: '599F9C00-92DC-4B5C-9464-7971F01F8370'
+  /**
+   * Vendor specific device identifier. This is IDFV on iOS. Not used for Android.
+   * Example: '599F9C00-92DC-4B5C-9464-7971F01F8370'
    */
   deviceId?: string;
 
-  /** The type of the resettable_device_id is IDFA on iOS (when available) and AdId on Android.
-   *  Example: '71683BF9-FA3B-4B0D-9535-A1F05188BAF3'
+  /**
+   * The type of the [`resettable_device_id`](https://support.google.com/dfp_premium/answer/6238701?hl=en)
+   * is IDFA on iOS (when available) and AdId on Android.
+   *
+   * Example: "71683BF9-FA3B-4B0D-9535-A1F05188BAF3"
    */
   resettableDeviceId?: string;
 
-  /** The user language in language-country format, where language is an ISO 639 value and country is
-   *  a ISO 3166 value. Eg. 'en-us', 'en-za', 'zh-tw', 'jp'.
+  /**
+   * The user language in language-country format, where language is an ISO 639
+   * value and country is an ISO 3166 value.
+   *
+   * Examples: "en-us", "en-za", "zh-tw", "jp"
    */
   userDefaultLanguage: string;
 
-  /** The timezone of the device when data was uploaded as seconds skew from UTC.
-   *  Use this to calculate the device's local time for event.data.timestamp.
+  /**
+   * The time zone of the device when data was uploaded, as seconds skew from UTC.
+   * Use this to calculate the device's local time for [`event.timestamp`](functions.Event#timestamp)`.
    */
   deviceTimeZoneOffsetSeconds: number;
 
-  /** The device's Limit Ad Tracking setting.
-   *  When true, you cannot use resettableDeviceId for remarketing, demographics or influencing ads serving behaviour.
-   *  However, you can use resettableDeviceId for conversion tracking and campaign attribution.
+  /**
+   * The device's Limit Ad Tracking setting.
+   * When `true`, you cannot use `resettableDeviceId` for remarketing, demographics or influencing ads serving
+   * behaviour. However, you can use resettableDeviceId for conversion tracking and campaign attribution.
    */
   limitedAdTracking: boolean;
 }
 
-/** A collection of information about the geographic origin of these events. */
+/**
+ * Interface representing the geographic origin of the events.
+ */
 export interface GeoInfo {
-  /** The geographic continent. Eg. 'Americas'. */
+  /** The geographic continent. Example: "Americas". */
   continent?: string;
 
-  /** The geographic country. Eg. 'Brazil'. */
+  /** The geographic country. Example: "Brazil". */
   country?: string;
 
-  /** The geographic region. Eg. 'State of Sao Paulo'. */
+  /** The geographic region. Example: "State of Sao Paulo". */
   region?: string;
 
-  /** The geographic city. Eg. 'Sao Paulo'. */
+  /** The geographic city. Example: "Sao Paulo". */
   city?: string;
 }
 
-/** A collection of information about the application that triggered these events. */
+/**
+ * Interface representing the application that triggered these events.
+ */
 export interface AppInfo {
-  /** The app's version name.
-   *  Examples: '1.0', '4.3.1.1.213361', '2.3 (1824253)', 'v1.8b22p6'.
+  /**
+   *  The app's version name.
+   *  Examples: "1.0", "4.3.1.1.213361", "2.3 (1824253)", "v1.8b22p6".
    */
   appVersion?: string;
 
-  /** Unique id for this instance of the app.
-   *  Example: '71683BF9FA3B4B0D9535A1F05188BAF3'.
+  /**
+   *  Unique id for this instance of the app.
+   *  Example: "71683BF9FA3B4B0D9535A1F05188BAF3".
    */
   appInstanceId: string;
 
-  /** The identifier of the store that installed the app.
-   *  Eg. 'com.sec.android.app.samsungapps', 'com.amazon.venezia', 'com.nokia.nstore'.
+  /**
+   *  The identifier of the store that installed the app.
+   *  Examples: "com.sec.android.app.samsungapps", "com.amazon.venezia", "com.nokia.nstore".
    */
   appStore?: string;
 
-  /** The app platform. Eg. 'ANDROID', 'IOS'. */
+  /** The app platform. Examples: "ANDROID", "IOS". */
   appPlatform: string;
 
   /** Unique application identifier within an app store. */
@@ -278,7 +347,9 @@ export interface TrafficSource {
   userAcquiredCampaign?: string;
 }
 
-/** Information regarding the bundle in which these events were uploaded. */
+/**
+ * Interface representing the bundle in which these events were uploaded.
+ */
 export class ExportBundleInfo {
   /**  Monotonically increasing index for each bundle set by the Analytics SDK. */
   bundleSequenceId: number;
