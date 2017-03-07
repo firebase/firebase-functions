@@ -226,10 +226,10 @@ describe('AnalyticsEventBuilder', () => {
     });
 
     it('should recognize all the fields the payload can contain', () => {
-      const cloudFunction = analytics.event('first_open').onLog((ev: Event<analytics.AnalyticsEvent>) => ev.data);
+      const cloudFunction = analytics.event('first_open').onLog((ev: Event<analytics.AnalyticsEvent>) => ev);
       // The payload in analytics_spec_input contains all possible fields at least once.
       return expect(cloudFunction(analytics_spec_input.fullPayload))
-        .to.eventually.deep.equal(analytics_spec_input.fullEventData);
+        .to.eventually.deep.equal(analytics_spec_input.fullEvent);
     });
   });
 });

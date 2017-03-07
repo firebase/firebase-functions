@@ -44,8 +44,23 @@ export class AnalyticsEventBuilder {
     const dataConstructor = (raw: Event<any>) => {
       return new AnalyticsEvent(raw.data);
     };
+    const attemptTimestampFix = (event: Event<AnalyticsEvent>) => {
+      // This is a temporary shim, to mask an issue in which Analytics events may carry an
+      // incorrect Event.timestamp. Often there's a correct timestamp present in
+      // Event.data.logTime, so until the production backend sends correct top-level timestamps
+      // we can pull a timestamp from there.
+      // BUG(36001921).
+      if (event.timestamp && (event.timestamp.substr(0, 4) === '1969' || event.timestamp.substr(0, 4) === '1970')) {
+        event.timestamp = undefined;  // If we don't have a good timestamp, prefer no timestamp at all.
+        if (event.data && event.data.logTime) {
+          event.timestamp = event.data.logTime;
+        }
+      }
+      return handler(event);
+    };
     return makeCloudFunction({
-      provider, handler,
+      provider,
+      handler: attemptTimestampFix,
       eventType: 'event.log',
       resource: this.resource,
       dataConstructor,
