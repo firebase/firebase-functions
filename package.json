@@ -5,7 +5,8 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "node_modules/.bin/tsc -p tsconfig.release.json",
-    "build:pack": "npm prune --production && rm -rf lib && npm install typescript && node_modules/.bin/tsc -p tsconfig.release.json && npm pack && npm install",
+    "build:pack": "npm prune --production && rm -rf lib && npm install typescript firebase-admin && node_modules/.bin/tsc -p tsconfig.release.json && npm pack && npm install",
+    "build:release": "npm install --production && npm install typescript firebase-admin && node_modules/.bin/tsc -p tsconfig.release.json",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
     "test": "mocha .tmp/spec/index.spec.js",
