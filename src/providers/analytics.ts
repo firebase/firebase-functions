@@ -335,18 +335,6 @@ export interface AppInfo {
   appId?: string;
 }
 
-/** Information about the marketing campaign which acquired the user that triggered these events. */
-export interface TrafficSource {
-  /** The name of the network which acquired the user. Eg. "Google". */
-  userAcquiredSource?: string;
-
-  /** The name of the medium which acquired the user. Eg. "Banner". */
-  userAcquiredMedium?: string;
-
-  /** The name of the campaign which acquired the user. Eg. "Winter Promo". */
-  userAcquiredCampaign?: string;
-}
-
 /**
  * Interface representing the bundle in which these events were uploaded.
  */

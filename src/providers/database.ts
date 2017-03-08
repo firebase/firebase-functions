@@ -187,7 +187,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
     return !_.isNull(this.val());
   }
 
-  child(childPath?: string): DeltaSnapshot {
+  child(childPath: string): DeltaSnapshot {
     if (!childPath) {
       return this;
     }
@@ -229,8 +229,9 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
     return _.isPlainObject(val) ? Object.keys(val).length : 0;
   }
 
-  /** Prints the value of the snapshot; use '.previous' and '.current' to explicitly see
-   *  the previous and current values.
+  /**
+   * Prints the value of the snapshot; use '.previous.toJSON()' and '.current.toJSON()' to explicitly see
+   * the previous and current values of the snapshot.
    */
   toJSON(): Object {
     return this.val();
