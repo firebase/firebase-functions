@@ -34,23 +34,27 @@ export const provider = 'google.firebase.database';
 const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
 
 /**
- * Handle events at a Firebase Realtime Database ref.
+ * Handle events at a Firebase Realtime Database Reference.
  *
- * The database.ref() functions behave very similarly to the normal Firebase
- * SDKs. Any change to the database that affects the data at or below ref will
- * fire an event in Cloud Functions.
+ * This method behaves very similarly to the method of the same name in the
+ * client and Admin Firebase SDKs. Any change to the Database that affects the
+ * data at or below the provided `path` will fire an event in Cloud Functions.
  *
- * There are three important differences between listening to a database event
- * in Cloud Functions and using the Realtime Database SDK:
- * 1. The Cloud Functions SDK allows wildcards in the ref name. Any path
- *    component in curly brackets ({}) will match any value. The actual value
- *    that matched will be returned in eventnt.params. E.g. ref('foo/{bar}') will
- *    match a change at 'foo/baz' and the event will have params {bar: 'baz'}.
- * 2. Unlike the Realtime Database SDK, Cloud Functions will not fire an event
- *    for data that already existed before the Cloud Function was deployed.
- * 3. Cloud Function events have access to more information than the normal
- *    SDK. E.g. the snapshot passed to a Cloud Function has access to the
- *    previous event data as well as the user who triggered the change.
+ * There are three important differences between listening to a Realtime
+ * Database event in Cloud Functions and using the Realtime Database in the
+ * client and Admin SDKs:
+ * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
+ *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
+ *    that matched a certain invocation of a Cloud Function is returned as part
+ *    of the `event.params` object. For example, `ref("messages/{messageId}")`
+ *    matches changes at `/messages/message1` or `/messages/message2`, resulting
+ *    in  `event.params.messageId` being set to `"message1"` or `"message2"`,
+ *    respectively.
+ * 2. Cloud Functions do not fire an event for data that already existed before
+ *    the Cloud Function was deployed.
+ * 3. Cloud Function events have access to more information, including a
+ *    snapshot of the previous event data and information about the user who
+ *    triggered the Cloud Function.
  */
 export function ref(path: string): RefBuilder {
   const normalized = normalizePath(path);
