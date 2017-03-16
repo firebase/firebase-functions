@@ -10,12 +10,17 @@
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
     "test": "mocha .tmp/spec/index.spec.js",
-    "posttest": "npm run lint && rm -rf .tmp"
+    "posttest": "npm run lint && rm -rf .tmp",
+    "postinstall": "test -d lib && (echo 'Using existing lib'; rm -rf src; rm tsconfig.* )|| (npm run build; rm -rf src; rm -rf tsconfig.*; find . | grep ts$ | xargs rm)"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/firebase/firebase-functions.git"
   },
+  "files": [
+    "src",
+    "tsconfig.*"
+  ],
   "keywords": [
     "firebase",
     "functions",
