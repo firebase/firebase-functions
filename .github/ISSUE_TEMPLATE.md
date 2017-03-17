@@ -53,6 +53,11 @@ be fixed in the latest versions. -->
 <!-- Provide the steps needed to reproduce the issue given the above test case. -->
 
 
+### Were you able to successfully deploy your functions?
+
+<!-- When you ran `firebase deploy`, did you see any error messages? -->
+
+
 ### Expected behavior
 
 <!-- What is the expected behavior? -->
