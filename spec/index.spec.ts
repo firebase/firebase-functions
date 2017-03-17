@@ -36,6 +36,7 @@ import './testing.spec';
 import './providers/analytics.spec';
 import './providers/auth.spec';
 import './providers/database.spec';
+import './providers/datastore.spec';
 import './providers/https.spec';
 import './providers/pubsub.spec';
 import './providers/storage.spec';
