@@ -26,8 +26,8 @@ repro when opening the issue.
 
 Have a feature request?
 ========================
-Great, we love hearing how we can improve our products! We have a public issues tracker for you to
-post your suggestions to: https://issuetracker.google.com/issues?q=componentid:184396
+Great, we love hearing how we can improve our products! Please submit your feature requests to:
+https://firebase.google.com/support/contact/bugs-features/. Select 'Functions' as the 'component'.
 
 -->
 
