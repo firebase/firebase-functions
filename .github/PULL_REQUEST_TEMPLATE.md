@@ -18,10 +18,6 @@ Sign our CLA
 Please sign our Contributor License Agreement (https://cla.developers.google.com/about/google-individual)
 before sending PRs. We cannot accept code without this.
 
-Add an reviewer
-==============================
-Please add @laurenzlong as a reviewer.
-
 -->
 
 
