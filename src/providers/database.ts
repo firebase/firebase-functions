@@ -207,7 +207,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   }
 
   // TODO(inlined) what is this boolean for?
-  forEach(action: (a: DeltaSnapshot) => boolean): boolean {
+  forEach(action: (a: DeltaSnapshot) => void): boolean {
     let val = this.val();
     if (_.isPlainObject(val)) {
       _.keys(val).forEach(key => action(this.child(key)));
