@@ -208,7 +208,7 @@ describe('DeltaSnapshot', () => {
     });
   });
 
-  describe('#forEach(childAction: Function)', () => {
+  describe('#forEach(action: (a: DeltaSnapshot) => boolean): boolean', () => {
     it('should iterate through child snapshots', () => {
       populate({ a: 'b' }, { c: 'd' });
       let out = '';
@@ -228,6 +228,32 @@ describe('DeltaSnapshot', () => {
 
       subject.forEach(counter);
       expect(count).to.eq(0);
+    });
+
+    it('should cancel further enumeration if callback returns true', () => {
+      populate(null, { a: 'b', c: 'd', e: 'f', g: 'h' });
+      let out = '';
+      const ret = subject.forEach(snap => {
+        if (snap.val() === 'f') {
+          return true;
+        }
+        out += snap.val();
+      });
+      expect(out).to.equal('bd');
+      expect(ret).to.equal(true);
+    });
+
+    it('should not cancel further enumeration if callback does not return true', () => {
+      populate(null, { a: 'b', c: 'd', e: 'f', g: 'h' });
+      let out = '';
+      const ret = subject.forEach(snap => {
+        if (snap.val() === 'a') {
+          return true;
+        }
+        out += snap.val();
+      });
+      expect(out).to.equal('bdfh');
+      expect(ret).to.equal(false);
     });
   });
 
