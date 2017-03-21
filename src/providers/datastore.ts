@@ -28,7 +28,6 @@ export const provider = (new Buffer('Y2xvdWQuZmlyc3RvcmU=', 'base64')).toString(
 /** @internal */
 export const defaultDatabase = '(default)';
 
-/** Handle events in the Firebase Auth user lifecycle. */
 export function database(database: string = defaultDatabase) {
   return new DatabaseBuilder(`projects/${process.env.GCLOUD_PROJECT}/databases/${database}`);
 }
@@ -43,7 +42,7 @@ export function document(path: string) {
 
 export class DatabaseBuilder {
   /** @internal */
-  constructor(private resource: string) {}
+  constructor(private resource: string) { }
 
   namespace(namespace: string) {
     return new NamespaceBuilder(`${this.resource}/documents@${namespace}`);
@@ -56,7 +55,7 @@ export class DatabaseBuilder {
 
 export class NamespaceBuilder {
   /** @internal */
-  constructor(private resource: string) {}
+  constructor(private resource: string) { }
 
   document(path: string) {
     return new DocumentBuilder(`${this.resource}/${path}`);
