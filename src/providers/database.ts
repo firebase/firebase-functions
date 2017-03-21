@@ -209,7 +209,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   forEach(action: (a: DeltaSnapshot) => boolean): boolean {
     let val = this.val();
     if (_.isPlainObject(val)) {
-      return _.keys(val).some(key => action(this.child(key)) === true);
+      return _.some(val, (value, key: string) => action(this.child(key)) === true);
     }
     return false;
   }
