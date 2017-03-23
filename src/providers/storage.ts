@@ -79,6 +79,7 @@ export class ObjectBuilder {
 export interface ObjectMetadata {
   kind: string;
   id: string;
+  resourceState: string;
   selfLink?: string;
   name?: string;
   bucket: string;
