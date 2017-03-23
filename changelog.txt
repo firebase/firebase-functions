@@ -1,0 +1,3 @@
+fixed - for auth functions, event.data.uid will now be a simple UID string instead of a URL (e.g. ‘12345’ instead of ‘http://github.com/12345’).
+fixed - for database functions, fixed event.data.forEach() to return true if enumeration was canceled due to supplied callback returning true.
+fixed - for storage functions, added missing typescript typing for event.data.resourceState.
