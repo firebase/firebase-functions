@@ -23,7 +23,7 @@
 import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 
 /** @internal */
-export const provider = (new Buffer('Y2xvdWQuZmlyc3RvcmU=', 'base64')).toString();
+export const provider = (new Buffer('Y2xvdWQuZmlyZXN0b3Jl', 'base64')).toString();
 
 /** @internal */
 export const defaultDatabase = '(default)';
