@@ -179,7 +179,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   exportVal(): any { return this.val(); }
 
   // TODO(inlined): figure out what to do here
-  getPriority(): any {
+  getPriority(): string|number|null {
     return 0;
   }
 
