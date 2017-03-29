@@ -121,7 +121,7 @@ export const fullPayload = JSON.parse(`{
   "eventId": "1486080145623867projects/analytics-integration-fd82a/events/i_made_this_upproviders/google.firebase.analytics/eventTypes/event.sendprojects/f949d1bb9ef782579-tp/topics/cloud-functions-u54ejabpzs4prfjh7433eklhae",
   "eventType": "providers/google.firebase.analytics/eventTypes/event.send",
   "resource": "projects/analytics-integration-fd82a/events/i_made_this_up",
-  "timestamp": "1969-12-31T23:59:59.986371388Z"
+  "timestamp": "2017-03-29T23:59:59.986371388Z"
 }`);
 
 // The event data that we expect would be constructed if the payload above were to arrive.
@@ -129,7 +129,7 @@ export const fullEvent: Event<AnalyticsEvent> = {
   eventId: '1486080145623867projects/analytics-integration-fd82a/events/i_made_this_upproviders/google.firebase.analytics/eventTypes/event.sendprojects/f949d1bb9ef782579-tp/topics/cloud-functions-u54ejabpzs4prfjh7433eklhae',
   eventType: 'providers/google.firebase.analytics/eventTypes/event.send',
   resource: 'projects/analytics-integration-fd82a/events/i_made_this_up',
-  timestamp: '2017-02-02T23:06:26.124Z',
+  timestamp: '2017-03-29T23:59:59.986371388Z',
   params: {},
   data: {
     reportingDate: '20170202',
