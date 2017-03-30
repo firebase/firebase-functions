@@ -1,2 +1,0 @@
-changed - Removes temporary “shim” for analytics event timestamps.
-fixed - Fixes return type for DeltaSnapshot#getPriority() for database functions
