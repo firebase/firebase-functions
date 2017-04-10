@@ -91,19 +91,11 @@ export namespace apps {
       }
     }
 
-    _waitToDestroyApp(appName: string) {
+    _destroyApp(appName: string) {
       if (!this._appAlive(appName)) {
-        return Promise.resolve();
+        return;
       }
-      return delay(120000).then(() => {
-        if (!this._appAlive(appName)) {
-          return;
-        }
-        if (_.get(this._refCounter, appName) === 0) {
-          delete this._refCounter[appName];
-          return firebase.app(appName).delete().catch(_.noop);
-        }
-      });
+      firebase.app(appName).delete().catch(_.noop);
     }
 
     retain(payload) {
@@ -122,12 +114,14 @@ export namespace apps {
       let decrement = n => {
         return n - 1;
       };
-      _.update(this._refCounter, '__admin__', decrement);
-      _.update(this._refCounter, this._appName(auth), decrement);
-      _.forEach(this._refCounter, (count, key) => {
-        if (count === 0) {
-          this._waitToDestroyApp(key);
-        }
+      return delay(garbageCollectionInterval).then(() => {
+        _.update(this._refCounter, '__admin__', decrement);
+        _.update(this._refCounter, this._appName(auth), decrement);
+        _.forEach(this._refCounter, (count, key) => {
+          if (count === 0) {
+            this._destroyApp(key);
+          }
+        });
       });
     }
 
