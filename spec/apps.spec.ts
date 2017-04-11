@@ -161,5 +161,46 @@ describe('apps', () => {
         expect(spy.called).to.be.false;
       });
     });
+
+    it('should increment ref counter for each subsequent retain', function() {
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 1,
+        __noauth__: 1,
+      });
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 2,
+        __noauth__: 2,
+      });
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 3,
+        __noauth__: 3,
+      });
+    });
+
+    it('should work with staggering sets of retain/release', function() {
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      return Promise.resolve().then(() => {
+        // Counters are still 1 due second set of retain/release
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 1,
+          __noauth__: 1,
+        });
+        clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      }).then(() => {
+        // It's now been a full interval since the second set of retain/release
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 0,
+          __noauth__: 0,
+        });
+      });
+    });
   });
 });
