@@ -105,7 +105,7 @@ export namespace apps {
       };
       // Increment counter for admin because function might use event.data.adminRef
       _.update(this._refCounter, '__admin__', increment);
-      // Increment counter for according to auth type because function might use event.data.ref
+      // Increment counter according to auth type because function might use event.data.ref
       _.update(this._refCounter, this._appName(auth), increment);
     }
 
@@ -118,7 +118,7 @@ export namespace apps {
         _.update(this._refCounter, '__admin__', decrement);
         _.update(this._refCounter, this._appName(auth), decrement);
         _.forEach(this._refCounter, (count, key) => {
-          if (count === 0) {
+          if (count <= 0) {
             this._destroyApp(key);
           }
         });
