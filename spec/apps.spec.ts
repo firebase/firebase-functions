@@ -64,102 +64,142 @@ describe('apps', () => {
     expect(userApp).to.equal(userAppAgain);
   });
 
-  it('should retain/release ref counters appropriately without auth', function() {
-    apps.retain({});
-    expect(apps['_refCounter']).to.deep.equal({
-      __admin__: 1,
-      __noauth__: 1,
-    });
-    apps.release({});
-    expect(apps['_refCounter']).to.deep.equal({
-      __admin__: 0,
-      __noauth__: 0,
-    });
-  });
-
-  it('should retain/release ref counters appropriately with admin auth', function() {
-    apps.retain({auth: {admin: true}});
-    expect(apps['_refCounter']).to.deep.equal({
-      __admin__: 2,
-    });
-    apps.release({auth: {admin: true}});
-    expect(apps['_refCounter']).to.deep.equal({
-      __admin__: 0,
-    });
-  });
-
-  it('should retain/release ref counters appropriately with user auth', function() {
-    const payload = {auth: {admin: false, variable: claims}};
-    const userAppName = apps._appName(payload.auth);
-    apps.retain(payload);
-    expect(apps['_refCounter']).to.deep.equal({
-      __admin__: 1,
-      [userAppName]: 1,
-    });
-    apps.release(payload);
-    expect(apps['_refCounter']).to.deep.equal({
-      __admin__: 0,
-      [userAppName]: 0,
-    });
-  });
-
-  describe('#_waitToDestroyApp', () => {
+  describe('retain/release', () => {
     let clock;
-    let noauthApp;
-    let deleteNoauth;
 
     beforeEach(() => {
       clock = sinon.useFakeTimers();
-      noauthApp = apps.forMode({ admin: false });
-      deleteNoauth = noauthApp.delete.bind(noauthApp);
-      sinon.spy(noauthApp, 'delete');
     });
 
     afterEach(() => {
       clock.restore();
-      noauthApp.delete.restore();
     });
 
-    it('should delete app after 2 minutes and not earlier', function() {
-      apps['_refCounter'] = { '__noauth__': 0 };
-      apps._waitToDestroyApp('__noauth__');
-      clock.tick(appsNamespace.garbageCollectionInterval - 1);
-      expect(noauthApp.delete.called).to.be.false;
-      clock.tick(1);
-
-      // Technically the delete happens on the next tick *after* 2 min
+    it('should retain/release ref counters appropriately without auth', function() {
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 1,
+        __noauth__: 1,
+      });
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval);
       return Promise.resolve().then(() => {
-        expect(noauthApp.delete.called).to.be.true;
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 0,
+          __noauth__: 0,
+        });
       });
     });
 
-    it('should exit right away if app was already deleted', function() {
-      return deleteNoauth().then(() => {
-        let spy = sinon.spy(appsNamespace, 'delay');
-        apps._waitToDestroyApp('__noauth__');
-        spy.restore();
+    it('should retain/release ref counters appropriately with admin auth', function() {
+      apps.retain({auth: {admin: true}});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 2,
+      });
+      apps.release({auth: {admin: true}});
+      clock.tick(appsNamespace.garbageCollectionInterval);
+      return Promise.resolve().then(() => {
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 0,
+        });
+      });
+    });
+
+    it('should retain/release ref counters appropriately with user auth', function() {
+      const payload = {auth: {admin: false, variable: claims}};
+      const userAppName = apps._appName(payload.auth);
+      apps.retain(payload);
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 1,
+        [userAppName]: 1,
+      });
+      apps.release(payload);
+      clock.tick(appsNamespace.garbageCollectionInterval);
+      return Promise.resolve().then(() => {
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 0,
+          [userAppName]: 0,
+        });
+      });
+    });
+
+    it('should only decrement counter after garbageCollectionInterval is up', function() {
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 1,
+        __noauth__: 1,
+      });
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      return Promise.resolve().then(() => {
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 0,
+          __noauth__: 0,
+        });
+      });
+    });
+
+    it('should call _destroyApp if app no longer used', function() {
+      let spy = sinon.spy(apps, '_destroyApp');
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval);
+      return Promise.resolve().then(() => {
+        expect(spy.called).to.be.true;
+      });
+    });
+
+    it('should not call _destroyApp if app used again while waiting for release', function() {
+      let spy = sinon.spy(apps, '_destroyApp');
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      apps.retain({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      return Promise.resolve().then(() => {
         expect(spy.called).to.be.false;
       });
     });
 
-    it('should not delete app if it gets deleted while function is waiting', function() {
-      apps._waitToDestroyApp('__noauth__');
-      deleteNoauth();
-      clock.tick(appsNamespace.garbageCollectionInterval);
-      return Promise.resolve().then(() => {
-        expect(noauthApp.delete.called).to.be.false;
+    it('should increment ref counter for each subsequent retain', function() {
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 1,
+        __noauth__: 1,
+      });
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 2,
+        __noauth__: 2,
+      });
+      apps.retain({});
+      expect(apps['_refCounter']).to.deep.equal({
+        __admin__: 3,
+        __noauth__: 3,
       });
     });
 
-    it('should not delete app if ref count rises above 0', function() {
-      apps['_refCounter'] = {
-        '__admin__': 0,
-        '__noauth__': 1,
-      };
-      apps._waitToDestroyApp('__noauth__');
-      clock.tick(appsNamespace.garbageCollectionInterval);
+    it('should work with staggering sets of retain/release', function() {
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      apps.retain({});
+      apps.release({});
+      clock.tick(appsNamespace.garbageCollectionInterval / 2);
       return Promise.resolve().then(() => {
-        expect(noauthApp.delete.called).to.be.false;
+        // Counters are still 1 due second set of retain/release
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 1,
+          __noauth__: 1,
+        });
+        clock.tick(appsNamespace.garbageCollectionInterval / 2);
+      }).then(() => {
+        // It's now been a full interval since the second set of retain/release
+        expect(apps['_refCounter']).to.deep.equal({
+          __admin__: 0,
+          __noauth__: 0,
+        });
       });
     });
   });
