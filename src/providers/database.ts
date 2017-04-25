@@ -288,10 +288,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   }
 
   private _fullPath(): string {
-    let out = (this._path || '') + (this._childPath || '');
-    if (out === '') {
-      out = '/';
-    }
+    let out = (this._path || '') + '/' + (this._childPath || '');
     return out;
   }
 }
