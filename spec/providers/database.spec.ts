@@ -218,6 +218,15 @@ describe('DeltaSnapshot', () => {
       expect(out).to.equal('bd');
     });
 
+    it('should have correct key values for child snapshots', () => {
+      populate({ a: 'b' }, { c: 'd' });
+      let out = '';
+      subject.forEach(snap => {
+        out += snap.key;
+      });
+      expect(out).to.equal('ac');
+    });
+
     it('should not execute for leaf or null nodes', () => {
       populate(null, 23);
       let count = 0;
