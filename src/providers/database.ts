@@ -249,16 +249,15 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
     let maxKey = 0;
     let allIntegerKeys = true;
     for (let key in node) {
-      if (node.hasOwnProperty(key)) {
-        let childNode = node[key];
-        obj[key] = this._checkAndConvertToArray(childNode);
-        numKeys++;
-        const integerRegExp = /^(0|[1-9]\d*)$/;
-        if (allIntegerKeys && integerRegExp.test(key)) {
-          maxKey = Math.max(maxKey, Number(key));
-        } else {
-          allIntegerKeys = false;
-        }
+      if (!node.hasOwnProperty(key)) { continue; }
+      let childNode = node[key];
+      obj[key] = this._checkAndConvertToArray(childNode);
+      numKeys++;
+      const integerRegExp = /^(0|[1-9]\d*)$/;
+      if (allIntegerKeys && integerRegExp.test(key)) {
+        maxKey = Math.max(maxKey, Number(key));
+      } else {
+        allIntegerKeys = false;
       }
     }
 
