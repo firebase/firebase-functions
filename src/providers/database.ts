@@ -248,7 +248,9 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
     let numKeys = 0;
     let maxKey = 0;
     let allIntegerKeys = true;
-    _.forEach(node, (childNode, key) => {
+    for (let key in node) {
+      if (!node.hasOwnProperty(key)) { continue; }
+      let childNode = node[key];
       obj[key] = this._checkAndConvertToArray(childNode);
       numKeys++;
       const integerRegExp = /^(0|[1-9]\d*)$/;
@@ -257,7 +259,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
       } else {
         allIntegerKeys = false;
       }
-    });
+    }
 
     if (allIntegerKeys && maxKey < 2 * numKeys) {
       // convert to array.

@@ -137,6 +137,12 @@ describe('DeltaSnapshot', () => {
       populate({ myKey: 'foo', myOtherKey: 'bar' }, { myKey: null });
       expect(subject.val()).to.deep.equal({ myOtherKey: 'bar' });
     });
+
+    // Regression test: .val() was returning array of nulls when there's a property called length (BUG#37683995)
+    it('should return correct values when data has "length" property', () => {
+      populate(null, { length: 3,  foo: 'bar' });
+      expect(subject.val()).to.deep.equal({ length: 3, foo: 'bar'});
+    });
   });
 
   describe('#child(): DeltaSnapshot', () => {
