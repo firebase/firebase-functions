@@ -1,0 +1,3 @@
+important - Update firebase-admin peer dependency to v4.2.1. Developer needs to run “npm install --save firebase-admin”  inside the functions directory.
+fixed - event.data.val() no longer returns array of nulls when the database node has a “length” key.
+fixed - Fixed bug where event.data.forEach(snapshot => {}) caused snapshot.key to be a concatenation of the parent and child keys.
