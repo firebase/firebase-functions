@@ -70,38 +70,52 @@ describe('storage.FunctionBuilder', () => {
       expect(() => storage.bucket('bad/bucket/format')).to.throw(Error);
     });
 
-    it('should filter out spurious deploy-time events', () => {
-      let functionRan = false;
-      let cloudFunction = storage.object().onChange(() => {
-        functionRan = true;
-        return null;
+    it('should correct nested media links using a single literal slash', () => {
+      let cloudFunction = storage.object().onChange((event) => {
+        return event.data.mediaLink;
       });
-
-      let spuriousEvent = {
-        timestamp: '2017-03-06T20:02:05.192Z',
-        eventType: 'providers/cloud.storage/eventTypes/object.change',
-        resource: 'projects/_/buckets/rjh-20170306.appspot.com/objects/#0',
+      let badMediaLinkEvent = {
         data: {
-          kind: 'storage#object',
-          resourceState: 'exists',
-          id: 'rjh-20170306.appspot.com//0',
-          selfLink: 'https://www.googleapis.com/storage/v1/b/rjh-20170306.appspot.com/o/',
-          bucket: 'rjh-20170306.appspot.com',
-          generation: '0',
-          metageneration: '0',
-          contentType: '',
-          timeCreated: '1970-01-01T00:00:00.000Z',
-          updated: '1970-01-01T00:00:00.000Z',
-          size: '0',
-          md5Hash: '',
-          mediaLink: 'https://www.googleapis.com/storage/v1/b/rjh-20170306.appspot.com/o/?generation=0&alt=media',
-          crc32c: 'AAAAAA==',
+          mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
+          + '/o/nestedfolder/myobject.file?generation=12345&alt=media',
         },
-        params: {},
       };
-      return cloudFunction(spuriousEvent).then((result) => {
-        expect(result).equals(null);
-        expect(functionRan).equals(false);
+      return cloudFunction(badMediaLinkEvent).then(result => {
+        expect(result).equals(
+          'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
+          + '/o/nestedfolder%2Fmyobject.file?generation=12345&alt=media');
+      });
+    });
+
+    it('should correct nested media links using multiple literal slashes', () => {
+      let cloudFunction = storage.object().onChange((event) => {
+        return event.data.mediaLink;
+      });
+      let badMediaLinkEvent = {
+        data: {
+          mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
+          + '/o/nestedfolder/anotherfolder/myobject.file?generation=12345&alt=media',
+        },
+      };
+      return cloudFunction(badMediaLinkEvent).then(result => {
+        expect(result).equals(
+          'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
+          + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media');
+      });
+    });
+
+    it('should not mess with media links using non-literal slashes', () => {
+      let cloudFunction = storage.object().onChange((event) => {
+        return event.data.mediaLink;
+      });
+      let goodMediaLinkEvent = {
+        data: {
+          mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
+          + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+        },
+      };
+      return cloudFunction(goodMediaLinkEvent).then(result => {
+        expect(result).equals(goodMediaLinkEvent.data.mediaLink);
       });
     });
   });
