@@ -58,6 +58,6 @@ describe('config()', () => {
 
   it('throws an error if Firebase configs not present', () => {
     mockRequire('../../../.runtimeconfig.json', {});
-    expect(config).to.throw('Firebase config variables are missing.');
+    expect(config).to.throw('Firebase config variables are not available.');
   });
 });
