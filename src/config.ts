@@ -52,18 +52,13 @@ function init (credential: firebase.credential.Credential) {
     let path = process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
     loadedFromFile = require(path);
   } catch (e) {
-    try {
-      loadedFromFile = require('../../../config.json');
-    } catch (e) {
-      // Do nothing
-    }
+    // Do nothing
   }
   let merged= _.merge({}, loadedFromFile, firebaseEnv);
 
   if (!_.has(merged, 'firebase')) {
     throw new Error('Firebase config variables are not available. ' +
-    'Please use the latest version of the Firebase CLI to deploy this function.'
-    + 'process.pid' + process.pid + 'process.env.PATH' + process.env.PATH);
+    'Please use the latest version of the Firebase CLI to deploy this function.');
   }
 
   _.set(merged, 'firebase.credential', credential);

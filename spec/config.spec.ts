@@ -30,17 +30,12 @@ describe('config()', () => {
   afterEach(() => {
     mockRequire.stopAll();
     unsetSingleton();
+    delete process.env.FIREBASE_PROJECT;
+    delete process.env.CLOUD_RUNTIME_CONFIG;
   });
 
   it('loads config values from .runtimeconfig.json', () => {
     mockRequire('../../../.runtimeconfig.json', { foo: 'bar', firebase: {} });
-    let loaded = config();
-    expect(loaded).to.have.property('firebase');
-    expect(loaded).to.have.property('foo','bar');
-  });
-
-  it('loads config values from config.json', () => {
-    mockRequire('../../../config.json', { foo: 'bar', firebase: {} });
     let loaded = config();
     expect(loaded).to.have.property('firebase');
     expect(loaded).to.have.property('foo','bar');
@@ -51,7 +46,7 @@ describe('config()', () => {
     expect(config()).to.deep.property('firebase.credential');
   });
 
-  it('throws an error if config.json not present', () => {
+  it('throws an error if .runtimeconfig.json not present', () => {
     mockRequire('../../../.runtimeconfig.json', 'does-not-exist');
     expect(config).to.throw('not available');
   });
@@ -59,5 +54,36 @@ describe('config()', () => {
   it('throws an error if Firebase configs not present', () => {
     mockRequire('../../../.runtimeconfig.json', {});
     expect(config).to.throw('Firebase config variables are not available.');
+  });
+
+  it('loads Firebase configs from FIREBASE_PROJECT env variable', () => {
+    process.env.FIREBASE_PROJECT = JSON.stringify({
+      databaseURL: 'foo@firebaseio.com',
+    });
+    let firebaseConfig = config().firebase;
+    expect(firebaseConfig).to.have.property('databaseURL', 'foo@firebaseio.com');
+  });
+
+  it('behaves well when both FIREBASE_PROJECT and .runtimeconfig.json present', () => {
+    process.env.FIREBASE_PROJECT = JSON.stringify({
+      databaseURL: 'foo@firebaseio.com',
+    });
+    mockRequire('../../../.runtimeconfig.json', {
+      firebase: {
+        databaseURL: 'foo@firebaseio.com',
+      },
+      foo: 'bar',
+    });
+    let loaded = config();
+    expect(loaded.firebase).to.have.property('databaseURL', 'foo@firebaseio.com');
+    expect(loaded).to.have.property('foo', 'bar');
+  });
+
+  it('accepts alternative locations for config file', () => {
+    process.env.CLOUD_RUNTIME_CONFIG = 'another.json';
+    mockRequire('another.json', { foo: 'bar', firebase: {} });
+    let loaded = config();
+    expect(loaded).to.have.property('firebase');
+    expect(loaded).to.have.property('foo','bar');
   });
 });
