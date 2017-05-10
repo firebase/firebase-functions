@@ -60,7 +60,8 @@ export function ref(path: string): RefBuilder {
   const normalized = normalizePath(path);
   const databaseURL = config().firebase.databaseURL;
   if (!databaseURL) {
-    throw new Error('Missing expected config value firebase.databaseURL');
+    throw new Error('Missing expected config value firebase.databaseURL, ' +
+    'config is actually' + JSON.stringify(config()));
   }
   const match = databaseURL.match(databaseURLRegex);
   if (!match) {

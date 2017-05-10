@@ -42,23 +42,25 @@ export namespace config {
 }
 
 function init (credential: firebase.credential.Credential) {
-  let loaded: any;
-  try {
-    loaded = require('../../../.runtimeconfig.json');
-  } catch (e) {
-    try {
-      loaded = require('../../../config.json');
-    } catch (e) {
-      throw new Error(
-        'functions.config() is not available. ' +
-        'Please use the latest version of the Firebase CLI to deploy this function.'
-      );
-    }
-  }
-  if (!_.has(loaded, 'firebase')) {
-    throw new Error('Firebase config variables are missing.');
+  let loadedFromFile = {};
+  let firebaseEnv = {};
+  if (process.env.FIREBASE_PROJECT) {
+    firebaseEnv = { firebase: JSON.parse(process.env.FIREBASE_PROJECT) };
   }
 
-  _.set(loaded, 'firebase.credential', credential);
-  config.singleton = loaded;
+  try {
+    let path = process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
+    loadedFromFile = require(path);
+  } catch (e) {
+    // Do nothing
+  }
+  let merged= _.merge({}, loadedFromFile, firebaseEnv);
+
+  if (!_.has(merged, 'firebase')) {
+    throw new Error('Firebase config variables are not available. ' +
+    'Please use the latest version of the Firebase CLI to deploy this function.');
+  }
+
+  _.set(merged, 'firebase.credential', credential);
+  config.singleton = merged;
 }
