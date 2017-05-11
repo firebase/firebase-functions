@@ -45,8 +45,6 @@ describe('DatabaseBuilder', () => {
     });
 
     it('should construct a proper resource path', () => {
-      process.env.GCLOUD_PROJECT = 'myProject';
-      process.env.DB_NAMESPACE = 'subdomain';
       let resource = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.resource;
       expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
     });
