@@ -1,0 +1,1 @@
+feature - Add support for locally emulating functions.config().firebase via Firebase CLI.
