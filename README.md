@@ -30,7 +30,7 @@ exports.newPost = functions.database
 
 ## Contributing
 
-To contribute a change, [check out the contributing guide](CONTRIBUTING.md).
+To contribute a change, [check out the contributing guide](.github/CONTRIBUTING.md).
 
 ## License
 
