@@ -80,6 +80,136 @@ describe('DatabaseBuilder', () => {
       });
     });
   });
+
+  describe('#onCreate()', () => {
+    it('should return "ref.create" as the event type', () => {
+      let eventType = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.create');
+    });
+
+    it('should construct a proper resource path', () => {
+      let resource = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+    });
+
+    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
+      let handler = database.ref('/users/{id}').onCreate(event => {
+        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: { foo: 'bar' },
+        },
+        resource: 'projects/_/instances/subdomains/refs/users',
+      } as any);
+    });
+
+    it('should interpolate params until the server does it', () => {
+      let handler = database.ref('/users/{id}').onCreate(event => {
+        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: 'hello',
+        },
+        resource: 'projects/_/instances/subdomain/refs/users/{id}',
+        params: {
+          id: 'aUserId',
+        },
+      });
+    });
+  });
+
+  describe('#onUpdate()', () => {
+    it('should return "ref.update" as the event type', () => {
+      let eventType = database.ref('foo').onUpdate(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.update');
+    });
+
+    it('should construct a proper resource path', () => {
+      let resource = database.ref('foo').onUpdate(() => null).__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+    });
+
+    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
+      let handler = database.ref('/users/{id}').onUpdate(event => {
+        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: { foo: 'bar' },
+        },
+        resource: 'projects/_/instances/subdomains/refs/users',
+      } as any);
+    });
+
+    it('should interpolate params until the server does it', () => {
+      let handler = database.ref('/users/{id}').onUpdate(event => {
+        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: 'hello',
+        },
+        resource: 'projects/_/instances/subdomain/refs/users/{id}',
+        params: {
+          id: 'aUserId',
+        },
+      });
+    });
+  });
+
+  describe('#onDelete()', () => {
+    it('should return "ref.delete" as the event type', () => {
+      let eventType = database.ref('foo').onDelete(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.delete');
+    });
+
+    it('should construct a proper resource path', () => {
+      let resource = database.ref('foo').onDelete(() => null).__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+    });
+
+    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
+      let handler = database.ref('/users/{id}').onDelete(event => {
+        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: { foo: 'bar' },
+        },
+        resource: 'projects/_/instances/subdomains/refs/users',
+      } as any);
+    });
+
+    it('should interpolate params until the server does it', () => {
+      let handler = database.ref('/users/{id}').onDelete(event => {
+        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
+      });
+
+      return handler({
+        data: {
+          data: null,
+          delta: 'hello',
+        },
+        resource: 'projects/_/instances/subdomain/refs/users/{id}',
+        params: {
+          id: 'aUserId',
+        },
+      });
+    });
+  });
+
 });
 
 describe('DeltaSnapshot', () => {

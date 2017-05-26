@@ -79,6 +79,28 @@ export class RefBuilder {
 
   /** Respond to any write that affects a ref. */
   onWrite(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
+    return this.onOperation(handler, 'ref.write');
+  }
+
+  /** Respond to new data on a ref. */
+  onCreate(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
+    return this.onOperation(handler, 'ref.create');
+  }
+
+  /** Respond to update on a ref. */
+  onUpdate(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
+    return this.onOperation(handler, 'ref.update');
+  }
+
+  /** Respond to all data being deleted from a ref. */
+  onDelete(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
+    return this.onOperation(handler, 'ref.delete');
+  }
+
+  private onOperation(
+    handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any,
+    eventType: string): CloudFunction<DeltaSnapshot> {
+
     const dataConstructor = (raw: Event<any>) => {
       if (raw.data instanceof DeltaSnapshot) {
         return raw.data;
@@ -93,7 +115,7 @@ export class RefBuilder {
     };
     return makeCloudFunction({
       provider, handler,
-      eventType: 'ref.write',
+      eventType: eventType,
       resource: this.resource,
       dataConstructor,
       before: (event) => {
