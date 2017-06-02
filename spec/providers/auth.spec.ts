@@ -146,33 +146,5 @@ describe('AuthBuilder', () => {
 
       return expect(cloudFunction(event)).to.eventually.deep.equal(event.data);
     });
-
-    it('should reformat a url-formatted UID', () => {
-      const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
-      let event: Event<firebase.auth.UserRecord> = {
-        data: {
-          uid: 'http://github.com/abcde12345',
-        },
-      } as any;
-      return expect(cloudFunction(event)).to.eventually.deep.equal(
-        {
-          uid: 'abcde12345',
-        },
-      );
-    });
-
-    it('should not reformat legally-formatted UIDs', () => {
-      const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
-      let event: Event<firebase.auth.UserRecord> = {
-        data: {
-          uid: 'abcde12345',
-        },
-      } as any;
-      return expect(cloudFunction(event)).to.eventually.deep.equal(
-        {
-          uid: 'abcde12345',
-        },
-      );
-    });
   });
 });

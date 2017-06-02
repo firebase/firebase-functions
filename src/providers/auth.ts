@@ -51,18 +51,6 @@ export class UserBuilder {
       }
     }
 
-    // It is possible that the incoming UID is formatted as a URL, for example: "http://github.com/12345".
-    // That format would break our spec, since...
-    // - The Admin SDK would return a UserRecord with a UID of just "12345".
-    // - The UserRecord UID is supposed to be usable as a key in the Firebase Realtime Database, which is
-    //   impossible with this slash-based format.
-    // Hence, we'll re-format the UID here, if it was indeed supplied as a URL.
-    // We won't use string.split(), since it's not available on older versions of node.
-    // BUG(36486645)
-    if (raw.data.uid) {
-      raw.data.uid = raw.data.uid.substring(raw.data.uid.lastIndexOf('/') + 1);
-    }
-
     return raw.data;
   }
 
