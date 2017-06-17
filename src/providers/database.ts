@@ -118,13 +118,7 @@ export class RefBuilder {
       eventType: eventType,
       resource: this.resource,
       dataConstructor,
-      before: (event) => {
-        // BUG(36000428) Remove when no longer necessary
-        _.forEach(event.params, (val, key) => {
-          event.resource = _.replace(event.resource, `{${key}}`, val);
-        });
-        this.apps.retain(event);
-      },
+      before: (event) => this.apps.retain(event),
       after: (event) => this.apps.release(event),
     });
   }

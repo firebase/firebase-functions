@@ -62,23 +62,6 @@ describe('DatabaseBuilder', () => {
         resource: 'projects/_/instances/subdomains/refs/users',
       } as any);
     });
-
-    it('should interpolate params until the server does it', () => {
-      let handler = database.ref('/users/{id}').onWrite(event => {
-        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
-      });
-
-      return handler({
-        data: {
-          data: null,
-          delta: 'hello',
-        },
-        resource: 'projects/_/instances/subdomain/refs/users/{id}',
-        params: {
-          id: 'aUserId',
-        },
-      });
-    });
   });
 
   describe('#onCreate()', () => {
@@ -104,23 +87,6 @@ describe('DatabaseBuilder', () => {
         },
         resource: 'projects/_/instances/subdomains/refs/users',
       } as any);
-    });
-
-    it('should interpolate params until the server does it', () => {
-      let handler = database.ref('/users/{id}').onCreate(event => {
-        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
-      });
-
-      return handler({
-        data: {
-          data: null,
-          delta: 'hello',
-        },
-        resource: 'projects/_/instances/subdomain/refs/users/{id}',
-        params: {
-          id: 'aUserId',
-        },
-      });
     });
   });
 
@@ -148,23 +114,6 @@ describe('DatabaseBuilder', () => {
         resource: 'projects/_/instances/subdomains/refs/users',
       } as any);
     });
-
-    it('should interpolate params until the server does it', () => {
-      let handler = database.ref('/users/{id}').onUpdate(event => {
-        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
-      });
-
-      return handler({
-        data: {
-          data: null,
-          delta: 'hello',
-        },
-        resource: 'projects/_/instances/subdomain/refs/users/{id}',
-        params: {
-          id: 'aUserId',
-        },
-      });
-    });
   });
 
   describe('#onDelete()', () => {
@@ -190,23 +139,6 @@ describe('DatabaseBuilder', () => {
         },
         resource: 'projects/_/instances/subdomains/refs/users',
       } as any);
-    });
-
-    it('should interpolate params until the server does it', () => {
-      let handler = database.ref('/users/{id}').onDelete(event => {
-        expect(event.resource).to.equal('projects/_/instances/subdomain/refs/users/aUserId');
-      });
-
-      return handler({
-        data: {
-          data: null,
-          delta: 'hello',
-        },
-        resource: 'projects/_/instances/subdomain/refs/users/{id}',
-        params: {
-          id: 'aUserId',
-        },
-      });
     });
   });
 
