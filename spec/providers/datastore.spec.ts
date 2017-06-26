@@ -33,7 +33,7 @@ describe('Datastore Functions', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  describe('DataConstructors', () => {
+  describe('document builders', () => {
     function expectedTrigger(resource: string) {
       return {
         eventTrigger: {
@@ -65,6 +65,167 @@ describe('Datastore Functions', () => {
       let resource = 'projects/project1/databases/myDB/documents@v2/users/{uid}';
       let cloudFunction = datastore.database('myDB').namespace('v2').document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource));
+    });
+  });
+
+  describe('dataConstructor', () => {
+    let testEvent = {
+      'data': {
+        'oldValue': {
+          'fields': {
+            'key1': {
+              'booleanValue': false,
+            },
+            'key2': {
+              'integerValue': '111',
+            },
+          },
+        },
+        'value': {
+          'fields': {
+            'key1': {
+              'booleanValue': true,
+            },
+            'key2': {
+              'integerValue': '123',
+            },
+          },
+        },
+      },
+    };
+
+    it('constructs appropriate fields and getters for event.data', () => {
+      let testFunction = datastore.document('path').onWrite((event) => {
+        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
+        expect(event.data.get('key1')).to.equal(true);
+        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
+        expect(event.data.previous.get('key1')).to.equal(false);
+      });
+      return testFunction(testEvent);
+    });
+  });
+
+  describe('DeltaDocumentSnapshot', () => {
+    it('should parse int values', () => {
+      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'integerValue': '123'}}, {});
+      expect(snapshot.data()).to.deep.equal({'key': 123});
+    });
+
+    it('should parse double values', () => {
+      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'doubleValue': 12.34}}, {});
+      expect(snapshot.data()).to.deep.equal({'key': 12.34});
+    });
+
+    it('should parse long values', () => {
+      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'longValue': 12.34}}, {});
+      expect(snapshot.data()).to.deep.equal({'key': 12.34});
+    });
+
+    it('should parse null values', () => {
+      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'nullValue': null}}, {});
+      expect(snapshot.data()).to.deep.equal({'key': null});
+    });
+
+    it('should parse boolean values', () => {
+      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'booleanValue': true}}, {});
+      expect(snapshot.data()).to.deep.equal({'key': true});
+    });
+
+    it('should parse string values', () => {
+      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'stringValue': 'foo'}}, {});
+      expect(snapshot.data()).to.deep.equal({'key': 'foo'});
+    });
+
+    it('should parse array values', () => {
+      let raw = {'key': {
+        'arrayValue': {
+          'values': [
+            { 'integerValue': '1' },
+            { 'integerValue': '2' },
+          ],
+        },
+      }};
+      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      expect(snapshot.data()).to.deep.equal({'key': [1, 2]});
+    });
+
+    it('should parse object values', () => {
+      let raw = {'keyParent': {
+        'mapValue': {
+          'fields': {
+            'key1': {
+              'stringValue': 'val1',
+            },
+            'key2': {
+              'stringValue': 'val2',
+            },
+          },
+        },
+      }};
+      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      expect(snapshot.data()).to.deep.equal({'keyParent': {'key1':'val1', 'key2':'val2'}});
+    });
+
+    it('should parse GeoPoint values', () => {
+      let raw = {
+        'geoPointValue': {
+          'mapValue': {
+            'fields': {
+              'latitude': {
+                'doubleValue': 40.73,
+              },
+              'longitude': {
+                'doubleValue': -73.93,
+              },
+            },
+          },
+        },
+      };
+      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      expect(snapshot.data()).to.deep.equal({'geoPointValue': {
+        'latitude': 40.73,
+        'longitude': -73.93,
+      }});
+    });
+
+    it('should parse reference values', () => {
+      let raw = {
+        'referenceVal': {
+          'referenceValue': 'projects/proj1/databases/(default)/documents/doc1/id',
+        },
+      };
+      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      // TODO: need to actually construct a reference
+      expect(snapshot.data()).to.deep.equal({
+        'referenceVal': 'projects/proj1/databases/(default)/documents/doc1/id',
+      });
+    });
+
+    it('should parse timestamp values', () => {
+      let raw = {
+        'timestampVal': {
+          'timestampValue': '2017-06-13T00:58:40.349Z',
+        },
+      };
+      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
+    });
+
+    it('should parse binary values', () => {
+      // Format defined in https://developers.google.com/discovery/v1/type-format
+      let raw = {
+        'binaryVal': {
+          'bytesValue': 'Zm9vYmFy',
+        },
+      };
+      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let binaryVal;
+      try {
+          binaryVal = Buffer.from('Zm9vYmFy', 'base64');
+      } catch (e) { // Node version < 6, which is the case for Travis CI
+          binaryVal = new Buffer('Zm9vYmFy', 'base64');
+      }
+      expect(snapshot.data()).to.deep.equal({'binaryVal': binaryVal});
     });
   });
 });

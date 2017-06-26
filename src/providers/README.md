@@ -5,6 +5,4 @@ Check out [the Cloud Functions for Firebase documentation](https://firebase.goog
 The Datastore integration is in early preview, and not yet publicly usable.
 If you'd like to request early access to use this integration, [please fill out this form](https://services.google.com/fb/forms/firebasealphaprogram/).
 
-Since this is a preview feature, any new version may introduce breaking changes.
-It is recommended that you depend on a specific version of the firebase-functions SDK
-in your project's functions/package.json.
+There will be a breaking change in the type returned by event.data.data() in the future. Values that represent database references are currently path strings. A future revision update to the SDK will change this to reference objects. To protect against this and other unintended breaking changes, consider depending on an exact version of the firebase-functions SDK in your package.json.

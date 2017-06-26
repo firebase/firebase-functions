@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as _ from 'lodash';
 import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 
 /** @internal */
@@ -69,10 +70,84 @@ export class DocumentBuilder {
   }
 
   onWrite(handler: (event: Event<any>) => PromiseLike<any> | any): CloudFunction<any> {
+    const dataConstructor = (raw: Event<any>) => {
+      if (raw.data instanceof DeltaDocumentSnapshot) {
+        return raw.data;
+      }
+      return new DeltaDocumentSnapshot(
+        _.get(raw.data, 'value.fields', {}),
+        _.get(raw.data, 'oldValue.fields', {})
+      );
+    };
     return makeCloudFunction({
       provider, handler,
       resource: this.resource,
       eventType: 'document.write',
+      dataConstructor,
     });
+  }
+}
+
+export class DeltaDocumentSnapshot {
+
+  private _data: object;
+  private _previous: DeltaDocumentSnapshot;
+
+  constructor(private _raw: object, private _old: object) { }
+
+  data(): object {
+    if (!this._data) {
+      this._data = _.mapValues(this._raw, (field) => {
+        return this._transformField(field);
+      });
+    }
+    return this._data;
+  }
+
+  get(key: string): any {
+    return _.get(this.data(), key, null);
+  }
+
+  get previous(): DeltaDocumentSnapshot {
+    if (_.isEmpty(this._old)) {
+      return null;
+    }
+    this._previous = new DeltaDocumentSnapshot(this._old, null);
+    return this._previous;
+  }
+
+  private _transformField(field: object): any {
+    // field is an object with only 1 key-value pair, so this will only loop once
+    let result;
+    _.forEach(field, (fieldValue, fieldType) => {
+        if (fieldType === 'arrayValue') {
+          result = _.map(_.get(fieldValue, 'values', []), (elem) => {
+            return this._transformField(elem);
+          });
+        } else if (fieldType === 'mapValue') {
+          result = _.mapValues(_.get(fieldValue, 'fields', {}), (val) => {
+            return this._transformField(val);
+          });
+        } else if (fieldType === 'integerValue'
+          || fieldType === 'doubleValue'
+          || fieldType === 'longValue') {
+          result = Number(fieldValue);
+        } else if (fieldType === 'timestampValue') {
+          result = new Date(fieldValue);
+        } else if (fieldType === 'bytesValue') {
+            try {
+                result = Buffer.from(fieldValue, 'base64');
+            } catch (e) { // Node version < 6, which is the case for Travis CI
+                result = new Buffer(fieldValue, 'base64');
+            }
+        } else if (fieldType === 'referenceValue') {
+          console.log('WARNING: you have a data field which is a datastore reference. ' +
+          'There will be a breaking change later which will change it from a string to a reference object.');
+          result = fieldValue;
+        } else {
+          result = fieldValue;
+        }
+    });
+    return result;
   }
 }
