@@ -1,0 +1,1 @@
+important - Add ability to listen to CRUD database events by using onCreate, onUpdate, and onDelete functions.
