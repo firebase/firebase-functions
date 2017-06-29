@@ -339,13 +339,13 @@ export class ExportBundleInfo {
 }
 
 function copyFieldTo<T, K extends keyof T>(
-  from: any, to: T, fromField: string, toField: K, transform = (_.identity) as (n: any) => any): void {
+  from: any, to: T, fromField: string, toField: K, transform = _.identity as (n: any) => any): void {
   if (from[fromField] !== undefined) {
     to[toField] = transform(from[fromField]);
   }
 }
 
-function copyField<T, K extends keyof T>(from: any, to: T, field: K, transform = (_.identity) as (n: any) => any): void {
+function copyField<T, K extends keyof T>(from: any, to: T, field: K, transform = _.identity as (n: any) => any): void {
   copyFieldTo(from, to, field, field, transform);
 }
 
