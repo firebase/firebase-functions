@@ -38,16 +38,17 @@ export class UserBuilder {
     // also has a class of the same name, which is one implementation of the interface. Here,
     // because our wire format already almost matches the UserRecord interface, we only use the
     // interface, no need to use the class.
-    //
-    // The one change we need to make to match the interface is to our incoming timestamps. The
-    // interface requires them to be Date objects, while they raw payload has them as strings.
+
+    // Shim to transform payload, should be removed when BUG(63167395) closes
     if (raw.data.metadata) {
       let metadata = raw.data.metadata;
-      if (metadata.lastSignedInAt && typeof metadata.lastSignedInAt === 'string') {
-        metadata.lastSignedInAt = new Date(metadata.lastSignedInAt);
+      if (metadata.lastSignedInAt) {
+        metadata.lastSignInTime = metadata.lastSignedInAt;
+        delete metadata.lastSignedInAt;
       }
-      if (metadata.createdAt && typeof metadata.createdAt === 'string') {
-        metadata.createdAt = new Date(metadata.createdAt);
+      if (metadata.createdAt) {
+        metadata.creationTime = metadata.createdAt;
+        delete metadata.createdAt;
       }
     }
 

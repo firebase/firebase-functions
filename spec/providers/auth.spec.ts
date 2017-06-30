@@ -61,7 +61,7 @@ describe('AuthBuilder', () => {
   });
 
   describe('#_dataConstructor', () => {
-    it('should handle an event with the appropriate fields', () => {
+    it('should transform old wire format for UserRecord into v5.0.0 format', () => {
       const cloudFunctionCreate = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
       const cloudFunctionDelete = auth.user().onDelete((ev: Event<firebase.auth.UserRecord>) => ev.data);
 
@@ -102,11 +102,67 @@ describe('AuthBuilder', () => {
         photoURL: 'bar.baz/foo.jpg',
         disabled: false,
         metadata: {
-          // Gotcha's:
-          // - JS Date is, by default, local-time based, not UTC-based.
-          // - JS Date's month is zero-based.
-          createdAt: new Date(Date.UTC(2016, 11, 15, 19, 37, 37, 59)),
-          lastSignedInAt: new Date(Date.UTC(2017, 0, 1)),
+            creationTime: '2016-12-15T19:37:37.059Z',
+            lastSignInTime: '2017-01-01T00:00:00.000Z',
+        },
+        providerData: [{
+          uid: 'g-abcde12345',
+          email: 'foo@gmail.com',
+          displayName: 'My Google Provider Display Name',
+          photoURL: 'googleusercontent.com/foo.jpg',
+          providerId: 'google.com',
+        }],
+      };
+
+      return Promise.all([
+        expect(cloudFunctionCreate(event)).to.eventually.deep.equal(expectedData),
+        expect(cloudFunctionDelete(event)).to.eventually.deep.equal(expectedData),
+      ]);
+    });
+
+    it('should handle new wire format for UserRecord', () => {
+      const cloudFunctionCreate = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
+      const cloudFunctionDelete = auth.user().onDelete((ev: Event<firebase.auth.UserRecord>) => ev.data);
+
+      // The event data delivered over the wire will be the JSON for a UserRecord:
+      // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
+      let event = {
+        eventId: 'f2e2f0bf-2e47-4d92-b009-e7a375ecbd3e',
+        eventType: 'providers/firebase.auth/eventTypes/user.create',
+        resource: 'projects/myUnitTestProject',
+        notSupported: {
+        },
+        data: {
+          uid: 'abcde12345',
+          email: 'foo@bar.baz',
+          emailVerified: false,
+          displayName: 'My Display Name',
+          photoURL: 'bar.baz/foo.jpg',
+          disabled: false,
+          metadata: {
+              creationTime: '2016-12-15T19:37:37.059Z',
+              lastSignInTime: '2017-01-01T00:00:00.000Z',
+          },
+          providerData: [{
+            uid: 'g-abcde12345',
+            email: 'foo@gmail.com',
+            displayName: 'My Google Provider Display Name',
+            photoURL: 'googleusercontent.com/foo.jpg',
+            providerId: 'google.com',
+          }],
+        },
+      };
+
+      const expectedData = {
+        uid: 'abcde12345',
+        email: 'foo@bar.baz',
+        emailVerified: false,
+        displayName: 'My Display Name',
+        photoURL: 'bar.baz/foo.jpg',
+        disabled: false,
+        metadata: {
+          creationTime: '2016-12-15T19:37:37.059Z',
+          lastSignInTime: '2017-01-01T00:00:00.000Z',
         },
         providerData: [{
           uid: 'g-abcde12345',
@@ -132,9 +188,8 @@ describe('AuthBuilder', () => {
         data: {
           uid: 'abcde12345',
           metadata: {
-            // TODO(inlined) We'll need to manually parse these!
-            createdAt: new Date(),
-            lastSignedInAt: new Date(),
+            creationTime: '2016-12-15T19:37:37.059Z',
+            lastSignInTime: '2017-01-01T00:00:00.000Z',
           },
           email: 'nobody@google.com',
           emailVerified: false,
