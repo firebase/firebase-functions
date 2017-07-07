@@ -1,0 +1,1 @@
+important - Add ability to listen to granular create/update/delete database events by using onCreate, onUpdate, and onDelete functions.
