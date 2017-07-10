@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "dbTests": {
+      "$testId": {
+        "adminOnly": {
+          ".validate": false
+        }
+      }
+    },
+    ".read": "auth != null",
+    ".write": true
+  }
+}

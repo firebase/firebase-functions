@@ -1,0 +1,21 @@
+{
+  "name": "functions",
+  "description": "Integration test for the Firebase SDK for Google Cloud Functions",
+  "scripts": {
+    "build": "./node_modules/.bin/tsc"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "^0.6.0",
+    "@types/lodash": "^4.14.41",
+    "firebase": ">3.6.9",
+    "firebase-admin": ">4.1.1",
+    "firebase-functions": "./firebase-functions.tgz",
+    "loadash": "^0.0.1",
+    "lodash": "^4.17.2"
+  },
+  "main": "lib/index.js",
+  "devDependencies": {
+    "typescript": "^2.0.10"
+  },
+  "private": true
+}
