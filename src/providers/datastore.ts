@@ -69,22 +69,49 @@ export class DocumentBuilder {
     // TODO what validation do we want to do here?
   }
 
-  onWrite(handler: (event: Event<any>) => PromiseLike<any> | any): CloudFunction<any> {
-    const dataConstructor = (raw: Event<any>) => {
-      if (raw.data instanceof DeltaDocumentSnapshot) {
-        return raw.data;
-      }
-      return new DeltaDocumentSnapshot(
-        _.get(raw.data, 'value.fields', {}),
-        _.get(raw.data, 'oldValue.fields', {})
-      );
-    };
-    return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
-      eventType: 'document.write',
-      dataConstructor,
-    });
+  /** Respond to all document writes (creates, updates, or deletes). */
+  onWrite(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
+  any): CloudFunction<DeltaDocumentSnapshot> {
+    return this.onOperation(handler, 'document.write');
+  }
+
+  /** Respond only to document creations. */
+  onCreate(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
+  any): CloudFunction<DeltaDocumentSnapshot> {
+    return this.onOperation(handler, 'document.create');
+  }
+
+  /** Respond only to document updates. */
+  onUpdate(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
+  any): CloudFunction<DeltaDocumentSnapshot> {
+    return this.onOperation(handler, 'document.update');
+  }
+
+  /** Respond only to document deletions. */
+  onDelete(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
+  any): CloudFunction<DeltaDocumentSnapshot> {
+    return this.onOperation(handler, 'document.delete');
+  }
+
+  private onOperation(
+    handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> | any,
+    eventType: string): CloudFunction<DeltaDocumentSnapshot> {
+
+      const dataConstructor = (raw: Event<any>) => {
+        if (raw.data instanceof DeltaDocumentSnapshot) {
+          return raw.data;
+        }
+        return new DeltaDocumentSnapshot(
+          _.get(raw.data, 'value.fields', {}),
+          _.get(raw.data, 'oldValue.fields', {})
+        );
+      };
+      return makeCloudFunction({
+        provider, handler,
+        resource: this.resource,
+        eventType: eventType,
+        dataConstructor,
+      });
   }
 }
 

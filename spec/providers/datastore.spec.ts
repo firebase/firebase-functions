@@ -33,12 +33,12 @@ describe('Datastore Functions', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  describe('document builders', () => {
-    function expectedTrigger(resource: string) {
+  describe('document builders and event types', () => {
+    function expectedTrigger(resource: string, eventType: string) {
       return {
         eventTrigger: {
           resource,
-          eventType: `providers/${datastore.provider}/eventTypes/document.write`,
+          eventType: `providers/${datastore.provider}/eventTypes/${eventType}`,
         },
       };
     }
@@ -46,62 +46,119 @@ describe('Datastore Functions', () => {
     it('should allow terse constructors', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
       let cloudFunction = datastore.document('users/{uid}').onWrite(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource));
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('should allow custom namespaces', () => {
       let resource = 'projects/project1/databases/(default)/documents@v2/users/{uid}';
       let cloudFunction = datastore.namespace('v2').document('users/{uid}').onWrite(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource));
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('should allow custom databases', () => {
       let resource = 'projects/project1/databases/myDB/documents/users/{uid}';
       let cloudFunction = datastore.database('myDB').document('users/{uid}').onWrite(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource));
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('should allow both custom database and namespace', () => {
       let resource = 'projects/project1/databases/myDB/documents@v2/users/{uid}';
       let cloudFunction = datastore.database('myDB').namespace('v2').document('users/{uid}').onWrite(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource));
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
+    });
+
+    it('onCreate should have the "document.create" eventType', () => {
+      let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
+      let eventType = datastore.document('users/{uid}').onCreate(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq(expectedTrigger(resource, 'document.create').eventTrigger.eventType);
+    });
+
+    it('onUpdate should have the "document.update" eventType', () => {
+      let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
+      let eventType = datastore.document('users/{uid}').onUpdate(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq(expectedTrigger(resource, 'document.update').eventTrigger.eventType);
+    });
+
+    it('onDelete should have the "document.delete" eventType', () => {
+      let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
+      let eventType = datastore.document('users/{uid}').onDelete(() => null).__trigger.eventTrigger.eventType;
+      expect(eventType).to.eq(expectedTrigger(resource, 'document.delete').eventTrigger.eventType);
     });
   });
 
   describe('dataConstructor', () => {
-    let testEvent = {
-      'data': {
-        'oldValue': {
-          'fields': {
-            'key1': {
-              'booleanValue': false,
+    function testEvent() {
+      return {
+        'data': {
+          'oldValue': {
+            'fields': {
+              'key1': {
+                'booleanValue': false,
+              },
+              'key2': {
+                'integerValue': '111',
+              },
             },
-            'key2': {
-              'integerValue': '111',
+          },
+          'value': {
+            'fields': {
+              'key1': {
+                'booleanValue': true,
+              },
+              'key2': {
+                'integerValue': '123',
+              },
             },
           },
         },
-        'value': {
-          'fields': {
-            'key1': {
-              'booleanValue': true,
-            },
-            'key2': {
-              'integerValue': '123',
-            },
-          },
-        },
-      },
-    };
+      };
+    }
 
-    it('constructs appropriate fields and getters for event.data', () => {
+    it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
       let testFunction = datastore.document('path').onWrite((event) => {
+        console.log(testEvent());
+        console.log(event);
+        console.log(JSON.stringify(event));
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      return testFunction(testEvent);
+      return testFunction(testEvent());
+    });
+
+    it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
+      let testFunction = datastore.document('path').onCreate((event) => {
+        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
+        expect(event.data.get('key1')).to.equal(true);
+        expect(event.data.previous.data()).to.deep.equal({});
+        expect(event.data.previous.get('key1')).to.equal(null);
+      });
+      let event = testEvent();
+      event.data.oldValue = null;
+      return testFunction(event);
+    });
+
+    it('constructs appropriate fields and getters for event.data on "document.update" events', () => {
+      let testFunction = datastore.document('path').onUpdate((event) => {
+        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
+        expect(event.data.get('key1')).to.equal(true);
+        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
+        expect(event.data.previous.get('key1')).to.equal(false);
+      });
+      return testFunction(testEvent());
+    });
+
+    it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
+      let testFunction = datastore.document('path').onDelete((event) => {
+        expect(event.data.data()).to.deep.equal({});
+        expect(event.data.get('key1')).to.equal(null);
+        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
+        expect(event.data.previous.get('key1')).to.equal(false);
+      });
+      let event = testEvent();
+      event.data.value = null;
+      return testFunction(event);
     });
   });
 
