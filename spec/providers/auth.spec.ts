@@ -61,90 +61,76 @@ describe('AuthBuilder', () => {
   });
 
   describe('#_dataConstructor', () => {
-    it('should handle an event with the appropriate fields', () => {
-      const cloudFunctionCreate = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
-      const cloudFunctionDelete = auth.user().onDelete((ev: Event<firebase.auth.UserRecord>) => ev.data);
+    let cloudFunctionCreate;
+    let cloudFunctionDelete;
+    let event;
 
-      // The event data delivered over the wire will be the JSON for a UserRecord:
-      // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-      let event = {
-        eventId: 'f2e2f0bf-2e47-4d92-b009-e7a375ecbd3e',
-        eventType: 'providers/firebase.auth/eventTypes/user.create',
-        resource: 'projects/myUnitTestProject',
-        notSupported: {
-        },
+    before(() => {
+      cloudFunctionCreate = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
+      cloudFunctionDelete = auth.user().onDelete((ev: Event<firebase.auth.UserRecord>) => ev.data);
+      event = {
         data: {
-          uid: 'abcde12345',
-          email: 'foo@bar.baz',
-          emailVerified: false,
-          displayName: 'My Display Name',
-          photoURL: 'bar.baz/foo.jpg',
-          disabled: false,
           metadata: {
             createdAt: '2016-12-15T19:37:37.059Z',
             lastSignedInAt: '2017-01-01T00:00:00.000Z',
           },
-          providerData: [{
-            uid: 'g-abcde12345',
-            email: 'foo@gmail.com',
-            displayName: 'My Google Provider Display Name',
-            photoURL: 'googleusercontent.com/foo.jpg',
-            providerId: 'google.com',
-          }],
         },
       };
+    });
 
-      const expectedData = {
-        uid: 'abcde12345',
-        email: 'foo@bar.baz',
-        emailVerified: false,
-        displayName: 'My Display Name',
-        photoURL: 'bar.baz/foo.jpg',
-        disabled: false,
-        metadata: {
-          // Gotcha's:
-          // - JS Date is, by default, local-time based, not UTC-based.
-          // - JS Date's month is zero-based.
-          createdAt: new Date(Date.UTC(2016, 11, 15, 19, 37, 37, 59)),
-          lastSignedInAt: new Date(Date.UTC(2017, 0, 1)),
-        },
-        providerData: [{
-          uid: 'g-abcde12345',
-          email: 'foo@gmail.com',
-          displayName: 'My Google Provider Display Name',
-          photoURL: 'googleusercontent.com/foo.jpg',
-          providerId: 'google.com',
-        }],
-      };
-
+    it('should transform old wire format for UserRecord into v5.0.0 format', () => {
       return Promise.all([
-        expect(cloudFunctionCreate(event)).to.eventually.deep.equal(expectedData),
-        expect(cloudFunctionDelete(event)).to.eventually.deep.equal(expectedData),
+        cloudFunctionCreate(event).then(data => {
+          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+        }),
+        cloudFunctionDelete(event).then(data => {
+          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+        }),
       ]);
     });
 
-    // This isn't expected to happen in production, but if it does we should
-    // handle it gracefully.
-    it('should tolerate missing fields in the payload', () => {
-      const cloudFunction = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
+    // createdAt and lastSignedIn are fields of admin.auth.UserMetadata below v5.0.0
+    // We want to add shims to still expose these fields so that user's code do not break
+    // The shim and this test should be removed in v1.0.0 of firebase-functions
+    it('should still retain createdAt and lastSignedIn', () => {
+      return Promise.all([
+        cloudFunctionCreate(event).then(data => {
+          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
+          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
+        }),
+        cloudFunctionDelete(event).then(data => {
+          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
+          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
+        }),
+      ]);
+    });
 
-      let event: Event<firebase.auth.UserRecord> = {
+    it('should handle new wire format if/when there is a change', () => {
+      const newEvent = {
         data: {
-          uid: 'abcde12345',
           metadata: {
-            // TODO(inlined) We'll need to manually parse these!
-            createdAt: new Date(),
-            lastSignedInAt: new Date(),
+            creationTime: '2016-12-15T19:37:37.059Z',
+            lastSignInTime: '2017-01-01T00:00:00.000Z',
           },
-          email: 'nobody@google.com',
-          emailVerified: false,
-          displayName: 'sample user',
-          photoURL: '',
-          disabled: false,
         },
-      } as any;
+      };
 
-      return expect(cloudFunction(event)).to.eventually.deep.equal(event.data);
+      return Promise.all([
+        cloudFunctionCreate(newEvent).then(data => {
+          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
+          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
+        }),
+        cloudFunctionDelete(newEvent).then(data => {
+          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
+          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
+        }),
+      ]);
     });
   });
 });
