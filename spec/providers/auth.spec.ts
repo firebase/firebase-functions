@@ -91,6 +91,9 @@ describe('AuthBuilder', () => {
       ]);
     });
 
+    // createdAt and lastSignedIn are fields of admin.auth.UserMetadata below v5.0.0
+    // We want to add shims to still expose these fields so that user's code do not break
+    // The shim and this test should be removed in v1.0.0 of firebase-functions
     it('should still retain createdAt and lastSignedIn', () => {
       return Promise.all([
         cloudFunctionCreate(event).then(data => {
@@ -118,10 +121,14 @@ describe('AuthBuilder', () => {
         cloudFunctionCreate(newEvent).then(data => {
           expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
           expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
+          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
         }),
         cloudFunctionDelete(newEvent).then(data => {
           expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
           expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
+          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
         }),
       ]);
     });
