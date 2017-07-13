@@ -87,28 +87,36 @@ describe('Datastore Functions', () => {
   });
 
   describe('dataConstructor', () => {
-    function testEvent() {
+    function constructData(oldValue: object, value: object) {
       return {
         'data': {
-          'oldValue': {
-            'fields': {
-              'key1': {
-                'booleanValue': false,
-              },
-              'key2': {
-                'integerValue': '111',
-              },
-            },
+          'oldValue': oldValue,
+          'value': value,
+        },
+      };
+    }
+
+    function createOldValue() {
+      return {
+        'fields': {
+          'key1': {
+            'booleanValue': false,
           },
-          'value': {
-            'fields': {
-              'key1': {
-                'booleanValue': true,
-              },
-              'key2': {
-                'integerValue': '123',
-              },
-            },
+          'key2': {
+            'integerValue': '111',
+          },
+        },
+      };
+    }
+
+    function createValue() {
+      return {
+        'fields': {
+          'key1': {
+            'booleanValue': true,
+          },
+          'key2': {
+            'integerValue': '123',
           },
         },
       };
@@ -116,27 +124,23 @@ describe('Datastore Functions', () => {
 
     it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
       let testFunction = datastore.document('path').onWrite((event) => {
-        console.log(testEvent());
-        console.log(event);
-        console.log(JSON.stringify(event));
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      return testFunction(testEvent());
+      let data = constructData(createOldValue(), createValue());
+      return testFunction(data);
     });
 
     it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
       let testFunction = datastore.document('path').onCreate((event) => {
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous.data()).to.deep.equal({});
-        expect(event.data.previous.get('key1')).to.equal(null);
+        expect(event.data.previous).to.equal(null);
       });
-      let event = testEvent();
-      event.data.oldValue = null;
-      return testFunction(event);
+      let data = constructData(null, createValue());
+      return testFunction(data);
     });
 
     it('constructs appropriate fields and getters for event.data on "document.update" events', () => {
@@ -146,7 +150,8 @@ describe('Datastore Functions', () => {
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      return testFunction(testEvent());
+      let data = constructData(createOldValue(), createValue());
+      return testFunction(data);
     });
 
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
@@ -156,9 +161,8 @@ describe('Datastore Functions', () => {
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      let event = testEvent();
-      event.data.value = null;
-      return testFunction(event);
+      let data = constructData(createOldValue(), null);
+      return testFunction(data);
     });
   });
 

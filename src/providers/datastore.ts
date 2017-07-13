@@ -135,6 +135,8 @@ export class DeltaDocumentSnapshot {
     return _.get(this.data(), key, null);
   }
 
+  // Note: this is an expected assymetry between event.data and
+  // event.data.previous until we move the latter to event.previous
   get previous(): DeltaDocumentSnapshot {
     if (_.isEmpty(this._old)) {
       return null;
