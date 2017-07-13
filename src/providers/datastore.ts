@@ -141,7 +141,7 @@ export class DeltaDocumentSnapshot {
                 result = new Buffer(fieldValue, 'base64');
             }
         } else if (fieldType === 'referenceValue') {
-          console.log('WARNING: you have a data field which is a datastore reference. ' +
+          console.warn('WARNING: you have a data field which is a datastore reference. ' +
           'There will be a breaking change later which will change it from a string to a reference object.');
           result = fieldValue;
         } else {

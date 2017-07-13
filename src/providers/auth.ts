@@ -22,6 +22,7 @@
 
 import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
 
 /** @internal */
 export const provider = 'firebase.auth';
@@ -31,27 +32,51 @@ export function user() {
   return new UserBuilder('projects/' + process.env.GCLOUD_PROJECT);
 }
 
+export class UserRecordMetadata implements firebase.auth.UserMetadata {
+
+  constructor(public creationTime: string, public lastSignInTime: string) { };
+
+  // Remove in v1.0.0
+  /** @internal */
+  get lastSignedInAt() {
+    console.warn('WARNING: "lastSignedInAt" will be removed in firebase-functions v1.0.0. ' +
+    'Please start using "lastSignInTime", which is an ISO string.');
+    return new Date(this.lastSignInTime);
+  }
+
+  // Remove in v1.0.0
+  /** @internal */
+  get createdAt() {
+    console.warn('WARNING: "createdAt" will be removed in firebase-functions v1.0.0. ' +
+    'Please start using "creationTime", which is an ISO string.');
+    return new Date(this.creationTime);
+  }
+
+  toJSON() {
+    return {
+      creationTime: this.creationTime,
+      lastSignInTime: this.lastSignInTime,
+    };
+  }
+}
+
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
   private static dataConstructor(raw: any): firebase.auth.UserRecord {
     // The UserRecord returned here is an interface. The firebase-admin/auth/user-record module
-    // also has a class of the same name, which is one implementation of the interface. Here,
-    // because our wire format already almost matches the UserRecord interface, we only use the
-    // interface, no need to use the class.
-    //
-    // The one change we need to make to match the interface is to our incoming timestamps. The
-    // interface requires them to be Date objects, while they raw payload has them as strings.
-    if (raw.data.metadata) {
-      let metadata = raw.data.metadata;
-      if (metadata.lastSignedInAt && typeof metadata.lastSignedInAt === 'string') {
-        metadata.lastSignedInAt = new Date(metadata.lastSignedInAt);
-      }
-      if (metadata.createdAt && typeof metadata.createdAt === 'string') {
-        metadata.createdAt = new Date(metadata.createdAt);
-      }
+    // also has a class of the same name, which is one implementation of the interface.
+
+    // Transform payload to firebase-admin v5.0.0 format
+    let data = _.clone(raw.data);
+    if (data.metadata) {
+      let meta = data.metadata;
+      data.metadata = new UserRecordMetadata(
+        meta.createdAt || meta.creationTime,
+        meta.lastSignedInAt || meta.lastSignInTime,
+      );
     }
 
-    return raw.data;
+    return data;
   }
 
   /** @internal */
