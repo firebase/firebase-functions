@@ -1,0 +1,1 @@
+changed - Updated firebase-admin peer dependency to v5.0.1. For auth functions, event.data.metadata has its fields renamed from ‘createdAt’ to ‘creationTime’ and ‘lastSignedInAt’ to ‘lastSignInTime’, and both are now ISO strings instead of Date objects.
