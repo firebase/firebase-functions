@@ -4,6 +4,3 @@ node_js:
 - '6.11.1'
 - stable
 sudo: false
-cache:
-  directories:
-  - node_modules
