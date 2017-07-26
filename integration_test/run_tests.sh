@@ -1,6 +1,7 @@
 #!/bin/bash
 echo "#### Building SDK..." &&
-(cd ../ && npm run build:pack && cp firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz) &&
+(cd ../ && rm firebase-functions-*.tgz && npm run build:pack &&
+mv firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz) &&
 echo "#### Installing dependencies..." &&
 (cd functions && npm install) &&
 echo "##### Deploying empty index.js to project..." &&
@@ -22,5 +23,6 @@ read -n1 -r -p "##### Press [return] when you've confirmed the tests have passed
 echo "##### Removing all functions" &&
 echo "" > functions/lib/index.js &&
 firebase deploy --debug 2> ./deploy-debug.log &&
+rm functions/firebase-functions.tgz
 echo &&
 echo "##### Done! Please verify that your project is empty."
