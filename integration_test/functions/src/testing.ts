@@ -39,8 +39,9 @@ export class TestSuite {
       let sum = 0;
       results.forEach((val) => sum = sum + val.passed);
       const summary = `passed ${sum} of ${running.length}`;
+      const passed = sum === running.length;
       console.log(summary);
-      const result = { summary, tests: results };
+      const result = { passed, summary, tests: results };
       return firebase.database().ref(`testRuns/${testId}/${this.name}`).set(result);
     }).then(() => null);
   }
