@@ -7,7 +7,7 @@ import { Request, Response } from 'express';
 export * from './pubsub-tests';
 export * from './database-tests';
 export * from './auth-tests';
-let numTests = 4;  // Make sure to increase this as you add tests!
+const numTests = Object.keys(exports).length;  // Assumption: every exported function is its own test.
 
 firebase.initializeApp(_.omit(functions.config().firebase, 'credential'));  // Explicitly decline admin privileges.
 admin.initializeApp(functions.config().firebase);
@@ -55,12 +55,16 @@ export const integrationTests: any = functions.https.onRequest((req: Request, re
       });
     }).then(() => {
       ref.off();  // No more need to listen.
-      console.log('All tests pass!');
-      resp.status(200).send('PASS');
+      return Promise.resolve();
     }).catch(err => {
       ref.off();  // No more need to listen.
-      console.log(`Some tests failed: ${err}`);
-      resp.status(500).send(`FAIL - details at https://${process.env.GCLOUD_PROJECT}.firebaseio.com/testRuns/${testId}`);
+      return Promise.reject(err);
     });
+  }).then(() => {
+    console.log('All tests pass!');
+    resp.status(200).send('PASS');
+  }).catch(err => {
+    console.log(`Some tests failed: ${err}`);
+    resp.status(500).send(`FAIL - details at https://${process.env.GCLOUD_PROJECT}.firebaseio.com/testRuns/${testId}`);
   });
 });
