@@ -16,7 +16,7 @@
   ./functions/node_modules/.bin/tsc -p functions/ &&  # Make sure the functions/lib directory actually exists.
   echo "" > functions/lib/index.js &&
   firebase deploy --only functions --debug 2> /dev/null &&
- echo &&
+  echo &&
   echo "##### Project emptied. Deploying functions..." &&
   ./functions/node_modules/.bin/tsc -p functions/ &&
   firebase deploy --only functions --debug 2> /dev/null &&
