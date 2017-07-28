@@ -6,8 +6,8 @@ How to Use
 Run the integration test as follows:
 
 ```bash
-firebase use $YOURPROJECTID # add your own project
+firebase init # Don't choose to use any features, select your project.
 ./run_tests.sh
 ```
 
-Follow the instructions output by the script. You'll click on a number of HTTPS function links.  The integration test for HTTPS is that it properly kicks off other integration tests and redirects you to the database console. From there the other integration test suites will write their results back to the database, where you can check the results.
+The tests run fully automatically, and will print the result on standard out. The integration test for HTTPS is that it properly kicks off other integration tests and returns a result. From there the other integration test suites will write their results back to the database, where you can check the detailed results if you'd like.
