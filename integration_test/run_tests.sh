@@ -15,7 +15,7 @@
   echo "##### Deploying empty index.js to project..." &&
   ./functions/node_modules/.bin/tsc -p functions/ &&  # Make sure the functions/lib directory actually exists.
   echo "" > functions/lib/index.js &&
-  firebase deploy --only functions --debug 2> /dev/null &&
+  firebase deploy --debug 2> /dev/null &&
   echo &&
   echo "##### Project emptied. Deploying functions..." &&
   ./functions/node_modules/.bin/tsc -p functions/ &&
@@ -37,7 +37,7 @@
   echo "" > functions/lib/index.js &&
   firebase deploy --only functions --debug 2> /dev/null &&
   rm functions/firebase-functions.tgz &&
-  rm functions/firebase-debug.log &&
+  rm -f functions/firebase-debug.log &&
   echo &&
   echo "##### All tests pass!"
 ) || (
