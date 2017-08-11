@@ -53,9 +53,6 @@ describe('makeCloudFunction', () => {
       },
       eventType: 'providers/provider/eventTypes/event',
       resource: 'resource',
-      params: {
-        foo: 'bar',
-      },
       data: 'data',
     };
 
@@ -67,10 +64,37 @@ describe('makeCloudFunction', () => {
       },
       eventType: 'providers/provider/eventTypes/event',
       resource: 'resource',
-      params: {
-        foo: 'bar',
-      },
       data: 'data',
+      params: {},
+    });
+  });
+});
+
+describe('makeParams', () => {
+
+  const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
+    provider: 'mock.provider',
+    eventType: 'mock.event',
+    resource: 'projects/_/instances/pid/ref/{foo}/nested/{bar}',
+    handler: () => null,
+  };
+
+  const testEvent: Event<string> = {
+    resource: 'projects/_/instances/pid/ref/a/nested/b',
+    data: 'data',
+  };
+
+  it('should construct params from the event resource', () => {
+    let args: any = _.assign({}, cloudFunctionArgs, {handler: (e) => e});
+    let cf = makeCloudFunction(args);
+
+    return expect(cf(testEvent)).to.eventually.deep.equal({
+      resource: 'projects/_/instances/pid/ref/a/nested/b',
+      data: 'data',
+      params: {
+        foo: 'a',
+        bar: 'b',
+      },
     });
   });
 });

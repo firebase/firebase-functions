@@ -24,6 +24,7 @@ import { apps } from './apps';
 import * as _ from 'lodash';
 import { Request, Response } from 'express';
 export { Request, Response };
+const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /** An event to be handled in a developer's Cloud Function */
 export interface Event<T> {
@@ -72,6 +73,22 @@ export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event<any>) => void;
 }
 
+function _makeParams (event: Event<any>, triggerResource: string): { [option: string]: any } {
+  let wildcards = triggerResource.match(WILDCARD_REGEX);
+  let params = {};
+  if (wildcards) {
+    let triggerResourceParts = _.split(triggerResource, '/');
+    let eventResourceParts = _.split(event.resource, '/');
+    _.forEach(wildcards, wildcard => {
+      let wildcardNoBraces = wildcard.slice(1,-1);
+
+      let position = _.indexOf(triggerResourceParts, wildcard);
+      params[wildcardNoBraces] = eventResourceParts[position];
+    });
+  }
+  return params;
+};
+
 /** @internal */
 export function makeCloudFunction<EventData>({
   provider,
@@ -88,7 +105,7 @@ export function makeCloudFunction<EventData>({
       .then(() => {
         let typedEvent: Event<EventData> = _.cloneDeep(event);
         typedEvent.data = dataConstructor(event);
-        typedEvent.params = event.params || {};
+        typedEvent.params = _makeParams(event, resource) || {};
         return handler(typedEvent);
       }).then(result => {
         if (after) { after(event); }
