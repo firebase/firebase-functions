@@ -1,0 +1,2 @@
+changed - Updated firebase-admin peer dependency to v5.2.1, which adds support for the Google Cloud Storage API. See release notes: https://github.com/firebase/firebase-admin-node/releases.
+changed - Updated integration test script to be fully automated.
