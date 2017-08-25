@@ -74,7 +74,7 @@ export interface MakeCloudFunctionArgs<EventData> {
 }
 
 function _makeParams(event: Event<any>, triggerResource: string): { [option: string]: any } {  
-  if (!event.resource) {
+  if (!event.resource) { // In unit testing, "resource" may not be populated for a test event.
     return event.params || {};
   }
 
