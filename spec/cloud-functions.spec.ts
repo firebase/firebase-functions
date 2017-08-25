@@ -79,17 +79,38 @@ describe('makeParams', () => {
     handler: () => null,
   };
 
-  const testEvent: Event<string> = {
-    resource: 'projects/_/instances/pid/ref/a/nested/b',
-    data: 'data',
-  };
-
   it('should construct params from the event resource', () => {
     let args: any = _.assign({}, cloudFunctionArgs, {handler: (e) => e});
     let cf = makeCloudFunction(args);
 
+    const testEvent: Event<string> = {
+      resource: 'projects/_/instances/pid/ref/a/nested/b',
+      data: 'data',
+    };
+
     return expect(cf(testEvent)).to.eventually.deep.equal({
       resource: 'projects/_/instances/pid/ref/a/nested/b',
+      data: 'data',
+      params: {
+        foo: 'a',
+        bar: 'b',
+      },
+    });
+  });
+
+  it('should construct params from the event params', () => {
+    let args: any = _.assign({}, cloudFunctionArgs, {handler: (e) => e});
+    let cf = makeCloudFunction(args);
+
+    const testEvent: Event<string> = {
+      data: 'data',
+      params: {
+        foo: 'a',
+        bar: 'b',
+      },
+    };
+
+    return expect(cf(testEvent)).to.eventually.deep.equal({
       data: 'data',
       params: {
         foo: 'a',
