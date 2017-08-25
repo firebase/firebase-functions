@@ -73,7 +73,11 @@ export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event<any>) => void;
 }
 
-function _makeParams(event: Event<any>, triggerResource: string): { [option: string]: any } {
+function _makeParams(event: Event<any>, triggerResource: string): { [option: string]: any } {  
+  if (!event.resource) {
+    return event.params || {};
+  }
+
   let wildcards = triggerResource.match(WILDCARD_REGEX);
   let params = {};
   if (wildcards) {
@@ -86,8 +90,6 @@ function _makeParams(event: Event<any>, triggerResource: string): { [option: str
       params[wildcardNoBraces] = eventResourceParts[position];
     });
   }
-
-  Object.assign(params, event.params);
 
   return params;
 };
