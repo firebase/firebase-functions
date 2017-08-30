@@ -1,1 +1,0 @@
-fixed - Fixed bug where developers' unit tests for Database functions would fail if they defined `event.params` but not `event.resource`, and tried to access `event.params` within the function.
