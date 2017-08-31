@@ -9,7 +9,7 @@
     "build:release": "npm install --production && npm install typescript firebase-admin && node_modules/.bin/tsc -p tsconfig.release.json",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts integration_test/functions/src/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
-    "test": "mocha .tmp/spec/index.spec.js",
+    "test": "nyc -x .tmp/spec --reporter=text mocha .tmp/spec/index.spec.js",
     "posttest": "npm run lint && rm -rf .tmp"
   },
   "repository": {
@@ -43,6 +43,7 @@
     "mocha": "^2.4.5",
     "mock-require": "^2.0.1",
     "nock": "^8.0.0",
+    "nyc": "^11.1.0",
     "sinon": "^1.17.4",
     "tslint": "^3.15.1",
     "typescript": "^2.0.3"
