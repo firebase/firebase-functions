@@ -18,7 +18,7 @@ PROJECT_ID=$1
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 function announce {
-  echo -e "\n##### $1"
+  echo -e "\n\n##### $1"
 }
 
 function build_sdk {
@@ -53,8 +53,14 @@ function deploy {
 
 function run_tests {
   announce "Running the integration tests..."
-  funcURL=$(tail -n 1 $DIR/firebase-debug.log | awk '{ print $5 }') # URL is printed on last line of log.
-  curl -s --fail $funcURL
+
+  # Construct the URL for the test function. This may change in the future,
+  # causing this script to start failing, but currently we don't have a very
+  # reliable way of determining the URL dynamically.
+  TEST_URL=https://us-central1-$PROJECT_ID.cloudfunctions.net/integrationTests
+  echo $TEST_URL
+
+  curl --fail $TEST_URL
 }
 
 function cleanup {
