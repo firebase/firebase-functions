@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as datastore from '../../src/providers/datastore';
+import * as firestore from '../../src/providers/firestore';
 import { expect } from 'chai';
 
-describe('Datastore Functions', () => {
+describe('Firetore Functions', () => {
 
   before(() => {
     process.env.GCLOUD_PROJECT = 'project1';
@@ -38,50 +38,50 @@ describe('Datastore Functions', () => {
       return {
         eventTrigger: {
           resource,
-          eventType: `providers/${datastore.provider}/eventTypes/${eventType}`,
+          eventType: `providers/${firestore.provider}/eventTypes/${eventType}`,
         },
       };
     }
 
     it('should allow terse constructors', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
-      let cloudFunction = datastore.document('users/{uid}').onWrite(() => null);
+      let cloudFunction = firestore.document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('should allow custom namespaces', () => {
       let resource = 'projects/project1/databases/(default)/documents@v2/users/{uid}';
-      let cloudFunction = datastore.namespace('v2').document('users/{uid}').onWrite(() => null);
+      let cloudFunction = firestore.namespace('v2').document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('should allow custom databases', () => {
       let resource = 'projects/project1/databases/myDB/documents/users/{uid}';
-      let cloudFunction = datastore.database('myDB').document('users/{uid}').onWrite(() => null);
+      let cloudFunction = firestore.database('myDB').document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('should allow both custom database and namespace', () => {
       let resource = 'projects/project1/databases/myDB/documents@v2/users/{uid}';
-      let cloudFunction = datastore.database('myDB').namespace('v2').document('users/{uid}').onWrite(() => null);
+      let cloudFunction = firestore.database('myDB').namespace('v2').document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
 
     it('onCreate should have the "document.create" eventType', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
-      let eventType = datastore.document('users/{uid}').onCreate(() => null).__trigger.eventTrigger.eventType;
+      let eventType = firestore.document('users/{uid}').onCreate(() => null).__trigger.eventTrigger.eventType;
       expect(eventType).to.eq(expectedTrigger(resource, 'document.create').eventTrigger.eventType);
     });
 
     it('onUpdate should have the "document.update" eventType', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
-      let eventType = datastore.document('users/{uid}').onUpdate(() => null).__trigger.eventTrigger.eventType;
+      let eventType = firestore.document('users/{uid}').onUpdate(() => null).__trigger.eventTrigger.eventType;
       expect(eventType).to.eq(expectedTrigger(resource, 'document.update').eventTrigger.eventType);
     });
 
     it('onDelete should have the "document.delete" eventType', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
-      let eventType = datastore.document('users/{uid}').onDelete(() => null).__trigger.eventTrigger.eventType;
+      let eventType = firestore.document('users/{uid}').onDelete(() => null).__trigger.eventTrigger.eventType;
       expect(eventType).to.eq(expectedTrigger(resource, 'document.delete').eventTrigger.eventType);
     });
   });
@@ -123,7 +123,7 @@ describe('Datastore Functions', () => {
     }
 
     it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
-      let testFunction = datastore.document('path').onWrite((event) => {
+      let testFunction = firestore.document('path').onWrite((event) => {
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
@@ -134,7 +134,7 @@ describe('Datastore Functions', () => {
     });
 
     it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
-      let testFunction = datastore.document('path').onCreate((event) => {
+      let testFunction = firestore.document('path').onCreate((event) => {
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous).to.equal(null);
@@ -144,7 +144,7 @@ describe('Datastore Functions', () => {
     });
 
     it('constructs appropriate fields and getters for event.data on "document.update" events', () => {
-      let testFunction = datastore.document('path').onUpdate((event) => {
+      let testFunction = firestore.document('path').onUpdate((event) => {
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
@@ -155,7 +155,7 @@ describe('Datastore Functions', () => {
     });
 
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
-      let testFunction = datastore.document('path').onDelete((event) => {
+      let testFunction = firestore.document('path').onDelete((event) => {
         expect(event.data.data()).to.deep.equal({});
         expect(event.data.get('key1')).to.equal(null);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
@@ -168,32 +168,32 @@ describe('Datastore Functions', () => {
 
   describe('DeltaDocumentSnapshot', () => {
     it('should parse int values', () => {
-      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'integerValue': '123'}}, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'integerValue': '123'}}, {});
       expect(snapshot.data()).to.deep.equal({'key': 123});
     });
 
     it('should parse double values', () => {
-      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'doubleValue': 12.34}}, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'doubleValue': 12.34}}, {});
       expect(snapshot.data()).to.deep.equal({'key': 12.34});
     });
 
     it('should parse long values', () => {
-      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'longValue': 12.34}}, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'longValue': 12.34}}, {});
       expect(snapshot.data()).to.deep.equal({'key': 12.34});
     });
 
     it('should parse null values', () => {
-      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'nullValue': null}}, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'nullValue': null}}, {});
       expect(snapshot.data()).to.deep.equal({'key': null});
     });
 
     it('should parse boolean values', () => {
-      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'booleanValue': true}}, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'booleanValue': true}}, {});
       expect(snapshot.data()).to.deep.equal({'key': true});
     });
 
     it('should parse string values', () => {
-      let snapshot = new datastore.DeltaDocumentSnapshot({'key': {'stringValue': 'foo'}}, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'stringValue': 'foo'}}, {});
       expect(snapshot.data()).to.deep.equal({'key': 'foo'});
     });
 
@@ -206,7 +206,7 @@ describe('Datastore Functions', () => {
           ],
         },
       }};
-      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
       expect(snapshot.data()).to.deep.equal({'key': [1, 2]});
     });
 
@@ -223,7 +223,7 @@ describe('Datastore Functions', () => {
           },
         },
       }};
-      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
       expect(snapshot.data()).to.deep.equal({'keyParent': {'key1':'val1', 'key2':'val2'}});
     });
 
@@ -242,7 +242,7 @@ describe('Datastore Functions', () => {
           },
         },
       };
-      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
       expect(snapshot.data()).to.deep.equal({'geoPointValue': {
         'latitude': 40.73,
         'longitude': -73.93,
@@ -255,7 +255,7 @@ describe('Datastore Functions', () => {
           'referenceValue': 'projects/proj1/databases/(default)/documents/doc1/id',
         },
       };
-      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
       // TODO: need to actually construct a reference
       expect(snapshot.data()).to.deep.equal({
         'referenceVal': 'projects/proj1/databases/(default)/documents/doc1/id',
@@ -268,7 +268,7 @@ describe('Datastore Functions', () => {
           'timestampValue': '2017-06-13T00:58:40.349Z',
         },
       };
-      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
       expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
     });
 
@@ -279,7 +279,7 @@ describe('Datastore Functions', () => {
           'bytesValue': 'Zm9vYmFy',
         },
       };
-      let snapshot = new datastore.DeltaDocumentSnapshot(raw, {});
+      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
       let binaryVal;
       try {
           binaryVal = Buffer.from('Zm9vYmFy', 'base64');

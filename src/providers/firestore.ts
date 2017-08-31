@@ -24,7 +24,7 @@ import * as _ from 'lodash';
 import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
 
 /** @internal */
-export const provider = (new Buffer('Y2xvdWQuZmlyZXN0b3Jl', 'base64')).toString();
+export const provider = 'cloud.firestore';
 
 /** @internal */
 export const defaultDatabase = '(default)';
@@ -170,7 +170,7 @@ export class DeltaDocumentSnapshot {
                 result = new Buffer(fieldValue, 'base64');
             }
         } else if (fieldType === 'referenceValue') {
-          console.warn('WARNING: you have a data field which is a datastore reference. ' +
+          console.warn('WARNING: you have a data field which is a firestore reference. ' +
           'There will be a breaking change later which will change it from a string to a reference object.');
           result = fieldValue;
         } else {
