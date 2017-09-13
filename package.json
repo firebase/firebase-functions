@@ -8,7 +8,7 @@
     "build:pack": "npm prune --production && rm -rf lib && npm install && node_modules/.bin/tsc -p tsconfig.release.json && npm pack && npm install",
     "build:release": "npm install --production && npm install typescript firebase-admin && node_modules/.bin/tsc -p tsconfig.release.json",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts integration_test/functions/src/{**/*,*}.ts",
-    "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
+    "pretest": "node_modules/.bin/tsc",
     "test": "mocha .tmp/spec/index.spec.js",
     "posttest": "npm run lint && rm -rf .tmp"
   },
