@@ -63,6 +63,9 @@ export class AnalyticsEventBuilder {
     handler: (event: Event<AnalyticsEvent>) => PromiseLike<any> | any
   ): CloudFunction<AnalyticsEvent> {
     const dataConstructor = (raw: Event<any>) => {
+      if (raw.data instanceof AnalyticsEvent) {
+        return raw.data;
+      }
       return new AnalyticsEvent(raw.data);
     };
     return makeCloudFunction({

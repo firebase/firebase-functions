@@ -52,9 +52,6 @@ export class BucketBuilder {
   }
 }
 
-// A RegExp that matches on a GCS media link that points at a _nested_ object (one that uses a path/with/slashes).
-const nestedMediaLinkRE = new RegExp('https://www.googleapis.com/storage/v1/b/([^/]+)/o/(.*)');
-
 export class ObjectBuilder {
   /** @internal */
   constructor(private resource) { }
@@ -63,21 +60,8 @@ export class ObjectBuilder {
    * Handle any change to any object.
    */
   onChange(handler: (event: Event<ObjectMetadata>) => PromiseLike<any> | any): CloudFunction<ObjectMetadata> {
-    // This is a temporary shim to fix the 'mediaLink' for nested objects.
-    // BUG(37962789): clean this up when backend fix for bug is deployed.
-    let correctMediaLink = (event: Event<ObjectMetadata>) => {
-      let deconstructedNestedLink = event.data.mediaLink.match(nestedMediaLinkRE);
-      if (deconstructedNestedLink != null) {
-        // The media link for a nested object uses an illegal URL (using literal slashes instead of "%2F".
-        // Fix up the URL.
-        let bucketName = deconstructedNestedLink[1];
-        let fixedTail = deconstructedNestedLink[2].replace(/\//g, '%2F');  // "/\//g" means "all forward slashes".
-        event.data.mediaLink = 'https://www.googleapis.com/storage/v1/b/' + bucketName + '/o/' + fixedTail;
-      }
-      return handler(event);
-    };
     return makeCloudFunction(
-      { provider, handler: correctMediaLink, resource: this.resource, eventType: 'object.change' });
+      { provider, handler: handler, resource: this.resource, eventType: 'object.change' });
   }
 }
 

@@ -70,40 +70,6 @@ describe('storage.FunctionBuilder', () => {
       expect(() => storage.bucket('bad/bucket/format')).to.throw(Error);
     });
 
-    it('should correct nested media links using a single literal slash', () => {
-      let cloudFunction = storage.object().onChange((event) => {
-        return event.data.mediaLink;
-      });
-      let badMediaLinkEvent = {
-        data: {
-          mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-          + '/o/nestedfolder/myobject.file?generation=12345&alt=media',
-        },
-      };
-      return cloudFunction(badMediaLinkEvent).then(result => {
-        expect(result).equals(
-          'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-          + '/o/nestedfolder%2Fmyobject.file?generation=12345&alt=media');
-      });
-    });
-
-    it('should correct nested media links using multiple literal slashes', () => {
-      let cloudFunction = storage.object().onChange((event) => {
-        return event.data.mediaLink;
-      });
-      let badMediaLinkEvent = {
-        data: {
-          mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-          + '/o/nestedfolder/anotherfolder/myobject.file?generation=12345&alt=media',
-        },
-      };
-      return cloudFunction(badMediaLinkEvent).then(result => {
-        expect(result).equals(
-          'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-          + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media');
-      });
-    });
-
     it('should not mess with media links using non-literal slashes', () => {
       let cloudFunction = storage.object().onChange((event) => {
         return event.data.mediaLink;
