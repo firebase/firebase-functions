@@ -57,7 +57,11 @@ function run_tests {
   # Construct the URL for the test function. This may change in the future,
   # causing this script to start failing, but currently we don't have a very
   # reliable way of determining the URL dynamically.
-  TEST_URL=https://us-central1-$PROJECT_ID.cloudfunctions.net/integrationTests
+  TEST_DOMAIN="cloudfunctions.net"
+  if [[ $FIREBASE_FUNCTIONS_URL == "https://preprod-cloudfunctions.sandbox.googleapis.com" ]]; then
+    TEST_DOMAIN="txcloud.net"
+  fi
+  TEST_URL="https://us-central1-$PROJECT_ID.$TEST_DOMAIN/integrationTests"
   echo $TEST_URL
 
   curl --fail $TEST_URL
