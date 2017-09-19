@@ -92,7 +92,7 @@ function _makeParams(event: Event<any>, triggerResource: string): { [option: str
   }
 
   return params;
-};
+}
 
 /** @internal */
 export function makeCloudFunction<EventData>({
@@ -101,25 +101,27 @@ export function makeCloudFunction<EventData>({
   resource,
   dataConstructor = (raw: Event<any>) => raw.data,
   handler,
-  before,
-  after,
+  before = () => { return; },
+  after = () => { return; },
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction: any = (event: Event<any>) => {
-    return Promise.resolve(event)
-      .then(before)
-      .then(() => {
-        let typedEvent: Event<EventData> = _.cloneDeep(event);
-        typedEvent.data = dataConstructor(event);
-        typedEvent.params = _makeParams(event, resource) || {};
-        return handler(typedEvent);
-      }).then(result => {
-        if (after) { after(event); }
-        return result;
-      }, err => {
-        if (after) { after(event); }
-        return Promise.reject(err);
-      });
+  let cloudFunction: any = async (event: Event<any>) => {
+    try {
+      before(event);
+
+      let typedEvent: Event<EventData> = _.cloneDeep(event);
+      typedEvent.data = dataConstructor(event);
+      typedEvent.params = _makeParams(event, resource) || {};
+
+      let promise = handler(typedEvent);
+      if (typeof promise === 'undefined') {
+        console.warn('Function returned undefined, expected Promise or value');
+      }
+      return await promise;
+    } finally {
+      after(event);
+    }
   };
+
   cloudFunction.__trigger = {
     eventTrigger: {
       resource,
