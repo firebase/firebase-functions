@@ -48,7 +48,7 @@ function deploy {
   announce "Deploying functions..."
   cd $DIR
   ./functions/node_modules/.bin/tsc -p functions/
-  firebase deploy --project=$PROJECT_ID --only functions
+  firebase deploy --project=$PROJECT_ID --only functions,database
 }
 
 function run_tests {
