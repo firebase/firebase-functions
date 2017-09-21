@@ -38,7 +38,7 @@
     "@types/sinon": "^1.16.29",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.2.0",
-    "firebase-admin": "~5.2.1",
+    "firebase-admin": "https://storage.googleapis.com/functions-dev-preview/firebase-admin-5.2.2-firestore.tgz",
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "mock-require": "^2.0.1",
@@ -48,7 +48,7 @@
     "typescript": "^2.0.3"
   },
   "peerDependencies": {
-    "firebase-admin": "~5.2.1"
+    "firebase-admin": "https://storage.googleapis.com/functions-dev-preview/firebase-admin-5.2.2-firestore.tgz"
   },
   "dependencies": {
     "@types/express": "^4.0.33",
@@ -59,6 +59,9 @@
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.6.1",
     "sha1": "^1.1.1"
+  },
+  "engines": {
+    "node": ">=4.0.0"
   },
   "typings": "lib/index.d.ts"
 }

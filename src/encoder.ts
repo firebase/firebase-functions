@@ -20,27 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
-import { config } from '../../src/config';
+export function dateToTimestampProto(timeString) {
+  if (typeof timeString === 'undefined') {
+    return;
+  }
+  let date = new Date(timeString);
+  let seconds = Math.floor(date.getTime() / 1000);
+  let nanoString = timeString.substring(20, timeString.length - 1);
 
-export function fakeConfig(data?: Object) {
-  return _.extend({}, data, {
-    firebase: {
-      databaseURL: 'https://subdomain.firebaseio.com',
-      storageBucket: 'bucket',
-      credential: {
-        getAccessToken: () => {
-          return Promise.resolve({
-            expires_in: 1000,
-            access_token: 'fake',
-          });
-        },
-        getCertificate: () => Promise.resolve(),
-      },
-    },
-  });
-}
-
-export function unsetSingleton() {
-  delete config.singleton;
-}
+  if (nanoString.length === 3) {
+    nanoString = `${nanoString}000000`;
+  } else if (nanoString.length === 6)  {
+    nanoString = `${nanoString}000`;
+  }
+  let proto = {
+    seconds: seconds,
+    nanos: parseInt(nanoString, 10),
+  };
+  return proto;
+};

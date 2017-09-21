@@ -21,13 +21,17 @@
 // SOFTWARE.
 
 import * as _ from 'lodash';
+import * as firebase from 'firebase-admin';
+import { apps } from '../apps';
 import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
+import { dateToTimestampProto } from '../encoder';
 
 /** @internal */
 export const provider = 'cloud.firestore';
 
 /** @internal */
 export const defaultDatabase = '(default)';
+let firestoreInstance;
 
 export function database(database: string = defaultDatabase) {
   return new DatabaseBuilder(`projects/${process.env.GCLOUD_PROJECT}/databases/${database}`);
@@ -63,6 +67,113 @@ export class NamespaceBuilder {
   }
 }
 
+export interface DeltaDocumentSnapshot {
+  exists: Boolean;
+  ref: any;
+  id: string;
+  createTime: string;
+  updateTime: string;
+  readTime: string;
+  previous: any;
+  data: () => object;
+  get: (key: string) => any;
+};
+
+function isDeltaDocumentSnapshot(data: any): data is DeltaDocumentSnapshot {
+  return 'exists' in data;
+};
+
+function getValueProto(event) {
+  let data = event.data;
+  if (_.isEmpty(_.get(data, 'value'))) {
+    // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
+    return event.resource;
+  }
+  let proto = {
+    fields: convertToFieldsProto(_.get(data, 'value.fields', {})),
+    createTime: dateToTimestampProto(_.get(data, 'value.createTime')),
+    updateTime: dateToTimestampProto(_.get(data, 'value.updateTime')),
+    name: _.get(data, 'value.name', event.resource),
+  };
+  return proto;
+};
+
+function getOldValueProto(event) {
+  let data = event.data;
+  let proto = {
+    fields: convertToFieldsProto(_.get(data, 'oldValue.fields', {})),
+    createTime: dateToTimestampProto(_.get(data, 'oldValue.createTime')),
+    updateTime: dateToTimestampProto(_.get(data, 'oldValue.updateTime')),
+    name: _.get(data, 'oldValue.name', event.resource),
+  };
+  return proto;
+};
+
+function convertToFieldsProto(fields): object {
+  if (!fields) {
+    return {};
+  }
+  function convertHelper(data) {
+    let result;
+    _.forEach(data, (value: any, valueType: string) => {
+      let dataPart;
+      if (valueType === 'arrayValue') {
+        let array = _.get(value, 'values', []);
+        dataPart = {
+          arrayValue: {
+            values: _.map(array, (elem) => {
+              return convertHelper(elem);
+            }),
+          },
+        };
+      } else if (valueType === 'mapValue') {
+        let map = _.get(value, 'fields', {});
+        dataPart = {
+          mapValue: {
+            fields: _.mapValues(map, (val) => {
+              return convertHelper(val);
+            }),
+          },
+        };
+      } else if (valueType === 'timestampValue') {
+        dataPart = {timestampValue: dateToTimestampProto(value)};
+      } else {
+        dataPart = data;
+      }
+      result = _.merge({}, dataPart, {value_type: valueType});
+    });
+    return result;
+  }
+
+  return _.mapValues(fields, (data: object) => {
+    return convertHelper(data);
+  });
+};
+
+/** @internal */
+export function dataConstructor(raw: Event<any>) {
+  if (isDeltaDocumentSnapshot(raw.data)) {
+    return raw.data;
+  }
+  if (!firestoreInstance) {
+    firestoreInstance = firebase.firestore(apps().admin);
+  }
+  let valueProto = getValueProto(raw);
+  let readTime = dateToTimestampProto(_.get(raw.data, 'value.readTime'));
+  let snapshot = firestoreInstance.snapshot_(valueProto, readTime) as DeltaDocumentSnapshot;
+  Object.defineProperty(snapshot, 'previous', {
+    get: () => {
+      if (_.isEmpty(_.get(raw, 'data.oldValue', {}))) {
+        return null;
+      }
+      let oldValueProto = getOldValueProto(raw);
+      let oldReadTime = dateToTimestampProto(_.get(raw.data, 'value.oldValue.readTime'));
+      return firestoreInstance.snapshot_(oldValueProto, oldReadTime) as DeltaDocumentSnapshot;
+    },
+  });
+  return snapshot;
+};
+
 export class DocumentBuilder {
   /** @internal */
   constructor(private resource: string) {
@@ -96,87 +207,11 @@ export class DocumentBuilder {
   private onOperation(
     handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> | any,
     eventType: string): CloudFunction<DeltaDocumentSnapshot> {
-
-      const dataConstructor = (raw: Event<any>) => {
-        if (raw.data instanceof DeltaDocumentSnapshot) {
-          return raw.data;
-        }
-        return new DeltaDocumentSnapshot(
-          _.get(raw.data, 'value.fields', {}),
-          _.get(raw.data, 'oldValue.fields', {})
-        );
-      };
       return makeCloudFunction({
         provider, handler,
         resource: this.resource,
         eventType: eventType,
         dataConstructor,
       });
-  }
-}
-
-export class DeltaDocumentSnapshot {
-
-  private _data: object;
-  private _previous: DeltaDocumentSnapshot;
-
-  constructor(private _raw: object, private _old: object) { }
-
-  data(): object {
-    if (!this._data) {
-      this._data = _.mapValues(this._raw, (field) => {
-        return this._transformField(field);
-      });
-    }
-    return this._data;
-  }
-
-  get(key: string): any {
-    return _.get(this.data(), key, null);
-  }
-
-  // Note: this is an expected assymetry between event.data and
-  // event.data.previous until we move the latter to event.previous
-  get previous(): DeltaDocumentSnapshot {
-    if (_.isEmpty(this._old)) {
-      return null;
-    }
-    this._previous = new DeltaDocumentSnapshot(this._old, null);
-    return this._previous;
-  }
-
-  private _transformField(field: object): any {
-    // field is an object with only 1 key-value pair, so this will only loop once
-    let result;
-    _.forEach(field, (fieldValue, fieldType) => {
-        if (fieldType === 'arrayValue') {
-          result = _.map(_.get(fieldValue, 'values', []), (elem) => {
-            return this._transformField(elem);
-          });
-        } else if (fieldType === 'mapValue') {
-          result = _.mapValues(_.get(fieldValue, 'fields', {}), (val) => {
-            return this._transformField(val);
-          });
-        } else if (fieldType === 'integerValue'
-          || fieldType === 'doubleValue'
-          || fieldType === 'longValue') {
-          result = Number(fieldValue);
-        } else if (fieldType === 'timestampValue') {
-          result = new Date(fieldValue);
-        } else if (fieldType === 'bytesValue') {
-            try {
-                result = Buffer.from(fieldValue, 'base64');
-            } catch (e) { // Node version < 6, which is the case for Travis CI
-                result = new Buffer(fieldValue, 'base64');
-            }
-        } else if (fieldType === 'referenceValue') {
-          console.warn('WARNING: you have a data field which is a firestore reference. ' +
-          'There will be a breaking change later which will change it from a string to a reference object.');
-          result = fieldValue;
-        } else {
-          result = fieldValue;
-        }
-    });
-    return result;
   }
 }

@@ -23,10 +23,21 @@
 import * as firestore from '../../src/providers/firestore';
 import { expect } from 'chai';
 
-describe('Firetore Functions', () => {
+describe('Firestore Functions', () => {
+  let constructValue = (fields) => {
+    return {
+      'fields': fields,
+      'name': 'projects/pid/databases/(default)/documents/collection/123',
+      'createTime': '2017-06-02T18:48:58.920638Z',
+      'updateTime': '2017-07-02T18:48:58.920638Z',
+    };
+  };
 
   before(() => {
     process.env.GCLOUD_PROJECT = 'project1';
+    process.env.FIREBASE_PROJECT = JSON.stringify({
+      databaseUrl: 'project1@firebaseio.com',
+    });
   });
 
   after(() => {
@@ -87,39 +98,36 @@ describe('Firetore Functions', () => {
   });
 
   describe('dataConstructor', () => {
-    function constructData(oldValue: object, value: object) {
+    function constructEvent(oldValue: object, value: object) {
       return {
         'data': {
           'oldValue': oldValue,
           'value': value,
         },
+        'resource': 'projects/pid/databases/(default)/documents/collection/123',
       };
     }
 
     function createOldValue() {
-      return {
-        'fields': {
-          'key1': {
-            'booleanValue': false,
-          },
-          'key2': {
-            'integerValue': '111',
-          },
+      return constructValue({
+        'key1': {
+          'booleanValue': false,
         },
-      };
+        'key2': {
+          'integerValue': '111',
+        },
+      });
     }
 
     function createValue() {
-      return {
-        'fields': {
-          'key1': {
-            'booleanValue': true,
-          },
-          'key2': {
-            'integerValue': '123',
-          },
+      return constructValue({
+        'key1': {
+          'booleanValue': true,
         },
-      };
+        'key2': {
+          'integerValue': '123',
+        },
+      });
     }
 
     it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
@@ -129,7 +137,7 @@ describe('Firetore Functions', () => {
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      let data = constructData(createOldValue(), createValue());
+      let data = constructEvent(createOldValue(), createValue());
       return testFunction(data);
     });
 
@@ -139,7 +147,7 @@ describe('Firetore Functions', () => {
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous).to.equal(null);
       });
-      let data = constructData(null, createValue());
+      let data = constructEvent({}, createValue());
       return testFunction(data);
     });
 
@@ -150,143 +158,241 @@ describe('Firetore Functions', () => {
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      let data = constructData(createOldValue(), createValue());
+      let data = constructEvent(createOldValue(), createValue());
       return testFunction(data);
     });
 
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
       let testFunction = firestore.document('path').onDelete((event) => {
-        expect(event.data.data()).to.deep.equal({});
-        expect(event.data.get('key1')).to.equal(null);
+        expect(event.data.data).to.throw(Error);
+        expect(() => {return event.data.get('key1');}).to.throw(Error);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
-      let data = constructData(createOldValue(), null);
+      let data = constructEvent(createOldValue(), {});
       return testFunction(data);
     });
   });
 
   describe('DeltaDocumentSnapshot', () => {
-    it('should parse int values', () => {
-      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'integerValue': '123'}}, {});
-      expect(snapshot.data()).to.deep.equal({'key': 123});
-    });
+    describe('#data()', () => {
+      it('should parse int values', () => {
+        let snapshot = firestore.dataConstructor({
+          data: {
+            value: constructValue({'key': {'integerValue': '123'}}),
+          },
+        });
+        expect(snapshot.data()).to.deep.equal({'key': 123});
+      });
 
-    it('should parse double values', () => {
-      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'doubleValue': 12.34}}, {});
-      expect(snapshot.data()).to.deep.equal({'key': 12.34});
-    });
+      it('should parse double values', () => {
+        let snapshot = firestore.dataConstructor({
+          data: {
+            value: constructValue({'key': {'doubleValue': 12.34}}),
+          },
+        });
+        expect(snapshot.data()).to.deep.equal({'key': 12.34});
+      });
 
-    it('should parse long values', () => {
-      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'longValue': 12.34}}, {});
-      expect(snapshot.data()).to.deep.equal({'key': 12.34});
-    });
+      it('should parse null values', () => {
+        let snapshot = firestore.dataConstructor({
+          data: {
+            value: constructValue({'key': {'nullValue': null}}),
+          },
+        });
+        expect(snapshot.data()).to.deep.equal({'key': null});
+      });
 
-    it('should parse null values', () => {
-      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'nullValue': null}}, {});
-      expect(snapshot.data()).to.deep.equal({'key': null});
-    });
+      it('should parse boolean values', () => {
+        let snapshot = firestore.dataConstructor({
+          data: {
+            value: constructValue({'key': {'booleanValue': true}}),
+          },
+        });
+        expect(snapshot.data()).to.deep.equal({'key': true});
+      });
 
-    it('should parse boolean values', () => {
-      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'booleanValue': true}}, {});
-      expect(snapshot.data()).to.deep.equal({'key': true});
-    });
+      it('should parse string values', () => {
+        let snapshot = firestore.dataConstructor({
+          data: {
+            value: constructValue({'key': {'stringValue': 'foo'}}),
+          },
+        });
+        expect(snapshot.data()).to.deep.equal({'key': 'foo'});
+      });
 
-    it('should parse string values', () => {
-      let snapshot = new firestore.DeltaDocumentSnapshot({'key': {'stringValue': 'foo'}}, {});
-      expect(snapshot.data()).to.deep.equal({'key': 'foo'});
-    });
-
-    it('should parse array values', () => {
-      let raw = {'key': {
-        'arrayValue': {
-          'values': [
-            { 'integerValue': '1' },
-            { 'integerValue': '2' },
-          ],
-        },
-      }};
-      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
-      expect(snapshot.data()).to.deep.equal({'key': [1, 2]});
-    });
-
-    it('should parse object values', () => {
-      let raw = {'keyParent': {
-        'mapValue': {
-          'fields': {
-            'key1': {
-              'stringValue': 'val1',
-            },
-            'key2': {
-              'stringValue': 'val2',
+      it('should parse array values', () => {
+        let raw = constructValue({
+          'key': {
+            'arrayValue': {
+              'values': [
+                { 'integerValue': '1' },
+                { 'integerValue': '2' },
+              ],
             },
           },
-        },
-      }};
-      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
-      expect(snapshot.data()).to.deep.equal({'keyParent': {'key1':'val1', 'key2':'val2'}});
-    });
+        });
+        let snapshot = firestore.dataConstructor({
+          data: { value: raw },
+        });
+        expect(snapshot.data()).to.deep.equal({'key': [1, 2]});
+      });
 
-    it('should parse GeoPoint values', () => {
-      let raw = {
-        'geoPointValue': {
-          'mapValue': {
-            'fields': {
-              'latitude': {
-                'doubleValue': 40.73,
-              },
-              'longitude': {
-                'doubleValue': -73.93,
+      it('should parse object values', () => {
+        let raw = constructValue({
+          'keyParent': {
+            'mapValue': {
+              'fields': {
+                'key1': {
+                  'stringValue': 'val1',
+                },
+                'key2': {
+                  'stringValue': 'val2',
+                },
               },
             },
           },
-        },
-      };
-      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
-      expect(snapshot.data()).to.deep.equal({'geoPointValue': {
-        'latitude': 40.73,
-        'longitude': -73.93,
-      }});
-    });
+        });
+        let snapshot = firestore.dataConstructor({
+          data: { value: raw },
+        });
+        expect(snapshot.data()).to.deep.equal({'keyParent': {'key1':'val1', 'key2':'val2'}});
+      });
 
-    it('should parse reference values', () => {
-      let raw = {
-        'referenceVal': {
-          'referenceValue': 'projects/proj1/databases/(default)/documents/doc1/id',
-        },
-      };
-      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
-      // TODO: need to actually construct a reference
-      expect(snapshot.data()).to.deep.equal({
-        'referenceVal': 'projects/proj1/databases/(default)/documents/doc1/id',
+      it('should parse GeoPoint values', () => {
+        let raw = constructValue({
+          'geoPointValue': {
+            'mapValue': {
+              'fields': {
+                'latitude': {
+                  'doubleValue': 40.73,
+                },
+                'longitude': {
+                  'doubleValue': -73.93,
+                },
+              },
+            },
+          },
+        });
+        let snapshot = firestore.dataConstructor({
+          data: { value: raw },
+        });
+        expect(snapshot.data()).to.deep.equal({'geoPointValue': {
+          'latitude': 40.73,
+          'longitude': -73.93,
+        }});
+      });
+
+      it('should parse reference values', () => {
+        let raw = constructValue({
+          'referenceVal': {
+            'referenceValue': 'projects/proj1/databases/(default)/documents/doc1/id',
+          },
+        });
+        let snapshot = firestore.dataConstructor({
+          data: { value: raw },
+        });
+        expect(snapshot.data()['referenceVal'].path).to.equal('doc1/id');
+      });
+
+      it('should parse timestamp values', () => {
+        let raw = constructValue({
+          'timestampVal': {
+            'timestampValue': '2017-06-13T00:58:40.349Z',
+          },
+        });
+        let snapshot = firestore.dataConstructor({
+          data: { value: raw },
+        });
+        expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
+      });
+
+      it('should parse binary values', () => {
+        // Format defined in https://developers.google.com/discovery/v1/type-format
+        let raw = constructValue({
+          'binaryVal': {
+            'bytesValue': 'Zm9vYmFy',
+          },
+        });
+        let snapshot = firestore.dataConstructor({
+          data: { value: raw },
+        });
+        expect(snapshot.data()).to.deep.equal({'binaryVal': 'Zm9vYmFy'});
       });
     });
 
-    it('should parse timestamp values', () => {
-      let raw = {
-        'timestampVal': {
-          'timestampValue': '2017-06-13T00:58:40.349Z',
-        },
-      };
-      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
-      expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
+    describe('Other DocumentSnapshot methods', () => {
+      let snapshot;
+
+      before(() => {
+        snapshot = firestore.dataConstructor({
+          'data': {
+            'value': {
+              'fields': {'key': {'integerValue': '1'}},
+              'createTime': '2017-06-17T14:45:17.876479Z',
+              'updateTime': '2017-08-31T18:05:26.928527Z',
+              'readTime': '2017-07-31T18:23:26.928527Z',
+              'name': 'projects/pid/databases/(default)/documents/collection/123',
+            },
+          },
+        });
+      });
+
+      it('should support #exists', () => {
+        expect(snapshot.exists).to.be.true;
+      });
+
+      it('should support #ref', () => {
+        expect(Object.keys(snapshot.ref)).to.deep.equal(['_firestore', '_referencePath']);
+        expect(snapshot.ref.path).to.equal('collection/123');
+      });
+
+      it('should support #id', () => {
+        expect(snapshot.id).to.equal('123');
+      });
+
+      it('should support #createTime', () => {
+        expect(Date.parse(snapshot.createTime)).to.equal(Date.parse('2017-06-17T14:45:17.876479Z'));
+      });
+
+      it('should support #updateTime', () => {
+        expect(Date.parse(snapshot.updateTime)).to.equal(Date.parse('2017-08-31T18:05:26.928527Z'));
+      });
+
+      it('should support #readTime', () => {
+        expect(Date.parse(snapshot.readTime)).to.equal(Date.parse('2017-07-31T18:23:26.928527Z'));
+      });
     });
 
-    it('should parse binary values', () => {
-      // Format defined in https://developers.google.com/discovery/v1/type-format
-      let raw = {
-        'binaryVal': {
-          'bytesValue': 'Zm9vYmFy',
-        },
-      };
-      let snapshot = new firestore.DeltaDocumentSnapshot(raw, {});
-      let binaryVal;
-      try {
-          binaryVal = Buffer.from('Zm9vYmFy', 'base64');
-      } catch (e) { // Node version < 6, which is the case for Travis CI
-          binaryVal = new Buffer('Zm9vYmFy', 'base64');
-      }
-      expect(snapshot.data()).to.deep.equal({'binaryVal': binaryVal});
+    describe('Handle empty and non-existent documents', () => {
+      it('constructs non-existent DocumentSnapshot when whole document deleted', () => {
+        let snapshot = firestore.dataConstructor({
+          'data': {
+            'value': {}, // value is empty when the whole document is deleted
+          },
+          'resource': 'projects/pid/databases/(default)/documents/collection/123',
+        });
+        expect(snapshot.exists).to.be.false;
+        expect(snapshot.ref.path).to.equal('collection/123');
+        expect(snapshot.data).to.throw(Error);
+        expect(() => {return snapshot.get('key1');}).to.throw(Error);
+      });
+
+      it('constructs existent DocumentSnapshot with empty data when all fields of document deleted', () => {
+        let snapshot = firestore.dataConstructor({
+          'data': {
+            'value': {  // value is not empty when document still exists
+              'createTime': '2017-06-02T18:48:58.920638Z',
+              'updateTime': '2017-07-02T18:48:58.920638Z',
+              'name': 'projects/pid/databases/(default)/documents/collection/123',
+            },
+          },
+        });
+        expect(snapshot.exists).to.be.true;
+        expect(snapshot.ref.path).to.equal('collection/123');
+        expect(snapshot.data()).to.deep.equal({});
+        expect(snapshot.get('key1')).to.equal(undefined);
+      });
     });
   });
 });
