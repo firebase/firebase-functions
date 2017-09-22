@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { join } from 'path';
 import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { apps } from '../apps';
@@ -34,7 +35,7 @@ export const defaultDatabase = '(default)';
 let firestoreInstance;
 
 export function database(database: string = defaultDatabase) {
-  return new DatabaseBuilder(`projects/${process.env.GCLOUD_PROJECT}/databases/${database}`);
+  return new DatabaseBuilder(join('projects', process.env.GCLOUD_PROJECT, 'databases', database));
 }
 
 export function namespace(namespace: string) {
@@ -50,11 +51,11 @@ export class DatabaseBuilder {
   constructor(private resource: string) { }
 
   namespace(namespace: string) {
-    return new NamespaceBuilder(`${this.resource}/documents@${namespace}`);
+    return new NamespaceBuilder(`${join(this.resource, 'documents')}@${namespace}`);
   }
 
   document(path: string) {
-    return (new NamespaceBuilder(`${this.resource}/documents`)).document(path);
+    return (new NamespaceBuilder(join(this.resource, 'documents'))).document(path);
   }
 }
 
@@ -63,7 +64,7 @@ export class NamespaceBuilder {
   constructor(private resource: string) { }
 
   document(path: string) {
-    return new DocumentBuilder(`${this.resource}/${path}`);
+    return new DocumentBuilder(join(this.resource, path));
   }
 }
 
