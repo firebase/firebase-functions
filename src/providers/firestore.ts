@@ -141,7 +141,7 @@ function convertToFieldsProto(fields): object {
       } else {
         dataPart = data;
       }
-      result = _.merge({}, dataPart, {value_type: valueType});
+      result = _.merge({}, dataPart, {valueType: valueType});
     });
     return result;
   }
