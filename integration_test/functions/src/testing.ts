@@ -1,4 +1,5 @@
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
 
 export type TestCase = (event) => any
 export type TestCaseMap = { [key: string]: TestCase };
@@ -65,6 +66,12 @@ export function evaluate(value, errMsg) {
 export function expectEq(left, right) {
   return evaluate(
     left === right,
+    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right));
+}
+
+export function expectDeepEq(left, right) {
+  return evaluate(
+    _.isEqual(left, right),
     JSON.stringify(left) + ' does not equal ' + JSON.stringify(right));
 }
 

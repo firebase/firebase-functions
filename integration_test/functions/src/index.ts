@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 export * from './pubsub-tests';
 export * from './database-tests';
 export * from './auth-tests';
+export * from './firestore-tests';
 const numTests = Object.keys(exports).length;  // Assumption: every exported function is its own test.
 
 firebase.initializeApp(_.omit(functions.config().firebase, 'credential'));  // Explicitly decline admin privileges.
@@ -16,7 +17,6 @@ export const integrationTests: any = functions.https.onRequest((req: Request, re
   let pubsub: any = require('@google-cloud/pubsub')();
 
   const testId = firebase.database().ref().push().key;
-
   return Promise.all([
     // A database write to trigger the Firebase Realtime Database tests.
     // The database write happens without admin privileges, so that the triggered function's "event.data.ref" also
@@ -33,6 +33,8 @@ export const integrationTests: any = functions.https.onRequest((req: Request, re
       // A user deletion to trigger the Firebase Auth user deletion tests.
       admin.auth().deleteUser(userRecord.uid);
     }),
+    // A firestore write to trigger the Cloud Firestore tests.
+    admin.firestore().collection('tests').doc(testId).set({test: testId}),
   ]).then(() => {
     // On test completion, check that all tests pass and reply "PASS", or provide further details.
     console.log('Waiting for all tests to report they pass...');
