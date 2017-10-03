@@ -8,7 +8,7 @@
     "@google-cloud/pubsub": "^0.6.0",
     "@types/lodash": "^4.14.41",
     "firebase": ">3.6.9",
-    "firebase-admin": "https://storage.googleapis.com/functions-dev-preview/firebase-admin-5.4.0-rc5.tgz",
+    "firebase-admin": ">=5.4.0",
     "firebase-functions": "./firebase-functions.tgz",
     "lodash": "^4.17.2"
   },
