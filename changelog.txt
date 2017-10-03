@@ -1,0 +1,2 @@
+feature - Added support for Firestore trigger type, with onWrite, onCreate, onUpdate, and onDelete events. e.g. exports.myFunction = functions.firestore.document('profiles/{user}').onCreate(handler)
+fixed - Fixed bug where a function that returned “undefined” no longer issued a warning in the logs.
