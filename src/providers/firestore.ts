@@ -76,7 +76,7 @@ export interface DeltaDocumentSnapshot {
   updateTime: string;
   readTime: string;
   previous: any;
-  data: () => object;
+  data: () => any;
   get: (key: string) => any;
 };
 
