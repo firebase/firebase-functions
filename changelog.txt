@@ -1,1 +1,0 @@
-feature - Updated firebase-admin peer dependency to v5.4.2. This version has important updates for Firestore.
