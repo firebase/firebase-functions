@@ -26,16 +26,11 @@ export function dateToTimestampProto(timeString) {
   }
   let date = new Date(timeString);
   let seconds = Math.floor(date.getTime() / 1000);
-  let nanoString = timeString.substring(20, timeString.length - 1);
-
-  if (nanoString.length === 3) {
-    nanoString = `${nanoString}000000`;
-  } else if (nanoString.length === 6)  {
-    nanoString = `${nanoString}000`;
+  let nanos = 0;
+  if (timeString.length > 20) {
+    const nanoString = timeString.substring(20, timeString.length - 1);
+    const trailingZeroes = 9 - nanoString.length;
+    nanos = parseInt(nanoString, 10) * Math.pow(10, trailingZeroes);
   }
-  let proto = {
-    seconds: seconds,
-    nanos: parseInt(nanoString, 10),
-  };
-  return proto;
+  return { seconds, nanos };
 };
