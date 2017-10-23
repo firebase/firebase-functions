@@ -295,7 +295,7 @@ describe('Firestore Functions', () => {
         expect(snapshot.data()['referenceVal'].path).to.equal('doc1/id');
       });
 
-      it('should parse timestamp values', () => {
+      it('should parse timestamp values with precision to the millisecond', () => {
         let raw = constructValue({
           'timestampVal': {
             'timestampValue': '2017-06-13T00:58:40.349Z',
@@ -307,7 +307,7 @@ describe('Firestore Functions', () => {
         expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
       });
 
-      it('should parse timestamp values of with precision to the second', () => {
+      it('should parse timestamp values with precision to the second', () => {
         let raw = constructValue({
           'timestampVal': {
             'timestampValue': '2017-06-13T00:58:40Z',

@@ -20,18 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as _ from 'lodash';
+
 export function dateToTimestampProto(timeString) {
   if (typeof timeString === 'undefined') {
     return;
   }
   let date = new Date(timeString);
   let seconds = Math.floor(date.getTime() / 1000);
-  let nanoString = timeString.substring(20, timeString.length - 1);
-
-  if (nanoString.length === 3) {
-    nanoString = `${nanoString}000000`;
-  } else if (nanoString.length === 6)  {
-    nanoString = `${nanoString}000`;
+  let nanoString;
+  if (timeString.length <= 20) {
+    nanoString = '000000000';
+  } else {
+    nanoString = timeString.substring(20, timeString.length - 1);
+    nanoString += _.reduce(new Array(9 - nanoString.length), i => {return i + '0';}, '');
   }
   let proto = {
     seconds: seconds,
