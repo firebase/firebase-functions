@@ -32,9 +32,5 @@ export function dateToTimestampProto(timeString) {
     const trailingZeroes = 9 - nanoString.length;
     nanos = parseInt(nanoString, 10) * Math.pow(10, trailingZeroes);
   }
-
-  return {
-    seconds: seconds,
-    nanos: nanos,
-  };
+  return { seconds, nanos };
 };
