@@ -40,3 +40,4 @@ import './providers/firestore.spec';
 import './providers/https.spec';
 import './providers/pubsub.spec';
 import './providers/storage.spec';
+import './providers/crashlytics.spec';
