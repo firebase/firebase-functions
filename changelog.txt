@@ -1,0 +1,2 @@
+feature - Added support for Crashlytics-triggered functions. To get access to Crashlytics Beta, go to http://g.co/firebase/opt-in.
+fixed - Fixed bug where date values in Firestore became "Invalid date" if milliseconds were not specified.
