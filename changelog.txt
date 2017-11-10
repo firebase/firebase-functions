@@ -1,1 +1,0 @@
-feature - Added support for specifying which of the project's database instances should trigger a function. If not specified, function will be triggered by the default database. E.g. exports.myFunction = functions.database.instance('my-app-db-2').ref('/foo/bar').onCreate(handler)
