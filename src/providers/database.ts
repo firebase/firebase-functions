@@ -34,6 +34,22 @@ export const provider = 'google.firebase.database';
 const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
 
 /**
+ * Pick the Realtime Database instance to use. If omitted, will pick the default database for your project.
+ */
+export function instance(instance: string): InstanceBuilder {
+  return new InstanceBuilder(instance);
+}
+
+export class InstanceBuilder {
+  /* @internal */
+  constructor(private instance: string) {}
+
+  ref(path: string): RefBuilder {
+    return new RefBuilder(apps(), `projects/_/instances/${this.instance}/refs/${path}`);
+  }
+}
+
+/**
  * Handle events at a Firebase Realtime Database Reference.
  *
  * This method behaves very similarly to the method of the same name in the
@@ -75,7 +91,7 @@ export function ref(path: string): RefBuilder {
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
 export class RefBuilder {
   /** @internal */
-  constructor(private apps: apps.Apps, private resource) { }
+  constructor(private apps: apps.Apps, private resource: string) { }
 
   /** Respond to any write that affects a ref. */
   onWrite(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
@@ -105,12 +121,14 @@ export class RefBuilder {
       if (raw.data instanceof DeltaSnapshot) {
         return raw.data;
       }
+      let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
       return new DeltaSnapshot(
         this.apps.forMode(raw.auth),
         this.apps.admin,
+        dbInstance,
         raw.data.data,
         raw.data.delta,
-        resourceToPath(raw.resource),
+        path,
       );
     };
     return makeCloudFunction({
@@ -126,21 +144,22 @@ export class RefBuilder {
 
 /* Utility function to extract database reference from resource string */
 /** @internal */
-export function resourceToPath(resource) {
+export function resourceToInstanceAndPath(resource) {
   let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
   let match = resource.match(new RegExp(resourceRegex));
   if (!match) {
     throw new Error(`Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
       'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"');
   }
-  let [, project, /* instance */, path] = match;
+  let [, project, dbInstanceName, path] = match;
   if (project !== '_') {
     throw new Error(`Expect project to be '_' in a Firebase Realtime Database event`);
   }
-  return path;
+  let dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
+  return [dbInstance, path];
 }
 
-export class DeltaSnapshot implements firebase.database.DataSnapshot {
+export class DeltaSnapshot {
   private _adminRef: firebase.database.Reference;
   private _ref: firebase.database.Reference;
   private _path: string;
@@ -154,6 +173,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   constructor(
     private app: firebase.app.App,
     private adminApp: firebase.app.App,
+    private instance: string,
     data: any,
     delta: any,
     path?: string // path will be undefined for the database root
@@ -168,14 +188,14 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
 
   get ref(): firebase.database.Reference {
     if (!this._ref) {
-      this._ref = this.app.database().ref(this._fullPath());
+      this._ref = this.app.database(this.instance).ref(this._fullPath());
     }
     return this._ref;
   }
 
   get adminRef(): firebase.database.Reference {
     if (!this._adminRef) {
-      this._adminRef = this.adminApp.database().ref(this._fullPath());
+      this._adminRef = this.adminApp.database(this.instance).ref(this._fullPath());
     }
     return this._adminRef;
   }
@@ -291,7 +311,7 @@ export class DeltaSnapshot implements firebase.database.DataSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DeltaSnapshot {
-    let dup = new DeltaSnapshot(this.app, this.adminApp, undefined, undefined);
+    let dup = new DeltaSnapshot(this.app, this.adminApp, this.instance, undefined, undefined);
     [dup._path, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._data, this._delta, this._childPath, this._newData];
 

@@ -49,6 +49,12 @@ describe('DatabaseBuilder', () => {
       expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
     });
 
+    it('should let developers choose a database instance', () => {
+      let func = database.instance('custom').ref('foo').onWrite(() => null);
+      let resource = func.__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
+    });
+
     it('should return a handler that emits events with a proper DeltaSnapshot', () => {
       let handler = database.ref('/users/{id}').onWrite(event => {
         expect(event.data.val()).to.deep.equal({ foo: 'bar' });
@@ -73,6 +79,12 @@ describe('DatabaseBuilder', () => {
     it('should construct a proper resource path', () => {
       let resource = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.resource;
       expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+    });
+
+    it('should let developers choose a database instance', () => {
+      let func = database.instance('custom').ref('foo').onCreate(() => null);
+      let resource = func.__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
     });
 
     it('should return a handler that emits events with a proper DeltaSnapshot', () => {
@@ -101,6 +113,12 @@ describe('DatabaseBuilder', () => {
       expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
     });
 
+    it('should let developers choose a database instance', () => {
+      let func = database.instance('custom').ref('foo').onUpdate(() => null);
+      let resource = func.__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
+    });
+
     it('should return a handler that emits events with a proper DeltaSnapshot', () => {
       let handler = database.ref('/users/{id}').onUpdate(event => {
         expect(event.data.val()).to.deep.equal({ foo: 'bar' });
@@ -127,6 +145,12 @@ describe('DatabaseBuilder', () => {
       expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
     });
 
+    it('should let developers choose a database instance', () => {
+      let func = database.instance('custom').ref('foo').onDelete(() => null);
+      let resource = func.__trigger.eventTrigger.resource;
+      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
+    });
+
     it('should return a handler that emits events with a proper DeltaSnapshot', () => {
       let handler = database.ref('/users/{id}').onDelete(event => {
         expect(event.data.val()).to.deep.equal({ foo: 'bar' });
@@ -144,19 +168,43 @@ describe('DatabaseBuilder', () => {
 
 });
 
+describe('resourceToInstanceAndPath', () => {
+  it('should return the correct instance and path strings', () => {
+    let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/foo/refs/bar');
+    expect(instance).to.equal('https://foo.firebaseio.com');
+    expect(path).to.equal('/bar');
+  });
+});
+
 describe('DeltaSnapshot', () => {
   let subject;
   const apps = new appsNamespace.Apps(fakeConfig());
 
   let populate = (old: any, change: any) => {
+    let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/other-subdomain/refs/foo');
     subject = new database.DeltaSnapshot(
       apps.admin,
       apps.admin,
+      instance,
       old,
       change,
-      database.resourceToPath('projects/_/instances/mySubdomain/refs/foo')
+      path
     );
   };
+
+  describe('#ref: firebase.database.Reference', () => {
+    it('should return a ref for correct instance, not the default instance', () => {
+      populate({}, {});
+      expect(subject.ref.toJSON()).to.equal('https://other-subdomain.firebaseio.com/foo');
+    });
+  });
+
+  describe('#adminRef(): firebase.database.Reference', () => {
+    it('should return an adminRef for correct instance, not the default instance', () => {
+      populate({}, {});
+      expect(subject.adminRef.toJSON()).to.equal('https://other-subdomain.firebaseio.com/foo');
+    });
+  });
 
   describe('#val(): any', () => {
     it('should return child values based on the child path', () => {
@@ -372,23 +420,27 @@ describe('DeltaSnapshot', () => {
     });
 
     it('should return null for the root', () => {
+      let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/refs/refs');
       const snapshot = new database.DeltaSnapshot(
         apps.admin,
         apps.admin,
+        instance,
         null,
         null,
-        database.resourceToPath('projects/_/instances/foo/refs')
+        path
       );
       expect(snapshot.key).to.be.null;
     });
 
     it('should return null for explicit root', () => {
+      let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/refs/refs');
       expect(new database.DeltaSnapshot(
         apps.admin,
         apps.admin,
+        instance,
         null,
         {},
-        database.resourceToPath('projects/_/instances/foo/refs')
+        path
       ).key).to.be.null;
     });
 
