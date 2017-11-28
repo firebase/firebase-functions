@@ -145,7 +145,10 @@ describe('Firestore Functions', () => {
       let testFunction = firestore.document('path').onCreate((event) => {
         expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous).to.equal(null);
+        expect(event.data.previous).to.not.equal(null);
+        expect(event.data.previous.exists).to.be.false;
+        expect(event.data.previous.data).to.throw(Error);
+        expect(() => {return event.data.previous.get('key1');}).to.throw(Error);
       });
       let data = constructEvent({}, createValue());
       return testFunction(data);
