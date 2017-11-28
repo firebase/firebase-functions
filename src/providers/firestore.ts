@@ -91,53 +91,12 @@ function getValueProto(event, valueFieldName) {
     return event.resource;
   }
   let proto = {
-    fields: convertToFieldsProto(_.get(data, [valueFieldName, 'fields'], {})),
+    fields: _.get(data, [valueFieldName, 'fields'], {}),
     createTime: dateToTimestampProto(_.get(data, [valueFieldName, 'createTime'])),
     updateTime: dateToTimestampProto(_.get(data, [valueFieldName, 'updateTime'])),
     name: _.get(data, [valueFieldName, 'name'], event.resource),
   };
   return proto;
-};
-
-function convertToFieldsProto(fields): object {
-  if (!fields) {
-    return {};
-  }
-  function convertHelper(data) {
-    let result;
-    _.forEach(data, (value: any, valueType: string) => {
-      let dataPart;
-      if (valueType === 'arrayValue') {
-        let array = _.get(value, 'values', []);
-        dataPart = {
-          arrayValue: {
-            values: _.map(array, (elem) => {
-              return convertHelper(elem);
-            }),
-          },
-        };
-      } else if (valueType === 'mapValue') {
-        let map = _.get(value, 'fields', {});
-        dataPart = {
-          mapValue: {
-            fields: _.mapValues(map, (val) => {
-              return convertHelper(val);
-            }),
-          },
-        };
-      } else if (valueType === 'timestampValue') {
-        dataPart = {timestampValue: dateToTimestampProto(value)};
-      } else {
-        dataPart = data;
-      }
-      result = _.merge({}, dataPart, {valueType: valueType});
-    });
-    return result;
-  }
-
-  return _.mapValues(fields, (data: object) => {
-    return convertHelper(data);
-  });
 };
 
 /** @internal */
@@ -150,12 +109,12 @@ export function dataConstructor(raw: Event<any>) {
   }
   let valueProto = getValueProto(raw, 'value');
   let readTime = dateToTimestampProto(_.get(raw.data, 'value.readTime'));
-  let snapshot = firestoreInstance.snapshot_(valueProto, readTime) as DeltaDocumentSnapshot;
+  let snapshot = firestoreInstance.snapshot_(valueProto, readTime, 'json') as DeltaDocumentSnapshot;
   Object.defineProperty(snapshot, 'previous', {
     get: () => {
       let oldValueProto = getValueProto(raw, 'oldValue');
       let oldReadTime = dateToTimestampProto(_.get(raw.data, 'oldValue.readTime'));
-      return firestoreInstance.snapshot_(oldValueProto, oldReadTime) as DeltaDocumentSnapshot;
+      return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json') as DeltaDocumentSnapshot;
     },
   });
   return snapshot;

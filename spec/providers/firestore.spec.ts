@@ -333,7 +333,7 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({'binaryVal': 'Zm9vYmFy'});
+        expect(snapshot.data()).to.deep.equal({'binaryVal': new Buffer('foobar')});
       });
     });
 
