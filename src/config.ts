@@ -35,7 +35,7 @@ export function config(): config.Config {
 export namespace config {
   // Config type is usable as a object (dot notation allowed), and firebase
   // property will also code complete.
-  export type Config = { [key: string]: any } & { firebase?: firebase.AppOptions };
+  export type Config = { [key: string]: any } & { firebase: firebase.AppOptions };
 
   /** @internal */
   export let singleton: config.Config;
@@ -56,11 +56,15 @@ function init (credential: firebase.credential.Credential) {
   }
   let merged= _.merge({}, loadedFromFile, firebaseEnv);
 
-  if (!_.has(merged, 'firebase')) {
+  if (!hasFirebase(merged)) {
     throw new Error('Firebase config variables are not available. ' +
     'Please use the latest version of the Firebase CLI to deploy this function.');
   }
 
   _.set(merged, 'firebase.credential', credential);
   config.singleton = merged;
+}
+
+function hasFirebase (merged: { [key: string]: any }): merged is config.Config {
+  return _.has(merged, 'firebase');
 }
