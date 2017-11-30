@@ -65,6 +65,6 @@ function init (credential: firebase.credential.Credential) {
   config.singleton = merged;
 }
 
-function hasFirebase (merged: { [key: string]: any }): merged is { [key: string]: any, firebase: firebase.AppOptions } {
+function hasFirebase (merged: { [key: string]: any }): merged is config.Config {
   return _.has(merged, 'firebase');
 }
