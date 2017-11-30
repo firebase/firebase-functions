@@ -56,11 +56,15 @@ function init (credential: firebase.credential.Credential) {
   }
   let merged= _.merge({}, loadedFromFile, firebaseEnv);
 
-  if (!_.has(merged, 'firebase')) {
+  if (!hasFirebase(merged)) {
     throw new Error('Firebase config variables are not available. ' +
     'Please use the latest version of the Firebase CLI to deploy this function.');
   }
 
   _.set(merged, 'firebase.credential', credential);
   config.singleton = merged;
+}
+
+function hasFirebase (merged: { [key: string]: any }): merged is { [key: string]: any, firebase: firebase.AppOptions } {
+  return _.has(merged, 'firebase');
 }
