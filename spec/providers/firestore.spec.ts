@@ -147,8 +147,6 @@ describe('Firestore Functions', () => {
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous).to.not.equal(null);
         expect(event.data.previous.exists).to.be.false;
-        expect(event.data.previous.data).to.throw(Error);
-        expect(() => {return event.data.previous.get('key1');}).to.throw(Error);
       });
       let data = constructEvent({}, createValue());
       return testFunction(data);
@@ -167,8 +165,7 @@ describe('Firestore Functions', () => {
 
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
       let testFunction = firestore.document('path').onDelete((event) => {
-        expect(event.data.data).to.throw(Error);
-        expect(() => {return event.data.get('key1');}).to.throw(Error);
+        expect(event.data.exists).to.equal(false);
         expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
@@ -390,8 +387,6 @@ describe('Firestore Functions', () => {
         });
         expect(snapshot.exists).to.be.false;
         expect(snapshot.ref.path).to.equal('collection/123');
-        expect(snapshot.data).to.throw(Error);
-        expect(() => {return snapshot.get('key1');}).to.throw(Error);
       });
 
       it('constructs existent DocumentSnapshot with empty data when all fields of document deleted', () => {
