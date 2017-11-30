@@ -185,10 +185,10 @@ describe('DeltaSnapshot', () => {
     subject = new database.DeltaSnapshot(
       apps.admin,
       apps.admin,
-      instance,
       old,
       change,
-      path
+      path,
+      instance
     );
   };
 
@@ -424,10 +424,10 @@ describe('DeltaSnapshot', () => {
       const snapshot = new database.DeltaSnapshot(
         apps.admin,
         apps.admin,
-        instance,
         null,
         null,
-        path
+        path,
+        instance
       );
       expect(snapshot.key).to.be.null;
     });
@@ -437,10 +437,10 @@ describe('DeltaSnapshot', () => {
       expect(new database.DeltaSnapshot(
         apps.admin,
         apps.admin,
-        instance,
         null,
         {},
-        path
+        path,
+        instance
       ).key).to.be.null;
     });
 
