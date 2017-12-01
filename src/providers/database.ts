@@ -125,10 +125,10 @@ export class RefBuilder {
       return new DeltaSnapshot(
         this.apps.forMode(raw.auth),
         this.apps.admin,
-        dbInstance,
         raw.data.data,
         raw.data.delta,
         path,
+        dbInstance
       );
     };
     return makeCloudFunction({
@@ -173,10 +173,10 @@ export class DeltaSnapshot {
   constructor(
     private app: firebase.app.App,
     private adminApp: firebase.app.App,
-    private instance: string,
     data: any,
     delta: any,
-    path?: string // path will be undefined for the database root
+    path?: string, // path will be undefined for the database root
+    public instance?: string,
   ) {
     if (delta !== undefined) {
       this._path = path;
@@ -311,7 +311,7 @@ export class DeltaSnapshot {
   }
 
   private _dup(previous: boolean, childPath?: string): DeltaSnapshot {
-    let dup = new DeltaSnapshot(this.app, this.adminApp, this.instance, undefined, undefined);
+    let dup = new DeltaSnapshot(this.app, this.adminApp, undefined, undefined, undefined, this.instance);
     [dup._path, dup._data, dup._delta, dup._childPath, dup._newData] =
       [this._path, this._data, this._delta, this._childPath, this._newData];
 
