@@ -1,0 +1,3 @@
+changed - For Firestore events where no previous data exists, `event.data.previous` is no longer `null`, it is always a Firebase DocumentSnapshot. `event.data.previous.exists` will be false if there is no previous data.
+fixed - Fixed regression where DeltaSnapshot constructor parameter ordering was changed.
+changed - The typing of `functions.config()` now guarantees the existence of `functions.config().firebase`.
