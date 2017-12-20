@@ -1,1 +1,0 @@
-fixed - Reverts change which causes the error "Cannot decode type from Firestore Value" if firebase-admin peer dependency not met.
