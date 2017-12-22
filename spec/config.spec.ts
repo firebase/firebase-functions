@@ -86,4 +86,21 @@ describe('config()', () => {
     expect(loaded).to.have.property('firebase');
     expect(loaded).to.have.property('foo','bar');
   });
+
+  it('accepts full JSON in env.CLOUD_RUNTIME_CONFIG', () => {
+    process.env.CLOUD_RUNTIME_CONFIG = JSON.stringify({foo: 'bar', firebase:{} });
+    let loaded = config();
+    expect(loaded).to.have.property('firebase');
+    expect(loaded).to.have.property('foo', 'bar');
+  });
+
+  it('behaves well when both env.CLOUD_RUNTIME_CONFIG and env.FIREBASE_PROJECT are set', () => {
+    process.env.CLOUD_RUNTIME_CONFIG = JSON.stringify({ foo: 'bar' });
+    process.env.FIREBASE_PROJECT = JSON.stringify({
+      databaseURL: 'foo@firebaseio.com',
+    });
+    let loaded = config();
+    expect(loaded.firebase).to.have.property('databaseURL', 'foo@firebaseio.com');
+    expect(loaded).to.have.property('foo', 'bar');
+  });
 });

@@ -58,7 +58,6 @@ function init (credential: firebase.credential.Credential) {
       // Do nothing
     }
   }
-
   if (!hasFirebase(merged)) {
     throw new Error('Firebase config variables are not available. ' +
     'Please use the latest version of the Firebase CLI to deploy this function.');
