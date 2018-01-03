@@ -1,0 +1,2 @@
+important - `firebase-admin` peer dependency is now v5.6.0. Must update `firebase-admin` version inside of your functions directory's `package.json` and re-install locally.
+changed - For Firestore events where no previous data exists, event.data.previous is no longer null, it is always a Firebase DocumentSnapshot. event.data.previous.exists will be false if there is no previous data. (This change was previously released in v0.7.4, and reverted in v0.7.5.)
