@@ -45,7 +45,8 @@ export class InstanceBuilder {
   constructor(private instance: string) {}
 
   ref(path: string): RefBuilder {
-    return new RefBuilder(apps(), `projects/_/instances/${this.instance}/refs/${path}`);
+    const normalized = normalizePath(path);
+    return new RefBuilder(apps(), `projects/_/instances/${this.instance}/refs/${normalized}`);
   }
 }
 
