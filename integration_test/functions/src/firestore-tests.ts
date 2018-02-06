@@ -25,7 +25,7 @@ export const firestoreTests: any = functions.firestore.document('tests/{document
 
     .it('should have the correct data', event => expectDeepEq(event.data.data(), {test: event.params.documentId}))
 
-    .it('previous should be null', event => expectEq(event.data.previous, null))
+    .it('previous.exists should be false', event => expectEq(event.data.previous.exists, false))
 
     .run(receivedEvent.params[testIdFieldName], receivedEvent);
 });
