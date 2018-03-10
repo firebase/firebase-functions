@@ -36,7 +36,7 @@ let firestoreInstance;
 
 export function database(database: string = defaultDatabase) {
   if (!process.env.GCLOUD_PROJECT) {
-    throw new Error('Environment variable GCLOUD_PROJECT is not set.'); 
+    throw new Error('Environment variable GCLOUD_PROJECT is not set.');
   }
   return new DatabaseBuilder(posix.join('projects', process.env.GCLOUD_PROJECT, 'databases', database));
 }
