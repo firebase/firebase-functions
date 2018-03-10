@@ -33,15 +33,16 @@ describe('Firestore Functions', () => {
     };
   };
 
-  before(() => {
+  beforeEach(() => {
     process.env.GCLOUD_PROJECT = 'project1';
     process.env.FIREBASE_PROJECT = JSON.stringify({
       databaseUrl: 'project1@firebaseio.com',
     });
   });
 
-  after(() => {
+  afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
+    delete process.env.FIREBASE_PROJECT;
   });
 
   describe('document builders and event types', () => {
