@@ -137,9 +137,9 @@ describe('Firestore Functions', () => {
 
     it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
       let testFunction = firestore.document('path').onWrite((event) => {
-        expect(event.data.data()).to.deep.equal({ key1: true, key2: 123 });
+        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous.data()).to.deep.equal({ key1: false, key2: 111 });
+        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
       let data = constructEvent(createOldValue(), createValue());
@@ -148,7 +148,7 @@ describe('Firestore Functions', () => {
 
     it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
       let testFunction = firestore.document('path').onCreate((event) => {
-        expect(event.data.data()).to.deep.equal({ key1: true, key2: 123 });
+        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
         expect(event.data.previous).to.not.equal(null);
         expect(event.data.previous.exists).to.be.false;
@@ -159,9 +159,9 @@ describe('Firestore Functions', () => {
 
     it('constructs appropriate fields and getters for event.data on "document.update" events', () => {
       let testFunction = firestore.document('path').onUpdate((event) => {
-        expect(event.data.data()).to.deep.equal({ key1: true, key2: 123 });
+        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
         expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous.data()).to.deep.equal({ key1: false, key2: 111 });
+        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
       let data = constructEvent(createOldValue(), createValue());
@@ -171,7 +171,7 @@ describe('Firestore Functions', () => {
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
       let testFunction = firestore.document('path').onDelete((event) => {
         expect(event.data.exists).to.equal(false);
-        expect(event.data.previous.data()).to.deep.equal({ key1: false, key2: 111 });
+        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
         expect(event.data.previous.get('key1')).to.equal(false);
       });
       let data = constructEvent(createOldValue(), {});
@@ -184,46 +184,46 @@ describe('Firestore Functions', () => {
       it('should parse int values', () => {
         let snapshot = firestore.dataConstructor({
           data: {
-            value: constructValue({ 'key': { 'integerValue': '123' } }),
+            value: constructValue({'key': {'integerValue': '123'}}),
           },
         });
-        expect(snapshot.data()).to.deep.equal({ 'key': 123 });
+        expect(snapshot.data()).to.deep.equal({'key': 123});
       });
 
       it('should parse double values', () => {
         let snapshot = firestore.dataConstructor({
           data: {
-            value: constructValue({ 'key': { 'doubleValue': 12.34 } }),
+            value: constructValue({'key': {'doubleValue': 12.34}}),
           },
         });
-        expect(snapshot.data()).to.deep.equal({ 'key': 12.34 });
+        expect(snapshot.data()).to.deep.equal({'key': 12.34});
       });
 
       it('should parse null values', () => {
         let snapshot = firestore.dataConstructor({
           data: {
-            value: constructValue({ 'key': { 'nullValue': null } }),
+            value: constructValue({'key': {'nullValue': null}}),
           },
         });
-        expect(snapshot.data()).to.deep.equal({ 'key': null });
+        expect(snapshot.data()).to.deep.equal({'key': null});
       });
 
       it('should parse boolean values', () => {
         let snapshot = firestore.dataConstructor({
           data: {
-            value: constructValue({ 'key': { 'booleanValue': true } }),
+            value: constructValue({'key': {'booleanValue': true}}),
           },
         });
-        expect(snapshot.data()).to.deep.equal({ 'key': true });
+        expect(snapshot.data()).to.deep.equal({'key': true});
       });
 
       it('should parse string values', () => {
         let snapshot = firestore.dataConstructor({
           data: {
-            value: constructValue({ 'key': { 'stringValue': 'foo' } }),
+            value: constructValue({'key': {'stringValue': 'foo'}}),
           },
         });
-        expect(snapshot.data()).to.deep.equal({ 'key': 'foo' });
+        expect(snapshot.data()).to.deep.equal({'key': 'foo'});
       });
 
       it('should parse array values', () => {
@@ -240,7 +240,7 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({ 'key': [1, 2] });
+        expect(snapshot.data()).to.deep.equal({'key': [1, 2]});
       });
 
       it('should parse object values', () => {
@@ -261,7 +261,7 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({ 'keyParent': { 'key1': 'val1', 'key2': 'val2' } });
+        expect(snapshot.data()).to.deep.equal({'keyParent': {'key1':'val1', 'key2':'val2'}});
       });
 
       it('should parse GeoPoint values', () => {
@@ -282,12 +282,10 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({
-          'geoPointValue': {
-            'latitude': 40.73,
-            'longitude': -73.93,
-          }
-        });
+        expect(snapshot.data()).to.deep.equal({'geoPointValue': {
+          'latitude': 40.73,
+          'longitude': -73.93,
+        }});
       });
 
       it('should parse reference values', () => {
@@ -311,7 +309,7 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({ 'timestampVal': new Date('2017-06-13T00:58:40.349Z') });
+        expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
       });
 
       it('should parse timestamp values with precision to the second', () => {
@@ -323,7 +321,7 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({ 'timestampVal': new Date('2017-06-13T00:58:40Z') });
+        expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40Z')});
 
       });
 
@@ -337,7 +335,7 @@ describe('Firestore Functions', () => {
         let snapshot = firestore.dataConstructor({
           data: { value: raw },
         });
-        expect(snapshot.data()).to.deep.equal({ 'binaryVal': new Buffer('foobar') });
+        expect(snapshot.data()).to.deep.equal({'binaryVal': new Buffer('foobar')});
       });
     });
 
@@ -348,7 +346,7 @@ describe('Firestore Functions', () => {
         snapshot = firestore.dataConstructor({
           'data': {
             'value': {
-              'fields': { 'key': { 'integerValue': '1' } },
+              'fields': {'key': {'integerValue': '1'}},
               'createTime': '2017-06-17T14:45:17.876479Z',
               'updateTime': '2017-08-31T18:05:26.928527Z',
               'readTime': '2017-07-31T18:23:26.928527Z',
