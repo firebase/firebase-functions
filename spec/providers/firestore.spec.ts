@@ -59,6 +59,10 @@ describe('Firestore Functions', () => {
       let cloudFunction = firestore.document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
     });
+    
+    it('should throw useful error when GCLOUD_PROJECT missing', () => {
+      expect(() => firestore.document('users/{uid}')).to.throw(Error, 'GCLOUD_PROJECT');
+    });
 
     it('should allow custom namespaces', () => {
       let resource = 'projects/project1/databases/(default)/documents@v2/users/{uid}';
