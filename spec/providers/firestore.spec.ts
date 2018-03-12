@@ -33,15 +33,16 @@ describe('Firestore Functions', () => {
     };
   };
 
-  before(() => {
+  beforeEach(() => {
     process.env.GCLOUD_PROJECT = 'project1';
     process.env.FIREBASE_PROJECT = JSON.stringify({
       databaseUrl: 'project1@firebaseio.com',
     });
   });
 
-  after(() => {
+  afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
+    delete process.env.FIREBASE_PROJECT;
   });
 
   describe('document builders and event types', () => {
@@ -58,6 +59,11 @@ describe('Firestore Functions', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
       let cloudFunction = firestore.document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
+    });
+
+    it('should throw useful error when GCLOUD_PROJECT missing', () => {
+      delete process.env.GCLOUD_PROJECT;
+      expect(() => firestore.document('users/{uid}')).to.throw(Error, 'GCLOUD_PROJECT');
     });
 
     it('should allow custom namespaces', () => {
