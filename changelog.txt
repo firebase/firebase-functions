@@ -1,0 +1,3 @@
+changed - Updated firebase-admin peer dependency to v5.10.0.
+fixed - Fix bug where if there's a leading slash in the path provided to a database function, it turns into 2 slashes.
+feature - Warn when GCLOUD_PROJECT environment variable was not set in a unit test.
