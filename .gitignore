@@ -1,3 +1,4 @@
+.nyc_output/
 .idea
 .npm
 .tmp
