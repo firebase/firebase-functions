@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const message = `
+Congratulations! You have just updated to firebase-functions 1.0.
+
+This means you've installed some breaking changes. To see a complete
+list of these breaking changes, please go to
+
+https://firebase.google.com/docs/functions/early-access/beta-v1-diff
+`;
+
+console.log(message);
