@@ -10,7 +10,8 @@
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts integration_test/functions/src/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
     "test": "mocha .tmp/spec/index.spec.js",
-    "posttest": "npm run lint && rm -rf .tmp"
+    "posttest": "npm run lint && rm -rf .tmp",
+    "postinstall": "node ./upgrade-warning"
   },
   "repository": {
     "type": "git",
