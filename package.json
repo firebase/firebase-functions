@@ -42,7 +42,7 @@
     "istanbul": "^0.4.2",
     "mocha": "^2.4.5",
     "mock-require": "^2.0.1",
-    "nock": "^8.0.0",
+    "nock": "^9.0.0",
     "sinon": "^1.17.4",
     "tslint": "^3.15.1",
     "typescript": "^2.0.3"
@@ -51,10 +51,12 @@
     "firebase-admin": "~5.10.0"
   },
   "dependencies": {
+    "@types/cors": "^2.8.1",
     "@types/express": "^4.0.33",
     "@types/jsonwebtoken": "^7.1.32",
     "@types/lodash": "^4.14.34",
     "@types/sha1": "^1.1.0",
+    "cors": "^2.8.4",
     "express": "^4.0.33",
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.6.1",

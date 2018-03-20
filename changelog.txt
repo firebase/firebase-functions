@@ -1,0 +1,1 @@
+feature - Adds HTTPS Callable Functions, a kind of HTTPS trigger that can be called from a Firebase client SDK.

@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as firebase from 'firebase';
+import * as https from 'https';
 import * as admin from 'firebase-admin';
 import * as _ from 'lodash';
 import { Request, Response } from 'express';
@@ -8,10 +9,32 @@ export * from './pubsub-tests';
 export * from './database-tests';
 export * from './auth-tests';
 export * from './firestore-tests';
+export * from './https-tests';
 const numTests = Object.keys(exports).length;  // Assumption: every exported function is its own test.
 
 firebase.initializeApp(_.omit(functions.config().firebase, 'credential'));  // Explicitly decline admin privileges.
 admin.initializeApp(functions.config().firebase);
+
+// TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
+function callHttpsTrigger(name: string, data: any) {
+  return new Promise((resolve, reject) => {
+    const request = https.request({
+      method: 'POST',
+      host: 'us-central1-' + functions.config().firebase.projectId + '.cloudfunctions.net',
+      path: '/' + name,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }, (response) => {
+      let body = '';
+      response.on('data', (chunk) => { body += chunk; });
+      response.on('end', () => resolve(body));
+    });
+    request.on('error', reject);
+    request.write(JSON.stringify({data}));
+    request.end();
+  });
+}
 
 export const integrationTests: any = functions.https.onRequest((req: Request, resp: Response) => {
   let pubsub: any = require('@google-cloud/pubsub')();
@@ -35,6 +58,9 @@ export const integrationTests: any = functions.https.onRequest((req: Request, re
     }),
     // A firestore write to trigger the Cloud Firestore tests.
     admin.firestore().collection('tests').doc(testId).set({test: testId}),
+    // Invoke a callable HTTPS trigger.
+    callHttpsTrigger('callableTests', {foo: 'bar', testId}),
+
   ]).then(() => {
     // On test completion, check that all tests pass and reply "PASS", or provide further details.
     console.log('Waiting for all tests to report they pass...');

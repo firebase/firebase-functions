@@ -26,6 +26,7 @@ import { config } from '../../src/config';
 export function fakeConfig(data?: Object) {
   return _.extend({}, data, {
     firebase: {
+      projectId: 'aProjectId',
       databaseURL: 'https://subdomain.firebaseio.com',
       storageBucket: 'bucket',
       credential: {
@@ -35,7 +36,11 @@ export function fakeConfig(data?: Object) {
             access_token: 'fake',
           });
         },
-        getCertificate: () => Promise.resolve(),
+        getCertificate: () => {
+          return {
+            projectId: 'aProjectId',
+          };
+        },
       },
     },
   });
