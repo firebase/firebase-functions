@@ -21,11 +21,13 @@
 // SOFTWARE.
 
 import * as express from 'express';
+import * as firebase from 'firebase-admin';
 import * as https from '../../src/providers/https';
 import * as jwt from 'jsonwebtoken';
 import * as mocks from '../fixtures/credential/key.json';
 import * as nock from 'nock';
 import * as _ from 'lodash';
+import { apps } from '../../src/apps';
 import { expect } from 'chai';
 
 describe('CloudHttpsBuilder', () => {
@@ -199,6 +201,30 @@ export function generateIdToken(projectId: string): string {
 }
 
 describe('callable.FunctionBuilder', () => {
+  let oldCredential: firebase.credential.Credential = undefined;
+
+  before(() => {
+    let credential = {
+      getAccessToken: () => {
+        return Promise.resolve({
+          expires_in: 1000,
+          access_token: 'fake',
+        });
+      },
+      getCertificate: () => {
+        return {
+          projectId: 'aProjectId',
+        };
+      },
+    };
+    oldCredential = apps().admin.options.credential;
+    apps().admin.options.credential = credential;
+  });
+
+  after(() => {
+    apps().admin.options.credential = oldCredential;
+  });
+
   describe('#onCall', () => {
     it('should return a Trigger with appropriate values', () => {
       const result = https.onCall((data) => {
