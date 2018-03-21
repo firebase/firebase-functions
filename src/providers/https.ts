@@ -23,6 +23,7 @@
 import { HttpsFunction } from '../cloud-functions';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
+import { apps } from '../apps';
 import * as _ from 'lodash';
 import * as cors from 'cors';
 
@@ -382,7 +383,7 @@ export function onCall(
         }
         const idToken = match[1];
         try {
-          const authToken = await firebase.auth().verifyIdToken(idToken);
+          const authToken = await apps().admin.auth().verifyIdToken(idToken);
           context.auth = {
             uid: authToken.uid,
             token: authToken,
