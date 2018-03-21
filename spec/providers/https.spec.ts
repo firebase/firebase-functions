@@ -375,7 +375,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle auth', async () => {
       const mock = mockFetchPublicKeys();
-      const projectId = 'aProjectId';
+      const projectId = apps().admin.options.projectId;
       const idToken = generateIdToken(projectId);
       await runTest({
         httpRequest: request(null, 'application/json', {
