@@ -21,15 +21,12 @@
 // SOFTWARE.
 
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
 import * as https from '../../src/providers/https';
 import * as jwt from 'jsonwebtoken';
 import * as mocks from '../fixtures/credential/key.json';
 import * as nock from 'nock';
 import * as _ from 'lodash';
-import { config } from '../../src/index';
 import { expect } from 'chai';
-import { fakeConfig } from '../support/helpers';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
@@ -202,15 +199,6 @@ export function generateIdToken(projectId: string): string {
 }
 
 describe('callable.FunctionBuilder', () => {
-  before(() => {
-    config.singleton = fakeConfig();
-    firebase.initializeApp(config.singleton.firebase);
-  });
-
-  after(() => {
-    delete config.singleton;
-  });
-
   describe('#onCall', () => {
     it('should return a Trigger with appropriate values', () => {
       const result = https.onCall((data) => {
@@ -361,7 +349,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle auth', async () => {
       const mock = mockFetchPublicKeys();
-      const projectId = config.singleton.firebase['projectId'];
+      const projectId = 'aProjectId';
       const idToken = generateIdToken(projectId);
       await runTest({
         httpRequest: request(null, 'application/json', {
