@@ -73,12 +73,12 @@ export class NamespaceBuilder {
 
 export interface DeltaDocumentSnapshot {
   exists: Boolean;
-  ref: any;
+  ref: firebase.firestore.DocumentReference;
   id: string;
-  createTime: string;
-  updateTime: string;
-  readTime: string;
-  previous: any;
+  createTime?: string;
+  updateTime?: string;
+  readTime?: string;
+  previous: DeltaDocumentSnapshot;
   data: () => any;
   get: (key: string) => any;
 };
