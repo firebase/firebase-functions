@@ -1,0 +1,1 @@
+fixed - Fixed bug where HTTPS callable function will reject all requests with an auth token if the function has not called firebase.initializeApp.
