@@ -73,6 +73,7 @@ function cleanup {
   delete_all_functions
   rm $DIR/functions/firebase-functions.tgz
   rm -f $DIR/functions/firebase-debug.log
+  rm -rf $DIR/functions/node_modules/firebase-functions
 }
 
 build_sdk

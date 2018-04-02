@@ -21,13 +21,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 
 export function config(): config.Config {
   if (typeof config.singleton === 'undefined') {
-    const cred = firebase.credential.applicationDefault();
-    init(cred);
+    init();
   }
   return config.singleton;
 }
@@ -35,38 +33,66 @@ export function config(): config.Config {
 export namespace config {
   // Config type is usable as a object (dot notation allowed), and firebase
   // property will also code complete.
-  export type Config = { [key: string]: any } & { firebase: firebase.AppOptions };
+  export type Config = { [key: string]: any };
 
   /** @internal */
   export let singleton: config.Config;
 }
 
-function init (credential: firebase.credential.Credential) {
-  let firebaseEnv = {};
-  if (process.env.FIREBASE_PROJECT) {
-    firebaseEnv = { firebase: JSON.parse(process.env.FIREBASE_PROJECT) };
-  }
-  let merged = firebaseEnv;
+/* @internal */
+export function firebaseConfig(): firebase.AppOptions | null {
 
+  // The FIREBASE_PROJECT environment variable was introduced to help local emulation with `firebase-tools` 3.18
+  // Unfortunately, API review decided that the name should be FIREBASE_CONFIG to avoid confusions that Firebase has
+  // a separate project from Google Cloud. This accepts both versions, preferring the documented name.
+  const env = process.env.FIREBASE_CONFIG || process.env.FIREBASE_PROJECT;
+  if (env) {
+    return JSON.parse(env);
+  }
+
+  // Could have Runtime Config with Firebase in it as an ENV value.
   try {
-    merged = _.merge({}, JSON.parse(process.env.CLOUD_RUNTIME_CONFIG), firebaseEnv);
-  } catch (e) {
-    try {
-      let path = process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
-      merged = _.merge({}, require(path), firebaseEnv);
-    } catch (e) {
-      // Do nothing
+    const config = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
+    if (config.firebase) {
+      return config.firebase;
     }
-  }
-  if (!hasFirebase(merged)) {
-    throw new Error('Firebase config variables are not available. ' +
-    'Please use the latest version of the Firebase CLI to deploy this function.');
+  } catch (e) {
+    // Do nothing
   }
 
-  _.set(merged, 'firebase.credential', credential);
-  config.singleton = merged;
+  // Could have Runtime Config with Firebase in it as an ENV location or default.
+  try {
+    const path = process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
+    const config = require(path);
+    if (config.firebase) {
+      return config.firebase;
+    }
+  } catch (e) {
+    // Do nothing
+  }
+
+  return null;
 }
 
-function hasFirebase (merged: { [key: string]: any }): merged is config.Config {
-  return _.has(merged, 'firebase');
+function init() {
+  try {
+    const parsed = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
+    delete parsed.firebase;
+    config.singleton = parsed;
+    return;
+  } catch (e) {
+    // Do nothing
+  }
+
+  try {
+    let path = process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
+    const parsed = require(path);
+    delete parsed.firebase;
+    config.singleton = parsed;
+    return;
+  } catch (e) {
+    // Do nothing
+  }
+
+  config.singleton = {};
 }

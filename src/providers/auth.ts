@@ -20,38 +20,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
+import { makeCloudFunction, CloudFunction, EventContext, LegacyEvent } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 
 /** @internal */
-export const provider = 'firebase.auth';
+export const provider = 'google.firebase.auth';
+/** @internal */
+export const service = 'firebaseauth.googleapis.com';
 
 /** Handle events in the Firebase Auth user lifecycle. */
 export function user() {
-  return new UserBuilder('projects/' + process.env.GCLOUD_PROJECT);
+  return new UserBuilder(() => {
+    if (!process.env.GCLOUD_PROJECT) {
+      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+    }
+    return 'projects/' + process.env.GCLOUD_PROJECT;
+  });
 }
 
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
 
   constructor(public creationTime: string, public lastSignInTime: string) { };
 
-  // Remove in v1.0.0
-  /** @internal */
-  get lastSignedInAt() {
-    console.warn('WARNING: "lastSignedInAt" will be removed in firebase-functions v1.0.0. ' +
-    'Please start using "lastSignInTime", which is an ISO string.');
-    return new Date(this.lastSignInTime);
-  }
-
-  // Remove in v1.0.0
-  /** @internal */
-  get createdAt() {
-    console.warn('WARNING: "createdAt" will be removed in firebase-functions v1.0.0. ' +
-    'Please start using "creationTime", which is an ISO string.');
-    return new Date(this.creationTime);
-  }
-
+  /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
   toJSON() {
     return {
       creationTime: this.creationTime,
@@ -62,47 +54,35 @@ export class UserRecordMetadata implements firebase.auth.UserMetadata {
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
-  private static dataConstructor(raw: any): firebase.auth.UserRecord {
-    // The UserRecord returned here is an interface. The firebase-admin/auth/user-record module
-    // also has a class of the same name, which is one implementation of the interface.
-
-    // Transform payload to firebase-admin v5.0.0 format
-    let data = _.clone(raw.data);
-    if (data.metadata) {
-      let meta = data.metadata;
-      data.metadata = new UserRecordMetadata(
-        meta.createdAt || meta.creationTime,
-        meta.lastSignedInAt || meta.lastSignInTime,
-      );
-    }
-
-    return data;
+  private static dataConstructor(raw: LegacyEvent): firebase.auth.UserRecord {
+    return userRecordConstructor(raw.data);
   }
 
   /** @internal */
-  constructor(private resource: string) { }
+  constructor(private triggerResource: () => string) { }
 
   /** Respond to the creation of a Firebase Auth user. */
-  onCreate(
-    handler: (event: Event<UserRecord>) => PromiseLike<any> | any
-  ): CloudFunction<UserRecord> {
-    return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
-      eventType: 'user.create',
-      dataConstructor: UserBuilder.dataConstructor,
-    });
+  onCreate(handler: (user: UserRecord, context?: EventContext) => PromiseLike<any> | any): CloudFunction<UserRecord> {
+    return this.onOperation(handler, 'user.create');
   }
 
   /** Respond to the deletion of a Firebase Auth user. */
-  onDelete(
-    handler: (event: Event<UserRecord>) => PromiseLike<any> | any
+  onDelete(handler: (user: UserRecord, context?: EventContext) => PromiseLike<any> | any): CloudFunction<UserRecord> {
+    return this.onOperation(handler, 'user.delete');
+  }
+
+  private onOperation(
+    handler: (user: UserRecord, context?: EventContext) => PromiseLike<any> | any,
+    eventType: string
   ): CloudFunction<UserRecord> {
     return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
-      eventType: 'user.delete',
+      handler,
+      provider,
+      eventType,
+      service,
+      triggerResource: this.triggerResource,
       dataConstructor: UserBuilder.dataConstructor,
+      legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
     });
   }
 }
@@ -112,3 +92,46 @@ export class UserBuilder {
  * SDK.
  */
 export type UserRecord = firebase.auth.UserRecord;
+
+export function userRecordConstructor(wireData: Object): firebase.auth.UserRecord {
+  // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
+  let falseyValues = {
+    email: null,
+    emailVerified: false,
+    displayName: null,
+    photoURL: null,
+    phoneNumber: null,
+    disabled: false,
+    providerData: [],
+    customClaims: {},
+    passwordSalt: null,
+    passwordHash: null,
+    tokensValidAfterTime: null,
+  };
+  let record = _.assign({}, falseyValues, wireData);
+
+  let meta = _.get(record, 'metadata');
+  if (meta) {
+    _.set(record, 'metadata', new UserRecordMetadata(
+      // Transform payload to firebase-admin v5.0.0 format because wire format is different (BUG 63167395)
+      meta.createdAt || meta.creationTime,
+      meta.lastSignedInAt || meta.lastSignInTime,
+    ));
+  } else {
+    _.set(record, 'metadata', new UserRecordMetadata(null, null));
+  }
+  _.forEach(record.providerData, entry => {
+    _.set(entry, 'toJSON', () => {
+      return entry;
+    });
+  });
+  _.set(record, 'toJSON', () => {
+    const json: any = _.pick(record, ['uid', 'email', 'emailVerified', 'displayName',
+      'photoURL', 'phoneNumber', 'disabled', 'passwordHash', 'passwordSalt', 'tokensValidAfterTime']);
+    json.metadata = _.get(record, 'metadata').toJSON();
+    json.customClaims = _.cloneDeep(record.customClaims);
+    json.providerData = _.map(record.providerData, entry => entry.toJSON());
+    return json;
+  });
+  return record as firebase.auth.UserRecord;
+}

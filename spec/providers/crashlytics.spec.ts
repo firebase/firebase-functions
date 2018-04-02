@@ -21,57 +21,73 @@
 // SOFTWARE.
 
 import * as crashlytics from '../../src/providers/crashlytics';
-import { config } from '../../src/index';
 import { apps as appsNamespace } from '../../src/apps';
 import { expect } from 'chai';
-import { fakeConfig } from '../support/helpers';
 
 describe('Crashlytics Functions', () => {
-  before(() => {
-    config.singleton = fakeConfig();
-    appsNamespace.init(config.singleton);
-    process.env.GCLOUD_PROJECT = 'project1';
-  });
+  describe('Issue Builder', () => {
+    before(() => {
+      appsNamespace.init();
+      process.env.GCLOUD_PROJECT = 'project1';
+    });
 
-  after(() => {
-    delete appsNamespace.singleton;
-    delete config.singleton;
-    delete process.env.GCLOUD_PROJECT;
-  });
+    after(() => {
+      delete appsNamespace.singleton;
+      delete process.env.GCLOUD_PROJECT;
+    });
 
-  describe('#onNewDetected', () => {
-    it('should return a TriggerDefinition with appropriate values', () => {
-      const cloudFunction = crashlytics.issue().onNewDetected((event) => null);
-      expect(cloudFunction.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/firebase.crashlytics/eventTypes/issue.new',
-          resource: 'projects/project1',
-        },
+    describe('#onNew', () => {
+      it('should return a TriggerDefinition with appropriate values', () => {
+        const cloudFunction = crashlytics.issue().onNew(data => null);
+        expect(cloudFunction.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType: 'providers/firebase.crashlytics/eventTypes/issue.new',
+            resource: 'projects/project1',
+            service: 'fabric.io',
+          },
+        });
+      });
+    });
+
+    describe('#onRegressed', () => {
+      it('should return a TriggerDefinition with appropriate values', () => {
+        const cloudFunction = crashlytics.issue().onRegressed(data => null);
+        expect(cloudFunction.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType: 'providers/firebase.crashlytics/eventTypes/issue.regressed',
+            resource: 'projects/project1',
+            service: 'fabric.io',
+          },
+        });
+      });
+    });
+
+    describe('#onVelocityAlert', () => {
+      it('should return a TriggerDefinition with appropriate values', () => {
+        const cloudFunction = crashlytics.issue().onVelocityAlert(data => null);
+        expect(cloudFunction.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType: 'providers/firebase.crashlytics/eventTypes/issue.velocityAlert',
+            resource: 'projects/project1',
+            service: 'fabric.io',
+          },
+        });
       });
     });
   });
 
-  describe('#onRegressed', () => {
-    it('should return a TriggerDefinition with appropriate values', () => {
-      const cloudFunction = crashlytics.issue().onRegressed((event) => null);
-      expect(cloudFunction.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/firebase.crashlytics/eventTypes/issue.regressed',
-          resource: 'projects/project1',
-        },
-      });
+  describe('process.env.GCLOUD_PROJECT not set', () => {
+    it('should not throw if __trigger is not accessed', () => {
+      expect(() => crashlytics.issue().onNew(() => null)).to.not.throw(Error);
     });
-  });
 
-  describe('#onVelocityAlert', () => {
-    it('should return a TriggerDefinition with appropriate values', () => {
-      const cloudFunction = crashlytics.issue().onVelocityAlert((event) => null);
-      expect(cloudFunction.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/firebase.crashlytics/eventTypes/issue.velocityAlert',
-          resource: 'projects/project1',
-        },
-      });
+    it('should throw if __trigger is accessed', () => {
+      expect(() => crashlytics.issue().onNew(() => null).__trigger).to.throw(Error);
+    });
+
+    it('should not throw when #run is called', () => {
+      let cf = crashlytics.issue().onNew(() => null);
+      expect(cf.run).to.not.throw(Error);
     });
   });
 });

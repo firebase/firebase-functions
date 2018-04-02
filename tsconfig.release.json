@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es6", "es2015.promise"],
+    "lib": ["es6"],
     "module": "commonjs",
     "noImplicitAny": false,
     "outDir": "lib",

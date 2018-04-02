@@ -22,442 +22,399 @@
 
 import * as database from '../../src/providers/database';
 import { expect as expect } from 'chai';
-import { fakeConfig } from '../support/helpers';
 import { apps as appsNamespace } from '../../src/apps';
-import { config } from '../../src/index';
+import { applyChange } from '../../src/utils';
 
-describe('DatabaseBuilder', () => {
+describe('Database Functions', () => {
 
-  before(() => {
-    config.singleton = fakeConfig();
-    appsNamespace.init(config.singleton);
-  });
+  describe('DatabaseBuilder', () => {
+    // TODO add tests for building a data or change based on the type of operation
 
-  after(() => {
-    delete appsNamespace.singleton;
-    delete config.singleton;
-  });
-
-  describe('#onWrite()', () => {
-    it('should return "ref.write" as the event type', () => {
-      let eventType = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.write');
+    before(() => {
+      process.env.FIREBASE_CONFIG = JSON.stringify({
+        databaseURL: 'https://subdomain.firebaseio.com',
+      });
+      appsNamespace.init();
     });
 
-    it('should construct a proper resource path', () => {
-      let resource = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+    after(() => {
+      delete process.env.FIREBASE_CONFIG;
+      delete appsNamespace.singleton;
     });
 
-    it('should let developers choose a database instance', () => {
-      let func = database.instance('custom').ref('foo').onWrite(() => null);
-      let resource = func.__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
-    });
-
-    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
-      let handler = database.ref('/users/{id}').onWrite(event => {
-        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+    describe('#onWrite()', () => {
+      it('should return "ref.write" as the event type', () => {
+        let eventType = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.eventType;
+        expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.write');
       });
 
-      return handler({
-        data: {
-          data: null,
-          delta: { foo: 'bar' },
-        },
-        resource: 'projects/_/instances/subdomains/refs/users',
-      } as any);
-    });
-  });
-
-  describe('#onCreate()', () => {
-    it('should return "ref.create" as the event type', () => {
-      let eventType = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.create');
-    });
-
-    it('should construct a proper resource path', () => {
-      let resource = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
-    });
-
-    it('should let developers choose a database instance', () => {
-      let func = database.instance('custom').ref('foo').onCreate(() => null);
-      let resource = func.__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
-    });
-
-    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
-      let handler = database.ref('/users/{id}').onCreate(event => {
-        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+      it('should construct a proper resource path', () => {
+        let resource = database.ref('foo').onWrite(() => null).__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
       });
 
-      return handler({
-        data: {
-          data: null,
-          delta: { foo: 'bar' },
-        },
-        resource: 'projects/_/instances/subdomains/refs/users',
-      } as any);
-    });
-  });
-
-  describe('#onUpdate()', () => {
-    it('should return "ref.update" as the event type', () => {
-      let eventType = database.ref('foo').onUpdate(() => null).__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.update');
-    });
-
-    it('should construct a proper resource path', () => {
-      let resource = database.ref('foo').onUpdate(() => null).__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
-    });
-
-    it('should let developers choose a database instance', () => {
-      let func = database.instance('custom').ref('foo').onUpdate(() => null);
-      let resource = func.__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
-    });
-
-    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
-      let handler = database.ref('/users/{id}').onUpdate(event => {
-        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+      it('should let developers choose a database instance', () => {
+        let func = database.instance('custom').ref('foo').onWrite(() => null);
+        let resource = func.__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/custom/refs/foo');
       });
 
-      return handler({
-        data: {
-          data: null,
-          delta: { foo: 'bar' },
-        },
-        resource: 'projects/_/instances/subdomains/refs/users',
-      } as any);
-    });
-  });
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = database.ref('/users/{id}').onWrite(change => {
+          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+        });
 
-  describe('#onDelete()', () => {
-    it('should return "ref.delete" as the event type', () => {
-      let eventType = database.ref('foo').onDelete(() => null).__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.delete');
-    });
-
-    it('should construct a proper resource path', () => {
-      let resource = database.ref('foo').onDelete(() => null).__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+        return handler({
+          data: {
+            data: null,
+            delta: { foo: 'bar' },
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.write',
+        });
+      });
     });
 
-    it('should let developers choose a database instance', () => {
-      let func = database.instance('custom').ref('foo').onDelete(() => null);
-      let resource = func.__trigger.eventTrigger.resource;
-      expect(resource).to.eq('projects/_/instances/custom/refs/foo');
-    });
-
-    it('should return a handler that emits events with a proper DeltaSnapshot', () => {
-      let handler = database.ref('/users/{id}').onDelete(event => {
-        expect(event.data.val()).to.deep.equal({ foo: 'bar' });
+    describe('#onCreate()', () => {
+      it('should return "ref.create" as the event type', () => {
+        let eventType = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.eventType;
+        expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.create');
       });
 
-      return handler({
-        data: {
-          data: null,
-          delta: { foo: 'bar' },
-        },
-        resource: 'projects/_/instances/subdomains/refs/users',
-      } as any);
-    });
-  });
-
-});
-
-describe('resourceToInstanceAndPath', () => {
-  it('should return the correct instance and path strings', () => {
-    let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/foo/refs/bar');
-    expect(instance).to.equal('https://foo.firebaseio.com');
-    expect(path).to.equal('/bar');
-  });
-});
-
-describe('DeltaSnapshot', () => {
-  let subject;
-  const apps = new appsNamespace.Apps(fakeConfig());
-
-  let populate = (old: any, change: any) => {
-    let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/other-subdomain/refs/foo');
-    subject = new database.DeltaSnapshot(
-      apps.admin,
-      apps.admin,
-      old,
-      change,
-      path,
-      instance
-    );
-  };
-
-  describe('#ref: firebase.database.Reference', () => {
-    it('should return a ref for correct instance, not the default instance', () => {
-      populate({}, {});
-      expect(subject.ref.toJSON()).to.equal('https://other-subdomain.firebaseio.com/foo');
-    });
-  });
-
-  describe('#adminRef(): firebase.database.Reference', () => {
-    it('should return an adminRef for correct instance, not the default instance', () => {
-      populate({}, {});
-      expect(subject.adminRef.toJSON()).to.equal('https://other-subdomain.firebaseio.com/foo');
-    });
-  });
-
-  describe('#val(): any', () => {
-    it('should return child values based on the child path', () => {
-      populate({ a: { b: 'c' } }, { a: { d: 'e' } });
-      expect(subject.child('a').val()).to.deep.equal({ b: 'c', d: 'e' });
-    });
-
-    it('should return null for children past a leaf', () => {
-      populate({ a: 23 }, { b: 33 });
-      expect(subject.child('a/b').val()).to.be.null;
-      expect(subject.child('b/c').val()).to.be.null;
-    });
-
-    it('should return a leaf value', () => {
-      populate(null, 23);
-      expect(subject.val()).to.eq(23);
-      populate({ a: 23 }, { b: 23, a: null });
-      expect(subject.child('b').val()).to.eq(23);
-    });
-
-    it('should coerce object into array if all keys are integers', () => {
-      populate(null, { 0: 'a', 1: 'b', 2: { c: 'd' } });
-      expect(subject.val()).to.deep.equal(['a', 'b', { c: 'd' }]);
-      populate(null, { 0: 'a', 2: 'b', 3: { c: 'd' } });
-      expect(subject.val()).to.deep.equal(['a', , 'b', { c: 'd' }]);
-      populate(null, { 'foo': { 0: 'a', 1: 'b' } });
-      expect(subject.val()).to.deep.equal({ foo: ['a', 'b'] });
-    });
-
-    // Regression test: zero-values (including children) were accidentally forwarded as 'null'.
-    it('should deal with zero-values appropriately', () => {
-      populate(null, 0);
-      expect(subject.val()).to.equal(0);
-      populate(null, { myKey: 0 });
-      expect(subject.val()).to.deep.equal({ myKey: 0 });
-
-      // Null values are still reported as null.
-      populate({ myKey: 'foo', myOtherKey: 'bar' }, { myKey: null });
-      expect(subject.val()).to.deep.equal({ myOtherKey: 'bar' });
-    });
-
-    // Regression test: .val() was returning array of nulls when there's a property called length (BUG#37683995)
-    it('should return correct values when data has "length" property', () => {
-      populate(null, { length: 3,  foo: 'bar' });
-      expect(subject.val()).to.deep.equal({ length: 3, foo: 'bar'});
-    });
-  });
-
-  describe('#child(): DeltaSnapshot', () => {
-    it('should work with multiple calls', () => {
-      populate(null, { a: { b: { c: 'd' } } });
-      expect(subject.child('a').child('b/c').val()).to.equal('d');
-    });
-  });
-
-  describe('#exists(): boolean', () => {
-    it('should be true for an object value', () => {
-      populate(null, { a: { b: 'c' } });
-      expect(subject.child('a').exists()).to.be.true;
-    });
-
-    it('should be true for a leaf value', () => {
-      populate(null, { a: { b: 'c' } });
-      expect(subject.child('a/b').exists()).to.be.true;
-    });
-
-    it('should be false for a non-existent value', () => {
-      populate(null, { a: { b: 'c' } });
-      expect(subject.child('d').exists()).to.be.false;
-    });
-
-    it('should be false for a value pathed beyond a leaf', () => {
-      populate(null, { a: { b: 'c' } });
-      expect(subject.child('a/b/c').exists()).to.be.false;
-    });
-  });
-
-  describe('#previous: DeltaSnapshot', () => {
-    it('should cause val() to return old data only', () => {
-      populate({ a: 'b' }, { a: 'c', d: 'c' });
-      expect(subject.previous.child('a').val()).to.equal('b');
-    });
-
-    it('should return a null if the new value is present', () => {
-      populate(null, 23);
-      expect(subject.previous.val()).to.be.null;
-    });
-  });
-
-  describe('#current: DeltaSnapshot', () => {
-    it('should cause a previous snapshot to return new data', () => {
-      populate({ a: 'b' }, { a: 'c', d: 'c' });
-      expect(subject.previous.child('a').current.val()).to.equal('c');
-    });
-
-    it('should return a null if the new value is null', () => {
-      populate(23, null);
-      expect(subject.previous.current.val()).to.be.null;
-    });
-  });
-
-  describe('#changed(): boolean', () => {
-    it('should be true only when the current value has changed', () => {
-      populate({ a: { b: 'c' } }, { a: { d: 'e' } });
-      expect(subject.child('a').changed()).to.be.true;
-      expect(subject.child('a/b').changed()).to.be.false;
-      expect(subject.child('a/d').changed()).to.be.true;
-    });
-
-    it('should be true when going to or from a null value', () => {
-      populate(null, 'foo');
-      expect(subject.changed()).to.be.true;
-      populate('foo', null);
-      expect(subject.changed()).to.be.true;
-    });
-  });
-
-  describe('#forEach(action: (a: DeltaSnapshot) => boolean): boolean', () => {
-    it('should iterate through child snapshots', () => {
-      populate({ a: 'b' }, { c: 'd' });
-      let out = '';
-      subject.forEach(snap => {
-        out += snap.val();
+      it('should construct a proper resource path', () => {
+        let resource = database.ref('foo').onCreate(() => null).__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
       });
-      expect(out).to.equal('bd');
-    });
 
-    it('should have correct key values for child snapshots', () => {
-      populate({ a: 'b' }, { c: 'd' });
-      let out = '';
-      subject.forEach(snap => {
-        out += snap.key;
+      it('should let developers choose a database instance', () => {
+        let func = database.instance('custom').ref('foo').onCreate(() => null);
+        let resource = func.__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/custom/refs/foo');
       });
-      expect(out).to.equal('ac');
-    });
 
-    it('should not execute for leaf or null nodes', () => {
-      populate(null, 23);
-      let count = 0;
-      let counter = snap => count++;
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = database.ref('/users/{id}').onCreate(data => {
+          expect(data.val()).to.deep.equal({ foo: 'bar' });
+        });
 
-      expect(subject.forEach(counter)).to.equal(false);
-      populate(23, null);
-
-      expect(subject.forEach(counter)).to.equal(false);
-      expect(count).to.eq(0);
-    });
-
-    it('should cancel further enumeration if callback returns true', () => {
-      populate(null, { a: 'b', c: 'd', e: 'f', g: 'h' });
-      let out = '';
-      const ret = subject.forEach(snap => {
-        if (snap.val() === 'f') {
-          return true;
-        }
-        out += snap.val();
+        return handler({
+          data: {
+            data: null,
+            delta: { foo: 'bar' },
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.create',
+        });
       });
-      expect(out).to.equal('bd');
-      expect(ret).to.equal(true);
     });
 
-    it('should not cancel further enumeration if callback returns a truthy value', () => {
-      populate(null, { a: 'b', c: 'd', e: 'f', g: 'h' });
-      let out = '';
-      const ret = subject.forEach(snap => {
-        out += snap.val();
-        return 1;
+    describe('#onUpdate()', () => {
+      it('should return "ref.update" as the event type', () => {
+        let eventType = database.ref('foo').onUpdate(() => null).__trigger.eventTrigger.eventType;
+        expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.update');
       });
-      expect(out).to.equal('bdfh');
-      expect(ret).to.equal(false);
+
+      it('should construct a proper resource path', () => {
+        let resource = database.ref('foo').onUpdate(() => null).__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+      });
+
+      it('should let developers choose a database instance', () => {
+        let func = database.instance('custom').ref('foo').onUpdate(() => null);
+        let resource = func.__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/custom/refs/foo');
+      });
+
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = database.ref('/users/{id}').onUpdate(change => {
+          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+        });
+
+        return handler({
+          data: {
+            data: null,
+            delta: { foo: 'bar' },
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.update',
+        });
+      });
     });
 
-    it('should not cancel further enumeration if callback does not return', () => {
-      populate(null, { a: 'b', c: 'd', e: 'f', g: 'h' });
-      let out = '';
-      const ret = subject.forEach(snap => {
-        out += snap.val();
+    describe('#onDelete()', () => {
+      it('should return "ref.delete" as the event type', () => {
+        let eventType = database.ref('foo').onDelete(() => null).__trigger.eventTrigger.eventType;
+        expect(eventType).to.eq('providers/google.firebase.database/eventTypes/ref.delete');
       });
-      expect(out).to.equal('bdfh');
-      expect(ret).to.equal(false);
+
+      it('should construct a proper resource path', () => {
+        let resource = database.ref('foo').onDelete(() => null).__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
+      });
+
+      it('should let developers choose a database instance', () => {
+        let func = database.instance('custom').ref('foo').onDelete(() => null);
+        let resource = func.__trigger.eventTrigger.resource;
+        expect(resource).to.eq('projects/_/instances/custom/refs/foo');
+      });
+
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = database.ref('/users/{id}').onDelete(data => {
+          expect(data.val()).to.deep.equal({ foo: 'bar' });
+        });
+
+        return handler({
+          data: {
+            data: { foo: 'bar' },
+            delta: null,
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
+        });
+      });
+    });
+
+  });
+
+  describe('process.env.FIREBASE_CONFIG not set', () => {
+    it('should not throw if __trigger is not accessed', () => {
+      expect(() => database.ref('/path').onWrite(() => null)).to.not.throw(Error);
+    });
+
+    it('should throw when trigger is accessed', () => {
+      expect(() => database.ref('/path').onWrite(() => null).__trigger).to.throw(Error);
+    });
+
+    it('should not throw when #run is called', () => {
+      let cf = database.ref('/path').onWrite(() => null);
+      expect(cf.run).to.not.throw(Error);
     });
   });
 
-  describe('#numChildren()', () => {
-    it('should be key count for objects', () => {
-      populate(null, { a: 'b', c: 'd' });
-      expect(subject.numChildren()).to.eq(2);
-    });
-
-    it('should be 0 for non-objects', () => {
-      populate(null, 23);
-      expect(subject.numChildren()).to.eq(0);
+  describe('resourceToInstanceAndPath', () => {
+    it('should return the correct instance and path strings', () => {
+      let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/foo/refs/bar');
+      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/bar');
     });
   });
 
-  describe('#hasChild(childPath): boolean', () => {
-    it('should return true for a child or deep child', () => {
-      populate(null, { a: { b: 'c' }, d: 23 });
-      expect(subject.hasChild('a/b')).to.be.true;
-      expect(subject.hasChild('d')).to.be.true;
-    });
+  describe('DataSnapshot', () => {
+    let subject;
+    const apps = new appsNamespace.Apps();
 
-    it('should return false if a child is missing', () => {
-      populate(null, { a: 'b' });
-      expect(subject.hasChild('c')).to.be.false;
-      expect(subject.hasChild('a/b')).to.be.false;
-    });
-  });
-
-  describe('#key: string', () => {
-    it('should return the key name', () => {
-      expect(subject.key).to.equal('foo');
-    });
-
-    it('should return null for the root', () => {
-      let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/refs/refs');
-      const snapshot = new database.DeltaSnapshot(
-        apps.admin,
-        apps.admin,
-        null,
-        null,
+    let populate = (data: any) => {
+      let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/other-subdomain/refs/foo');
+      subject = new database.DataSnapshot(
+        data,
         path,
+        apps.admin,
         instance
       );
-      expect(snapshot.key).to.be.null;
+    };
+
+    describe('#ref: firebase.database.Reference', () => {
+      it('should return a ref for correct instance, not the default instance', () => {
+        populate({});
+        expect(subject.ref.toJSON()).to.equal('https://other-subdomain.firebaseio.com/foo');
+      });
     });
 
-    it('should return null for explicit root', () => {
-      let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/refs/refs');
-      expect(new database.DeltaSnapshot(
-        apps.admin,
-        apps.admin,
-        null,
-        {},
-        path,
-        instance
-      ).key).to.be.null;
+    describe('#val(): any', () => {
+      it('should return child values based on the child path', () => {
+        populate(applyChange({ a: { b: 'c' } }, { a: { d: 'e' } }));
+        expect(subject.child('a').val()).to.deep.equal({ b: 'c', d: 'e' });
+      });
+
+      it('should return null for children past a leaf', () => {
+        populate(applyChange({ a: 23 }, { b: 33 }));
+        expect(subject.child('a/b').val()).to.be.null;
+        expect(subject.child('b/c').val()).to.be.null;
+      });
+
+      it('should return a leaf value', () => {
+        populate(23);
+        expect(subject.val()).to.eq(23);
+        populate({ b: 23, a: null });
+        expect(subject.child('b').val()).to.eq(23);
+      });
+
+      it('should coerce object into array if all keys are integers', () => {
+        populate({ 0: 'a', 1: 'b', 2: { c: 'd' } });
+        expect(subject.val()).to.deep.equal(['a', 'b', { c: 'd' }]);
+        populate({ 0: 'a', 2: 'b', 3: { c: 'd' } });
+        expect(subject.val()).to.deep.equal(['a', , 'b', { c: 'd' }]);
+        populate({ 'foo': { 0: 'a', 1: 'b' } });
+        expect(subject.val()).to.deep.equal({ foo: ['a', 'b'] });
+      });
+
+      // Regression test: zero-values (including children) were accidentally forwarded as 'null'.
+      it('should deal with zero-values appropriately', () => {
+        populate(0);
+        expect(subject.val()).to.equal(0);
+        populate({ myKey: 0 });
+        expect(subject.val()).to.deep.equal({ myKey: 0 });
+
+        // Null values are still reported as null.
+        populate({ myKey: null });
+        expect(subject.val()).to.deep.equal({ myKey: null });
+      });
+
+      // Regression test: .val() was returning array of nulls when there's a property called length (BUG#37683995)
+      it('should return correct values when data has "length" property', () => {
+        populate({ length: 3,  foo: 'bar' });
+        expect(subject.val()).to.deep.equal({ length: 3, foo: 'bar'});
+      });
     });
 
-    it('should work for child paths', () => {
-      expect(subject.child('foo/bar').key).to.equal('bar');
+    describe('#child(): DataSnapshot', () => {
+      it('should work with multiple calls', () => {
+        populate({ a: { b: { c: 'd' } } });
+        expect(subject.child('a').child('b/c').val()).to.equal('d');
+      });
     });
-  });
 
-  describe('#toJSON(): Object', () => {
-    it('should return the current value', () => {
-      populate(null, { a: 'b' });
-      expect(subject.toJSON()).to.deep.equal(subject.val());
-      expect(subject.previous.toJSON()).to.deep.equal(subject.previous.val());
+    describe('#exists(): boolean', () => {
+      it('should be true for an object value', () => {
+        populate({ a: { b: 'c' } });
+        expect(subject.child('a').exists()).to.be.true;
+      });
+
+      it('should be true for a leaf value', () => {
+        populate({ a: { b: 'c' } });
+        expect(subject.child('a/b').exists()).to.be.true;
+      });
+
+      it('should be false for a non-existent value', () => {
+        populate({ a: { b: 'c' } });
+        expect(subject.child('d').exists()).to.be.false;
+      });
+
+      it('should be false for a value pathed beyond a leaf', () => {
+        populate({ a: { b: 'c' } });
+        expect(subject.child('a/b/c').exists()).to.be.false;
+      });
     });
-    it('should be stringifyable', () => {
-      populate(null, { a: 'b' });
-      expect(JSON.stringify(subject)).to.deep.equal('{"a":"b"}');
+
+    describe('#forEach(action: (a: DataSnapshot) => boolean): boolean', () => {
+      it('should iterate through child snapshots', () => {
+        populate({ a: 'b', c: 'd' });
+        let out = '';
+        subject.forEach(snap => {
+          out += snap.val();
+        });
+        expect(out).to.equal('bd');
+      });
+
+      it('should have correct key values for child snapshots', () => {
+        populate({ a: 'b', c: 'd' });
+        let out = '';
+        subject.forEach(snap => {
+          out += snap.key;
+        });
+        expect(out).to.equal('ac');
+      });
+
+      it('should not execute for leaf or null nodes', () => {
+        populate(23);
+        let count = 0;
+        let counter = snap => count++;
+
+        expect(subject.forEach(counter)).to.equal(false);
+        expect(count).to.eq(0);
+      });
+
+      it('should cancel further enumeration if callback returns true', () => {
+        populate({ a: 'b', c: 'd', e: 'f', g: 'h' });
+        let out = '';
+        const ret = subject.forEach(snap => {
+          if (snap.val() === 'f') {
+            return true;
+          }
+          out += snap.val();
+        });
+        expect(out).to.equal('bd');
+        expect(ret).to.equal(true);
+      });
+
+      it('should not cancel further enumeration if callback returns a truthy value', () => {
+        populate({ a: 'b', c: 'd', e: 'f', g: 'h' });
+        let out = '';
+        const ret = subject.forEach(snap => {
+          out += snap.val();
+          return 1;
+        });
+        expect(out).to.equal('bdfh');
+        expect(ret).to.equal(false);
+      });
+
+      it('should not cancel further enumeration if callback does not return', () => {
+        populate({ a: 'b', c: 'd', e: 'f', g: 'h' });
+        let out = '';
+        const ret = subject.forEach(snap => {
+          out += snap.val();
+        });
+        expect(out).to.equal('bdfh');
+        expect(ret).to.equal(false);
+      });
+    });
+
+    describe('#numChildren()', () => {
+      it('should be key count for objects', () => {
+        populate({ a: 'b', c: 'd' });
+        expect(subject.numChildren()).to.eq(2);
+      });
+
+      it('should be 0 for non-objects', () => {
+        populate(23);
+        expect(subject.numChildren()).to.eq(0);
+      });
+    });
+
+    describe('#hasChild(childPath): boolean', () => {
+      it('should return true for a child or deep child', () => {
+        populate({ a: { b: 'c' }, d: 23 });
+        expect(subject.hasChild('a/b')).to.be.true;
+        expect(subject.hasChild('d')).to.be.true;
+      });
+
+      it('should return false if a child is missing', () => {
+        populate({ a: 'b' });
+        expect(subject.hasChild('c')).to.be.false;
+        expect(subject.hasChild('a/b')).to.be.false;
+      });
+    });
+
+    describe('#key: string', () => {
+      it('should return the key name', () => {
+        expect(subject.key).to.equal('foo');
+      });
+
+      it('should return null for the root', () => {
+        let [instance, path] = database.resourceToInstanceAndPath('projects/_/instances/foo/refs/');
+        const snapshot = new database.DataSnapshot(
+          null,
+          path,
+          apps.admin,
+          instance
+        );
+        expect(snapshot.key).to.be.null;
+      });
+
+      it('should work for child paths', () => {
+        expect(subject.child('foo/bar').key).to.equal('bar');
+      });
+    });
+
+    describe('#toJSON(): Object', () => {
+      it('should return the current value', () => {
+        populate({ a: 'b' });
+        expect(subject.toJSON()).to.deep.equal(subject.val());
+      });
+      it('should be stringifyable', () => {
+        populate({ a: 'b' });
+        expect(JSON.stringify(subject)).to.deep.equal('{"a":"b"}');
+      });
     });
   });
 });

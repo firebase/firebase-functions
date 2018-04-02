@@ -5,12 +5,13 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "node_modules/.bin/tsc -p tsconfig.release.json",
-    "build:pack": "npm prune --production && rm -rf lib && npm install && node_modules/.bin/tsc -p tsconfig.release.json && npm pack && npm install",
+    "build:pack": "rm -rf lib && npm install && node_modules/.bin/tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && node_modules/.bin/tsc -p tsconfig.release.json",
     "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts integration_test/functions/src/{**/*,*}.ts",
     "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
     "test": "mocha .tmp/spec/index.spec.js",
-    "posttest": "npm run lint && rm -rf .tmp"
+    "posttest": "npm run lint && rm -rf .tmp",
+    "postinstall": "node ./upgrade-warning"
   },
   "repository": {
     "type": "git",
@@ -48,22 +49,20 @@
     "typescript": "^2.0.3"
   },
   "peerDependencies": {
-    "firebase-admin": "~5.10.0"
+    "firebase-admin": "~5.11.0"
   },
   "dependencies": {
     "@types/cors": "^2.8.1",
-    "@types/express": "^4.0.33",
+    "@types/express": "^4.11.1",
     "@types/jsonwebtoken": "^7.1.32",
     "@types/lodash": "^4.14.34",
-    "@types/sha1": "^1.1.0",
     "cors": "^2.8.4",
-    "express": "^4.0.33",
+    "express": "^4.16.2",
     "jsonwebtoken": "^7.1.9",
-    "lodash": "^4.6.1",
-    "sha1": "^1.1.1"
+    "lodash": "^4.6.1"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=6.0.0"
   },
   "typings": "lib/index.d.ts"
 }

@@ -20,51 +20,62 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
+import { makeCloudFunction, CloudFunction, EventContext } from '../cloud-functions';
 
 /** @internal */
-export const provider = 'firebase.crashlytics';
+export const provider = 'google.firebase.crashlytics';
+/** @internal */
+export const service = 'fabric.io';
 
 /** 
  * Handle events related to Crashlytics issues. An issue in Crashlytics is an 
  * aggregation of crashes which have a shared root cause.
  */
 export function issue() {
-  return new IssueBuilder('projects/' + process.env.GCLOUD_PROJECT);
+  return new IssueBuilder(() => {
+    if (!process.env.GCLOUD_PROJECT) {
+      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+    }
+    return 'projects/' + process.env.GCLOUD_PROJECT;
+  });
 }
 
 /** Builder used to create Cloud Functions for Crashlytics issue events. */
 export class IssueBuilder {
   /** @internal */
-  constructor(private resource: string) { }
+  constructor(private triggerResource: () => string) { }
+
+  /** @internal */
+  onNewDetected(handler: any): Error {
+    throw new Error('"onNewDetected" is now deprecated, please use "onNew"');
+  }
 
   /** Handle Crashlytics New Issue events. */
-  onNewDetected(handler: (event: Event<Issue>) => PromiseLike<any> | any
-    ): CloudFunction<Issue> {
-    return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
-      eventType: 'issue.new',
-    });
+  onNew(handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+    return this.onEvent(handler, 'issue.new');
   }
 
   /** Handle Crashlytics Regressed Issue events. */
-  onRegressed(handler: (event: Event<Issue>) => PromiseLike<any> | any
-  ): CloudFunction<Issue> {
-    return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
-      eventType: 'issue.regressed',
-    });
+  onRegressed(handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+    return this.onEvent(handler, 'issue.regressed');
   }
 
   /** Handle Crashlytics Velocity Alert events. */
-  onVelocityAlert(handler: (event: Event<Issue>) => PromiseLike<any> | any
+  onVelocityAlert(handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+    return this.onEvent(handler, 'issue.velocityAlert');
+  }
+
+  private onEvent(
+    handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any,
+    eventType: string
   ): CloudFunction<Issue> {
     return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
-      eventType: 'issue.velocityAlert',
+      handler,
+      provider,
+      eventType,
+      service,
+      legacyEventType: `providers/firebase.crashlytics/eventTypes/${eventType}`,
+      triggerResource: this.triggerResource,
     });
   }
 }
@@ -72,7 +83,7 @@ export class IssueBuilder {
 /**
  * Interface representing a Crashlytics issue event that was logged for a specific issue.
  */
-export class Issue {
+export interface Issue {
   /** Fabric Issue ID. */
   issueId: string;
 
@@ -92,7 +103,7 @@ export class Issue {
   velocityAlert?: VelocityAlert;
 }
 
-export class VelocityAlert {
+export interface VelocityAlert {
   /** The percentage of sessions which have been impacted by this issue. Example: .04 */
   crashPercentage: number;
 

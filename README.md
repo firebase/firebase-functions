@@ -4,27 +4,26 @@ The `firebase-functions` package provides an SDK for defining Cloud Functions fo
 
 Cloud Functions is a hosted, private, and scalable Node.js environment where you can run JavaScript code. The Firebase SDK for Cloud Functions integrates the Firebase platform by letting you write code that responds to events and invokes functionality exposed by other Firebase features.
 
-_This is a Beta release of Google Cloud Functions. This API might be changed in backward-incompatible ways and is not subject to any SLA or deprecation policy._
-
-
 ## Learn more
 
 Learn more about the Firebase SDK for Cloud Functions in the [Firebase documentation](https://firebase.google.com/docs/functions/) or [check out our samples](https://github.com/firebase/functions-samples).
+
+## Migrating to v1
+
+To migrate from a beta version of firebase-functions to v1, please refer to the [migration guide](https://firebase.google.com/docs/functions/beta-v1-diff).
 
 ## Usage
 
 ```js
 // functions/index.js
-var functions = require('firebase-functions');
-var notifyUsers = require('./notify-users');
+const functions = require('firebase-functions');
+const notifyUsers = require('./notify-users');
 
 exports.newPost = functions.database
   .ref('/posts/{postId}')
-  .onWrite(function(event) {
-    // only execute function on creation
-    if (!event.data.previous.exists()) {
-      notifyUsers(event.data.val());
-    }
+  .onCreate((snapshot, context) => {
+    console.log('Received new post with ID:', context.params.postId);
+    return notifyUsers(snapshot.val());
   });
 ```
 

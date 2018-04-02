@@ -1,5 +1,5 @@
 language: node_js
 node_js:
-- '6.11.1'
+- '6.11.5'
 - stable
 sudo: false

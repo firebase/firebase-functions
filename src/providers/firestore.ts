@@ -24,23 +24,28 @@ import { posix } from 'path';
 import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { apps } from '../apps';
-import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
+import { makeCloudFunction, CloudFunction, LegacyEvent, Change,
+  EventContext } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
 
 /** @internal */
-export const provider = 'cloud.firestore';
+export const provider = 'google.firestore';
+/** @internal */
+export const service = 'firestore.googleapis.com';
+export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
 
 /** @internal */
 export const defaultDatabase = '(default)';
 let firestoreInstance;
 
+/** @internal */
+// Multiple databases are not yet supported by Firestore.
 export function database(database: string = defaultDatabase) {
-  if (!process.env.GCLOUD_PROJECT) {
-    throw new Error('Environment variable GCLOUD_PROJECT is not set.');
-  }
-  return new DatabaseBuilder(posix.join('projects', process.env.GCLOUD_PROJECT, 'databases', database));
+  return new DatabaseBuilder(database);
 }
 
+/** @internal */
+// Multiple databases are not yet supported by Firestore.
 export function namespace(namespace: string) {
   return database().namespace(namespace);
 }
@@ -51,116 +56,127 @@ export function document(path: string) {
 
 export class DatabaseBuilder {
   /** @internal */
-  constructor(private resource: string) { }
+  constructor(private database: string) { }
 
   namespace(namespace: string) {
-    return new NamespaceBuilder(`${posix.join(this.resource, 'documents')}@${namespace}`);
+    return new NamespaceBuilder(this.database, namespace);
   }
 
   document(path: string) {
-    return (new NamespaceBuilder(posix.join(this.resource, 'documents'))).document(path);
+    return new NamespaceBuilder(this.database).document(path);
   }
 }
 
 export class NamespaceBuilder {
   /** @internal */
-  constructor(private resource: string) { }
+  constructor(private database: string, private namespace?: string) { }
 
   document(path: string) {
-    return new DocumentBuilder(posix.join(this.resource, path));
+    return new DocumentBuilder(() => {
+      if (!process.env.GCLOUD_PROJECT) {
+        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      }
+      let database = posix.join('projects', process.env.GCLOUD_PROJECT, 'databases', this.database);
+      return posix.join(
+        database,
+        this.namespace ? `documents@${this.namespace}` : 'documents',
+        path);
+    });
   }
 }
 
-export interface DeltaDocumentSnapshot {
-  exists: Boolean;
-  ref: firebase.firestore.DocumentReference;
-  id: string;
-  createTime?: string;
-  updateTime?: string;
-  readTime?: string;
-  previous: DeltaDocumentSnapshot;
-  data: () => any;
-  get: (key: string) => any;
-};
-
-function isDeltaDocumentSnapshot(data: any): data is DeltaDocumentSnapshot {
-  return 'exists' in data;
-};
-
-function getValueProto(event, valueFieldName) {
-  let data = event.data;
+function _getValueProto(data: any, resource: string, valueFieldName: string) {
   if (_.isEmpty(_.get(data, valueFieldName))) {
     // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
-    return event.resource;
+    return resource;
   }
   let proto = {
     fields: _.get(data, [valueFieldName, 'fields'], {}),
     createTime: dateToTimestampProto(_.get(data, [valueFieldName, 'createTime'])),
     updateTime: dateToTimestampProto(_.get(data, [valueFieldName, 'updateTime'])),
-    name: _.get(data, [valueFieldName, 'name'], event.resource),
+    name: _.get(data, [valueFieldName, 'name'], resource),
   };
   return proto;
 };
 
 /** @internal */
-export function dataConstructor(raw: Event<any>) {
-  if (isDeltaDocumentSnapshot(raw.data)) {
-    return raw.data;
-  }
+export function snapshotConstructor(event: LegacyEvent): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let valueProto = getValueProto(raw, 'value');
-  let readTime = dateToTimestampProto(_.get(raw.data, 'value.readTime'));
-  let snapshot = firestoreInstance.snapshot_(valueProto, readTime, 'json') as DeltaDocumentSnapshot;
-  Object.defineProperty(snapshot, 'previous', {
-    get: () => {
-      let oldValueProto = getValueProto(raw, 'oldValue');
-      let oldReadTime = dateToTimestampProto(_.get(raw.data, 'oldValue.readTime'));
-      return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json') as DeltaDocumentSnapshot;
-    },
-  });
-  return snapshot;
+  let valueProto = _getValueProto(event.data, event.resource, 'value');
+  let readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
+  return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 };
+
+/** @internal */
+// TODO remove this function when wire format changes to new format
+export function beforeSnapshotConstructor(event: LegacyEvent): DocumentSnapshot {
+  if (!firestoreInstance) {
+    firestoreInstance = firebase.firestore(apps().admin);
+  }
+  let oldValueProto = _getValueProto(event.data, event.resource, 'oldValue');
+  let oldReadTime = dateToTimestampProto(_.get(event, 'data.oldValue.readTime'));
+  return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
+}
+
+function changeConstructor(raw: LegacyEvent) {
+  return Change.fromObjects(
+    beforeSnapshotConstructor(raw),
+    snapshotConstructor(raw)
+  );
+}
 
 export class DocumentBuilder {
   /** @internal */
-  constructor(private resource: string) {
+  constructor(private triggerResource: () => string) {
     // TODO what validation do we want to do here?
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
-  any): CloudFunction<DeltaDocumentSnapshot> {
-    return this.onOperation(handler, 'document.write');
+  onWrite(handler: (
+    change: Change<DocumentSnapshot>,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<Change<DocumentSnapshot>> {
+    return this.onOperation(handler, 'document.write', changeConstructor);
+  };
+
+  /** Respond only to document updates. */
+  onUpdate(handler: (
+    change: Change<DocumentSnapshot>,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<Change<DocumentSnapshot>> {
+    return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
   /** Respond only to document creations. */
-  onCreate(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
-  any): CloudFunction<DeltaDocumentSnapshot> {
-    return this.onOperation(handler, 'document.create');
-  }
-
-  /** Respond only to document updates. */
-  onUpdate(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
-  any): CloudFunction<DeltaDocumentSnapshot> {
-    return this.onOperation(handler, 'document.update');
+  onCreate(handler: (
+    snapshot: DocumentSnapshot,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<DocumentSnapshot> {
+    return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
-  onDelete(handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> |
-  any): CloudFunction<DeltaDocumentSnapshot> {
-    return this.onOperation(handler, 'document.delete');
+  onDelete(handler: (
+    snapshot: DocumentSnapshot,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<DocumentSnapshot> {
+    return this.onOperation(handler, 'document.delete', beforeSnapshotConstructor);
   }
 
-  private onOperation(
-    handler: (event: Event<DeltaDocumentSnapshot>) => PromiseLike<any> | any,
-    eventType: string): CloudFunction<DeltaDocumentSnapshot> {
-      return makeCloudFunction({
-        provider, handler,
-        resource: this.resource,
-        eventType: eventType,
-        dataConstructor,
-      });
+  private onOperation<T>(
+    handler: (data: T, context?: EventContext) => PromiseLike<any> | any,
+    eventType: string,
+    dataConstructor): CloudFunction<T> {
+    return makeCloudFunction({
+      handler,
+      provider,
+      eventType,
+      service,
+      triggerResource: this.triggerResource,
+      legacyEventType: `providers/cloud.firestore/eventTypes/${eventType}`,
+      dataConstructor,
+    });
   }
 }

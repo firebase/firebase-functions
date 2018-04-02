@@ -2,7 +2,6 @@ import * as functions from 'firebase-functions';
 import * as firebase from 'firebase';
 import * as https from 'https';
 import * as admin from 'firebase-admin';
-import * as _ from 'lodash';
 import { Request, Response } from 'express';
 
 export * from './pubsub-tests';
@@ -12,8 +11,10 @@ export * from './firestore-tests';
 export * from './https-tests';
 const numTests = Object.keys(exports).length;  // Assumption: every exported function is its own test.
 
-firebase.initializeApp(_.omit(functions.config().firebase, 'credential'));  // Explicitly decline admin privileges.
-admin.initializeApp(functions.config().firebase);
+// Client SDK doesn't support auto initialization:
+firebase.initializeApp(JSON.parse(process.env.FIREBASE_CONFIG));
+console.log('initializing admin');
+admin.initializeApp();
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any) {

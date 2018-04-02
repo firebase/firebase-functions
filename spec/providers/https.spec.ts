@@ -27,7 +27,7 @@ import * as jwt from 'jsonwebtoken';
 import * as mocks from '../fixtures/credential/key.json';
 import * as nock from 'nock';
 import * as _ from 'lodash';
-import { apps } from '../../src/apps';
+import { apps as appsNamespace } from '../../src/apps';
 import { expect } from 'chai';
 
 describe('CloudHttpsBuilder', () => {
@@ -201,7 +201,7 @@ export function generateIdToken(projectId: string): string {
 }
 
 describe('callable.FunctionBuilder', () => {
-  let oldCredential: firebase.credential.Credential = undefined;
+  let app;
 
   before(() => {
     let credential = {
@@ -217,12 +217,16 @@ describe('callable.FunctionBuilder', () => {
         };
       },
     };
-    oldCredential = apps().admin.options.credential;
-    apps().admin.options.credential = credential;
+    app = firebase.initializeApp({
+      projectId: 'aProjectId',
+      credential: credential,
+    });
+    Object.defineProperty(appsNamespace(), 'admin', { get: () => app });
   });
 
   after(() => {
-    apps().admin.options.credential = oldCredential;
+    app.delete();
+    delete appsNamespace.singleton;
   });
 
   describe('#onCall', () => {
@@ -375,7 +379,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle auth', async () => {
       const mock = mockFetchPublicKeys();
-      const projectId = apps().admin.options.projectId;
+      const projectId = appsNamespace().admin.options.projectId;
       const idToken = generateIdToken(projectId);
       await runTest({
         httpRequest: request(null, 'application/json', {

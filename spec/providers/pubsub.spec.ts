@@ -23,91 +23,109 @@
 import * as pubsub from '../../src/providers/pubsub';
 import { expect } from 'chai';
 
-describe('pubsub.Message', () => {
-  describe('#json', () => {
-    it('should return json decoded from base64', () => {
-      let message = new pubsub.Message({
-        data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
+describe('Pubsub Functions', () => {
+  describe('pubsub.Message', () => {
+    describe('#json', () => {
+      it('should return json decoded from base64', () => {
+        let message = new pubsub.Message({
+          data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
+        });
+
+        expect(message.json.hello).to.equal('world');
       });
 
-      expect(message.json.hello).to.equal('world');
+      it('should preserve passed in json', () => {
+        let message = new pubsub.Message({
+          data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
+          json: {goodbye: 'world'},
+        });
+
+        expect(message.json.goodbye).to.equal('world');
+      });
     });
 
-    it('should preserve passed in json', () => {
-      let message = new pubsub.Message({
-        data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
-        json: {goodbye: 'world'},
-      });
+    describe('#toJSON', () => {
+      it('should be JSON stringify-able', () => {
+        let encoded = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+        let message = new pubsub.Message({
+          data: encoded,
+        });
 
-      expect(message.json.goodbye).to.equal('world');
+        expect(JSON.parse(JSON.stringify(message))).to.deep.equal({
+          data: encoded,
+          attributes: {},
+        });
+      });
     });
   });
 
-  describe('#toJSON', () => {
-    it('should be JSON stringify-able', () => {
-      let encoded = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-      let message = new pubsub.Message({
-        data: encoded,
-      });
+  describe('pubsub.FunctionBuilder', () => {
 
-      expect(JSON.parse(JSON.stringify(message))).to.deep.equal({
-        data: encoded,
-        attributes: {},
-      });
-    });
-  });
-});
-
-describe('pubsub.FunctionBuilder', () => {
-
-  before(() => {
-    process.env.GCLOUD_PROJECT = 'project1';
-  });
-
-  after(() => {
-    delete process.env.GCLOUD_PROJECT;
-  });
-
-  describe('#onPublish', () => {
-    it('should return a TriggerDefinition with appropriate values', () => {
-      // Pick up project from process.env.GCLOUD_PROJECT
-      const result = pubsub.topic('toppy').onPublish(() => null);
-      expect(result.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/cloud.pubsub/eventTypes/topic.publish',
-          resource: 'projects/project1/topics/toppy',
-        },
-      });
+    before(() => {
+      process.env.GCLOUD_PROJECT = 'project1';
     });
 
-    it ('should throw with improperly formatted topics', () => {
-      expect(() => pubsub.topic('bad/topic/format')).to.throw(Error);
+    after(() => {
+      delete process.env.GCLOUD_PROJECT;
     });
 
-    it('should properly handle a new-style event', () => {
-      const raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-      const event = {
-        data: {
-          data: raw,
-          attributes: {
-            foo: 'bar',
+    describe('#onPublish', () => {
+      it('should return a TriggerDefinition with appropriate values', () => {
+        // Pick up project from process.env.GCLOUD_PROJECT
+        const result = pubsub.topic('toppy').onPublish(() => null);
+        expect(result.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType: 'google.pubsub.topic.publish',
+            resource: 'projects/project1/topics/toppy',
+            service: 'pubsub.googleapis.com',
           },
-        },
-      };
+        });
+      });
 
-      const result = pubsub.topic('toppy').onPublish(ev => {
-        return {
-          raw: ev.data.data,
-          json: ev.data.json,
-          attributes: ev.data.attributes,
+      it ('should throw with improperly formatted topics', () => {
+        expect(() => pubsub.topic('bad/topic/format')).to.throw(Error);
+      });
+
+      it('should properly handle a new-style event', () => {
+        const raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+        const event = {
+          data: {
+            data: raw,
+            attributes: {
+              foo: 'bar',
+            },
+          },
         };
-      });
 
-      return expect(result(event)).to.eventually.deep.equal({
-        raw,
-        json: {hello: 'world'},
-        attributes: {foo: 'bar'},
+        const result = pubsub.topic('toppy').onPublish(data => {
+          return {
+            raw: data.data,
+            json: data.json,
+            attributes: data.attributes,
+          };
+        });
+
+        return expect(result(event)).to.eventually.deep.equal({
+          raw,
+          json: {hello: 'world'},
+          attributes: {foo: 'bar'},
+        });
       });
+    });
+  });
+
+  describe('process.env.GCLOUD_PROJECT not set', () => {
+    it('should not throw if __trigger is not accessed', () => {
+      expect(() => pubsub.topic('toppy').onPublish(() => null)).to.not.throw(Error);
+    });
+
+    it('should throw when trigger is accessed', () => {
+      expect(() => pubsub.topic('toppy').onPublish(() => null).__trigger).to.throw(Error);
+    });
+
+    it('should not throw when #run is called', () => {
+      let cf = pubsub.topic('toppy').onPublish(() => null);
+      expect(cf.run).to.not.throw(Error);
     });
   });
 });

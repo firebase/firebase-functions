@@ -26,17 +26,129 @@ import { Request, Response } from 'express';
 export { Request, Response };
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
-/** An event to be handled in a developer's Cloud Function */
-export interface Event<T> {
-  eventId?: string;
-  timestamp?: string;
+/** Legacy wire format for an event
+ * @internal
+ */
+export interface LegacyEvent {
+  data: any;
   eventType?: string;
   resource?: string;
+  eventId?: string;
+  timestamp?: string;
   params?: { [option: string]: any };
-  data: T;
+  auth?: apps.AuthMode;
+}
+
+/** Wire format for an event
+ * @internal
+ */
+export interface Event {
+  context: {
+    eventId: string;
+    timestamp: string;
+    eventType: string;
+    resource: Resource;
+  };
+  data: any;
+}
+
+/** The context in which an event occurred.
+ * An EventContext describes:
+ * - The time an event occurred.
+ * - A unique identifier of the event.
+ * - The resource on which the event occurred, if applicable.
+ * - Authorization of the request that triggered the event, if applicable and available.
+ */
+export interface EventContext {
+  /** ID of the event */
+  eventId: string;
+  /** Timestamp for when the event occured (ISO string) */
+  timestamp: string;
+  /** Type of event */
+  eventType: string;
+  /** Resource that triggered the event */
+  resource: Resource;
+  /** Key-value pairs that represent the values of wildcards in a database reference */
+  params: { [option: string]: any }; // added by SDK, but may be {}
+  /** Type of authentication for the triggering action, valid value are: 'ADMIN', 'USER',
+   * 'UNAUTHENTICATED'. Only available for database functions.
+   */
+  authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
+  /** Firebase auth variable for the user whose action triggered the function. Field will be
+   * null for unauthenticated users, and will not exist for admin users. Only available
+   * for database functions.
+   */
+  auth?: {
+    uid: string,
+    token: object,
+  };
+}
+
+/** Change describes a change of state - "before" represents the state prior
+ * to the event, "after" represents the state after the event.
+ */
+export class Change<T> {
+  constructor(
+    public before?: T,
+    public after?: T,
+  ) {};
+}
+
+/** ChangeJson is the JSON format used to construct a Change object. */
+export interface ChangeJson {
+  /** Key-value pairs representing state of data before the change.
+   * If `fieldMask` is set, then only fields that changed are present in `before`.
+   */
+  before?: any;
+  /** Key-value pairs representing state of data after the change. */
+  after?: any;
+  /** Comma-separated string that represents names of field that changed. */
+  fieldMask?: string;
+}
+
+export namespace Change {
+  function reinterpretCast<T>(x: any) { return x as T; }
+
+  /** Factory method for creating a Change from a `before` object and an `after` object. */
+  export function fromObjects<T>(before: T, after: T) {
+    return new Change(before, after);
+  }
+
+  /** Factory method for creating a Change from a JSON and an optional customizer function to be
+   * applied to both the `before` and the `after` fields.
+   */
+  export function fromJSON<T>(json: ChangeJson, customizer: (any) => T = reinterpretCast): Change<T> {
+    let before = _.assign({}, json.before);
+    if (json.fieldMask) {
+      before = applyFieldMask(before, json.after, json.fieldMask);
+    }
+    return Change.fromObjects(customizer(before || {}), customizer(json.after || {}));
+  }
 
   /** @internal */
-  auth?: apps.AuthMode;
+  export function applyFieldMask(sparseBefore, after, fieldMask) {
+    let before = _.assign({}, after);
+    let masks = fieldMask.split(',');
+    _.forEach(masks, mask => {
+      const val = _.get(sparseBefore, mask);
+      if (typeof val === 'undefined') {
+        _.unset(before, mask);
+      } else {
+        _.set(before, mask, val);
+      }
+    });
+    return before;
+  }
+}
+
+/** Resource is a standard format for defining a resource (google.rpc.context.AttributeContext.Resource).
+ * In Cloud Functions, it is the resource that triggered the function - such as a storage bucket.
+ */
+export interface Resource {
+  service: string;
+  name: string;
+  type?: string;
+  labels?: { [tag: string]: string };
 }
 
 /** TriggerAnnotated is used internally by the firebase CLI to understand what type of Cloud Function to deploy. */
@@ -46,8 +158,14 @@ export interface TriggerAnnotated {
     eventTrigger?: {
       eventType: string;
       resource: string;
+      service: string;
     }
   };
+}
+
+/** A Runnable has a `run` method which directly invokes the user-defined function - useful for unit testing. */
+export interface Runnable<T> {
+  run: (data: T, context?: EventContext) => PromiseLike<any> | any;
 }
 
 /**
@@ -60,59 +178,68 @@ export type HttpsFunction = TriggerAnnotated & ((req: Request, resp: Response) =
  * A CloudFunction is both an object that exports its trigger definitions at __trigger and
  * can be called as a function using the raw JS API for Google Cloud Functions.
  */
-export type CloudFunction<T> = TriggerAnnotated & ((event: Event<any> | Event<T>) => PromiseLike<any> | any);
+export type CloudFunction<T> = Runnable<T> & TriggerAnnotated & ((input: any) => PromiseLike<any> | any);
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
+  // TODO should remove `provider` and require a fully qualified `eventType`
+  // once all providers have migrated to new format.
   provider: string;
   eventType: string;
-  resource: string;
-  dataConstructor?: (raw: Event<any>) => EventData;
-  handler: (event?: Event<EventData>) => PromiseLike<any> | any;
-  before?: (raw: Event<any>) => void;
-  after?: (raw: Event<any>) => void;
-}
-
-function _makeParams(event: Event<any>, triggerResource: string): { [option: string]: any } {
-  if (!event.resource) { // In unit testing, "resource" may not be populated for a test event.
-    return event.params || {};
-  }
-
-  let wildcards = triggerResource.match(WILDCARD_REGEX);
-  let params = {};
-  if (wildcards) {
-    let triggerResourceParts = _.split(triggerResource, '/');
-    let eventResourceParts = _.split(event.resource, '/');
-    _.forEach(wildcards, wildcard => {
-      let wildcardNoBraces = wildcard.slice(1,-1);
-
-      let position = _.indexOf(triggerResourceParts, wildcard);
-      params[wildcardNoBraces] = eventResourceParts[position];
-    });
-  }
-
-  return params;
+  triggerResource: () => string;
+  service: string;
+  dataConstructor?: (raw: Event | LegacyEvent) => EventData;
+  handler: (data: EventData, context?: EventContext) => PromiseLike<any> | any;
+  before?: (raw: Event | LegacyEvent) => void;
+  after?: (raw: Event | LegacyEvent) => void;
+  legacyEventType?: string;
 }
 
 /** @internal */
 export function makeCloudFunction<EventData>({
   provider,
   eventType,
-  resource,
-  dataConstructor = (raw: Event<any>) => raw.data,
+  triggerResource,
+  service,
+  dataConstructor = (raw: Event | LegacyEvent) => raw.data,
   handler,
   before = () => { return; },
   after = () => { return; },
+  legacyEventType,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction: any = async (event: Event<any>) => {
+  let cloudFunction: any = async (event: Event | LegacyEvent) => {
+    if (!_.has(event, 'data')) {
+      throw Error('Cloud function needs to be called with an event parameter.' +
+      'If you are writing unit tests, please use the Node module firebase-functions-fake.');
+    }
     try {
       before(event);
 
-      let typedEvent: Event<EventData> = _.cloneDeep(event);
-      typedEvent.data = dataConstructor(event);
-      typedEvent.params = _makeParams(event, resource) || {};
+      let dataOrChange = dataConstructor(event);
+      let context;
+      if (isEvent(event)) { // new event format
+        context = _.cloneDeep(event.context);
+      } else { // legacy event format
+        context = {
+          eventId: event.eventId,
+          timestamp: event.timestamp,
+          eventType: provider + '.' + eventType,
+          resource: {
+            service: service,
+            name: event.resource,
+          },
+        };
+        if (provider === 'google.firebase.database') {
+          context.authType = _detectAuthType(event);
+          if (context.authType !== 'ADMIN') {
+            context.auth = _makeAuth(event, context.authType);
+          }
+        }
+      }
 
-      let promise = handler(typedEvent);
+      context.params = _makeParams(context, triggerResource);
+
+      let promise = handler(dataOrChange, context);
       if (typeof promise === 'undefined') {
         console.warn('Function returned undefined, expected Promise or value');
       }
@@ -121,13 +248,63 @@ export function makeCloudFunction<EventData>({
       after(event);
     }
   };
-
-  cloudFunction.__trigger = {
-    eventTrigger: {
-      resource,
-      eventType: `providers/${provider}/eventTypes/${eventType}`,
+  Object.defineProperty(cloudFunction, '__trigger', {
+    get: () => {
+      return {
+        eventTrigger: {
+          resource: triggerResource(),
+          eventType: legacyEventType || provider + '.' + eventType,
+          service,
+        },
+      };
     },
-  };
-
+  });
+  cloudFunction.run = handler;
   return cloudFunction;
+}
+
+function isEvent(event: Event | LegacyEvent): event is Event {
+  return _.has(event, 'context');
+}
+
+function _makeParams(context: EventContext, triggerResourceGetter: () => string): { [option: string]: any } {
+  if (context.params) { // In unit testing, user may directly provide `context.params`.
+    return context.params;
+  }
+  if (!context.resource) { // In unit testing, `resource` may be unpopulated for a test event.
+    return {};
+  }
+  let triggerResource = triggerResourceGetter();
+  let wildcards = triggerResource.match(WILDCARD_REGEX);
+  let params = {};
+  if (wildcards) {
+    let triggerResourceParts = _.split(triggerResource, '/');
+    let eventResourceParts = _.split(context.resource.name, '/');
+    _.forEach(wildcards, wildcard => {
+      let wildcardNoBraces = wildcard.slice(1,-1);
+      let position = _.indexOf(triggerResourceParts, wildcard);
+      params[wildcardNoBraces] = eventResourceParts[position];
+    });
+  }
+  return params;
+}
+
+function _makeAuth(event: LegacyEvent, authType: string) {
+  if (authType === 'UNAUTHENTICATED') {
+    return null;
+  }
+  return {
+    uid: _.get(event, 'auth.variable.uid'),
+    token: _.get(event, 'auth.variable.token'),
+  };
+}
+
+function _detectAuthType(event: LegacyEvent) {
+  if (_.get(event, 'auth.admin')) {
+    return 'ADMIN';
+  }
+  if (_.has(event, 'auth.variable')) {
+    return 'USER';
+  }
+  return 'UNAUTHENTICATED';
 }

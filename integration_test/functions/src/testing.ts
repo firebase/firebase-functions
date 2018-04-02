@@ -1,29 +1,30 @@
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
+import { EventContext } from 'firebase-functions';
 
-export type TestCase = (event) => any
-export type TestCaseMap = { [key: string]: TestCase };
+export type TestCase<T> = (data: T, context?: EventContext) => any
+export type TestCaseMap<T> = { [key: string]: TestCase<T> };
 
-export class TestSuite {
+export class TestSuite<T> {
   private name: string;
-  private tests: TestCaseMap;
+  private tests: TestCaseMap<T>;
 
-  constructor(name: string, tests: TestCaseMap = {}) {
+  constructor(name: string, tests: TestCaseMap<T> = {}) {
     this.name = name;
     this.tests = tests;
   }
 
-  it(name: string, testCase: TestCase): TestSuite {
+  it(name: string, testCase: TestCase<T>): TestSuite<T> {
     this.tests[name] = testCase;
     return this;
   }
 
-  run(testId: string, event): Promise<void> {
+  run(testId: string, data: T, context?: EventContext): Promise<void> {
     let running: Array<Promise<any>> = [];
     for (let testName in this.tests) {
       if (!this.tests.hasOwnProperty(testName)) { continue; }
       const run = Promise.resolve()
-        .then(() => this.tests[testName](event))
+        .then(() => this.tests[testName](data, context))
         .then(
         (result) => {
           console.log(`${result ? 'Passed' : 'Failed with successful op'}: ${testName}`);

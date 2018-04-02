@@ -33,37 +33,29 @@ describe('Firestore Functions', () => {
     };
   };
 
-  beforeEach(() => {
-    process.env.GCLOUD_PROJECT = 'project1';
-    process.env.FIREBASE_PROJECT = JSON.stringify({
-      databaseUrl: 'project1@firebaseio.com',
-    });
-  });
-
-  afterEach(() => {
-    delete process.env.GCLOUD_PROJECT;
-    delete process.env.FIREBASE_PROJECT;
-  });
-
   describe('document builders and event types', () => {
     function expectedTrigger(resource: string, eventType: string) {
       return {
         eventTrigger: {
           resource,
-          eventType: `providers/${firestore.provider}/eventTypes/${eventType}`,
+          eventType: `providers/cloud.firestore/eventTypes/${eventType}`,
+          service: 'firestore.googleapis.com',
         },
       };
     }
+
+    before(() => {
+      process.env.GCLOUD_PROJECT = 'project1';
+    });
+
+    after(() => {
+      delete process.env.GCLOUD_PROJECT;
+    });
 
     it('should allow terse constructors', () => {
       let resource = 'projects/project1/databases/(default)/documents/users/{uid}';
       let cloudFunction = firestore.document('users/{uid}').onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, 'document.write'));
-    });
-
-    it('should throw useful error when GCLOUD_PROJECT missing', () => {
-      delete process.env.GCLOUD_PROJECT;
-      expect(() => firestore.document('users/{uid}')).to.throw(Error, 'GCLOUD_PROJECT');
     });
 
     it('should allow custom namespaces', () => {
@@ -103,14 +95,29 @@ describe('Firestore Functions', () => {
     });
   });
 
+  describe('process.env.GCLOUD_PROJECT not set', () => {
+    it('should not throw if __trigger is not accessed', () => {
+      expect(() => firestore.document('input').onCreate(() => null)).to.not.throw(Error);
+    });
+
+    it('should throw when trigger is accessed', () => {
+      expect(() => firestore.document('input').onCreate(() => null).__trigger).to.throw(Error);
+    });
+
+    it('should not throw when #run is called', () => {
+      let cf = firestore.document('input').onCreate(() => null);
+      expect(cf.run).to.not.throw(Error);
+    });
+  });
+
   describe('dataConstructor', () => {
-    function constructEvent(oldValue: object, value: object) {
+    function constructEvent(oldValue: object, value: object, eventType: string) {
       return {
         'data': {
           'oldValue': oldValue,
           'value': value,
         },
-        'resource': 'projects/pid/databases/(default)/documents/collection/123',
+        'context': {},
       };
     }
 
@@ -137,53 +144,54 @@ describe('Firestore Functions', () => {
     }
 
     it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
-      let testFunction = firestore.document('path').onWrite((event) => {
-        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
-        expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
-        expect(event.data.previous.get('key1')).to.equal(false);
+      let testFunction = firestore.document('path').onWrite((change) => {
+        expect(change.before.data()).to.deep.equal({key1: false, key2: 111});
+        expect(change.before.get('key1')).to.equal(false);
+        expect(change.after.data()).to.deep.equal({key1: true, key2: 123});
+        expect(change.after.get('key1')).to.equal(true);
+        return true; // otherwise will get warning about returning undefined
       });
-      let data = constructEvent(createOldValue(), createValue());
+      let data = constructEvent(createOldValue(), createValue(), 'document.write');
       return testFunction(data);
-    });
+    }).timeout(5000);
 
     it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
-      let testFunction = firestore.document('path').onCreate((event) => {
-        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
-        expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous).to.not.equal(null);
-        expect(event.data.previous.exists).to.be.false;
+      let testFunction = firestore.document('path').onCreate((data) => {
+        expect(data.data()).to.deep.equal({key1: true, key2: 123});
+        expect(data.get('key1')).to.equal(true);
+        return true; // otherwise will get warning about returning undefined
       });
-      let data = constructEvent({}, createValue());
+      let data = constructEvent({}, createValue(), 'document.create');
       return testFunction(data);
-    });
+    }).timeout(5000);
 
     it('constructs appropriate fields and getters for event.data on "document.update" events', () => {
-      let testFunction = firestore.document('path').onUpdate((event) => {
-        expect(event.data.data()).to.deep.equal({key1: true, key2: 123});
-        expect(event.data.get('key1')).to.equal(true);
-        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
-        expect(event.data.previous.get('key1')).to.equal(false);
+      let testFunction = firestore.document('path').onUpdate((change) => {
+        expect(change.before.data()).to.deep.equal({key1: false, key2: 111});
+        expect(change.before.get('key1')).to.equal(false);
+        expect(change.after.data()).to.deep.equal({key1: true, key2: 123});
+        expect(change.after.get('key1')).to.equal(true);
+        return true; // otherwise will get warning about returning undefined
       });
-      let data = constructEvent(createOldValue(), createValue());
+      let data = constructEvent(createOldValue(), createValue(), 'document.update');
       return testFunction(data);
-    });
+    }).timeout(5000);
 
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
-      let testFunction = firestore.document('path').onDelete((event) => {
-        expect(event.data.exists).to.equal(false);
-        expect(event.data.previous.data()).to.deep.equal({key1: false, key2: 111});
-        expect(event.data.previous.get('key1')).to.equal(false);
+      let testFunction = firestore.document('path').onDelete((data) => {
+        expect(data.data()).to.deep.equal({key1: false, key2: 111});
+        expect(data.get('key1')).to.equal(false);
+        return true; // otherwise will get warning about returning undefined
       });
-      let data = constructEvent(createOldValue(), {});
+      let data = constructEvent(createOldValue(), {}, 'document.delete');
       return testFunction(data);
-    });
+    }).timeout(5000);
   });
 
-  describe('DeltaDocumentSnapshot', () => {
+  describe('SnapshotConstructor', () => {
     describe('#data()', () => {
       it('should parse int values', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: {
             value: constructValue({'key': {'integerValue': '123'}}),
           },
@@ -192,7 +200,7 @@ describe('Firestore Functions', () => {
       });
 
       it('should parse double values', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: {
             value: constructValue({'key': {'doubleValue': 12.34}}),
           },
@@ -201,7 +209,7 @@ describe('Firestore Functions', () => {
       });
 
       it('should parse null values', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: {
             value: constructValue({'key': {'nullValue': null}}),
           },
@@ -210,7 +218,7 @@ describe('Firestore Functions', () => {
       });
 
       it('should parse boolean values', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: {
             value: constructValue({'key': {'booleanValue': true}}),
           },
@@ -219,7 +227,7 @@ describe('Firestore Functions', () => {
       });
 
       it('should parse string values', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: {
             value: constructValue({'key': {'stringValue': 'foo'}}),
           },
@@ -238,7 +246,7 @@ describe('Firestore Functions', () => {
             },
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()).to.deep.equal({'key': [1, 2]});
@@ -259,7 +267,7 @@ describe('Firestore Functions', () => {
             },
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()).to.deep.equal({'keyParent': {'key1':'val1', 'key2':'val2'}});
@@ -280,7 +288,7 @@ describe('Firestore Functions', () => {
             },
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()).to.deep.equal({'geoPointValue': {
@@ -295,7 +303,7 @@ describe('Firestore Functions', () => {
             'referenceValue': 'projects/proj1/databases/(default)/documents/doc1/id',
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()['referenceVal'].path).to.equal('doc1/id');
@@ -307,7 +315,7 @@ describe('Firestore Functions', () => {
             'timestampValue': '2017-06-13T00:58:40.349Z',
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40.349Z')});
@@ -319,7 +327,7 @@ describe('Firestore Functions', () => {
             'timestampValue': '2017-06-13T00:58:40Z',
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()).to.deep.equal({'timestampVal': new Date('2017-06-13T00:58:40Z')});
@@ -333,7 +341,7 @@ describe('Firestore Functions', () => {
             'bytesValue': 'Zm9vYmFy',
           },
         });
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           data: { value: raw },
         });
         expect(snapshot.data()).to.deep.equal({'binaryVal': new Buffer('foobar')});
@@ -344,7 +352,7 @@ describe('Firestore Functions', () => {
       let snapshot;
 
       before(() => {
-        snapshot = firestore.dataConstructor({
+        snapshot = firestore.snapshotConstructor({
           'data': {
             'value': {
               'fields': {'key': {'integerValue': '1'}},
@@ -385,7 +393,7 @@ describe('Firestore Functions', () => {
 
     describe('Handle empty and non-existent documents', () => {
       it('constructs non-existent DocumentSnapshot when whole document deleted', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           'data': {
             'value': {}, // value is empty when the whole document is deleted
           },
@@ -396,7 +404,7 @@ describe('Firestore Functions', () => {
       });
 
       it('constructs existent DocumentSnapshot with empty data when all fields of document deleted', () => {
-        let snapshot = firestore.dataConstructor({
+        let snapshot = firestore.snapshotConstructor({
           'data': {
             'value': {  // value is not empty when document still exists
               'createTime': '2017-06-02T18:48:58.920638Z',

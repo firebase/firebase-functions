@@ -20,10 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {Event, CloudFunction, makeCloudFunction} from '../cloud-functions';
+import { CloudFunction, makeCloudFunction, EventContext } from '../cloud-functions';
 
 /** @internal */
-export const provider = 'cloud.pubsub';
+export const provider = 'google.pubsub';
+/** @internal */
+export const service = 'pubsub.googleapis.com';
 
 /** Handle events on a Cloud Pub/Sub topic. */
 export function topic(topic: string): TopicBuilder {
@@ -31,22 +33,29 @@ export function topic(topic: string): TopicBuilder {
     throw new Error('Topic name may not have a /');
   }
 
-  return new TopicBuilder(`projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`);
+  return new TopicBuilder(() => {
+    if (!process.env.GCLOUD_PROJECT) {
+      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+    }
+    return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
+  });
 }
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
 export class TopicBuilder {
 
   /** @internal */
-  constructor(private resource: string) { }
+  constructor(private triggerResource: () => string) { }
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
-  onPublish(handler: (event: Event<Message>) => PromiseLike<any> | any): CloudFunction<Message> {
+  onPublish(handler: (message: Message, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Message> {
     return makeCloudFunction({
-      provider, handler,
-      resource: this.resource,
+      handler,
+      provider,
+      service,
+      triggerResource: this.triggerResource,
       eventType: 'topic.publish',
-      dataConstructor: (raw) => raw.data instanceof Message ? raw.data : new Message(raw.data),
+      dataConstructor: (raw) => new Message(raw.data),
     });
   }
 }

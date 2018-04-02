@@ -20,11 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { makeCloudFunction, CloudFunction, Event } from '../cloud-functions';
+import { makeCloudFunction, CloudFunction, Event, EventContext } from '../cloud-functions';
 import * as _ from 'lodash';
 
 /** @internal */
-export const provider = 'google.firebase.analytics';
+export const provider = 'google.analytics';
+/** @internal */
+export const service = 'app-measurement.com';
 
 /**
  * Registers a Cloud Function to handle analytics events.
@@ -36,8 +38,12 @@ export const provider = 'google.firebase.analytics';
  *   interface.
  */
 export function event(analyticsEventType: string) {
-  return new AnalyticsEventBuilder(
-    'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType);
+  return new AnalyticsEventBuilder(() => {
+    if (!process.env.GCLOUD_PROJECT) {
+      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+    }
+    return 'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType;
+  });
 }
 
 /**
@@ -47,7 +53,7 @@ export function event(analyticsEventType: string) {
  */
 export class AnalyticsEventBuilder {
   /** @internal */
-  constructor(private resource: string) { }
+  constructor(private triggerResource: () => string) { }
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
@@ -60,19 +66,17 @@ export class AnalyticsEventBuilder {
    *   Cloud Function you can export.
    */
   onLog(
-    handler: (event: Event<AnalyticsEvent>) => PromiseLike<any> | any
-  ): CloudFunction<AnalyticsEvent> {
-    const dataConstructor = (raw: Event<any>) => {
-      if (raw.data instanceof AnalyticsEvent) {
-        return raw.data;
-      }
+    handler: (event: AnalyticsEvent, context?: EventContext) => PromiseLike<any> | any): CloudFunction<AnalyticsEvent> {
+    const dataConstructor = (raw: Event) => {
       return new AnalyticsEvent(raw.data);
     };
     return makeCloudFunction({
-      provider,
       handler,
+      provider,
       eventType: 'event.log',
-      resource: this.resource,
+      service,
+      legacyEventType: `providers/google.firebase.analytics/eventTypes/event.log`,
+      triggerResource: this.triggerResource,
       dataConstructor,
     });
   }

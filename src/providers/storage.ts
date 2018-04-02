@@ -20,66 +20,118 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Event, CloudFunction, makeCloudFunction } from '../cloud-functions';
-import { config } from '../index';
+import { CloudFunction, EventContext, makeCloudFunction } from '../cloud-functions';
+import { firebaseConfig } from '../config';
 
 /** @internal */
-export const provider = 'cloud.storage';
+export const provider = 'google.storage';
+/** @internal */
+export const service = 'storage.googleapis.com';
 
 /**
  * The optional bucket function allows you to choose which buckets' events to handle.
  * This step can be bypassed by calling object() directly, which will use the bucket that
  * the Firebase SDK for Cloud Storage uses.
  */
-export function bucket(bucket: string): BucketBuilder {
-  if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
-    throw new Error('Invalid bucket name ${bucket}');
-  }
-  return new BucketBuilder(`projects/_/buckets/${bucket}`);
+export function bucket(bucket?: string): BucketBuilder {
+  const resourceGetter = () => {
+    bucket = bucket || firebaseConfig().storageBucket;
+    if (!bucket) {
+      throw new Error('Missing bucket name. If you are unit testing, please provide a bucket name' +
+      ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.');
+    }
+    if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
+      throw new Error('Invalid bucket name ${bucket}');
+    }
+    return `projects/_/buckets/${bucket}`;
+  };
+  return new BucketBuilder(resourceGetter);
 }
 
 export function object(): ObjectBuilder {
-  return bucket(config().firebase.storageBucket).object();
+  return bucket().object();
 }
 
 export class BucketBuilder {
   /** @internal */
-  constructor(private resource) { }
+  constructor(private triggerResource: () => string) { }
 
   /** Handle events for objects in this bucket. */
   object() {
-    return new ObjectBuilder(this.resource);
+    return new ObjectBuilder(this.triggerResource);
   }
 }
 
 export class ObjectBuilder {
   /** @internal */
-  constructor(private resource) { }
+  constructor(private triggerResource: () => string) { }
 
-  /**
-   * Handle any change to any object.
-   */
-  onChange(handler: (event: Event<ObjectMetadata>) => PromiseLike<any> | any): CloudFunction<ObjectMetadata> {
-    return makeCloudFunction(
-      { provider, handler: handler, resource: this.resource, eventType: 'object.change' });
+  /** @internal */
+  onChange(handler: any): Error {
+    throw new Error('"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
+      '"onFinalize", or "onMetadataUpdate".');
+  }
+
+  /** Respond to archiving of an object, this is only for buckets that enabled object versioning. */
+  onArchive(handler: (
+    object: ObjectMetadata,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<ObjectMetadata> {
+    return this.onOperation(handler, 'object.archive');
+  }
+
+  /** Respond to the deletion of an object (not to archiving, if object versioning is enabled). */
+  onDelete(handler: (
+    object: ObjectMetadata,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<ObjectMetadata> {
+    return this.onOperation(handler, 'object.delete');
+  }
+
+  /** Respond to the successful creation of an object. */
+  onFinalize(handler: (
+    object: ObjectMetadata,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<ObjectMetadata> {
+    return this.onOperation(handler, 'object.finalize');
+  }
+
+  /** Respond to metadata updates of existing objects. */
+  onMetadataUpdate(handler: (
+    object: ObjectMetadata,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<ObjectMetadata> {
+    return this.onOperation(handler, 'object.metadataUpdate');
+  }
+
+  private onOperation(
+    handler: (object: ObjectMetadata, context?: EventContext) => PromiseLike<any> | any,
+    eventType: string): CloudFunction<ObjectMetadata> {
+    return makeCloudFunction({
+      handler,
+      provider,
+      service,
+      eventType,
+      triggerResource: this.triggerResource,
+    });
   }
 }
 
 export interface ObjectMetadata {
   kind: string;
   id: string;
-  resourceState: string;
+  bucket: string;
+  storageClass: string;
+  size: string;
+  timeCreated: string;
+  updated: string;
   selfLink?: string;
   name?: string;
-  bucket: string;
-  generation?: number;
-  metageneration?: number;
+  generation?: string;
   contentType?: string;
-  timeCreated?: string;
-  updated?: string;
+  metageneration?: string;
   timeDeleted?: string;
-  storageClass?: string;
-  size?: number;
+  timeStorageClassUpdated?: string;
   md5Hash?: string;
   mediaLink?: string;
   contentEncoding?: string;
@@ -89,8 +141,33 @@ export interface ObjectMetadata {
   metadata?: {
     [key: string]: string;
   };
+  acl?: [
+    {
+      kind?: string,
+      id?: string,
+      selfLink?: string,
+      bucket?: string,
+      object?: string,
+      generation?: string,
+      entity?: string,
+      role?: string,
+      email?: string,
+      entityId?: string,
+      domain?: string,
+      projectTeam?: {
+        projectNumber?: string,
+        team?: string
+      },
+      etag?: string
+    }
+  ];
+  owner?: {
+    entity?: string,
+    entityId?: string
+  };
   crc32c?: string;
-  componentCount?: number;
+  componentCount?: string;
+  etag?: string;
   customerEncryption?: {
     encryptionAlgorithm?: string,
     keySha256?: string,

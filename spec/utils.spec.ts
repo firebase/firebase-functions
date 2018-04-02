@@ -19,9 +19,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-//
-import {normalizePath, pathParts, valAt, applyChange} from '../src/utils';
-import {expect} from 'chai';
+
+import { normalizePath, pathParts, valAt, applyChange } from '../src/utils';
+import { expect } from 'chai';
 
 describe ('utils', () => {
   describe('.normalizePath(path: string)', () => {

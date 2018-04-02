@@ -22,115 +22,160 @@
 
 import * as auth from '../../src/providers/auth';
 import { expect } from 'chai';
-import { Event } from '../../src/cloud-functions';
 import * as firebase from 'firebase-admin';
 
-describe('AuthBuilder', () => {
-  let handler: (e: Event<firebase.auth.UserRecord>) => PromiseLike<any> | any;
-
-  before(() => {
-    process.env.GCLOUD_PROJECT = 'project1';
-  });
-
-  after(() => {
-    delete process.env.GCLOUD_PROJECT;
-  });
-
-  describe('#onCreate', () => {
-    it('should return a TriggerDefinition with appropriate values', () => {
-      const cloudFunction = auth.user().onCreate(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/firebase.auth/eventTypes/user.create',
-          resource: 'projects/project1',
-        },
-      });
-    });
-  });
-
-  describe('#onDelete', () => {
-    it('should return a TriggerDefinition with appropriate values', () => {
-      const cloudFunction = auth.user().onDelete(handler);
-      expect(cloudFunction.__trigger).to.deep.equal({
-        eventTrigger: {
-          eventType: 'providers/firebase.auth/eventTypes/user.delete',
-          resource: 'projects/project1',
-        },
-      });
-    });
-  });
-
-  describe('#_dataConstructor', () => {
-    let cloudFunctionCreate;
-    let cloudFunctionDelete;
-    let event;
+describe('Auth Functions', () => {
+  describe('AuthBuilder', () => {
+    let handler: (user: firebase.auth.UserRecord) => PromiseLike<any> | any;
 
     before(() => {
-      cloudFunctionCreate = auth.user().onCreate((ev: Event<firebase.auth.UserRecord>) => ev.data);
-      cloudFunctionDelete = auth.user().onDelete((ev: Event<firebase.auth.UserRecord>) => ev.data);
-      event = {
-        data: {
-          metadata: {
-            createdAt: '2016-12-15T19:37:37.059Z',
-            lastSignedInAt: '2017-01-01T00:00:00.000Z',
+      process.env.GCLOUD_PROJECT = 'project1';
+    });
+
+    after(() => {
+      delete process.env.GCLOUD_PROJECT;
+    });
+
+    describe('#onCreate', () => {
+      it('should return a TriggerDefinition with appropriate values', () => {
+        const cloudFunction = auth.user().onCreate(() => null);
+        expect(cloudFunction.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType: 'providers/firebase.auth/eventTypes/user.create',
+            resource: 'projects/project1',
+            service: 'firebaseauth.googleapis.com',
           },
+        });
+      });
+    });
+
+    describe('#onDelete', () => {
+      it('should return a TriggerDefinition with appropriate values', () => {
+        const cloudFunction = auth.user().onDelete(handler);
+        expect(cloudFunction.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType: 'providers/firebase.auth/eventTypes/user.delete',
+            resource: 'projects/project1',
+            service: 'firebaseauth.googleapis.com',
+          },
+        });
+      });
+    });
+
+    describe('#_dataConstructor', () => {
+      let cloudFunctionCreate;
+      let cloudFunctionDelete;
+      let event;
+
+      before(() => {
+        cloudFunctionCreate = auth.user().onCreate((data: firebase.auth.UserRecord) => data);
+        cloudFunctionDelete = auth.user().onDelete((data: firebase.auth.UserRecord) => data);
+        event = {
+          data: {
+            metadata: {
+              createdAt: '2016-12-15T19:37:37.059Z',
+              lastSignedInAt: '2017-01-01T00:00:00.000Z',
+            },
+          },
+        };
+      });
+
+      it('should transform wire format for UserRecord into v5.0.0 format', () => {
+        return Promise.all([
+          cloudFunctionCreate(event).then(data => {
+            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          }),
+          cloudFunctionDelete(event).then(data => {
+            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          }),
+        ]);
+      });
+
+      it('should handle new wire format if/when there is a change', () => {
+        const newEvent = {
+          data: {
+            metadata: {
+              creationTime: '2016-12-15T19:37:37.059Z',
+              lastSignInTime: '2017-01-01T00:00:00.000Z',
+            },
+          },
+        };
+
+        return Promise.all([
+          cloudFunctionCreate(newEvent).then(data => {
+            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          }),
+          cloudFunctionDelete(newEvent).then(data => {
+            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
+            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+          }),
+        ]);
+      });
+    });
+  });
+
+  describe('userRecordConstructor', () => {
+    it('will provide falsey values for fields that are not in raw wire data', () => {
+      const record = auth.userRecordConstructor({ uid: '123'});
+      expect(record.toJSON()).to.deep.equal({
+        uid: '123',
+        email: null,
+        emailVerified: false,
+        displayName: null,
+        photoURL: null,
+        phoneNumber: null,
+        disabled: false,
+        providerData: [],
+        customClaims: {},
+        passwordSalt: null,
+        passwordHash: null,
+        tokensValidAfterTime: null,
+        metadata: {
+          creationTime: null,
+          lastSignInTime: null,
+        },
+      });
+    });
+
+    it('will not interfere with fields that are in raw wire data', () => {
+      const raw = {
+        uid: '123',
+        email: 'email@gmail.com',
+        emailVerified: true,
+        displayName: 'User',
+        photoURL: 'url',
+        phoneNumber: '1233332222',
+        disabled: true,
+        providerData: [],
+        customClaims: {},
+        passwordSalt: 'abc',
+        passwordHash: 'def',
+        tokensValidAfterTime: '2027-02-02T23:01:19.797Z',
+        metadata: {
+          creationTime: '2017-02-02T23:06:26.124Z',
+          lastSignInTime: '2017-02-02T23:01:19.797Z',
         },
       };
+      const record = auth.userRecordConstructor(raw);
+      expect(record.toJSON()).to.deep.equal(raw);
+    });
+  });
+
+  describe('process.env.GCLOUD_PROJECT not set', () => {
+    it('should not throw if __trigger is not accessed', () => {
+      expect(() => auth.user().onCreate(() => null)).to.not.throw(Error);
     });
 
-    it('should transform old wire format for UserRecord into v5.0.0 format', () => {
-      return Promise.all([
-        cloudFunctionCreate(event).then(data => {
-          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
-        }),
-        cloudFunctionDelete(event).then(data => {
-          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
-        }),
-      ]);
+    it('should throw when trigger is accessed', () => {
+      expect(() => auth.user().onCreate(() => null).__trigger).to.throw(Error);
     });
 
-    // createdAt and lastSignedIn are fields of admin.auth.UserMetadata below v5.0.0
-    // We want to add shims to still expose these fields so that user's code do not break
-    // The shim and this test should be removed in v1.0.0 of firebase-functions
-    it('should still retain createdAt and lastSignedIn', () => {
-      return Promise.all([
-        cloudFunctionCreate(event).then(data => {
-          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
-          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
-        }),
-        cloudFunctionDelete(event).then(data => {
-          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
-          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
-        }),
-      ]);
-    });
-
-    it('should handle new wire format if/when there is a change', () => {
-      const newEvent = {
-        data: {
-          metadata: {
-            creationTime: '2016-12-15T19:37:37.059Z',
-            lastSignInTime: '2017-01-01T00:00:00.000Z',
-          },
-        },
-      };
-
-      return Promise.all([
-        cloudFunctionCreate(newEvent).then(data => {
-          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
-          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
-          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
-        }),
-        cloudFunctionDelete(newEvent).then(data => {
-          expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-          expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
-          expect(data.metadata.createdAt).to.deep.equal(new Date('2016-12-15T19:37:37.059Z'));
-          expect(data.metadata.lastSignedInAt).to.deep.equal(new Date('2017-01-01T00:00:00.000Z'));
-        }),
-      ]);
+    it('should not throw when #run is called', () => {
+      let cf = auth.user().onCreate(() => null);
+      expect(cf.run).to.not.throw(Error);
     });
   });
 });

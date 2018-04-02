@@ -5,6 +5,7 @@ coverage
 tsconfig.*
 tslint.*
 .travis.yml
+.github
 
 # Don't include the raw typescript
 src

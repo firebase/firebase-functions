@@ -22,13 +22,15 @@
 
 import * as _ from 'lodash';
 import { apps } from '../apps';
-import { Event, CloudFunction, makeCloudFunction } from '../cloud-functions';
-import { normalizePath, applyChange, pathParts, valAt, joinPath } from '../utils';
+import { LegacyEvent, CloudFunction, makeCloudFunction, EventContext, Change } from '../cloud-functions';
+import { normalizePath, applyChange, pathParts, joinPath } from '../utils';
 import * as firebase from 'firebase-admin';
-import { config } from '../index';
+import { firebaseConfig } from '../config';
 
 /** @internal */
 export const provider = 'google.firebase.database';
+/** @internal */
+export const service = 'firebaseio.com';
 
 // NOTE(inlined): Should we relax this a bit to allow staging or alternate implementations of our API?
 const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
@@ -46,7 +48,7 @@ export class InstanceBuilder {
 
   ref(path: string): RefBuilder {
     const normalized = normalizePath(path);
-    return new RefBuilder(apps(), `projects/_/instances/${this.instance}/refs/${normalized}`);
+    return new RefBuilder(apps(), () => `projects/_/instances/${this.instance}/refs/${normalized}`);
   }
 }
 
@@ -74,73 +76,117 @@ export class InstanceBuilder {
  *    triggered the Cloud Function.
  */
 export function ref(path: string): RefBuilder {
-  const normalized = normalizePath(path);
-  const databaseURL = config().firebase.databaseURL;
-  if (!databaseURL) {
-    throw new Error('Missing expected config value firebase.databaseURL, ' +
-    'config is actually' + JSON.stringify(config()));
-  }
-  const match = databaseURL.match(databaseURLRegex);
-  if (!match) {
-    throw new Error('Invalid value for config firebase.databaseURL: ' + databaseURL);
-  }
-  const subdomain = match[1];
-  let resource = `projects/_/instances/${subdomain}/refs/${normalized}`;
-  return new RefBuilder(apps(), resource);
+  const resourceGetter = () => {
+    const normalized = normalizePath(path);
+    const databaseURL = firebaseConfig().databaseURL;
+    if (!databaseURL) {
+      throw new Error('Missing expected firebase config value databaseURL, ' +
+        'config is actually' + JSON.stringify(firebaseConfig()) +
+        '\n If you are unit testing, please set process.env.FIREBASE_CONFIG');
+    }
+    const match = databaseURL.match(databaseURLRegex);
+    if (!match) {
+      throw new Error('Invalid value for config firebase.databaseURL: ' + databaseURL);
+    }
+    const subdomain = match[1];
+    return `projects/_/instances/${subdomain}/refs/${normalized}`;
+  };
+
+  return new RefBuilder(apps(), resourceGetter);
 }
 
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
 export class RefBuilder {
   /** @internal */
-  constructor(private apps: apps.Apps, private resource: string) { }
+  constructor(private apps: apps.Apps, private triggerResource: () => string) { }
 
   /** Respond to any write that affects a ref. */
-  onWrite(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
-    return this.onOperation(handler, 'ref.write');
-  }
-
-  /** Respond to new data on a ref. */
-  onCreate(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
-    return this.onOperation(handler, 'ref.create');
+  onWrite(handler: (
+    change: Change<DataSnapshot>,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<Change<DataSnapshot>> {
+    return this.onOperation(handler, 'ref.write', this.changeConstructor);
   }
 
   /** Respond to update on a ref. */
-  onUpdate(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
-    return this.onOperation(handler, 'ref.update');
+  onUpdate(handler: (
+    change: Change<DataSnapshot>,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<Change<DataSnapshot>> {
+    return this.onOperation(handler, 'ref.update', this.changeConstructor);
   }
 
-  /** Respond to all data being deleted from a ref. */
-  onDelete(handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any): CloudFunction<DeltaSnapshot> {
-    return this.onOperation(handler, 'ref.delete');
-  }
-
-  private onOperation(
-    handler: (event: Event<DeltaSnapshot>) => PromiseLike<any> | any,
-    eventType: string): CloudFunction<DeltaSnapshot> {
-
-    const dataConstructor = (raw: Event<any>) => {
-      if (raw.data instanceof DeltaSnapshot) {
-        return raw.data;
-      }
+  /** Respond to new data on a ref. */
+  onCreate(handler: (
+    snapshot: DataSnapshot,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<DataSnapshot> {
+    let dataConstructor = (raw: LegacyEvent) => {
       let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
-      return new DeltaSnapshot(
-        this.apps.forMode(raw.auth),
-        this.apps.admin,
-        raw.data.data,
+      return new DataSnapshot(
         raw.data.delta,
         path,
+        this.apps.admin,
         dbInstance
       );
     };
+    return this.onOperation(handler, 'ref.create', dataConstructor);
+  }
+
+  /** Respond to all data being deleted from a ref. */
+  onDelete(handler: (
+    snapshot: DataSnapshot,
+    context?: EventContext) => PromiseLike<any> | any,
+  ): CloudFunction<DataSnapshot> {
+    let dataConstructor = (raw: LegacyEvent) => {
+      let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
+      return new DataSnapshot(
+        raw.data.data,
+        path,
+        this.apps.admin,
+        dbInstance
+      );
+    };
+    return this.onOperation(handler, 'ref.delete', dataConstructor);
+  }
+
+  private onOperation<T>(
+    handler: (data: T, context?: EventContext) => PromiseLike<any> | any,
+    eventType: string,
+    dataConstructor): CloudFunction<T> {
+
     return makeCloudFunction({
-      provider, handler,
-      eventType: eventType,
-      resource: this.resource,
-      dataConstructor,
-      before: (event) => this.apps.retain(event),
-      after: (event) => this.apps.release(event),
+      handler,
+      provider,
+      service,
+      eventType,
+      legacyEventType: `providers/${provider}/eventTypes/${eventType}`,
+      triggerResource: this.triggerResource,
+      dataConstructor: dataConstructor,
+      before: (event) => this.apps.retain(),
+      after: (event) => this.apps.release(),
     });
   }
+
+  private changeConstructor = (raw: LegacyEvent): Change<DataSnapshot> => {
+    let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
+    let before = new DataSnapshot(
+      raw.data.data,
+      path,
+      this.apps.admin,
+      dbInstance
+    );
+    let after = new DataSnapshot(
+      applyChange(raw.data.data, raw.data.delta),
+      path,
+      this.apps.admin,
+      dbInstance
+    );
+    return {
+      before: before,
+      after: after,
+    };
+  };
 }
 
 /* Utility function to extract database reference from resource string */
@@ -160,45 +206,41 @@ export function resourceToInstanceAndPath(resource) {
   return [dbInstance, path];
 }
 
-export class DeltaSnapshot {
-  private _adminRef: firebase.database.Reference;
+export class DataSnapshot {
+  public instance: string;
   private _ref: firebase.database.Reference;
   private _path: string;
   private _data: any;
-  private _delta: any;
-  private _newData: any;
-
   private _childPath: string;
-  private _isPrevious: boolean;
 
   constructor(
-    private app: firebase.app.App,
-    private adminApp: firebase.app.App,
     data: any,
-    delta: any,
     path?: string, // path will be undefined for the database root
-    public instance?: string,
+    private app?: firebase.app.App,
+    instance?: string,
   ) {
-    if (delta !== undefined) {
-      this._path = path;
-      this._data = data;
-      this._delta = delta;
-      this._newData = applyChange(this._data, this._delta);
+    if (instance) { // SDK always supplies instance, but user's unit tests may not
+      this.instance = instance;
+    } else if (app) {
+      this.instance = app.options.databaseURL;
+    } else if (process.env.GCLOUD_PROJECT) {
+      this.instance = 'https://' + process.env.GCLOUD_PROJECT + '.firebaseio.com';
     }
+
+    this._path = path;
+    this._data = data;
   }
 
+  /** Ref returns a reference to the database with full admin access. */
   get ref(): firebase.database.Reference {
+    if (!this.app) { // may be unpopulated in user's unit tests
+      throw new Error('Please supply a Firebase app in the constructor for DataSnapshot' +
+      ' in order to use the .ref method.');
+    }
     if (!this._ref) {
       this._ref = this.app.database(this.instance).ref(this._fullPath());
     }
     return this._ref;
-  }
-
-  get adminRef(): firebase.database.Reference {
-    if (!this._adminRef) {
-      this._adminRef = this.adminApp.database(this.instance).ref(this._fullPath());
-    }
-    return this._adminRef;
   }
 
   get key(): string {
@@ -208,7 +250,7 @@ export class DeltaSnapshot {
 
   val(): any {
     let parts = pathParts(this._childPath);
-    let source = this._isPrevious ? this._data : this._newData;
+    let source = this._data;
     let node = _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
     return this._checkAndConvertToArray(node);
   }
@@ -225,26 +267,14 @@ export class DeltaSnapshot {
     return !_.isNull(this.val());
   }
 
-  child(childPath: string): DeltaSnapshot {
+  child(childPath: string): DataSnapshot {
     if (!childPath) {
       return this;
     }
-    return this._dup(this._isPrevious, childPath);
+    return this._dup(childPath);
   }
 
-  get previous(): DeltaSnapshot {
-    return this._isPrevious ? this : this._dup(true);
-  }
-
-  get current(): DeltaSnapshot {
-    return this._isPrevious ? this._dup(false) : this;
-  }
-
-  changed(): boolean {
-    return valAt(this._delta, this._childPath) !== undefined;
-  }
-
-  forEach(action: (a: DeltaSnapshot) => boolean): boolean {
+  forEach(action: (a: DataSnapshot) => boolean): boolean {
     let val = this.val();
     if (_.isPlainObject(val)) {
       return _.some(val, (value, key: string) => action(this.child(key)) === true);
@@ -311,14 +341,9 @@ export class DeltaSnapshot {
     return obj;
   }
 
-  private _dup(previous: boolean, childPath?: string): DeltaSnapshot {
-    let dup = new DeltaSnapshot(this.app, this.adminApp, undefined, undefined, undefined, this.instance);
-    [dup._path, dup._data, dup._delta, dup._childPath, dup._newData] =
-      [this._path, this._data, this._delta, this._childPath, this._newData];
-
-    if (previous) {
-      dup._isPrevious = true;
-    }
+  private _dup(childPath?: string): DataSnapshot {
+    let dup = new DataSnapshot(this._data, undefined, this.app, this.instance);
+    [dup._path, dup._childPath] = [this._path, this._childPath];
 
     if (childPath) {
       dup._childPath = joinPath(dup._childPath, childPath);
