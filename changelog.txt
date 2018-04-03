@@ -1,0 +1,1 @@
+breaking - v1 release of `firebase-functions` contains several breaking changes. Please see migration guide at https://firebase.google.com/docs/functions/beta-v1-diff.
