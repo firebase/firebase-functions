@@ -72,7 +72,7 @@ describe ('utils', () => {
 
     it('should return the merged value of two objects', () => {
       let from = {a: {b: 'foo', c: 23, d: 444}, d: {e: 42}};
-      let to = {a: {b: 'bar', c: null}, d: null, e: {f: 'g'}};
+      let to: any = {a: {b: 'bar', c: null}, d: null, e: {f: 'g'}};
       let result = {a: {b: 'bar', d: 444}, e: {f: 'g'}};
       expect(applyChange(from, to)).to.deep.equal(result);
     });

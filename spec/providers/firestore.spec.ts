@@ -24,7 +24,7 @@ import * as firestore from '../../src/providers/firestore';
 import { expect } from 'chai';
 
 describe('Firestore Functions', () => {
-  let constructValue = (fields) => {
+  let constructValue = (fields: any) => {
     return {
       'fields': fields,
       'name': 'projects/pid/databases/(default)/documents/collection/123',
@@ -349,7 +349,7 @@ describe('Firestore Functions', () => {
     });
 
     describe('Other DocumentSnapshot methods', () => {
-      let snapshot;
+      let snapshot: FirebaseFirestore.DocumentSnapshot;
 
       before(() => {
         snapshot = firestore.snapshotConstructor({

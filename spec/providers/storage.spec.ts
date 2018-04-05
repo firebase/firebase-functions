@@ -85,7 +85,7 @@ describe('Storage Functions', () => {
             + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
-        return cloudFunction(goodMediaLinkEvent).then(result => {
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -141,7 +141,7 @@ describe('Storage Functions', () => {
               + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
-        return cloudFunction(goodMediaLinkEvent).then(result => {
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -197,7 +197,7 @@ describe('Storage Functions', () => {
               + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
-        return cloudFunction(goodMediaLinkEvent).then(result => {
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -253,7 +253,7 @@ describe('Storage Functions', () => {
               + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
-        return cloudFunction(goodMediaLinkEvent).then(result => {
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });

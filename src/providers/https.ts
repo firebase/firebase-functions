@@ -29,7 +29,7 @@ import * as cors from 'cors';
 
 export function onRequest(handler: (req: express.Request, resp: express.Response) => void): HttpsFunction {
   // lets us add __trigger without altering handler:
-  let cloudFunction: any = (req, res) => { handler(req, res); };
+  let cloudFunction: any = (req: express.Request, res: express.Response) => { handler(req, res); };
   cloudFunction.__trigger = {httpsTrigger: {}};
 
   return cloudFunction;
@@ -321,7 +321,7 @@ export function encode(data: any): any {
  * This is exposed only for testing.
  */
 /** @internal */
-export function decode(data: any) {
+export function decode(data: any): any {
   if (data === null) {
     return data;
   }

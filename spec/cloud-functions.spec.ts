@@ -22,7 +22,8 @@
 
 import * as _ from 'lodash';
 import { expect } from 'chai';
-import { Event, LegacyEvent, makeCloudFunction, MakeCloudFunctionArgs, Change } from '../src/cloud-functions';
+import { Event, EventContext, LegacyEvent,
+  makeCloudFunction, MakeCloudFunctionArgs, Change } from '../src/cloud-functions';
 
 describe('makeCloudFunction', () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
@@ -45,7 +46,7 @@ describe('makeCloudFunction', () => {
   });
 
   it('should construct the right context for legacy event format', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {handler: (data, context) => context});
+    let args: any = _.assign({}, cloudFunctionArgs, {handler: (data: any, context: EventContext) => context});
     let cf = makeCloudFunction(args);
     let test: LegacyEvent = {
       eventId: '00000',
@@ -68,7 +69,7 @@ describe('makeCloudFunction', () => {
   });
 
   it('should construct the right context for new event format', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, { handler: (data, context) => context });
+    let args: any = _.assign({}, cloudFunctionArgs, { handler: (data: any, context: EventContext) => context });
     let cf = makeCloudFunction(args);
     let test: Event = {
       context: {
@@ -277,9 +278,9 @@ describe('Change', () => {
     });
 
     it('should apply the customizer function to `before` and `after`', () => {
-      function customizer<T>(input) {
+      function customizer<T>(input: any) {
         _.set(input, 'another', 'value');
-        return input;
+        return input as T;
       }
       let created = Change.fromJSON<Object>(
         {

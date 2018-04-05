@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export function dateToTimestampProto(timeString) {
+export function dateToTimestampProto(timeString?: string) {
   if (typeof timeString === 'undefined') {
     return;
   }
