@@ -200,7 +200,7 @@ describe('Database Functions', () => {
   });
 
   describe('DataSnapshot', () => {
-    let subject;
+    let subject: any;
     const apps = new appsNamespace.Apps();
 
     let populate = (data: any) => {
@@ -300,7 +300,7 @@ describe('Database Functions', () => {
       it('should iterate through child snapshots', () => {
         populate({ a: 'b', c: 'd' });
         let out = '';
-        subject.forEach(snap => {
+        subject.forEach((snap: any) => {
           out += snap.val();
         });
         expect(out).to.equal('bd');
@@ -309,7 +309,7 @@ describe('Database Functions', () => {
       it('should have correct key values for child snapshots', () => {
         populate({ a: 'b', c: 'd' });
         let out = '';
-        subject.forEach(snap => {
+        subject.forEach((snap: any) => {
           out += snap.key;
         });
         expect(out).to.equal('ac');
@@ -318,7 +318,7 @@ describe('Database Functions', () => {
       it('should not execute for leaf or null nodes', () => {
         populate(23);
         let count = 0;
-        let counter = snap => count++;
+        let counter = (snap: any) => count++;
 
         expect(subject.forEach(counter)).to.equal(false);
         expect(count).to.eq(0);
@@ -327,7 +327,7 @@ describe('Database Functions', () => {
       it('should cancel further enumeration if callback returns true', () => {
         populate({ a: 'b', c: 'd', e: 'f', g: 'h' });
         let out = '';
-        const ret = subject.forEach(snap => {
+        const ret = subject.forEach((snap: any) => {
           if (snap.val() === 'f') {
             return true;
           }
@@ -340,7 +340,7 @@ describe('Database Functions', () => {
       it('should not cancel further enumeration if callback returns a truthy value', () => {
         populate({ a: 'b', c: 'd', e: 'f', g: 'h' });
         let out = '';
-        const ret = subject.forEach(snap => {
+        const ret = subject.forEach((snap: any) => {
           out += snap.val();
           return 1;
         });
@@ -351,7 +351,7 @@ describe('Database Functions', () => {
       it('should not cancel further enumeration if callback does not return', () => {
         populate({ a: 'b', c: 'd', e: 'f', g: 'h' });
         let out = '';
-        const ret = subject.forEach(snap => {
+        const ret = subject.forEach((snap: any) => {
           out += snap.val();
         });
         expect(out).to.equal('bdfh');

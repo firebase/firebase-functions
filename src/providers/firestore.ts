@@ -25,7 +25,7 @@ import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { apps } from '../apps';
 import { makeCloudFunction, CloudFunction, LegacyEvent, Change,
-  EventContext } from '../cloud-functions';
+  Event, EventContext } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
 
 /** @internal */
@@ -36,7 +36,7 @@ export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
 
 /** @internal */
 export const defaultDatabase = '(default)';
-let firestoreInstance;
+let firestoreInstance: any;
 
 /** @internal */
 // Multiple databases are not yet supported by Firestore.
@@ -168,7 +168,7 @@ export class DocumentBuilder {
   private onOperation<T>(
     handler: (data: T, context?: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor): CloudFunction<T> {
+    dataConstructor: (raw: Event | LegacyEvent) => any): CloudFunction<T> {
     return makeCloudFunction({
       handler,
       provider,

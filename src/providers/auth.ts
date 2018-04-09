@@ -95,7 +95,7 @@ export type UserRecord = firebase.auth.UserRecord;
 
 export function userRecordConstructor(wireData: Object): firebase.auth.UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
-  let falseyValues = {
+  let falseyValues: any = {
     email: null,
     emailVerified: false,
     displayName: null,

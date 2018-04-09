@@ -83,7 +83,7 @@ export namespace apps {
     }
 
     retain() {
-      let increment = n => {
+      let increment = (n?: number) => {
         return (n || 0) + 1;
       };
       // Increment counter for admin because function might use event.data.ref
@@ -91,7 +91,7 @@ export namespace apps {
     }
 
     release() {
-      let decrement = n => {
+      let decrement = (n: number) => {
         return n - 1;
       };
       return delay(garbageCollectionInterval).then(() => {

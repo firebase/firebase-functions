@@ -117,7 +117,7 @@ export namespace Change {
   /** Factory method for creating a Change from a JSON and an optional customizer function to be
    * applied to both the `before` and the `after` fields.
    */
-  export function fromJSON<T>(json: ChangeJson, customizer: (any) => T = reinterpretCast): Change<T> {
+  export function fromJSON<T>(json: ChangeJson, customizer: (x: any) => T = reinterpretCast): Change<T> {
     let before = _.assign({}, json.before);
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
@@ -126,7 +126,7 @@ export namespace Change {
   }
 
   /** @internal */
-  export function applyFieldMask(sparseBefore, after, fieldMask) {
+  export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string) {
     let before = _.assign({}, after);
     let masks = fieldMask.split(',');
     _.forEach(masks, mask => {
@@ -216,7 +216,7 @@ export function makeCloudFunction<EventData>({
       before(event);
 
       let dataOrChange = dataConstructor(event);
-      let context;
+      let context: any;
       if (isEvent(event)) { // new event format
         context = _.cloneDeep(event.context);
       } else { // legacy event format
@@ -276,7 +276,7 @@ function _makeParams(context: EventContext, triggerResourceGetter: () => string)
   }
   let triggerResource = triggerResourceGetter();
   let wildcards = triggerResource.match(WILDCARD_REGEX);
-  let params = {};
+  let params: { [option: string]: any } = {};
   if (wildcards) {
     let triggerResourceParts = _.split(triggerResource, '/');
     let eventResourceParts = _.split(context.resource.name, '/');

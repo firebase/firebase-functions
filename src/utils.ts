@@ -49,7 +49,7 @@ export function applyChange(src: any, dest: any) {
   return pruneNulls(_.merge({}, src, dest));
 }
 
-export function pruneNulls(obj: Object) {
+export function pruneNulls(obj: any) {
   for (let key in obj) {
     if (obj[key] === null) {
       delete obj[key];

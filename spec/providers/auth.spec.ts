@@ -23,6 +23,7 @@
 import * as auth from '../../src/providers/auth';
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
+import { CloudFunction } from '../../src';
 
 describe('Auth Functions', () => {
   describe('AuthBuilder', () => {
@@ -63,9 +64,9 @@ describe('Auth Functions', () => {
     });
 
     describe('#_dataConstructor', () => {
-      let cloudFunctionCreate;
-      let cloudFunctionDelete;
-      let event;
+      let cloudFunctionCreate: CloudFunction<firebase.auth.UserRecord>;
+      let cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord>;
+      let event: any;
 
       before(() => {
         cloudFunctionCreate = auth.user().onCreate((data: firebase.auth.UserRecord) => data);
@@ -82,11 +83,11 @@ describe('Auth Functions', () => {
 
       it('should transform wire format for UserRecord into v5.0.0 format', () => {
         return Promise.all([
-          cloudFunctionCreate(event).then(data => {
+          cloudFunctionCreate(event).then((data: any) => {
             expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
             expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
           }),
-          cloudFunctionDelete(event).then(data => {
+          cloudFunctionDelete(event).then((data: any) => {
             expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
             expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
           }),
@@ -104,11 +105,11 @@ describe('Auth Functions', () => {
         };
 
         return Promise.all([
-          cloudFunctionCreate(newEvent).then(data => {
+          cloudFunctionCreate(newEvent).then((data: any) => {
             expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
             expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
           }),
-          cloudFunctionDelete(newEvent).then(data => {
+          cloudFunctionDelete(newEvent).then((data: any) => {
             expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
             expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
           }),
@@ -141,7 +142,7 @@ describe('Auth Functions', () => {
     });
 
     it('will not interfere with fields that are in raw wire data', () => {
-      const raw = {
+      const raw: any = {
         uid: '123',
         email: 'email@gmail.com',
         emailVerified: true,

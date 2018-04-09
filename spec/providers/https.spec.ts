@@ -87,7 +87,7 @@ function runHandler(handler: express.Handler, request: express.Request): Promise
       }
 
       // Headers are only set by the cors handler.
-      public setHeader(name, value: string) {
+      public setHeader(name: string, value: string) {
         this.headers[name] = value;
       }
 
@@ -201,7 +201,7 @@ export function generateIdToken(projectId: string): string {
 }
 
 describe('callable.FunctionBuilder', () => {
-  let app;
+  let app: firebase.app.App;
 
   before(() => {
     let credential = {
