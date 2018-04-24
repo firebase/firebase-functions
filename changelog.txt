@@ -1,0 +1,1 @@
+fixed - Fixed bug where developers writing functions in TypeScript had to disable `noImplicitAny` in their tsconfig.json in order to avoid compiler errors.
