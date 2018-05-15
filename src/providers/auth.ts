@@ -62,17 +62,17 @@ export class UserBuilder {
   constructor(private triggerResource: () => string) { }
 
   /** Respond to the creation of a Firebase Auth user. */
-  onCreate(handler: (user: UserRecord, context?: EventContext) => PromiseLike<any> | any): CloudFunction<UserRecord> {
+  onCreate(handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.create');
   }
 
   /** Respond to the deletion of a Firebase Auth user. */
-  onDelete(handler: (user: UserRecord, context?: EventContext) => PromiseLike<any> | any): CloudFunction<UserRecord> {
+  onDelete(handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.delete');
   }
 
   private onOperation(
-    handler: (user: UserRecord, context?: EventContext) => PromiseLike<any> | any,
+    handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any,
     eventType: string
   ): CloudFunction<UserRecord> {
     return makeCloudFunction({

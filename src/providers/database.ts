@@ -103,7 +103,7 @@ export class RefBuilder {
   /** Respond to any write that affects a ref. */
   onWrite(handler: (
     change: Change<DataSnapshot>,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.write', this.changeConstructor);
   }
@@ -111,7 +111,7 @@ export class RefBuilder {
   /** Respond to update on a ref. */
   onUpdate(handler: (
     change: Change<DataSnapshot>,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.update', this.changeConstructor);
   }
@@ -119,7 +119,7 @@ export class RefBuilder {
   /** Respond to new data on a ref. */
   onCreate(handler: (
     snapshot: DataSnapshot,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<DataSnapshot> {
     let dataConstructor = (raw: LegacyEvent) => {
       let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
@@ -136,7 +136,7 @@ export class RefBuilder {
   /** Respond to all data being deleted from a ref. */
   onDelete(handler: (
     snapshot: DataSnapshot,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<DataSnapshot> {
     let dataConstructor = (raw: LegacyEvent) => {
       let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
@@ -151,7 +151,7 @@ export class RefBuilder {
   }
 
   private onOperation<T>(
-    handler: (data: T, context?: EventContext) => PromiseLike<any> | any,
+    handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
     dataConstructor: (raw: Event | LegacyEvent) => any): CloudFunction<T> {
 

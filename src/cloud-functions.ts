@@ -165,7 +165,7 @@ export interface TriggerAnnotated {
 
 /** A Runnable has a `run` method which directly invokes the user-defined function - useful for unit testing. */
 export interface Runnable<T> {
-  run: (data: T, context?: EventContext) => PromiseLike<any> | any;
+  run: (data: T, context: EventContext) => PromiseLike<any> | any;
 }
 
 /**
@@ -189,7 +189,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
   service: string;
   dataConstructor?: (raw: Event | LegacyEvent) => EventData;
-  handler: (data: EventData, context?: EventContext) => PromiseLike<any> | any;
+  handler: (data: EventData, context: EventContext) => PromiseLike<any> | any;
   before?: (raw: Event | LegacyEvent) => void;
   after?: (raw: Event | LegacyEvent) => void;
   legacyEventType?: string;

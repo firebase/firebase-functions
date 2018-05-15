@@ -51,22 +51,22 @@ export class IssueBuilder {
   }
 
   /** Handle Crashlytics New Issue events. */
-  onNew(handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+  onNew(handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.new');
   }
 
   /** Handle Crashlytics Regressed Issue events. */
-  onRegressed(handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+  onRegressed(handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.regressed');
   }
 
   /** Handle Crashlytics Velocity Alert events. */
-  onVelocityAlert(handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+  onVelocityAlert(handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.velocityAlert');
   }
 
   private onEvent(
-    handler: (issue: Issue, context?: EventContext) => PromiseLike<any> | any,
+    handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any,
     eventType: string
   ): CloudFunction<Issue> {
     return makeCloudFunction({

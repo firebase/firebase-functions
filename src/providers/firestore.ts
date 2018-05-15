@@ -136,7 +136,7 @@ export class DocumentBuilder {
   /** Respond to all document writes (creates, updates, or deletes). */
   onWrite(handler: (
     change: Change<DocumentSnapshot>,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
   };
@@ -144,7 +144,7 @@ export class DocumentBuilder {
   /** Respond only to document updates. */
   onUpdate(handler: (
     change: Change<DocumentSnapshot>,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
@@ -152,7 +152,7 @@ export class DocumentBuilder {
   /** Respond only to document creations. */
   onCreate(handler: (
     snapshot: DocumentSnapshot,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<DocumentSnapshot> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
@@ -160,13 +160,13 @@ export class DocumentBuilder {
   /** Respond only to document deletions. */
   onDelete(handler: (
     snapshot: DocumentSnapshot,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<DocumentSnapshot> {
     return this.onOperation(handler, 'document.delete', beforeSnapshotConstructor);
   }
 
   private onOperation<T>(
-    handler: (data: T, context?: EventContext) => PromiseLike<any> | any,
+    handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
     dataConstructor: (raw: Event | LegacyEvent) => any): CloudFunction<T> {
     return makeCloudFunction({
