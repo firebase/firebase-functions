@@ -2,7 +2,7 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import { EventContext } from 'firebase-functions';
 
-export type TestCase<T> = (data: T, context?: EventContext) => any
+export type TestCase<T> = (data: T, context: EventContext) => any
 export type TestCaseMap<T> = { [key: string]: TestCase<T> };
 
 export class TestSuite<T> {
@@ -19,7 +19,7 @@ export class TestSuite<T> {
     return this;
   }
 
-  run(testId: string, data: T, context?: EventContext): Promise<void> {
+  run(testId: string, data: T, context: EventContext): Promise<void> {
     let running: Array<Promise<any>> = [];
     for (let testName in this.tests) {
       if (!this.tests.hasOwnProperty(testName)) { continue; }

@@ -66,7 +66,7 @@ export class AnalyticsEventBuilder {
    *   Cloud Function you can export.
    */
   onLog(
-    handler: (event: AnalyticsEvent, context?: EventContext) => PromiseLike<any> | any): CloudFunction<AnalyticsEvent> {
+    handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any): CloudFunction<AnalyticsEvent> {
     const dataConstructor = (raw: Event) => {
       return new AnalyticsEvent(raw.data);
     };

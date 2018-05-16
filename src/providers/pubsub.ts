@@ -48,7 +48,7 @@ export class TopicBuilder {
   constructor(private triggerResource: () => string) { }
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
-  onPublish(handler: (message: Message, context?: EventContext) => PromiseLike<any> | any): CloudFunction<Message> {
+  onPublish(handler: (message: Message, context: EventContext) => PromiseLike<any> | any): CloudFunction<Message> {
     return makeCloudFunction({
       handler,
       provider,

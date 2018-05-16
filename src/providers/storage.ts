@@ -75,7 +75,7 @@ export class ObjectBuilder {
   /** Respond to archiving of an object, this is only for buckets that enabled object versioning. */
   onArchive(handler: (
     object: ObjectMetadata,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.archive');
   }
@@ -83,7 +83,7 @@ export class ObjectBuilder {
   /** Respond to the deletion of an object (not to archiving, if object versioning is enabled). */
   onDelete(handler: (
     object: ObjectMetadata,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.delete');
   }
@@ -91,7 +91,7 @@ export class ObjectBuilder {
   /** Respond to the successful creation of an object. */
   onFinalize(handler: (
     object: ObjectMetadata,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.finalize');
   }
@@ -99,13 +99,13 @@ export class ObjectBuilder {
   /** Respond to metadata updates of existing objects. */
   onMetadataUpdate(handler: (
     object: ObjectMetadata,
-    context?: EventContext) => PromiseLike<any> | any,
+    context: EventContext) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.metadataUpdate');
   }
 
   private onOperation(
-    handler: (object: ObjectMetadata, context?: EventContext) => PromiseLike<any> | any,
+    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any,
     eventType: string): CloudFunction<ObjectMetadata> {
     return makeCloudFunction({
       handler,
