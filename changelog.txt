@@ -1,0 +1,2 @@
+fixed - Fixed TypeScript type for `context` in event handlers to be always defined.
+changed - Updated firebase-admin peer-dependency to v5.12.1.
