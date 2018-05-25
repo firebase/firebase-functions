@@ -61,8 +61,5 @@
     "jsonwebtoken": "^8.2.1",
     "lodash": "^4.6.1"
   },
-  "engines": {
-    "node": ">=6.0.0"
-  },
   "typings": "lib/index.d.ts"
 }
