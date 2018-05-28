@@ -19,7 +19,7 @@ export class TestSuite<T> {
     return this;
   }
 
-  run(testId: string, data: T, context: EventContext): Promise<void> {
+  run(testId: string, data: T, context?: EventContext): Promise<void> {
     let running: Array<Promise<any>> = [];
     for (let testName in this.tests) {
       if (!this.tests.hasOwnProperty(testName)) { continue; }
