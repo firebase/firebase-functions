@@ -19,7 +19,7 @@ export const firestoreTests: any = functions.firestore.document('tests/{document
     )
 
     .it('should have the right eventType', (snap, context) => expectEq(
-      context.eventType, 'providers/cloud.firestore/eventTypes/document.create'))
+      context.eventType, 'google.firestore.document.create'))
 
     .it('should have eventId', (snap, context) => context.eventId)
 

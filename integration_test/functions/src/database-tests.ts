@@ -2,7 +2,6 @@ import * as functions from 'firebase-functions';
 import { TestSuite, expectEq, expectMatches } from './testing';
 import * as admin from 'firebase-admin';
 import DataSnapshot = admin.database.DataSnapshot;
-import { Change } from '../../../src/cloud-functions';
 
 const testIdFieldName = 'testId';
 
@@ -14,7 +13,7 @@ export const databaseTests: any = functions.database.ref('dbTests/{testId}/start
     return;
   }
 
-  return new TestSuite<Change<DataSnapshot>>('database ref onWrite')
+  return new TestSuite<functions.Change<DataSnapshot>>('database ref onWrite')
 
     .it('should not have event.app', (change, context)  => !(context as any).app)
 

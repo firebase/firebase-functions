@@ -11,8 +11,9 @@ export * from './firestore-tests';
 export * from './https-tests';
 const numTests = Object.keys(exports).length;  // Assumption: every exported function is its own test.
 
-// Client SDK doesn't support auto initialization:
-firebase.initializeApp(JSON.parse(process.env.FIREBASE_CONFIG));
+import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
+const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
+firebase.initializeApp(firebaseConfig);
 console.log('initializing admin');
 admin.initializeApp();
 
@@ -21,7 +22,7 @@ function callHttpsTrigger(name: string, data: any) {
   return new Promise((resolve, reject) => {
     const request = https.request({
       method: 'POST',
-      host: 'us-central1-' + functions.config().firebase.projectId + '.cloudfunctions.net',
+      host: 'us-central1-' + firebaseConfig.projectId + '.cloudfunctions.net',
       path: '/' + name,
       headers: {
         'Content-Type': 'application/json',

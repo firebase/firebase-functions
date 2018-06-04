@@ -19,7 +19,7 @@ export const pubsubTests: any = functions.pubsub.topic('pubsubTests').onPublish(
     .it('should not have a path', (message, context) => expectEq((context as any).path, undefined))
 
     .it('should have the correct eventType', (message, context) => expectEq(
-      context.eventType, 'providers/cloud.pubsub/eventTypes/topic.publish'))
+      context.eventType, 'google.pubsub.topic.publish'))
 
     .it('should have an eventId', (message, context) => context.eventId)
 

@@ -9,12 +9,12 @@ export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
 
   return new TestSuite<UserMetadata>('auth user onCreate')
     .it('should have a project as resource', (user, context) => expectEq(
-      context.resource, `projects/${process.env.GCLOUD_PROJECT}`))
+      context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`))
 
     .it('should not have a path', (user, context) => expectEq((context as any).path, undefined))
 
     .it('should have the correct eventType', (user, context) => expectEq(
-      context.eventType, 'providers/firebase.auth/eventTypes/user.create'))
+      context.eventType, 'google.firebase.auth.user.create'))
 
     .it('should have an eventId', (user, context)=> context.eventId)
 
@@ -33,12 +33,12 @@ export const deleteUserTests: any = functions.auth.user().onDelete((u, c) => {
 
   return new TestSuite<UserMetadata>('auth user onDelete')
     .it('should have a project as resource', (user, context) => expectEq(
-      context.resource, `projects/${process.env.GCLOUD_PROJECT}`))
+      context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`))
 
     .it('should not have a path', (user, context) => expectEq((context as any).path, undefined))
 
     .it('should have the correct eventType', (user, context) => expectEq(
-      context.eventType, 'providers/firebase.auth/eventTypes/user.delete'))
+      context.eventType, 'google.firebase.auth.user.delete'))
 
     .it('should have an eventId', (user, context) => context.eventId)
 
