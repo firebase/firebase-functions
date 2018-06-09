@@ -443,6 +443,27 @@ describe('callable.FunctionBuilder', () => {
         },
       });
     });
+
+    it('should handle headers', async () => {
+      const mockRequest = request(null, 'application/json', {});
+      await runTest({
+        httpRequest: mockRequest,
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.auth).to.be.undefined;
+          expect(context.headers).to.not.be.undefined;
+          expect(context.headers).to.equal(mockRequest.headers);
+          expect(context.instanceIdToken).to.be.undefined;
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: {result: null},
+        },
+      });
+    });
+
   });
 });
 
