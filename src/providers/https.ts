@@ -26,6 +26,7 @@ import * as firebase from 'firebase-admin';
 import { apps } from '../apps';
 import * as _ from 'lodash';
 import * as cors from 'cors';
+import {IncomingHttpHeaders} from 'http';
 
 export function onRequest(handler: (req: express.Request, resp: express.Response) => void): HttpsFunction {
   // lets us add __trigger without altering handler:
@@ -214,6 +215,11 @@ export interface CallableContext {
   };
 
   /**
+   * Incoming headers.
+   */
+  headers: IncomingHttpHeaders;
+
+  /**
    * An unverified token for a Firebase Instance ID.
    */
   instanceIdToken?: string;
@@ -373,7 +379,7 @@ export function onCall(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
-      const context: CallableContext = {};
+      const context: CallableContext = { headers: req.headers };
 
       const authorization = req.header('Authorization');
       if (authorization) {
