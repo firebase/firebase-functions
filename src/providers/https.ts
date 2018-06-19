@@ -217,6 +217,11 @@ export interface CallableContext {
    * An unverified token for a Firebase Instance ID.
    */
   instanceIdToken?: string;
+
+  /**
+   * The raw request handled by the callable.
+   */
+  rawRequest: express.Request;
 }
 
 // The allowed interface for an http request for a callable function.
@@ -373,7 +378,7 @@ export function onCall(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
-      const context: CallableContext = {};
+      const context: CallableContext = { rawRequest: req };
 
       const authorization = req.header('Authorization');
       if (authorization) {
