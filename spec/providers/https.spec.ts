@@ -443,6 +443,24 @@ describe('callable.FunctionBuilder', () => {
         },
       });
     });
+
+    it('should expose raw request', async () => {
+      const mockRequest = request(null, 'application/json', {});
+      await runTest({
+        httpRequest: mockRequest,
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.rawRequest).to.not.be.undefined;
+          expect(context.rawRequest).to.equal(mockRequest);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: {result: null},
+        },
+      });
+    });
   });
 });
 
