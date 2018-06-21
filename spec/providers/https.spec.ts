@@ -234,7 +234,10 @@ describe('callable.FunctionBuilder', () => {
       const result = https.onCall((data) => {
         return 'response';
       });
-      expect(result.__trigger).to.deep.equal({httpsTrigger: {}});
+      expect(result.__trigger).to.deep.equal({
+        httpsTrigger: {},
+        labels: { 'deployment-callable': 'true' },
+      });
     });
 
     it('should handle success', () => {

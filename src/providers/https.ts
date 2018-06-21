@@ -435,7 +435,10 @@ export function onCall(
     return corsHandler(req, res, () => func(req, res));
   };
 
-  corsFunc.__trigger = {httpsTrigger: {}};
+  corsFunc.__trigger = {
+    httpsTrigger: {},
+    labels: { 'deployment-callable': 'true' },
+  };
 
   return corsFunc;
 }
