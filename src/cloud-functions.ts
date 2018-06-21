@@ -159,7 +159,8 @@ export interface TriggerAnnotated {
       eventType: string;
       resource: string;
       service: string;
-    }
+    },
+    labels?: { [key: string]: string }
   };
 }
 
