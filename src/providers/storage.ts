@@ -41,7 +41,7 @@ export function bucket(bucket?: string): BucketBuilder {
       ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.');
     }
     if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
-      throw new Error('Invalid bucket name ${bucket}');
+      throw new Error(`Invalid bucket name ${bucket}`);
     }
     return `projects/_/buckets/${bucket}`;
   };
