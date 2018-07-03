@@ -1,16 +1,17 @@
 {
   "name": "firebase-functions",
-  "version": "1.1.0",
+  "version": "1.0.4",
   "description": "Firebase SDK for Cloud Functions",
   "main": "lib/index.js",
   "scripts": {
     "build": "node_modules/.bin/tsc -p tsconfig.release.json",
     "build:pack": "rm -rf lib && npm install && node_modules/.bin/tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && node_modules/.bin/tsc -p tsconfig.release.json",
-    "lint": "node_modules/.bin/tslint src/{**/*,*}.ts spec/{**/*,*}.ts integration_test/functions/src/{**/*,*}.ts",
+    "format": "prettier --write '**/*.ts'",
     "pretest": "node_modules/.bin/tsc && cp -r spec/fixtures .tmp/spec",
-    "test": "mocha .tmp/spec/index.spec.js",
-    "posttest": "npm run lint && rm -rf .tmp",
+    "test": "npm run mocha",
+    "mocha": "mocha .tmp/spec/index.spec.js",
+    "posttest": "npm run format && rm -rf .tmp",
     "postinstall": "node ./upgrade-warning"
   },
   "repository": {
@@ -44,8 +45,8 @@
     "mocha": "^2.4.5",
     "mock-require": "^2.0.1",
     "nock": "^9.0.0",
+    "prettier": "^1.13.7",
     "sinon": "^1.17.4",
-    "tslint": "^3.15.1",
     "typescript": "~2.8.3"
   },
   "peerDependencies": {

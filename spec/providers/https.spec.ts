@@ -36,7 +36,7 @@ describe('CloudHttpsBuilder', () => {
       let result = https.onRequest((req, resp) => {
         resp.send(200);
       });
-      expect(result.__trigger).to.deep.equal({httpsTrigger: {}});
+      expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
     });
   });
 });
@@ -46,7 +46,7 @@ describe('CloudHttpsBuilder', () => {
  */
 interface RunHandlerResult {
   status: number;
-  headers: {[name: string]: string};
+  headers: { [name: string]: string };
   body: any;
 }
 
@@ -73,13 +73,16 @@ interface CallTest {
  * Runs an express handler with a given request asynchronously and returns the
  * data populated into the response.
  */
-function runHandler(handler: express.Handler, request: express.Request): Promise<RunHandlerResult> {
+function runHandler(
+  handler: express.Handler,
+  request: express.Request
+): Promise<RunHandlerResult> {
   return new Promise((resolve, reject) => {
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {
       private statusCode = 0;
-      private headers: {[name: string]: string} = {};
+      private headers: { [name: string]: string } = {};
 
       public status(code: number) {
         this.statusCode = code;
@@ -129,9 +132,12 @@ async function runTest(test: CallTest): Promise<any> {
 
 // MockRequest mocks an express.Request.
 class MockRequest {
-  public method: 'POST'|'GET'|'OPTIONS' = 'POST';
+  public method: 'POST' | 'GET' | 'OPTIONS' = 'POST';
 
-  constructor(readonly body: any, readonly headers: {[name: string]: string}) {
+  constructor(
+    readonly body: any,
+    readonly headers: { [name: string]: string }
+  ) {
     // This block intentionally left blank.
   }
 
@@ -142,12 +148,13 @@ class MockRequest {
 
 // Creates a mock request with the given data and content-type.
 function request(
-    data: any,
-    contentType: string = 'application/json',
-    context: {
-      authorization?: string;
-      instanceIdToken?: string;
-    } = {}) {
+  data: any,
+  contentType: string = 'application/json',
+  context: {
+    authorization?: string;
+    instanceIdToken?: string;
+  } = {}
+) {
   const body: any = {};
   if (!_.isUndefined(data)) {
     body.data = data;
@@ -155,9 +162,9 @@ function request(
 
   const headers = {
     'content-type': contentType,
-    'authorization': context.authorization,
+    authorization: context.authorization,
     'firebase-instance-id-token': context.instanceIdToken,
-    'origin': 'example.com',
+    origin: 'example.com',
   };
 
   return new MockRequest(body, headers);
@@ -173,9 +180,10 @@ const expectedResponseHeaders = {
  * verifying an id token.
  */
 function mockFetchPublicKeys(): nock.Scope {
-  let mock: nock.Scope = nock('https://www.googleapis.com:443')
-    .get('/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
-  const mockedResponse = {[mocks.key_id]: mocks.public_key};
+  let mock: nock.Scope = nock('https://www.googleapis.com:443').get(
+    '/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
+  );
+  const mockedResponse = { [mocks.key_id]: mocks.public_key };
   const headers = {
     'cache-control': 'public, max-age=1, must-revalidate, no-transform',
   };
@@ -189,7 +197,7 @@ export function generateIdToken(projectId: string): string {
   const claims = {};
   const options = {
     audience: projectId,
-    expiresIn: 60 * 60,  // 1 hour in seconds
+    expiresIn: 60 * 60, // 1 hour in seconds
     issuer: 'https://securetoken.google.com/' + projectId,
     subject: mocks.user_id,
     algorithm: 'RS256',
@@ -231,7 +239,7 @@ describe('callable.FunctionBuilder', () => {
 
   describe('#onCall', () => {
     it('should return a Trigger with appropriate values', () => {
-      const result = https.onCall((data) => {
+      const result = https.onCall(data => {
         return 'response';
       });
       expect(result.__trigger).to.deep.equal({
@@ -242,13 +250,13 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle success', () => {
       return runTest({
-        httpRequest: request({foo: 'bar'}),
-        expectedData: {foo: 'bar'},
-        callableFunction: (data, context) => ({baz: 'qux'}),
+        httpRequest: request({ foo: 'bar' }),
+        expectedData: { foo: 'bar' },
+        callableFunction: (data, context) => ({ baz: 'qux' }),
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: {baz: 'qux'}},
+          body: { result: { baz: 'qux' } },
         },
       });
     });
@@ -261,7 +269,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: null},
+          body: { result: null },
         },
       });
     });
@@ -270,11 +278,13 @@ describe('callable.FunctionBuilder', () => {
       return runTest({
         httpRequest: request(null),
         expectedData: null,
-        callableFunction: (data, context) => { return; },
+        callableFunction: (data, context) => {
+          return;
+        },
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: null},
+          body: { result: null },
         },
       });
     });
@@ -285,11 +295,15 @@ describe('callable.FunctionBuilder', () => {
       return runTest({
         httpRequest: req,
         expectedData: null,
-        callableFunction: (data, context) => { return; },
+        callableFunction: (data, context) => {
+          return;
+        },
         expectedHttpResponse: {
           status: 400,
           headers: expectedResponseHeaders,
-          body: {error: {status: 'INVALID_ARGUMENT', message: 'Bad Request'}},
+          body: {
+            error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
+          },
         },
       });
     });
@@ -298,11 +312,13 @@ describe('callable.FunctionBuilder', () => {
       return runTest({
         httpRequest: request(null, 'application/json; charset=utf-8'),
         expectedData: null,
-        callableFunction: (data, context) => { return; },
+        callableFunction: (data, context) => {
+          return;
+        },
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: null},
+          body: { result: null },
         },
       });
     });
@@ -311,11 +327,15 @@ describe('callable.FunctionBuilder', () => {
       return runTest({
         httpRequest: request(null, 'text/plain'),
         expectedData: null,
-        callableFunction: (data, context) => { return; },
+        callableFunction: (data, context) => {
+          return;
+        },
         expectedHttpResponse: {
           status: 400,
           headers: expectedResponseHeaders,
-          body: {error: {status: 'INVALID_ARGUMENT', message: 'Bad Request'}},
+          body: {
+            error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
+          },
         },
       });
     });
@@ -326,11 +346,15 @@ describe('callable.FunctionBuilder', () => {
       return runTest({
         httpRequest: req,
         expectedData: null,
-        callableFunction: (data, context) => { return; },
+        callableFunction: (data, context) => {
+          return;
+        },
         expectedHttpResponse: {
           status: 400,
           headers: expectedResponseHeaders,
-          body: {error: {status: 'INVALID_ARGUMENT', message: 'Bad Request'}},
+          body: {
+            error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
+          },
         },
       });
     });
@@ -345,7 +369,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 500,
           headers: expectedResponseHeaders,
-          body: {error: {status: 'INTERNAL', message: 'INTERNAL'}},
+          body: { error: { status: 'INTERNAL', message: 'INTERNAL' } },
         },
       });
     });
@@ -360,7 +384,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 500,
           headers: expectedResponseHeaders,
-          body: {error: {status: 'INTERNAL', message: 'INTERNAL'}},
+          body: { error: { status: 'INTERNAL', message: 'INTERNAL' } },
         },
       });
     });
@@ -375,7 +399,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 404,
           headers: expectedResponseHeaders,
-          body: {error: {status: 'NOT_FOUND', message: 'i am error'}},
+          body: { error: { status: 'NOT_FOUND', message: 'i am error' } },
         },
       });
     });
@@ -402,7 +426,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: null},
+          body: { result: null },
         },
       });
       mock.done();
@@ -414,7 +438,9 @@ describe('callable.FunctionBuilder', () => {
           authorization: 'Bearer FAKE',
         }),
         expectedData: null,
-        callableFunction: (data, context) => { return; },
+        callableFunction: (data, context) => {
+          return;
+        },
         expectedHttpResponse: {
           status: 401,
           headers: expectedResponseHeaders,
@@ -442,7 +468,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: null},
+          body: { result: null },
         },
       });
     });
@@ -460,7 +486,7 @@ describe('callable.FunctionBuilder', () => {
         expectedHttpResponse: {
           status: 200,
           headers: expectedResponseHeaders,
-          body: {result: null},
+          body: { result: null },
         },
       });
     });
@@ -473,11 +499,14 @@ describe('callable CORS', () => {
       throw "This shouldn't have gotten called for an OPTIONS preflight.";
     });
 
-    const request = new MockRequest({}, {
-      'Access-Control-Request-Method': 'POST',
-      'Access-Control-Request-Headers': 'origin',
-      Origin: 'example.com',
-    });
+    const request = new MockRequest(
+      {},
+      {
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'origin',
+        Origin: 'example.com',
+      }
+    );
     request.method = 'OPTIONS';
 
     const response = await runHandler(func, request as any);
@@ -512,15 +541,16 @@ describe('callable', () => {
   });
 
   it('encodes long', () => {
-    expect(https.encode(-9223372036854775000)).to.equal(
-      -9223372036854775000);
+    expect(https.encode(-9223372036854775000)).to.equal(-9223372036854775000);
   });
 
   it('decodes long', () => {
-    expect(https.decode({
-      '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-      'value': '-9223372036854775000',
-    })).to.equal(-9223372036854775000);
+    expect(
+      https.decode({
+        '@type': 'type.googleapis.com/google.protobuf.Int64Value',
+        value: '-9223372036854775000',
+      })
+    ).to.equal(-9223372036854775000);
   });
 
   it('encodes unsigned long', () => {
@@ -528,10 +558,12 @@ describe('callable', () => {
   });
 
   it('decodes unsigned long', () => {
-    expect(https.decode({
-      '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
-      'value': '9223372036854800000',
-    })).to.equal(9223372036854800000);
+    expect(
+      https.decode({
+        '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
+        value: '9223372036854800000',
+      })
+    ).to.equal(9223372036854800000);
   });
 
   it('encodes double', () => {
@@ -557,21 +589,31 @@ describe('callable', () => {
   });
 
   it('decodes array', () => {
-    expect(https.decode(
-      [1, '2', [3, {
-        value: '1099511627776',
-        '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-      }]])).to.deep.equal([1, '2', [3, 1099511627776]]);
+    expect(
+      https.decode([
+        1,
+        '2',
+        [
+          3,
+          {
+            value: '1099511627776',
+            '@type': 'type.googleapis.com/google.protobuf.Int64Value',
+          },
+        ],
+      ])
+    ).to.deep.equal([1, '2', [3, 1099511627776]]);
   });
 
   it('encodes object', () => {
     // TODO(klimt): Make this test more interesting once there's some type
     // that needs encoding that can be created from JavaScript.
-    expect(https.encode({
-      foo: 1,
-      bar: 'hello',
-      baz: [1, 2, 3],
-    })).to.deep.equal({
+    expect(
+      https.encode({
+        foo: 1,
+        bar: 'hello',
+        baz: [1, 2, 3],
+      })
+    ).to.deep.equal({
       foo: 1,
       bar: 'hello',
       baz: [1, 2, 3],
@@ -579,14 +621,20 @@ describe('callable', () => {
   });
 
   it('decodes object', () => {
-    expect(https.decode({
-      foo: 1,
-      bar: 'hello',
-      baz: [1, 2, {
-        value: '1099511627776',
-        '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-      }],
-    })).to.deep.equal({
+    expect(
+      https.decode({
+        foo: 1,
+        bar: 'hello',
+        baz: [
+          1,
+          2,
+          {
+            value: '1099511627776',
+            '@type': 'type.googleapis.com/google.protobuf.Int64Value',
+          },
+        ],
+      })
+    ).to.deep.equal({
       foo: 1,
       bar: 'hello',
       baz: [1, 2, 1099511627776],

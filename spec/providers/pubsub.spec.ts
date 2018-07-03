@@ -37,7 +37,7 @@ describe('Pubsub Functions', () => {
       it('should preserve passed in json', () => {
         let message = new pubsub.Message({
           data: new Buffer('{"hello":"world"}', 'utf8').toString('base64'),
-          json: {goodbye: 'world'},
+          json: { goodbye: 'world' },
         });
 
         expect(message.json.goodbye).to.equal('world');
@@ -46,7 +46,9 @@ describe('Pubsub Functions', () => {
 
     describe('#toJSON', () => {
       it('should be JSON stringify-able', () => {
-        let encoded = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+        let encoded = new Buffer('{"hello":"world"}', 'utf8').toString(
+          'base64'
+        );
         let message = new pubsub.Message({
           data: encoded,
         });
@@ -60,7 +62,6 @@ describe('Pubsub Functions', () => {
   });
 
   describe('pubsub.FunctionBuilder', () => {
-
     before(() => {
       process.env.GCLOUD_PROJECT = 'project1';
     });
@@ -82,7 +83,7 @@ describe('Pubsub Functions', () => {
         });
       });
 
-      it ('should throw with improperly formatted topics', () => {
+      it('should throw with improperly formatted topics', () => {
         expect(() => pubsub.topic('bad/topic/format')).to.throw(Error);
       });
 
@@ -107,8 +108,8 @@ describe('Pubsub Functions', () => {
 
         return expect(result(event)).to.eventually.deep.equal({
           raw,
-          json: {hello: 'world'},
-          attributes: {foo: 'bar'},
+          json: { hello: 'world' },
+          attributes: { foo: 'bar' },
         });
       });
     });
@@ -116,11 +117,15 @@ describe('Pubsub Functions', () => {
 
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
-      expect(() => pubsub.topic('toppy').onPublish(() => null)).to.not.throw(Error);
+      expect(() => pubsub.topic('toppy').onPublish(() => null)).to.not.throw(
+        Error
+      );
     });
 
     it('should throw when trigger is accessed', () => {
-      expect(() => pubsub.topic('toppy').onPublish(() => null).__trigger).to.throw(Error);
+      expect(
+        () => pubsub.topic('toppy').onPublish(() => null).__trigger
+      ).to.throw(Error);
     });
 
     it('should not throw when #run is called', () => {

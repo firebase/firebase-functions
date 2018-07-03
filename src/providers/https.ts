@@ -27,10 +27,14 @@ import { apps } from '../apps';
 import * as _ from 'lodash';
 import * as cors from 'cors';
 
-export function onRequest(handler: (req: express.Request, resp: express.Response) => void): HttpsFunction {
+export function onRequest(
+  handler: (req: express.Request, resp: express.Response) => void
+): HttpsFunction {
   // lets us add __trigger without altering handler:
-  let cloudFunction: any = (req: express.Request, res: express.Response) => { handler(req, res); };
-  cloudFunction.__trigger = {httpsTrigger: {}};
+  let cloudFunction: any = (req: express.Request, res: express.Response) => {
+    handler(req, res);
+  };
+  cloudFunction.__trigger = { httpsTrigger: {} };
 
   return cloudFunction;
 }
@@ -101,22 +105,22 @@ export type FunctionsErrorCode =
  * to the HTTP format error code string, and make sure it's in the supported set.
  */
 const errorCodeMap: { [name: string]: string } = {
-  'ok': 'OK',
-  'cancelled': 'CANCELLED',
-  'unknown': 'UNKNOWN',
+  ok: 'OK',
+  cancelled: 'CANCELLED',
+  unknown: 'UNKNOWN',
   'invalid-argument': 'INVALID_ARGUMENT',
   'deadline-exceeded': 'DEADLINE_EXCEEDED',
   'not-found': 'NOT_FOUND',
   'already-exists': 'ALREADY_EXISTS',
   'permission-denied': 'PERMISSION_DENIED',
-  'unauthenticated': 'UNAUTHENTICATED',
+  unauthenticated: 'UNAUTHENTICATED',
   'resource-exhausted': 'RESOURCE_EXHAUSTED',
   'failed-precondition': 'FAILED_PRECONDITION',
-  'aborted': 'ABORTED',
+  aborted: 'ABORTED',
   'out-of-range': 'OUT_OF_RANGE',
-  'unimplemented': 'UNIMPLEMENTED',
-  'internal': 'INTERNAL',
-  'unavailable': 'UNAVAILABLE',
+  unimplemented: 'UNIMPLEMENTED',
+  internal: 'INTERNAL',
+  unavailable: 'UNAVAILABLE',
   'data-loss': 'DATA_LOSS',
 };
 
@@ -166,25 +170,43 @@ export class HttpsError extends Error {
    */
   get httpStatus(): number {
     switch (this.code) {
-      case 'ok': return 200;
-      case 'cancelled': return 499;
-      case 'unknown': return 500;
-      case 'invalid-argument': return 400;
-      case 'deadline-exceeded': return 504;
-      case 'not-found': return 404;
-      case 'already-exists': return 409;
-      case 'permission-denied': return 403;
-      case 'unauthenticated': return 401;
-      case 'resource-exhausted': return 429;
-      case 'failed-precondition': return 400;
-      case 'aborted': return 409;
-      case 'out-of-range': return 400;
-      case 'unimplemented': return 501;
-      case 'internal': return 500;
-      case 'unavailable': return 503;
-      case 'data-loss': return 500;
+      case 'ok':
+        return 200;
+      case 'cancelled':
+        return 499;
+      case 'unknown':
+        return 500;
+      case 'invalid-argument':
+        return 400;
+      case 'deadline-exceeded':
+        return 504;
+      case 'not-found':
+        return 404;
+      case 'already-exists':
+        return 409;
+      case 'permission-denied':
+        return 403;
+      case 'unauthenticated':
+        return 401;
+      case 'resource-exhausted':
+        return 429;
+      case 'failed-precondition':
+        return 400;
+      case 'aborted':
+        return 409;
+      case 'out-of-range':
+        return 400;
+      case 'unimplemented':
+        return 501;
+      case 'internal':
+        return 500;
+      case 'unavailable':
+        return 503;
+      case 'data-loss':
+        return 500;
       // This should never happen as long as the type system is doing its job.
-      default: throw 'Invalid error code: ' + this.code;
+      default:
+        throw 'Invalid error code: ' + this.code;
     }
   }
 
@@ -229,13 +251,13 @@ interface HttpRequest extends express.Request {
   body: {
     data: any;
   };
-};
+}
 
 // The format for the http body response to a callable function.
 interface HttpResponseBody {
   result?: any;
   error?: HttpsError;
-};
+}
 
 // Returns true if req is a properly formatted callable request.
 function isValidRequest(req: express.Request): req is HttpRequest {
@@ -333,7 +355,7 @@ export function decode(data: any): any {
   if (data['@type']) {
     switch (data['@type']) {
       case LONG_TYPE:
-        // Fall through and handle this the same as unsigned.
+      // Fall through and handle this the same as unsigned.
       case UNSIGNED_LONG_TYPE: {
         // Technically, this could work return a valid number for malformed
         // data if there was a number followed by garbage. But it's just not
@@ -370,7 +392,8 @@ const corsHandler = cors({ origin: true, methods: 'POST' });
  * @param handler A method that takes a data and context and returns a value.
  */
 export function onCall(
-    handler: (data: any, context: CallableContext) => any | Promise<any>): HttpsFunction {
+  handler: (data: any, context: CallableContext) => any | Promise<any>
+): HttpsFunction {
   const func = async (req: express.Request, res: express.Response) => {
     try {
       if (!isValidRequest(req)) {
@@ -388,7 +411,9 @@ export function onCall(
         }
         const idToken = match[1];
         try {
-          const authToken = await apps().admin.auth().verifyIdToken(idToken);
+          const authToken = await apps()
+            .admin.auth()
+            .verifyIdToken(idToken);
           context.auth = {
             uid: authToken.uid,
             token: authToken,
@@ -416,7 +441,6 @@ export function onCall(
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
       res.status(200).send(responseBody);
-
     } catch (error) {
       if (!(error instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.

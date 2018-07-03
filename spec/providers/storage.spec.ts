@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import * as storage from '../../src/providers/storage';
-import { expect as expect } from 'chai';
+import { expect } from 'chai';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
@@ -37,7 +37,10 @@ describe('Storage Functions', () => {
 
     describe('#onArchive', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage.bucket('bucky').object().onArchive(() => null);
+        let cloudFunction = storage
+          .bucket('bucky')
+          .object()
+          .onArchive(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.archive',
@@ -59,7 +62,9 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(() => 'projects/_/buckets/bucky');
+        let subjectQualified = new storage.ObjectBuilder(
+          () => 'projects/_/buckets/bucky'
+        );
         let result = subjectQualified.onArchive(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
@@ -71,8 +76,13 @@ describe('Storage Functions', () => {
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(() => storage.bucket('bad/bucket/format').object().onArchive(() => null).__trigger)
-        .to.throw(Error);
+        expect(
+          () =>
+            storage
+              .bucket('bad/bucket/format')
+              .object()
+              .onArchive(() => null).__trigger
+        ).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -81,8 +91,9 @@ describe('Storage Functions', () => {
         });
         let goodMediaLinkEvent = {
           data: {
-            mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-            + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
         return cloudFunction(goodMediaLinkEvent).then((result: any) => {
@@ -93,7 +104,10 @@ describe('Storage Functions', () => {
 
     describe('#onDelete', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage.bucket('bucky').object().onDelete(() => null);
+        let cloudFunction = storage
+          .bucket('bucky')
+          .object()
+          .onDelete(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.delete',
@@ -115,7 +129,9 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(() => 'projects/_/buckets/bucky');
+        let subjectQualified = new storage.ObjectBuilder(
+          () => 'projects/_/buckets/bucky'
+        );
         let result = subjectQualified.onDelete(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
@@ -127,8 +143,13 @@ describe('Storage Functions', () => {
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(() => storage.bucket('bad/bucket/format').object().onDelete(() => null).__trigger)
-        .to.throw(Error);
+        expect(
+          () =>
+            storage
+              .bucket('bad/bucket/format')
+              .object()
+              .onDelete(() => null).__trigger
+        ).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -137,8 +158,9 @@ describe('Storage Functions', () => {
         });
         let goodMediaLinkEvent = {
           data: {
-            mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-              + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
         return cloudFunction(goodMediaLinkEvent).then((result: any) => {
@@ -149,7 +171,10 @@ describe('Storage Functions', () => {
 
     describe('#onFinalize', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage.bucket('bucky').object().onFinalize(() => null);
+        let cloudFunction = storage
+          .bucket('bucky')
+          .object()
+          .onFinalize(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.finalize',
@@ -171,7 +196,9 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(() => 'projects/_/buckets/bucky');
+        let subjectQualified = new storage.ObjectBuilder(
+          () => 'projects/_/buckets/bucky'
+        );
         let result = subjectQualified.onFinalize(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
@@ -183,8 +210,13 @@ describe('Storage Functions', () => {
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(() => storage.bucket('bad/bucket/format').object().onFinalize(() => null).__trigger)
-        .to.throw(Error);
+        expect(
+          () =>
+            storage
+              .bucket('bad/bucket/format')
+              .object()
+              .onFinalize(() => null).__trigger
+        ).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -193,8 +225,9 @@ describe('Storage Functions', () => {
         });
         let goodMediaLinkEvent = {
           data: {
-            mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-              + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
         return cloudFunction(goodMediaLinkEvent).then((result: any) => {
@@ -205,7 +238,10 @@ describe('Storage Functions', () => {
 
     describe('#onMetadataUpdate', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage.bucket('bucky').object().onMetadataUpdate(() => null);
+        let cloudFunction = storage
+          .bucket('bucky')
+          .object()
+          .onMetadataUpdate(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.metadataUpdate',
@@ -227,7 +263,9 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(() => 'projects/_/buckets/bucky');
+        let subjectQualified = new storage.ObjectBuilder(
+          () => 'projects/_/buckets/bucky'
+        );
         let result = subjectQualified.onMetadataUpdate(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
@@ -239,8 +277,13 @@ describe('Storage Functions', () => {
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(() => storage.bucket('bad/bucket/format').object().onMetadataUpdate(() => null).__trigger)
-        .to.throw(Error);
+        expect(
+          () =>
+            storage
+              .bucket('bad/bucket/format')
+              .object()
+              .onMetadataUpdate(() => null).__trigger
+        ).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -249,8 +292,9 @@ describe('Storage Functions', () => {
         });
         let goodMediaLinkEvent = {
           data: {
-            mediaLink: 'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com'
-              + '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
         };
         return cloudFunction(goodMediaLinkEvent).then((result: any) => {
@@ -266,7 +310,9 @@ describe('Storage Functions', () => {
     });
 
     it('should throw when trigger is accessed', () => {
-      expect(() => storage.object().onArchive(() => null).__trigger).to.throw(Error);
+      expect(() => storage.object().onArchive(() => null).__trigger).to.throw(
+        Error
+      );
     });
 
     it('should not throw when #run is called', () => {

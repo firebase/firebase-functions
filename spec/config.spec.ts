@@ -25,7 +25,6 @@ import { expect } from 'chai';
 import { config, firebaseConfig } from '../src/config';
 
 describe('config()', () => {
-
   afterEach(() => {
     mockRequire.stopAll();
     delete config.singleton;
@@ -38,7 +37,7 @@ describe('config()', () => {
     mockRequire('../../../.runtimeconfig.json', { foo: 'bar', firebase: {} });
     let loaded = config();
     expect(loaded).to.not.have.property('firebase');
-    expect(loaded).to.have.property('foo','bar');
+    expect(loaded).to.have.property('foo', 'bar');
   });
 
   it('does not provide firebase config if .runtimeconfig.json not invalid', () => {
@@ -55,14 +54,20 @@ describe('config()', () => {
     process.env.FIREBASE_PROJECT = JSON.stringify({
       databaseURL: 'foo@firebaseio.com',
     });
-    expect(firebaseConfig()).to.have.property('databaseURL', 'foo@firebaseio.com');
+    expect(firebaseConfig()).to.have.property(
+      'databaseURL',
+      'foo@firebaseio.com'
+    );
   });
 
   it('loads Firebase configs from FIREBASE_CONFIG env variable', () => {
     process.env.FIREBASE_CONFIG = JSON.stringify({
       databaseURL: 'foo@firebaseio.com',
     });
-    expect(firebaseConfig()).to.have.property('databaseURL', 'foo@firebaseio.com');
+    expect(firebaseConfig()).to.have.property(
+      'databaseURL',
+      'foo@firebaseio.com'
+    );
   });
 
   it('prefers FIREBASE_CONFIG over FIREBASE_PROJECT', () => {
@@ -85,7 +90,10 @@ describe('config()', () => {
       },
       foo: 'bar',
     });
-    expect(firebaseConfig()).to.have.property('databaseURL', 'foo@firebaseio.com');
+    expect(firebaseConfig()).to.have.property(
+      'databaseURL',
+      'foo@firebaseio.com'
+    );
     expect(config()).to.have.property('foo', 'bar');
   });
 
@@ -93,11 +101,14 @@ describe('config()', () => {
     process.env.CLOUD_RUNTIME_CONFIG = 'another.json';
     mockRequire('another.json', { foo: 'bar', firebase: {} });
     expect(firebaseConfig()).to.not.be.null;
-    expect(config()).to.have.property('foo','bar');
+    expect(config()).to.have.property('foo', 'bar');
   });
 
   it('accepts full JSON in env.CLOUD_RUNTIME_CONFIG', () => {
-    process.env.CLOUD_RUNTIME_CONFIG = JSON.stringify({foo: 'bar', firebase:{} });
+    process.env.CLOUD_RUNTIME_CONFIG = JSON.stringify({
+      foo: 'bar',
+      firebase: {},
+    });
     expect(firebaseConfig()).to.not.be.null;
     expect(config()).to.have.property('foo', 'bar');
   });
@@ -107,7 +118,10 @@ describe('config()', () => {
     process.env.FIREBASE_PROJECT = JSON.stringify({
       databaseURL: 'foo@firebaseio.com',
     });
-    expect(firebaseConfig()).to.have.property('databaseURL', 'foo@firebaseio.com');
+    expect(firebaseConfig()).to.have.property(
+      'databaseURL',
+      'foo@firebaseio.com'
+    );
     expect(config()).to.have.property('foo', 'bar');
   });
 });

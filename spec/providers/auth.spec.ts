@@ -69,8 +69,12 @@ describe('Auth Functions', () => {
       let event: any;
 
       before(() => {
-        cloudFunctionCreate = auth.user().onCreate((data: firebase.auth.UserRecord) => data);
-        cloudFunctionDelete = auth.user().onDelete((data: firebase.auth.UserRecord) => data);
+        cloudFunctionCreate = auth
+          .user()
+          .onCreate((data: firebase.auth.UserRecord) => data);
+        cloudFunctionDelete = auth
+          .user()
+          .onDelete((data: firebase.auth.UserRecord) => data);
         event = {
           data: {
             metadata: {
@@ -84,12 +88,20 @@ describe('Auth Functions', () => {
       it('should transform wire format for UserRecord into v5.0.0 format', () => {
         return Promise.all([
           cloudFunctionCreate(event).then((data: any) => {
-            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+            expect(data.metadata.creationTime).to.equal(
+              '2016-12-15T19:37:37.059Z'
+            );
+            expect(data.metadata.lastSignInTime).to.equal(
+              '2017-01-01T00:00:00.000Z'
+            );
           }),
           cloudFunctionDelete(event).then((data: any) => {
-            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+            expect(data.metadata.creationTime).to.equal(
+              '2016-12-15T19:37:37.059Z'
+            );
+            expect(data.metadata.lastSignInTime).to.equal(
+              '2017-01-01T00:00:00.000Z'
+            );
           }),
         ]);
       });
@@ -106,12 +118,20 @@ describe('Auth Functions', () => {
 
         return Promise.all([
           cloudFunctionCreate(newEvent).then((data: any) => {
-            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+            expect(data.metadata.creationTime).to.equal(
+              '2016-12-15T19:37:37.059Z'
+            );
+            expect(data.metadata.lastSignInTime).to.equal(
+              '2017-01-01T00:00:00.000Z'
+            );
           }),
           cloudFunctionDelete(newEvent).then((data: any) => {
-            expect(data.metadata.creationTime).to.equal('2016-12-15T19:37:37.059Z');
-            expect(data.metadata.lastSignInTime).to.equal('2017-01-01T00:00:00.000Z');
+            expect(data.metadata.creationTime).to.equal(
+              '2016-12-15T19:37:37.059Z'
+            );
+            expect(data.metadata.lastSignInTime).to.equal(
+              '2017-01-01T00:00:00.000Z'
+            );
           }),
         ]);
       });
@@ -120,7 +140,7 @@ describe('Auth Functions', () => {
 
   describe('userRecordConstructor', () => {
     it('will provide falsey values for fields that are not in raw wire data', () => {
-      const record = auth.userRecordConstructor({ uid: '123'});
+      const record = auth.userRecordConstructor({ uid: '123' });
       expect(record.toJSON()).to.deep.equal({
         uid: '123',
         email: null,

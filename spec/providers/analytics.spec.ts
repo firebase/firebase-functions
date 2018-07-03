@@ -40,7 +40,8 @@ describe('Analytics Functions', () => {
         const cloudFunction = analytics.event('first_open').onLog(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
-            eventType: 'providers/google.firebase.analytics/eventTypes/event.log',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
             resource: 'projects/project1/events/first_open',
             service: 'app-measurement.com',
           },
@@ -50,7 +51,9 @@ describe('Analytics Functions', () => {
 
     describe('#dataConstructor', () => {
       it('should handle an event with the appropriate fields', () => {
-        const cloudFunction = analytics.event('first_open').onLog((data: analytics.AnalyticsEvent) => data);
+        const cloudFunction = analytics
+          .event('first_open')
+          .onLog((data: analytics.AnalyticsEvent) => data);
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
@@ -75,15 +78,16 @@ describe('Analytics Functions', () => {
       });
 
       it('should remove xValues', () => {
-        const cloudFunction = analytics.event('first_open').onLog((data: analytics.AnalyticsEvent) => data);
+        const cloudFunction = analytics
+          .event('first_open')
+          .onLog((data: analytics.AnalyticsEvent) => data);
 
         // Incoming events will have four kinds of "xValue" fields: "intValue",
         // "stringValue", "doubleValue" and "floatValue". We expect those to get
         // flattened away, leaving just their values.
         let event: LegacyEvent = {
           data: {
-            eventDim:
-            [
+            eventDim: [
               {
                 date: '20170202',
                 name: 'Loaded_In_Background',
@@ -135,12 +139,13 @@ describe('Analytics Functions', () => {
       });
 
       it('should change microsecond timestamps to ISO strings, and offsets to millis', () => {
-        const cloudFunction = analytics.event('first_open').onLog((data: analytics.AnalyticsEvent) => data);
+        const cloudFunction = analytics
+          .event('first_open')
+          .onLog((data: analytics.AnalyticsEvent) => data);
 
         let event: LegacyEvent = {
           data: {
-            eventDim:
-            [
+            eventDim: [
               {
                 date: '20170202',
                 name: 'Loaded_In_Background',
@@ -183,7 +188,9 @@ describe('Analytics Functions', () => {
       });
 
       it('should populate currency fields', () => {
-        const cloudFunction = analytics.event('first_open').onLog((data: analytics.AnalyticsEvent) => data);
+        const cloudFunction = analytics
+          .event('first_open')
+          .onLog((data: analytics.AnalyticsEvent) => data);
 
         // Incoming events will have four kinds of "xValue" fields: "intValue",
         // "stringValue", "doubleValue" and "floatValue". We expect those to get
@@ -196,8 +203,7 @@ describe('Analytics Functions', () => {
         // like to rename and scale down to milliseconds.
         let event: LegacyEvent = {
           data: {
-            eventDim:
-            [
+            eventDim: [
               {
                 date: '20170202',
                 name: 'Loaded_In_Background',
@@ -211,26 +217,33 @@ describe('Analytics Functions', () => {
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
           params: {},
-          valueInUSD: 123.4,  // Field renamed Usd -> USD.
+          valueInUSD: 123.4, // Field renamed Usd -> USD.
         });
       });
 
       it('should recognize all the fields the payload can contain', () => {
-        const cloudFunction = analytics.event('first_open').onLog((data: analytics.AnalyticsEvent) => data);
+        const cloudFunction = analytics
+          .event('first_open')
+          .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        return expect(cloudFunction(analytics_spec_input.fullPayload))
-          .to.eventually.deep.equal(analytics_spec_input.data);
+        return expect(
+          cloudFunction(analytics_spec_input.fullPayload)
+        ).to.eventually.deep.equal(analytics_spec_input.data);
       });
     });
   });
 
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
-      expect(() => analytics.event('event').onLog(() => null)).to.not.throw(Error);
+      expect(() => analytics.event('event').onLog(() => null)).to.not.throw(
+        Error
+      );
     });
 
     it('should throw when trigger is accessed', () => {
-      expect(() => analytics.event('event').onLog(() => null).__trigger).to.throw(Error);
+      expect(
+        () => analytics.event('event').onLog(() => null).__trigger
+      ).to.throw(Error);
     });
 
     it('should not throw when #run is called', () => {

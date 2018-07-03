@@ -20,7 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, EventContext, makeCloudFunction } from '../cloud-functions';
+import {
+  CloudFunction,
+  EventContext,
+  makeCloudFunction,
+} from '../cloud-functions';
 import { firebaseConfig } from '../config';
 
 /** @internal */
@@ -37,8 +41,10 @@ export function bucket(bucket?: string): BucketBuilder {
   const resourceGetter = () => {
     bucket = bucket || firebaseConfig().storageBucket;
     if (!bucket) {
-      throw new Error('Missing bucket name. If you are unit testing, please provide a bucket name' +
-      ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.');
+      throw new Error(
+        'Missing bucket name. If you are unit testing, please provide a bucket name' +
+          ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.'
+      );
     }
     if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
       throw new Error(`Invalid bucket name ${bucket}`);
@@ -54,7 +60,7 @@ export function object(): ObjectBuilder {
 
 export class BucketBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) { }
+  constructor(private triggerResource: () => string) {}
 
   /** Handle events for objects in this bucket. */
   object() {
@@ -64,49 +70,63 @@ export class BucketBuilder {
 
 export class ObjectBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) { }
+  constructor(private triggerResource: () => string) {}
 
   /** @internal */
   onChange(handler: any): Error {
-    throw new Error('"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
-      '"onFinalize", or "onMetadataUpdate".');
+    throw new Error(
+      '"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
+        '"onFinalize", or "onMetadataUpdate".'
+    );
   }
 
   /** Respond to archiving of an object, this is only for buckets that enabled object versioning. */
-  onArchive(handler: (
-    object: ObjectMetadata,
-    context: EventContext) => PromiseLike<any> | any,
+  onArchive(
+    handler: (
+      object: ObjectMetadata,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.archive');
   }
 
   /** Respond to the deletion of an object (not to archiving, if object versioning is enabled). */
-  onDelete(handler: (
-    object: ObjectMetadata,
-    context: EventContext) => PromiseLike<any> | any,
+  onDelete(
+    handler: (
+      object: ObjectMetadata,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.delete');
   }
 
   /** Respond to the successful creation of an object. */
-  onFinalize(handler: (
-    object: ObjectMetadata,
-    context: EventContext) => PromiseLike<any> | any,
+  onFinalize(
+    handler: (
+      object: ObjectMetadata,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.finalize');
   }
 
   /** Respond to metadata updates of existing objects. */
-  onMetadataUpdate(handler: (
-    object: ObjectMetadata,
-    context: EventContext) => PromiseLike<any> | any,
+  onMetadataUpdate(
+    handler: (
+      object: ObjectMetadata,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.metadataUpdate');
   }
 
   private onOperation(
-    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any,
-    eventType: string): CloudFunction<ObjectMetadata> {
+    handler: (
+      object: ObjectMetadata,
+      context: EventContext
+    ) => PromiseLike<any> | any,
+    eventType: string
+  ): CloudFunction<ObjectMetadata> {
     return makeCloudFunction({
       handler,
       provider,
@@ -143,33 +163,33 @@ export interface ObjectMetadata {
   };
   acl?: [
     {
-      kind?: string,
-      id?: string,
-      selfLink?: string,
-      bucket?: string,
-      object?: string,
-      generation?: string,
-      entity?: string,
-      role?: string,
-      email?: string,
-      entityId?: string,
-      domain?: string,
+      kind?: string;
+      id?: string;
+      selfLink?: string;
+      bucket?: string;
+      object?: string;
+      generation?: string;
+      entity?: string;
+      role?: string;
+      email?: string;
+      entityId?: string;
+      domain?: string;
       projectTeam?: {
-        projectNumber?: string,
-        team?: string
-      },
-      etag?: string
+        projectNumber?: string;
+        team?: string;
+      };
+      etag?: string;
     }
   ];
   owner?: {
-    entity?: string,
-    entityId?: string
+    entity?: string;
+    entityId?: string;
   };
   crc32c?: string;
   componentCount?: string;
   etag?: string;
   customerEncryption?: {
-    encryptionAlgorithm?: string,
-    keySha256?: string,
+    encryptionAlgorithm?: string;
+    keySha256?: string;
   };
 }

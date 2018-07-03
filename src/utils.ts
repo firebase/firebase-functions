@@ -26,7 +26,7 @@ export function normalizePath(path: string): string {
   if (!path) {
     return '';
   }
-  return path.replace(/^\//,'').replace(/\/$/, '');
+  return path.replace(/^\//, '').replace(/\/$/, '');
 }
 
 export function pathParts(path: string): string[] {
@@ -37,7 +37,9 @@ export function pathParts(path: string): string[] {
 }
 
 export function joinPath(base: string, child: string) {
-  return pathParts(base).concat(pathParts(child)).join('/');
+  return pathParts(base)
+    .concat(pathParts(child))
+    .join('/');
 }
 
 export function applyChange(src: any, dest: any) {

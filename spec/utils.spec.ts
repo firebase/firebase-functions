@@ -23,7 +23,7 @@
 import { normalizePath, pathParts, valAt, applyChange } from '../src/utils';
 import { expect } from 'chai';
 
-describe ('utils', () => {
+describe('utils', () => {
   describe('.normalizePath(path: string)', () => {
     it('should strip leading and trailing slash', () => {
       expect(normalizePath('/my/path/is/{rad}/')).to.eq('my/path/is/{rad}');
@@ -46,34 +46,34 @@ describe ('utils', () => {
     it('should be null if null along any point in the path', () => {
       expect(valAt(null)).to.be.null;
       expect(valAt(null, '/foo')).to.be.null;
-      expect(valAt({a: {b: null}}, '/a/b/c')).to.be.null;
+      expect(valAt({ a: { b: null } }, '/a/b/c')).to.be.null;
     });
 
     it('should be null if accessing a path past a leaf value', () => {
-      expect(valAt({a: 2}, '/a/b')).to.be.null;
+      expect(valAt({ a: 2 }, '/a/b')).to.be.null;
     });
 
     it('should be the leaf value if one is present', () => {
-      expect(valAt({a: {b: 23}}, '/a/b')).to.eq(23);
-      expect(valAt({a: {b: 23}}, '/a')).to.deep.equal({b: 23});
+      expect(valAt({ a: { b: 23 } }, '/a/b')).to.eq(23);
+      expect(valAt({ a: { b: 23 } }, '/a')).to.deep.equal({ b: 23 });
     });
 
     it('should be undefined if in unexplored territory', () => {
-      expect(valAt({a: 23}, '/b')).to.be.undefined;
+      expect(valAt({ a: 23 }, '/b')).to.be.undefined;
     });
   });
 
   describe('.applyChange(from: any, to: any): any', () => {
     it('should return the to value for non-object values of from and to', () => {
-      expect(applyChange({a: 'b'}, null)).to.eq(null);
-      expect(applyChange(null, {a: 'b'})).to.deep.equal({a: 'b'});
+      expect(applyChange({ a: 'b' }, null)).to.eq(null);
+      expect(applyChange(null, { a: 'b' })).to.deep.equal({ a: 'b' });
       expect(applyChange(23, null)).to.be.null;
     });
 
     it('should return the merged value of two objects', () => {
-      let from = {a: {b: 'foo', c: 23, d: 444}, d: {e: 42}};
-      let to: any = {a: {b: 'bar', c: null}, d: null, e: {f: 'g'}};
-      let result = {a: {b: 'bar', d: 444}, e: {f: 'g'}};
+      let from = { a: { b: 'foo', c: 23, d: 444 }, d: { e: 42 } };
+      let to: any = { a: { b: 'bar', c: null }, d: null, e: { f: 'g' } };
+      let result = { a: { b: 'bar', d: 444 }, e: { f: 'g' } };
       expect(applyChange(from, to)).to.deep.equal(result);
     });
   });

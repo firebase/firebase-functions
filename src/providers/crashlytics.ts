@@ -20,15 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { makeCloudFunction, CloudFunction, EventContext } from '../cloud-functions';
+import {
+  makeCloudFunction,
+  CloudFunction,
+  EventContext,
+} from '../cloud-functions';
 
 /** @internal */
 export const provider = 'google.firebase.crashlytics';
 /** @internal */
 export const service = 'fabric.io';
 
-/** 
- * Handle events related to Crashlytics issues. An issue in Crashlytics is an 
+/**
+ * Handle events related to Crashlytics issues. An issue in Crashlytics is an
  * aggregation of crashes which have a shared root cause.
  */
 export function issue() {
@@ -43,7 +47,7 @@ export function issue() {
 /** Builder used to create Cloud Functions for Crashlytics issue events. */
 export class IssueBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) { }
+  constructor(private triggerResource: () => string) {}
 
   /** @internal */
   onNewDetected(handler: any): Error {
@@ -51,17 +55,23 @@ export class IssueBuilder {
   }
 
   /** Handle Crashlytics New Issue events. */
-  onNew(handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+  onNew(
+    handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any
+  ): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.new');
   }
 
   /** Handle Crashlytics Regressed Issue events. */
-  onRegressed(handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+  onRegressed(
+    handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any
+  ): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.regressed');
   }
 
   /** Handle Crashlytics Velocity Alert events. */
-  onVelocityAlert(handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any): CloudFunction<Issue> {
+  onVelocityAlert(
+    handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any
+  ): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.velocityAlert');
   }
 
