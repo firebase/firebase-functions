@@ -30,7 +30,16 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as storage from './providers/storage';
 import { firebaseConfig } from './config';
-export { analytics, auth, crashlytics, database, firestore, https, pubsub, storage };
+export {
+  analytics,
+  auth,
+  crashlytics,
+  database,
+  firestore,
+  https,
+  pubsub,
+  storage,
+};
 
 // Exported root types:
 export * from './config';
@@ -40,18 +49,21 @@ export * from './cloud-functions';
 // Until the Cloud Functions builder can publish FIREBASE_CONFIG, automatically provide it on import based on what
 // we can deduce.
 if (!process.env.FIREBASE_CONFIG) {
-  const  cfg = firebaseConfig();
+  const cfg = firebaseConfig();
   if (cfg) {
     process.env.FIREBASE_CONFIG = JSON.stringify(cfg);
-
   } else if (process.env.GCLOUD_PROJECT) {
-    console.warn('Warning, estimating Firebase Config based on GCLOUD_PROJECT. Intializing firebase-admin may fail');
+    console.warn(
+      'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Intializing firebase-admin may fail'
+    );
     process.env.FIREBASE_CONFIG = JSON.stringify({
       databaseURL: `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
       storageBucket: `${process.env.GCLOUD_PROJECT}.appspot.com`,
       projectId: process.env.GCLOUD_PROJECT,
     });
   } else {
-    console.warn('Warning, FIREBASE_CONFIG environment variable is missing. Initializing firebase-admin will fail');
+    console.warn(
+      'Warning, FIREBASE_CONFIG environment variable is missing. Initializing firebase-admin will fail'
+    );
   }
 }

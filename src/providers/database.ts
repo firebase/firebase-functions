@@ -22,7 +22,14 @@
 
 import * as _ from 'lodash';
 import { apps } from '../apps';
-import { LegacyEvent, CloudFunction, makeCloudFunction, Event, EventContext, Change } from '../cloud-functions';
+import {
+  LegacyEvent,
+  CloudFunction,
+  makeCloudFunction,
+  Event,
+  EventContext,
+  Change,
+} from '../cloud-functions';
 import { normalizePath, applyChange, pathParts, joinPath } from '../utils';
 import * as firebase from 'firebase-admin';
 import { firebaseConfig } from '../config';
@@ -48,7 +55,10 @@ export class InstanceBuilder {
 
   ref(path: string): RefBuilder {
     const normalized = normalizePath(path);
-    return new RefBuilder(apps(), () => `projects/_/instances/${this.instance}/refs/${normalized}`);
+    return new RefBuilder(
+      apps(),
+      () => `projects/_/instances/${this.instance}/refs/${normalized}`
+    );
   }
 }
 
@@ -80,13 +90,18 @@ export function ref(path: string): RefBuilder {
     const normalized = normalizePath(path);
     const databaseURL = firebaseConfig().databaseURL;
     if (!databaseURL) {
-      throw new Error('Missing expected firebase config value databaseURL, ' +
-        'config is actually' + JSON.stringify(firebaseConfig()) +
-        '\n If you are unit testing, please set process.env.FIREBASE_CONFIG');
+      throw new Error(
+        'Missing expected firebase config value databaseURL, ' +
+          'config is actually' +
+          JSON.stringify(firebaseConfig()) +
+          '\n If you are unit testing, please set process.env.FIREBASE_CONFIG'
+      );
     }
     const match = databaseURL.match(databaseURLRegex);
     if (!match) {
-      throw new Error('Invalid value for config firebase.databaseURL: ' + databaseURL);
+      throw new Error(
+        'Invalid value for config firebase.databaseURL: ' + databaseURL
+      );
     }
     const subdomain = match[1];
     return `projects/_/instances/${subdomain}/refs/${normalized}`;
@@ -98,28 +113,34 @@ export function ref(path: string): RefBuilder {
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
 export class RefBuilder {
   /** @internal */
-  constructor(private apps: apps.Apps, private triggerResource: () => string) { }
+  constructor(private apps: apps.Apps, private triggerResource: () => string) {}
 
   /** Respond to any write that affects a ref. */
-  onWrite(handler: (
-    change: Change<DataSnapshot>,
-    context: EventContext) => PromiseLike<any> | any,
+  onWrite(
+    handler: (
+      change: Change<DataSnapshot>,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.write', this.changeConstructor);
   }
 
   /** Respond to update on a ref. */
-  onUpdate(handler: (
-    change: Change<DataSnapshot>,
-    context: EventContext) => PromiseLike<any> | any,
+  onUpdate(
+    handler: (
+      change: Change<DataSnapshot>,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.update', this.changeConstructor);
   }
 
   /** Respond to new data on a ref. */
-  onCreate(handler: (
-    snapshot: DataSnapshot,
-    context: EventContext) => PromiseLike<any> | any,
+  onCreate(
+    handler: (
+      snapshot: DataSnapshot,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     let dataConstructor = (raw: LegacyEvent) => {
       let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
@@ -134,18 +155,15 @@ export class RefBuilder {
   }
 
   /** Respond to all data being deleted from a ref. */
-  onDelete(handler: (
-    snapshot: DataSnapshot,
-    context: EventContext) => PromiseLike<any> | any,
+  onDelete(
+    handler: (
+      snapshot: DataSnapshot,
+      context: EventContext
+    ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     let dataConstructor = (raw: LegacyEvent) => {
       let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
-      return new DataSnapshot(
-        raw.data.data,
-        path,
-        this.apps.admin,
-        dbInstance
-      );
+      return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
     };
     return this.onOperation(handler, 'ref.delete', dataConstructor);
   }
@@ -153,8 +171,8 @@ export class RefBuilder {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | LegacyEvent) => any): CloudFunction<T> {
-
+    dataConstructor: (raw: Event | LegacyEvent) => any
+  ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
       provider,
@@ -163,8 +181,8 @@ export class RefBuilder {
       legacyEventType: `providers/${provider}/eventTypes/${eventType}`,
       triggerResource: this.triggerResource,
       dataConstructor: dataConstructor,
-      before: (event) => this.apps.retain(),
-      after: (event) => this.apps.release(),
+      before: event => this.apps.retain(),
+      after: event => this.apps.release(),
     });
   }
 
@@ -195,12 +213,16 @@ export function resourceToInstanceAndPath(resource: string) {
   let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
   let match = resource.match(new RegExp(resourceRegex));
   if (!match) {
-    throw new Error(`Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
-      'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"');
+    throw new Error(
+      `Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
+        'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"'
+    );
   }
   let [, project, dbInstanceName, path] = match;
   if (project !== '_') {
-    throw new Error(`Expect project to be '_' in a Firebase Realtime Database event`);
+    throw new Error(
+      `Expect project to be '_' in a Firebase Realtime Database event`
+    );
   }
   let dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
   return [dbInstance, path];
@@ -217,14 +239,16 @@ export class DataSnapshot {
     data: any,
     path?: string, // path will be undefined for the database root
     private app?: firebase.app.App,
-    instance?: string,
+    instance?: string
   ) {
-    if (instance) { // SDK always supplies instance, but user's unit tests may not
+    if (instance) {
+      // SDK always supplies instance, but user's unit tests may not
       this.instance = instance;
     } else if (app) {
       this.instance = app.options.databaseURL;
     } else if (process.env.GCLOUD_PROJECT) {
-      this.instance = 'https://' + process.env.GCLOUD_PROJECT + '.firebaseio.com';
+      this.instance =
+        'https://' + process.env.GCLOUD_PROJECT + '.firebaseio.com';
     }
 
     this._path = path;
@@ -233,9 +257,12 @@ export class DataSnapshot {
 
   /** Ref returns a reference to the database with full admin access. */
   get ref(): firebase.database.Reference {
-    if (!this.app) { // may be unpopulated in user's unit tests
-      throw new Error('Please supply a Firebase app in the constructor for DataSnapshot' +
-      ' in order to use the .ref method.');
+    if (!this.app) {
+      // may be unpopulated in user's unit tests
+      throw new Error(
+        'Please supply a Firebase app in the constructor for DataSnapshot' +
+          ' in order to use the .ref method.'
+      );
     }
     if (!this._ref) {
       this._ref = this.app.database(this.instance).ref(this._fullPath());
@@ -245,7 +272,7 @@ export class DataSnapshot {
 
   get key(): string {
     let last = _.last(pathParts(this._fullPath()));
-    return (!last || last === '') ? null : last;
+    return !last || last === '' ? null : last;
   }
 
   val(): any {
@@ -256,10 +283,12 @@ export class DataSnapshot {
   }
 
   // TODO(inlined): figure out what to do here
-  exportVal(): any { return this.val(); }
+  exportVal(): any {
+    return this.val();
+  }
 
   // TODO(inlined): figure out what to do here
-  getPriority(): string|number|null {
+  getPriority(): string | number | null {
     return 0;
   }
 
@@ -277,7 +306,10 @@ export class DataSnapshot {
   forEach(action: (a: DataSnapshot) => boolean): boolean {
     let val = this.val();
     if (_.isPlainObject(val)) {
-      return _.some(val, (value, key: string) => action(this.child(key)) === true);
+      return _.some(
+        val,
+        (value, key: string) => action(this.child(key)) === true
+      );
     }
     return false;
   }
@@ -317,7 +349,9 @@ export class DataSnapshot {
     let maxKey = 0;
     let allIntegerKeys = true;
     for (let key in node) {
-      if (!node.hasOwnProperty(key)) { continue; }
+      if (!node.hasOwnProperty(key)) {
+        continue;
+      }
       let childNode = node[key];
       obj[key] = this._checkAndConvertToArray(childNode);
       numKeys++;

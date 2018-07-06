@@ -32,7 +32,7 @@ describe('apps', () => {
   beforeEach(() => {
     apps = new appsNamespace.Apps();
     // mock claims intentionally contains dots, square brackets, and nested paths
-    claims = {'token': {'firebase': {'identities':{'google.com':['111']}}}};
+    claims = { token: { firebase: { identities: { 'google.com': ['111'] } } } };
   });
 
   afterEach(() => {
@@ -125,18 +125,20 @@ describe('apps', () => {
       apps.retain();
       apps.release();
       clock.tick(appsNamespace.garbageCollectionInterval / 2);
-      return Promise.resolve().then(() => {
-        // Counters are still 1 due second set of retain/release
-        expect(apps['_refCounter']).to.deep.equal({
-          __admin__: 1,
+      return Promise.resolve()
+        .then(() => {
+          // Counters are still 1 due second set of retain/release
+          expect(apps['_refCounter']).to.deep.equal({
+            __admin__: 1,
+          });
+          clock.tick(appsNamespace.garbageCollectionInterval / 2);
+        })
+        .then(() => {
+          // It's now been a full interval since the second set of retain/release
+          expect(apps['_refCounter']).to.deep.equal({
+            __admin__: 0,
+          });
         });
-        clock.tick(appsNamespace.garbageCollectionInterval / 2);
-      }).then(() => {
-        // It's now been a full interval since the second set of retain/release
-        expect(apps['_refCounter']).to.deep.equal({
-          __admin__: 0,
-        });
-      });
     });
   });
 });

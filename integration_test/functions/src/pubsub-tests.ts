@@ -4,39 +4,56 @@ import PubsubMessage = functions.pubsub.Message;
 
 // TODO(inlined) use multiple queues to run inline.
 // Expected message data: {"hello": "world"}
-export const pubsubTests: any = functions.pubsub.topic('pubsubTests').onPublish((m, c) => {
-  let testId: string;
-  try {
-    testId = m.json.testId;
-  } catch (e) {
-    /* Ignored. Covered in another test case that `event.data.json` works. */
-  }
+export const pubsubTests: any = functions.pubsub
+  .topic('pubsubTests')
+  .onPublish((m, c) => {
+    let testId: string;
+    try {
+      testId = m.json.testId;
+    } catch (e) {
+      /* Ignored. Covered in another test case that `event.data.json` works. */
+    }
 
-  return new TestSuite<PubsubMessage>('pubsub onPublish')
-    .it('should have a topic as resource', (message, context) => expectEq(
-      context.resource.name, `projects/${process.env.GCLOUD_PROJECT}/topics/pubsubTests`))
+    return new TestSuite<PubsubMessage>('pubsub onPublish')
+      .it('should have a topic as resource', (message, context) =>
+        expectEq(
+          context.resource.name,
+          `projects/${process.env.GCLOUD_PROJECT}/topics/pubsubTests`
+        )
+      )
 
-    .it('should not have a path', (message, context) => expectEq((context as any).path, undefined))
+      .it('should not have a path', (message, context) =>
+        expectEq((context as any).path, undefined)
+      )
 
-    .it('should have the correct eventType', (message, context) => expectEq(
-      context.eventType, 'google.pubsub.topic.publish'))
+      .it('should have the correct eventType', (message, context) =>
+        expectEq(context.eventType, 'google.pubsub.topic.publish')
+      )
 
-    .it('should have an eventId', (message, context) => context.eventId)
+      .it('should have an eventId', (message, context) => context.eventId)
 
-    .it('should have a timestamp', (message, context) => context.timestamp)
+      .it('should have a timestamp', (message, context) => context.timestamp)
 
-    .it('should not have auth', (message, context) => expectEq((context as any).auth, undefined))
+      .it('should not have auth', (message, context) =>
+        expectEq((context as any).auth, undefined)
+      )
 
-    .it('should not have action', (message, context) => expectEq((context as any).action, undefined))
+      .it('should not have action', (message, context) =>
+        expectEq((context as any).action, undefined)
+      )
 
-    .it('should have pubsub data', (message) => {
-      const decoded = (new Buffer(message.data, 'base64')).toString();
-      const parsed = JSON.parse(decoded);
-      return evaluate(parsed.hasOwnProperty('testId'), 'Raw data was: ' + message.data);
-    })
+      .it('should have pubsub data', message => {
+        const decoded = new Buffer(message.data, 'base64').toString();
+        const parsed = JSON.parse(decoded);
+        return evaluate(
+          parsed.hasOwnProperty('testId'),
+          'Raw data was: ' + message.data
+        );
+      })
 
-    .it('should decode JSON payloads with the json helper', (message) =>
-      evaluate(message.json.hasOwnProperty('testId'), message.json))
+      .it('should decode JSON payloads with the json helper', message =>
+        evaluate(message.json.hasOwnProperty('testId'), message.json)
+      )
 
-    .run(testId, m, c);
-});
+      .run(testId, m, c);
+  });

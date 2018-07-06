@@ -79,8 +79,8 @@ export interface EventContext {
    * for database functions.
    */
   auth?: {
-    uid: string,
-    token: object,
+    uid: string;
+    token: object;
   };
 }
 
@@ -88,10 +88,7 @@ export interface EventContext {
  * to the event, "after" represents the state after the event.
  */
 export class Change<T> {
-  constructor(
-    public before?: T,
-    public after?: T,
-  ) {};
+  constructor(public before?: T, public after?: T) {}
 }
 
 /** ChangeJson is the JSON format used to construct a Change object. */
@@ -107,7 +104,9 @@ export interface ChangeJson {
 }
 
 export namespace Change {
-  function reinterpretCast<T>(x: any) { return x as T; }
+  function reinterpretCast<T>(x: any) {
+    return x as T;
+  }
 
   /** Factory method for creating a Change from a `before` object and an `after` object. */
   export function fromObjects<T>(before: T, after: T) {
@@ -117,16 +116,26 @@ export namespace Change {
   /** Factory method for creating a Change from a JSON and an optional customizer function to be
    * applied to both the `before` and the `after` fields.
    */
-  export function fromJSON<T>(json: ChangeJson, customizer: (x: any) => T = reinterpretCast): Change<T> {
+  export function fromJSON<T>(
+    json: ChangeJson,
+    customizer: (x: any) => T = reinterpretCast
+  ): Change<T> {
     let before = _.assign({}, json.before);
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
-    return Change.fromObjects(customizer(before || {}), customizer(json.after || {}));
+    return Change.fromObjects(
+      customizer(before || {}),
+      customizer(json.after || {})
+    );
   }
 
   /** @internal */
-  export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string) {
+  export function applyFieldMask(
+    sparseBefore: any,
+    after: any,
+    fieldMask: string
+  ) {
     let before = _.assign({}, after);
     let masks = fieldMask.split(',');
     _.forEach(masks, mask => {
@@ -154,13 +163,13 @@ export interface Resource {
 /** TriggerAnnotated is used internally by the firebase CLI to understand what type of Cloud Function to deploy. */
 export interface TriggerAnnotated {
   __trigger: {
-    httpsTrigger?: {},
+    httpsTrigger?: {};
     eventTrigger?: {
       eventType: string;
       resource: string;
       service: string;
-    },
-    labels?: { [key: string]: string }
+    };
+    labels?: { [key: string]: string };
   };
 }
 
@@ -173,13 +182,16 @@ export interface Runnable<T> {
  * An HttpsFunction is both an object that exports its trigger definitions at __trigger and
  * can be called as a function that takes an express.js Request and Response object.
  */
-export type HttpsFunction = TriggerAnnotated & ((req: Request, resp: Response) => void);
+export type HttpsFunction = TriggerAnnotated &
+  ((req: Request, resp: Response) => void);
 
 /**
  * A CloudFunction is both an object that exports its trigger definitions at __trigger and
  * can be called as a function using the raw JS API for Google Cloud Functions.
  */
-export type CloudFunction<T> = Runnable<T> & TriggerAnnotated & ((input: any) => PromiseLike<any> | any);
+export type CloudFunction<T> = Runnable<T> &
+  TriggerAnnotated &
+  ((input: any) => PromiseLike<any> | any);
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
@@ -204,23 +216,31 @@ export function makeCloudFunction<EventData>({
   service,
   dataConstructor = (raw: Event | LegacyEvent) => raw.data,
   handler,
-  before = () => { return; },
-  after = () => { return; },
+  before = () => {
+    return;
+  },
+  after = () => {
+    return;
+  },
   legacyEventType,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   let cloudFunction: any = async (event: Event | LegacyEvent) => {
     if (!_.has(event, 'data')) {
-      throw Error('Cloud function needs to be called with an event parameter.' +
-      'If you are writing unit tests, please use the Node module firebase-functions-fake.');
+      throw Error(
+        'Cloud function needs to be called with an event parameter.' +
+          'If you are writing unit tests, please use the Node module firebase-functions-fake.'
+      );
     }
     try {
       before(event);
 
       let dataOrChange = dataConstructor(event);
       let context: any;
-      if (isEvent(event)) { // new event format
+      if (isEvent(event)) {
+        // new event format
         context = _.cloneDeep(event.context);
-      } else { // legacy event format
+      } else {
+        // legacy event format
         context = {
           eventId: event.eventId,
           timestamp: event.timestamp,
@@ -268,11 +288,16 @@ function isEvent(event: Event | LegacyEvent): event is Event {
   return _.has(event, 'context');
 }
 
-function _makeParams(context: EventContext, triggerResourceGetter: () => string): { [option: string]: any } {
-  if (context.params) { // In unit testing, user may directly provide `context.params`.
+function _makeParams(
+  context: EventContext,
+  triggerResourceGetter: () => string
+): { [option: string]: any } {
+  if (context.params) {
+    // In unit testing, user may directly provide `context.params`.
     return context.params;
   }
-  if (!context.resource) { // In unit testing, `resource` may be unpopulated for a test event.
+  if (!context.resource) {
+    // In unit testing, `resource` may be unpopulated for a test event.
     return {};
   }
   let triggerResource = triggerResourceGetter();
@@ -282,7 +307,7 @@ function _makeParams(context: EventContext, triggerResourceGetter: () => string)
     let triggerResourceParts = _.split(triggerResource, '/');
     let eventResourceParts = _.split(context.resource.name, '/');
     _.forEach(wildcards, wildcard => {
-      let wildcardNoBraces = wildcard.slice(1,-1);
+      let wildcardNoBraces = wildcard.slice(1, -1);
       let position = _.indexOf(triggerResourceParts, wildcard);
       params[wildcardNoBraces] = eventResourceParts[position];
     });

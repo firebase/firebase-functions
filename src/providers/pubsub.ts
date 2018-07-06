@@ -20,7 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, makeCloudFunction, EventContext } from '../cloud-functions';
+import {
+  CloudFunction,
+  makeCloudFunction,
+  EventContext,
+} from '../cloud-functions';
 
 /** @internal */
 export const provider = 'google.pubsub';
@@ -43,19 +47,20 @@ export function topic(topic: string): TopicBuilder {
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
 export class TopicBuilder {
-
   /** @internal */
-  constructor(private triggerResource: () => string) { }
+  constructor(private triggerResource: () => string) {}
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
-  onPublish(handler: (message: Message, context: EventContext) => PromiseLike<any> | any): CloudFunction<Message> {
+  onPublish(
+    handler: (message: Message, context: EventContext) => PromiseLike<any> | any
+  ): CloudFunction<Message> {
     return makeCloudFunction({
       handler,
       provider,
       service,
       triggerResource: this.triggerResource,
       eventType: 'topic.publish',
-      dataConstructor: (raw) => new Message(raw.data),
+      dataConstructor: raw => new Message(raw.data),
     });
   }
 }
@@ -69,19 +74,20 @@ export class TopicBuilder {
  */
 export class Message {
   readonly data: string;
-  readonly attributes: {[key: string]: string };
+  readonly attributes: { [key: string]: string };
   private _json: any;
 
   constructor(data: any) {
-    [this.data, this.attributes, this._json] =
-      [data.data, data.attributes || {}, data.json];
+    [this.data, this.attributes, this._json] = [
+      data.data,
+      data.attributes || {},
+      data.json,
+    ];
   }
 
   get json(): any {
     if (typeof this._json === 'undefined') {
-      this._json = JSON.parse(
-        new Buffer(this.data, 'base64').toString('utf8')
-      );
+      this._json = JSON.parse(new Buffer(this.data, 'base64').toString('utf8'));
     }
 
     return this._json;

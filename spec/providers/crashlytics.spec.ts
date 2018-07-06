@@ -54,7 +54,8 @@ describe('Crashlytics Functions', () => {
         const cloudFunction = crashlytics.issue().onRegressed(data => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
-            eventType: 'providers/firebase.crashlytics/eventTypes/issue.regressed',
+            eventType:
+              'providers/firebase.crashlytics/eventTypes/issue.regressed',
             resource: 'projects/project1',
             service: 'fabric.io',
           },
@@ -67,7 +68,8 @@ describe('Crashlytics Functions', () => {
         const cloudFunction = crashlytics.issue().onVelocityAlert(data => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
-            eventType: 'providers/firebase.crashlytics/eventTypes/issue.velocityAlert',
+            eventType:
+              'providers/firebase.crashlytics/eventTypes/issue.velocityAlert',
             resource: 'projects/project1',
             service: 'fabric.io',
           },
@@ -82,7 +84,9 @@ describe('Crashlytics Functions', () => {
     });
 
     it('should throw if __trigger is accessed', () => {
-      expect(() => crashlytics.issue().onNew(() => null).__trigger).to.throw(Error);
+      expect(() => crashlytics.issue().onNew(() => null).__trigger).to.throw(
+        Error
+      );
     });
 
     it('should not throw when #run is called', () => {

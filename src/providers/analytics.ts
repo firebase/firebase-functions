@@ -20,7 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { makeCloudFunction, CloudFunction, Event, EventContext } from '../cloud-functions';
+import {
+  makeCloudFunction,
+  CloudFunction,
+  Event,
+  EventContext,
+} from '../cloud-functions';
 import * as _ from 'lodash';
 
 /** @internal */
@@ -42,7 +47,9 @@ export function event(analyticsEventType: string) {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
-    return 'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType;
+    return (
+      'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType
+    );
   });
 }
 
@@ -53,7 +60,7 @@ export function event(analyticsEventType: string) {
  */
 export class AnalyticsEventBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) { }
+  constructor(private triggerResource: () => string) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
@@ -66,7 +73,11 @@ export class AnalyticsEventBuilder {
    *   Cloud Function you can export.
    */
   onLog(
-    handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any): CloudFunction<AnalyticsEvent> {
+    handler: (
+      event: AnalyticsEvent,
+      context: EventContext
+    ) => PromiseLike<any> | any
+  ): CloudFunction<AnalyticsEvent> {
     const dataConstructor = (raw: Event) => {
       return new AnalyticsEvent(raw.data);
     };
@@ -118,7 +129,7 @@ export class AnalyticsEvent {
 
   /** @internal */
   constructor(wireFormat: any) {
-    this.params = {};  // In case of absent field, show empty (not absent) map.
+    this.params = {}; // In case of absent field, show empty (not absent) map.
     if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
       // If there's an eventDim, there'll always be exactly one.
       let eventDim = wireFormat.eventDim[0];
@@ -127,9 +138,20 @@ export class AnalyticsEvent {
       copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
       copyFieldTo(eventDim, this, 'date', 'reportingDate');
       copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
-      copyTimestampToString(eventDim, this, 'previousTimestampMicros', 'previousLogTime');
+      copyTimestampToString(
+        eventDim,
+        this,
+        'previousTimestampMicros',
+        'previousLogTime'
+      );
     }
-    copyFieldTo(wireFormat, this, 'userDim', 'user', dim => new UserDimensions(dim));
+    copyFieldTo(
+      wireFormat,
+      this,
+      'userDim',
+      'user',
+      dim => new UserDimensions(dim)
+    );
   }
 }
 
@@ -172,12 +194,24 @@ export class UserDimensions {
   /** @internal */
   constructor(wireFormat: any) {
     // These are interfaces or primitives, no transformation needed.
-    copyFields(wireFormat, this, ['userId', 'deviceInfo', 'geoInfo', 'appInfo']);
+    copyFields(wireFormat, this, [
+      'userId',
+      'deviceInfo',
+      'geoInfo',
+      'appInfo',
+    ]);
 
     // The following fields do need transformations of some sort.
-    copyTimestampToString(wireFormat, this, 'firstOpenTimestampMicros', 'firstOpenTime');
-    this.userProperties = {};  // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, 'userProperties', r => _.mapValues(r, p => new UserPropertyValue(p)));
+    copyTimestampToString(
+      wireFormat,
+      this,
+      'firstOpenTimestampMicros',
+      'firstOpenTime'
+    );
+    this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
+    copyField(wireFormat, this, 'userProperties', r =>
+      _.mapValues(r, p => new UserPropertyValue(p))
+    );
     copyField(wireFormat, this, 'bundleInfo', r => new ExportBundleInfo(r));
 
     // BUG(36000368) Remove when no longer necessary
@@ -341,18 +375,33 @@ export class ExportBundleInfo {
   /** @internal */
   constructor(wireFormat: any) {
     copyField(wireFormat, this, 'bundleSequenceId');
-    copyTimestampToMillis(wireFormat, this, 'serverTimestampOffsetMicros', 'serverTimestampOffset');
+    copyTimestampToMillis(
+      wireFormat,
+      this,
+      'serverTimestampOffsetMicros',
+      'serverTimestampOffset'
+    );
   }
 }
 
 function copyFieldTo<T, K extends keyof T>(
-  from: any, to: T, fromField: string, toField: K, transform: (val: any) => T[K] = _.identity): void {
+  from: any,
+  to: T,
+  fromField: string,
+  toField: K,
+  transform: (val: any) => T[K] = _.identity
+): void {
   if (from[fromField] !== undefined) {
     to[toField] = transform(from[fromField]);
   }
 }
 
-function copyField<T, K extends keyof T>(from: any, to: T, field: K, transform: (val: any) => T[K] = _.identity): void {
+function copyField<T, K extends keyof T>(
+  from: any,
+  to: T,
+  field: K,
+  transform: (val: any) => T[K] = _.identity
+): void {
   copyFieldTo(from, to, field, field, transform);
 }
 
@@ -418,7 +467,12 @@ function unwrapValue(wrapped: any): any {
 // The JSON payload delivers timestamp fields as strings of timestamps denoted in microseconds.
 // The JavaScript convention is to use numbers denoted in milliseconds. This method
 // makes it easy to convert a field of one type into the other.
-function copyTimestampToMillis<T, K extends keyof T>(from: any, to: T, fromName: string, toName: K) {
+function copyTimestampToMillis<T, K extends keyof T>(
+  from: any,
+  to: T,
+  fromName: string,
+  toName: K
+) {
   if (from[fromName] !== undefined) {
     to[toName] = <any>_.round(from[fromName] / 1000);
   }
@@ -427,8 +481,13 @@ function copyTimestampToMillis<T, K extends keyof T>(from: any, to: T, fromName:
 // The JSON payload delivers timestamp fields as strings of timestamps denoted in microseconds.
 // In our SDK, we'd like to present timestamp as ISO-format strings. This method makes it easy
 // to convert a field of one type into the other.
-function copyTimestampToString<T, K extends keyof T>(from: any, to: T, fromName: string, toName: K) {
+function copyTimestampToString<T, K extends keyof T>(
+  from: any,
+  to: T,
+  fromName: string,
+  toName: K
+) {
   if (from[fromName] !== undefined) {
-    to[toName] = <any>(new Date(from[fromName] / 1000)).toISOString();
+    to[toName] = <any>new Date(from[fromName] / 1000).toISOString();
   }
 }

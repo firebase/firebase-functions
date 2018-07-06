@@ -2,7 +2,7 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import { EventContext } from 'firebase-functions';
 
-export type TestCase<T> = (data: T, context?: EventContext) => any
+export type TestCase<T> = (data: T, context?: EventContext) => any;
 export type TestCaseMap<T> = { [key: string]: TestCase<T> };
 
 export class TestSuite<T> {
@@ -22,30 +22,39 @@ export class TestSuite<T> {
   run(testId: string, data: T, context?: EventContext): Promise<void> {
     let running: Array<Promise<any>> = [];
     for (let testName in this.tests) {
-      if (!this.tests.hasOwnProperty(testName)) { continue; }
+      if (!this.tests.hasOwnProperty(testName)) {
+        continue;
+      }
       const run = Promise.resolve()
         .then(() => this.tests[testName](data, context))
         .then(
-        (result) => {
-          console.log(`${result ? 'Passed' : 'Failed with successful op'}: ${testName}`);
-          return { name: testName, passed: !!result };
-        },
-        (error) => {
-          console.error(`Failed: ${testName}`, error);
-          return { name: testName, passed: 0, error: error };
-        }
+          result => {
+            console.log(
+              `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`
+            );
+            return { name: testName, passed: !!result };
+          },
+          error => {
+            console.error(`Failed: ${testName}`, error);
+            return { name: testName, passed: 0, error: error };
+          }
         );
       running.push(run);
     }
-    return Promise.all(running).then((results) => {
-      let sum = 0;
-      results.forEach((val) => sum = sum + val.passed);
-      const summary = `passed ${sum} of ${running.length}`;
-      const passed = sum === running.length;
-      console.log(summary);
-      const result = { passed, summary, tests: results };
-      return firebase.database().ref(`testRuns/${testId}/${this.name}`).set(result);
-    }).then(() => null);
+    return Promise.all(running)
+      .then(results => {
+        let sum = 0;
+        results.forEach(val => (sum = sum + val.passed));
+        const summary = `passed ${sum} of ${running.length}`;
+        const passed = sum === running.length;
+        console.log(summary);
+        const result = { passed, summary, tests: results };
+        return firebase
+          .database()
+          .ref(`testRuns/${testId}/${this.name}`)
+          .set(result);
+      })
+      .then(() => null);
   }
 }
 
@@ -67,30 +76,33 @@ export function evaluate(value, errMsg) {
 export function expectEq(left, right) {
   return evaluate(
     left === right,
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right));
+    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
+  );
 }
 
 export function expectDeepEq(left, right) {
   return evaluate(
     _.isEqual(left, right),
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right));
+    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
+  );
 }
 
 export function expectMatches(input: string, regexp) {
   return evaluate(
     input.match(regexp),
-    "Input '" + input + "' did not match regexp '" + regexp + "'");
+    "Input '" + input + "' did not match regexp '" + regexp + "'"
+  );
 }
 
 export function expectReject(f) {
-  return function (event) {
+  return function(event) {
     return Promise.resolve()
       .then(() => f(event))
       .then(
-      () => {
-        throw new Error('Test should have returned a rejected promise');
-      },
-      () => true, // A rejection is what we expected, and so is a positive result.
-    );
+        () => {
+          throw new Error('Test should have returned a rejected promise');
+        },
+        () => true // A rejection is what we expected, and so is a positive result.
+      );
   };
 }

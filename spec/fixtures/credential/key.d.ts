@@ -1,5 +1,5 @@
 /* tslint:disable */
-declare module "*key.json" {
+declare module '*key.json' {
   const type: string;
   const user_id: string;
   const project_id: string;

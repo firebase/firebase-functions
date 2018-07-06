@@ -33,4 +33,4 @@ export function dateToTimestampProto(timeString?: string) {
     nanos = parseInt(nanoString, 10) * Math.pow(10, trailingZeroes);
   }
   return { seconds, nanos };
-};
+}

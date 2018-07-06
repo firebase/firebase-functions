@@ -46,7 +46,7 @@ export namespace apps {
 
   export let singleton: apps.Apps;
 
-  export let init = () => singleton = new Apps();
+  export let init = () => (singleton = new Apps());
 
   export interface AuthMode {
     admin: boolean;
@@ -79,7 +79,10 @@ export namespace apps {
       if (!this._appAlive(appName)) {
         return;
       }
-      firebase.app(appName).delete().catch(_.noop);
+      firebase
+        .app(appName)
+        .delete()
+        .catch(_.noop);
     }
 
     retain() {
@@ -112,7 +115,9 @@ export namespace apps {
     }
 
     private get firebaseArgs() {
-      return _.assign({}, firebaseConfig(), {credential: firebase.credential.applicationDefault()});
+      return _.assign({}, firebaseConfig(), {
+        credential: firebase.credential.applicationDefault(),
+      });
     }
   }
 }
