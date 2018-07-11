@@ -38,13 +38,31 @@ describe('makeCloudFunction', () => {
     service: 'service',
     triggerResource: () => 'resource',
     handler: () => null,
+    legacyEventType: 'providers/provider/eventTypes/event',
   };
 
   it('should put a __trigger on the returned CloudFunction', () => {
-    let cf = makeCloudFunction(cloudFunctionArgs);
+    let cf = makeCloudFunction({
+      provider: 'mock.provider',
+      eventType: 'mock.event',
+      service: 'service',
+      triggerResource: () => 'resource',
+      handler: () => null,
+    });
     expect(cf.__trigger).to.deep.equal({
       eventTrigger: {
         eventType: 'mock.provider.mock.event',
+        resource: 'resource',
+        service: 'service',
+      },
+    });
+  });
+
+  it('should have legacy event type in __trigger if provided', () => {
+    let cf = makeCloudFunction(cloudFunctionArgs);
+    expect(cf.__trigger).to.deep.equal({
+      eventTrigger: {
+        eventType: 'providers/provider/eventTypes/event',
         resource: 'resource',
         service: 'service',
       },
@@ -105,6 +123,39 @@ describe('makeCloudFunction', () => {
       params: {},
     });
   });
+
+  it('should handle Node 8 function signature', () => {
+    let args: any = _.assign({}, cloudFunctionArgs, {
+      handler: (data: any, context: EventContext) => {
+        return { data, context };
+      },
+    });
+    let cf = makeCloudFunction(args);
+    let testContext = {
+      eventId: '00000',
+      timestamp: '2016-11-04T21:29:03.496Z',
+      eventType: 'provider.event',
+      resource: {
+        service: 'provider',
+        name: 'resource',
+      },
+    };
+    let testData = 'data';
+
+    return expect(cf(testData, testContext)).to.eventually.deep.equal({
+      data: 'data',
+      context: {
+        eventId: '00000',
+        timestamp: '2016-11-04T21:29:03.496Z',
+        eventType: 'provider.event',
+        resource: {
+          service: 'provider',
+          name: 'resource',
+        },
+        params: {},
+      },
+    });
+  });
 });
 
 describe('makeParams', () => {
@@ -114,13 +165,14 @@ describe('makeParams', () => {
     service: 'service',
     triggerResource: () => 'projects/_/instances/pid/ref/{foo}/nested/{bar}',
     handler: (data, context) => context.params,
+    legacyEventType: 'legacyEvent',
   };
   const cf = makeCloudFunction(args);
 
   it('should construct params from the event resource of legacy events', () => {
     const testEvent: LegacyEvent = {
       resource: 'projects/_/instances/pid/ref/a/nested/b',
-      eventType: 'event',
+      eventType: 'legacyEvent',
       data: 'data',
     };
 
@@ -160,14 +212,14 @@ describe('makeAuth and makeAuthType', () => {
     handler: (data, context) => {
       return {
         auth: context.auth,
-        authMode: context.authType,
+        authType: context.authType,
       };
     },
   };
   let cf = makeCloudFunction(args);
 
   it('should construct correct auth and authType for admin user', () => {
-    const testEvent: LegacyEvent = {
+    const testEvent = {
       data: 'data',
       auth: {
         admin: true,
@@ -176,12 +228,12 @@ describe('makeAuth and makeAuthType', () => {
 
     return expect(cf(testEvent)).to.eventually.deep.equal({
       auth: undefined,
-      authMode: 'ADMIN',
+      authType: 'ADMIN',
     });
   });
 
   it('should construct correct auth and authType for unauthenticated user', () => {
-    const testEvent: LegacyEvent = {
+    const testEvent = {
       data: 'data',
       auth: {
         admin: false,
@@ -190,7 +242,7 @@ describe('makeAuth and makeAuthType', () => {
 
     return expect(cf(testEvent)).to.eventually.deep.equal({
       auth: null,
-      authMode: 'UNAUTHENTICATED',
+      authType: 'UNAUTHENTICATED',
     });
   });
 
@@ -216,7 +268,7 @@ describe('makeAuth and makeAuthType', () => {
           sub: 'user',
         },
       },
-      authMode: 'USER',
+      authType: 'USER',
     });
   });
 });

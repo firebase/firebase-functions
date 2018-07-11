@@ -23,7 +23,6 @@
 import * as _ from 'lodash';
 import { apps } from '../apps';
 import {
-  LegacyEvent,
   CloudFunction,
   makeCloudFunction,
   Event,
@@ -142,8 +141,10 @@ export class RefBuilder {
       context: EventContext
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    let dataConstructor = (raw: LegacyEvent) => {
-      let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
+    let dataConstructor = (raw: Event) => {
+      let [dbInstance, path] = resourceToInstanceAndPath(
+        raw.context.resource.name
+      );
       return new DataSnapshot(
         raw.data.delta,
         path,
@@ -161,8 +162,10 @@ export class RefBuilder {
       context: EventContext
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    let dataConstructor = (raw: LegacyEvent) => {
-      let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
+    let dataConstructor = (raw: Event) => {
+      let [dbInstance, path] = resourceToInstanceAndPath(
+        raw.context.resource.name
+      );
       return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
     };
     return this.onOperation(handler, 'ref.delete', dataConstructor);
@@ -171,7 +174,7 @@ export class RefBuilder {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | LegacyEvent) => any
+    dataConstructor: (raw: Event | Event) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
@@ -186,8 +189,10 @@ export class RefBuilder {
     });
   }
 
-  private changeConstructor = (raw: LegacyEvent): Change<DataSnapshot> => {
-    let [dbInstance, path] = resourceToInstanceAndPath(raw.resource);
+  private changeConstructor = (raw: Event): Change<DataSnapshot> => {
+    let [dbInstance, path] = resourceToInstanceAndPath(
+      raw.context.resource.name
+    );
     let before = new DataSnapshot(
       raw.data.data,
       path,

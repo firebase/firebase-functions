@@ -191,7 +191,7 @@ export type HttpsFunction = TriggerAnnotated &
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
-  ((input: any) => PromiseLike<any> | any);
+  ((input: any, context?: any) => PromiseLike<any> | any);
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
@@ -201,10 +201,10 @@ export interface MakeCloudFunctionArgs<EventData> {
   eventType: string;
   triggerResource: () => string;
   service: string;
-  dataConstructor?: (raw: Event | LegacyEvent) => EventData;
+  dataConstructor?: (raw: Event) => EventData;
   handler: (data: EventData, context: EventContext) => PromiseLike<any> | any;
-  before?: (raw: Event | LegacyEvent) => void;
-  after?: (raw: Event | LegacyEvent) => void;
+  before?: (raw: Event) => void;
+  after?: (raw: Event) => void;
   legacyEventType?: string;
 }
 
@@ -214,7 +214,7 @@ export function makeCloudFunction<EventData>({
   eventType,
   triggerResource,
   service,
-  dataConstructor = (raw: Event | LegacyEvent) => raw.data,
+  dataConstructor = (raw: Event) => raw.data,
   handler,
   before = () => {
     return;
@@ -224,42 +224,55 @@ export function makeCloudFunction<EventData>({
   },
   legacyEventType,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction: any = async (event: Event | LegacyEvent) => {
-    if (!_.has(event, 'data')) {
-      throw Error(
-        'Cloud function needs to be called with an event parameter.' +
-          'If you are writing unit tests, please use the Node module firebase-functions-fake.'
-      );
+  let cloudFunction: any = async (eventOrData: any, context?: any) => {
+    let data: any;
+    if (isContext(context)) {
+      // In Node 8 runtime, function called with 2 params: data & context
+      data = eventOrData;
+    } else {
+      // In Node 6 runtime, function called with single event param
+      data = _.get(eventOrData, 'data');
+      if (isEvent(eventOrData)) {
+        // new eventflow v1beta2 format
+        context = _.cloneDeep(eventOrData.context);
+      } else {
+        // eventflow v1beta1 format
+        context = _.omit(eventOrData, 'data');
+      }
     }
+
+    if (legacyEventType && context.eventType === legacyEventType) {
+      // v1beta1 event flow has different format for context, transform them to new format.
+      context = {
+        eventId: context.eventId,
+        timestamp: context.timestamp,
+        eventType: provider + '.' + eventType,
+        resource: {
+          service: service,
+          name: context.resource,
+        },
+      };
+    }
+
+    let event: Event = {
+      data,
+      context,
+    };
+
+    if (provider === 'google.firebase.database') {
+      context.authType = _detectAuthType(event);
+      if (context.authType !== 'ADMIN') {
+        context.auth = _makeAuth(event, context.authType);
+      } else {
+        delete context.auth;
+      }
+    }
+    context.params = context.params || _makeParams(context, triggerResource);
+
     try {
       before(event);
 
       let dataOrChange = dataConstructor(event);
-      let context: any;
-      if (isEvent(event)) {
-        // new event format
-        context = _.cloneDeep(event.context);
-      } else {
-        // legacy event format
-        context = {
-          eventId: event.eventId,
-          timestamp: event.timestamp,
-          eventType: provider + '.' + eventType,
-          resource: {
-            service: service,
-            name: event.resource,
-          },
-        };
-        if (provider === 'google.firebase.database') {
-          context.authType = _detectAuthType(event);
-          if (context.authType !== 'ADMIN') {
-            context.auth = _makeAuth(event, context.authType);
-          }
-        }
-      }
-
-      context.params = _makeParams(context, triggerResource);
-
       let promise = handler(dataOrChange, context);
       if (typeof promise === 'undefined') {
         console.warn('Function returned undefined, expected Promise or value');
@@ -286,6 +299,10 @@ export function makeCloudFunction<EventData>({
 
 function isEvent(event: Event | LegacyEvent): event is Event {
   return _.has(event, 'context');
+}
+
+function isContext(context: EventContext | any): context is EventContext {
+  return _.has(context, 'eventId');
 }
 
 function _makeParams(
@@ -315,21 +332,21 @@ function _makeParams(
   return params;
 }
 
-function _makeAuth(event: LegacyEvent, authType: string) {
+function _makeAuth(event: Event, authType: string) {
   if (authType === 'UNAUTHENTICATED') {
     return null;
   }
   return {
-    uid: _.get(event, 'auth.variable.uid'),
-    token: _.get(event, 'auth.variable.token'),
+    uid: _.get(event, 'context.auth.variable.uid'),
+    token: _.get(event, 'context.auth.variable.token'),
   };
 }
 
-function _detectAuthType(event: LegacyEvent) {
-  if (_.get(event, 'auth.admin')) {
+function _detectAuthType(event: Event) {
+  if (_.get(event, 'context.auth.admin')) {
     return 'ADMIN';
   }
-  if (_.has(event, 'auth.variable')) {
+  if (_.has(event, 'context.auth.variable')) {
     return 'USER';
   }
   return 'UNAUTHENTICATED';

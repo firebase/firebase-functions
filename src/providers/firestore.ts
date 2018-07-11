@@ -27,7 +27,6 @@ import { apps } from '../apps';
 import {
   makeCloudFunction,
   CloudFunction,
-  LegacyEvent,
   Change,
   Event,
   EventContext,
@@ -116,31 +115,37 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 }
 
 /** @internal */
-export function snapshotConstructor(event: LegacyEvent): DocumentSnapshot {
+export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let valueProto = _getValueProto(event.data, event.resource, 'value');
+  let valueProto = _getValueProto(
+    event.data,
+    event.context.resource.name,
+    'value'
+  );
   let readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
   return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 }
 
 /** @internal */
 // TODO remove this function when wire format changes to new format
-export function beforeSnapshotConstructor(
-  event: LegacyEvent
-): DocumentSnapshot {
+export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let oldValueProto = _getValueProto(event.data, event.resource, 'oldValue');
+  let oldValueProto = _getValueProto(
+    event.data,
+    event.context.resource.name,
+    'oldValue'
+  );
   let oldReadTime = dateToTimestampProto(
     _.get(event, 'data.oldValue.readTime')
   );
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
 }
 
-function changeConstructor(raw: LegacyEvent) {
+function changeConstructor(raw: Event) {
   return Change.fromObjects(
     beforeSnapshotConstructor(raw),
     snapshotConstructor(raw)
@@ -200,7 +205,7 @@ export class DocumentBuilder {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | LegacyEvent) => any
+    dataConstructor: (raw: Event) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,

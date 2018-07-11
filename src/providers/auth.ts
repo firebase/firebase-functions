@@ -24,7 +24,7 @@ import {
   makeCloudFunction,
   CloudFunction,
   EventContext,
-  LegacyEvent,
+  Event,
 } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
@@ -58,7 +58,7 @@ export class UserRecordMetadata implements firebase.auth.UserMetadata {
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
-  private static dataConstructor(raw: LegacyEvent): firebase.auth.UserRecord {
+  private static dataConstructor(raw: Event): firebase.auth.UserRecord {
     return userRecordConstructor(raw.data);
   }
 
