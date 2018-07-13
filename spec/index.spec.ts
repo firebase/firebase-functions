@@ -33,6 +33,7 @@ import './apps.spec';
 import './cloud-functions.spec';
 import './config.spec';
 import './testing.spec';
+import './function-builder.spec';
 import './providers/analytics.spec';
 import './providers/auth.spec';
 import './providers/database.spec';

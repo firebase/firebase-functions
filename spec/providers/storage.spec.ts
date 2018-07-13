@@ -20,8 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as storage from '../../src/providers/storage';
 import { expect } from 'chai';
+import * as storage from '../../src/providers/storage';
+import * as functions from '../../src/index';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
@@ -33,6 +34,21 @@ describe('Storage Functions', () => {
 
     after(() => {
       delete process.env.FIREBASE_CONFIG;
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .storage.object()
+        .onArchive(() => null);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
 
     describe('#onArchive', () => {
@@ -63,7 +79,8 @@ describe('Storage Functions', () => {
 
       it('should allow fully qualified bucket names', () => {
         let subjectQualified = new storage.ObjectBuilder(
-          () => 'projects/_/buckets/bucky'
+          () => 'projects/_/buckets/bucky',
+          {}
         );
         let result = subjectQualified.onArchive(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -130,7 +147,8 @@ describe('Storage Functions', () => {
 
       it('should allow fully qualified bucket names', () => {
         let subjectQualified = new storage.ObjectBuilder(
-          () => 'projects/_/buckets/bucky'
+          () => 'projects/_/buckets/bucky',
+          {}
         );
         let result = subjectQualified.onDelete(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -197,7 +215,8 @@ describe('Storage Functions', () => {
 
       it('should allow fully qualified bucket names', () => {
         let subjectQualified = new storage.ObjectBuilder(
-          () => 'projects/_/buckets/bucky'
+          () => 'projects/_/buckets/bucky',
+          {}
         );
         let result = subjectQualified.onFinalize(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -264,7 +283,8 @@ describe('Storage Functions', () => {
 
       it('should allow fully qualified bucket names', () => {
         let subjectQualified = new storage.ObjectBuilder(
-          () => 'projects/_/buckets/bucky'
+          () => 'projects/_/buckets/bucky',
+          {}
         );
         let result = subjectQualified.onMetadataUpdate(() => null);
         expect(result.__trigger).to.deep.equal({

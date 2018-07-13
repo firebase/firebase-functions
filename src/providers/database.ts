@@ -32,6 +32,7 @@ import {
 import { normalizePath, applyChange, pathParts, joinPath } from '../utils';
 import * as firebase from 'firebase-admin';
 import { firebaseConfig } from '../config';
+import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
 export const provider = 'google.firebase.database';
@@ -42,27 +43,16 @@ export const service = 'firebaseio.com';
 const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
 
 /**
- * Pick the Realtime Database instance to use. If omitted, will pick the default database for your project.
+ * Selects a database instance that will trigger the function.
+ * If omitted, will pick the default database for your project.
+ * @param instance The Realtime Database instance to use.
  */
-export function instance(instance: string): InstanceBuilder {
-  return new InstanceBuilder(instance);
-}
-
-export class InstanceBuilder {
-  /* @internal */
-  constructor(private instance: string) {}
-
-  ref(path: string): RefBuilder {
-    const normalized = normalizePath(path);
-    return new RefBuilder(
-      apps(),
-      () => `projects/_/instances/${this.instance}/refs/${normalized}`
-    );
-  }
+export function instance(instance: string) {
+  return _instanceWithOpts(instance, {});
 }
 
 /**
- * Handle events at a Firebase Realtime Database Reference.
+ * Select Firebase Realtime Database Reference to listen to.
  *
  * This method behaves very similarly to the method of the same name in the
  * client and Admin Firebase SDKs. Any change to the Database that affects the
@@ -74,17 +64,47 @@ export class InstanceBuilder {
  * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
  *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
  *    that matched a certain invocation of a Cloud Function is returned as part
- *    of the `event.params` object. For example, `ref("messages/{messageId}")`
+ *    of the `context.params` object. For example, `ref("messages/{messageId}")`
  *    matches changes at `/messages/message1` or `/messages/message2`, resulting
- *    in  `event.params.messageId` being set to `"message1"` or `"message2"`,
+ *    in  `context.params.messageId` being set to `"message1"` or `"message2"`,
  *    respectively.
  * 2. Cloud Functions do not fire an event for data that already existed before
  *    the Cloud Function was deployed.
- * 3. Cloud Function events have access to more information, including a
- *    snapshot of the previous event data and information about the user who
- *    triggered the Cloud Function.
+ * 3. Cloud Function events have access to more information, including information
+ *    about the user who triggered the Cloud Function.
+ * @param ref Path of the database to listen to.
  */
-export function ref(path: string): RefBuilder {
+export function ref(path: string) {
+  return _refWithOpts(path, {});
+}
+
+/** @internal */
+export function _instanceWithOpts(
+  instance: string,
+  opts: DeploymentOptions
+): InstanceBuilder {
+  return new InstanceBuilder(instance, opts);
+}
+
+export class InstanceBuilder {
+  /* @internal */
+  constructor(private instance: string, private opts: DeploymentOptions) {}
+
+  ref(path: string): RefBuilder {
+    const normalized = normalizePath(path);
+    return new RefBuilder(
+      apps(),
+      () => `projects/_/instances/${this.instance}/refs/${normalized}`,
+      this.opts
+    );
+  }
+}
+
+/** @internal */
+export function _refWithOpts(
+  path: string,
+  opts: DeploymentOptions
+): RefBuilder {
   const resourceGetter = () => {
     const normalized = normalizePath(path);
     const databaseURL = firebaseConfig().databaseURL;
@@ -106,13 +126,17 @@ export function ref(path: string): RefBuilder {
     return `projects/_/instances/${subdomain}/refs/${normalized}`;
   };
 
-  return new RefBuilder(apps(), resourceGetter);
+  return new RefBuilder(apps(), resourceGetter, opts);
 }
 
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
 export class RefBuilder {
   /** @internal */
-  constructor(private apps: apps.Apps, private triggerResource: () => string) {}
+  constructor(
+    private apps: apps.Apps,
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {}
 
   /** Respond to any write that affects a ref. */
   onWrite(
@@ -186,6 +210,7 @@ export class RefBuilder {
       dataConstructor: dataConstructor,
       before: event => this.apps.retain(),
       after: event => this.apps.release(),
+      opts: this.opts,
     });
   }
 

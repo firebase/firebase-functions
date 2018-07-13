@@ -20,10 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as auth from '../../src/providers/auth';
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
-import { CloudFunction } from '../../src';
+import * as auth from '../../src/providers/auth';
+import { CloudFunction } from '../../src/cloud-functions';
+import * as functions from '../../src/index';
 
 describe('Auth Functions', () => {
   describe('AuthBuilder', () => {
@@ -35,6 +36,21 @@ describe('Auth Functions', () => {
 
     after(() => {
       delete process.env.GCLOUD_PROJECT;
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .auth.user()
+        .onCreate(() => null);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
 
     describe('#onCreate', () => {

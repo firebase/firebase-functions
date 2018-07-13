@@ -5,8 +5,11 @@ import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 
 const testIdFieldName = 'documentId';
 
-export const firestoreTests: any = functions.firestore
-  .document('tests/{documentId}')
+export const firestoreTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .firestore.document('tests/{documentId}')
   .onCreate((s, c) => {
     return new TestSuite<DocumentSnapshot>('firestore document onWrite')
 

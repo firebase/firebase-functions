@@ -23,7 +23,9 @@
 import { apps } from './apps';
 import * as _ from 'lodash';
 import { Request, Response } from 'express';
+import { DeploymentOptions } from './function-builder';
 export { Request, Response };
+
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /** Legacy wire format for an event
@@ -170,6 +172,9 @@ export interface TriggerAnnotated {
       service: string;
     };
     labels?: { [key: string]: string };
+    regions?: string[];
+    timeout?: string;
+    availableMemoryMb?: number;
   };
 }
 
@@ -206,6 +211,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   before?: (raw: Event) => void;
   after?: (raw: Event) => void;
   legacyEventType?: string;
+  opts?: { [key: string]: any };
 }
 
 /** @internal */
@@ -223,6 +229,7 @@ export function makeCloudFunction<EventData>({
     return;
   },
   legacyEventType,
+  opts = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   let cloudFunction: any = async (eventOrData: any, context?: any) => {
     let data: any;
@@ -284,15 +291,18 @@ export function makeCloudFunction<EventData>({
   };
   Object.defineProperty(cloudFunction, '__trigger', {
     get: () => {
-      return {
+      let trigger: any = _.assign(optsToTrigger(opts), {
         eventTrigger: {
           resource: triggerResource(),
           eventType: legacyEventType || provider + '.' + eventType,
           service,
         },
-      };
+      });
+
+      return trigger;
     },
   });
+
   cloudFunction.run = handler;
   return cloudFunction;
 }
@@ -350,4 +360,25 @@ function _detectAuthType(event: Event) {
     return 'USER';
   }
   return 'UNAUTHENTICATED';
+}
+
+export function optsToTrigger(opts: DeploymentOptions) {
+  let trigger: any = {};
+  if (opts.regions) {
+    trigger.regions = opts.regions;
+  }
+  if (opts.timeoutSeconds) {
+    trigger.timeout = opts.timeoutSeconds.toString() + 's';
+  }
+  if (opts.memory) {
+    const memoryLookup = {
+      '128MB': 128,
+      '256MB': 256,
+      '512MB': 512,
+      '1GB': 1024,
+      '2GB': 2048,
+    };
+    trigger.availableMemoryMb = _.get(memoryLookup, opts.memory);
+  }
+  return trigger;
 }

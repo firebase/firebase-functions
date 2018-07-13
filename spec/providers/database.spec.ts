@@ -24,6 +24,7 @@ import * as database from '../../src/providers/database';
 import { expect } from 'chai';
 import { apps as appsNamespace } from '../../src/apps';
 import { applyChange } from '../../src/utils';
+import * as functions from '../../src/index';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
@@ -39,6 +40,21 @@ describe('Database Functions', () => {
     after(() => {
       delete process.env.FIREBASE_CONFIG;
       delete appsNamespace.singleton;
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .database.ref('/')
+        .onCreate(snap => snap);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
 
     describe('#onWrite()', () => {

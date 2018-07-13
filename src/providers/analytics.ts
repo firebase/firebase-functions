@@ -20,13 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as _ from 'lodash';
+
 import {
   makeCloudFunction,
   CloudFunction,
   Event,
   EventContext,
 } from '../cloud-functions';
-import * as _ from 'lodash';
+import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
 export const provider = 'google.analytics';
@@ -34,15 +36,18 @@ export const provider = 'google.analytics';
 export const service = 'app-measurement.com';
 
 /**
- * Registers a Cloud Function to handle analytics events.
- *
- * @param {string} analyticsEventType Name of the analytics event type to which
- *   this Cloud Function is scoped.
- *
- * @return {!functions.analytics.AnalyticsEventBuilder} Analytics event builder
- *   interface.
+ * Select analytics events to listen to for events.
+ * @param analyticsEventType Name of the analytics event type.
  */
 export function event(analyticsEventType: string) {
+  return _eventWithOpts(analyticsEventType, {});
+}
+
+/** @internal */
+export function _eventWithOpts(
+  analyticsEventType: string,
+  opts: DeploymentOptions
+) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
@@ -50,7 +55,7 @@ export function event(analyticsEventType: string) {
     return (
       'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType
     );
-  });
+  }, opts);
 }
 
 /**
@@ -60,7 +65,10 @@ export function event(analyticsEventType: string) {
  */
 export class AnalyticsEventBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) {}
+  constructor(
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
@@ -89,6 +97,7 @@ export class AnalyticsEventBuilder {
       legacyEventType: `providers/google.firebase.analytics/eventTypes/event.log`,
       triggerResource: this.triggerResource,
       dataConstructor,
+      opts: this.opts,
     });
   }
 }

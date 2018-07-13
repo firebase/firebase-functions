@@ -23,6 +23,7 @@
 import * as firestore from '../../src/providers/firestore';
 import * as _ from 'lodash';
 import { expect } from 'chai';
+import * as functions from '../../src/index';
 
 describe('Firestore Functions', () => {
   function constructValue(fields: any) {
@@ -115,6 +116,21 @@ describe('Firestore Functions', () => {
       expect(cloudFunction.__trigger).to.deep.equal(
         expectedTrigger(resource, 'document.write')
       );
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .firestore.document('doc')
+        .onCreate(snap => snap);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
 
     it('onCreate should have the "document.create" eventType', () => {

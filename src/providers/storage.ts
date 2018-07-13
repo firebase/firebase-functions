@@ -26,6 +26,7 @@ import {
   makeCloudFunction,
 } from '../cloud-functions';
 import { firebaseConfig } from '../config';
+import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
 export const provider = 'google.storage';
@@ -34,10 +35,26 @@ export const service = 'storage.googleapis.com';
 
 /**
  * The optional bucket function allows you to choose which buckets' events to handle.
- * This step can be bypassed by calling object() directly, which will use the bucket that
- * the Firebase SDK for Cloud Storage uses.
+ * This step can be bypassed by calling object() directly, which will use the default
+ * Cloud Storage for Firebase bucket.
+ * @param bucket Name of the Google Cloud Storage bucket to listen to.
  */
-export function bucket(bucket?: string): BucketBuilder {
+export function bucket(bucket?: string) {
+  return _bucketWithOpts({}, bucket);
+}
+
+/**
+ * Handle events related to Cloud Storage objects.
+ */
+export function object() {
+  return _objectWithOpts({});
+}
+
+/** @internal */
+export function _bucketWithOpts(
+  opts: DeploymentOptions,
+  bucket?: string
+): BucketBuilder {
   const resourceGetter = () => {
     bucket = bucket || firebaseConfig().storageBucket;
     if (!bucket) {
@@ -51,26 +68,33 @@ export function bucket(bucket?: string): BucketBuilder {
     }
     return `projects/_/buckets/${bucket}`;
   };
-  return new BucketBuilder(resourceGetter);
+  return new BucketBuilder(resourceGetter, opts);
 }
 
-export function object(): ObjectBuilder {
-  return bucket().object();
+/** @internal */
+export function _objectWithOpts(opts: DeploymentOptions): ObjectBuilder {
+  return _bucketWithOpts(opts).object();
 }
 
 export class BucketBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) {}
+  constructor(
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {}
 
   /** Handle events for objects in this bucket. */
   object() {
-    return new ObjectBuilder(this.triggerResource);
+    return new ObjectBuilder(this.triggerResource, this.opts);
   }
 }
 
 export class ObjectBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) {}
+  constructor(
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {}
 
   /** @internal */
   onChange(handler: any): Error {
@@ -133,6 +157,7 @@ export class ObjectBuilder {
       service,
       eventType,
       triggerResource: this.triggerResource,
+      opts: this.opts,
     });
   }
 }

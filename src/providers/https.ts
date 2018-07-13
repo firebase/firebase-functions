@@ -20,22 +20,46 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { HttpsFunction } from '../cloud-functions';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import { apps } from '../apps';
 import * as _ from 'lodash';
 import * as cors from 'cors';
+import { apps } from '../apps';
+import { HttpsFunction, optsToTrigger } from '../cloud-functions';
+import { DeploymentOptions } from '../function-builder';
 
+/**
+ * Handle HTTP requests.
+ * @param handler A function that takes a request and response object,
+ * same signature as an Express app.
+ */
 export function onRequest(
   handler: (req: express.Request, resp: express.Response) => void
+) {
+  return _onRequestWithOpts(handler, {});
+}
+
+/**
+ * Declares a callable method for clients to call using a Firebase SDK.
+ * @param handler A method that takes a data and context and returns a value.
+ */
+export function onCall(
+  handler: (data: any, context: CallableContext) => any | Promise<any>
+) {
+  return _onCallWithOpts(handler, {});
+}
+
+/** @internal */
+export function _onRequestWithOpts(
+  handler: (req: express.Request, resp: express.Response) => void,
+  opts: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
   let cloudFunction: any = (req: express.Request, res: express.Response) => {
     handler(req, res);
   };
-  cloudFunction.__trigger = { httpsTrigger: {} };
-
+  cloudFunction.__trigger = _.assign(optsToTrigger(opts), { httpsTrigger: {} });
+  // TODO parse the opts
   return cloudFunction;
 }
 
@@ -387,12 +411,10 @@ export function decode(data: any): any {
 
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
-/**
- * Declares a callable method for clients to call using a Firebase SDK.
- * @param handler A method that takes a data and context and returns a value.
- */
-export function onCall(
-  handler: (data: any, context: CallableContext) => any | Promise<any>
+/** @internal */
+export function _onCallWithOpts(
+  handler: (data: any, context: CallableContext) => any | Promise<any>,
+  opts: DeploymentOptions
 ): HttpsFunction {
   const func = async (req: express.Request, res: express.Response) => {
     try {
@@ -459,10 +481,10 @@ export function onCall(
     return corsHandler(req, res, () => func(req, res));
   };
 
-  corsFunc.__trigger = {
+  corsFunc.__trigger = _.assign(optsToTrigger(opts), {
     httpsTrigger: {},
     labels: { 'deployment-callable': 'true' },
-  };
+  });
 
   return corsFunc;
 }

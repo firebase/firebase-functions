@@ -20,8 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as pubsub from '../../src/providers/pubsub';
 import { expect } from 'chai';
+import * as pubsub from '../../src/providers/pubsub';
+import * as functions from '../../src/index';
 
 describe('Pubsub Functions', () => {
   describe('pubsub.Message', () => {
@@ -68,6 +69,21 @@ describe('Pubsub Functions', () => {
 
     after(() => {
       delete process.env.GCLOUD_PROJECT;
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .pubsub.topic('toppy')
+        .onPublish(() => null);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
 
     describe('#onPublish', () => {

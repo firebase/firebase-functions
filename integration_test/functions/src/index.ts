@@ -45,8 +45,13 @@ function callHttpsTrigger(name: string, data: any) {
   });
 }
 
-export const integrationTests: any = functions.https.onRequest(
-  (req: Request, resp: Response) => {
+export const integrationTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .https.onRequest((req: Request, resp: Response) => {
+    let pubsub: any = require('@google-cloud/pubsub')();
+
     const testId = firebase
       .database()
       .ref()
@@ -134,5 +139,4 @@ export const integrationTests: any = functions.https.onRequest(
             }.firebaseio.com/testRuns/${testId}`
           );
       });
-  }
-);
+  });

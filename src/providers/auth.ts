@@ -28,20 +28,28 @@ import {
 } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
+import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
 export const provider = 'google.firebase.auth';
 /** @internal */
 export const service = 'firebaseauth.googleapis.com';
 
-/** Handle events in the Firebase Auth user lifecycle. */
+/**
+ * Handle events related to Firebase authentication users.
+ */
 export function user() {
+  return _userWithOpts({});
+}
+
+/** @internal */
+export function _userWithOpts(opts: DeploymentOptions) {
   return new UserBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return 'projects/' + process.env.GCLOUD_PROJECT;
-  });
+  }, opts);
 }
 
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
@@ -63,7 +71,10 @@ export class UserBuilder {
   }
 
   /** @internal */
-  constructor(private triggerResource: () => string) {}
+  constructor(
+    private triggerResource: () => string,
+    private opts?: DeploymentOptions
+  ) {}
 
   /** Respond to the creation of a Firebase Auth user. */
   onCreate(
@@ -94,6 +105,7 @@ export class UserBuilder {
       triggerResource: this.triggerResource,
       dataConstructor: UserBuilder.dataConstructor,
       legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
+      opts: this.opts,
     });
   }
 }

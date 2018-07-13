@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as https from '../../src/providers/https';
@@ -28,7 +29,7 @@ import * as mocks from '../fixtures/credential/key.json';
 import * as nock from 'nock';
 import * as _ from 'lodash';
 import { apps as appsNamespace } from '../../src/apps';
-import { expect } from 'chai';
+import * as functions from '../../src/index';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
@@ -37,6 +38,20 @@ describe('CloudHttpsBuilder', () => {
         resp.send(200);
       });
       expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .https.onRequest(() => null);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
   });
 });
@@ -489,6 +504,20 @@ describe('callable.FunctionBuilder', () => {
           body: { result: null },
         },
       });
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .https.onCall(() => null);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
   });
 });

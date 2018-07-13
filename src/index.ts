@@ -23,6 +23,7 @@
 // Providers:
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
+
 import * as crashlytics from './providers/crashlytics';
 import * as database from './providers/database';
 import * as firestore from './providers/firestore';
@@ -30,6 +31,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as storage from './providers/storage';
 import { firebaseConfig } from './config';
+
 export {
   analytics,
   auth,
@@ -41,9 +43,10 @@ export {
   storage,
 };
 
-// Exported root types:
+// // Exported root types:
 export * from './config';
 export * from './cloud-functions';
+export * from './function-builder';
 
 // TEMPORARY WORKAROUND (BUG 63586213):
 // Until the Cloud Functions builder can publish FIREBASE_CONFIG, automatically provide it on import based on what

@@ -25,14 +25,25 @@ import {
   makeCloudFunction,
   EventContext,
 } from '../cloud-functions';
+import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
 export const provider = 'google.pubsub';
 /** @internal */
 export const service = 'pubsub.googleapis.com';
 
-/** Handle events on a Cloud Pub/Sub topic. */
-export function topic(topic: string): TopicBuilder {
+/** Select Cloud Pub/Sub topic to listen to.
+ * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
+ */
+export function topic(topic: string) {
+  return _topicWithOpts(topic, {});
+}
+
+/** @internal */
+export function _topicWithOpts(
+  topic: string,
+  opts: DeploymentOptions
+): TopicBuilder {
   if (topic.indexOf('/') !== -1) {
     throw new Error('Topic name may not have a /');
   }
@@ -42,13 +53,16 @@ export function topic(topic: string): TopicBuilder {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
-  });
+  }, opts);
 }
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
 export class TopicBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) {}
+  constructor(
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {}
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
   onPublish(
@@ -61,6 +75,7 @@ export class TopicBuilder {
       triggerResource: this.triggerResource,
       eventType: 'topic.publish',
       dataConstructor: raw => new Message(raw.data),
+      opts: this.opts,
     });
   }
 }

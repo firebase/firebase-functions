@@ -20,9 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { expect } from 'chai';
+
 import * as crashlytics from '../../src/providers/crashlytics';
 import { apps as appsNamespace } from '../../src/apps';
-import { expect } from 'chai';
+import * as functions from '../../src/index';
 
 describe('Crashlytics Functions', () => {
   describe('Issue Builder', () => {
@@ -34,6 +36,21 @@ describe('Crashlytics Functions', () => {
     after(() => {
       delete appsNamespace.singleton;
       delete process.env.GCLOUD_PROJECT;
+    });
+
+    it('should allow both region and runtime options to be set', () => {
+      let fn = functions
+        .region('my-region')
+        .runWith({
+          timeoutSeconds: 90,
+          memory: '256MB',
+        })
+        .crashlytics.issue()
+        .onNew(issue => issue);
+
+      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
 
     describe('#onNew', () => {

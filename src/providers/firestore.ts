@@ -32,49 +32,76 @@ import {
   EventContext,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
+import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
 export const provider = 'google.firestore';
 /** @internal */
 export const service = 'firestore.googleapis.com';
-export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
-
 /** @internal */
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
+export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
 
-/** @internal */
-// Multiple databases are not yet supported by Firestore.
-export function database(database: string = defaultDatabase) {
-  return new DatabaseBuilder(database);
-}
-
-/** @internal */
-// Multiple databases are not yet supported by Firestore.
-export function namespace(namespace: string) {
-  return database().namespace(namespace);
-}
-
+/**
+ * Select the Firestore document to listen to for events.
+ * @param path Full database path to listen to. This includes the name of
+ * the collection that the document is a part of. For example, if the
+ * collection is named "users" and the document is named "Ada", then the
+ * path is "/users/Ada".
+ */
 export function document(path: string) {
-  return database().document(path);
+  return _documentWithOpts(path, {});
+}
+/** @internal */
+// Multiple namespaces are not yet supported by Firestore.
+export function namespace(namespace: string) {
+  return _namespaceWithOpts(namespace, {});
+}
+/** @internal */
+// Multiple databases are not yet supported by Firestore.
+export function database(database: string) {
+  return _databaseWithOpts(database, {});
+}
+
+/** @internal */
+export function _databaseWithOpts(
+  database: string = defaultDatabase,
+  opts: DeploymentOptions
+) {
+  return new DatabaseBuilder(database, opts);
+}
+
+/** @internal */
+export function _namespaceWithOpts(namespace: string, opts: DeploymentOptions) {
+  return _databaseWithOpts(defaultDatabase, opts).namespace(namespace);
+}
+
+/** @internal */
+export function _documentWithOpts(path: string, opts: DeploymentOptions) {
+  return _databaseWithOpts(defaultDatabase, opts).document(path);
 }
 
 export class DatabaseBuilder {
   /** @internal */
-  constructor(private database: string) {}
+  constructor(private database: string, private opts: DeploymentOptions) {}
 
   namespace(namespace: string) {
-    return new NamespaceBuilder(this.database, namespace);
+    return new NamespaceBuilder(this.database, this.opts, namespace);
   }
 
   document(path: string) {
-    return new NamespaceBuilder(this.database).document(path);
+    return new NamespaceBuilder(this.database, this.opts).document(path);
   }
 }
 
 export class NamespaceBuilder {
   /** @internal */
-  constructor(private database: string, private namespace?: string) {}
+  constructor(
+    private database: string,
+    private opts: DeploymentOptions,
+    private namespace?: string
+  ) {}
 
   document(path: string) {
     return new DocumentBuilder(() => {
@@ -92,7 +119,7 @@ export class NamespaceBuilder {
         this.namespace ? `documents@${this.namespace}` : 'documents',
         path
       );
-    });
+    }, this.opts);
   }
 }
 
@@ -154,7 +181,10 @@ function changeConstructor(raw: Event) {
 
 export class DocumentBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string) {
+  constructor(
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {
     // TODO what validation do we want to do here?
   }
 
@@ -215,6 +245,7 @@ export class DocumentBuilder {
       triggerResource: this.triggerResource,
       legacyEventType: `providers/cloud.firestore/eventTypes/${eventType}`,
       dataConstructor,
+      opts: this.opts,
     });
   }
 }
