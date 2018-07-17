@@ -25,7 +25,7 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import * as cors from 'cors';
 import { apps } from '../apps';
-import { HttpsFunction, optsToTrigger } from '../cloud-functions';
+import { HttpsFunction, optsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 
 /**
@@ -415,7 +415,7 @@ const corsHandler = cors({ origin: true, methods: 'POST' });
 export function _onCallWithOpts(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   opts: DeploymentOptions
-): HttpsFunction {
+): HttpsFunction & Runnable<any> {
   const func = async (req: express.Request, res: express.Response) => {
     try {
       if (!isValidRequest(req)) {
@@ -485,6 +485,8 @@ export function _onCallWithOpts(
     httpsTrigger: {},
     labels: { 'deployment-callable': 'true' },
   });
+
+  corsFunc.run = handler;
 
   return corsFunc;
 }

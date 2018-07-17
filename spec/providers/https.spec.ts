@@ -519,6 +519,22 @@ describe('callable.FunctionBuilder', () => {
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
+
+    it('has a .run method', () => {
+      const cf = https.onCall((data, context) => {
+        return { data, context };
+      });
+
+      const data = 'data';
+      const context = {
+        instanceIdToken: 'token',
+        auth: {
+          uid: 'abc',
+          token: 'token',
+        },
+      };
+      expect(cf.run(data, context)).to.deep.equal({ data, context });
+    });
   });
 });
 

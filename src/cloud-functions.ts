@@ -180,7 +180,7 @@ export interface TriggerAnnotated {
 
 /** A Runnable has a `run` method which directly invokes the user-defined function - useful for unit testing. */
 export interface Runnable<T> {
-  run: (data: T, context: EventContext) => PromiseLike<any> | any;
+  run: (data: T, context: any) => PromiseLike<any> | any;
 }
 
 /**
