@@ -500,21 +500,18 @@ describe('Firestore Functions', () => {
       });
 
       it('should support #createTime', () => {
-        expect(Date.parse(snapshot.createTime)).to.equal(
-          Date.parse('2017-06-17T14:45:17.876479Z')
-        );
+        expect(snapshot.createTime.seconds).to.be.a('number');
+        expect(snapshot.createTime.nanoseconds).to.be.a('number');
       });
 
       it('should support #updateTime', () => {
-        expect(Date.parse(snapshot.updateTime)).to.equal(
-          Date.parse('2017-08-31T18:05:26.928527Z')
-        );
+        expect(snapshot.updateTime.seconds).to.be.a('number');
+        expect(snapshot.updateTime.nanoseconds).to.be.a('number');
       });
 
       it('should support #readTime', () => {
-        expect(Date.parse(snapshot.readTime)).to.equal(
-          Date.parse('2017-07-31T18:23:26.928527Z')
-        );
+        expect(snapshot.readTime.seconds).to.be.a('number');
+        expect(snapshot.readTime.nanoseconds).to.be.a('number');
       });
     });
 

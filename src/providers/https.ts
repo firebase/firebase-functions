@@ -45,7 +45,7 @@ export function onRequest(
  */
 export function onCall(
   handler: (data: any, context: CallableContext) => any | Promise<any>
-) {
+): HttpsFunction & Runnable<any> {
   return _onCallWithOpts(handler, {});
 }
 

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["es6"],
     "module": "commonjs",
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "outDir": ".tmp",
     "sourceMap": true,
     "target": "es6",
