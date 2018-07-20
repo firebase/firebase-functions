@@ -1,5 +1,4 @@
 import * as functions from 'firebase-functions';
-import * as firebase from 'firebase';
 import * as https from 'https';
 import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
@@ -16,8 +15,8 @@ const numTests = Object.keys(exports).length; // Assumption: every exported func
 
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
-firebase.initializeApp(firebaseConfig);
 admin.initializeApp();
+admin.firestore().settings({ timestampsInSnapshots: true });
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any) {
@@ -52,14 +51,15 @@ export const integrationTests: any = functions
   .https.onRequest((req: Request, resp: Response) => {
     let pubsub: any = require('@google-cloud/pubsub')();
 
-    const testId = firebase
+    const testId = admin
       .database()
       .ref()
       .push().key;
+    console.log('testId is: ', testId);
+
     return Promise.all([
       // A database write to trigger the Firebase Realtime Database tests.
-      // The database write happens without admin privileges.
-      firebase
+      admin
         .database()
         .ref(`dbTests/${testId}/start`)
         .set({ '.sv': 'timestamp' }),

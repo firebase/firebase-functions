@@ -29,23 +29,33 @@ function build_sdk {
   mv firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz
 }
 
+function pick_node6 {
+  cd $DIR
+  cp package.node6.json functions/package.json
+}
+
+function pick_node8 {
+  cd $DIR
+  cp package.node8.json functions/package.json
+}
+
 function install_deps {
   announce "Installing dependencies..."
   cd $DIR/functions
+  rm -rf node_modules/firebase-functions
   npm install
 }
 
 function delete_all_functions {
-  announce "Deploying empty index.js to project..."
+  announce "Deleting all functions in project..."
   cd $DIR
-  ./functions/node_modules/.bin/tsc -p functions/ # Make sure the functions/lib directory actually exists.
-  echo "" > functions/lib/index.js
-  firebase deploy --project=$PROJECT_ID --only functions
+  # Try to delete, if there are errors it is because the project is already empty,
+  # in that case do nothing. 
+  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests --project=$PROJECT_ID -f || :
   announce "Project emptied."
 }
 
 function deploy {
-  announce "Deploying functions..."
   cd $DIR
   ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore
@@ -72,16 +82,20 @@ function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
   rm $DIR/functions/firebase-functions.tgz
+  rm $DIR/functions/package.json
   rm -f $DIR/functions/firebase-debug.log
   rm -rf $DIR/functions/node_modules/firebase-functions
 }
 
 build_sdk
+pick_node8
 install_deps
 delete_all_functions
+announce "Deploying functions to Node 8 runtime ..."
 deploy
 run_tests
-announce "Re-deploying the same functions to make sure updates work..."
+pick_node6
+announce "Re-deploying the same functions to Node 6 runtime ..."
 deploy
 run_tests
 cleanup

@@ -19,7 +19,7 @@ export class TestSuite<T> {
     return this;
   }
 
-  run(testId: string, data: T, context?: EventContext): Promise<void> {
+  run(testId: string, data: T, context?: EventContext): Promise<any> {
     let running: Array<Promise<any>> = [];
     for (let testName in this.tests) {
       if (!this.tests.hasOwnProperty(testName)) {
@@ -41,20 +41,18 @@ export class TestSuite<T> {
         );
       running.push(run);
     }
-    return Promise.all(running)
-      .then(results => {
-        let sum = 0;
-        results.forEach(val => (sum = sum + val.passed));
-        const summary = `passed ${sum} of ${running.length}`;
-        const passed = sum === running.length;
-        console.log(summary);
-        const result = { passed, summary, tests: results };
-        return firebase
-          .database()
-          .ref(`testRuns/${testId}/${this.name}`)
-          .set(result);
-      })
-      .then(() => null);
+    return Promise.all(running).then(results => {
+      let sum = 0;
+      results.forEach(val => (sum = sum + val.passed));
+      const summary = `passed ${sum} of ${running.length}`;
+      const passed = sum === running.length;
+      console.log(summary);
+      const result = { passed, summary, tests: results };
+      return firebase
+        .database()
+        .ref(`testRuns/${testId}/${this.name}`)
+        .set(result);
+    });
   }
 }
 
