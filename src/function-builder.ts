@@ -35,11 +35,11 @@ import { HttpsFunction } from './cloud-functions';
 
 /**
  * Configure the regions that the function is deployed to.
- * @param regions One or more parameters indicating the regions.
- * For example: `functions.region('us-central1', 'us-east1')`
+ * @param region Region string.
+ * For example: `functions.region('us-east1')`
  */
-export function region(...regions: string[]) {
-  return new FunctionBuilder({ regions });
+export function region(region: string) {
+  return new FunctionBuilder({ regions: [region] });
 }
 
 /**
@@ -78,11 +78,11 @@ export class FunctionBuilder {
 
   /**
    * Configure the regions that the function is deployed to.
-   * @param regions One or more parameters indicating the region.
-   * For example: `functions.region('us-central1', 'us-east1')`
+   * @param region Region string.
+   * For example: `functions.region('us-east1')`
    */
-  region = (...regions: string[]) => {
-    this.options.regions = regions;
+  region = (region: string) => {
+    this.options.regions = [region];
     return this;
   };
 

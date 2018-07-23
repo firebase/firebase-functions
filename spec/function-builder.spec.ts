@@ -42,17 +42,17 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.regions).to.deep.equal(['my-region']);
   });
 
-  it('should allow multiple regions to be set', () => {
-    let fn = functions
-      .region('my-region', 'my-other-region')
-      .auth.user()
-      .onCreate(user => user);
+  // it('should allow multiple regions to be set', () => {
+  //   let fn = functions
+  //     .region('my-region', 'my-other-region')
+  //     .auth.user()
+  //     .onCreate(user => user);
 
-    expect(fn.__trigger.regions).to.deep.equal([
-      'my-region',
-      'my-other-region',
-    ]);
-  });
+  //   expect(fn.__trigger.regions).to.deep.equal([
+  //     'my-region',
+  //     'my-other-region',
+  //   ]);
+  // });
 
   it('should allow runtime options to be set', () => {
     let fn = functions
