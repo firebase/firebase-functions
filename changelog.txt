@@ -1,0 +1,1 @@
+fixed - Fix error where Node 6 functions experienced timeout errors.
