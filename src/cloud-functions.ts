@@ -231,23 +231,9 @@ export function makeCloudFunction<EventData>({
   legacyEventType,
   opts = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction: any = async (eventOrData: any, context?: any) => {
-    let data: any;
-    if (isContext(context)) {
-      // In Node 8 runtime, function called with 2 params: data & context
-      data = eventOrData;
-    } else {
-      // In Node 6 runtime, function called with single event param
-      data = _.get(eventOrData, 'data');
-      if (isEvent(eventOrData)) {
-        // new eventflow v1beta2 format
-        context = _.cloneDeep(eventOrData.context);
-      } else {
-        // eventflow v1beta1 format
-        context = _.omit(eventOrData, 'data');
-      }
-    }
+  let cloudFunction;
 
+  let cloudFunctionNewSignature: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       // v1beta1 event flow has different format for context, transform them to new format.
       context = {
@@ -276,19 +262,42 @@ export function makeCloudFunction<EventData>({
     }
     context.params = context.params || _makeParams(context, triggerResource);
 
-    try {
-      before(event);
+    before(event);
 
-      let dataOrChange = dataConstructor(event);
-      let promise = handler(dataOrChange, context);
-      if (typeof promise === 'undefined') {
-        console.warn('Function returned undefined, expected Promise or value');
-      }
-      return await promise;
-    } finally {
-      after(event);
+    let dataOrChange = dataConstructor(event);
+    let promise = handler(dataOrChange, context);
+    if (typeof promise === 'undefined') {
+      console.warn('Function returned undefined, expected Promise or value');
     }
+    return Promise.resolve(promise)
+      .then(result => {
+        after(event);
+        return result;
+      })
+      .catch(err => {
+        after(event);
+        return Promise.reject(err);
+      });
   };
+
+  if (process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE === 'true') {
+    cloudFunction = cloudFunctionNewSignature;
+  } else {
+    cloudFunction = (raw: Event | LegacyEvent) => {
+      let context;
+      // In Node 6 runtime, function called with single event param
+      let data = _.get(raw, 'data');
+      if (isEvent(raw)) {
+        // new eventflow v1beta2 format
+        context = _.cloneDeep(raw.context);
+      } else {
+        // eventflow v1beta1 format
+        context = _.omit(raw, 'data');
+      }
+      return cloudFunctionNewSignature(data, context);
+    };
+  }
+
   Object.defineProperty(cloudFunction, '__trigger', {
     get: () => {
       let trigger: any = _.assign(optsToTrigger(opts), {
@@ -309,10 +318,6 @@ export function makeCloudFunction<EventData>({
 
 function isEvent(event: Event | LegacyEvent): event is Event {
   return _.has(event, 'context');
-}
-
-function isContext(context: EventContext | any): context is EventContext {
-  return _.has(context, 'eventId');
 }
 
 function _makeParams(

@@ -130,7 +130,9 @@ describe('makeCloudFunction', () => {
         return { data, context };
       },
     });
+    process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE = 'true';
     let cf = makeCloudFunction(args);
+    delete process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE;
     let testContext = {
       eventId: '00000',
       timestamp: '2016-11-04T21:29:03.496Z',
