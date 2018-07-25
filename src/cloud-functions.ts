@@ -234,7 +234,6 @@ export function makeCloudFunction<EventData>({
   let cloudFunction;
 
   let cloudFunctionNewSignature: any = (data: any, context: any) => {
-    console.log('inside CloudFunctionNewSignature, context is: ', context)
     if (legacyEventType && context.eventType === legacyEventType) {
       // v1beta1 event flow has different format for context, transform them to new format.
       context = {
@@ -266,7 +265,6 @@ export function makeCloudFunction<EventData>({
     before(event);
 
     let dataOrChange = dataConstructor(event);
-    console.log('right before calling the handler, event is: ', event)
     let promise = handler(dataOrChange, context);
     if (typeof promise === 'undefined') {
       console.warn('Function returned undefined, expected Promise or value');
@@ -282,8 +280,7 @@ export function makeCloudFunction<EventData>({
       });
   };
 
-  if (process.env.NEW_FUNCTION_SIGNATURE) {
-    console.log('in if loop')
+  if (process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE === 'true') {
     cloudFunction = cloudFunctionNewSignature;
   } else {
     cloudFunction = (raw: Event | LegacyEvent) => {
