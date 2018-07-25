@@ -231,41 +231,21 @@ export function makeCloudFunction<EventData>({
   legacyEventType,
   opts = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction: any = async (eventOrData: any, context?: any) => {
-    let data: any;
-    if (isContext(context)) {
-      // In Node 8 runtime, function called with 2 params: data & context
-      data = eventOrData;
-    } else {
-      // In Node 6 runtime, function called with single event param
-      data = _.get(eventOrData, 'data');
-      if (isEvent(eventOrData)) {
-        // new eventflow v1beta2 format
-        context = _.cloneDeep(eventOrData.context);
-      } else {
-        // eventflow v1beta1 format
-        context = _.omit(eventOrData, 'data');
-      }
-    }
+  let cloudFunction;
 
-    if (legacyEventType && context.eventType === legacyEventType) {
-      // v1beta1 event flow has different format for context, transform them to new format.
-      context = {
-        eventId: context.eventId,
-        timestamp: context.timestamp,
-        eventType: provider + '.' + eventType,
-        resource: {
-          service: service,
-          name: context.resource,
-        },
-      };
-    }
-
-    let event: Event = {
-      data,
-      context,
+  function _transformLegacyContext(context) {
+    return {
+      eventId: context.eventId,
+      timestamp: context.timestamp,
+      eventType: provider + '.' + eventType,
+      resource: {
+        service: service,
+        name: context.resource,
+      },
     };
+  }
 
+  function _makeAuthAndParams(context, event) {
     if (provider === 'google.firebase.database') {
       context.authType = _detectAuthType(event);
       if (context.authType !== 'ADMIN') {
@@ -275,8 +255,22 @@ export function makeCloudFunction<EventData>({
       }
     }
     context.params = context.params || _makeParams(context, triggerResource);
+    return context;
+  }
 
-    try {
+  if (process.env.NEW_FUNCTION_SIGNATURE) {
+    // In Node 6 runtime, function called with event and context
+    cloudFunction = (data: any, context: any) => {
+      if (legacyEventType && context.eventType === legacyEventType) {
+        // v1beta1 event flow has different format for context, transform them to new format.
+        context = _transformLegacyContext(context);
+      }
+      let event: Event = {
+        data,
+        context,
+      };
+      context = _makeAuthAndParams(context, event);
+
       before(event);
 
       let dataOrChange = dataConstructor(event);
@@ -284,11 +278,59 @@ export function makeCloudFunction<EventData>({
       if (typeof promise === 'undefined') {
         console.warn('Function returned undefined, expected Promise or value');
       }
-      return await promise;
-    } finally {
-      after(event);
-    }
-  };
+      return Promise.resolve(promise)
+        .then(result => {
+          after(event);
+          return result;
+        })
+        .catch(err => {
+          after(event);
+          return Promise.reject(err);
+        });
+    };
+  } else {
+    // In Node 6 runtime, function called with single event param
+    cloudFunction = (raw: Event | LegacyEvent) => {
+      let data;
+      let context;
+
+      data = _.get(raw, 'data');
+      if (isEvent(raw)) {
+        // eventflow v1beta2 format
+        context = _.cloneDeep(raw.context);
+      } else {
+        // eventflow v1beta1 format
+        context = _.omit(raw, 'data');
+      }
+
+      if (legacyEventType && context.eventType === legacyEventType) {
+        // v1beta1 event flow has different format for context, transform them to new format.
+        context = _transformLegacyContext(context);
+      }
+      let event: Event = {
+        data,
+        context,
+      };
+      context = _makeAuthAndParams(context, event);
+
+      before(event);
+      let dataOrChange = dataConstructor(event);
+      let promise = handler(dataOrChange, context);
+      if (typeof promise === 'undefined') {
+        console.warn('Function returned undefined, expected Promise or value');
+      }
+      return Promise.resolve(promise)
+        .then(result => {
+          after(event);
+          return result;
+        })
+        .catch(err => {
+          after(event);
+          return Promise.reject(err);
+        });
+    };
+  }
+
   Object.defineProperty(cloudFunction, '__trigger', {
     get: () => {
       let trigger: any = _.assign(optsToTrigger(opts), {

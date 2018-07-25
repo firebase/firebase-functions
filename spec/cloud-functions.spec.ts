@@ -130,6 +130,7 @@ describe('makeCloudFunction', () => {
         return { data, context };
       },
     });
+    process.env.NEW_FUNCTION_SIGNATURE = 'true';
     let cf = makeCloudFunction(args);
     let testContext = {
       eventId: '00000',
@@ -141,6 +142,7 @@ describe('makeCloudFunction', () => {
       },
     };
     let testData = 'data';
+    delete process.env.NEW_FUNCTION_SIGNATURE;
 
     return expect(cf(testData, testContext)).to.eventually.deep.equal({
       data: 'data',
