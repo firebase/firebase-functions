@@ -1,0 +1,1 @@
+fixed - Fixed issue in Firestore-triggered functions where timestamp values in Change objects for onUpdate and onWrite functions are Date objects instead of Timestamp objects. 
