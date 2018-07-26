@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as admin from 'firebase-admin';
+
 import * as firestore from '../../src/providers/firestore';
 import * as _ from 'lodash';
 import { expect } from 'chai';
@@ -428,7 +430,9 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          timestampVal: new Date('2017-06-13T00:58:40.349Z'),
+          timestampVal: admin.firestore.Timestamp.fromDate(
+            new Date('2017-06-13T00:58:40.349Z')
+          ),
         });
       });
 
@@ -444,7 +448,9 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          timestampVal: new Date('2017-06-13T00:58:40Z'),
+          timestampVal: admin.firestore.Timestamp.fromDate(
+            new Date('2017-06-13T00:58:40Z')
+          ),
         });
       });
 
