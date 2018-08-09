@@ -72,5 +72,9 @@ export const databaseTests: any = functions.database
         expectEq((context as any).action, undefined)
       )
 
+      .it('should have admin authType', (change, context) => {
+        expectEq(context.authType, 'ADMIN');
+      })
+
       .run(ctx.params[testIdFieldName], ch, ctx);
   });
