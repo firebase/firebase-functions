@@ -1,0 +1,1 @@
+fixed - Fix bug in >v2.0.1 where `context.authType` is always `UNAUTHENTICATED` from a realtime database-triggered function.
