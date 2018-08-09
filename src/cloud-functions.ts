@@ -236,14 +236,10 @@ export function makeCloudFunction<EventData>({
   let cloudFunctionNewSignature: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       // v1beta1 event flow has different format for context, transform them to new format.
-      context = {
-        eventId: context.eventId,
-        timestamp: context.timestamp,
-        eventType: provider + '.' + eventType,
-        resource: {
-          service: service,
-          name: context.resource,
-        },
+      context.eventType = provider + '.' + eventType;
+      context.resource = {
+        service: service,
+        name: context.resource,
       };
     }
 
