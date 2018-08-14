@@ -1,0 +1,1 @@
+fixed - Fixed syntax error in integration test.
