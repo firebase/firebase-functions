@@ -57,7 +57,7 @@ if (!process.env.FIREBASE_CONFIG) {
     process.env.FIREBASE_CONFIG = JSON.stringify(cfg);
   } else if (process.env.GCLOUD_PROJECT) {
     console.warn(
-      'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Intializing firebase-admin may fail'
+      'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
     );
     process.env.FIREBASE_CONFIG = JSON.stringify({
       databaseURL: `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
