@@ -494,10 +494,6 @@ describe('Firestore Functions', () => {
       });
 
       it('should support #ref', () => {
-        expect(Object.keys(snapshot.ref)).to.deep.equal([
-          '_firestore',
-          '_referencePath',
-        ]);
         expect(snapshot.ref.path).to.equal('collection/123');
       });
 
