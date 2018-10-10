@@ -30,8 +30,9 @@ import * as database from './providers/database';
 import * as firestore from './providers/firestore';
 import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
+import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { HttpsFunction } from './cloud-functions';
+import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
 
 /**
  * Configure the regions that the function is deployed to.
@@ -209,6 +210,26 @@ export class FunctionBuilder {
        */
       event: (analyticsEventType: string) =>
         analytics._eventWithOpts(analyticsEventType, this.options),
+    };
+  }
+
+  get remoteConfig() {
+    return {
+      /**
+       * Handle all updates (including rollbacks) that affect a Remote Config
+       * project.
+       * @param handler A function that takes the updated Remote Config template
+       * version metadata as an argument.
+       */
+      onUpdate: (
+        handler: (
+          version: remoteConfig.TemplateVersion,
+          context: EventContext
+        ) => PromiseLike<any> | any
+      ) =>
+        remoteConfig._onUpdateWithOpts(handler, this.options) as CloudFunction<
+          remoteConfig.TemplateVersion
+        >,
     };
   }
 

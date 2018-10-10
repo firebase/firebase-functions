@@ -51,7 +51,7 @@ function delete_all_functions {
   cd $DIR
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing. 
-  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests --project=$PROJECT_ID -f || :
+  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --project=$PROJECT_ID -f || :
   announce "Project emptied."
 }
 

@@ -29,6 +29,7 @@ import * as database from './providers/database';
 import * as firestore from './providers/firestore';
 import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
+import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import { firebaseConfig } from './config';
 
@@ -40,6 +41,7 @@ export {
   firestore,
   https,
   pubsub,
+  remoteConfig,
   storage,
 };
 
