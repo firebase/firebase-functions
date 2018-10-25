@@ -1,1 +1,0 @@
-feature - Added support for Remote Config triggered functions with `functions.remoteConfig`.
