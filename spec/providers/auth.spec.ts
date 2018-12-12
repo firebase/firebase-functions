@@ -175,7 +175,34 @@ describe('Auth Functions', () => {
           lastSignInTime: null,
         },
       });
+
     });
+
+    it('will make lastSignInTime null if missing from metadata object (upon creation and no sign in yet)', () => {
+      const record = auth.userRecordConstructor({
+        metadata: {
+          creationTime: '2017-02-02T23:06:26.124Z',
+        }
+      });
+      expect(record.toJSON()).to.deep.equal({
+        email: null,
+        emailVerified: false,
+        displayName: null,
+        photoURL: null,
+        phoneNumber: null,
+        disabled: false,
+        providerData: [],
+        customClaims: {},
+        passwordSalt: null,
+        passwordHash: null,
+        tokensValidAfterTime: null,
+        metadata: {
+          creationTime: '2017-02-02T23:06:26.124Z',
+          lastSignInTime: null,
+        },
+      });
+    });
+
 
     it('will not interfere with fields that are in raw wire data', () => {
       const raw: any = {
