@@ -91,7 +91,7 @@ export const integrationTests: any = functions
       admin.credential
         .applicationDefault()
         .getAccessToken()
-        .then((accessToken) => {
+        .then(accessToken => {
           const options = {
             hostname: 'firebaseremoteconfig.googleapis.com',
             path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,

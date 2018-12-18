@@ -25,6 +25,7 @@ import { expect } from 'chai';
 import * as crashlytics from '../../src/providers/crashlytics';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
+import { Event } from '../../src/cloud-functions';
 
 describe('Crashlytics Functions', () => {
   describe('Issue Builder', () => {
@@ -90,6 +91,88 @@ describe('Crashlytics Functions', () => {
             resource: 'projects/project1',
             service: 'fabric.io',
           },
+        });
+      });
+    });
+
+    describe('HandlerBuilder', () => {
+      const testIssue = {
+        issueId: '1234',
+        issueTitle: 'testIssue',
+        appInfo: {
+          appName: 'My Awesome Test App',
+          appPlatform: 'ios',
+          appId: '9876',
+          latestAppVersion: '1.2.3.4',
+        },
+        createTime: '2018-12-18T23:05:55+00:00',
+      };
+
+      describe('#onNew', () => {
+        it('should return a CloudFunction with appropriate values', () => {
+          const cloudFunction = functions.handler.crashlytics
+            .issue()
+            .onNew(testIssue => {
+              return (
+                testIssue.issueId + testIssue.issueTitle + testIssue.createTime
+              );
+            });
+          expect(cloudFunction.__trigger).to.deep.equal({
+            eventTrigger: {
+              eventType: 'providers/firebase.crashlytics/eventTypes/issue.new',
+              resource: null,
+              service: 'fabric.io',
+            },
+          });
+          const expected =
+            testIssue.issueId + testIssue.issueTitle + testIssue.createTime;
+          expect(cloudFunction.run(testIssue, null)).to.equal(expected);
+        });
+      });
+
+      describe('#onRegressed', () => {
+        it('should return a CloudFunction with appropriate values', () => {
+          const cloudFunction = functions.handler.crashlytics
+            .issue()
+            .onRegressed(testIssue => {
+              return (
+                testIssue.issueId + testIssue.issueTitle + testIssue.createTime
+              );
+            });
+          expect(cloudFunction.__trigger).to.deep.equal({
+            eventTrigger: {
+              eventType:
+                'providers/firebase.crashlytics/eventTypes/issue.regressed',
+              resource: null,
+              service: 'fabric.io',
+            },
+          });
+          const expected =
+            testIssue.issueId + testIssue.issueTitle + testIssue.createTime;
+          expect(cloudFunction.run(testIssue, null)).to.equal(expected);
+        });
+      });
+
+      describe('#onVelocityAlert', () => {
+        it('should return a CloudFunction with appropriate values', () => {
+          const cloudFunction = functions.handler.crashlytics
+            .issue()
+            .onVelocityAlert(testIssue => {
+              return (
+                testIssue.issueId + testIssue.issueTitle + testIssue.createTime
+              );
+            });
+          expect(cloudFunction.__trigger).to.deep.equal({
+            eventTrigger: {
+              eventType:
+                'providers/firebase.crashlytics/eventTypes/issue.velocityAlert',
+              resource: null,
+              service: 'fabric.io',
+            },
+          });
+          const expected =
+            testIssue.issueId + testIssue.issueTitle + testIssue.createTime;
+          expect(cloudFunction.run(testIssue, null)).to.equal(expected);
         });
       });
     });
