@@ -25,7 +25,6 @@ import { expect } from 'chai';
 import * as crashlytics from '../../src/providers/crashlytics';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
-import { Event } from '../../src/cloud-functions';
 
 describe('Crashlytics Functions', () => {
   describe('Issue Builder', () => {
