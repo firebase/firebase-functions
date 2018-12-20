@@ -32,7 +32,7 @@ https://firebase.google.com/support/contact/bugs-features/. Select 'Functions' a
 -->
 
 
-### Version info
+### [REQUIRED] Version info
 
 <!-- What versions of the following libraries are you using? Note that your issue may already
 be fixed in the latest versions. -->
@@ -43,27 +43,27 @@ be fixed in the latest versions. -->
 
 **firebase-admin:**
 
-### Test case
+### [REQUIRED] Test case
 
 <!-- Provide a minimal, complete, and verifiable example (http://stackoverflow.com/help/mcve) -->
 
 
-### Steps to reproduce
+### [REQUIRED] Steps to reproduce
 
 <!-- Provide the steps needed to reproduce the issue given the above test case. -->
 
 
-### Were you able to successfully deploy your functions?
+### [REQUIRED] Were you able to successfully deploy your functions?
 
 <!-- When you ran `firebase deploy`, did you see any error messages? -->
 
 
-### Expected behavior
+### [REQUIRED] Expected behavior
 
 <!-- What is the expected behavior? -->
 
 
-### Actual behavior
+### [REQUIRED] Actual behavior
 
 <!-- Please copy and paste any error logs from https://console.firebase.google.com/project/_/functions/logs.
      If you're experiencing a deployment issue, please copy and paste the entirety of firebase-debug.log -->
