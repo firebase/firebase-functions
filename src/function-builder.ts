@@ -49,10 +49,13 @@ export function region(region: string) {
  * 1. `timeoutSeconds`: timeout for the function in seconds.
  * 2. `memory`: amount of memory to allocate to the function,
  *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * 3. `retry`: whether to retry the function on failure,
+ *    not compatible with http functions
  */
 export function runWith(runtimeOptions: {
   timeoutSeconds?: number;
   memory?: '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
+  retry?: boolean;
 }) {
   if (
     runtimeOptions.memory &&
@@ -72,6 +75,7 @@ export interface DeploymentOptions {
   regions?: string[];
   timeoutSeconds?: number;
   memory?: string;
+  retry?: boolean;
 }
 
 export class FunctionBuilder {
@@ -93,10 +97,13 @@ export class FunctionBuilder {
    * 1. timeoutSeconds: timeout for the function in seconds.
    * 2. memory: amount of memory to allocate to the function, possible values are:
    * '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * 3. retry: whether to retry the function on failure,
+   * not compatible with http functions
    */
   runWith = (runtimeOptions: {
     timeoutSeconds?: number;
     memory?: '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
+    retry?: boolean;
   }) => {
     if (
       runtimeOptions.memory &&

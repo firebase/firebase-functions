@@ -58,6 +58,43 @@ describe('makeCloudFunction', () => {
     });
   });
 
+  it('should put a __trigger that includes failurePolicy on the returned CloudFunction if opts.retry = true', () => {
+    let cf = makeCloudFunction({
+      provider: 'mock.provider',
+      eventType: 'mock.event',
+      service: 'service',
+      triggerResource: () => 'resource',
+      handler: () => null,
+      opts: { retry: true },
+    });
+    expect(cf.__trigger).to.deep.equal({
+      eventTrigger: {
+        eventType: 'mock.provider.mock.event',
+        resource: 'resource',
+        service: 'service',
+        failurePolicy: { retry: {} },
+      },
+    });
+  });
+
+  it('should put a __trigger that does not include failurePolicy on the returned CloudFunction if opts.retry = false', () => {
+    let cf = makeCloudFunction({
+      provider: 'mock.provider',
+      eventType: 'mock.event',
+      service: 'service',
+      triggerResource: () => 'resource',
+      handler: () => null,
+      opts: { retry: false },
+    });
+    expect(cf.__trigger).to.deep.equal({
+      eventTrigger: {
+        eventType: 'mock.provider.mock.event',
+        resource: 'resource',
+        service: 'service',
+      },
+    });
+  });
+
   it('should have legacy event type in __trigger if provided', () => {
     let cf = makeCloudFunction(cloudFunctionArgs);
     expect(cf.__trigger).to.deep.equal({

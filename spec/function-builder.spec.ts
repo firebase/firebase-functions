@@ -59,12 +59,14 @@ describe('FunctionBuilder', () => {
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
+        retry: true,
       })
       .auth.user()
       .onCreate(user => user);
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+    expect(fn.__trigger.eventTrigger.failurePolicy).to.deep.equal({ retry: {} });
   });
 
   it('should allow both region and runtime options to be set', () => {
@@ -73,6 +75,7 @@ describe('FunctionBuilder', () => {
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
+        retry: true,
       })
       .auth.user()
       .onCreate(user => user);
@@ -80,6 +83,7 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.regions).to.deep.equal(['my-region']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+    expect(fn.__trigger.eventTrigger.failurePolicy).to.deep.equal({ retry: {} });
   });
 
   it('should allow both region and runtime options to be set (reverse order)', () => {
@@ -87,6 +91,7 @@ describe('FunctionBuilder', () => {
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
+        retry: true,
       })
       .region('my-region')
       .auth.user()
@@ -95,6 +100,7 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.regions).to.deep.equal(['my-region']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+    expect(fn.__trigger.eventTrigger.failurePolicy).to.deep.equal({ retry: {} });
   });
 
   it('should throw an error if user chooses an unsupported memory allocation', () => {

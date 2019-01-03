@@ -168,6 +168,7 @@ export interface TriggerAnnotated {
     httpsTrigger?: {};
     eventTrigger?: {
       eventType: string;
+      failurePolicy?: object;
       resource: string;
       service: string;
     };
@@ -303,7 +304,9 @@ export function makeCloudFunction<EventData>({
           service,
         },
       });
-
+      if (opts.retry) {
+        trigger.eventTrigger.failurePolicy = { retry: {} };
+      }
       return trigger;
     },
   });
