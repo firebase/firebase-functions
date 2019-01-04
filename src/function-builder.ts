@@ -45,7 +45,7 @@ export function region(region: string) {
 
 /**
  * Configure runtime options for the function.
- * @param runtimeOptions Object with 2 optional fields:
+ * @param runtimeOptions Object with 3 optional fields:
  * 1. `timeoutSeconds`: timeout for the function in seconds.
  * 2. `memory`: amount of memory to allocate to the function,
  *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
@@ -93,7 +93,7 @@ export class FunctionBuilder {
 
   /**
    * Configure runtime options for the function.
-   * @param runtimeOptions Object with 2 optional fields:
+   * @param runtimeOptions Object with 3 optional fields:
    * 1. timeoutSeconds: timeout for the function in seconds.
    * 2. memory: amount of memory to allocate to the function, possible values are:
    * '128MB', '256MB', '512MB', '1GB', and '2GB'.
