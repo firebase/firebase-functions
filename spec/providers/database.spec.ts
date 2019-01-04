@@ -44,7 +44,7 @@ describe('Database Functions', () => {
 
     it('should allow both region and runtime options to be set', () => {
       let fn = functions
-        .region('my-region')
+        .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
           memory: '256MB',
@@ -52,7 +52,7 @@ describe('Database Functions', () => {
         .database.ref('/')
         .onCreate(snap => snap);
 
-      expect(fn.__trigger.regions).to.deep.equal(['my-region']);
+      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
     });
