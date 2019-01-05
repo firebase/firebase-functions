@@ -32,7 +32,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
+import { CloudFunction, EventContext } from './cloud-functions';
 
 /**
  * Configure the regions that the function is deployed to.
@@ -122,7 +122,7 @@ export class FunctionBuilder {
        */
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
-      ) => https._onRequestWithOpts(handler, this.options) as HttpsFunction,
+      ) => https._onRequestWithOpts(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
@@ -132,7 +132,7 @@ export class FunctionBuilder {
           data: any,
           context: https.CallableContext
         ) => any | Promise<any>
-      ) => https._onCallWithOpts(handler, this.options) as HttpsFunction,
+      ) => https._onCallWithOpts(handler, this.options),
     };
   }
 
