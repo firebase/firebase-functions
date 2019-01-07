@@ -164,7 +164,7 @@ export class HttpsError extends Error {
    */
   readonly details?: any;
 
-  constructor(code: FunctionsErrorCode, message?: string, details?: any) {
+  constructor(code: FunctionsErrorCode, message: string, details?: any) {
     super(message);
 
     // This is a workaround for a bug in TypeScript when extending Error:
