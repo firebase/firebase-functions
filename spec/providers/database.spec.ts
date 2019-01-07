@@ -245,6 +245,24 @@ describe('Database Functions', () => {
       expect(instance).to.equal('https://foo.firebaseio.com');
       expect(path).to.equal('/bar');
     });
+
+    it('should throw an error if the given instance name contains anything except alphanumerics and dashes', () => {
+      expect(() => {
+        return database.resourceToInstanceAndPath(
+          'projects/_/instances/a.bad.name/refs/bar'
+        );
+      }).to.throw(Error)
+      expect(() => {
+        return database.resourceToInstanceAndPath(
+          'projects/_/instances/a_different_bad_name/refs/bar'
+        );
+      }).to.throw(Error)
+      expect(() => {
+        return database.resourceToInstanceAndPath(
+          'projects/_/instances/BAD!!!!/refs/bar'
+        );
+      }).to.throw(Error)
+    });
   });
 
   describe('DataSnapshot', () => {
