@@ -37,7 +37,7 @@ import { CloudFunction, EventContext } from './cloud-functions';
 /**
  * Configure the regions that the function is deployed to.
  * @param regions One of more region strings.
- * For example: `functions.region('us-east1') or functions.region('us-east1', 'us-central1')`
+ * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
  */
 export function region(...regions: string[]) {
   if (!regions.length) {
@@ -101,7 +101,7 @@ export class FunctionBuilder {
   /**
    * Configure the regions that the function is deployed to.
    * @param regions One or more region strings.
-   * For example: `functions.region('us-east1')  or functions.region('us-east1', 'us-central1')`
+   * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
    */
   region = (...regions: string[]) => {
     this.options.regions = regions;
