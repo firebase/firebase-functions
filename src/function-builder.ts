@@ -36,23 +36,29 @@ import { CloudFunction, EventContext } from './cloud-functions';
 
 /**
  * Configure the regions that the function is deployed to.
- * @param region Region string.
- * For example: `functions.region('us-east1')`
+ * @param regions One of more region strings.
+ * For example: `functions.region('us-east1') or functions.region('us-east1', 'us-central1')`
  */
-export function region(region: string) {
-  if (
-    !_.includes(
-      ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1'],
-      region
-    )
-  ) {
+export function region(...regions: string[]) {
+  if (!regions.length) {
     throw new Error(
-      "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
+      "You must specify at least one region"
     );
   }
-  return new FunctionBuilder({ regions: [region] });
+  regions.forEach((region) => {
+    if (
+      !_.includes(
+        ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1'],
+        region
+      )
+    ) {
+      throw new Error(
+        "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
+      );
+    }
+  });
+  return new FunctionBuilder({ regions });
 }
-
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with 2 optional fields:
@@ -96,11 +102,11 @@ export class FunctionBuilder {
 
   /**
    * Configure the regions that the function is deployed to.
-   * @param region Region string.
-   * For example: `functions.region('us-east1')`
+   * @param regions One or more region strings.
+   * For example: `functions.region('us-east1')  or functions.region('us-east1', 'us-central1')`
    */
-  region = (region: string) => {
-    this.options.regions = [region];
+  region = (...regions: string[]) => {
+    this.options.regions = regions;
     return this;
   };
 
