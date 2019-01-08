@@ -1,1 +1,2 @@
 added - validation on instance name for realtime database triggers
+added - support for multiple regions on functions by passign extra region strings to functions.regions()
