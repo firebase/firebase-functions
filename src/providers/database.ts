@@ -240,7 +240,7 @@ export class RefBuilder {
 /* Utility function to extract database reference from resource string */
 /** @internal */
 export function resourceToInstanceAndPath(resource: string) {
-  let resourceRegex = `projects/([^/]+)/instances/([^/]+)/refs(/.+)?`;
+  let resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   let match = resource.match(new RegExp(resourceRegex));
   if (!match) {
     throw new Error(
