@@ -87,14 +87,14 @@ describe('RemoteConfig Functions', () => {
 
     it('should allow both region and runtime options to be set', () => {
       const cloudFunction = functions
-        .region('my-region')
+        .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
           memory: '256MB',
         })
         .remoteConfig.onUpdate(() => null);
 
-      expect(cloudFunction.__trigger.regions).to.deep.equal(['my-region']);
+      expect(cloudFunction.__trigger.regions).to.deep.equal(['us-east1']);
       expect(cloudFunction.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(cloudFunction.__trigger.timeout).to.deep.equal('90s');
     });

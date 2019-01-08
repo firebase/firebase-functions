@@ -40,13 +40,23 @@ import { CloudFunction, EventContext } from './cloud-functions';
  * For example: `functions.region('us-east1')`
  */
 export function region(region: string) {
+  if (
+    !_.includes(
+      ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1'],
+      region
+    )
+  ) {
+    throw new Error(
+      "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
+    );
+  }
   return new FunctionBuilder({ regions: [region] });
 }
 
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with 2 optional fields:
- * 1. `timeoutSeconds`: timeout for the function in seconds.
+ * 1. `timeoutSeconds`: timeout for the function in seconds, possible values are 0 to 540
  * 2. `memory`: amount of memory to allocate to the function,
  *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
  */
@@ -63,6 +73,13 @@ export function runWith(runtimeOptions: {
   ) {
     throw new Error(
       "The only valid memory allocation values are: '128MB', '256MB', '512MB', '1GB', and '2GB'"
+    );
+  }
+  if (
+    runtimeOptions.timeoutSeconds > 540 || runtimeOptions.timeoutSeconds < 0
+  ) {
+    throw new Error(
+      "TimeoutSeconds must be between 0 and 540" 
     );
   }
   return new FunctionBuilder(runtimeOptions);
@@ -90,7 +107,7 @@ export class FunctionBuilder {
   /**
    * Configure runtime options for the function.
    * @param runtimeOptions Object with 2 optional fields:
-   * 1. timeoutSeconds: timeout for the function in seconds.
+   * 1. timeoutSeconds: timeout for the function in seconds, possible values are 0 to 540
    * 2. memory: amount of memory to allocate to the function, possible values are:
    * '128MB', '256MB', '512MB', '1GB', and '2GB'.
    */
@@ -107,6 +124,13 @@ export class FunctionBuilder {
     ) {
       throw new Error(
         "The only valid memory allocation values are: '128MB', '256MB', '512MB', '1GB', and '2GB'"
+      );
+    }
+    if (
+      runtimeOptions.timeoutSeconds > 540 || runtimeOptions.timeoutSeconds < 0
+    ) {
+      throw new Error(
+        "TimeoutSeconds must be between 0 and 540" 
       );
     }
     this.options = _.assign(this.options, runtimeOptions);
