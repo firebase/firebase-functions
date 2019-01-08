@@ -45,18 +45,16 @@ export function region(...regions: string[]) {
       "You must specify at least one region"
     );
   }
-  regions.forEach((region) => {
-    if (
-      !_.includes(
-        ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1'],
-        region
-      )
-    ) {
-      throw new Error(
-        "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
-      );
-    }
-  });
+  if (
+    _.difference(
+      regions,
+      ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1']
+    ).length
+  ) {
+    throw new Error(
+      "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
+    );
+  }
   return new FunctionBuilder({ regions });
 }
 /**
