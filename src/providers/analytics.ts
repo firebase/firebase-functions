@@ -396,7 +396,7 @@ export class ExportBundleInfo {
 function copyFieldTo<T, K extends keyof T>(
   from: any,
   to: T,
-  fromField: string,
+  fromField: string | number | symbol,
   toField: K,
   transform: (val: any) => T[K] = _.identity
 ): void {
