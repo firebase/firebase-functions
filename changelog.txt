@@ -1,1 +1,1 @@
-+fixed - validation on instance name for realtime database triggers
+fixed - validation on instance name for realtime database triggers
