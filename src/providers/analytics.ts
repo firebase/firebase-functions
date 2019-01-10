@@ -396,7 +396,7 @@ export class ExportBundleInfo {
 function copyFieldTo<T, K extends keyof T>(
   from: any,
   to: T,
-  fromField: string | number | symbol,
+  fromField: string,
   toField: K,
   transform: (val: any) => T[K] = _.identity
 ): void {
@@ -411,7 +411,7 @@ function copyField<T, K extends keyof T>(
   field: K,
   transform: (val: any) => T[K] = _.identity
 ): void {
-  copyFieldTo(from, to, field, field, transform);
+  copyFieldTo(from, to, field as string, field, transform);
 }
 
 function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
