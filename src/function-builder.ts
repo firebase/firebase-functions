@@ -32,21 +32,35 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
+import { CloudFunction, EventContext, Runnable, TriggerAnnotated } from './cloud-functions';
 
 /**
  * Configure the regions that the function is deployed to.
- * @param region Region string.
- * For example: `functions.region('us-east1')`
+ * @param regions One of more region strings.
+ * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
  */
-export function region(region: string) {
-  return new FunctionBuilder({ regions: [region] });
+export function region(...regions: string[]) {
+  if (!regions.length) {
+    throw new Error(
+      "You must specify at least one region"
+    );
+  }
+  if (
+    _.difference(
+      regions,
+      ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1']
+    ).length
+  ) {
+    throw new Error(
+      "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
+    );
+  }
+  return new FunctionBuilder({ regions });
 }
-
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with 2 optional fields:
- * 1. `timeoutSeconds`: timeout for the function in seconds.
+ * 1. `timeoutSeconds`: timeout for the function in seconds, possible values are 0 to 540
  * 2. `memory`: amount of memory to allocate to the function,
  *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
  */
@@ -65,6 +79,13 @@ export function runWith(runtimeOptions: {
       "The only valid memory allocation values are: '128MB', '256MB', '512MB', '1GB', and '2GB'"
     );
   }
+  if (
+    runtimeOptions.timeoutSeconds > 540 || runtimeOptions.timeoutSeconds < 0
+  ) {
+    throw new Error(
+      "TimeoutSeconds must be between 0 and 540" 
+    );
+  }
   return new FunctionBuilder(runtimeOptions);
 }
 
@@ -79,18 +100,18 @@ export class FunctionBuilder {
 
   /**
    * Configure the regions that the function is deployed to.
-   * @param region Region string.
-   * For example: `functions.region('us-east1')`
+   * @param regions One or more region strings.
+   * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
    */
-  region = (region: string) => {
-    this.options.regions = [region];
+  region = (...regions: string[]) => {
+    this.options.regions = regions;
     return this;
   };
 
   /**
    * Configure runtime options for the function.
    * @param runtimeOptions Object with 2 optional fields:
-   * 1. timeoutSeconds: timeout for the function in seconds.
+   * 1. timeoutSeconds: timeout for the function in seconds, possible values are 0 to 540
    * 2. memory: amount of memory to allocate to the function, possible values are:
    * '128MB', '256MB', '512MB', '1GB', and '2GB'.
    */
@@ -109,6 +130,13 @@ export class FunctionBuilder {
         "The only valid memory allocation values are: '128MB', '256MB', '512MB', '1GB', and '2GB'"
       );
     }
+    if (
+      runtimeOptions.timeoutSeconds > 540 || runtimeOptions.timeoutSeconds < 0
+    ) {
+      throw new Error(
+        "TimeoutSeconds must be between 0 and 540" 
+      );
+    }
     this.options = _.assign(this.options, runtimeOptions);
     return this;
   };
@@ -122,7 +150,7 @@ export class FunctionBuilder {
        */
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
-      ) => https._onRequestWithOpts(handler, this.options) as HttpsFunction,
+      ) => https._onRequestWithOpts(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
@@ -132,7 +160,7 @@ export class FunctionBuilder {
           data: any,
           context: https.CallableContext
         ) => any | Promise<any>
-      ) => https._onCallWithOpts(handler, this.options) as HttpsFunction,
+      ) => https._onCallWithOpts(handler, this.options),
     };
   }
 
