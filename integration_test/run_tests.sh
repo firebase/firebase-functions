@@ -4,15 +4,25 @@
 set -e
 
 function usage {
-  echo "Usage: $0 <project_id>"
+  echo "Usage: $0 <project_id_node_6> <project_id_node_8>"
   exit 1
 }
 
+# This script takes 1 or 2 params, both of which are Firebase project ids.
+# If there is only one given, that project will be used for both node6 and node8
+# Otherwise, param1 will be used for node6
+# and param2 will be used for node8
 # The first parameter is required and is the Firebase project id.
 if [[ $1 == "" ]]; then
   usage
 fi
-PROJECT_ID=$1
+if [[ $2 == "" ]]; then
+  PROJECT_ID_NODE_6=$1
+  PROJECT_ID_NODE_8=$1
+else
+  PROJECT_ID_NODE_6=$1
+  PROJECT_ID_NODE_8=$2
+fi
 
 # Directory where this script lives.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -31,11 +41,13 @@ function build_sdk {
 
 function pick_node6 {
   cd $DIR
+  PROJECT_ID=$PROJECT_ID_NODE_6
   cp package.node6.json functions/package.json
 }
 
 function pick_node8 {
   cd $DIR
+  PROJECT_ID=$PROJECT_ID_NODE_8
   cp package.node8.json functions/package.json
 }
 
@@ -51,7 +63,8 @@ function delete_all_functions {
   cd $DIR
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing. 
-  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --project=$PROJECT_ID -f || :
+  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID_NODE_6 || :
+  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID_NODE_8 || :
   announce "Project emptied."
 }
 
@@ -60,6 +73,14 @@ function deploy {
   ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore
   firebase deploy --project=$PROJECT_ID --only functions,database,firestore
+}
+
+# At the moment, functions take 30-40 seconds AFTER firebase dpeloy return successfully to go live
+# This needs to be fixed separately
+# However, so that we have workign integration tests in the interim, waitForPropagation is a workaround
+function waitForPropagation {
+  announce "Waiting 50 seconds for functions changes to propagate"
+  sleep 50
 }
 
 function run_tests {
@@ -91,12 +112,15 @@ build_sdk
 pick_node8
 install_deps
 delete_all_functions
+waitForPropagation
 announce "Deploying functions to Node 8 runtime ..."
 deploy
+waitForPropagation
 run_tests
 pick_node6
 announce "Re-deploying the same functions to Node 6 runtime ..."
 deploy
+waitForPropagation
 run_tests
 cleanup
 announce "All tests pass!"
