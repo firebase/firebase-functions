@@ -6,7 +6,8 @@ labels: ''
 assignees: ''
 
 ---
-### Related issue
+### Related issues
+
 <!-- Are there any related firebase-functions issues that you found on this topic before deciding to open a new issue? Please link them here-->
 
 ### [REQUIRED] Version info
