@@ -63,8 +63,11 @@ function delete_all_functions {
   cd $DIR
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing. 
-  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID_NODE_6 || :
-  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID_NODE_8 || :
+  firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID_NODE_6 || : &
+  if ! [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
+    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID_NODE_8 || : &
+  fi
+  wait
   announce "Project emptied."
 }
 
@@ -81,6 +84,26 @@ function deploy {
 function waitForPropagation {
   announce "Waiting 50 seconds for functions changes to propagate"
   sleep 50
+}
+
+function run_all_tests {
+  announce "Running the integration tests..."
+
+  # Constructs the URLs for both test functions. This may change in the future,
+  # causing this script to start failing, but currently we don't have a very
+  # reliable way of determining the URL dynamically.
+  TEST_DOMAIN="cloudfunctions.net"
+  if [[ $FIREBASE_FUNCTIONS_URL == "https://preprod-cloudfunctions.sandbox.googleapis.com" ]]; then
+    TEST_DOMAIN="txcloud.net"
+  fi
+  TEST_URL_NODE_6="https://us-central1-$PROJECT_ID_NODE_6.$TEST_DOMAIN/integrationTests"
+  TEST_URL_NODE_8="https://us-central1-$PROJECT_ID_NODE_8.$TEST_DOMAIN/integrationTests"
+  echo $TEST_URL_NODE_6
+  echo $TEST_URL_NODE_8
+  curl --fail $TEST_URL_NODE_6 & NODE6PID=$!
+  curl --fail $TEST_URL_NODE_8 & NODE8PID=$!
+  wait $NODE6PID && echo 'node 6 passed' || (announce 'Node 6 tests failed'; cleanup; announce 'Tests failed'; exit 1)
+  wait $NODE8PID && echo 'node 8 passed' || (announce 'Node 8 tests failed'; cleanup; announce 'Tests failed'; exit 1)
 }
 
 function run_tests {
@@ -108,19 +131,32 @@ function cleanup {
   rm -rf $DIR/functions/node_modules/firebase-functions
 }
 
-build_sdk
-pick_node8
-install_deps
-delete_all_functions
-waitForPropagation
-announce "Deploying functions to Node 8 runtime ..."
-deploy
-waitForPropagation
-run_tests
-pick_node6
-announce "Re-deploying the same functions to Node 6 runtime ..."
-deploy
-waitForPropagation
-run_tests
+if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then 
+  build_sdk
+  pick_node8
+  install_deps
+  delete_all_functions
+  announce "Deploying functions to Node 8 runtime ..."
+  deploy
+  waitForPropagation
+  run_tests
+  pick_node6
+  announce "Re-deploying the same functions to Node 6 runtime ..."
+  deploy
+  waitForPropagation
+  run_tests
+else 
+  build_sdk
+  pick_node8
+  install_deps
+  delete_all_functions
+  announce "Deploying functions to Node 8 runtime ..."
+  deploy
+  pick_node6
+  announce "Re-deploying the same functions to Node 6 runtime ..."
+  deploy
+  waitForPropagation
+  run_all_tests
+fi
 cleanup
 announce "All tests pass!"
