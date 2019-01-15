@@ -75,12 +75,14 @@ function deploy {
   cd $DIR
   ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore
-  firebase deploy --project=$PROJECT_ID --only functions,database,firestore
+  firebase deploy --project=$PROJECT_ID --only functions,database,firestore || \
+  firebase deploy --project=$PROJECT_ID --only functions,database,firestore || \
+  firebase deploy --project=$PROJECT_ID --only functions,database,firestore ## TODO: try using $() and sed to parse echo to find the printed deploy the rest text
 }
 
-# At the moment, functions take 30-40 seconds AFTER firebase dpeloy return successfully to go live
+# At the moment, functions take 30-40 seconds AFTER firebase deploy returns successfully to go live
 # This needs to be fixed separately
-# However, so that we have workign integration tests in the interim, waitForPropagation is a workaround
+# However, so that we have working integration tests in the interim, waitForPropagation is a workaround
 function waitForPropagation {
   announce "Waiting 50 seconds for functions changes to propagate"
   sleep 50
