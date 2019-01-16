@@ -1,7 +1,7 @@
 ---
 name: "\U0001F4A1 Feature Request"
 about: Have a feature you'd like to see in the functions SDK? Request it through our
-  support channel
+  support channel.
 title: ''
 labels: ''
 assignees: ''
