@@ -74,10 +74,8 @@ function delete_all_functions {
 function deploy {
   cd $DIR
   ./functions/node_modules/.bin/tsc -p functions/
-  # Deploy functions, and security rules for database and Firestore
-  firebase deploy --project=$PROJECT_ID --only functions,database,firestore || \
-  firebase deploy --project=$PROJECT_ID --only functions,database,firestore || \
-for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --only functions,database,firestore && break; done
+  # Deploy functions, and security rules for database and Firestore. If the deploy fails, retry twice
+  for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --only functions,database,firestore && break; done
 }
 
 # At the moment, functions take 30-40 seconds AFTER firebase deploy returns successfully to go live
@@ -133,31 +131,23 @@ function cleanup {
   rm -rf $DIR/functions/node_modules/firebase-functions
 }
 
-if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then 
-  build_sdk
-  pick_node8
-  install_deps
-  delete_all_functions
-  announce "Deploying functions to Node 8 runtime ..."
-  deploy
+build_sdk
+pick_node8
+install_deps
+delete_all_functions
+announce "Deploying functions to Node 8 runtime ..."
+deploy
+if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
   waitForPropagation
   run_tests
-  pick_node6
-  announce "Re-deploying the same functions to Node 6 runtime ..."
-  deploy
-  waitForPropagation
+fi
+pick_node6
+announce "Re-deploying the same functions to Node 6 runtime ..."
+deploy
+waitForPropagation
+if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
   run_tests
-else 
-  build_sdk
-  pick_node8
-  install_deps
-  delete_all_functions
-  announce "Deploying functions to Node 8 runtime ..."
-  deploy
-  pick_node6
-  announce "Re-deploying the same functions to Node 6 runtime ..."
-  deploy
-  waitForPropagation
+else
   run_all_tests
 fi
 cleanup
