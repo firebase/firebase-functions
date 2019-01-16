@@ -77,7 +77,7 @@ function deploy {
   # Deploy functions, and security rules for database and Firestore
   firebase deploy --project=$PROJECT_ID --only functions,database,firestore || \
   firebase deploy --project=$PROJECT_ID --only functions,database,firestore || \
-  firebase deploy --project=$PROJECT_ID --only functions,database,firestore ## TODO: try using $() and sed to parse echo to find the printed deploy the rest text
+for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --only functions,database,firestore && break; done
 }
 
 # At the moment, functions take 30-40 seconds AFTER firebase deploy returns successfully to go live
