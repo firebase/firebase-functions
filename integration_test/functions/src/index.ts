@@ -148,7 +148,7 @@ export const integrationTests: any = functions
       })
       .then(() => {
         console.log('All tests pass!');
-        resp.status(200).send('PASS');
+        resp.status(200).send('PASS \n');
       })
       .catch(err => {
         console.log(`Some tests failed: ${err}`);
