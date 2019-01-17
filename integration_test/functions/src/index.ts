@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as https from 'https';
 import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
+import * as fs from 'fs'
 
 import * as PubSub from '@google-cloud/pubsub';
 const pubsub = PubSub();
@@ -12,6 +13,7 @@ export * from './auth-tests';
 export * from './firestore-tests';
 export * from './https-tests';
 export * from './remoteConfig-tests';
+export * from './storage-tests';
 const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
 
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
@@ -57,7 +59,7 @@ export const integrationTests: any = functions
       .ref()
       .push().key;
     console.log('testId is: ', testId);
-
+    fs.writeFile('/tmp/' + testId + '.txt', 'test', ()=> {});
     return Promise.all([
       // A database write to trigger the Firebase Realtime Database tests.
       admin
@@ -107,6 +109,8 @@ export const integrationTests: any = functions
           request.write(JSON.stringify({ version: { description: testId } }));
           request.end();
         }),
+      // A storage upload to trigger the Storage tests
+      admin.storage().bucket().upload('/tmp/' + testId + '.txt'),
       // Invoke a callable HTTPS trigger.
       callHttpsTrigger('callableTests', { foo: 'bar', testId }),
     ])
