@@ -7,6 +7,10 @@ labels: ''
 assignees: ''
 
 ---
+<!-- DO NOT DELETE 
+validate_template=false
+template_path=.github/ISSUE_TEMPLATE/---feature-request.md
+-->
 
 <!--
 Thank you for contributing to the Firebase community!
