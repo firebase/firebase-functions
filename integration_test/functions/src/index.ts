@@ -13,7 +13,7 @@ export * from './auth-tests';
 export * from './firestore-tests';
 export * from './https-tests';
 export * from './remoteConfig-tests';
-export * from './storage-tests';
+// export * from './storage-tests';
 const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
 
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
