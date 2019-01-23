@@ -13,3 +13,5 @@ node_modules
 npm-debug.log
 typings
 yarn.lock
+**/*.js.map
+**/*.js
