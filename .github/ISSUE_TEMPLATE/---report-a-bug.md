@@ -6,6 +6,11 @@ labels: ''
 assignees: ''
 
 ---
+<!-- DO NOT DELETE 
+validate_template=true
+template_path=.github/ISSUE_TEMPLATE/---report-a-bug.md
+-->
+
 ### Related issues
 
 <!-- Are there any related firebase-functions issues that you found on this topic before deciding to open a new issue? Please link them here-->
