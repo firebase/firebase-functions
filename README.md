@@ -8,6 +8,19 @@ Cloud Functions is a hosted, private, and scalable Node.js environment where you
 
 Learn more about the Firebase SDK for Cloud Functions in the [Firebase documentation](https://firebase.google.com/docs/functions/) or [check out our samples](https://github.com/firebase/functions-samples).
 
+### Have a usage question?
+We get lots of those and we love helping you, but GitHub issues is not the best place for them and they
+will be closed. Here are some resources to get help:
+
+- Start with the quickstart: https://firebase.google.com/docs/functions/write-firebase-functions
+- Go through the guide: https://firebase.google.com/docs/functions/
+- Read the full API reference: https://firebase.google.com/docs/reference/functions/
+- Browse some examples: https://github.com/firebase/functions-samples
+
+If the official documentation doesn't help, try asking through our official support channels: https://firebase.google.com/support/
+
+*Please avoid double posting across multiple channels!*
+
 ## Migrating to v1
 
 To migrate from a beta version of firebase-functions to v1, please refer to the [migration guide](https://firebase.google.com/docs/functions/beta-v1-diff).
