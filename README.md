@@ -8,9 +8,7 @@ Cloud Functions is a hosted, private, and scalable Node.js environment where you
 
 Learn more about the Firebase SDK for Cloud Functions in the [Firebase documentation](https://firebase.google.com/docs/functions/) or [check out our samples](https://github.com/firebase/functions-samples).
 
-### Have a usage question?
-We get lots of those and we love helping you, but GitHub issues is not the best place for them and they
-will be closed. Here are some resources to get help:
+Here are some resources to get help:
 
 - Start with the quickstart: https://firebase.google.com/docs/functions/write-firebase-functions
 - Go through the guide: https://firebase.google.com/docs/functions/
