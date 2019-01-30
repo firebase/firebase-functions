@@ -48,10 +48,7 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate(user => user);
 
-    expect(fn.__trigger.regions).to.deep.equal([
-      'us-east1',
-      'us-central1',
-    ]);
+    expect(fn.__trigger.regions).to.deep.equal(['us-east1', 'us-central1']);
   });
 
   it('should allow runtime options to be set', () => {
@@ -158,5 +155,4 @@ describe('FunctionBuilder', () => {
       } as any);
     }).to.throw(Error);
   });
-  
 });

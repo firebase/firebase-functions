@@ -2,7 +2,7 @@ import * as functions from 'firebase-functions';
 import * as https from 'https';
 import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
-import * as fs from 'fs'
+import * as fs from 'fs';
 
 import * as PubSub from '@google-cloud/pubsub';
 const pubsub = PubSub();
@@ -58,7 +58,7 @@ export const integrationTests: any = functions
       .ref()
       .push().key;
     console.log('testId is: ', testId);
-    fs.writeFile('/tmp/' + testId + '.txt', 'test', ()=> {});
+    fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {});
     return Promise.all([
       // A database write to trigger the Firebase Realtime Database tests.
       admin
@@ -92,7 +92,7 @@ export const integrationTests: any = functions
       admin.credential
         .applicationDefault()
         .getAccessToken()
-        .then((accessToken) => {
+        .then(accessToken => {
           const options = {
             hostname: 'firebaseremoteconfig.googleapis.com',
             path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
@@ -109,7 +109,10 @@ export const integrationTests: any = functions
           request.end();
         }),
       // A storage upload to trigger the Storage tests
-      admin.storage().bucket().upload('/tmp/' + testId + '.txt'),
+      admin
+        .storage()
+        .bucket()
+        .upload('/tmp/' + testId + '.txt'),
       // Invoke a callable HTTPS trigger.
       callHttpsTrigger('callableTests', { foo: 'bar', testId }),
     ])
