@@ -7,7 +7,8 @@ export const storageTests: any = functions
   .runWith({
     timeoutSeconds: 540,
   })
-  .storage.bucket().object()
+  .storage.bucket()
+  .object()
   .onFinalize((s, c) => {
     const testId = s.name.split('.')[0];
     return new TestSuite<ObjectMetadata>('storage object finalize')

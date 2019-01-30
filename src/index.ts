@@ -62,8 +62,12 @@ if (!process.env.FIREBASE_CONFIG) {
       'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
     );
     process.env.FIREBASE_CONFIG = JSON.stringify({
-      databaseURL: `${process.env.DATABASE_URL}` || `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
-      storageBucket: `${process.env.STORAGE_BUCKET_URL}` || `${process.env.GCLOUD_PROJECT}.appspot.com`,
+      databaseURL:
+        `${process.env.DATABASE_URL}` ||
+        `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
+      storageBucket:
+        `${process.env.STORAGE_BUCKET_URL}` ||
+        `${process.env.GCLOUD_PROJECT}.appspot.com`,
       projectId: process.env.GCLOUD_PROJECT,
     });
   } else {

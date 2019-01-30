@@ -251,17 +251,17 @@ describe('Database Functions', () => {
         return database.resourceToInstanceAndPath(
           'projects/_/instances/a.bad.name/refs/bar'
         );
-      }).to.throw(Error)
+      }).to.throw(Error);
       expect(() => {
         return database.resourceToInstanceAndPath(
           'projects/_/instances/a_different_bad_name/refs/bar'
         );
-      }).to.throw(Error)
+      }).to.throw(Error);
       expect(() => {
         return database.resourceToInstanceAndPath(
           'projects/_/instances/BAD!!!!/refs/bar'
         );
-      }).to.throw(Error)
+      }).to.throw(Error);
     });
   });
 
