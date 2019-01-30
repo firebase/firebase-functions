@@ -19,7 +19,6 @@ const numTests = Object.keys(exports).length; // Assumption: every exported func
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
-admin.firestore().settings({ timestampsInSnapshots: true });
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any) {
