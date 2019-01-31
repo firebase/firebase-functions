@@ -1,2 +1,0 @@
-feature - support for multiple regions on functions by passing extra region strings to functions.region()
-fixed - validation and typing improvements
