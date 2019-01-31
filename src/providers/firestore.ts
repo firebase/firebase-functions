@@ -145,7 +145,6 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
-    firestoreInstance.settings({ timestampsInSnapshots: true });
   }
   let valueProto = _getValueProto(
     event.data,
@@ -161,7 +160,6 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
 export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
-    firestoreInstance.settings({ timestampsInSnapshots: true });
   }
   let oldValueProto = _getValueProto(
     event.data,
