@@ -24,7 +24,6 @@ import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { firebaseConfig } from './config';
 
-/** @internal */
 export function apps(): apps.Apps {
   if (typeof apps.singleton === 'undefined') {
     apps.init();
