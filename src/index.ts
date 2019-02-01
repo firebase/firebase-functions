@@ -24,7 +24,7 @@
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 
-import * as app from './apps';
+import * as apps from './apps';
 import * as crashlytics from './providers/crashlytics';
 import * as database from './providers/database';
 import * as firestore from './providers/firestore';
@@ -33,6 +33,7 @@ import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import { firebaseConfig } from './config';
+var app = apps.apps();
 
 export {
   analytics,
