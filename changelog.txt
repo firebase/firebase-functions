@@ -1,0 +1,1 @@
+fixed - improved types of the `Change` class to describe both `before` and `after` fields as non-optional
