@@ -90,7 +90,7 @@ export interface EventContext {
  * to the event, "after" represents the state after the event.
  */
 export class Change<T> {
-  constructor(public before?: T, public after?: T) {}
+  constructor(public before: T, public after: T) {}
 }
 
 /** ChangeJson is the JSON format used to construct a Change object. */
