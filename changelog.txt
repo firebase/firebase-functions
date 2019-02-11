@@ -1,0 +1,1 @@
+feature - Adds functions.app() api to access the app instance used by functions
