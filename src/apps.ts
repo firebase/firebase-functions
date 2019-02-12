@@ -31,7 +31,6 @@ export function apps(): apps.Apps {
   return apps.singleton;
 }
 
-/** @internal */
 export namespace apps {
   /** @internal */
   export const garbageCollectionInterval = 2 * 60 * 1000;
@@ -57,7 +56,6 @@ export namespace apps {
     [appName: string]: number;
   }
 
-  /** @internal */
   export class Apps {
     private _refCounter: RefCounter;
 
