@@ -21,12 +21,12 @@ const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
-function callHttpsTrigger(name: string, data: any) {
+function callHttpsTrigger(name: string, data: any, baseUrl) {
   return new Promise((resolve, reject) => {
     const request = https.request(
       {
         method: 'POST',
-        host: 'us-central1-' + firebaseConfig.projectId + '.' + functions.config().test.test_domain,
+        host: 'us-central1-' + firebaseConfig.projectId + '.' + baseUrl,
         path: '/' + name,
         headers: {
           'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ export const integrationTests: any = functions
     timeoutSeconds: 540,
   })
   .https.onRequest((req: Request, resp: Response) => {
-    console.log(req.hostname);
+    const baseUrl = req.hostname.split('.').slice(1).join('.');
     let pubsub: any = require('@google-cloud/pubsub')();
     const testId = admin
       .database()
@@ -88,7 +88,7 @@ export const integrationTests: any = functions
         .collection('tests')
         .doc(testId)
         .set({ test: testId }),
-      callHttpsTrigger('callableTests', { foo: 'bar', testId }),
+      callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
       // A Remote Config update to trigger the Remote Config tests.
       // admin.credential
       //   .applicationDefault()
