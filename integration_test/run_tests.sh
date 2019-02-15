@@ -131,17 +131,11 @@ function cleanup {
   rm -rf $DIR/functions/node_modules/firebase-functions
 }
 
-function setConfig {
-  firebase functions:config:set test.test_domain=$TEST_URL --project $PROJECT_ID_NODE_6
-  firebase functions:config:set test.test_domain=$TEST_URL --project $PROJECT_ID_NODE_8
-}
-
 build_sdk
 pick_node8
 install_deps
 delete_all_functions
 announce "Deploying functions to Node 8 runtime ..."
-setConfig
 deploy
 if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
   waitForPropagation
