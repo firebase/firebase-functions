@@ -88,33 +88,33 @@ export const integrationTests: any = functions
         .collection('tests')
         .doc(testId)
         .set({ test: testId }),
+      callHttpsTrigger('callableTests', { foo: 'bar', testId }),
       // A Remote Config update to trigger the Remote Config tests.
-      admin.credential
-        .applicationDefault()
-        .getAccessToken()
-        .then(accessToken => {
-          const options = {
-            hostname: 'firebaseremoteconfig.googleapis.com',
-            path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-            method: 'PUT',
-            headers: {
-              Authorization: 'Bearer ' + accessToken.access_token,
-              'Content-Type': 'application/json; UTF-8',
-              'Accept-Encoding': 'gzip',
-              'If-Match': '*',
-            },
-          };
-          const request = https.request(options, resp => {});
-          request.write(JSON.stringify({ version: { description: testId } }));
-          request.end();
-        }),
+      // admin.credential
+      //   .applicationDefault()
+      //   .getAccessToken()
+      //   .then(accessToken => {
+      //     const options = {
+      //       hostname: 'firebaseremoteconfig.googleapis.com',
+      //       path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
+      //       method: 'PUT',
+      //       headers: {
+      //         Authorization: 'Bearer ' + accessToken.access_token,
+      //         'Content-Type': 'application/json; UTF-8',
+      //         'Accept-Encoding': 'gzip',
+      //         'If-Match': '*',
+      //       },
+      //     };
+      //     const request = https.request(options, resp => {});
+      //     request.write(JSON.stringify({ version: { description: testId } }));
+      //     request.end();
+      //   }),
       // A storage upload to trigger the Storage tests
       admin
         .storage()
         .bucket()
         .upload('/tmp/' + testId + '.txt'),
       // Invoke a callable HTTPS trigger.
-      callHttpsTrigger('callableTests', { foo: 'bar', testId }),
     ])
       .then(() => {
         // On test completion, check that all tests pass and reply "PASS", or provide further details.
