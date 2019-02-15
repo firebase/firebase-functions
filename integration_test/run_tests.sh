@@ -132,7 +132,9 @@ function cleanup {
 }
 
 function setConfig {
+  firebase functions:config:get
   firebase functions:config:set test.test_domain=$TEST_URL
+  firebase functions:config:get
 }
 
 build_sdk
@@ -140,7 +142,7 @@ pick_node8
 install_deps
 delete_all_functions
 announce "Deploying functions to Node 8 runtime ..."
-# setConfig
+setConfig
 deploy
 if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
   waitForPropagation
@@ -148,7 +150,7 @@ if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
 fi
 pick_node6
 announce "Re-deploying the same functions to Node 6 runtime ..."
-# setConfig
+setConfig
 deploy
 waitForPropagation
 if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
