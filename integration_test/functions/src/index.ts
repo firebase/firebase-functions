@@ -26,7 +26,7 @@ function callHttpsTrigger(name: string, data: any) {
     const request = https.request(
       {
         method: 'POST',
-        host: 'us-central1-' + firebaseConfig.projectId + '.' + firebaseConfig.baseUrl,
+        host: 'us-central1-' + firebaseConfig.projectId + '.' + firebaseConfig.test.test_domain,
         path: '/' + name,
         headers: {
           'Content-Type': 'application/json',
