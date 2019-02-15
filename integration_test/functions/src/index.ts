@@ -51,6 +51,8 @@ export const integrationTests: any = functions
     timeoutSeconds: 540,
   })
   .https.onRequest((req: Request, resp: Response) => {
+    // We take the base url for our https call (cloudfunctions.net, txckloud.net, etc) from the request
+    // so that it changes with the environment that the tests are run in
     const baseUrl = req.hostname.split('.').slice(1).join('.');
     let pubsub: any = require('@google-cloud/pubsub')();
     const testId = admin
