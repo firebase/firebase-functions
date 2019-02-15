@@ -132,8 +132,8 @@ function cleanup {
 }
 
 function setConfig {
-  firebase functions:config:get
-  firebase functions:config:set test.test_domain=$TEST_URL
+  firebase functions:config:set test.test_domain=$TEST_URL --project $PROJECT_ID_NODE_6
+  firebase functions:config:set test.test_domain=$TEST_URL --project $PROJECT_ID_NODE_8
   firebase functions:config:get
 }
 
@@ -150,7 +150,6 @@ if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
 fi
 pick_node6
 announce "Re-deploying the same functions to Node 6 runtime ..."
-setConfig
 deploy
 waitForPropagation
 if [[ $PROJECT_ID_NODE_6 == $PROJECT_ID_NODE_8 ]]; then
