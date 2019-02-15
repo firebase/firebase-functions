@@ -51,6 +51,7 @@ export const integrationTests: any = functions
     timeoutSeconds: 540,
   })
   .https.onRequest((req: Request, resp: Response) => {
+    console.log(req.hostname);
     let pubsub: any = require('@google-cloud/pubsub')();
     const testId = admin
       .database()
