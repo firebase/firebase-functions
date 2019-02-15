@@ -52,7 +52,7 @@ export const integrationTests: any = functions
   })
   .https.onRequest((req: Request, resp: Response) => {
     let pubsub: any = require('@google-cloud/pubsub')();
-
+    console.log(firebaseConfig);
     const testId = admin
       .database()
       .ref()
