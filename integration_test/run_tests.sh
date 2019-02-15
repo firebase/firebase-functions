@@ -134,7 +134,6 @@ function cleanup {
 function setConfig {
   firebase functions:config:set test.test_domain=$TEST_URL --project $PROJECT_ID_NODE_6
   firebase functions:config:set test.test_domain=$TEST_URL --project $PROJECT_ID_NODE_8
-  firebase functions:config:get
 }
 
 build_sdk
