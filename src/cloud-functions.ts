@@ -61,7 +61,7 @@ export interface Event {
  * - The resource on which the event occurred, if applicable.
  * - Authorization of the request that triggered the event, if applicable and available.
  */
-export interface EventContext {
+export interface EventContext<T> {
   /** ID of the event */
   eventId: string;
   /** Timestamp for when the event occured (ISO string) */
@@ -71,7 +71,7 @@ export interface EventContext {
   /** Resource that triggered the event */
   resource: Resource;
   /** Key-value pairs that represent the values of wildcards in a database reference */
-  params: { [option: string]: any }; // added by SDK, but may be {}
+  params: T; // added by SDK, but may be {}
   /** Type of authentication for the triggering action, valid value are: 'ADMIN', 'USER',
    * 'UNAUTHENTICATED'. Only available for database functions.
    */
