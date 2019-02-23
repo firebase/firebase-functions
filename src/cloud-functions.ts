@@ -86,6 +86,31 @@ export interface EventContext {
   };
 }
 
+export interface EventContextGeneric<P> {
+  /** ID of the event */
+  eventId: string;
+  /** Timestamp for when the event occured (ISO string) */
+  timestamp: string;
+  /** Type of event */
+  eventType: string;
+  /** Resource that triggered the event */
+  resource: Resource;
+  /** Key-value pairs that represent the values of wildcards in a database reference */
+  params: P; // added by SDK, but may be {}
+  /** Type of authentication for the triggering action, valid value are: 'ADMIN', 'USER',
+   * 'UNAUTHENTICATED'. Only available for database functions.
+   */
+  authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
+  /** Firebase auth variable for the user whose action triggered the function. Field will be
+   * null for unauthenticated users, and will not exist for admin users. Only available
+   * for database functions.
+   */
+  auth?: {
+    uid: string;
+    token: object;
+  };
+}
+
 /** Change describes a change of state - "before" represents the state prior
  * to the event, "after" represents the state after the event.
  */

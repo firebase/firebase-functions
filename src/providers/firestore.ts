@@ -30,6 +30,7 @@ import {
   Change,
   Event,
   EventContext,
+  EventContextGeneric,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
 import { DeploymentOptions } from '../function-builder';
@@ -189,40 +190,40 @@ export class DocumentBuilder {
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite(
+  onWrite<P = { [option: string]: any }>(
     handler: (
       change: Change<DocumentSnapshot>,
-      context: EventContext
+      context: EventContext | EventContextGeneric<P>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
   }
 
   /** Respond only to document updates. */
-  onUpdate(
+  onUpdate<P = { [option: string]: any }>(
     handler: (
       change: Change<DocumentSnapshot>,
-      context: EventContext
+      context: EventContext | EventContextGeneric<P>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
   /** Respond only to document creations. */
-  onCreate(
+  onCreate<P = { [option: string]: any }>(
     handler: (
       snapshot: DocumentSnapshot,
-      context: EventContext
+      context: EventContext | EventContextGeneric<P>
     ) => PromiseLike<any> | any
   ): CloudFunction<DocumentSnapshot> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
-  onDelete(
+  onDelete<P = { [option: string]: any }>(
     handler: (
       snapshot: DocumentSnapshot,
-      context: EventContext
+      context: EventContext | EventContextGeneric<P>
     ) => PromiseLike<any> | any
   ): CloudFunction<DocumentSnapshot> {
     return this.onOperation(
@@ -232,8 +233,8 @@ export class DocumentBuilder {
     );
   }
 
-  private onOperation<T>(
-    handler: (data: T, context: EventContext) => PromiseLike<any> | any,
+  private onOperation<T, P = { [option: string]: any }>(
+    handler: (data: T, context: EventContext | EventContextGeneric<P>) => PromiseLike<any> | any,
     eventType: string,
     dataConstructor: (raw: Event) => any
   ): CloudFunction<T> {
