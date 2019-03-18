@@ -29,8 +29,8 @@ import { HttpsFunction, optsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 
 /**
- * 
- * 
+ *
+ *
  */
 export interface Request extends express.Request {
   rawBody: Buffer;
