@@ -51,7 +51,7 @@
     "typescript": "~3.1.0"
   },
   "peerDependencies": {
-    "firebase-admin": "~7.0.0"
+    "firebase-admin": "^7.0.0"
   },
   "dependencies": {
     "@types/cors": "^2.8.1",
