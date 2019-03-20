@@ -33,6 +33,8 @@ import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import { firebaseConfig } from './config';
+import { handler } from './handler-builder';
+
 var app = apps.apps();
 
 export {
@@ -42,6 +44,7 @@ export {
   crashlytics,
   database,
   firestore,
+  handler,
   https,
   pubsub,
   remoteConfig,

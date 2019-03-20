@@ -56,6 +56,42 @@ describe('Firestore Functions', () => {
     };
   }
 
+  function constructEvent(oldValue: object, value: object, eventType: string) {
+    return {
+      data: {
+        oldValue: oldValue,
+        value: value,
+      },
+      context: {
+        resource: {
+          name: 'resource',
+        },
+      },
+    };
+  }
+
+  function createOldValue() {
+    return constructValue({
+      key1: {
+        booleanValue: false,
+      },
+      key2: {
+        integerValue: '111',
+      },
+    });
+  }
+
+  function createValue() {
+    return constructValue({
+      key1: {
+        booleanValue: true,
+      },
+      key2: {
+        integerValue: '123',
+      },
+    });
+  }
+
   describe('document builders and event types', () => {
     function expectedTrigger(resource: string, eventType: string) {
       return {
@@ -186,46 +222,6 @@ describe('Firestore Functions', () => {
   });
 
   describe('dataConstructor', () => {
-    function constructEvent(
-      oldValue: object,
-      value: object,
-      eventType: string
-    ) {
-      return {
-        data: {
-          oldValue: oldValue,
-          value: value,
-        },
-        context: {
-          resource: {
-            name: 'resource',
-          },
-        },
-      };
-    }
-
-    function createOldValue() {
-      return constructValue({
-        key1: {
-          booleanValue: false,
-        },
-        key2: {
-          integerValue: '111',
-        },
-      });
-    }
-
-    function createValue() {
-      return constructValue({
-        key1: {
-          booleanValue: true,
-        },
-        key2: {
-          integerValue: '123',
-        },
-      });
-    }
-
     before(() => {
       process.env.GCLOUD_PROJECT = 'project1';
     });
@@ -283,6 +279,82 @@ describe('Firestore Functions', () => {
         return true; // otherwise will get warning about returning undefined
       });
       let data = constructEvent(createOldValue(), {}, 'document.delete');
+      return testFunction(data);
+    }).timeout(5000);
+  });
+
+  describe('handler namespace', () => {
+    before(() => {
+      process.env.GCLOUD_PROJECT = 'project1';
+    });
+
+    after(() => {
+      delete process.env.GCLOUD_PROJECT;
+    });
+
+    it('constructs correct data type and sets trigger to {} on "document.write" events', () => {
+      let testFunction = functions.handler.firestore.document.onWrite(
+        change => {
+          expect(change.before.data()).to.deep.equal({
+            key1: false,
+            key2: 111,
+          });
+          expect(change.before.get('key1')).to.equal(false);
+          expect(change.after.data()).to.deep.equal({ key1: true, key2: 123 });
+          expect(change.after.get('key1')).to.equal(true);
+          return true; // otherwise will get warning about returning undefined
+        }
+      );
+      expect(testFunction.__trigger).to.deep.equal({});
+      let data = constructEvent(
+        createOldValue(),
+        createValue(),
+        'document.write'
+      );
+      return testFunction(data);
+    }).timeout(5000);
+
+    it('constructs correct data type and sets trigger to {} on "document.create" events', () => {
+      let testFunction = functions.handler.firestore.document.onCreate(data => {
+        expect(data.data()).to.deep.equal({ key1: true, key2: 123 });
+        expect(data.get('key1')).to.equal(true);
+        return true; // otherwise will get warning about returning undefined
+      });
+      expect(testFunction.__trigger).to.deep.equal({});
+      let data = constructEvent({}, createValue(), 'document.create');
+      return testFunction(data);
+    }).timeout(5000);
+
+    it('constructs correct data type and sets trigger to {} on "document.update" events', () => {
+      let testFunction = functions.handler.firestore.document.onUpdate(
+        change => {
+          expect(change.before.data()).to.deep.equal({
+            key1: false,
+            key2: 111,
+          });
+          expect(change.before.get('key1')).to.equal(false);
+          expect(change.after.data()).to.deep.equal({ key1: true, key2: 123 });
+          expect(change.after.get('key1')).to.equal(true);
+          return true; // otherwise will get warning about returning undefined
+        }
+      );
+      expect(testFunction.__trigger).to.deep.equal({});
+      let data = constructEvent(
+        createOldValue(),
+        createValue(),
+        'document.update'
+      );
+      return testFunction(data);
+    }).timeout(5000);
+
+    it('constructs correct data type and sets trigger to {} on "document.delete" events', () => {
+      let testFunction = functions.handler.firestore.document.onDelete(data => {
+        expect(data.data()).to.deep.equal({ key1: false, key2: 111 });
+        expect(data.get('key1')).to.equal(false);
+        return true; // otherwise will get warning about returning undefined
+      });
+      let data = constructEvent(createOldValue(), {}, 'document.delete');
+      expect(testFunction.__trigger).to.deep.equal({});
       return testFunction(data);
     }).timeout(5000);
   });

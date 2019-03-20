@@ -249,6 +249,44 @@ describe('Analytics Functions', () => {
     });
   });
 
+  describe('handler namespace', () => {
+    describe('#onLog', () => {
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.analytics.event.onLog(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should handle an event with the appropriate fields', () => {
+        const cloudFunction = functions.handler.analytics.event.onLog(
+          (data: analytics.AnalyticsEvent) => data
+        );
+
+        // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
+        // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
+        let event: LegacyEvent = {
+          eventId: 'f2e2f0bf-2e47-4d92-b009-e7a375ecbd3e',
+          eventType: 'providers/google.firebase.analytics/eventTypes/event.log',
+          resource: 'projects/myUnitTestProject/events/first_open',
+          data: {
+            userDim: {
+              userId: 'hi!',
+            },
+          },
+        };
+
+        return expect(cloudFunction(event)).to.eventually.deep.equal({
+          params: {},
+          user: {
+            userId: 'hi!',
+            userProperties: {},
+          },
+        });
+      });
+    });
+  });
+
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => analytics.event('event').onLog(() => null)).to.not.throw(

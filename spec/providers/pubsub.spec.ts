@@ -131,6 +131,41 @@ describe('Pubsub Functions', () => {
     });
   });
 
+  describe('handler namespace', () => {
+    describe('#onPublish', () => {
+      it('should return an empty trigger', () => {
+        const result = functions.handler.pubsub.topic.onPublish(() => null);
+        expect(result.__trigger).to.deep.equal({});
+      });
+
+      it('should properly handle a new-style event', () => {
+        const raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
+        const event = {
+          data: {
+            data: raw,
+            attributes: {
+              foo: 'bar',
+            },
+          },
+        };
+
+        const result = functions.handler.pubsub.topic.onPublish(data => {
+          return {
+            raw: data.data,
+            json: data.json,
+            attributes: data.attributes,
+          };
+        });
+
+        return expect(result(event)).to.eventually.deep.equal({
+          raw,
+          json: { hello: 'world' },
+          attributes: { foo: 'bar' },
+        });
+      });
+    });
+  });
+
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => pubsub.topic('toppy').onPublish(() => null)).to.not.throw(

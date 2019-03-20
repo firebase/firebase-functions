@@ -56,6 +56,24 @@ describe('CloudHttpsBuilder', () => {
   });
 });
 
+describe('handler namespace', () => {
+  describe('#onRequest', () => {
+    it('should return an empty trigger', () => {
+      let result = functions.handler.https.onRequest((req, res) => {
+        res.send(200);
+      });
+      expect(result.__trigger).to.deep.equal({});
+    });
+  });
+
+  describe('#onCall', () => {
+    it('should return an empty trigger', () => {
+      let result = functions.handler.https.onCall(() => null);
+      expect(result.__trigger).to.deep.equal({});
+    });
+  });
+});
+
 /**
  * RunHandlerResult contains the data from an express.Response.
  */

@@ -93,6 +93,59 @@ describe('Crashlytics Functions', () => {
         });
       });
     });
+
+    describe('HandlerBuilder', () => {
+      const testIssue = {
+        issueId: '1234',
+        issueTitle: 'testIssue',
+        appInfo: {
+          appName: 'My Awesome Test App',
+          appPlatform: 'ios',
+          appId: '9876',
+          latestAppVersion: '1.2.3.4',
+        },
+        createTime: '2018-12-18T23:05:55+00:00',
+      };
+
+      describe('#onNew', () => {
+        it('should return a CloudFunction with appropriate values', () => {
+          const cloudFunction = functions.handler.crashlytics.issue.onNew(
+            testIssue => {
+              return (
+                testIssue.issueId + testIssue.issueTitle + testIssue.createTime
+              );
+            }
+          );
+          expect(cloudFunction.__trigger).to.deep.equal({});
+        });
+      });
+
+      describe('#onRegressed', () => {
+        it('should return a CloudFunction with appropriate values', () => {
+          const cloudFunction = functions.handler.crashlytics.issue.onRegressed(
+            testIssue => {
+              return (
+                testIssue.issueId + testIssue.issueTitle + testIssue.createTime
+              );
+            }
+          );
+          expect(cloudFunction.__trigger).to.deep.equal({});
+        });
+      });
+
+      describe('#onVelocityAlert', () => {
+        it('should return a CloudFunction with appropriate values', () => {
+          const cloudFunction = functions.handler.crashlytics.issue.onVelocityAlert(
+            testIssue => {
+              return (
+                testIssue.issueId + testIssue.issueTitle + testIssue.createTime
+              );
+            }
+          );
+          expect(cloudFunction.__trigger).to.deep.equal({});
+        });
+      });
+    });
   });
 
   describe('process.env.GCLOUD_PROJECT not set', () => {

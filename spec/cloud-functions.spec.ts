@@ -158,6 +158,39 @@ describe('makeCloudFunction', () => {
       },
     });
   });
+
+  it('should throw error when context.params accessed in handler environment', () => {
+    let args: any = _.assign({}, cloudFunctionArgs, {
+      handler: (data: any, context: EventContext) => context,
+      triggerResource: () => null,
+    });
+    let cf = makeCloudFunction(args);
+    let test: Event = {
+      context: {
+        eventId: '00000',
+        timestamp: '2016-11-04T21:29:03.496Z',
+        eventType: 'provider.event',
+        resource: {
+          service: 'provider',
+          name: 'resource',
+        },
+      },
+      data: 'test data',
+    };
+
+    return cf(test).then(result => {
+      expect(result).to.deep.equal({
+        eventId: '00000',
+        timestamp: '2016-11-04T21:29:03.496Z',
+        eventType: 'provider.event',
+        resource: {
+          service: 'provider',
+          name: 'resource',
+        },
+      });
+      expect(() => result.params).to.throw(Error);
+    });
+  });
 });
 
 describe('makeParams', () => {
