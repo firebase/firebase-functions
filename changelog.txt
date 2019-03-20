@@ -1,3 +1,0 @@
-feature - Adds functions.app() api to access the app instance used by functions
-fixed - improved types of the `Change` class to describe both `before` and `after` fields as non-optional
-fixed - Improve type of express.Request to include rawBody
