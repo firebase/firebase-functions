@@ -34,7 +34,6 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
 
-/** @internal */
 export class HandlerBuilder {
   constructor() {}
 
