@@ -57,17 +57,44 @@ export function _onUpdateWithOpts(
   ) => PromiseLike<any> | any,
   opts: DeploymentOptions
 ): CloudFunction<TemplateVersion> {
-  if (!process.env.GCLOUD_PROJECT) {
-    throw new Error('process.env.GCLOUD_PROJECT is not set.');
+  const triggerResource = () => {
+    if (!process.env.GCLOUD_PROJECT) {
+      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+    }
+    return `projects/${process.env.GCLOUD_PROJECT}`;
+  };
+  return new UpdateBuilder(triggerResource, opts).onUpdate(handler);
+}
+
+/** Builder used to create Cloud Functions for Remote Config. */
+export class UpdateBuilder {
+  /** @internal */
+  constructor(
+    private triggerResource: () => string,
+    private opts: DeploymentOptions
+  ) {}
+
+  /**
+   * Handle all updates (including rollbacks) that affect a Remote Config
+   * project.
+   * @param handler A function that takes the updated Remote Config template
+   * version metadata as an argument.
+   */
+  onUpdate(
+    handler: (
+      version: TemplateVersion,
+      context: EventContext
+    ) => PromiseLike<any> | any
+  ): CloudFunction<TemplateVersion> {
+    return makeCloudFunction({
+      handler,
+      provider,
+      service,
+      triggerResource: this.triggerResource,
+      eventType: 'update',
+      opts: this.opts,
+    });
   }
-  return makeCloudFunction({
-    handler,
-    provider,
-    service,
-    triggerResource: () => `projects/${process.env.GCLOUD_PROJECT}`,
-    eventType: 'update',
-    opts: opts,
-  });
 }
 
 /**

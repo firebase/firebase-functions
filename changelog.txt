@@ -1,2 +1,0 @@
-feature - support for multiple regions on functions by passing extra region strings to functions.regions()
-fixed - validation on instance name for realtime database triggers

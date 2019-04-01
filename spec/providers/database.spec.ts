@@ -218,6 +218,116 @@ describe('Database Functions', () => {
     });
   });
 
+  describe('handler namespace', () => {
+    describe('#onWrite()', () => {
+      it('correctly sets trigger to {}', () => {
+        let cf = functions.handler.database.ref.onWrite(() => null);
+        expect(cf.__trigger).to.deep.equal({});
+      });
+
+      it('should be able to use the instance entry point', () => {
+        let func = functions.handler.database.instance.ref.onWrite(() => null);
+        expect(func.__trigger).to.deep.equal({});
+      });
+
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = functions.handler.database.ref.onWrite(change => {
+          return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+        });
+
+        return handler({
+          data: {
+            data: null,
+            delta: { foo: 'bar' },
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.write',
+        });
+      });
+    });
+
+    describe('#onCreate()', () => {
+      it('correctly sets trigger to {}', () => {
+        let cf = functions.handler.database.ref.onCreate(() => null);
+        return expect(cf.__trigger).to.deep.equal({});
+      });
+
+      it('should be able to use the instance entry point', () => {
+        let func = functions.handler.database.instance.ref.onCreate(() => null);
+        expect(func.__trigger).to.deep.equal({});
+      });
+
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = functions.handler.database.ref.onCreate(data => {
+          return expect(data.val()).to.deep.equal({ foo: 'bar' });
+        });
+
+        return handler({
+          data: {
+            data: null,
+            delta: { foo: 'bar' },
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.create',
+        });
+      });
+    });
+
+    describe('#onUpdate()', () => {
+      it('correctly sets trigger to {}', () => {
+        let cf = functions.handler.database.ref.onUpdate(() => null);
+        return expect(cf.__trigger).to.deep.equal({});
+      });
+
+      it('should be able to use the instance entry point', () => {
+        let func = functions.handler.database.instance.ref.onUpdate(() => null);
+        expect(func.__trigger).to.deep.equal({});
+      });
+
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = functions.handler.database.ref.onUpdate(change => {
+          return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+        });
+
+        return handler({
+          data: {
+            data: null,
+            delta: { foo: 'bar' },
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.update',
+        });
+      });
+    });
+
+    describe('#onDelete()', () => {
+      it('correctly sets trigger to {}', () => {
+        let cf = functions.handler.database.ref.onDelete(() => null);
+        return expect(cf.__trigger).to.deep.equal({});
+      });
+
+      it('should be able to use the instance entry point', () => {
+        let func = functions.handler.database.instance.ref.onDelete(() => null);
+        expect(func.__trigger).to.deep.equal({});
+      });
+
+      it('should return a handler that emits events with a proper DataSnapshot', () => {
+        let handler = functions.handler.database.ref.onDelete(data => {
+          return expect(data.val()).to.deep.equal({ foo: 'bar' });
+        });
+
+        return handler({
+          data: {
+            data: { foo: 'bar' },
+            delta: null,
+          },
+          resource: 'projects/_/instances/subdomains/refs/users',
+          eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
+        });
+      });
+    });
+  });
+
   describe('process.env.FIREBASE_CONFIG not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => database.ref('/path').onWrite(() => null)).to.not.throw(
@@ -251,17 +361,17 @@ describe('Database Functions', () => {
         return database.resourceToInstanceAndPath(
           'projects/_/instances/a.bad.name/refs/bar'
         );
-      }).to.throw(Error)
+      }).to.throw(Error);
       expect(() => {
         return database.resourceToInstanceAndPath(
           'projects/_/instances/a_different_bad_name/refs/bar'
         );
-      }).to.throw(Error)
+      }).to.throw(Error);
       expect(() => {
         return database.resourceToInstanceAndPath(
           'projects/_/instances/BAD!!!!/refs/bar'
         );
-      }).to.throw(Error)
+      }).to.throw(Error);
     });
   });
 

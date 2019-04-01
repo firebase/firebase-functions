@@ -4,7 +4,7 @@
 set -e
 
 function usage {
-  echo "Usage: $0 <project_id_node_6> <project_id_node_8>"
+  echo "Usage: $0 <project_id_node_6> [<project_id_node_8>]"
   exit 1
 }
 

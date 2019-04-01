@@ -24,6 +24,7 @@
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 
+import * as apps from './apps';
 import * as crashlytics from './providers/crashlytics';
 import * as database from './providers/database';
 import * as firestore from './providers/firestore';
@@ -32,13 +33,18 @@ import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import { firebaseConfig } from './config';
+import { handler } from './handler-builder';
+
+var app = apps.apps();
 
 export {
   analytics,
+  app,
   auth,
   crashlytics,
   database,
   firestore,
+  handler,
   https,
   pubsub,
   remoteConfig,
@@ -62,8 +68,12 @@ if (!process.env.FIREBASE_CONFIG) {
       'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
     );
     process.env.FIREBASE_CONFIG = JSON.stringify({
-      databaseURL: `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
-      storageBucket: `${process.env.GCLOUD_PROJECT}.appspot.com`,
+      databaseURL:
+        `${process.env.DATABASE_URL}` ||
+        `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
+      storageBucket:
+        `${process.env.STORAGE_BUCKET_URL}` ||
+        `${process.env.GCLOUD_PROJECT}.appspot.com`,
       projectId: process.env.GCLOUD_PROJECT,
     });
   } else {

@@ -70,8 +70,10 @@ export interface EventContext {
   eventType: string;
   /** Resource that triggered the event */
   resource: Resource;
-  /** Key-value pairs that represent the values of wildcards in a database reference */
-  params: { [option: string]: any }; // added by SDK, but may be {}
+  /** Key-value pairs that represent the values of wildcards in a database reference
+   * Cannot be accessed while inside the handler namespace.
+   */
+  params: { [option: string]: any };
   /** Type of authentication for the triggering action, valid value are: 'ADMIN', 'USER',
    * 'UNAUTHENTICATED'. Only available for database functions.
    */
@@ -90,7 +92,7 @@ export interface EventContext {
  * to the event, "after" represents the state after the event.
  */
 export class Change<T> {
-  constructor(public before?: T, public after?: T) {}
+  constructor(public before: T, public after: T) {}
 }
 
 /** ChangeJson is the JSON format used to construct a Change object. */
@@ -256,7 +258,18 @@ export function makeCloudFunction<EventData>({
         delete context.auth;
       }
     }
-    context.params = context.params || _makeParams(context, triggerResource);
+
+    if (triggerResource() == null) {
+      Object.defineProperty(context, 'params', {
+        get: () => {
+          throw new Error(
+            'context.params is not available when using the handler namespace.'
+          );
+        },
+      });
+    } else {
+      context.params = context.params || _makeParams(context, triggerResource);
+    }
 
     before(event);
 
@@ -296,6 +309,10 @@ export function makeCloudFunction<EventData>({
 
   Object.defineProperty(cloudFunction, '__trigger', {
     get: () => {
+      if (triggerResource() == null) {
+        return {};
+      }
+
       let trigger: any = _.assign(optsToTrigger(opts), {
         eventTrigger: {
           resource: triggerResource(),

@@ -2,6 +2,7 @@ import * as functions from 'firebase-functions';
 import * as https from 'https';
 import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
+import * as fs from 'fs';
 
 import * as PubSub from '@google-cloud/pubsub';
 const pubsub = PubSub();
@@ -11,21 +12,21 @@ export * from './database-tests';
 export * from './auth-tests';
 export * from './firestore-tests';
 export * from './https-tests';
-export * from './remoteConfig-tests';
+// export * from './remoteConfig-tests';
+export * from './storage-tests';
 const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
 
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
-admin.firestore().settings({ timestampsInSnapshots: true });
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
-function callHttpsTrigger(name: string, data: any) {
+function callHttpsTrigger(name: string, data: any, baseUrl) {
   return new Promise((resolve, reject) => {
     const request = https.request(
       {
         method: 'POST',
-        host: 'us-central1-' + firebaseConfig.projectId + '.cloudfunctions.net',
+        host: 'us-central1-' + firebaseConfig.projectId + '.' + baseUrl,
         path: '/' + name,
         headers: {
           'Content-Type': 'application/json',
@@ -50,14 +51,19 @@ export const integrationTests: any = functions
     timeoutSeconds: 540,
   })
   .https.onRequest((req: Request, resp: Response) => {
+    // We take the base url for our https call (cloudfunctions.net, txckloud.net, etc) from the request
+    // so that it changes with the environment that the tests are run in
+    const baseUrl = req.hostname
+      .split('.')
+      .slice(1)
+      .join('.');
     let pubsub: any = require('@google-cloud/pubsub')();
-
     const testId = admin
       .database()
       .ref()
       .push().key;
     console.log('testId is: ', testId);
-
+    fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {});
     return Promise.all([
       // A database write to trigger the Firebase Realtime Database tests.
       admin
@@ -87,28 +93,33 @@ export const integrationTests: any = functions
         .collection('tests')
         .doc(testId)
         .set({ test: testId }),
+      callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
       // A Remote Config update to trigger the Remote Config tests.
-      admin.credential
-        .applicationDefault()
-        .getAccessToken()
-        .then((accessToken) => {
-          const options = {
-            hostname: 'firebaseremoteconfig.googleapis.com',
-            path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-            method: 'PUT',
-            headers: {
-              Authorization: 'Bearer ' + accessToken.access_token,
-              'Content-Type': 'application/json; UTF-8',
-              'Accept-Encoding': 'gzip',
-              'If-Match': '*',
-            },
-          };
-          const request = https.request(options, resp => {});
-          request.write(JSON.stringify({ version: { description: testId } }));
-          request.end();
-        }),
+      // admin.credential
+      //   .applicationDefault()
+      //   .getAccessToken()
+      //   .then(accessToken => {
+      //     const options = {
+      //       hostname: 'firebaseremoteconfig.googleapis.com',
+      //       path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
+      //       method: 'PUT',
+      //       headers: {
+      //         Authorization: 'Bearer ' + accessToken.access_token,
+      //         'Content-Type': 'application/json; UTF-8',
+      //         'Accept-Encoding': 'gzip',
+      //         'If-Match': '*',
+      //       },
+      //     };
+      //     const request = https.request(options, resp => {});
+      //     request.write(JSON.stringify({ version: { description: testId } }));
+      //     request.end();
+      //   }),
+      // A storage upload to trigger the Storage tests
+      admin
+        .storage()
+        .bucket()
+        .upload('/tmp/' + testId + '.txt'),
       // Invoke a callable HTTPS trigger.
-      callHttpsTrigger('callableTests', { foo: 'bar', testId }),
     ])
       .then(() => {
         // On test completion, check that all tests pass and reply "PASS", or provide further details.

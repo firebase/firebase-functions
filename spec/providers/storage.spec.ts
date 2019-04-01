@@ -324,6 +324,122 @@ describe('Storage Functions', () => {
     });
   });
 
+  describe('namespace handler', () => {
+    before(() => {
+      process.env.FIREBASE_CONFIG = JSON.stringify({
+        storageBucket: 'bucket',
+      });
+    });
+
+    after(() => {
+      delete process.env.FIREBASE_CONFIG;
+    });
+
+    describe('#onArchive', () => {
+      it('should return an empty trigger', () => {
+        let cloudFunction = functions.handler.storage.bucket.onArchive(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        let cloudFunction = functions.handler.storage.object.onArchive(data => {
+          return data.mediaLink;
+        });
+        let goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+        };
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+
+    describe('#onDelete', () => {
+      it('should return an empty trigger', () => {
+        let cloudFunction = functions.handler.storage.bucket.onDelete(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        let cloudFunction = functions.handler.storage.object.onDelete(data => {
+          return data.mediaLink;
+        });
+        let goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+        };
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+
+    describe('#onFinalize', () => {
+      it('should return an empty trigger', () => {
+        let cloudFunction = functions.handler.storage.bucket.onFinalize(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        let cloudFunction = functions.handler.storage.object.onFinalize(
+          data => {
+            return data.mediaLink;
+          }
+        );
+        let goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+        };
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+
+    describe('#onMetadataUpdate', () => {
+      it('should return an empty trigger', () => {
+        let cloudFunction = functions.handler.storage.bucket.onMetadataUpdate(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        let cloudFunction = functions.handler.storage.object.onMetadataUpdate(
+          data => {
+            return data.mediaLink;
+          }
+        );
+        let goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+        };
+        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+  });
+
   describe('process.env.FIREBASE_CONFIG not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => storage.object().onArchive(() => null)).to.not.throw(Error);

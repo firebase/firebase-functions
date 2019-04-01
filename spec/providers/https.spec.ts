@@ -56,6 +56,24 @@ describe('CloudHttpsBuilder', () => {
   });
 });
 
+describe('handler namespace', () => {
+  describe('#onRequest', () => {
+    it('should return an empty trigger', () => {
+      let result = functions.handler.https.onRequest((req, res) => {
+        res.send(200);
+      });
+      expect(result.__trigger).to.deep.equal({});
+    });
+  });
+
+  describe('#onCall', () => {
+    it('should return an empty trigger', () => {
+      let result = functions.handler.https.onCall(() => null);
+      expect(result.__trigger).to.deep.equal({});
+    });
+  });
+});
+
 /**
  * RunHandlerResult contains the data from an express.Response.
  */
@@ -71,7 +89,7 @@ interface RunHandlerResult {
  * and response are properly converted to their http equivalents.
  */
 interface CallTest {
-  // An http request, mocking a subset of express.Request.
+  // An http request, mocking a subset of https.Request.
   httpRequest: any;
 
   // The expected format of the request passed to the handler.
@@ -90,7 +108,7 @@ interface CallTest {
  */
 function runHandler(
   handler: express.Handler,
-  request: express.Request
+  request: https.Request
 ): Promise<RunHandlerResult> {
   return new Promise((resolve, reject) => {
     // MockResponse mocks an express.Response.
@@ -145,7 +163,7 @@ async function runTest(test: CallTest): Promise<any> {
   expect(response.status).to.equal(test.expectedHttpResponse.status);
 }
 
-// MockRequest mocks an express.Request.
+// MockRequest mocks an https.Request.
 class MockRequest {
   public method: 'POST' | 'GET' | 'OPTIONS' = 'POST';
 

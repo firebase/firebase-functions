@@ -32,7 +32,12 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext, Runnable, TriggerAnnotated } from './cloud-functions';
+import {
+  CloudFunction,
+  EventContext,
+  Runnable,
+  TriggerAnnotated,
+} from './cloud-functions';
 
 /**
  * Configure the regions that the function is deployed to.
@@ -41,15 +46,15 @@ import { CloudFunction, EventContext, Runnable, TriggerAnnotated } from './cloud
  */
 export function region(...regions: string[]) {
   if (!regions.length) {
-    throw new Error(
-      "You must specify at least one region"
-    );
+    throw new Error('You must specify at least one region');
   }
   if (
-    _.difference(
-      regions,
-      ['us-central1', 'us-east1', 'europe-west1', 'asia-northeast1']
-    ).length
+    _.difference(regions, [
+      'us-central1',
+      'us-east1',
+      'europe-west1',
+      'asia-northeast1',
+    ]).length
   ) {
     throw new Error(
       "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
@@ -80,11 +85,10 @@ export function runWith(runtimeOptions: {
     );
   }
   if (
-    runtimeOptions.timeoutSeconds > 540 || runtimeOptions.timeoutSeconds < 0
+    runtimeOptions.timeoutSeconds > 540 ||
+    runtimeOptions.timeoutSeconds < 0
   ) {
-    throw new Error(
-      "TimeoutSeconds must be between 0 and 540" 
-    );
+    throw new Error('TimeoutSeconds must be between 0 and 540');
   }
   return new FunctionBuilder(runtimeOptions);
 }
@@ -131,11 +135,10 @@ export class FunctionBuilder {
       );
     }
     if (
-      runtimeOptions.timeoutSeconds > 540 || runtimeOptions.timeoutSeconds < 0
+      runtimeOptions.timeoutSeconds > 540 ||
+      runtimeOptions.timeoutSeconds < 0
     ) {
-      throw new Error(
-        "TimeoutSeconds must be between 0 and 540" 
-      );
+      throw new Error('TimeoutSeconds must be between 0 and 540');
     }
     this.options = _.assign(this.options, runtimeOptions);
     return this;
@@ -149,7 +152,7 @@ export class FunctionBuilder {
        * same signature as an Express app.
        */
       onRequest: (
-        handler: (req: express.Request, resp: express.Response) => void
+        handler: (req: https.Request, resp: express.Response) => void
       ) => https._onRequestWithOpts(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.

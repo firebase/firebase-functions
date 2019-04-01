@@ -125,4 +125,30 @@ describe('RemoteConfig Functions', () => {
       ]);
     });
   });
+
+  describe('handler namespace', () => {
+    describe('#onUpdate', () => {
+      it('should have an empty trigger', () => {
+        const cloudFunction = functions.handler.remoteConfig.onUpdate(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should correctly unwrap the event', () => {
+        let cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
+          (version: remoteConfig.TemplateVersion) => version
+        );
+        let event = {
+          data: constructVersion(),
+        };
+
+        return Promise.all([
+          cloudFunctionUpdate(event).then((data: any) => {
+            expect(data).to.deep.equal(constructVersion());
+          }),
+        ]);
+      });
+    });
+  });
 });

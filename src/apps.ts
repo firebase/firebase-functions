@@ -24,7 +24,6 @@ import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
 import { firebaseConfig } from './config';
 
-/** @internal */
 export function apps(): apps.Apps {
   if (typeof apps.singleton === 'undefined') {
     apps.init();
@@ -32,7 +31,6 @@ export function apps(): apps.Apps {
   return apps.singleton;
 }
 
-/** @internal */
 export namespace apps {
   /** @internal */
   export const garbageCollectionInterval = 2 * 60 * 1000;
@@ -58,7 +56,6 @@ export namespace apps {
     [appName: string]: number;
   }
 
-  /** @internal */
   export class Apps {
     private _refCounter: RefCounter;
 

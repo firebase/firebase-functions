@@ -29,12 +29,19 @@ import { HttpsFunction, optsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 
 /**
+ *
+ *
+ */
+export interface Request extends express.Request {
+  rawBody: Buffer;
+}
+/**
  * Handle HTTP requests.
  * @param handler A function that takes a request and response object,
  * same signature as an Express app.
  */
 export function onRequest(
-  handler: (req: express.Request, resp: express.Response) => void
+  handler: (req: Request, resp: express.Response) => void
 ) {
   return _onRequestWithOpts(handler, {});
 }
@@ -51,11 +58,11 @@ export function onCall(
 
 /** @internal */
 export function _onRequestWithOpts(
-  handler: (req: express.Request, resp: express.Response) => void,
+  handler: (req: Request, resp: express.Response) => void,
   opts: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
-  let cloudFunction: any = (req: express.Request, res: express.Response) => {
+  let cloudFunction: any = (req: Request, res: express.Response) => {
     handler(req, res);
   };
   cloudFunction.__trigger = _.assign(optsToTrigger(opts), { httpsTrigger: {} });
@@ -267,11 +274,11 @@ export interface CallableContext {
   /**
    * The raw request handled by the callable.
    */
-  rawRequest: express.Request;
+  rawRequest: Request;
 }
 
 // The allowed interface for an http request for a callable function.
-interface HttpRequest extends express.Request {
+interface HttpRequest extends Request {
   body: {
     data: any;
   };
@@ -284,7 +291,7 @@ interface HttpResponseBody {
 }
 
 // Returns true if req is a properly formatted callable request.
-function isValidRequest(req: express.Request): req is HttpRequest {
+function isValidRequest(req: Request): req is HttpRequest {
   // The body must not be empty.
   if (!req.body) {
     console.warn('Request is missing body.');
@@ -416,7 +423,7 @@ export function _onCallWithOpts(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   opts: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  const func = async (req: express.Request, res: express.Response) => {
+  const func = async (req: Request, res: express.Response) => {
     try {
       if (!isValidRequest(req)) {
         console.error('Invalid request', req);
@@ -477,7 +484,7 @@ export function _onCallWithOpts(
   };
 
   // Wrap the function with a cors handler.
-  const corsFunc: any = (req: express.Request, res: express.Response) => {
+  const corsFunc: any = (req: Request, res: express.Response) => {
     return corsHandler(req, res, () => func(req, res));
   };
 

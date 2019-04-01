@@ -228,6 +228,115 @@ describe('Auth Functions', () => {
     });
   });
 
+  describe('handler namespace', () => {
+    describe('#onCreate', () => {
+      let cloudFunctionCreate: CloudFunction<
+        firebase.auth.UserRecord
+      > = functions.handler.auth.user.onCreate(
+        (data: firebase.auth.UserRecord) => data
+      );
+
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should transform wire format for UserRecord into v5.0.0 format', () => {
+        const event = {
+          data: {
+            metadata: {
+              createdAt: '2016-12-15T19:37:37.059Z',
+              lastSignedInAt: '2017-01-01T00:00:00.000Z',
+            },
+          },
+        };
+
+        return cloudFunctionCreate(event).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal(
+            '2016-12-15T19:37:37.059Z'
+          );
+          expect(data.metadata.lastSignInTime).to.equal(
+            '2017-01-01T00:00:00.000Z'
+          );
+        });
+      });
+
+      it('should handle new wire format if/when there is a change', () => {
+        const newEvent = {
+          data: {
+            metadata: {
+              creationTime: '2016-12-15T19:37:37.059Z',
+              lastSignInTime: '2017-01-01T00:00:00.000Z',
+            },
+          },
+        };
+
+        return cloudFunctionCreate(newEvent).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal(
+            '2016-12-15T19:37:37.059Z'
+          );
+          expect(data.metadata.lastSignInTime).to.equal(
+            '2017-01-01T00:00:00.000Z'
+          );
+        });
+      });
+    });
+
+    describe('#onDelete', () => {
+      let cloudFunctionDelete: CloudFunction<
+        firebase.auth.UserRecord
+      > = functions.handler.auth.user.onDelete(
+        (data: firebase.auth.UserRecord) => data
+      );
+
+      it('should return an empty trigger', () => {
+        let handler: (user: firebase.auth.UserRecord) => PromiseLike<any> | any;
+        const cloudFunction = functions.handler.auth.user.onDelete(handler);
+        expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should transform wire format for UserRecord into v5.0.0 format', () => {
+        const event = {
+          data: {
+            metadata: {
+              createdAt: '2016-12-15T19:37:37.059Z',
+              lastSignedInAt: '2017-01-01T00:00:00.000Z',
+            },
+          },
+        };
+
+        return cloudFunctionDelete(event).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal(
+            '2016-12-15T19:37:37.059Z'
+          );
+          expect(data.metadata.lastSignInTime).to.equal(
+            '2017-01-01T00:00:00.000Z'
+          );
+        });
+      });
+
+      it('should handle new wire format if/when there is a change', () => {
+        const newEvent = {
+          data: {
+            metadata: {
+              creationTime: '2016-12-15T19:37:37.059Z',
+              lastSignInTime: '2017-01-01T00:00:00.000Z',
+            },
+          },
+        };
+
+        return cloudFunctionDelete(newEvent).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal(
+            '2016-12-15T19:37:37.059Z'
+          );
+          expect(data.metadata.lastSignInTime).to.equal(
+            '2017-01-01T00:00:00.000Z'
+          );
+        });
+      });
+    });
+  });
+
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => auth.user().onCreate(() => null)).to.not.throw(Error);
