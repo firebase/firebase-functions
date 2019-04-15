@@ -24,6 +24,8 @@ import {
   CloudFunction,
   makeCloudFunction,
   EventContext,
+  Schedule,
+  ScheduleRetryConfig,
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 
@@ -54,6 +56,56 @@ export function _topicWithOpts(
     }
     return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
   }, opts);
+}
+
+export function schedule(schedule: string): ScheduleBuilder {
+  return _scheduleWithOpts(schedule, {});
+}
+
+export class ScheduleBuilder {
+  private _opts: DeploymentOptions;
+
+  /** @internal */
+  constructor(private schedule: Schedule, private opts: DeploymentOptions) {
+    this._opts = { schedule, ...opts };
+  }
+
+  retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
+    this._opts.schedule.retryConfig = config;
+    return this;
+  }
+
+  timeZone(timeZone: string): ScheduleBuilder {
+    this._opts.schedule.timeZone = timeZone;
+    return this;
+  }
+
+  onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
+    const triggerResource = () => {
+      if (!process.env.GCLOUD_PROJECT) {
+        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      }
+      return `projects/${process.env.GCLOUD_PROJECT}/topics`; // The CLI will append the correct topic name based on region and function name
+    };
+    const cloudFunction = makeCloudFunction({
+      contextOnlyHandler: handler,
+      provider,
+      service,
+      triggerResource: triggerResource,
+      eventType: 'topic.publish',
+      opts: this._opts,
+      labels: { 'deployment-scheduled': 'true' },
+    });
+    return cloudFunction;
+  }
+}
+
+/** @internal */
+export function _scheduleWithOpts(
+  schedule: string,
+  opts: DeploymentOptions
+): ScheduleBuilder {
+  return new ScheduleBuilder({ schedule }, opts);
 }
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */

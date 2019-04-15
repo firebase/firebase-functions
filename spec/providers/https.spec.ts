@@ -23,13 +23,13 @@
 import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import * as https from '../../src/providers/https';
 import * as jwt from 'jsonwebtoken';
-import * as mocks from '../fixtures/credential/key.json';
-import * as nock from 'nock';
 import * as _ from 'lodash';
+import * as nock from 'nock';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
+import * as https from '../../src/providers/https';
+import * as mocks from '../fixtures/credential/key.json';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {

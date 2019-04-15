@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { apps } from './apps';
-import * as _ from 'lodash';
 import { Request, Response } from 'express';
+import * as _ from 'lodash';
+import { apps } from './apps';
 import { DeploymentOptions } from './function-builder';
 export { Request, Response };
 
@@ -177,7 +177,22 @@ export interface TriggerAnnotated {
     regions?: string[];
     timeout?: string;
     availableMemoryMb?: number;
+    schedule?: Schedule;
   };
+}
+
+export interface ScheduleRetryConfig {
+  retryCount?: number;
+  maxRetryDuration?: string;
+  minBackoffDuration?: string;
+  maxBackoffDuration?: string;
+  maxDoublings?: number;
+}
+
+export interface Schedule {
+  schedule: string;
+  timeZone?: string;
+  retryConfig?: ScheduleRetryConfig;
 }
 
 /** A Runnable has a `run` method which directly invokes the user-defined function - useful for unit testing. */
@@ -209,11 +224,13 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
   service: string;
   dataConstructor?: (raw: Event) => EventData;
-  handler: (data: EventData, context: EventContext) => PromiseLike<any> | any;
+  handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
+  contextOnlyHandler?: (context: EventContext) => PromiseLike<any> | any;
   before?: (raw: Event) => void;
   after?: (raw: Event) => void;
   legacyEventType?: string;
   opts?: { [key: string]: any };
+  labels?: { [key: string]: any };
 }
 
 /** @internal */
@@ -224,6 +241,7 @@ export function makeCloudFunction<EventData>({
   service,
   dataConstructor = (raw: Event) => raw.data,
   handler,
+  contextOnlyHandler,
   before = () => {
     return;
   },
@@ -232,6 +250,7 @@ export function makeCloudFunction<EventData>({
   },
   legacyEventType,
   opts = {},
+  labels = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   let cloudFunction;
 
@@ -273,8 +292,14 @@ export function makeCloudFunction<EventData>({
 
     before(event);
 
-    let dataOrChange = dataConstructor(event);
-    let promise = handler(dataOrChange, context);
+    let promise;
+    if (labels && labels['deployment-scheduled']) {
+      // Scheduled function do not have meaningful data, so exclude it
+      promise = contextOnlyHandler(context);
+    } else {
+      const dataOrChange = dataConstructor(event);
+      promise = handler(dataOrChange, context);
+    }
     if (typeof promise === 'undefined') {
       console.warn('Function returned undefined, expected Promise or value');
     }
@@ -320,12 +345,14 @@ export function makeCloudFunction<EventData>({
           service,
         },
       });
-
+      if (!_.isEmpty(labels)) {
+        trigger.labels = labels;
+      }
       return trigger;
     },
   });
 
-  cloudFunction.run = handler;
+  cloudFunction.run = handler || contextOnlyHandler;
   return cloudFunction;
 }
 
@@ -397,6 +424,9 @@ export function optsToTrigger(opts: DeploymentOptions) {
       '2GB': 2048,
     };
     trigger.availableMemoryMb = _.get(memoryLookup, opts.memory);
+  }
+  if (opts.schedule) {
+    trigger.schedule = opts.schedule;
   }
   return trigger;
 }

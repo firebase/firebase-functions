@@ -37,6 +37,7 @@ import {
   EventContext,
   Runnable,
   TriggerAnnotated,
+  Schedule,
 } from './cloud-functions';
 
 /**
@@ -97,6 +98,7 @@ export interface DeploymentOptions {
   regions?: string[];
   timeoutSeconds?: number;
   memory?: string;
+  schedule?: Schedule;
 }
 
 export class FunctionBuilder {
@@ -288,6 +290,8 @@ export class FunctionBuilder {
        * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
        */
       topic: (topic: string) => pubsub._topicWithOpts(topic, this.options),
+      schedule: (schedule: string) =>
+        pubsub._scheduleWithOpts(schedule, this.options),
     };
   }
 

@@ -129,6 +129,158 @@ describe('Pubsub Functions', () => {
         });
       });
     });
+    describe('#schedule', () => {
+      it('should return a trigger with schedule', () => {
+        let result = pubsub.schedule('every 5 minutes').onRun(context => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+        });
+      });
+      it('should return a trigger with schedule and timeZone when one is chosen', () => {
+        let result = pubsub
+          .schedule('every 5 minutes')
+          .timeZone('America/New_York')
+          .onRun(context => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          timeZone: 'America/New_York',
+        });
+      });
+      it('should return a trigger with schedule and retry config when called with retryConfig', () => {
+        let retryConfig = {
+          retryCount: 3,
+          maxRetryDuration: '10 minutes',
+          minBackoffDuration: '10 minutes',
+          maxBackoffDuration: '10 minutes',
+          maxDoublings: 5,
+        };
+        let result = pubsub
+          .schedule('every 5 minutes')
+          .retryConfig(retryConfig)
+          .onRun(() => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          retryConfig: retryConfig,
+        });
+        expect(result.__trigger.labels).to.deep.equal({
+          'deployment-scheduled': 'true',
+        });
+      });
+      it('should return a trigger with schedule, timeZone and retry config when called with retryConfig and timeout', () => {
+        let retryConfig = {
+          retryCount: 3,
+          maxRetryDuration: '10 minutes',
+          minBackoffDuration: '10 minutes',
+          maxBackoffDuration: '10 minutes',
+          maxDoublings: 5,
+        };
+        let result = pubsub
+          .schedule('every 5 minutes')
+          .timeZone('America/New_York')
+          .retryConfig(retryConfig)
+          .onRun(() => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          retryConfig: retryConfig,
+          timeZone: 'America/New_York',
+        });
+        expect(result.__trigger.labels).to.deep.equal({
+          'deployment-scheduled': 'true',
+        });
+      });
+      it('should return an appropriate trigger when called with region and options', () => {
+        let result = functions
+          .region('us-east1')
+          .runWith({
+            timeoutSeconds: 90,
+            memory: '256MB',
+          })
+          .pubsub.schedule('every 5 minutes')
+          .onRun(() => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+        });
+        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
+        expect(result.__trigger.timeout).to.deep.equal('90s');
+      });
+      it('should return an appropriate trigger when called with region, timeZone, and options', () => {
+        let result = functions
+          .region('us-east1')
+          .runWith({
+            timeoutSeconds: 90,
+            memory: '256MB',
+          })
+          .pubsub.schedule('every 5 minutes')
+          .timeZone('America/New_York')
+          .onRun(() => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          timeZone: 'America/New_York',
+        });
+        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
+        expect(result.__trigger.timeout).to.deep.equal('90s');
+      });
+      it('should return an appropriate trigger when called with region, options and retryConfig', () => {
+        let retryConfig = {
+          retryCount: 3,
+          maxRetryDuration: '10 minutes',
+          minBackoffDuration: '10 minutes',
+          maxBackoffDuration: '10 minutes',
+          maxDoublings: 5,
+        };
+        let result = functions
+          .region('us-east1')
+          .runWith({
+            timeoutSeconds: 90,
+            memory: '256MB',
+          })
+          .pubsub.schedule('every 5 minutes')
+          .retryConfig(retryConfig)
+          .onRun(() => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          retryConfig: retryConfig,
+        });
+        expect(result.__trigger.labels).to.deep.equal({
+          'deployment-scheduled': 'true',
+        });
+        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
+        expect(result.__trigger.timeout).to.deep.equal('90s');
+      });
+      it('should return an appropriate trigger when called with region, options, retryConfig, and timeZone', () => {
+        let retryConfig = {
+          retryCount: 3,
+          maxRetryDuration: '10 minutes',
+          minBackoffDuration: '10 minutes',
+          maxBackoffDuration: '10 minutes',
+          maxDoublings: 5,
+        };
+        let result = functions
+          .region('us-east1')
+          .runWith({
+            timeoutSeconds: 90,
+            memory: '256MB',
+          })
+          .pubsub.schedule('every 5 minutes')
+          .timeZone('America/New_York')
+          .retryConfig(retryConfig)
+          .onRun(() => null);
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          timeZone: 'America/New_York',
+          retryConfig: retryConfig,
+        });
+        expect(result.__trigger.labels).to.deep.equal({
+          'deployment-scheduled': 'true',
+        });
+        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
+        expect(result.__trigger.timeout).to.deep.equal('90s');
+      });
+    });
   });
 
   describe('handler namespace', () => {

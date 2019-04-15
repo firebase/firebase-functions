@@ -56,7 +56,7 @@ export class TestSuite<T> {
   }
 }
 
-function success() {
+export function success() {
   return Promise.resolve().then(() => true);
 }
 

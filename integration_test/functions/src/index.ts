@@ -46,6 +46,33 @@ function callHttpsTrigger(name: string, data: any, baseUrl) {
   });
 }
 
+function callScheduleTrigger(functionName: string, region: string) {
+  return new Promise((resolve, reject) => {
+    const request = https.request(
+      {
+        method: 'POST',
+        host: 'cloudscheduler.googleapis.com',
+        path: `projects/${
+          firebaseConfig.projectId
+        }/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+      response => {
+        let body = '';
+        response.on('data', chunk => {
+          body += chunk;
+        });
+        response.on('end', () => resolve(body));
+      }
+    );
+    request.on('error', reject);
+    request.write('{}');
+    request.end();
+  });
+}
+
 export const integrationTests: any = functions
   .runWith({
     timeoutSeconds: 540,
@@ -62,6 +89,10 @@ export const integrationTests: any = functions
       .database()
       .ref()
       .push().key;
+    admin
+      .database()
+      .ref(`testRuns/${testId}/timestamp`)
+      .set(Date.now());
     console.log('testId is: ', testId);
     fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {});
     return Promise.all([
@@ -120,6 +151,9 @@ export const integrationTests: any = functions
         .bucket()
         .upload('/tmp/' + testId + '.txt'),
       // Invoke a callable HTTPS trigger.
+      callHttpsTrigger('callableTests', { foo: 'bar', testId }),
+      // Invoke the schedule for our scheduled function to fire
+      callScheduleTrigger('schedule', 'us-central1'),
     ])
       .then(() => {
         // On test completion, check that all tests pass and reply "PASS", or provide further details.
@@ -129,7 +163,7 @@ export const integrationTests: any = functions
           let testsExecuted = 0;
           ref.on('child_added', snapshot => {
             testsExecuted += 1;
-            if (!snapshot.val().passed) {
+            if (snapshot.key != 'timestamp' && !snapshot.val().passed) {
               reject(
                 new Error(
                   `test ${snapshot.key} failed; see database for details.`

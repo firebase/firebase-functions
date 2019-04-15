@@ -1,5 +1,6 @@
 import * as functions from 'firebase-functions';
-import { TestSuite, expectEq, evaluate } from './testing';
+import * as admin from 'firebase-admin';
+import { TestSuite, expectEq, evaluate, success } from './testing';
 import PubsubMessage = functions.pubsub.Message;
 
 // TODO(inlined) use multiple queues to run inline.
@@ -56,4 +57,25 @@ export const pubsubTests: any = functions.pubsub
       )
 
       .run(testId, m, c);
+  });
+
+export const schedule: any = functions.pubsub
+  .schedule('every 10 hours') // This is a dummy schedule, since we need to put a valid one in.
+  // For the test, the job is triggered by the jobs:run api
+  .onRun(context => {
+    let testId;
+    let db = admin.database();
+    return new Promise(async (resolve, reject) => {
+      await db
+        .ref('testRuns')
+        .orderByChild('timestamp')
+        .limitToLast(1)
+        .on('value', snap => {
+          testId = Object.keys(snap.val())[0];
+          new TestSuite('pubsub scheduleOnRun')
+            .it('should trigger when the scheduler fires', () => success())
+            .run(testId, null);
+        });
+      resolve();
+    });
   });
