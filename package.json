@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "Firebase SDK for Cloud Functions",
   "main": "lib/index.js",
   "scripts": {
