@@ -124,6 +124,7 @@ export const integrationTests: any = functions
         .collection('tests')
         .doc(testId)
         .set({ test: testId }),
+      // Invoke a callable HTTPS trigger.
       callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
       // A Remote Config update to trigger the Remote Config tests.
       // admin.credential
@@ -150,8 +151,6 @@ export const integrationTests: any = functions
         .storage()
         .bucket()
         .upload('/tmp/' + testId + '.txt'),
-      // Invoke a callable HTTPS trigger.
-      callHttpsTrigger('callableTests', { foo: 'bar', testId }),
       // Invoke the schedule for our scheduled function to fire
       callScheduleTrigger('schedule', 'us-central1'),
     ])
