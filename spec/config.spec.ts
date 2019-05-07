@@ -27,7 +27,7 @@ import { config, firebaseConfig } from '../src/config';
 const NODE8_NODE10_PATH = '/srv/.runtimeconfig.json';
 const NODE6_PATH = '/user_code/.runtimeconfig.json';
 
-describe.only('config()', () => {
+describe('config()', () => {
   afterEach(() => {
     mockRequire.stopAll();
     delete config.singleton;
@@ -46,7 +46,7 @@ describe.only('config()', () => {
     );
   });
 
-  it('does not provide firebase config if .runtimeconfig.json not invalid', () => {
+  it('does not provide firebase config if .runtimeconfig.json is invalid', () => {
     mockRequire(NODE8_NODE10_PATH, 'does-not-exist');
 
     expect(firebaseConfig()).to.be.null;
@@ -69,6 +69,7 @@ describe.only('config()', () => {
         cloudResourceLocation: 'us-central',
       },
     });
+
     let loaded = firebaseConfig();
 
     expect(loaded).to.have.keys(
@@ -90,6 +91,7 @@ describe.only('config()', () => {
         cloudResourceLocation: 'us-central',
       },
     });
+
     let loaded = firebaseConfig();
 
     expect(loaded).to.have.keys(
@@ -111,6 +113,7 @@ describe.only('config()', () => {
         cloudResourceLocation: 'us-central',
       },
     });
+
     let loaded = firebaseConfig();
 
     expect(loaded).to.have.keys(
@@ -124,6 +127,7 @@ describe.only('config()', () => {
   it('loads config values from .runtimeconfig.json properly for Node 6 functions', () => {
     process.env.PWD = '/user_code';
     mockRequire(NODE6_PATH, { foo: 'bar', firebase: {} });
+
     let loaded = config();
 
     expect(loaded).to.not.have.property('firebase');
@@ -133,6 +137,7 @@ describe.only('config()', () => {
   it('loads config values from .runtimeconfig.json properly for Node 8 functions', () => {
     process.env.PWD = '/srv';
     mockRequire(NODE8_NODE10_PATH, { foo: 'bar', firebase: {} });
+
     let loaded = config();
 
     expect(loaded).to.not.have.property('firebase');
@@ -142,6 +147,7 @@ describe.only('config()', () => {
   it('loads config values from .runtimeconfig.json properly for Node 10 functions', () => {
     process.env.PWD = '/srv/functions';
     mockRequire(NODE8_NODE10_PATH, { foo: 'bar', firebase: {} });
+    
     let loaded = config();
 
     expect(loaded).to.not.have.property('firebase');
