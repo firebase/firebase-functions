@@ -24,104 +24,127 @@ import * as mockRequire from 'mock-require';
 import { expect } from 'chai';
 import { config, firebaseConfig } from '../src/config';
 
-describe('config()', () => {
+const NODE8_NODE10_PATH = '/srv/.runtimeconfig.json';
+const NODE6_PATH = '/user_code/.runtimeconfig.json';
+
+describe.only('config()', () => {
   afterEach(() => {
     mockRequire.stopAll();
     delete config.singleton;
     delete process.env.FIREBASE_CONFIG;
-    delete process.env.FIREBASE_PROJECT;
-    delete process.env.CLOUD_RUNTIME_CONFIG;
+    delete process.env.PWD;
   });
 
-  it('loads config values from .runtimeconfig.json', () => {
-    mockRequire('../../../.runtimeconfig.json', { foo: 'bar', firebase: {} });
+  it('loads Firebase config from FIREBASE_CONFIG env variable', () => {
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      databaseURL: 'foo@firebaseio.com',
+    });
+
+    expect(firebaseConfig()).to.have.property(
+      'databaseURL',
+      'foo@firebaseio.com'
+    );
+  });
+
+  it('does not provide firebase config if .runtimeconfig.json not invalid', () => {
+    mockRequire(NODE8_NODE10_PATH, 'does-not-exist');
+
+    expect(firebaseConfig()).to.be.null;
+  });
+
+  it('does not provide firebase config if .runtimeconfig.json has no firebase property', () => {
+    mockRequire(NODE8_NODE10_PATH, {});
+
+    expect(firebaseConfig()).to.be.null;
+  });
+
+  it('loads firebase config from .runtimeconfig.json properly for Node 6 functions', () => {
+    process.env.PWD = '/user_code';
+    mockRequire(NODE6_PATH, {
+      foo: 'bar',
+      firebase: {
+        projectId: 'chenky-test',
+        databaseURL: 'https://chenky-test.firebaseio.com',
+        storageBucket: 'chenky-test.appspot.com',
+        cloudResourceLocation: 'us-central',
+      },
+    });
+    let loaded = firebaseConfig();
+
+    expect(loaded).to.have.keys(
+      'projectId',
+      'databaseURL',
+      'storageBucket',
+      'cloudResourceLocation'
+    );
+  });
+
+  it('loads firebase config from .runtimeconfig.json properly for Node 8 functions', () => {
+    process.env.PWD = '/srv';
+    mockRequire(NODE8_NODE10_PATH, {
+      foo: 'bar',
+      firebase: {
+        projectId: 'chenky-test',
+        databaseURL: 'https://chenky-test.firebaseio.com',
+        storageBucket: 'chenky-test.appspot.com',
+        cloudResourceLocation: 'us-central',
+      },
+    });
+    let loaded = firebaseConfig();
+
+    expect(loaded).to.have.keys(
+      'projectId',
+      'databaseURL',
+      'storageBucket',
+      'cloudResourceLocation'
+    );
+  });
+
+  it('loads firebase config from .runtimeconfig.json properly for Node 10 functions', () => {
+    process.env.PWD = '/srv/functions';
+    mockRequire(NODE8_NODE10_PATH, {
+      foo: 'bar',
+      firebase: {
+        projectId: 'chenky-test',
+        databaseURL: 'https://chenky-test.firebaseio.com',
+        storageBucket: 'chenky-test.appspot.com',
+        cloudResourceLocation: 'us-central',
+      },
+    });
+    let loaded = firebaseConfig();
+
+    expect(loaded).to.have.keys(
+      'projectId',
+      'databaseURL',
+      'storageBucket',
+      'cloudResourceLocation'
+    );
+  });
+
+  it('loads config values from .runtimeconfig.json properly for Node 6 functions', () => {
+    process.env.PWD = '/user_code';
+    mockRequire(NODE6_PATH, { foo: 'bar', firebase: {} });
     let loaded = config();
+
     expect(loaded).to.not.have.property('firebase');
     expect(loaded).to.have.property('foo', 'bar');
   });
 
-  it('does not provide firebase config if .runtimeconfig.json not invalid', () => {
-    mockRequire('../../../.runtimeconfig.json', 'does-not-exist');
-    expect(firebaseConfig()).to.be.null;
+  it('loads config values from .runtimeconfig.json properly for Node 8 functions', () => {
+    process.env.PWD = '/srv';
+    mockRequire(NODE8_NODE10_PATH, { foo: 'bar', firebase: {} });
+    let loaded = config();
+
+    expect(loaded).to.not.have.property('firebase');
+    expect(loaded).to.have.property('foo', 'bar');
   });
 
-  it('does not provide firebase config if .ruuntimeconfig.json has no firebase property', () => {
-    mockRequire('../../../.runtimeconfig.json', {});
-    expect(firebaseConfig()).to.be.null;
-  });
+  it('loads config values from .runtimeconfig.json properly for Node 10 functions', () => {
+    process.env.PWD = '/srv/functions';
+    mockRequire(NODE8_NODE10_PATH, { foo: 'bar', firebase: {} });
+    let loaded = config();
 
-  it('loads Firebase configs from FIREBASE_PROJECT env variable', () => {
-    process.env.FIREBASE_PROJECT = JSON.stringify({
-      databaseURL: 'foo@firebaseio.com',
-    });
-    expect(firebaseConfig()).to.have.property(
-      'databaseURL',
-      'foo@firebaseio.com'
-    );
-  });
-
-  it('loads Firebase configs from FIREBASE_CONFIG env variable', () => {
-    process.env.FIREBASE_CONFIG = JSON.stringify({
-      databaseURL: 'foo@firebaseio.com',
-    });
-    expect(firebaseConfig()).to.have.property(
-      'databaseURL',
-      'foo@firebaseio.com'
-    );
-  });
-
-  it('prefers FIREBASE_CONFIG over FIREBASE_PROJECT', () => {
-    process.env.FIREBASE_CONFIG = JSON.stringify({
-      databaseURL: 'firebase_config',
-    });
-    process.env.FIREBASE_PROJECT = JSON.stringify({
-      databaseURL: 'firebase_project',
-    });
-    expect(firebaseConfig()).to.have.property('databaseURL', 'firebase_config');
-  });
-
-  it('behaves well when both FIREBASE_PROJECT and .runtimeconfig.json present', () => {
-    process.env.FIREBASE_PROJECT = JSON.stringify({
-      databaseURL: 'foo@firebaseio.com',
-    });
-    mockRequire('../../../.runtimeconfig.json', {
-      firebase: {
-        databaseURL: 'foo@firebaseio.com',
-      },
-      foo: 'bar',
-    });
-    expect(firebaseConfig()).to.have.property(
-      'databaseURL',
-      'foo@firebaseio.com'
-    );
-    expect(config()).to.have.property('foo', 'bar');
-  });
-
-  it('accepts alternative locations for config file', () => {
-    process.env.CLOUD_RUNTIME_CONFIG = 'another.json';
-    mockRequire('another.json', { foo: 'bar', firebase: {} });
-    expect(firebaseConfig()).to.not.be.null;
-    expect(config()).to.have.property('foo', 'bar');
-  });
-
-  it('accepts full JSON in env.CLOUD_RUNTIME_CONFIG', () => {
-    process.env.CLOUD_RUNTIME_CONFIG = JSON.stringify({
-      foo: 'bar',
-      firebase: {},
-    });
-    expect(firebaseConfig()).to.not.be.null;
-    expect(config()).to.have.property('foo', 'bar');
-  });
-
-  it('behaves well when both env.CLOUD_RUNTIME_CONFIG and env.FIREBASE_PROJECT are set', () => {
-    process.env.CLOUD_RUNTIME_CONFIG = JSON.stringify({ foo: 'bar' });
-    process.env.FIREBASE_PROJECT = JSON.stringify({
-      databaseURL: 'foo@firebaseio.com',
-    });
-    expect(firebaseConfig()).to.have.property(
-      'databaseURL',
-      'foo@firebaseio.com'
-    );
-    expect(config()).to.have.property('foo', 'bar');
+    expect(loaded).to.not.have.property('firebase');
+    expect(loaded).to.have.property('foo', 'bar');
   });
 });

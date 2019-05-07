@@ -22,6 +22,18 @@
 
 import * as firebase from 'firebase-admin';
 
+const RUNTIME_CONFIG_FILE = '.runtimeconfig.json';
+
+function getRootDir(): string {
+  // In Node 10 and up, there is an extra directory where the functions code
+  // lives. The runtime config file still lives in /srv
+  let pwd = process.env.PWD;
+  if (pwd == '/srv/functions') {
+    pwd = '/srv';
+  }
+  return pwd;
+}
+
 export function config(): config.Config {
   if (typeof config.singleton === 'undefined') {
     init();
@@ -40,59 +52,31 @@ export namespace config {
 
 /* @internal */
 export function firebaseConfig(): firebase.AppOptions | null {
-  // The FIREBASE_PROJECT environment variable was introduced to help local emulation with `firebase-tools` 3.18
-  // Unfortunately, API review decided that the name should be FIREBASE_CONFIG to avoid confusions that Firebase has
-  // a separate project from Google Cloud. This accepts both versions, preferring the documented name.
-  const env = process.env.FIREBASE_CONFIG || process.env.FIREBASE_PROJECT;
+  const env = process.env.FIREBASE_CONFIG;
   if (env) {
     return JSON.parse(env);
   }
 
-  // Could have Runtime Config with Firebase in it as an ENV value.
   try {
-    const config = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
-    if (config.firebase) {
-      return config.firebase;
-    }
-  } catch (e) {
-    // Do nothing
-  }
-
-  // Could have Runtime Config with Firebase in it as an ENV location or default.
-  try {
-    const path =
-      process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
+    const path = `${getRootDir()}/${RUNTIME_CONFIG_FILE}`;
     const config = require(path);
     if (config.firebase) {
       return config.firebase;
     }
   } catch (e) {
-    // Do nothing
+    console.error('Could not initialize FIREBASE_CONFIG: ' + e.message);
   }
-
   return null;
 }
 
 function init() {
   try {
-    const parsed = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
-    delete parsed.firebase;
-    config.singleton = parsed;
-    return;
-  } catch (e) {
-    // Do nothing
-  }
-
-  try {
-    let path =
-      process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
+    const path = `${getRootDir()}/${RUNTIME_CONFIG_FILE}`;
     const parsed = require(path);
     delete parsed.firebase;
     config.singleton = parsed;
-    return;
   } catch (e) {
-    // Do nothing
+    console.error('Could not initialize Runtime Config values: ' + e.message);
+    config.singleton = {};
   }
-
-  config.singleton = {};
 }
