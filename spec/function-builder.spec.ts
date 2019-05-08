@@ -51,6 +51,29 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.regions).to.deep.equal(['us-east1', 'us-central1']);
   });
 
+  it('should allow all supported regions to be set', () => {
+    let fn = functions
+      .region(
+        'us-central1',
+        'us-east1',
+        'europe-west1',
+        'europe-west2',
+        'asia-east2',
+        'asia-northeast1'
+      )
+      .auth.user()
+      .onCreate(user => user);
+
+    expect(fn.__trigger.regions).to.deep.equal([
+      'us-central1',
+      'us-east1',
+      'europe-west1',
+      'europe-west2',
+      'asia-east2',
+      'asia-northeast1',
+    ]);
+  });
+
   it('should allow valid runtime options to be set', () => {
     let fn = functions
       .runWith({
@@ -110,7 +133,7 @@ describe('FunctionBuilder', () => {
     }).to.throw(Error, 'TimeoutSeconds');
   });
 
-  it('should throw an error if user chooses an unsupported memory allocation', () => {
+  it('should throw an error if user chooses an invalid memory allocation', () => {
     expect(() => {
       return functions.runWith({
         memory: 'unsupported',

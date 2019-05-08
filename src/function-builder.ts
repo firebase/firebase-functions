@@ -49,7 +49,12 @@ const SUPPORTED_REGIONS = [
 /**
  * List of available memory options supported by Cloud Functions.
  */
-const MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
+const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
+
+// Adding this memory type here to error on compile for TS users.
+// Unfortunately I have not found a way to merge this with VALID_MEMORY_OPS
+// without it being super ugly. But here they are right next to each other at least.
+type memory = '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
 
 /**
  * Cloud Functions max timeout value.
@@ -64,10 +69,12 @@ const MAX_TIMEOUT_SECONDS = 540;
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   if (
     runtimeOptions.memory &&
-    !_.includes(MEMORY_OPTS, runtimeOptions.memory)
+    !_.includes(VALID_MEMORY_OPTS, runtimeOptions.memory)
   ) {
     throw new Error(
-      `The only valid memory allocation values are: ${MEMORY_OPTS.join(', ')}`
+      `The only valid memory allocation values are: ${VALID_MEMORY_OPTS.join(
+        ', '
+      )}`
     );
   }
   if (
@@ -124,13 +131,13 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
 
 export interface RuntimeOptions {
   timeoutSeconds?: number;
-  memory?: string;
+  memory?: memory;
 }
 
 export interface DeploymentOptions {
   regions?: string[];
   timeoutSeconds?: number;
-  memory?: string;
+  memory?: memory;
   schedule?: Schedule;
 }
 
