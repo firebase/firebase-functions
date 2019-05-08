@@ -54,7 +54,7 @@ const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
 // Adding this memory type here to error on compile for TS users.
 // Unfortunately I have not found a way to merge this with VALID_MEMORY_OPS
 // without it being super ugly. But here they are right next to each other at least.
-type memory = '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
+type Memory = '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
 
 /**
  * Cloud Functions max timeout value.
@@ -131,13 +131,13 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
 
 export interface RuntimeOptions {
   timeoutSeconds?: number;
-  memory?: memory;
+  memory?: Memory;
 }
 
 export interface DeploymentOptions {
   regions?: string[];
   timeoutSeconds?: number;
-  memory?: memory;
+  memory?: Memory;
   schedule?: Schedule;
 }
 
