@@ -86,7 +86,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
  * @param regions list of regions.
  * @throws { Error } Regions must be in list of supported regions.
  */
-function assertRegionsAreValid(...regions: string[]): boolean {
+function assertRegionsAreValid(regions: string[]): boolean {
   if (!regions.length) {
     throw new Error('You must specify at least one region');
   }
@@ -104,7 +104,7 @@ function assertRegionsAreValid(...regions: string[]): boolean {
  * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
  */
 export function region(...regions: string[]): FunctionBuilder {
-  if (assertRegionsAreValid(...regions)) {
+  if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
   }
 }
@@ -116,7 +116,7 @@ export function region(...regions: string[]): FunctionBuilder {
  * 2. `memory`: amount of memory to allocate to the function,
  *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
  */
-export function runWith(runtimeOptions: RuntimeOptions) {
+export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   if (assertRuntimeOptionsValid(runtimeOptions)) {
     return new FunctionBuilder(runtimeOptions);
   }
@@ -142,8 +142,8 @@ export class FunctionBuilder {
    * @param regions One or more region strings.
    * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
    */
-  region(...regions: string[]) {
-    if (assertRegionsAreValid(...regions)) {
+  region(...regions: string[]): FunctionBuilder {
+    if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;
     }
@@ -156,7 +156,7 @@ export class FunctionBuilder {
    * 2. memory: amount of memory to allocate to the function, possible values are:
    * '128MB', '256MB', '512MB', '1GB', and '2GB'.
    */
-  runWith(runtimeOptions: RuntimeOptions) {
+  runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     if (assertRuntimeOptionsValid(runtimeOptions)) {
       this.options = _.assign(this.options, runtimeOptions);
       return this;
