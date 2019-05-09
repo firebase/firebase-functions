@@ -33,7 +33,7 @@ describe('FunctionBuilder', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should allow region to be set', () => {
+  it('should allow supported region to be set', () => {
     let fn = functions
       .region('us-east1')
       .auth.user()
@@ -42,7 +42,7 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
   });
 
-  it('should allow multiple regions to be set', () => {
+  it('should allow multiple supported regions to be set', () => {
     let fn = functions
       .region('us-east1', 'us-central1')
       .auth.user()
@@ -51,7 +51,30 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.regions).to.deep.equal(['us-east1', 'us-central1']);
   });
 
-  it('should allow runtime options to be set', () => {
+  it('should allow all supported regions to be set', () => {
+    let fn = functions
+      .region(
+        'us-central1',
+        'us-east1',
+        'europe-west1',
+        'europe-west2',
+        'asia-east2',
+        'asia-northeast1'
+      )
+      .auth.user()
+      .onCreate(user => user);
+
+    expect(fn.__trigger.regions).to.deep.equal([
+      'us-central1',
+      'us-east1',
+      'europe-west1',
+      'europe-west2',
+      'asia-east2',
+      'asia-northeast1',
+    ]);
+  });
+
+  it('should allow valid runtime options to be set', () => {
     let fn = functions
       .runWith({
         timeoutSeconds: 90,
@@ -64,9 +87,9 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.timeout).to.deep.equal('90s');
   });
 
-  it('should allow both region and runtime options to be set', () => {
+  it('should allow both supported region and valid runtime options to be set', () => {
     let fn = functions
-      .region('us-east1')
+      .region('europe-west2')
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
@@ -74,38 +97,54 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate(user => user);
 
-    expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+    expect(fn.__trigger.regions).to.deep.equal(['europe-west2']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
   });
 
-  it('should allow both region and runtime options to be set (reverse order)', () => {
+  it('should allow both valid runtime options and supported region to be set in reverse order', () => {
     let fn = functions
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
       })
-      .region('us-east1')
+      .region('europe-west1')
       .auth.user()
       .onCreate(user => user);
 
-    expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+    expect(fn.__trigger.regions).to.deep.equal(['europe-west1']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
   });
 
-  it('should throw an error if user chooses an unsupported memory allocation', () => {
+  it('should fail if valid runtime options but unsupported region are set (reverse order)', () => {
+    expect(() => {
+      functions
+        .runWith({ timeoutSeconds: 90, memory: '256MB' })
+        .region('unsupported');
+    }).to.throw(Error, 'region');
+  });
+
+  it('should fail if supported region but invalid runtime options are set (reverse order)', () => {
+    expect(() => {
+      functions
+        .region('asia-northeast1')
+        .runWith({ timeoutSeconds: 600, memory: '256MB' });
+    }).to.throw(Error, 'TimeoutSeconds');
+  });
+
+  it('should throw an error if user chooses an invalid memory allocation', () => {
     expect(() => {
       return functions.runWith({
         memory: 'unsupported',
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'memory');
 
     expect(() => {
       return functions.region('us-east1').runWith({
         memory: 'unsupported',
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'memory');
   });
 
   it('should throw an error if user chooses an invalid timeoutSeconds', () => {
@@ -113,46 +152,46 @@ describe('FunctionBuilder', () => {
       return functions.runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'TimeoutSeconds');
 
     expect(() => {
-      return functions.region('us-east1').runWith({
+      return functions.region('asia-east2').runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'TimeoutSeconds');
   });
 
   it('should throw an error if user chooses an invalid region', () => {
     expect(() => {
       return functions.region('unsupported');
-    }).to.throw(Error);
+    }).to.throw(Error, 'region');
 
     expect(() => {
       return functions.region('unsupported').runWith({
         timeoutSeconds: 500,
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'region');
 
     expect(() => {
       return functions.region('unsupported', 'us-east1');
-    }).to.throw(Error);
+    }).to.throw(Error, 'region');
 
     expect(() => {
       return functions.region('unsupported', 'us-east1').runWith({
         timeoutSeconds: 500,
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'region');
   });
 
   it('should throw an error if user chooses no region when using .region()', () => {
     expect(() => {
       return functions.region();
-    }).to.throw(Error);
+    }).to.throw(Error, 'at least one region');
 
     expect(() => {
       return functions.region().runWith({
         timeoutSeconds: 500,
       } as any);
-    }).to.throw(Error);
+    }).to.throw(Error, 'at least one region');
   });
 });

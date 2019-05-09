@@ -32,37 +32,90 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import {
-  CloudFunction,
-  EventContext,
-  Runnable,
-  TriggerAnnotated,
-  Schedule,
-} from './cloud-functions';
+import { CloudFunction, EventContext, Schedule } from './cloud-functions';
+
+/**
+ * List of all regions supported by Cloud Functions.
+ */
+const SUPPORTED_REGIONS = [
+  'us-central1',
+  'us-east1',
+  'europe-west1',
+  'europe-west2',
+  'asia-east2',
+  'asia-northeast1',
+];
+
+/**
+ * List of available memory options supported by Cloud Functions.
+ */
+const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
+
+// Adding this memory type here to error on compile for TS users.
+// Unfortunately I have not found a way to merge this with VALID_MEMORY_OPS
+// without it being super ugly. But here they are right next to each other at least.
+type Memory = '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
+
+/**
+ * Cloud Functions max timeout value.
+ */
+const MAX_TIMEOUT_SECONDS = 540;
+
+/**
+ * Assert that the runtime options passed in are valid.
+ * @param runtimeOptions object containing memory and timeout information.
+ * @throws { Error } Memory and TimeoutSeconds values must be valid.
+ */
+function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
+  if (
+    runtimeOptions.memory &&
+    !_.includes(VALID_MEMORY_OPTS, runtimeOptions.memory)
+  ) {
+    throw new Error(
+      `The only valid memory allocation values are: ${VALID_MEMORY_OPTS.join(
+        ', '
+      )}`
+    );
+  }
+  if (
+    runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS ||
+    runtimeOptions.timeoutSeconds < 0
+  ) {
+    throw new Error(
+      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+    );
+  }
+  return true;
+}
+
+/**
+ * Assert regions specified are valid.
+ * @param regions list of regions.
+ * @throws { Error } Regions must be in list of supported regions.
+ */
+function assertRegionsAreValid(regions: string[]): boolean {
+  if (!regions.length) {
+    throw new Error('You must specify at least one region');
+  }
+  if (_.difference(regions, SUPPORTED_REGIONS).length) {
+    throw new Error(
+      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')}`
+    );
+  }
+  return true;
+}
 
 /**
  * Configure the regions that the function is deployed to.
  * @param regions One of more region strings.
  * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
  */
-export function region(...regions: string[]) {
-  if (!regions.length) {
-    throw new Error('You must specify at least one region');
+export function region(...regions: string[]): FunctionBuilder {
+  if (assertRegionsAreValid(regions)) {
+    return new FunctionBuilder({ regions });
   }
-  if (
-    _.difference(regions, [
-      'us-central1',
-      'us-east1',
-      'europe-west1',
-      'asia-northeast1',
-    ]).length
-  ) {
-    throw new Error(
-      "The only valid regions are 'us-central1', 'us-east1', 'europe-west1', and 'asia-northeast1'"
-    );
-  }
-  return new FunctionBuilder({ regions });
 }
+
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with 2 optional fields:
@@ -70,34 +123,21 @@ export function region(...regions: string[]) {
  * 2. `memory`: amount of memory to allocate to the function,
  *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
  */
-export function runWith(runtimeOptions: {
+export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
+  if (assertRuntimeOptionsValid(runtimeOptions)) {
+    return new FunctionBuilder(runtimeOptions);
+  }
+}
+
+export interface RuntimeOptions {
   timeoutSeconds?: number;
-  memory?: '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
-}) {
-  if (
-    runtimeOptions.memory &&
-    !_.includes(
-      ['128MB', '256MB', '512MB', '1GB', '2GB'],
-      runtimeOptions.memory
-    )
-  ) {
-    throw new Error(
-      "The only valid memory allocation values are: '128MB', '256MB', '512MB', '1GB', and '2GB'"
-    );
-  }
-  if (
-    runtimeOptions.timeoutSeconds > 540 ||
-    runtimeOptions.timeoutSeconds < 0
-  ) {
-    throw new Error('TimeoutSeconds must be between 0 and 540');
-  }
-  return new FunctionBuilder(runtimeOptions);
+  memory?: Memory;
 }
 
 export interface DeploymentOptions {
   regions?: string[];
   timeoutSeconds?: number;
-  memory?: string;
+  memory?: Memory;
   schedule?: Schedule;
 }
 
@@ -109,10 +149,12 @@ export class FunctionBuilder {
    * @param regions One or more region strings.
    * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
    */
-  region = (...regions: string[]) => {
-    this.options.regions = regions;
-    return this;
-  };
+  region(...regions: string[]): FunctionBuilder {
+    if (assertRegionsAreValid(regions)) {
+      this.options.regions = regions;
+      return this;
+    }
+  }
 
   /**
    * Configure runtime options for the function.
@@ -121,30 +163,12 @@ export class FunctionBuilder {
    * 2. memory: amount of memory to allocate to the function, possible values are:
    * '128MB', '256MB', '512MB', '1GB', and '2GB'.
    */
-  runWith = (runtimeOptions: {
-    timeoutSeconds?: number;
-    memory?: '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
-  }) => {
-    if (
-      runtimeOptions.memory &&
-      !_.includes(
-        ['128MB', '256MB', '512MB', '1GB', '2GB'],
-        runtimeOptions.memory
-      )
-    ) {
-      throw new Error(
-        "The only valid memory allocation values are: '128MB', '256MB', '512MB', '1GB', and '2GB'"
-      );
+  runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
+    if (assertRuntimeOptionsValid(runtimeOptions)) {
+      this.options = _.assign(this.options, runtimeOptions);
+      return this;
     }
-    if (
-      runtimeOptions.timeoutSeconds > 540 ||
-      runtimeOptions.timeoutSeconds < 0
-    ) {
-      throw new Error('TimeoutSeconds must be between 0 and 540');
-    }
-    this.options = _.assign(this.options, runtimeOptions);
-    return this;
-  };
+  }
 
   get https() {
     return {
