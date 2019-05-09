@@ -1,1 +1,0 @@
-feature - Adds region support for europe-west2 and asia-east2
