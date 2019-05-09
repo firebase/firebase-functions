@@ -122,7 +122,7 @@ describe('FunctionBuilder', () => {
       functions
         .runWith({ timeoutSeconds: 90, memory: '256MB' })
         .region('unsupported');
-    }).to.throw(Error);
+    }).to.throw(Error, 'region');
   });
 
   it('should fail if supported region but invalid runtime options are set (reverse order)', () => {
