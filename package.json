@@ -1,15 +1,35 @@
 {
+  "name": "firebase-functions",
+  "version": "2.3.1",
+  "description": "Firebase SDK for Cloud Functions",
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.release.json",
+    "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
+    "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
+    "format": "prettier --write '**/*.ts'",
+    "mocha": "mocha .tmp/spec/index.spec.js",
+    "postinstall": "node ./upgrade-warning",
+    "posttest": "npm run format && rm -rf .tmp",
+    "pretest": "tsc && cp -r spec/fixtures .tmp/spec",
+    "test": "npm run mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/firebase/firebase-functions.git"
+  },
+  "keywords": [
+    "firebase",
+    "functions",
+    "google",
+    "cloud"
+  ],
   "author": "Firebase Team",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/firebase/firebase-functions/issues"
   },
-  "dependencies": {
-    "cors": "^2.8.4",
-    "express": "^4.16.2",
-    "jsonwebtoken": "^8.3.2",
-    "lodash": "^4.6.1"
-  },
-  "description": "Firebase SDK for Cloud Functions",
+  "homepage": "https://github.com/firebase/firebase-functions#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/chai-as-promised": "^7.1.0",
@@ -34,37 +54,17 @@
     "ts-node": "^8.1.0",
     "typescript": "^3.4.0"
   },
-  "engines": {
-    "node": ">=6.0.0"
-  },
-  "homepage": "https://github.com/firebase/firebase-functions#readme",
-  "keywords": [
-    "firebase",
-    "functions",
-    "google",
-    "cloud"
-  ],
-  "license": "MIT",
-  "main": "lib/index.js",
-  "name": "firebase-functions",
   "peerDependencies": {
     "firebase-admin": "^7.0.0"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/firebase/firebase-functions.git"
+  "dependencies": {
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "jsonwebtoken": "^8.3.2",
+    "lodash": "^4.6.1"
   },
-  "scripts": {
-    "build": "tsc -p tsconfig.release.json",
-    "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
-    "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
-    "format": "prettier --write '**/*.ts'",
-    "mocha": "mocha .tmp/spec/index.spec.js",
-    "postinstall": "node ./upgrade-warning",
-    "posttest": "npm run format && rm -rf .tmp",
-    "pretest": "tsc && cp -r spec/fixtures .tmp/spec",
-    "test": "npm run mocha"
+  "engines": {
+    "node": ">=6.0.0"
   },
-  "types": "lib/index.d.ts",
-  "version": "2.3.1"
+  "types": "lib/index.d.ts"
 }
