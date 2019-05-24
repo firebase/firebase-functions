@@ -1,17 +1,12 @@
 {
   "compilerOptions": {
-    "lib": ["es6"],
+    "lib": ["dom", "es6"],
     "module": "commonjs",
     "noImplicitAny": false,
     "outDir": ".tmp",
     "sourceMap": true,
     "target": "es6",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "typeRoots": ["node_modules/@types"]
   },
-  "include": [
-    "src/**/*.ts",
-    "spec/**/*.ts"
-  ]
+  "include": ["src/**/*.ts", "spec/**/*.ts"]
 }
