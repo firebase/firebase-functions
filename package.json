@@ -47,11 +47,11 @@
     "@types/mocha": "^5.2.7",
     "@types/mock-require": "^2.0.0",
     "@types/nock": "^10.0.2",
-    "@types/node": "^6.14.6",
+    "@types/node": "^8.10.49",
     "@types/sinon": "^7.0.12",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "firebase-admin": "^7.4.0",
+    "firebase-admin": "^8.0.0",
     "istanbul": "^0.4.2",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
@@ -62,9 +62,9 @@
     "typescript": "^3.5.1"
   },
   "peerDependencies": {
-    "firebase-admin": "^7.0.0"
+    "firebase-admin": "^8.0.0"
   },
   "engines": {
-    "node": ">=6.0.0"
+    "node": "^8.13.0 || >=10.10.0"
   }
 }
