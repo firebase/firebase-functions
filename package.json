@@ -26,7 +26,6 @@
     "build": "tsc -p tsconfig.release.json",
     "format": "prettier --write '**/*.ts'",
     "mocha": "mocha .tmp/spec/index.spec.js",
-    "postinstall": "node ./upgrade-warning",
     "posttest": "npm run format && rm -rf .tmp",
     "pretest": "tsc && cp -r spec/fixtures .tmp/spec",
     "test": "npm run mocha"
