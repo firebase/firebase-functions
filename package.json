@@ -2,11 +2,28 @@
   "name": "firebase-functions",
   "version": "2.3.1",
   "description": "Firebase SDK for Cloud Functions",
+  "keywords": [
+    "cloud",
+    "firebase",
+    "functions",
+    "google"
+  ],
+  "homepage": "https://github.com/firebase/firebase-functions#readme",
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-functions/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/firebase/firebase-functions.git"
+  },
+  "license": "MIT",
+  "author": "Firebase Team",
   "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.release.json",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
+    "build": "tsc -p tsconfig.release.json",
     "format": "prettier --write '**/*.ts'",
     "mocha": "mocha .tmp/spec/index.spec.js",
     "postinstall": "node ./upgrade-warning",
@@ -14,22 +31,12 @@
     "pretest": "tsc && cp -r spec/fixtures .tmp/spec",
     "test": "npm run mocha"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/firebase/firebase-functions.git"
+  "dependencies": {
+    "cors": "^2.8.4",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.3.2",
+    "lodash": "^4.6.1"
   },
-  "keywords": [
-    "firebase",
-    "functions",
-    "google",
-    "cloud"
-  ],
-  "author": "Firebase Team",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/firebase/firebase-functions/issues"
-  },
-  "homepage": "https://github.com/firebase/firebase-functions#readme",
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/chai-as-promised": "^7.1.0",
@@ -57,14 +64,7 @@
   "peerDependencies": {
     "firebase-admin": "^7.0.0"
   },
-  "dependencies": {
-    "cors": "^2.8.4",
-    "express": "^4.17.1",
-    "jsonwebtoken": "^8.3.2",
-    "lodash": "^4.6.1"
-  },
   "engines": {
     "node": ">=6.0.0"
-  },
-  "types": "lib/index.d.ts"
+  }
 }
