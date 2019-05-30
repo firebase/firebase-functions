@@ -40,10 +40,8 @@ export namespace config {
 
 /* @internal */
 export function firebaseConfig(): firebase.AppOptions | null {
-  // The FIREBASE_PROJECT environment variable was introduced to help local emulation with `firebase-tools` 3.18
-  // Unfortunately, API review decided that the name should be FIREBASE_CONFIG to avoid confusions that Firebase has
-  // a separate project from Google Cloud. This accepts both versions, preferring the documented name.
-  const env = process.env.FIREBASE_CONFIG || process.env.FIREBASE_PROJECT;
+  const env = process.env.FIREBASE_CONFIG;
+
   if (env) {
     return JSON.parse(env);
   }

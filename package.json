@@ -59,7 +59,8 @@
     "typescript": "^3.5.1"
   },
   "peerDependencies": {
-    "firebase-admin": "^8.0.0"
+    "firebase-admin": "^8.0.0",
+    "firebase-tools": "^5.0.0"
   },
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
