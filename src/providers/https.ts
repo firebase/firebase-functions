@@ -169,15 +169,10 @@ export class HttpsError extends Error {
   /**
    * Extra data to be converted to JSON and included in the error response.
    */
-  readonly details?: any;
+  readonly details?: unknown;
 
-  constructor(code: FunctionsErrorCode, message: string, details?: any) {
+  constructor(code: FunctionsErrorCode, message: string, details?: unknown) {
     super(message);
-
-    // This is a workaround for a bug in TypeScript when extending Error:
-    // tslint:disable-next-line
-    // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    Object.setPrototypeOf(this, HttpsError.prototype);
 
     if (!errorCodeMap[code]) {
       throw new Error('Unknown error status: ' + code);
