@@ -1,0 +1,2 @@
+- important - [breaking change] The Firebase Functions SDK no longer supports Node 6. Developers must use Node 8.13.0 or higher.
+- important - [breaking change] The Firebase Functions SDK no longer supports Firebase Tools SDK below major version 5.
