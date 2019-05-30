@@ -25,10 +25,8 @@
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "format": "prettier --write '**/*.ts'",
-    "mocha": "mocha .tmp/spec/index.spec.js",
-    "posttest": "npm run format && rm -rf .tmp",
-    "pretest": "tsc && cp -r spec/fixtures .tmp/spec",
-    "test": "npm run mocha"
+    "posttest": "npm run format",
+    "test": "mocha -r ts-node/register ./spec/index.spec.ts"
   },
   "dependencies": {
     "cors": "^2.8.4",
