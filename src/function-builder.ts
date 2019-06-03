@@ -40,8 +40,10 @@ import { CloudFunction, EventContext, Schedule } from './cloud-functions';
 const SUPPORTED_REGIONS = [
   'us-central1',
   'us-east1',
+  'us-east4',
   'europe-west1',
   'europe-west2',
+  'europe-west4',
   'asia-east2',
   'asia-northeast1',
 ];
