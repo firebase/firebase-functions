@@ -41,7 +41,6 @@ export namespace config {
 /* @internal */
 export function firebaseConfig(): firebase.AppOptions | null {
   const env = process.env.FIREBASE_CONFIG;
-
   if (env) {
     return JSON.parse(env);
   }
