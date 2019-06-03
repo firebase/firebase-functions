@@ -39,15 +39,10 @@ export function mockRCVariableFetch(
   data: any,
   token: string = 'thetoken'
 ): nock.Scope {
-  let interceptor = nock('https://runtimeconfig.googleapis.com').get(
-    `/v1beta1/projects/${projectId}/configs/firebase/variables/${varName}`
-  );
-
-  if (token) {
-    interceptor = interceptor.matchHeader('Authorization', `Bearer ${token}`);
-  }
-
-  return interceptor.reply(200, { text: JSON.stringify(data) });
+  return nock('https://runtimeconfig.googleapis.com')
+    .get(`/v1beta1/projects/${projectId}/configs/firebase/variables/${varName}`)
+    .matchHeader('Authorization', `Bearer ${token}`)
+    .reply(200, { text: JSON.stringify(data) });
 }
 
 export function mockMetaVariableWatch(
