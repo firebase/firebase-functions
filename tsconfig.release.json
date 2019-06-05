@@ -6,7 +6,8 @@
     "noImplicitAny": false,
     "outDir": "lib",
     "stripInternal": true,
-    "target": "es2017"
+    "target": "es2017",
+    "typeRoots": ["node_modules/@types"]
   },
   "files": ["src/index.ts", "src/testing.ts"]
 }
