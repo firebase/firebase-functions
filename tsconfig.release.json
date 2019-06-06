@@ -1,18 +1,13 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es6"],
+    "lib": ["es2017"],
     "module": "commonjs",
     "noImplicitAny": false,
     "outDir": "lib",
     "stripInternal": true,
-    "target": "es6",
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "target": "es2017",
+    "typeRoots": ["node_modules/@types"]
   },
-  "files": [
-    "src/index.ts",
-    "src/testing.ts"
-  ]
+  "files": ["src/index.ts", "src/testing.ts"]
 }

@@ -17,11 +17,7 @@ Here are some resources to get help:
 
 If the official documentation doesn't help, try asking through our official support channels: https://firebase.google.com/support/
 
-*Please avoid double posting across multiple channels!*
-
-## Migrating to v1
-
-To migrate from a beta version of firebase-functions to v1, please refer to the [migration guide](https://firebase.google.com/docs/functions/beta-v1-diff).
+_Please avoid double posting across multiple channels!_
 
 ## Usage
 

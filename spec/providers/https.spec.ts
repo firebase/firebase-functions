@@ -213,14 +213,14 @@ const expectedResponseHeaders = {
  * verifying an id token.
  */
 function mockFetchPublicKeys(): nock.Scope {
-  let mock: nock.Scope = nock('https://www.googleapis.com:443').get(
-    '/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com'
-  );
   const mockedResponse = { [mocks.key_id]: mocks.public_key };
   const headers = {
     'cache-control': 'public, max-age=1, must-revalidate, no-transform',
   };
-  return mock.reply(200, mockedResponse, headers);
+
+  return nock('https://www.googleapis.com:443')
+    .get('/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
+    .reply(200, mockedResponse, headers);
 }
 
 /**
