@@ -39,16 +39,16 @@ function build_sdk {
   mv firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz
 }
 
-function pick_node10 {
-  cd $DIR
-  PROJECT_ID=$PROJECT_ID_NODE_10
-  cp package.node10.json functions/package.json
-}
-
 function pick_node8 {
   cd $DIR
   PROJECT_ID=$PROJECT_ID_NODE_8
   cp package.node8.json functions/package.json
+}
+
+function pick_node10 {
+  cd $DIR
+  PROJECT_ID=$PROJECT_ID_NODE_10
+  cp package.node10.json functions/package.json
 }
 
 function install_deps {
@@ -141,6 +141,7 @@ if [[ $PROJECT_ID_NODE_8 == $PROJECT_ID_NODE_10 ]]; then
   waitForPropagation
   run_tests
 fi
+# TODO(b/134418760) Uncomment this when Node 10 issues are fixed:
 # pick_node10
 # announce "Re-deploying the same functions to Node 10 runtime ..."
 # deploy
