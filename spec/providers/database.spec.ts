@@ -25,6 +25,7 @@ import { expect } from 'chai';
 import { apps as appsNamespace } from '../../src/apps';
 import { applyChange } from '../../src/utils';
 import * as functions from '../../src/index';
+import { Event } from '../../src/index';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
@@ -82,18 +83,27 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onWrite(change => {
-          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.write',
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.write',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+        let handler = database.ref('/users/{id}').onWrite((change, context) => {
+          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
         });
+
+        return handler(event.data, event.context);
       });
     });
 
@@ -122,18 +132,28 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onCreate(data => {
-          expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.create',
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.create',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+
+        let handler = database.ref('/users/{id}').onCreate((data, context) => {
+          expect(data.val()).to.deep.equal({ foo: 'bar' });
         });
+
+        return handler(event.data, event.context);
       });
     });
 
@@ -162,18 +182,30 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onUpdate(change => {
-          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.update',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+
+        let handler = database
+          .ref('/users/{id}')
+          .onUpdate((change, context) => {
+            expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          });
+
+        return handler(event.data, event.context);
       });
     });
 
@@ -202,18 +234,28 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onDelete(data => {
-          expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: { foo: 'bar' },
             delta: null,
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.delete',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+
+        let handler = database.ref('/users/{id}').onDelete((data, context) => {
+          expect(data.val()).to.deep.equal({ foo: 'bar' });
         });
+
+        return handler(event.data, event.context);
       });
     });
   });
@@ -231,18 +273,30 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onWrite(change => {
-          return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.write',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+
+        let handler = functions.handler.database.ref.onWrite(
+          (change, context) => {
+            return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
 
@@ -258,18 +312,29 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onCreate(data => {
-          return expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.create',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+        let handler = functions.handler.database.ref.onCreate(
+          (data, context) => {
+            return expect(data.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
 
@@ -285,18 +350,29 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onUpdate(change => {
-          return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.update',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+        let handler = functions.handler.database.ref.onUpdate(
+          (change, context) => {
+            return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
 
@@ -312,18 +388,30 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onDelete(data => {
-          return expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event: Event = {
           data: {
             data: { foo: 'bar' },
             delta: null,
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.delete',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: {
+              name: 'projects/_/instances/subdomains/refs/users',
+              service: 'firebaseio.com',
+            },
+          },
+        };
+
+        let handler = functions.handler.database.ref.onDelete(
+          (data, context) => {
+            return expect(data.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
   });

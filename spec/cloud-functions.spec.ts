@@ -69,31 +69,6 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should construct the right context for legacy event format', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {
-      handler: (data: any, context: EventContext) => context,
-    });
-    let cf = makeCloudFunction(args);
-    let test: LegacyEvent = {
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'providers/provider/eventTypes/event',
-      resource: 'resource',
-      data: 'data',
-    };
-
-    return expect(cf(test)).to.eventually.deep.equal({
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'mock.provider.mock.event',
-      resource: {
-        service: 'service',
-        name: 'resource',
-      },
-      params: {},
-    });
-  });
-
   it('should construct the right context for new event format', () => {
     let args: any = _.assign({}, cloudFunctionArgs, {
       handler: (data: any, context: EventContext) => context,
@@ -112,7 +87,7 @@ describe('makeCloudFunction', () => {
       data: 'data',
     };
 
-    return expect(cf(test)).to.eventually.deep.equal({
+    return expect(cf(test.data, test.context)).to.eventually.deep.equal({
       eventId: '00000',
       timestamp: '2016-11-04T21:29:03.496Z',
       eventType: 'provider.event',
@@ -178,7 +153,7 @@ describe('makeCloudFunction', () => {
       data: 'test data',
     };
 
-    return cf(test).then(result => {
+    return cf(test.data, test.context).then(result => {
       expect(result).to.deep.equal({
         eventId: '00000',
         timestamp: '2016-11-04T21:29:03.496Z',
@@ -204,19 +179,6 @@ describe('makeParams', () => {
   };
   const cf = makeCloudFunction(args);
 
-  it('should construct params from the event resource of legacy events', () => {
-    const testEvent: LegacyEvent = {
-      resource: 'projects/_/instances/pid/ref/a/nested/b',
-      eventType: 'legacyEvent',
-      data: 'data',
-    };
-
-    return expect(cf(testEvent)).to.eventually.deep.equal({
-      foo: 'a',
-      bar: 'b',
-    });
-  });
-
   it('should construct params from the event resource of new format events', () => {
     const testEvent: Event = {
       context: {
@@ -231,7 +193,9 @@ describe('makeParams', () => {
       data: 'data',
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       foo: 'a',
       bar: 'b',
     });
@@ -256,12 +220,16 @@ describe('makeAuth and makeAuthType', () => {
   it('should construct correct auth and authType for admin user', () => {
     const testEvent = {
       data: 'data',
-      auth: {
-        admin: true,
+      context: {
+        auth: {
+          admin: true,
+        },
       },
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       auth: undefined,
       authType: 'ADMIN',
     });
@@ -270,33 +238,41 @@ describe('makeAuth and makeAuthType', () => {
   it('should construct correct auth and authType for unauthenticated user', () => {
     const testEvent = {
       data: 'data',
-      auth: {
-        admin: false,
+      context: {
+        auth: {
+          admin: false,
+        },
       },
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       auth: null,
       authType: 'UNAUTHENTICATED',
     });
   });
 
   it('should construct correct auth and authType for a user', () => {
-    const testEvent: LegacyEvent = {
+    const testEvent = {
       data: 'data',
-      auth: {
-        admin: false,
-        variable: {
-          uid: 'user',
-          provider: 'google',
-          token: {
-            sub: 'user',
+      context: {
+        auth: {
+          admin: false,
+          variable: {
+            uid: 'user',
+            provider: 'google',
+            token: {
+              sub: 'user',
+            },
           },
         },
       },
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       auth: {
         uid: 'user',
         token: {

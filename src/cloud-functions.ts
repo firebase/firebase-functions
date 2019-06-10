@@ -255,15 +255,6 @@ export function makeCloudFunction<EventData>({
   let cloudFunction;
 
   let cloudFunctionNewSignature: any = (data: any, context: any) => {
-    if (legacyEventType && context.eventType === legacyEventType) {
-      // v1beta1 event flow has different format for context, transform them to new format.
-      context.eventType = provider + '.' + eventType;
-      context.resource = {
-        service: service,
-        name: context.resource,
-      };
-    }
-
     let event: Event = {
       data,
       context,
@@ -314,23 +305,7 @@ export function makeCloudFunction<EventData>({
       });
   };
 
-  if (process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE === 'true') {
-    cloudFunction = cloudFunctionNewSignature;
-  } else {
-    cloudFunction = (raw: Event | LegacyEvent) => {
-      let context;
-      // In Node 6 runtime, function called with single event param
-      let data = _.get(raw, 'data');
-      if (isEvent(raw)) {
-        // new eventflow v1beta2 format
-        context = _.cloneDeep(raw.context);
-      } else {
-        // eventflow v1beta1 format
-        context = _.omit(raw, 'data');
-      }
-      return cloudFunctionNewSignature(data, context);
-    };
-  }
+  cloudFunction = cloudFunctionNewSignature;
 
   Object.defineProperty(cloudFunction, '__trigger', {
     get: () => {

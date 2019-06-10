@@ -23,6 +23,7 @@
 import { expect } from 'chai';
 import * as storage from '../../src/providers/storage';
 import * as functions from '../../src/index';
+import { Event, EventContext } from '../../src/index';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
@@ -106,14 +107,26 @@ describe('Storage Functions', () => {
         let cloudFunction = storage.object().onArchive(data => {
           return data.mediaLink;
         });
-        let goodMediaLinkEvent = {
+        let goodMediaLinkEvent: Event = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.archive',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -180,8 +193,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.delete',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -248,8 +273,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.finalize',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -316,8 +353,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.metadataUpdate',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -353,8 +402,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.archive',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -378,8 +439,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.delete',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -405,8 +478,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.finalize',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -432,8 +517,20 @@ describe('Storage Functions', () => {
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.metadataUpdate',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
