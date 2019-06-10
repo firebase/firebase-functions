@@ -28,19 +28,6 @@ export { Request, Response };
 
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
-/** Legacy wire format for an event
- * @internal
- */
-export interface LegacyEvent {
-  data: any;
-  eventType?: string;
-  resource?: string;
-  eventId?: string;
-  timestamp?: string;
-  params?: { [option: string]: any };
-  auth?: apps.AuthMode;
-}
-
 /** Wire format for an event
  * @internal
  */
@@ -338,10 +325,6 @@ export function makeCloudFunction<EventData>({
 
   cloudFunction.run = handler || contextOnlyHandler;
   return cloudFunction;
-}
-
-function isEvent(event: Event | LegacyEvent): event is Event {
-  return _.has(event, 'context');
 }
 
 function _makeParams(

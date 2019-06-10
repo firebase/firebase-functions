@@ -25,7 +25,6 @@ import { expect } from 'chai';
 import {
   Event,
   EventContext,
-  LegacyEvent,
   makeCloudFunction,
   MakeCloudFunctionArgs,
   Change,
