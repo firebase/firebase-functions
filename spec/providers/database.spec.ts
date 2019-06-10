@@ -83,7 +83,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -93,10 +93,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.write',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
         let handler = database.ref('/users/{id}').onWrite((change, context) => {
@@ -132,7 +129,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -142,10 +139,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.create',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
 
@@ -182,7 +176,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -192,10 +186,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.update',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
 
@@ -234,7 +225,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: { foo: 'bar' },
             delta: null,
@@ -244,10 +235,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.delete',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
 
@@ -273,7 +261,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -283,10 +271,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.write',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
 
@@ -312,7 +297,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -322,10 +307,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.create',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
         let handler = functions.handler.database.ref.onCreate(
@@ -350,7 +332,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -360,10 +342,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.update',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
         let handler = functions.handler.database.ref.onUpdate(
@@ -388,7 +367,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event: Event = {
+        const event = {
           data: {
             data: { foo: 'bar' },
             delta: null,
@@ -398,10 +377,7 @@ describe('Database Functions', () => {
             eventType:
               'providers/google.firebase.database/eventTypes/ref.delete',
             timestamp: '2018-04-09T07:56:12.975Z',
-            resource: {
-              name: 'projects/_/instances/subdomains/refs/users',
-              service: 'firebaseio.com',
-            },
+            resource: 'projects/_/instances/subdomains/refs/users',
           },
         };
 
