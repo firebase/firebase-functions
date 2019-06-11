@@ -51,34 +51,50 @@ export {
   storage,
 };
 
-// // Exported root types:
+// Exported root types:
 export * from './config';
 export * from './cloud-functions';
 export * from './function-builder';
 
-// TEMPORARY WORKAROUND (BUG 63586213):
-// Until the Cloud Functions builder can publish FIREBASE_CONFIG, automatically provide it on import based on what
-// we can deduce.
-if (!process.env.FIREBASE_CONFIG) {
-  const cfg = firebaseConfig();
-  if (cfg) {
-    process.env.FIREBASE_CONFIG = JSON.stringify(cfg);
-  } else if (process.env.GCLOUD_PROJECT) {
-    console.warn(
-      'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
-    );
-    process.env.FIREBASE_CONFIG = JSON.stringify({
-      databaseURL:
-        `${process.env.DATABASE_URL}` ||
-        `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
-      storageBucket:
-        `${process.env.STORAGE_BUCKET_URL}` ||
-        `${process.env.GCLOUD_PROJECT}.appspot.com`,
-      projectId: process.env.GCLOUD_PROJECT,
-    });
-  } else {
-    console.warn(
-      'Warning, FIREBASE_CONFIG environment variable is missing. Initializing firebase-admin will fail'
-    );
+// Set up for config and vars
+export function setup() {
+  // TEMPORARY WORKAROUND (BUG 63586213):
+  // Until the Cloud Functions builder can publish FIREBASE_CONFIG, automatically provide it on import based on what
+  // we can deduce.
+  if (!process.env.FIREBASE_CONFIG) {
+    const cfg = firebaseConfig();
+    if (cfg) {
+      process.env.FIREBASE_CONFIG = JSON.stringify(cfg);
+    }
+  }
+
+  // WORKAROUND (BUG 134416569): GCLOUD_PROJECT missing in Node 10
+  if (!process.env.GCLOUD_PROJECT && process.env.FIREBASE_CONFIG) {
+    process.env.GCLOUD_PROJECT = JSON.parse(
+      process.env.FIREBASE_CONFIG
+    ).projectId;
+  }
+
+  // If FIREBASE_CONFIG is still not found, try using GCLOUD_PROJECT to estimate
+  if (!process.env.FIREBASE_CONFIG) {
+    if (process.env.GCLOUD_PROJECT) {
+      console.warn(
+        'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
+      );
+      process.env.FIREBASE_CONFIG = JSON.stringify({
+        databaseURL:
+          `${process.env.DATABASE_URL}` ||
+          `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
+        storageBucket:
+          `${process.env.STORAGE_BUCKET_URL}` ||
+          `${process.env.GCLOUD_PROJECT}.appspot.com`,
+        projectId: process.env.GCLOUD_PROJECT,
+      });
+    } else {
+      console.warn(
+        'Warning, FIREBASE_CONFIG environment variable is missing. Initializing firebase-admin will fail'
+      );
+    }
   }
 }
+setup();

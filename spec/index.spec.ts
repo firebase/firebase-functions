@@ -28,6 +28,7 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import 'mocha';
+import { setup } from '../src/index';
 import './utils.spec';
 import './apps.spec';
 import './cloud-functions.spec';
@@ -43,3 +44,28 @@ import './providers/pubsub.spec';
 import './providers/remoteConfig.spec';
 import './providers/storage.spec';
 import './providers/crashlytics.spec';
+
+describe('setup()', () => {
+  afterEach(() => {
+    delete process.env.FIREBASE_CONFIG;
+    delete process.env.CLOUD_RUNTIME_CONFIG;
+  });
+
+  it('sets GCLOUD_PROJECT from FIREBASE_CONFIG', () => {
+    const testProject = 'test-project';
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: testProject,
+    });
+    setup();
+    chai.expect(process.env.GCLOUD_PROJECT).to.equal(testProject);
+  });
+
+  it('does not set GCLOUD_PROJECT if already defined', () => {
+    const existingProject = 'test-project';
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: 'new-project',
+    });
+    setup();
+    chai.expect(process.env.GCLOUD_PROJECT).to.equal(existingProject);
+  });
+});
