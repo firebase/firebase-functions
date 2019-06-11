@@ -92,7 +92,7 @@ export function setup() {
       });
     } else {
       console.warn(
-        'Warning, FIREBASE_CONFIG environment variable is missing. Initializing firebase-admin will fail'
+        'Warning, FIREBASE_CONFIG and GCLOUD_PROJECT environment variables are missing. Initializing firebase-admin will fail'
       );
     }
   }
