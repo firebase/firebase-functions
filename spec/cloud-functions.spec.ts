@@ -68,7 +68,7 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should construct the right context for new event format', () => {
+  it('should construct the right context for event', () => {
     let args: any = _.assign({}, cloudFunctionArgs, {
       handler: (data: any, context: EventContext) => context,
     });
@@ -95,41 +95,6 @@ describe('makeCloudFunction', () => {
         name: 'resource',
       },
       params: {},
-    });
-  });
-
-  it('should handle Node 8 function signature', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {
-      handler: (data: any, context: EventContext) => {
-        return { data, context };
-      },
-    });
-    process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE = 'true';
-    let cf = makeCloudFunction(args);
-    delete process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE;
-    let testContext = {
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'provider.event',
-      resource: {
-        service: 'provider',
-        name: 'resource',
-      },
-    };
-    let testData = 'data';
-
-    return expect(cf(testData, testContext)).to.eventually.deep.equal({
-      data: 'data',
-      context: {
-        eventId: '00000',
-        timestamp: '2016-11-04T21:29:03.496Z',
-        eventType: 'provider.event',
-        resource: {
-          service: 'provider',
-          name: 'resource',
-        },
-        params: {},
-      },
     });
   });
 
@@ -178,7 +143,7 @@ describe('makeParams', () => {
   };
   const cf = makeCloudFunction(args);
 
-  it('should construct params from the event resource of new format events', () => {
+  it('should construct params from the event resource of events', () => {
     const testEvent: Event = {
       context: {
         eventId: '111',

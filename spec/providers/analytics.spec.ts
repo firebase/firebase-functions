@@ -317,9 +317,6 @@ describe('Analytics Functions', () => {
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
         let event: Event = {
-          // eventId: 'f2e2f0bf-2e47-4d92-b009-e7a375ecbd3e',
-          // eventType: 'providers/google.firebase.analytics/eventTypes/event.log',
-          // resource: 'projects/myUnitTestProject/events/first_open',
           data: {
             userDim: {
               userId: 'hi!',

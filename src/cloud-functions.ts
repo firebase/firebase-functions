@@ -239,9 +239,7 @@ export function makeCloudFunction<EventData>({
   opts = {},
   labels = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction;
-
-  let cloudFunctionNewSignature: any = (data: any, context: any) => {
+  let cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       // v1beta1 event flow has different format for context, transform them to new format.
       context.eventType = provider + '.' + eventType;
@@ -300,8 +298,6 @@ export function makeCloudFunction<EventData>({
         return Promise.reject(err);
       });
   };
-
-  cloudFunction = cloudFunctionNewSignature;
 
   Object.defineProperty(cloudFunction, '__trigger', {
     get: () => {
