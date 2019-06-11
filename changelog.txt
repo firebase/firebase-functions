@@ -1,3 +1,4 @@
 - important - [breaking change] The Firebase Functions SDK no longer supports Node 6. Developers must use Node 8.13.0 or higher.
 - important - [breaking change] The Firebase Functions SDK no longer supports Firebase Tools SDK below version 6.8.0.
 - important - [breaking change] FIREBASE_PROJECT environment variable is no longer supported and has been supplanted by FIREBASE_CONFIG.
+- fixed - Set GCLOUD_PROJECT from FIREBASE_CONFIG when missing.
