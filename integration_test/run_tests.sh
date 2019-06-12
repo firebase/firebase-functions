@@ -141,15 +141,14 @@ if [[ $PROJECT_ID_NODE_8 == $PROJECT_ID_NODE_10 ]]; then
   waitForPropagation
   run_tests
 fi
-# TODO(b/134418760): Uncomment this when Node 10 issues are fixed
-# pick_node10
-# announce "Re-deploying the same functions to Node 10 runtime ..."
-# deploy
-# waitForPropagation
-# if [[ $PROJECT_ID_NODE_8 == $PROJECT_ID_NODE_10 ]]; then
-#   run_tests
-# else
-#   run_all_tests
-# fi
+pick_node10
+announce "Re-deploying the same functions to Node 10 runtime ..."
+deploy
+waitForPropagation
+if [[ $PROJECT_ID_NODE_8 == $PROJECT_ID_NODE_10 ]]; then
+  run_tests
+else
+  run_all_tests
+fi
 cleanup
 announce "All tests pass!"
