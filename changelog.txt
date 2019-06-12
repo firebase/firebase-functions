@@ -1,1 +1,1 @@
-* Includes required types for functions SDK.
+fixed - Includes required types for functions SDK.
