@@ -117,10 +117,15 @@ export const fullPayload = JSON.parse(`{
       }
     }
   },
-  "eventId": "1486080145623867projects/analytics-integration-fd82a/events/i_made_this_upproviders/google.firebase.analytics/eventTypes/event.sendprojects/f949d1bb9ef782579-tp/topics/cloud-functions-u54ejabpzs4prfjh7433eklhae",
-  "eventType": "providers/google.firebase.analytics/eventTypes/event.send",
-  "resource": "projects/analytics-integration-fd82a/events/i_made_this_up",
-  "timestamp": "2017-03-29T23:59:59.986371388Z"
+  "context": {
+    "eventId": "1486080145623867projects/analytics-integration-fd82a/events/i_made_this_upproviders/google.firebase.analytics/eventTypes/event.sendprojects/f949d1bb9ef782579-tp/topics/cloud-functions-u54ejabpzs4prfjh7433eklhae",
+    "eventType": "providers/google.firebase.analytics/eventTypes/event.send",
+    "timestamp": "2017-03-29T23:59:59.986371388Z",
+    "resource": {
+      "service": "app-measurement.com",
+      "name": "projects/analytics-integration-fd82a/events/i_made_this_up"
+    }
+  }
 }`);
 
 // The event data that we expect would be constructed if the payload above were to arrive.

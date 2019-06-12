@@ -25,7 +25,6 @@ import { expect } from 'chai';
 import {
   Event,
   EventContext,
-  LegacyEvent,
   makeCloudFunction,
   MakeCloudFunctionArgs,
   Change,
@@ -69,32 +68,7 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should construct the right context for legacy event format', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {
-      handler: (data: any, context: EventContext) => context,
-    });
-    let cf = makeCloudFunction(args);
-    let test: LegacyEvent = {
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'providers/provider/eventTypes/event',
-      resource: 'resource',
-      data: 'data',
-    };
-
-    return expect(cf(test)).to.eventually.deep.equal({
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'mock.provider.mock.event',
-      resource: {
-        service: 'service',
-        name: 'resource',
-      },
-      params: {},
-    });
-  });
-
-  it('should construct the right context for new event format', () => {
+  it('should construct the right context for event', () => {
     let args: any = _.assign({}, cloudFunctionArgs, {
       handler: (data: any, context: EventContext) => context,
     });
@@ -112,7 +86,7 @@ describe('makeCloudFunction', () => {
       data: 'data',
     };
 
-    return expect(cf(test)).to.eventually.deep.equal({
+    return expect(cf(test.data, test.context)).to.eventually.deep.equal({
       eventId: '00000',
       timestamp: '2016-11-04T21:29:03.496Z',
       eventType: 'provider.event',
@@ -121,41 +95,6 @@ describe('makeCloudFunction', () => {
         name: 'resource',
       },
       params: {},
-    });
-  });
-
-  it('should handle Node 8 function signature', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {
-      handler: (data: any, context: EventContext) => {
-        return { data, context };
-      },
-    });
-    process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE = 'true';
-    let cf = makeCloudFunction(args);
-    delete process.env.X_GOOGLE_NEW_FUNCTION_SIGNATURE;
-    let testContext = {
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'provider.event',
-      resource: {
-        service: 'provider',
-        name: 'resource',
-      },
-    };
-    let testData = 'data';
-
-    return expect(cf(testData, testContext)).to.eventually.deep.equal({
-      data: 'data',
-      context: {
-        eventId: '00000',
-        timestamp: '2016-11-04T21:29:03.496Z',
-        eventType: 'provider.event',
-        resource: {
-          service: 'provider',
-          name: 'resource',
-        },
-        params: {},
-      },
     });
   });
 
@@ -178,7 +117,7 @@ describe('makeCloudFunction', () => {
       data: 'test data',
     };
 
-    return cf(test).then(result => {
+    return cf(test.data, test.context).then(result => {
       expect(result).to.deep.equal({
         eventId: '00000',
         timestamp: '2016-11-04T21:29:03.496Z',
@@ -204,20 +143,7 @@ describe('makeParams', () => {
   };
   const cf = makeCloudFunction(args);
 
-  it('should construct params from the event resource of legacy events', () => {
-    const testEvent: LegacyEvent = {
-      resource: 'projects/_/instances/pid/ref/a/nested/b',
-      eventType: 'legacyEvent',
-      data: 'data',
-    };
-
-    return expect(cf(testEvent)).to.eventually.deep.equal({
-      foo: 'a',
-      bar: 'b',
-    });
-  });
-
-  it('should construct params from the event resource of new format events', () => {
+  it('should construct params from the event resource of events', () => {
     const testEvent: Event = {
       context: {
         eventId: '111',
@@ -231,7 +157,9 @@ describe('makeParams', () => {
       data: 'data',
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       foo: 'a',
       bar: 'b',
     });
@@ -256,12 +184,16 @@ describe('makeAuth and makeAuthType', () => {
   it('should construct correct auth and authType for admin user', () => {
     const testEvent = {
       data: 'data',
-      auth: {
-        admin: true,
+      context: {
+        auth: {
+          admin: true,
+        },
       },
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       auth: undefined,
       authType: 'ADMIN',
     });
@@ -270,33 +202,41 @@ describe('makeAuth and makeAuthType', () => {
   it('should construct correct auth and authType for unauthenticated user', () => {
     const testEvent = {
       data: 'data',
-      auth: {
-        admin: false,
+      context: {
+        auth: {
+          admin: false,
+        },
       },
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       auth: null,
       authType: 'UNAUTHENTICATED',
     });
   });
 
   it('should construct correct auth and authType for a user', () => {
-    const testEvent: LegacyEvent = {
+    const testEvent = {
       data: 'data',
-      auth: {
-        admin: false,
-        variable: {
-          uid: 'user',
-          provider: 'google',
-          token: {
-            sub: 'user',
+      context: {
+        auth: {
+          admin: false,
+          variable: {
+            uid: 'user',
+            provider: 'google',
+            token: {
+              sub: 'user',
+            },
           },
         },
       },
     };
 
-    return expect(cf(testEvent)).to.eventually.deep.equal({
+    return expect(
+      cf(testEvent.data, testEvent.context)
+    ).to.eventually.deep.equal({
       auth: {
         uid: 'user',
         token: {

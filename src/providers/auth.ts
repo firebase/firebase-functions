@@ -140,11 +140,7 @@ export function userRecordConstructor(
     _.set(
       record,
       'metadata',
-      new UserRecordMetadata(
-        // Transform payload to firebase-admin v5.0.0 format because wire format is different (BUG 63167395)
-        meta.createdAt || meta.creationTime,
-        meta.lastSignedInAt || meta.lastSignInTime
-      )
+      new UserRecordMetadata(meta.creationTime, meta.lastSignInTime)
     );
   } else {
     _.set(record, 'metadata', new UserRecordMetadata(null, null));
