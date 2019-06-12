@@ -22,7 +22,7 @@
 
 import * as analytics from '../../src/providers/analytics';
 import { expect } from 'chai';
-import { LegacyEvent } from '../../src/cloud-functions';
+import { EventContext, Event } from '../../src/cloud-functions';
 import * as analytics_spec_input from './analytics.spec.input';
 import * as functions from '../../src/index';
 
@@ -69,22 +69,33 @@ describe('Analytics Functions', () => {
       it('should handle an event with the appropriate fields', () => {
         const cloudFunction = analytics
           .event('first_open')
-          .onLog((data: analytics.AnalyticsEvent) => data);
+          .onLog(
+            (data: analytics.AnalyticsEvent, context: EventContext) => data
+          );
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        let event: LegacyEvent = {
-          eventId: 'f2e2f0bf-2e47-4d92-b009-e7a375ecbd3e',
-          eventType: 'providers/google.firebase.analytics/eventTypes/event.log',
-          resource: 'projects/myUnitTestProject/events/first_open',
+        let event: Event = {
           data: {
             userDim: {
               userId: 'hi!',
             },
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: {
+              service: 'app-measurement.com',
+              name: 'projects/project1/events/first_open',
+            },
+          },
         };
 
-        return expect(cloudFunction(event)).to.eventually.deep.equal({
+        return expect(
+          cloudFunction(event.data, event.context)
+        ).to.eventually.deep.equal({
           params: {},
           user: {
             userId: 'hi!',
@@ -96,12 +107,14 @@ describe('Analytics Functions', () => {
       it('should remove xValues', () => {
         const cloudFunction = analytics
           .event('first_open')
-          .onLog((data: analytics.AnalyticsEvent) => data);
+          .onLog(
+            (data: analytics.AnalyticsEvent, context: EventContext) => data
+          );
 
         // Incoming events will have four kinds of "xValue" fields: "intValue",
         // "stringValue", "doubleValue" and "floatValue". We expect those to get
         // flattened away, leaving just their values.
-        let event: LegacyEvent = {
+        let event: Event = {
           data: {
             eventDim: [
               {
@@ -133,9 +146,21 @@ describe('Analytics Functions', () => {
               },
             },
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: {
+              service: 'app-measurement.com',
+              name: 'projects/project1/events/first_open',
+            },
+          },
         };
 
-        return expect(cloudFunction(event)).to.eventually.deep.equal({
+        return expect(
+          cloudFunction(event.data, event.context)
+        ).to.eventually.deep.equal({
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
           params: {
@@ -159,7 +184,7 @@ describe('Analytics Functions', () => {
           .event('first_open')
           .onLog((data: analytics.AnalyticsEvent) => data);
 
-        let event: LegacyEvent = {
+        let event: Event = {
           data: {
             eventDim: [
               {
@@ -181,9 +206,21 @@ describe('Analytics Functions', () => {
               },
             },
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: {
+              service: 'app-measurement.com',
+              name: 'projects/project1/events/first_open',
+            },
+          },
         };
 
-        return expect(cloudFunction(event)).to.eventually.deep.equal({
+        return expect(
+          cloudFunction(event.data, event.context)
+        ).to.eventually.deep.equal({
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
           params: {},
@@ -217,7 +254,7 @@ describe('Analytics Functions', () => {
         //
         // Separately, the input has a number of microsecond timestamps that we'd
         // like to rename and scale down to milliseconds.
-        let event: LegacyEvent = {
+        let event: Event = {
           data: {
             eventDim: [
               {
@@ -227,9 +264,21 @@ describe('Analytics Functions', () => {
               },
             ],
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: {
+              service: 'app-measurement.com',
+              name: 'projects/project1/events/first_open',
+            },
+          },
         };
 
-        return expect(cloudFunction(event)).to.eventually.deep.equal({
+        return expect(
+          cloudFunction(event.data, event.context)
+        ).to.eventually.deep.equal({
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
           params: {},
@@ -242,9 +291,11 @@ describe('Analytics Functions', () => {
           .event('first_open')
           .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        return expect(
-          cloudFunction(analytics_spec_input.fullPayload)
-        ).to.eventually.deep.equal(analytics_spec_input.data);
+        const data = analytics_spec_input.fullPayload.data;
+        const context = analytics_spec_input.fullPayload.context;
+        return expect(cloudFunction(data, context)).to.eventually.deep.equal(
+          analytics_spec_input.data
+        );
       });
     });
   });
@@ -260,23 +311,32 @@ describe('Analytics Functions', () => {
 
       it('should handle an event with the appropriate fields', () => {
         const cloudFunction = functions.handler.analytics.event.onLog(
-          (data: analytics.AnalyticsEvent) => data
+          (data: analytics.AnalyticsEvent, context: EventContext) => data
         );
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        let event: LegacyEvent = {
-          eventId: 'f2e2f0bf-2e47-4d92-b009-e7a375ecbd3e',
-          eventType: 'providers/google.firebase.analytics/eventTypes/event.log',
-          resource: 'projects/myUnitTestProject/events/first_open',
+        let event: Event = {
           data: {
             userDim: {
               userId: 'hi!',
             },
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: {
+              service: 'app-measurement.com',
+              name: 'projects/project1/events/first_open',
+            },
+          },
         };
 
-        return expect(cloudFunction(event)).to.eventually.deep.equal({
+        return expect(
+          cloudFunction(event.data, event.context)
+        ).to.eventually.deep.equal({
           params: {},
           user: {
             userId: 'hi!',

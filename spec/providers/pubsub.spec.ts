@@ -23,6 +23,7 @@
 import { expect } from 'chai';
 import * as pubsub from '../../src/providers/pubsub';
 import * as functions from '../../src/index';
+import { Event } from '../../src/index';
 
 describe('Pubsub Functions', () => {
   describe('pubsub.Message', () => {
@@ -105,16 +106,25 @@ describe('Pubsub Functions', () => {
 
       it('should properly handle a new-style event', () => {
         const raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-        const event = {
+        const event: Event = {
           data: {
             data: raw,
             attributes: {
               foo: 'bar',
             },
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.pubsub.topic.publish',
+            resource: {
+              service: 'pubsub.googleapis.com',
+              name: 'projects/project1/topics/toppy',
+            },
+          },
         };
 
-        const result = pubsub.topic('toppy').onPublish(data => {
+        const result = pubsub.topic('toppy').onPublish((data, context) => {
           return {
             raw: data.data,
             json: data.json,
@@ -122,13 +132,16 @@ describe('Pubsub Functions', () => {
           };
         });
 
-        return expect(result(event)).to.eventually.deep.equal({
+        return expect(
+          result(event.data, event.context)
+        ).to.eventually.deep.equal({
           raw,
           json: { hello: 'world' },
           attributes: { foo: 'bar' },
         });
       });
     });
+
     describe('#schedule', () => {
       it('should return a trigger with schedule', () => {
         let result = pubsub.schedule('every 5 minutes').onRun(context => null);
@@ -136,6 +149,7 @@ describe('Pubsub Functions', () => {
           schedule: 'every 5 minutes',
         });
       });
+
       it('should return a trigger with schedule and timeZone when one is chosen', () => {
         let result = pubsub
           .schedule('every 5 minutes')
@@ -146,6 +160,7 @@ describe('Pubsub Functions', () => {
           timeZone: 'America/New_York',
         });
       });
+
       it('should return a trigger with schedule and retry config when called with retryConfig', () => {
         let retryConfig = {
           retryCount: 3,
@@ -166,6 +181,7 @@ describe('Pubsub Functions', () => {
           'deployment-scheduled': 'true',
         });
       });
+
       it('should return a trigger with schedule, timeZone and retry config when called with retryConfig and timeout', () => {
         let retryConfig = {
           retryCount: 3,
@@ -188,6 +204,7 @@ describe('Pubsub Functions', () => {
           'deployment-scheduled': 'true',
         });
       });
+
       it('should return an appropriate trigger when called with region and options', () => {
         let result = functions
           .region('us-east1')
@@ -204,6 +221,7 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
       });
+
       it('should return an appropriate trigger when called with region, timeZone, and options', () => {
         let result = functions
           .region('us-east1')
@@ -222,6 +240,7 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
       });
+
       it('should return an appropriate trigger when called with region, options and retryConfig', () => {
         let retryConfig = {
           retryCount: 3,
@@ -250,6 +269,7 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
       });
+
       it('should return an appropriate trigger when called with region, options, retryConfig, and timeZone', () => {
         let retryConfig = {
           retryCount: 3,
@@ -299,6 +319,15 @@ describe('Pubsub Functions', () => {
               foo: 'bar',
             },
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.pubsub.topic.publish',
+            resource: {
+              service: 'pubsub.googleapis.com',
+              name: 'projects/project1/topics/toppy',
+            },
+          },
         };
 
         const result = functions.handler.pubsub.topic.onPublish(data => {
@@ -309,7 +338,9 @@ describe('Pubsub Functions', () => {
           };
         });
 
-        return expect(result(event)).to.eventually.deep.equal({
+        return expect(
+          result(event.data, event.context)
+        ).to.eventually.deep.equal({
           raw,
           json: { hello: 'world' },
           attributes: { foo: 'bar' },
