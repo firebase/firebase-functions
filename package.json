@@ -29,6 +29,10 @@
     "test": "mocha -r ts-node/register ./spec/index.spec.ts"
   },
   "dependencies": {
+    "@types/cors": "^2.8.5",
+    "@types/express": "^4.11.1",
+    "@types/jsonwebtoken": "^8.3.2",
+    "@types/lodash": "^4.14.133",
     "cors": "^2.8.4",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.3.2",
