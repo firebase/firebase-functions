@@ -26,6 +26,7 @@ import * as firebase from 'firebase-admin';
 import { CloudFunction, Event, EventContext } from '../../src/cloud-functions';
 import * as functions from '../../src/index';
 import * as auth from '../../src/providers/auth';
+import { Resolver } from 'dns';
 
 describe('Auth Functions', () => {
   const event: Event = {
@@ -47,7 +48,9 @@ describe('Auth Functions', () => {
   };
 
   describe('AuthBuilder', () => {
-    let handler: (user: firebase.auth.UserRecord) => PromiseLike<any> | any;
+    const handler = (user: firebase.auth.UserRecord) => {
+      return Promise.resolve();
+    };
 
     before(() => {
       process.env.GCLOUD_PROJECT = 'project1';
@@ -193,7 +196,9 @@ describe('Auth Functions', () => {
       );
 
       it('should return an empty trigger', () => {
-        let handler: (user: firebase.auth.UserRecord) => PromiseLike<any> | any;
+        const handler = (user: firebase.auth.UserRecord) => {
+          return Promise.resolve();
+        };
         const cloudFunction = functions.handler.auth.user.onDelete(handler);
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
