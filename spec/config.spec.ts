@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as mockRequire from 'mock-require';
 import { expect } from 'chai';
+import * as mockRequire from 'mock-require';
 import { config, firebaseConfig } from '../src/config';
 
 describe('config()', () => {
@@ -34,7 +34,7 @@ describe('config()', () => {
 
   it('loads config values from .runtimeconfig.json', () => {
     mockRequire('../../../.runtimeconfig.json', { foo: 'bar', firebase: {} });
-    let loaded = config();
+    const loaded = config();
     expect(loaded).to.not.have.property('firebase');
     expect(loaded).to.have.property('foo', 'bar');
   });
