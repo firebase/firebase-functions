@@ -1,5 +1,6 @@
 {
-  "extends": "tslint:recommended",
+  "defaultSeverity": "warning",
+  "extends": ["tslint:recommended", "tslint-no-unused-expression-chai"],
   "rules": {
     "quotemark": [true, "single", "avoid-escape"],
     "interface-name": [false],
@@ -8,6 +9,7 @@
     "whitespace": [true],
     "member-access": [false],
     "no-console": [false],
-    "no-namespace": [false]
+    "no-namespace": [false],
+    "trailing-comma": [true, { "functions": "never" }]
   }
 }
