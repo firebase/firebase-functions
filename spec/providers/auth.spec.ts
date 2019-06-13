@@ -22,9 +22,10 @@
 
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
-import * as auth from '../../src/providers/auth';
-import { CloudFunction, EventContext, Event } from '../../src/cloud-functions';
+
+import { CloudFunction, Event, EventContext } from '../../src/cloud-functions';
 import * as functions from '../../src/index';
+import * as auth from '../../src/providers/auth';
 
 describe('Auth Functions', () => {
   const event: Event = {
@@ -57,7 +58,7 @@ describe('Auth Functions', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
@@ -178,12 +179,6 @@ describe('Auth Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onCreate', () => {
-      let cloudFunctionCreate: CloudFunction<
-        firebase.auth.UserRecord
-      > = functions.handler.auth.user.onCreate(
-        (data: firebase.auth.UserRecord) => data
-      );
-
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
@@ -191,7 +186,7 @@ describe('Auth Functions', () => {
     });
 
     describe('#onDelete', () => {
-      let cloudFunctionDelete: CloudFunction<
+      const cloudFunctionDelete: CloudFunction<
         firebase.auth.UserRecord
       > = functions.handler.auth.user.onDelete(
         (data: firebase.auth.UserRecord) => data
@@ -228,7 +223,7 @@ describe('Auth Functions', () => {
     });
 
     it('should not throw when #run is called', () => {
-      let cf = auth.user().onCreate(() => null);
+      const cf = auth.user().onCreate(() => null);
       expect(cf.run).to.not.throw(Error);
     });
   });

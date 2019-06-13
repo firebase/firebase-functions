@@ -25,8 +25,8 @@ import * as _ from 'lodash';
 import {
   CloudFunction,
   Event,
-  TriggerAnnotated,
   EventContext,
+  TriggerAnnotated,
 } from '../../src/cloud-functions';
 import * as functions from '../../src/index';
 import * as remoteConfig from '../../src/providers/remoteConfig';
@@ -49,7 +49,7 @@ describe('RemoteConfig Functions', () => {
   function makeEvent(data: any, context: { [key: string]: any }): Event {
     context = context || {};
     return {
-      data: data,
+      data,
       context: _.merge(
         {
           eventId: '123',
@@ -158,11 +158,11 @@ describe('RemoteConfig Functions', () => {
       });
 
       it('should correctly unwrap the event', () => {
-        let cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
+        const cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
           (version: remoteConfig.TemplateVersion, context: EventContext) =>
             version
         );
-        let event: Event = {
+        const event: Event = {
           data: constructVersion(),
           context: {
             eventId: '70172329041928',
