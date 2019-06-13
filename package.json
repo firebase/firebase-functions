@@ -25,6 +25,7 @@
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "format": "prettier --write '**/*.ts'",
+    "lint": "tslint --project tsconfig.json --config tslint.json",
     "posttest": "npm run format",
     "test": "mocha -r ts-node/register ./spec/index.spec.ts"
   },
@@ -56,7 +57,10 @@
     "prettier": "^1.17.1",
     "sinon": "^7.3.2",
     "ts-node": "^8.2.0",
-    "typescript": "^3.5.1"
+    "typescript": "^3.5.1",
+    "tslint": "^5.16.0",
+    "tslint-no-unused-expression-chai": "^0.1.4",
+    "tslint-plugin-prettier": "^2.0.0"
   },
   "peerDependencies": {
     "firebase-admin": "^8.0.0"
