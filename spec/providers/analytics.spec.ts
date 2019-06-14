@@ -291,14 +291,14 @@ describe('Analytics Functions', () => {
       it('should recognize all the fields the payload can contain', () => {
         const cloudFunction = analytics
           .event('first_open')
-          .onLog((event: analytics.AnalyticsEvent) => event);
+          .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        const data = analytics_spec_input.fullPayload.data;
-        const context = analytics_spec_input.fullPayload.context;
+        const payloadData = analytics_spec_input.fullPayload.data;
+        const payloadContext = analytics_spec_input.fullPayload.context;
 
-        return expect(cloudFunction(data, context)).to.eventually.deep.equal(
-          analytics_spec_input.data
-        );
+        return expect(
+          cloudFunction(payloadData, payloadContext)
+        ).to.eventually.deep.equal(analytics_spec_input.data);
       });
     });
   });
