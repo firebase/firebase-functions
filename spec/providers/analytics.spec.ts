@@ -20,11 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as analytics from '../../src/providers/analytics';
 import { expect } from 'chai';
-import { EventContext, Event } from '../../src/cloud-functions';
-import * as analytics_spec_input from './analytics.spec.input';
+
+import { Event, EventContext } from '../../src/cloud-functions';
 import * as functions from '../../src/index';
+import * as analytics from '../../src/providers/analytics';
+import * as analytics_spec_input from './analytics.spec.input';
 
 describe('Analytics Functions', () => {
   describe('EventBuilder', () => {
@@ -37,7 +38,7 @@ describe('Analytics Functions', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
@@ -54,6 +55,7 @@ describe('Analytics Functions', () => {
     describe('#onLog', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
         const cloudFunction = analytics.event('first_open').onLog(() => null);
+
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType:
@@ -75,7 +77,7 @@ describe('Analytics Functions', () => {
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        let event: Event = {
+        const event: Event = {
           data: {
             userDim: {
               userId: 'hi!',
@@ -114,7 +116,7 @@ describe('Analytics Functions', () => {
         // Incoming events will have four kinds of "xValue" fields: "intValue",
         // "stringValue", "doubleValue" and "floatValue". We expect those to get
         // flattened away, leaving just their values.
-        let event: Event = {
+        const event: Event = {
           data: {
             eventDim: [
               {
@@ -184,7 +186,7 @@ describe('Analytics Functions', () => {
           .event('first_open')
           .onLog((data: analytics.AnalyticsEvent) => data);
 
-        let event: Event = {
+        const event: Event = {
           data: {
             eventDim: [
               {
@@ -254,7 +256,7 @@ describe('Analytics Functions', () => {
         //
         // Separately, the input has a number of microsecond timestamps that we'd
         // like to rename and scale down to milliseconds.
-        let event: Event = {
+        const event: Event = {
           data: {
             eventDim: [
               {
@@ -291,11 +293,12 @@ describe('Analytics Functions', () => {
           .event('first_open')
           .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        const data = analytics_spec_input.fullPayload.data;
-        const context = analytics_spec_input.fullPayload.context;
-        return expect(cloudFunction(data, context)).to.eventually.deep.equal(
-          analytics_spec_input.data
-        );
+        const payloadData = analytics_spec_input.fullPayload.data;
+        const payloadContext = analytics_spec_input.fullPayload.context;
+
+        return expect(
+          cloudFunction(payloadData, payloadContext)
+        ).to.eventually.deep.equal(analytics_spec_input.data);
       });
     });
   });
@@ -316,7 +319,7 @@ describe('Analytics Functions', () => {
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        let event: Event = {
+        const event: Event = {
           data: {
             userDim: {
               userId: 'hi!',
@@ -361,7 +364,8 @@ describe('Analytics Functions', () => {
     });
 
     it('should not throw when #run is called', () => {
-      let cf = analytics.event('event').onLog(() => null);
+      const cf = analytics.event('event').onLog(() => null);
+
       expect(cf.run).to.not.throw(Error);
     });
   });

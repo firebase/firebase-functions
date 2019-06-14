@@ -22,9 +22,9 @@
 
 import { expect } from 'chai';
 
-import * as crashlytics from '../../src/providers/crashlytics';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
+import * as crashlytics from '../../src/providers/crashlytics';
 
 describe('Crashlytics Functions', () => {
   describe('Issue Builder', () => {
@@ -39,7 +39,7 @@ describe('Crashlytics Functions', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
@@ -95,18 +95,6 @@ describe('Crashlytics Functions', () => {
     });
 
     describe('HandlerBuilder', () => {
-      const testIssue = {
-        issueId: '1234',
-        issueTitle: 'testIssue',
-        appInfo: {
-          appName: 'My Awesome Test App',
-          appPlatform: 'ios',
-          appId: '9876',
-          latestAppVersion: '1.2.3.4',
-        },
-        createTime: '2018-12-18T23:05:55+00:00',
-      };
-
       describe('#onNew', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onNew(
@@ -160,7 +148,7 @@ describe('Crashlytics Functions', () => {
     });
 
     it('should not throw when #run is called', () => {
-      let cf = crashlytics.issue().onNew(() => null);
+      const cf = crashlytics.issue().onNew(() => null);
       expect(cf.run).to.not.throw(Error);
     });
   });
