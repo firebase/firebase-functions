@@ -3,13 +3,13 @@
   "extends": ["tslint:recommended", "tslint-no-unused-expression-chai"],
   "rules": {
     "quotemark": [true, "single", "avoid-escape"],
-    "interface-name": [false],
+    "interface-name": false,
     "variable-name": [true, "check-format", "allow-leading-underscore"],
     "object-literal-sort-keys": false,
-    "whitespace": [true],
-    "member-access": [false],
-    "no-console": [false],
-    "no-namespace": [false],
+    "whitespace": true,
+    "member-access": false,
+    "no-console": false,
+    "no-namespace": false,
     "trailing-comma": [true, { "functions": "never" }]
   }
 }
