@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { normalizePath, pathParts, valAt, applyChange } from '../src/utils';
 import { expect } from 'chai';
+import { applyChange, normalizePath, pathParts, valAt } from '../src/utils';
 
 describe('utils', () => {
   describe('.normalizePath(path: string)', () => {
@@ -71,9 +71,9 @@ describe('utils', () => {
     });
 
     it('should return the merged value of two objects', () => {
-      let from = { a: { b: 'foo', c: 23, d: 444 }, d: { e: 42 } };
-      let to: any = { a: { b: 'bar', c: null }, d: null, e: { f: 'g' } };
-      let result = { a: { b: 'bar', d: 444 }, e: { f: 'g' } };
+      const from = { a: { b: 'foo', c: 23, d: 444 }, d: { e: 42 } };
+      const to: any = { a: { b: 'bar', c: null }, d: null, e: { f: 'g' } };
+      const result = { a: { b: 'bar', d: 444 }, e: { f: 'g' } };
       expect(applyChange(from, to)).to.deep.equal(result);
     });
   });
