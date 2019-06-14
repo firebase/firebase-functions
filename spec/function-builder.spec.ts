@@ -34,7 +34,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow supported region to be set', () => {
-    let fn = functions
+    const fn = functions
       .region('us-east1')
       .auth.user()
       .onCreate(user => user);
@@ -43,7 +43,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow multiple supported regions to be set', () => {
-    let fn = functions
+    const fn = functions
       .region('us-east1', 'us-central1')
       .auth.user()
       .onCreate(user => user);
@@ -52,7 +52,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow all supported regions to be set', () => {
-    let fn = functions
+    const fn = functions
       .region(
         'us-central1',
         'us-east1',
@@ -75,7 +75,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow valid runtime options to be set', () => {
-    let fn = functions
+    const fn = functions
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
@@ -88,7 +88,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow both supported region and valid runtime options to be set', () => {
-    let fn = functions
+    const fn = functions
       .region('europe-west2')
       .runWith({
         timeoutSeconds: 90,
@@ -103,7 +103,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow both valid runtime options and supported region to be set in reverse order', () => {
-    let fn = functions
+    const fn = functions
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',

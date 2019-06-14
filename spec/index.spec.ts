@@ -28,19 +28,20 @@ import * as nock from 'nock';
 nock.disableNetConnect();
 
 import 'mocha';
-import './utils.spec';
+
 import './apps.spec';
 import './cloud-functions.spec';
 import './config.spec';
-import './setup.spec';
-import './testing.spec';
 import './function-builder.spec';
 import './providers/analytics.spec';
 import './providers/auth.spec';
+import './providers/crashlytics.spec';
 import './providers/database.spec';
 import './providers/firestore.spec';
 import './providers/https.spec';
 import './providers/pubsub.spec';
 import './providers/remoteConfig.spec';
 import './providers/storage.spec';
-import './providers/crashlytics.spec';
+import './setup.spec';
+import './testing.spec';
+import './utils.spec';

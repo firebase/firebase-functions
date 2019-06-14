@@ -20,14 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
 import { expect } from 'chai';
+import * as _ from 'lodash';
+
 import {
+  Change,
   Event,
   EventContext,
   makeCloudFunction,
   MakeCloudFunctionArgs,
-  Change,
 } from '../src/cloud-functions';
 
 describe('makeCloudFunction', () => {
@@ -41,7 +42,7 @@ describe('makeCloudFunction', () => {
   };
 
   it('should put a __trigger on the returned CloudFunction', () => {
-    let cf = makeCloudFunction({
+    const cf = makeCloudFunction({
       provider: 'mock.provider',
       eventType: 'mock.event',
       service: 'service',
@@ -58,7 +59,7 @@ describe('makeCloudFunction', () => {
   });
 
   it('should have legacy event type in __trigger if provided', () => {
-    let cf = makeCloudFunction(cloudFunctionArgs);
+    const cf = makeCloudFunction(cloudFunctionArgs);
     expect(cf.__trigger).to.deep.equal({
       eventTrigger: {
         eventType: 'providers/provider/eventTypes/event',
@@ -69,11 +70,11 @@ describe('makeCloudFunction', () => {
   });
 
   it('should construct the right context for event', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {
+    const args: any = _.assign({}, cloudFunctionArgs, {
       handler: (data: any, context: EventContext) => context,
     });
-    let cf = makeCloudFunction(args);
-    let test: Event = {
+    const cf = makeCloudFunction(args);
+    const test: Event = {
       context: {
         eventId: '00000',
         timestamp: '2016-11-04T21:29:03.496Z',
@@ -99,12 +100,12 @@ describe('makeCloudFunction', () => {
   });
 
   it('should throw error when context.params accessed in handler environment', () => {
-    let args: any = _.assign({}, cloudFunctionArgs, {
+    const args: any = _.assign({}, cloudFunctionArgs, {
       handler: (data: any, context: EventContext) => context,
       triggerResource: () => null,
     });
-    let cf = makeCloudFunction(args);
-    let test: Event = {
+    const cf = makeCloudFunction(args);
+    const test: Event = {
       context: {
         eventId: '00000',
         timestamp: '2016-11-04T21:29:03.496Z',
@@ -179,7 +180,7 @@ describe('makeAuth and makeAuthType', () => {
       };
     },
   };
-  let cf = makeCloudFunction(args);
+  const cf = makeCloudFunction(args);
 
   it('should construct correct auth and authType for admin user', () => {
     const testEvent = {
@@ -311,7 +312,7 @@ describe('Change', () => {
 
   describe('fromJSON', () => {
     it('should create a Change object with a `before` and `after`', () => {
-      let created = Change.fromJSON<any>({
+      const created = Change.fromJSON<any>({
         before: { foo: 'bar' },
         after: { foo: 'faz' },
       });
@@ -325,7 +326,7 @@ describe('Change', () => {
         _.set(input, 'another', 'value');
         return input as T;
       }
-      let created = Change.fromJSON<Object>(
+      const created = Change.fromJSON<object>(
         {
           before: { foo: 'bar' },
           after: { foo: 'faz' },
