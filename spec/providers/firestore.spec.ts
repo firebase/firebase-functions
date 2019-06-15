@@ -166,7 +166,7 @@ describe('Firestore Functions', () => {
           memory: '256MB',
         })
         .firestore.document('doc')
-        .onCreate(snap => snap);
+        .onCreate((snap) => snap);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -245,12 +245,12 @@ describe('Firestore Functions', () => {
           expect(change.after.get('key1')).to.equal(true);
           return true; // otherwise will get warning about returning undefined
         });
-      const data = constructEvent(
+      const event = constructEvent(
         createOldValue(),
         createValue(),
         'document.write'
       );
-      return testFunction(data.data, data.context);
+      return testFunction(event.data, event.context);
     }).timeout(5000);
 
     it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
@@ -278,12 +278,12 @@ describe('Firestore Functions', () => {
           expect(change.after.get('key1')).to.equal(true);
           return true; // otherwise will get warning about returning undefined
         });
-      const data = constructEvent(
+      const event = constructEvent(
         createOldValue(),
         createValue(),
         'document.update'
       );
-      return testFunction(data.data, data.context);
+      return testFunction(event.data, event.context);
     }).timeout(5000);
 
     it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
@@ -322,12 +322,12 @@ describe('Firestore Functions', () => {
         }
       );
       expect(testFunction.__trigger).to.deep.equal({});
-      const data = constructEvent(
+      const event = constructEvent(
         createOldValue(),
         createValue(),
         'document.write'
       );
-      return testFunction(data.data, data.context);
+      return testFunction(event.data, event.context);
     }).timeout(5000);
 
     it('constructs correct data type and sets trigger to {} on "document.create" events', () => {
@@ -345,7 +345,7 @@ describe('Firestore Functions', () => {
 
     it('constructs correct data type and sets trigger to {} on "document.update" events', () => {
       const testFunction = functions.handler.firestore.document.onUpdate(
-        change => {
+        (change) => {
           expect(change.before.data()).to.deep.equal({
             key1: false,
             key2: 111,
@@ -357,12 +357,12 @@ describe('Firestore Functions', () => {
         }
       );
       expect(testFunction.__trigger).to.deep.equal({});
-      const data = constructEvent(
+      const event = constructEvent(
         createOldValue(),
         createValue(),
         'document.update'
       );
-      return testFunction(data.data, data.context);
+      return testFunction(event.data, event.context);
     }).timeout(5000);
 
     it('constructs correct data type and sets trigger to {} on "document.delete" events', () => {

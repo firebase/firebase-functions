@@ -23,13 +23,18 @@
 import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import * as jwt from 'jsonwebtoken';
 import * as _ from 'lodash';
-import * as nock from 'nock';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
 import * as https from '../../src/providers/https';
 import * as mocks from '../fixtures/credential/key.json';
+import {
+  expectedResponseHeaders,
+  generateIdToken,
+  mockFetchPublicKeys,
+  MockRequest,
+  mockRequest,
+} from '../fixtures/mockrequest';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
@@ -163,85 +168,6 @@ async function runTest(test: CallTest): Promise<any> {
   expect(response.status).to.equal(test.expectedHttpResponse.status);
 }
 
-// MockRequest mocks an https.Request.
-// tslint:disable-next-line
-class MockRequest {
-  public method: 'POST' | 'GET' | 'OPTIONS' = 'POST';
-
-  constructor(
-    readonly body: any,
-    readonly headers: { [name: string]: string }
-  ) {
-    // This block intentionally left blank.
-  }
-
-  public header(name: string): string {
-    return this.headers[name.toLowerCase()];
-  }
-}
-
-// Creates a mock request with the given data and content-type.
-function mockRequest(
-  data: any,
-  contentType: string = 'application/json',
-  context: {
-    authorization?: string;
-    instanceIdToken?: string;
-  } = {}
-) {
-  const body: any = {};
-  if (!_.isUndefined(data)) {
-    body.data = data;
-  }
-
-  const headers = {
-    'content-type': contentType,
-    authorization: context.authorization,
-    'firebase-instance-id-token': context.instanceIdToken,
-    origin: 'example.com',
-  };
-
-  return new MockRequest(body, headers);
-}
-
-const expectedResponseHeaders = {
-  'Access-Control-Allow-Origin': 'example.com',
-  Vary: 'Origin',
-};
-
-/**
- * Mocks out the http request used by the firebase-admin SDK to get the key for
- * verifying an id token.
- */
-function mockFetchPublicKeys(): nock.Scope {
-  const mockedResponse = { [mocks.key_id]: mocks.public_key };
-  const headers = {
-    'cache-control': 'public, max-age=1, must-revalidate, no-transform',
-  };
-
-  return nock('https://www.googleapis.com:443')
-    .get('/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
-    .reply(200, mockedResponse, headers);
-}
-
-/**
- * Generates a mocked Firebase ID token.
- */
-export function generateIdToken(projectId: string): string {
-  const claims = {};
-  const options = {
-    audience: projectId,
-    expiresIn: 60 * 60, // 1 hour in seconds
-    issuer: 'https://securetoken.google.com/' + projectId,
-    subject: mocks.user_id,
-    algorithm: 'RS256',
-    header: {
-      kid: mocks.key_id,
-    },
-  };
-  return jwt.sign(claims, mocks.private_key, options);
-}
-
 describe('callable.FunctionBuilder', () => {
   let app: firebase.app.App;
 
@@ -273,7 +199,7 @@ describe('callable.FunctionBuilder', () => {
 
   describe('#onCall', () => {
     it('should return a Trigger with appropriate values', () => {
-      const result = https.onCall(data => {
+      const result = https.onCall((data) => {
         return 'response';
       });
       expect(result.__trigger).to.deep.equal({
@@ -570,7 +496,7 @@ describe('callable CORS', () => {
       {
         'Access-Control-Request-Method': 'POST',
         'Access-Control-Request-Headers': 'origin',
-        Origin: 'example.com',
+        'Origin': 'example.com',
       }
     );
     req.method = 'OPTIONS';
@@ -582,7 +508,7 @@ describe('callable CORS', () => {
     expect(response.headers).to.deep.equal({
       'Access-Control-Allow-Methods': 'POST',
       'Content-Length': '0',
-      Vary: 'Origin, Access-Control-Request-Headers',
+      'Vary': 'Origin, Access-Control-Request-Headers',
     });
   });
 });
@@ -614,7 +540,7 @@ describe('callable', () => {
     expect(
       https.decode({
         '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-        value: '-9223372036854775000',
+        'value': '-9223372036854775000',
       })
     ).to.equal(-9223372036854775000);
   });
@@ -627,7 +553,7 @@ describe('callable', () => {
     expect(
       https.decode({
         '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
-        value: '9223372036854800000',
+        'value': '9223372036854800000',
       })
     ).to.equal(9223372036854800000);
   });
@@ -662,7 +588,7 @@ describe('callable', () => {
         [
           3,
           {
-            value: '1099511627776',
+            'value': '1099511627776',
             '@type': 'type.googleapis.com/google.protobuf.Int64Value',
           },
         ],
@@ -695,7 +621,7 @@ describe('callable', () => {
           1,
           2,
           {
-            value: '1099511627776',
+            'value': '1099511627776',
             '@type': 'type.googleapis.com/google.protobuf.Int64Value',
           },
         ],

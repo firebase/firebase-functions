@@ -50,7 +50,7 @@ describe('Database Functions', () => {
           memory: '256MB',
         })
         .database.ref('/')
-        .onCreate(snap => snap);
+        .onCreate((snap) => snap);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
