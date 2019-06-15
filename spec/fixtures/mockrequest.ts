@@ -35,9 +35,9 @@ export function mockRequest(
 
   const headers = {
     'content-type': contentType,
-    'authorization': context.authorization,
+    authorization: context.authorization,
     'firebase-instance-id-token': context.instanceIdToken,
-    'origin': 'example.com',
+    origin: 'example.com',
   };
 
   return new MockRequest(body, headers);
@@ -45,7 +45,7 @@ export function mockRequest(
 
 export const expectedResponseHeaders = {
   'Access-Control-Allow-Origin': 'example.com',
-  'Vary': 'Origin',
+  Vary: 'Origin',
 };
 
 /**

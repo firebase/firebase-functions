@@ -324,7 +324,7 @@ describe('callable.FunctionBuilder', () => {
         httpRequest: mockRequest(null),
         expectedData: null,
         callableFunction: (data, context) => {
-          throw new Error("ceci n'est pas une error");
+          throw new Error(`ceci n'est pas une error`);
         },
         expectedHttpResponse: {
           status: 500,
@@ -487,7 +487,7 @@ describe('callable CORS', () => {
   it('handles OPTIONS preflight', async () => {
     const func = https.onCall((data, context) => {
       throw new Error(
-        "This shouldn't have gotten called for an OPTIONS preflight."
+        `This shouldn't have gotten called for an OPTIONS preflight.`
       );
     });
 
@@ -496,7 +496,7 @@ describe('callable CORS', () => {
       {
         'Access-Control-Request-Method': 'POST',
         'Access-Control-Request-Headers': 'origin',
-        'Origin': 'example.com',
+        Origin: 'example.com',
       }
     );
     req.method = 'OPTIONS';
@@ -508,7 +508,7 @@ describe('callable CORS', () => {
     expect(response.headers).to.deep.equal({
       'Access-Control-Allow-Methods': 'POST',
       'Content-Length': '0',
-      'Vary': 'Origin, Access-Control-Request-Headers',
+      Vary: 'Origin, Access-Control-Request-Headers',
     });
   });
 });
@@ -540,7 +540,7 @@ describe('callable', () => {
     expect(
       https.decode({
         '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-        'value': '-9223372036854775000',
+        value: '-9223372036854775000',
       })
     ).to.equal(-9223372036854775000);
   });
@@ -553,7 +553,7 @@ describe('callable', () => {
     expect(
       https.decode({
         '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
-        'value': '9223372036854800000',
+        value: '9223372036854800000',
       })
     ).to.equal(9223372036854800000);
   });
@@ -588,7 +588,7 @@ describe('callable', () => {
         [
           3,
           {
-            'value': '1099511627776',
+            value: '1099511627776',
             '@type': 'type.googleapis.com/google.protobuf.Int64Value',
           },
         ],
@@ -621,7 +621,7 @@ describe('callable', () => {
           1,
           2,
           {
-            'value': '1099511627776',
+            value: '1099511627776',
             '@type': 'type.googleapis.com/google.protobuf.Int64Value',
           },
         ],
