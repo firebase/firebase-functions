@@ -272,7 +272,7 @@ describe('callable.FunctionBuilder', () => {
 
   describe('#onCall', () => {
     it('should return a Trigger with appropriate values', () => {
-      const result = https.onCall(data => {
+      const result = https.onCall((data) => {
         return 'response';
       });
       expect(result.__trigger).to.deep.equal({

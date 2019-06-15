@@ -45,7 +45,7 @@ describe('Analytics Functions', () => {
           memory: '256MB',
         })
         .analytics.event('event')
-        .onLog(event => event);
+        .onLog((event) => event);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);

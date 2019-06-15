@@ -38,7 +38,7 @@ describe('apps', () => {
   });
 
   afterEach(() => {
-    _.forEach(firebase.apps, app => {
+    _.forEach(firebase.apps, (app) => {
       app.delete();
     });
   });

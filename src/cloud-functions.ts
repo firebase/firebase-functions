@@ -129,7 +129,7 @@ export namespace Change {
   ) {
     let before = _.assign({}, after);
     let masks = fieldMask.split(',');
-    _.forEach(masks, mask => {
+    _.forEach(masks, (mask) => {
       const val = _.get(sparseBefore, mask);
       if (typeof val === 'undefined') {
         _.unset(before, mask);
@@ -289,11 +289,11 @@ export function makeCloudFunction<EventData>({
       console.warn('Function returned undefined, expected Promise or value');
     }
     return Promise.resolve(promise)
-      .then(result => {
+      .then((result) => {
         after(event);
         return result;
       })
-      .catch(err => {
+      .catch((err) => {
         after(event);
         return Promise.reject(err);
       });
@@ -341,7 +341,7 @@ function _makeParams(
   if (wildcards) {
     let triggerResourceParts = _.split(triggerResource, '/');
     let eventResourceParts = _.split(context.resource.name, '/');
-    _.forEach(wildcards, wildcard => {
+    _.forEach(wildcards, (wildcard) => {
       let wildcardNoBraces = wildcard.slice(1, -1);
       let position = _.indexOf(triggerResourceParts, wildcard);
       params[wildcardNoBraces] = eventResourceParts[position];

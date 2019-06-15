@@ -28,22 +28,22 @@ export class TestSuite<T> {
       const run = Promise.resolve()
         .then(() => this.tests[testName](data, context))
         .then(
-          result => {
+          (result) => {
             console.log(
               `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`
             );
             return { name: testName, passed: !!result };
           },
-          error => {
+          (error) => {
             console.error(`Failed: ${testName}`, error);
             return { name: testName, passed: 0, error: error };
           }
         );
       running.push(run);
     }
-    return Promise.all(running).then(results => {
+    return Promise.all(running).then((results) => {
       let sum = 0;
-      results.forEach(val => (sum = sum + val.passed));
+      results.forEach((val) => (sum = sum + val.passed));
       const summary = `passed ${sum} of ${running.length}`;
       const passed = sum === running.length;
       console.log(summary);

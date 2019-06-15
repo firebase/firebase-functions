@@ -164,7 +164,7 @@ describe('Firestore Functions', () => {
           memory: '256MB',
         })
         .firestore.document('doc')
-        .onCreate(snap => snap);
+        .onCreate((snap) => snap);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -343,7 +343,7 @@ describe('Firestore Functions', () => {
 
     it('constructs correct data type and sets trigger to {} on "document.update" events', () => {
       let testFunction = functions.handler.firestore.document.onUpdate(
-        change => {
+        (change) => {
           expect(change.before.data()).to.deep.equal({
             key1: false,
             key2: 111,

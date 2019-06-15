@@ -24,14 +24,14 @@ export const databaseTests: any = functions.database
         (change, context) => !(context as any).app
       )
 
-      .it('should give refs access to admin data', change =>
+      .it('should give refs access to admin data', (change) =>
         change.after.ref.parent
           .child('adminOnly')
           .update({ allowed: 1 })
           .then(() => true)
       )
 
-      .it('should have a correct ref url', change => {
+      .it('should have a correct ref url', (change) => {
         const url = change.after.ref.toString();
         return Promise.resolve()
           .then(() => {

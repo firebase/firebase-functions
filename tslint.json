@@ -2,14 +2,15 @@
   "defaultSeverity": "warning",
   "extends": ["tslint:recommended", "tslint-no-unused-expression-chai"],
   "rules": {
-    "quotemark": [true, "single", "avoid-escape"],
     "interface-name": false,
-    "variable-name": [true, "check-format", "allow-leading-underscore"],
-    "object-literal-sort-keys": false,
-    "whitespace": true,
     "member-access": false,
-    "no-console": false,
     "no-namespace": false,
-    "trailing-comma": [true, { "functions": "never" }]
+    "no-console": false,
+    "object-literal-key-quotes": [true, "as-needed"],
+    "object-literal-sort-keys": false,
+    "quotemark": [true, "single", "avoid-escape"],
+    "trailing-comma": [true, { "functions": "never" }],
+    "variable-name": [true, "check-format", "allow-leading-underscore"],
+    "whitespace": true
   }
 }

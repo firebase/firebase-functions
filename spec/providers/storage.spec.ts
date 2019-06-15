@@ -104,7 +104,7 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        const cloudFunction = storage.object().onArchive(data => {
+        const cloudFunction = storage.object().onArchive((data) => {
           return data.mediaLink;
         });
         const goodMediaLinkEvent: Event = {
@@ -184,7 +184,7 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        const cloudFunction = storage.object().onDelete(data => {
+        const cloudFunction = storage.object().onDelete((data) => {
           return data.mediaLink;
         });
         const goodMediaLinkEvent = {
@@ -264,7 +264,7 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        const cloudFunction = storage.object().onFinalize(data => {
+        const cloudFunction = storage.object().onFinalize((data) => {
           return data.mediaLink;
         });
         const goodMediaLinkEvent = {
@@ -344,7 +344,7 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        const cloudFunction = storage.object().onMetadataUpdate(data => {
+        const cloudFunction = storage.object().onMetadataUpdate((data) => {
           return data.mediaLink;
         });
         const goodMediaLinkEvent = {
@@ -394,7 +394,7 @@ describe('Storage Functions', () => {
 
       it('should not mess with media links using non-literal slashes', () => {
         const cloudFunction = functions.handler.storage.object.onArchive(
-          data => {
+          (data) => {
             return data.mediaLink;
           }
         );
@@ -433,7 +433,7 @@ describe('Storage Functions', () => {
 
       it('should not mess with media links using non-literal slashes', () => {
         const cloudFunction = functions.handler.storage.object.onDelete(
-          data => {
+          (data) => {
             return data.mediaLink;
           }
         );
@@ -472,7 +472,7 @@ describe('Storage Functions', () => {
 
       it('should not mess with media links using non-literal slashes', () => {
         const cloudFunction = functions.handler.storage.object.onFinalize(
-          data => {
+          (data) => {
             return data.mediaLink;
           }
         );
@@ -511,7 +511,7 @@ describe('Storage Functions', () => {
 
       it('should not mess with media links using non-literal slashes', () => {
         const cloudFunction = functions.handler.storage.object.onMetadataUpdate(
-          data => {
+          (data) => {
             return data.mediaLink;
           }
         );
