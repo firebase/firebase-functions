@@ -23,25 +23,30 @@
 import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import * as jwt from 'jsonwebtoken';
 import * as _ from 'lodash';
-import * as nock from 'nock';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
 import * as https from '../../src/providers/https';
 import * as mocks from '../fixtures/credential/key.json';
+import {
+  expectedResponseHeaders,
+  generateIdToken,
+  mockFetchPublicKeys,
+  MockRequest,
+  mockRequest,
+} from '../fixtures/mockrequest';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
     it('should return a Trigger with appropriate values', () => {
-      let result = https.onRequest((req, resp) => {
+      const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
       expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
@@ -59,7 +64,7 @@ describe('CloudHttpsBuilder', () => {
 describe('handler namespace', () => {
   describe('#onRequest', () => {
     it('should return an empty trigger', () => {
-      let result = functions.handler.https.onRequest((req, res) => {
+      const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
       expect(result.__trigger).to.deep.equal({});
@@ -68,7 +73,7 @@ describe('handler namespace', () => {
 
   describe('#onCall', () => {
     it('should return an empty trigger', () => {
-      let result = functions.handler.https.onCall(() => null);
+      const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
     });
   });
@@ -163,89 +168,11 @@ async function runTest(test: CallTest): Promise<any> {
   expect(response.status).to.equal(test.expectedHttpResponse.status);
 }
 
-// MockRequest mocks an https.Request.
-class MockRequest {
-  public method: 'POST' | 'GET' | 'OPTIONS' = 'POST';
-
-  constructor(
-    readonly body: any,
-    readonly headers: { [name: string]: string }
-  ) {
-    // This block intentionally left blank.
-  }
-
-  public header(name: string): string {
-    return this.headers[name.toLowerCase()];
-  }
-}
-
-// Creates a mock request with the given data and content-type.
-function request(
-  data: any,
-  contentType: string = 'application/json',
-  context: {
-    authorization?: string;
-    instanceIdToken?: string;
-  } = {}
-) {
-  const body: any = {};
-  if (!_.isUndefined(data)) {
-    body.data = data;
-  }
-
-  const headers = {
-    'content-type': contentType,
-    authorization: context.authorization,
-    'firebase-instance-id-token': context.instanceIdToken,
-    origin: 'example.com',
-  };
-
-  return new MockRequest(body, headers);
-}
-
-const expectedResponseHeaders = {
-  'Access-Control-Allow-Origin': 'example.com',
-  Vary: 'Origin',
-};
-
-/**
- * Mocks out the http request used by the firebase-admin SDK to get the key for
- * verifying an id token.
- */
-function mockFetchPublicKeys(): nock.Scope {
-  const mockedResponse = { [mocks.key_id]: mocks.public_key };
-  const headers = {
-    'cache-control': 'public, max-age=1, must-revalidate, no-transform',
-  };
-
-  return nock('https://www.googleapis.com:443')
-    .get('/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
-    .reply(200, mockedResponse, headers);
-}
-
-/**
- * Generates a mocked Firebase ID token.
- */
-export function generateIdToken(projectId: string): string {
-  const claims = {};
-  const options = {
-    audience: projectId,
-    expiresIn: 60 * 60, // 1 hour in seconds
-    issuer: 'https://securetoken.google.com/' + projectId,
-    subject: mocks.user_id,
-    algorithm: 'RS256',
-    header: {
-      kid: mocks.key_id,
-    },
-  };
-  return jwt.sign(claims, mocks.private_key, options);
-}
-
 describe('callable.FunctionBuilder', () => {
   let app: firebase.app.App;
 
   before(() => {
-    let credential = {
+    const credential = {
       getAccessToken: () => {
         return Promise.resolve({
           expires_in: 1000,
@@ -260,7 +187,7 @@ describe('callable.FunctionBuilder', () => {
     };
     app = firebase.initializeApp({
       projectId: 'aProjectId',
-      credential: credential,
+      credential,
     });
     Object.defineProperty(appsNamespace(), 'admin', { get: () => app });
   });
@@ -283,7 +210,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle success', () => {
       return runTest({
-        httpRequest: request({ foo: 'bar' }),
+        httpRequest: mockRequest({ foo: 'bar' }),
         expectedData: { foo: 'bar' },
         callableFunction: (data, context) => ({ baz: 'qux' }),
         expectedHttpResponse: {
@@ -296,7 +223,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle null data and return', () => {
       return runTest({
-        httpRequest: request(null),
+        httpRequest: mockRequest(null),
         expectedData: null,
         callableFunction: (data, context) => null,
         expectedHttpResponse: {
@@ -309,7 +236,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle void return', () => {
       return runTest({
-        httpRequest: request(null),
+        httpRequest: mockRequest(null),
         expectedData: null,
         callableFunction: (data, context) => {
           return;
@@ -323,7 +250,7 @@ describe('callable.FunctionBuilder', () => {
     });
 
     it('should reject bad method', () => {
-      let req = request(null);
+      const req = mockRequest(null);
       req.method = 'GET';
       return runTest({
         httpRequest: req,
@@ -343,7 +270,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should ignore charset', () => {
       return runTest({
-        httpRequest: request(null, 'application/json; charset=utf-8'),
+        httpRequest: mockRequest(null, 'application/json; charset=utf-8'),
         expectedData: null,
         callableFunction: (data, context) => {
           return;
@@ -358,7 +285,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should reject bad content type', () => {
       return runTest({
-        httpRequest: request(null, 'text/plain'),
+        httpRequest: mockRequest(null, 'text/plain'),
         expectedData: null,
         callableFunction: (data, context) => {
           return;
@@ -374,7 +301,7 @@ describe('callable.FunctionBuilder', () => {
     });
 
     it('should reject extra body fields', () => {
-      const req = request(null);
+      const req = mockRequest(null);
       req.body.extra = 'bad';
       return runTest({
         httpRequest: req,
@@ -394,10 +321,10 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle unhandled error', () => {
       return runTest({
-        httpRequest: request(null),
+        httpRequest: mockRequest(null),
         expectedData: null,
         callableFunction: (data, context) => {
-          throw 'ceci n\'est pas une error';
+          throw new Error(`ceci n'est pas une error`);
         },
         expectedHttpResponse: {
           status: 500,
@@ -409,7 +336,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle unknown error status', () => {
       return runTest({
-        httpRequest: request(null),
+        httpRequest: mockRequest(null),
         expectedData: null,
         callableFunction: (data, context) => {
           throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
@@ -424,7 +351,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle well-formed error', () => {
       return runTest({
-        httpRequest: request(null),
+        httpRequest: mockRequest(null),
         expectedData: null,
         callableFunction: (data, context) => {
           throw new https.HttpsError('not-found', 'i am error');
@@ -442,7 +369,7 @@ describe('callable.FunctionBuilder', () => {
       const projectId = appsNamespace().admin.options.projectId;
       const idToken = generateIdToken(projectId);
       await runTest({
-        httpRequest: request(null, 'application/json', {
+        httpRequest: mockRequest(null, 'application/json', {
           authorization: 'Bearer ' + idToken,
         }),
         expectedData: null,
@@ -467,7 +394,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should reject bad auth', async () => {
       await runTest({
-        httpRequest: request(null, 'application/json', {
+        httpRequest: mockRequest(null, 'application/json', {
           authorization: 'Bearer FAKE',
         }),
         expectedData: null,
@@ -489,7 +416,7 @@ describe('callable.FunctionBuilder', () => {
 
     it('should handle instance id', async () => {
       await runTest({
-        httpRequest: request(null, 'application/json', {
+        httpRequest: mockRequest(null, 'application/json', {
           instanceIdToken: 'iid-token',
         }),
         expectedData: null,
@@ -507,13 +434,13 @@ describe('callable.FunctionBuilder', () => {
     });
 
     it('should expose raw request', async () => {
-      const mockRequest = request(null, 'application/json', {});
+      const mockReq = mockRequest(null, 'application/json', {});
       await runTest({
-        httpRequest: mockRequest,
+        httpRequest: mockReq,
         expectedData: null,
         callableFunction: (data, context) => {
           expect(context.rawRequest).to.not.be.undefined;
-          expect(context.rawRequest).to.equal(mockRequest);
+          expect(context.rawRequest).to.equal(mockReq);
           return null;
         },
         expectedHttpResponse: {
@@ -525,7 +452,7 @@ describe('callable.FunctionBuilder', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
@@ -539,8 +466,8 @@ describe('callable.FunctionBuilder', () => {
     });
 
     it('has a .run method', () => {
-      const cf = https.onCall((data, context) => {
-        return { data, context };
+      const cf = https.onCall((d, c) => {
+        return { data: d, context: c };
       });
 
       const data = 'data';
@@ -559,10 +486,12 @@ describe('callable.FunctionBuilder', () => {
 describe('callable CORS', () => {
   it('handles OPTIONS preflight', async () => {
     const func = https.onCall((data, context) => {
-      throw "This shouldn't have gotten called for an OPTIONS preflight.";
+      throw new Error(
+        `This shouldn't have gotten called for an OPTIONS preflight.`
+      );
     });
 
-    const request = new MockRequest(
+    const req = new MockRequest(
       {},
       {
         'Access-Control-Request-Method': 'POST',
@@ -570,9 +499,9 @@ describe('callable CORS', () => {
         Origin: 'example.com',
       }
     );
-    request.method = 'OPTIONS';
+    req.method = 'OPTIONS';
 
-    const response = await runHandler(func, request as any);
+    const response = await runHandler(func, req as any);
 
     expect(response.status).to.equal(204);
     expect(response.body).to.be.undefined;
