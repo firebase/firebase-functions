@@ -145,7 +145,7 @@ export function userRecordConstructor(
   } else {
     _.set(record, 'metadata', new UserRecordMetadata(null, null));
   }
-  _.forEach(record.providerData, entry => {
+  _.forEach(record.providerData, (entry) => {
     _.set(entry, 'toJSON', () => {
       return entry;
     });
@@ -165,7 +165,7 @@ export function userRecordConstructor(
     ]);
     json.metadata = _.get(record, 'metadata').toJSON();
     json.customClaims = _.cloneDeep(record.customClaims);
-    json.providerData = _.map(record.providerData, entry => entry.toJSON());
+    json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
     return json;
   });
   return record as firebase.auth.UserRecord;

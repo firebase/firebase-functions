@@ -208,8 +208,8 @@ export class RefBuilder {
       legacyEventType: `providers/${provider}/eventTypes/${eventType}`,
       triggerResource: this.triggerResource,
       dataConstructor: dataConstructor,
-      before: event => this.apps.retain(),
-      after: event => this.apps.release(),
+      before: (event) => this.apps.retain(),
+      after: (event) => this.apps.release(),
       opts: this.opts,
     });
   }

@@ -146,7 +146,7 @@ describe('Pubsub Functions', () => {
       it('should return a trigger with schedule', () => {
         const result = pubsub
           .schedule('every 5 minutes')
-          .onRun(context => null);
+          .onRun((context) => null);
         expect(result.__trigger.schedule).to.deep.equal({
           schedule: 'every 5 minutes',
         });
@@ -156,7 +156,7 @@ describe('Pubsub Functions', () => {
         const result = pubsub
           .schedule('every 5 minutes')
           .timeZone('America/New_York')
-          .onRun(context => null);
+          .onRun((context) => null);
         expect(result.__trigger.schedule).to.deep.equal({
           schedule: 'every 5 minutes',
           timeZone: 'America/New_York',
@@ -336,7 +336,7 @@ describe('Pubsub Functions', () => {
           },
         };
 
-        const result = functions.handler.pubsub.topic.onPublish(data => {
+        const result = functions.handler.pubsub.topic.onPublish((data) => {
           return {
             raw: data.data,
             json: data.json,

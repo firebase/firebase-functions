@@ -118,7 +118,7 @@ describe('makeCloudFunction', () => {
       data: 'test data',
     };
 
-    return cf(test.data, test.context).then(result => {
+    return cf(test.data, test.context).then((result) => {
       expect(result).to.deep.equal({
         eventId: '00000',
         timestamp: '2016-11-04T21:29:03.496Z',

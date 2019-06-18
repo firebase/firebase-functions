@@ -143,7 +143,7 @@ export class AnalyticsEvent {
       // If there's an eventDim, there'll always be exactly one.
       let eventDim = wireFormat.eventDim[0];
       copyField(eventDim, this, 'name');
-      copyField(eventDim, this, 'params', p => _.mapValues(p, unwrapValue));
+      copyField(eventDim, this, 'params', (p) => _.mapValues(p, unwrapValue));
       copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
       copyFieldTo(eventDim, this, 'date', 'reportingDate');
       copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
@@ -159,7 +159,7 @@ export class AnalyticsEvent {
       this,
       'userDim',
       'user',
-      dim => new UserDimensions(dim)
+      (dim) => new UserDimensions(dim)
     );
   }
 }
@@ -218,10 +218,10 @@ export class UserDimensions {
       'firstOpenTime'
     );
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, 'userProperties', r =>
-      _.mapValues(r, p => new UserPropertyValue(p))
+    copyField(wireFormat, this, 'userProperties', (r) =>
+      _.mapValues(r, (p) => new UserPropertyValue(p))
     );
-    copyField(wireFormat, this, 'bundleInfo', r => new ExportBundleInfo(r));
+    copyField(wireFormat, this, 'bundleInfo', (r) => new ExportBundleInfo(r));
 
     // BUG(36000368) Remove when no longer necessary
     /* tslint:disable:no-string-literal */

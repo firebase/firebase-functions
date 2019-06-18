@@ -15,7 +15,7 @@ export const firestoreTests: any = functions
 
       .it('should not have event.app', (snap, context) => !(context as any).app)
 
-      .it('should give refs write access', snap =>
+      .it('should give refs write access', (snap) =>
         snap.ref.set({ allowed: 1 }, { merge: true }).then(() => true)
       )
 

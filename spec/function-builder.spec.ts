@@ -37,7 +37,7 @@ describe('FunctionBuilder', () => {
     const fn = functions
       .region('us-east1')
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
   });
@@ -46,7 +46,7 @@ describe('FunctionBuilder', () => {
     const fn = functions
       .region('us-east1', 'us-central1')
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['us-east1', 'us-central1']);
   });
@@ -62,7 +62,7 @@ describe('FunctionBuilder', () => {
         'asia-northeast1'
       )
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal([
       'us-central1',
@@ -81,7 +81,7 @@ describe('FunctionBuilder', () => {
         memory: '256MB',
       })
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
@@ -95,7 +95,7 @@ describe('FunctionBuilder', () => {
         memory: '256MB',
       })
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['europe-west2']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -110,7 +110,7 @@ describe('FunctionBuilder', () => {
       })
       .region('europe-west1')
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['europe-west1']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);

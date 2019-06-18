@@ -32,9 +32,9 @@ function callHttpsTrigger(name: string, data: any, baseUrl) {
           'Content-Type': 'application/json',
         },
       },
-      response => {
+      (response) => {
         let body = '';
-        response.on('data', chunk => {
+        response.on('data', (chunk) => {
           body += chunk;
         });
         response.on('end', () => resolve(body));
@@ -59,9 +59,9 @@ function callScheduleTrigger(functionName: string, region: string) {
           'Content-Type': 'application/json',
         },
       },
-      response => {
+      (response) => {
         let body = '';
-        response.on('data', chunk => {
+        response.on('data', (chunk) => {
           body += chunk;
         });
         response.on('end', () => resolve(body));
@@ -114,7 +114,7 @@ export const integrationTests: any = functions
           password: 'secret',
           displayName: `${testId}`,
         })
-        .then(userRecord => {
+        .then((userRecord) => {
           // A user deletion to trigger the Firebase Auth user deletion tests.
           admin.auth().deleteUser(userRecord.uid);
         }),
@@ -160,7 +160,7 @@ export const integrationTests: any = functions
         let ref = admin.database().ref(`testRuns/${testId}`);
         return new Promise((resolve, reject) => {
           let testsExecuted = 0;
-          ref.on('child_added', snapshot => {
+          ref.on('child_added', (snapshot) => {
             testsExecuted += 1;
             if (snapshot.key != 'timestamp' && !snapshot.val().passed) {
               reject(
@@ -185,7 +185,7 @@ export const integrationTests: any = functions
             ref.off(); // No more need to listen.
             return Promise.resolve();
           })
-          .catch(err => {
+          .catch((err) => {
             ref.off(); // No more need to listen.
             return Promise.reject(err);
           });
@@ -194,7 +194,7 @@ export const integrationTests: any = functions
         console.log('All tests pass!');
         resp.status(200).send('PASS \n');
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(`Some tests failed: ${err}`);
         resp
           .status(500)

@@ -46,7 +46,7 @@ describe('Crashlytics Functions', () => {
           memory: '256MB',
         })
         .crashlytics.issue()
-        .onNew(issue => issue);
+        .onNew((issue) => issue);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -55,7 +55,7 @@ describe('Crashlytics Functions', () => {
 
     describe('#onNew', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        const cloudFunction = crashlytics.issue().onNew(data => null);
+        const cloudFunction = crashlytics.issue().onNew((data) => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'providers/firebase.crashlytics/eventTypes/issue.new',
@@ -68,7 +68,7 @@ describe('Crashlytics Functions', () => {
 
     describe('#onRegressed', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        const cloudFunction = crashlytics.issue().onRegressed(data => null);
+        const cloudFunction = crashlytics.issue().onRegressed((data) => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType:
@@ -82,7 +82,9 @@ describe('Crashlytics Functions', () => {
 
     describe('#onVelocityAlert', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        const cloudFunction = crashlytics.issue().onVelocityAlert(data => null);
+        const cloudFunction = crashlytics
+          .issue()
+          .onVelocityAlert((data) => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType:
@@ -98,7 +100,7 @@ describe('Crashlytics Functions', () => {
       describe('#onNew', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onNew(
-            testIssue => {
+            (testIssue) => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
@@ -111,7 +113,7 @@ describe('Crashlytics Functions', () => {
       describe('#onRegressed', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onRegressed(
-            testIssue => {
+            (testIssue) => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
@@ -124,7 +126,7 @@ describe('Crashlytics Functions', () => {
       describe('#onVelocityAlert', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onVelocityAlert(
-            testIssue => {
+            (testIssue) => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
