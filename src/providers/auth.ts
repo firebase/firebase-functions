@@ -140,7 +140,10 @@ export function userRecordConstructor(
     _.set(
       record,
       'metadata',
-      new UserRecordMetadata(meta.creationTime, meta.lastSignInTime)
+      new UserRecordMetadata(
+        meta.createdAt || meta.creationTime,
+        meta.lastSignedInAt || meta.lastSignInTime
+      )
     );
   } else {
     _.set(record, 'metadata', new UserRecordMetadata(null, null));
