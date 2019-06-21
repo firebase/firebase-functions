@@ -52,7 +52,7 @@ export function object() {
 
 /** @internal */
 export function _bucketWithOpts(
-  opts: DeploymentOptions,
+  options: DeploymentOptions,
   bucket?: string
 ): BucketBuilder {
   const resourceGetter = () => {
@@ -68,24 +68,24 @@ export function _bucketWithOpts(
     }
     return `projects/_/buckets/${bucket}`;
   };
-  return new BucketBuilder(resourceGetter, opts);
+  return new BucketBuilder(resourceGetter, options);
 }
 
 /** @internal */
-export function _objectWithOpts(opts: DeploymentOptions): ObjectBuilder {
-  return _bucketWithOpts(opts).object();
+export function _objectWithOpts(options: DeploymentOptions): ObjectBuilder {
+  return _bucketWithOpts(options).object();
 }
 
 export class BucketBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /** Handle events for objects in this bucket. */
   object() {
-    return new ObjectBuilder(this.triggerResource, this.opts);
+    return new ObjectBuilder(this.triggerResource, this.options);
   }
 }
 
@@ -93,7 +93,7 @@ export class ObjectBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /** @internal */
@@ -157,7 +157,7 @@ export class ObjectBuilder {
       service,
       eventType,
       triggerResource: this.triggerResource,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

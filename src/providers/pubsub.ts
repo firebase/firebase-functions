@@ -46,7 +46,7 @@ export function topic(topic: string) {
 /** @internal */
 export function _topicWithOpts(
   topic: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): TopicBuilder {
   if (topic.indexOf('/') !== -1) {
     throw new Error('Topic name may not have a /');
@@ -57,7 +57,7 @@ export function _topicWithOpts(
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
-  }, opts);
+  }, options);
 }
 
 export function schedule(schedule: string): ScheduleBuilder {
@@ -65,20 +65,20 @@ export function schedule(schedule: string): ScheduleBuilder {
 }
 
 export class ScheduleBuilder {
-  private _opts: DeploymentOptions;
+  private _options: DeploymentOptions;
 
   /** @internal */
-  constructor(private schedule: Schedule, private opts: DeploymentOptions) {
-    this._opts = { schedule, ...opts };
+  constructor(private schedule: Schedule, private options: DeploymentOptions) {
+    this._options = { schedule, ...options };
   }
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
-    this._opts.schedule.retryConfig = config;
+    this._options.schedule.retryConfig = config;
     return this;
   }
 
   timeZone(timeZone: string): ScheduleBuilder {
-    this._opts.schedule.timeZone = timeZone;
+    this._options.schedule.timeZone = timeZone;
     return this;
   }
 
@@ -95,7 +95,7 @@ export class ScheduleBuilder {
       service,
       triggerResource: triggerResource,
       eventType: 'topic.publish',
-      opts: this._opts,
+      options: this._options,
       labels: { 'deployment-scheduled': 'true' },
     });
     return cloudFunction;
@@ -105,9 +105,9 @@ export class ScheduleBuilder {
 /** @internal */
 export function _scheduleWithOpts(
   schedule: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): ScheduleBuilder {
-  return new ScheduleBuilder({ schedule }, opts);
+  return new ScheduleBuilder({ schedule }, options);
 }
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
@@ -115,7 +115,7 @@ export class TopicBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
@@ -129,7 +129,7 @@ export class TopicBuilder {
       triggerResource: this.triggerResource,
       eventType: 'topic.publish',
       dataConstructor: (raw) => new Message(raw.data),
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

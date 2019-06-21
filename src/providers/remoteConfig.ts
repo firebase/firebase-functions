@@ -55,7 +55,7 @@ export function _onUpdateWithOpts(
     version: TemplateVersion,
     context: EventContext
   ) => PromiseLike<any> | any,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): CloudFunction<TemplateVersion> {
   const triggerResource = () => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -63,7 +63,7 @@ export function _onUpdateWithOpts(
     }
     return `projects/${process.env.GCLOUD_PROJECT}`;
   };
-  return new UpdateBuilder(triggerResource, opts).onUpdate(handler);
+  return new UpdateBuilder(triggerResource, options).onUpdate(handler);
 }
 
 /** Builder used to create Cloud Functions for Remote Config. */
@@ -71,7 +71,7 @@ export class UpdateBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /**
@@ -92,7 +92,7 @@ export class UpdateBuilder {
       service,
       triggerResource: this.triggerResource,
       eventType: 'update',
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

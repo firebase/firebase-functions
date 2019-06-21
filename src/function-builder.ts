@@ -42,7 +42,7 @@ import * as storage from './providers/storage';
 import { CloudFunction, EventContext } from './cloud-functions';
 import {
   RuntimeOptions,
-  VALID_MEMORY_OPTS,
+  VALID_MEMORY_OPTIONS,
   MIN_TIMEOUT_SECONDS,
   MAX_TIMEOUT_SECONDS,
   SUPPORTED_REGIONS,
@@ -85,9 +85,11 @@ function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
   }
 
   if (memory !== undefined) {
-    if (includes(VALID_MEMORY_OPTS, memory) === false) {
+    if (includes(VALID_MEMORY_OPTIONS, memory) === false) {
       throw new Error(
-        `RuntimeOptions.memory must be one of: ${VALID_MEMORY_OPTS.join(', ')}.`
+        `RuntimeOptions.memory must be one of: ${VALID_MEMORY_OPTIONS.join(
+          ', '
+        )}.`
       );
     }
   }

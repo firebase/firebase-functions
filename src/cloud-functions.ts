@@ -246,7 +246,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
   labels?: { [key: string]: any };
   legacyEventType?: string;
-  opts?: { [key: string]: any };
+  options?: { [key: string]: any };
   /*
    * TODO: should remove `provider` and require a fully qualified `eventType`
    * once all providers have migrated to new format.
@@ -302,7 +302,7 @@ export function makeCloudFunction<EventData>({
   handler,
   labels = {},
   legacyEventType,
-  opts = {},
+  options = {},
   provider,
   service,
   triggerResource,
@@ -376,7 +376,7 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
-      let trigger: any = _.assign(optionsToTrigger(opts), {
+      let trigger: any = _.assign(optionsToTrigger(options), {
         eventTrigger: {
           resource: triggerResource(),
           eventType: legacyEventType || provider + '.' + eventType,

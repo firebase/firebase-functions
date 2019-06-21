@@ -43,13 +43,13 @@ export function user() {
 }
 
 /** @internal */
-export function _userWithOpts(opts: DeploymentOptions) {
+export function _userWithOpts(options: DeploymentOptions) {
   return new UserBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return 'projects/' + process.env.GCLOUD_PROJECT;
-  }, opts);
+  }, options);
 }
 
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
@@ -73,7 +73,7 @@ export class UserBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts?: DeploymentOptions
+    private options?: DeploymentOptions
   ) {}
 
   /** Respond to the creation of a Firebase Auth user. */
@@ -105,7 +105,7 @@ export class UserBuilder {
       triggerResource: this.triggerResource,
       dataConstructor: UserBuilder.dataConstructor,
       legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

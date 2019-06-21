@@ -56,16 +56,16 @@ export function onCall(
 /** @internal */
 export function _onRequestWithOpts(
   handler: (req: Request, resp: express.Response) => void,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
   let cloudFunction: any = (req: Request, res: express.Response) => {
     handler(req, res);
   };
-  cloudFunction.__trigger = _.assign(optionsToTrigger(opts), {
+  cloudFunction.__trigger = _.assign(optionsToTrigger(options), {
     httpsTrigger: {},
   });
-  // TODO parse the opts
+  // TODO parse the options
   return cloudFunction;
 }
 
@@ -415,7 +415,7 @@ const corsHandler = cors({ origin: true, methods: 'POST' });
 /** @internal */
 export function _onCallWithOpts(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
   const func = async (req: Request, res: express.Response) => {
     try {
@@ -482,7 +482,7 @@ export function _onCallWithOpts(
     return corsHandler(req, res, () => func(req, res));
   };
 
-  corsFunc.__trigger = _.assign(optionsToTrigger(opts), {
+  corsFunc.__trigger = _.assign(optionsToTrigger(options), {
     httpsTrigger: {},
     labels: { 'deployment-callable': 'true' },
   });

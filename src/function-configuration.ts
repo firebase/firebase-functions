@@ -23,7 +23,7 @@ export const MAX_TIMEOUT_SECONDS = 540;
 /**
  * List of available memory options supported by Cloud Functions.
  */
-export const VALID_MEMORY_OPTS = [
+export const VALID_MEMORY_OPTIONS = [
   '128MB',
   '256MB',
   '512MB',
@@ -58,7 +58,7 @@ export interface RuntimeOptions {
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTS[number];
+  memory?: typeof VALID_MEMORY_OPTIONS[number];
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
