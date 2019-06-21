@@ -20,7 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
+import {
+  assign,
+  difference,
+  includes,
+  isBoolean,
+  isEmpty,
+  isObjectLike,
+} from 'lodash';
 import * as express from 'express';
 
 import * as analytics from './providers/analytics';
@@ -49,12 +56,12 @@ const SUPPORTED_REGIONS = [
 /**
  * List of available memory options supported by Cloud Functions.
  */
-const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
+const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'] as const;
 
-// Adding this memory type here to error on compile for TS users.
-// Unfortunately I have not found a way to merge this with VALID_MEMORY_OPS
-// without it being super ugly. But here they are right next to each other at least.
-type Memory = '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
+/**
+ * Cloud Functions min timeout value.
+ */
+const MIN_TIMEOUT_SECONDS = 0;
 
 /**
  * Cloud Functions max timeout value.
@@ -64,28 +71,60 @@ const MAX_TIMEOUT_SECONDS = 540;
 /**
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
- * @throws { Error } Memory and TimeoutSeconds values must be valid.
+ * @throws { Error } FailurePolicy, Memory and TimeoutSeconds values must be
+ * valid.
  */
-function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
-  if (
-    runtimeOptions.memory &&
-    !_.includes(VALID_MEMORY_OPTS, runtimeOptions.memory)
-  ) {
-    throw new Error(
-      `The only valid memory allocation values are: ${VALID_MEMORY_OPTS.join(
-        ', '
-      )}`
-    );
+function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
+  if (isObjectLike(runtimeOptions) === false) {
+    throw new Error('RuntimeOptions must be an object.');
   }
-  if (
-    runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS ||
-    runtimeOptions.timeoutSeconds < 0
-  ) {
-    throw new Error(
-      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
-    );
+
+  const { failurePolicy, memory, timeoutSeconds } = runtimeOptions;
+
+  if (failurePolicy !== undefined) {
+    if (
+      isBoolean(failurePolicy) === false &&
+      isObjectLike(failurePolicy) === false
+    ) {
+      throw new Error(
+        `RuntimeOptions.failurePolicy must be a boolean or an object.`
+      );
+    }
+
+    if (typeof failurePolicy === 'object') {
+      if (
+        isObjectLike(failurePolicy.retry) === false ||
+        isEmpty(failurePolicy.retry) === false
+      ) {
+        throw new Error(
+          'RuntimeOptions.failurePolicy.retry must be an empty object.'
+        );
+      }
+    }
   }
-  return true;
+
+  if (memory !== undefined) {
+    if (includes(VALID_MEMORY_OPTS, memory) === false) {
+      throw new Error(
+        `RuntimeOptions.memory must be one of: ${VALID_MEMORY_OPTS.join(', ')}.`
+      );
+    }
+  }
+
+  if (timeoutSeconds !== undefined) {
+    if (typeof timeoutSeconds !== 'number') {
+      throw new Error('RuntimeOptions.timeoutSeconds must be a number.');
+    }
+
+    if (
+      timeoutSeconds < MIN_TIMEOUT_SECONDS ||
+      timeoutSeconds > MAX_TIMEOUT_SECONDS
+    ) {
+      throw new Error(
+        `RuntimeOptions.timeoutSeconds must be between ${MIN_TIMEOUT_SECONDS} and ${MAX_TIMEOUT_SECONDS}.`
+      );
+    }
+  }
 }
 
 /**
@@ -93,51 +132,70 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
  * @param regions list of regions.
  * @throws { Error } Regions must be in list of supported regions.
  */
-function assertRegionsAreValid(regions: string[]): boolean {
-  if (!regions.length) {
-    throw new Error('You must specify at least one region');
+function assertRegionsValidity(regions: string[]): void {
+  if (regions.length === 0) {
+    throw new Error('You must specify at least one region.');
   }
-  if (_.difference(regions, SUPPORTED_REGIONS).length) {
+
+  if (difference(regions, SUPPORTED_REGIONS).length !== 0) {
     throw new Error(
-      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')}`
+      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')},`
     );
   }
-  return true;
 }
 
 /**
  * Configure the regions that the function is deployed to.
  * @param regions One of more region strings.
- * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
+ * @example
+ * functions.region('us-east1')
+ * @example
+ * functions.region('us-east1', 'us-central1')
  */
 export function region(...regions: string[]): FunctionBuilder {
-  if (assertRegionsAreValid(regions)) {
-    return new FunctionBuilder({ regions });
-  }
+  assertRegionsValidity(regions);
+
+  return new FunctionBuilder({ regions });
 }
 
 /**
  * Configure runtime options for the function.
- * @param runtimeOptions Object with 2 optional fields:
- * 1. `timeoutSeconds`: timeout for the function in seconds, possible values are 0 to 540
- * 2. `memory`: amount of memory to allocate to the function,
- *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * @param runtimeOptions Object with three optional fields:
+ * 1. failurePolicy: failure policy policy of the function, boolean `true` is
+ *    equivalent to providing an empty policy.
+ * 2. memory: amount of memory to allocate to the function, possible values
+ *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * 3. timeoutSeconds: timeout for the function in seconds, possible values are
+ *    0 to 540.
  */
 export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
-  if (assertRuntimeOptionsValid(runtimeOptions)) {
-    return new FunctionBuilder(runtimeOptions);
-  }
+  assertRuntimeOptionsValidity(runtimeOptions);
+
+  return new FunctionBuilder(runtimeOptions);
+}
+
+export interface FailurePolicy {
+  retry: {};
 }
 
 export interface RuntimeOptions {
+  /**
+   * Failure policy of the function, boolean `true` is equivalent to providing
+   * an empty policy.
+   */
+  failurePolicy?: FailurePolicy | boolean;
+  /**
+   * Amount of memory to allocate to the function.
+   */
+  memory?: typeof VALID_MEMORY_OPTS[number];
+  /**
+   * Timeout for the function in seconds, possible values are 0 to 540.
+   */
   timeoutSeconds?: number;
-  memory?: Memory;
 }
 
-export interface DeploymentOptions {
+export interface DeploymentOptions extends RuntimeOptions {
   regions?: string[];
-  timeoutSeconds?: number;
-  memory?: Memory;
   schedule?: Schedule;
 }
 
@@ -147,27 +205,35 @@ export class FunctionBuilder {
   /**
    * Configure the regions that the function is deployed to.
    * @param regions One or more region strings.
-   * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
+   * @example
+   * functions.region('us-east1')
+   * @example
+   * functions.region('us-east1', 'us-central1')
    */
   region(...regions: string[]): FunctionBuilder {
-    if (assertRegionsAreValid(regions)) {
-      this.options.regions = regions;
-      return this;
-    }
+    assertRegionsValidity(regions);
+
+    this.options.regions = regions;
+
+    return this;
   }
 
   /**
    * Configure runtime options for the function.
-   * @param runtimeOptions Object with 2 optional fields:
-   * 1. timeoutSeconds: timeout for the function in seconds, possible values are 0 to 540
-   * 2. memory: amount of memory to allocate to the function, possible values are:
-   * '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * @param runtimeOptions Object with three optional fields:
+   * 1. failurePolicy: failure policy policy of the function, boolean `true` is
+   *    equivalent to providing an empty policy.
+   * 2. memory: amount of memory to allocate to the function, possible values
+   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * 3. timeoutSeconds: timeout for the function in seconds, possible values are
+   *    0 to 540.
    */
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
-    if (assertRuntimeOptionsValid(runtimeOptions)) {
-      this.options = _.assign(this.options, runtimeOptions);
-      return this;
-    }
+    assertRuntimeOptionsValidity(runtimeOptions);
+
+    this.options = assign(this.options, runtimeOptions);
+
+    return this;
   }
 
   get https() {
@@ -180,6 +246,7 @@ export class FunctionBuilder {
       onRequest: (
         handler: (req: https.Request, resp: express.Response) => void
       ) => https._onRequestWithOpts(handler, this.options),
+
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
@@ -196,33 +263,36 @@ export class FunctionBuilder {
   get database() {
     return {
       /**
-       * Selects a database instance that will trigger the function.
-       * If omitted, will pick the default database for your project.
+       * Selects a database instance that will trigger the function. If omitted,
+       * will pick the default database for your project.
        * @param instance The Realtime Database instance to use.
        */
       instance: (instance: string) =>
         database._instanceWithOpts(instance, this.options),
+
       /**
        * Select Firebase Realtime Database Reference to listen to.
        *
-       * This method behaves very similarly to the method of the same name in the
-       * client and Admin Firebase SDKs. Any change to the Database that affects the
-       * data at or below the provided `path` will fire an event in Cloud Functions.
+       * This method behaves very similarly to the method of the same name in
+       * the client and Admin Firebase SDKs. Any change to the Database that
+       * affects the data at or below the provided `path` will fire an event in
+       * Cloud Functions.
        *
        * There are three important differences between listening to a Realtime
-       * Database event in Cloud Functions and using the Realtime Database in the
-       * client and Admin SDKs:
-       * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
-       *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
-       *    that matched a certain invocation of a Cloud Function is returned as part
-       *    of the `context.params` object. For example, `ref("messages/{messageId}")`
-       *    matches changes at `/messages/message1` or `/messages/message2`, resulting
-       *    in  `context.params.messageId` being set to `"message1"` or `"message2"`,
-       *    respectively.
-       * 2. Cloud Functions do not fire an event for data that already existed before
-       *    the Cloud Function was deployed.
-       * 3. Cloud Function events have access to more information, including information
-       *    about the user who triggered the Cloud Function.
+       * Database event in Cloud Functions and using the Realtime Database in
+       * the client and Admin SDKs:
+       * 1. Cloud Functions allows wildcards in the `path` name. Any `path`
+       *    component in curly brackets (`{}`) is a wildcard that matches all
+       *    strings. The value that matched a certain invocation of a Cloud
+       *    Function is returned as part of the `context.params` object. For
+       *    example, `ref("messages/{messageId}")` matches changes at
+       *    `/messages/message1` or `/messages/message2`, resulting in
+       *    `context.params.messageId` being set to `"message1"` or
+       *    `"message2"`, respectively.
+       * 2. Cloud Functions do not fire an event for data that already existed
+       *    before the Cloud Function was deployed.
+       * 3. Cloud Function events have access to more information, including
+       *    information about the user who triggered the Cloud Function.
        * @param ref Path of the database to listen to.
        */
       ref: (path: string) => database._refWithOpts(path, this.options),
@@ -240,9 +310,11 @@ export class FunctionBuilder {
        */
       document: (path: string) =>
         firestore._documentWithOpts(path, this.options),
+
       /** @internal */
       namespace: (namespace: string) =>
         firestore._namespaceWithOpts(namespace, this.options),
+
       /** @internal */
       database: (database: string) =>
         firestore._databaseWithOpts(database, this.options),
@@ -252,8 +324,8 @@ export class FunctionBuilder {
   get crashlytics() {
     return {
       /**
-       * Handle events related to Crashlytics issues. An issue in Crashlytics is an
-       * aggregation of crashes which have a shared root cause.
+       * Handle events related to Crashlytics issues. An issue in Crashlytics is
+       * an aggregation of crashes which have a shared root cause.
        */
       issue: () => crashlytics._issueWithOpts(this.options),
     };
@@ -293,9 +365,9 @@ export class FunctionBuilder {
   get storage() {
     return {
       /**
-       * The optional bucket function allows you to choose which buckets' events to handle.
-       * This step can be bypassed by calling object() directly, which will use the default
-       * Cloud Storage for Firebase bucket.
+       * The optional bucket function allows you to choose which buckets' events
+       * to handle. This step can be bypassed by calling object() directly,
+       * which will use the default Cloud Storage for Firebase bucket.
        * @param bucket Name of the Google Cloud Storage bucket to listen to.
        */
       bucket: (bucket?: string) =>
@@ -311,7 +383,8 @@ export class FunctionBuilder {
   get pubsub() {
     return {
       /** Select Cloud Pub/Sub topic to listen to.
-       * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
+       * @param topic Name of Pub/Sub topic, must belong to the same project as
+       * the function.
        */
       topic: (topic: string) => pubsub._topicWithOpts(topic, this.options),
       schedule: (schedule: string) =>

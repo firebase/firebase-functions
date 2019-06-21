@@ -25,7 +25,7 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import * as cors from 'cors';
 import { apps } from '../apps';
-import { HttpsFunction, optsToTrigger, Runnable } from '../cloud-functions';
+import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 
 /**
@@ -42,7 +42,7 @@ export interface Request extends express.Request {
  */
 export function onRequest(
   handler: (req: Request, resp: express.Response) => void
-) {
+): HttpsFunction {
   return _onRequestWithOpts(handler, {});
 }
 
@@ -65,7 +65,9 @@ export function _onRequestWithOpts(
   let cloudFunction: any = (req: Request, res: express.Response) => {
     handler(req, res);
   };
-  cloudFunction.__trigger = _.assign(optsToTrigger(opts), { httpsTrigger: {} });
+  cloudFunction.__trigger = _.assign(optionsToTrigger(opts), {
+    httpsTrigger: {},
+  });
   // TODO parse the opts
   return cloudFunction;
 }
@@ -483,7 +485,7 @@ export function _onCallWithOpts(
     return corsHandler(req, res, () => func(req, res));
   };
 
-  corsFunc.__trigger = _.assign(optsToTrigger(opts), {
+  corsFunc.__trigger = _.assign(optionsToTrigger(opts), {
     httpsTrigger: {},
     labels: { 'deployment-callable': 'true' },
   });

@@ -130,7 +130,39 @@ describe('FunctionBuilder', () => {
       functions
         .region('asia-northeast1')
         .runWith({ timeoutSeconds: 600, memory: '256MB' });
-    }).to.throw(Error, 'TimeoutSeconds');
+    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
+  });
+
+  it('should throw an error if user chooses a failurePolicy of type number', () => {
+    expect(() =>
+      functions.runWith({
+        failurePolicy: (1234 as unknown) as boolean,
+      })
+    ).to.throw(Error, 'RuntimeOptions.failurePolicy');
+  });
+
+  it('should throw an error if user chooses a failurePolicy of type string', () => {
+    expect(() =>
+      functions.runWith({
+        failurePolicy: ('string-value' as unknown) as boolean,
+      })
+    ).to.throw(Error, 'RuntimeOptions.failurePolicy');
+  });
+
+  it('should throw an error if user chooses a failurePolicy.retry of type number', () => {
+    expect(() =>
+      functions.runWith({
+        failurePolicy: { retry: (1234 as unknown) as object },
+      })
+    ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
+  });
+
+  it('should throw an error if user chooses a failurePolicy.retry of type string', () => {
+    expect(() =>
+      functions.runWith({
+        failurePolicy: { retry: ('string-value' as unknown) as object },
+      })
+    ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
   });
 
   it('should throw an error if user chooses an invalid memory allocation', () => {
@@ -152,13 +184,13 @@ describe('FunctionBuilder', () => {
       return functions.runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'TimeoutSeconds');
+    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
 
     expect(() => {
       return functions.region('asia-east2').runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'TimeoutSeconds');
+    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
   });
 
   it('should throw an error if user chooses an invalid region', () => {
