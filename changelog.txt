@@ -1,1 +1,1 @@
-- feature - Allows specifying retry policies for event triggered functions.
+- feature - Allow specifying retry policies for event triggered functions.
