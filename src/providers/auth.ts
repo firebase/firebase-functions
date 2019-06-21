@@ -28,7 +28,7 @@ import {
 } from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firebase.auth';

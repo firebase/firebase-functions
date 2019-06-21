@@ -28,7 +28,7 @@ import {
   Event,
   EventContext,
 } from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.analytics';

@@ -32,7 +32,7 @@ import {
   EventContext,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firestore';

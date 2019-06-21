@@ -25,7 +25,7 @@ import {
   CloudFunction,
   EventContext,
 } from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firebase.crashlytics';

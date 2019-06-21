@@ -32,7 +32,7 @@ import {
 import { normalizePath, applyChange, pathParts, joinPath } from '../utils';
 import * as firebase from 'firebase-admin';
 import { firebaseConfig } from '../config';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firebase.database';

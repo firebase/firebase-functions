@@ -22,7 +22,11 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { DeploymentOptions, FailurePolicy } from './function-builder';
+import {
+  DeploymentOptions,
+  FailurePolicy,
+  Schedule,
+} from './function-configuration';
 export { Request, Response };
 
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -99,7 +103,6 @@ export class Change<T> {
 
 /**
  * ChangeJson is the JSON format used to construct a Change object.
- * @internal
  */
 export interface ChangeJson {
   /**
@@ -185,20 +188,6 @@ export interface Resource {
   labels?: { [tag: string]: string };
 }
 
-export interface ScheduleRetryConfig {
-  retryCount?: number;
-  maxRetryDuration?: string;
-  minBackoffDuration?: string;
-  maxBackoffDuration?: string;
-  maxDoublings?: number;
-}
-
-export interface Schedule {
-  schedule: string;
-  timeZone?: string;
-  retryConfig?: ScheduleRetryConfig;
-}
-
 /**
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
@@ -268,11 +257,16 @@ export interface MakeCloudFunctionArgs<EventData> {
 }
 
 export function optionsToTrigger({
-  regions,
-  timeoutSeconds,
+  failurePolicy,
   memory,
+  regions,
   schedule,
+  timeoutSeconds,
 }: DeploymentOptions): TriggerAnnotated['__trigger'] {
+  const defaultFailurePolicy: FailurePolicy = {
+    retry: {},
+  };
+
   const memoryLookup = {
     '128MB': 128,
     '256MB': 256,
@@ -282,6 +276,11 @@ export function optionsToTrigger({
   };
 
   return {
+    ...(failurePolicy === undefined || failurePolicy === false
+      ? {}
+      : failurePolicy === true
+      ? { failurePolicy: defaultFailurePolicy }
+      : { failurePolicy }),
     ...(memory === undefined
       ? {}
       : { availableMemoryMb: memoryLookup[memory] }),

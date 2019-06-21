@@ -55,5 +55,6 @@ export {
 export * from './config';
 export * from './cloud-functions';
 export * from './function-builder';
+export * from './function-configuration';
 
 setup();

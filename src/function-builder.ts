@@ -39,34 +39,15 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext, Schedule } from './cloud-functions';
-
-/**
- * List of all regions supported by Cloud Functions.
- */
-const SUPPORTED_REGIONS = [
-  'us-central1',
-  'us-east1',
-  'europe-west1',
-  'europe-west2',
-  'asia-east2',
-  'asia-northeast1',
-];
-
-/**
- * List of available memory options supported by Cloud Functions.
- */
-const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'] as const;
-
-/**
- * Cloud Functions min timeout value.
- */
-const MIN_TIMEOUT_SECONDS = 0;
-
-/**
- * Cloud Functions max timeout value.
- */
-const MAX_TIMEOUT_SECONDS = 540;
+import { CloudFunction, EventContext } from './cloud-functions';
+import {
+  RuntimeOptions,
+  VALID_MEMORY_OPTS,
+  MIN_TIMEOUT_SECONDS,
+  MAX_TIMEOUT_SECONDS,
+  SUPPORTED_REGIONS,
+  DeploymentOptions,
+} from './function-configuration';
 
 /**
  * Assert that the runtime options passed in are valid.
@@ -174,31 +155,6 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   return new FunctionBuilder(runtimeOptions);
 }
 
-export interface FailurePolicy {
-  retry: {};
-}
-
-export interface RuntimeOptions {
-  /**
-   * Failure policy of the function, boolean `true` is equivalent to providing
-   * an empty policy.
-   */
-  failurePolicy?: FailurePolicy | boolean;
-  /**
-   * Amount of memory to allocate to the function.
-   */
-  memory?: typeof VALID_MEMORY_OPTS[number];
-  /**
-   * Timeout for the function in seconds, possible values are 0 to 540.
-   */
-  timeoutSeconds?: number;
-}
-
-export interface DeploymentOptions extends RuntimeOptions {
-  regions?: string[];
-  schedule?: Schedule;
-}
-
 export class FunctionBuilder {
   constructor(private options: DeploymentOptions) {}
 
@@ -237,6 +193,12 @@ export class FunctionBuilder {
   }
 
   get https() {
+    if (this.options.failurePolicy !== undefined) {
+      console.warn(
+        'RuntimeOptions.failurePolicy is not supported in https functions.'
+      );
+    }
+
     return {
       /**
        * Handle HTTP requests.
