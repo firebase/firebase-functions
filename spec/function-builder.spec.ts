@@ -59,7 +59,7 @@ describe('FunctionBuilder', () => {
         'europe-west1',
         'europe-west2',
         'asia-east2',
-        'asia-northeast1',
+        'asia-northeast1'
       )
       .auth.user()
       .onCreate((user) => user);
@@ -152,7 +152,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: (1234 as unknown) as boolean,
-      }),
+      })
     ).to.throw(Error, 'RuntimeOptions.failurePolicy');
   });
 
@@ -160,7 +160,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: ('string-value' as unknown) as boolean,
-      }),
+      })
     ).to.throw(Error, 'RuntimeOptions.failurePolicy');
   });
 
@@ -168,7 +168,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: { retry: (1234 as unknown) as object },
-      }),
+      })
     ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
   });
 
@@ -176,7 +176,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: { retry: ('string-value' as unknown) as object },
-      }),
+      })
     ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
   });
 
