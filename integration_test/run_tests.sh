@@ -1,18 +1,27 @@
 #!/usr/bin/env bash
-
+  
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
 function usage {
-  echo "Usage: $0 <project_id>"
+  echo "Usage: $0 <project_id> [<token>]"
   exit 1
 }
 
-# This script takes in one argument specifying a project_id
-# Example usage (from root dir):
+# This script takes in one required argument specifying a project_id and an
+# optional arguement for a CI token that can be obtained by running
+# `firebase login:ci`
+# Example usage (from root dir) without token:
 # ./integration_test/run_tests.sh chenky-test-proj
+# Example usage (from root dir) with token:
+# ./integration_test/run_tests.sh chenky-test-proj $TOKEN
 if [[ $1 == "" ]]; then
   usage
+fi
+
+TOKEN=""
+if [[ $2 != "" ]]; then
+  TOKEN=$2
 fi
 
 PROJECT_ID=$1
@@ -63,7 +72,11 @@ function deploy {
   cd $DIR
   ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore. If the deploy fails, retry twice
-  for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --only functions,database,firestore && break; done
+  if [[ $TOKEN == "" ]]; then
+    for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --only functions,database,firestore && break; done
+  else
+    for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --token=$TOKEN --only functions,database,firestore && break; done
+  fi
 }
 
 function run_tests {
