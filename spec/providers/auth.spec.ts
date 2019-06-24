@@ -178,6 +178,21 @@ describe('Auth Functions', () => {
       const record = auth.userRecordConstructor(raw);
       expect(record.toJSON()).to.deep.equal(raw);
     });
+
+    it('will convert raw wire fields createdAt and lastSignedInAt to creationTime and lastSignInTime', () => {
+      const raw: any = {
+        uid: '123',
+        metadata: {
+          createdAt: '2017-02-02T23:06:26.124Z',
+          lastSignedInAt: '2017-02-02T23:01:19.797Z',
+        },
+      };
+      const record = auth.userRecordConstructor(raw);
+      expect(record.metadata).to.deep.equal({
+        creationTime: '2017-02-02T23:06:26.124Z',
+        lastSignInTime: '2017-02-02T23:01:19.797Z',
+      });
+    });
   });
 
   describe('handler namespace', () => {
