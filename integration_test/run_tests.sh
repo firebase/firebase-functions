@@ -106,17 +106,18 @@ function cleanup {
 
 # Setup
 build_sdk
-install_deps
 delete_all_functions
 
 # Node 8 tests
 pick_node8
+install_deps
 announce "Deploying functions to Node 8 runtime ..."
 deploy
 run_tests
 
 # Node 10 tests
 pick_node10
+install_deps
 announce "Re-deploying the same functions to Node 10 runtime ..."
 deploy
 run_tests
