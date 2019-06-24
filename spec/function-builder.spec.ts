@@ -59,7 +59,7 @@ describe('FunctionBuilder', () => {
         'europe-west1',
         'europe-west2',
         'asia-east2',
-        'asia-northeast1'
+        'asia-northeast1',
       )
       .auth.user()
       .onCreate((user) => user);
@@ -77,14 +77,29 @@ describe('FunctionBuilder', () => {
   it('should allow valid runtime options to be set', () => {
     const fn = functions
       .runWith({
-        timeoutSeconds: 90,
+        failurePolicy: { retry: {} },
         memory: '256MB',
+        timeoutSeconds: 90,
       })
       .auth.user()
       .onCreate((user) => user);
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
+  });
+
+  it("should apply a default failure policy if it's aliased with `true`", () => {
+    const fn = functions
+      .runWith({
+        failurePolicy: true,
+        memory: '256MB',
+        timeoutSeconds: 90,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
   });
 
   it('should allow both supported region and valid runtime options to be set', () => {
@@ -137,7 +152,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: (1234 as unknown) as boolean,
-      })
+      }),
     ).to.throw(Error, 'RuntimeOptions.failurePolicy');
   });
 
@@ -145,7 +160,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: ('string-value' as unknown) as boolean,
-      })
+      }),
     ).to.throw(Error, 'RuntimeOptions.failurePolicy');
   });
 
@@ -153,7 +168,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: { retry: (1234 as unknown) as object },
-      })
+      }),
     ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
   });
 
@@ -161,7 +176,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: { retry: ('string-value' as unknown) as object },
-      })
+      }),
     ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
   });
 
