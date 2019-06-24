@@ -51,21 +51,21 @@ export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
  * path is "/users/Ada".
  */
 export function document(path: string) {
-  return _documentWithOpts(path, {});
+  return _documentWithOptions(path, {});
 }
 /** @internal */
 // Multiple namespaces are not yet supported by Firestore.
 export function namespace(namespace: string) {
-  return _namespaceWithOpts(namespace, {});
+  return _namespaceWithOptions(namespace, {});
 }
 /** @internal */
 // Multiple databases are not yet supported by Firestore.
 export function database(database: string) {
-  return _databaseWithOpts(database, {});
+  return _databaseWithOptions(database, {});
 }
 
 /** @internal */
-export function _databaseWithOpts(
+export function _databaseWithOptions(
   database: string = defaultDatabase,
   options: DeploymentOptions
 ) {
@@ -73,16 +73,16 @@ export function _databaseWithOpts(
 }
 
 /** @internal */
-export function _namespaceWithOpts(
+export function _namespaceWithOptions(
   namespace: string,
   options: DeploymentOptions
 ) {
-  return _databaseWithOpts(defaultDatabase, options).namespace(namespace);
+  return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
 /** @internal */
-export function _documentWithOpts(path: string, options: DeploymentOptions) {
-  return _databaseWithOpts(defaultDatabase, options).document(path);
+export function _documentWithOptions(path: string, options: DeploymentOptions) {
+  return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
 export class DatabaseBuilder {

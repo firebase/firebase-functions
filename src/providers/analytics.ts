@@ -40,11 +40,11 @@ export const service = 'app-measurement.com';
  * @param analyticsEventType Name of the analytics event type.
  */
 export function event(analyticsEventType: string) {
-  return _eventWithOpts(analyticsEventType, {});
+  return _eventWithOptions(analyticsEventType, {});
 }
 
 /** @internal */
-export function _eventWithOpts(
+export function _eventWithOptions(
   analyticsEventType: string,
   options: DeploymentOptions
 ) {

@@ -209,7 +209,7 @@ export class FunctionBuilder {
        */
       onRequest: (
         handler: (req: https.Request, resp: express.Response) => void
-      ) => https._onRequestWithOpts(handler, this.options),
+      ) => https._onRequestWithOptions(handler, this.options),
 
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
@@ -220,7 +220,7 @@ export class FunctionBuilder {
           data: any,
           context: https.CallableContext
         ) => any | Promise<any>
-      ) => https._onCallWithOpts(handler, this.options),
+      ) => https._onCallWithOptions(handler, this.options),
     };
   }
 
@@ -232,7 +232,7 @@ export class FunctionBuilder {
        * @param instance The Realtime Database instance to use.
        */
       instance: (instance: string) =>
-        database._instanceWithOpts(instance, this.options),
+        database._instanceWithOptions(instance, this.options),
 
       /**
        * Select Firebase Realtime Database Reference to listen to.
@@ -259,7 +259,7 @@ export class FunctionBuilder {
        *    information about the user who triggered the Cloud Function.
        * @param ref Path of the database to listen to.
        */
-      ref: (path: string) => database._refWithOpts(path, this.options),
+      ref: (path: string) => database._refWithOptions(path, this.options),
     };
   }
 
@@ -273,15 +273,15 @@ export class FunctionBuilder {
        * path is "/users/Ada".
        */
       document: (path: string) =>
-        firestore._documentWithOpts(path, this.options),
+        firestore._documentWithOptions(path, this.options),
 
       /** @internal */
       namespace: (namespace: string) =>
-        firestore._namespaceWithOpts(namespace, this.options),
+        firestore._namespaceWithOptions(namespace, this.options),
 
       /** @internal */
       database: (database: string) =>
-        firestore._databaseWithOpts(database, this.options),
+        firestore._databaseWithOptions(database, this.options),
     };
   }
 
@@ -291,7 +291,7 @@ export class FunctionBuilder {
        * Handle events related to Crashlytics issues. An issue in Crashlytics is
        * an aggregation of crashes which have a shared root cause.
        */
-      issue: () => crashlytics._issueWithOpts(this.options),
+      issue: () => crashlytics._issueWithOptions(this.options),
     };
   }
 
@@ -302,7 +302,7 @@ export class FunctionBuilder {
        * @param analyticsEventType Name of the analytics event type.
        */
       event: (analyticsEventType: string) =>
-        analytics._eventWithOpts(analyticsEventType, this.options),
+        analytics._eventWithOptions(analyticsEventType, this.options),
     };
   }
 
@@ -320,9 +320,10 @@ export class FunctionBuilder {
           context: EventContext
         ) => PromiseLike<any> | any
       ) =>
-        remoteConfig._onUpdateWithOpts(handler, this.options) as CloudFunction<
-          remoteConfig.TemplateVersion
-        >,
+        remoteConfig._onUpdateWithOptions(
+          handler,
+          this.options
+        ) as CloudFunction<remoteConfig.TemplateVersion>,
     };
   }
 
@@ -335,12 +336,12 @@ export class FunctionBuilder {
        * @param bucket Name of the Google Cloud Storage bucket to listen to.
        */
       bucket: (bucket?: string) =>
-        storage._bucketWithOpts(this.options, bucket),
+        storage._bucketWithOptions(this.options, bucket),
 
       /**
        * Handle events related to Cloud Storage objects.
        */
-      object: () => storage._objectWithOpts(this.options),
+      object: () => storage._objectWithOptions(this.options),
     };
   }
 
@@ -350,9 +351,9 @@ export class FunctionBuilder {
        * @param topic Name of Pub/Sub topic, must belong to the same project as
        * the function.
        */
-      topic: (topic: string) => pubsub._topicWithOpts(topic, this.options),
+      topic: (topic: string) => pubsub._topicWithOptions(topic, this.options),
       schedule: (schedule: string) =>
-        pubsub._scheduleWithOpts(schedule, this.options),
+        pubsub._scheduleWithOptions(schedule, this.options),
     };
   }
 
@@ -361,7 +362,7 @@ export class FunctionBuilder {
       /**
        * Handle events related to Firebase authentication users.
        */
-      user: () => auth._userWithOpts(this.options),
+      user: () => auth._userWithOptions(this.options),
     };
   }
 }

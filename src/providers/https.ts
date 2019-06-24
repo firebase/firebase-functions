@@ -40,7 +40,7 @@ export interface Request extends express.Request {
 export function onRequest(
   handler: (req: Request, resp: express.Response) => void
 ): HttpsFunction {
-  return _onRequestWithOpts(handler, {});
+  return _onRequestWithOptions(handler, {});
 }
 
 /**
@@ -50,11 +50,11 @@ export function onRequest(
 export function onCall(
   handler: (data: any, context: CallableContext) => any | Promise<any>
 ): HttpsFunction & Runnable<any> {
-  return _onCallWithOpts(handler, {});
+  return _onCallWithOptions(handler, {});
 }
 
 /** @internal */
-export function _onRequestWithOpts(
+export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void,
   options: DeploymentOptions
 ): HttpsFunction {
@@ -413,7 +413,7 @@ export function decode(data: any): any {
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
 /** @internal */
-export function _onCallWithOpts(
+export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {

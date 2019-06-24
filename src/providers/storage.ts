@@ -40,18 +40,18 @@ export const service = 'storage.googleapis.com';
  * @param bucket Name of the Google Cloud Storage bucket to listen to.
  */
 export function bucket(bucket?: string) {
-  return _bucketWithOpts({}, bucket);
+  return _bucketWithOptions({}, bucket);
 }
 
 /**
  * Handle events related to Cloud Storage objects.
  */
 export function object() {
-  return _objectWithOpts({});
+  return _objectWithOptions({});
 }
 
 /** @internal */
-export function _bucketWithOpts(
+export function _bucketWithOptions(
   options: DeploymentOptions,
   bucket?: string
 ): BucketBuilder {
@@ -72,8 +72,8 @@ export function _bucketWithOpts(
 }
 
 /** @internal */
-export function _objectWithOpts(options: DeploymentOptions): ObjectBuilder {
-  return _bucketWithOpts(options).object();
+export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
+  return _bucketWithOptions(options).object();
 }
 
 export class BucketBuilder {

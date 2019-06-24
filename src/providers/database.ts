@@ -48,7 +48,7 @@ const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
  * @param instance The Realtime Database instance to use.
  */
 export function instance(instance: string) {
-  return _instanceWithOpts(instance, {});
+  return _instanceWithOptions(instance, {});
 }
 
 /**
@@ -75,11 +75,11 @@ export function instance(instance: string) {
  * @param ref Path of the database to listen to.
  */
 export function ref(path: string) {
-  return _refWithOpts(path, {});
+  return _refWithOptions(path, {});
 }
 
 /** @internal */
-export function _instanceWithOpts(
+export function _instanceWithOptions(
   instance: string,
   options: DeploymentOptions
 ): InstanceBuilder {
@@ -101,7 +101,7 @@ export class InstanceBuilder {
 }
 
 /** @internal */
-export function _refWithOpts(
+export function _refWithOptions(
   path: string,
   options: DeploymentOptions
 ): RefBuilder {

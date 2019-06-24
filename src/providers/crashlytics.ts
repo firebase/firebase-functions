@@ -37,11 +37,11 @@ export const service = 'fabric.io';
  * aggregation of crashes which have a shared root cause.
  */
 export function issue() {
-  return _issueWithOpts({});
+  return _issueWithOptions({});
 }
 
 /** @internal */
-export function _issueWithOpts(options: DeploymentOptions) {
+export function _issueWithOptions(options: DeploymentOptions) {
   return new IssueBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');

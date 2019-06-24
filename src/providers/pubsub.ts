@@ -40,11 +40,11 @@ export const service = 'pubsub.googleapis.com';
  * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
  */
 export function topic(topic: string) {
-  return _topicWithOpts(topic, {});
+  return _topicWithOptions(topic, {});
 }
 
 /** @internal */
-export function _topicWithOpts(
+export function _topicWithOptions(
   topic: string,
   options: DeploymentOptions
 ): TopicBuilder {
@@ -61,7 +61,7 @@ export function _topicWithOpts(
 }
 
 export function schedule(schedule: string): ScheduleBuilder {
-  return _scheduleWithOpts(schedule, {});
+  return _scheduleWithOptions(schedule, {});
 }
 
 export class ScheduleBuilder {
@@ -103,7 +103,7 @@ export class ScheduleBuilder {
 }
 
 /** @internal */
-export function _scheduleWithOpts(
+export function _scheduleWithOptions(
   schedule: string,
   options: DeploymentOptions
 ): ScheduleBuilder {

@@ -46,11 +46,11 @@ export function onUpdate(
     context: EventContext
   ) => PromiseLike<any> | any
 ): CloudFunction<TemplateVersion> {
-  return _onUpdateWithOpts(handler, {});
+  return _onUpdateWithOptions(handler, {});
 }
 
 /** @internal */
-export function _onUpdateWithOpts(
+export function _onUpdateWithOptions(
   handler: (
     version: TemplateVersion,
     context: EventContext

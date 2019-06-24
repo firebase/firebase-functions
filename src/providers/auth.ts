@@ -39,11 +39,11 @@ export const service = 'firebaseauth.googleapis.com';
  * Handle events related to Firebase authentication users.
  */
 export function user() {
-  return _userWithOpts({});
+  return _userWithOptions({});
 }
 
 /** @internal */
-export function _userWithOpts(options: DeploymentOptions) {
+export function _userWithOptions(options: DeploymentOptions) {
   return new UserBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
