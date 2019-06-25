@@ -104,7 +104,8 @@ function cleanup {
   rm $DIR/functions/firebase-functions.tgz
   rm $DIR/functions/package.json
   rm -f $DIR/functions/firebase-debug.log
-  rm -rf $DIR/functions/node_modules/firebase-functions
+  rm -rf $DIR/functions/lib
+  rm -rf $DIR/functions/node_modules
 }
 
 # Setup
