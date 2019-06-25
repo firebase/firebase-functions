@@ -32,6 +32,8 @@ export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
       expectEq((context as any).action, undefined)
     )
 
+    .it('should have properly defined meta', (user, context) => user.metadata)
+
     .run(testId, u, c);
 });
 

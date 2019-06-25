@@ -1,1 +1,2 @@
-- feature - Allow specifying retry policies for event triggered functions.
+* Allows specifying retry policies for event triggered functions.
+* Fixes bug where auth.UserRecord.metadata was undefined.
