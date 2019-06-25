@@ -67,6 +67,7 @@ function delete_all_functions {
     firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID || : &
   else
     firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID --token=$TOKEN || : &
+  fi
   wait
   announce "Project emptied."
 }
