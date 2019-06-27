@@ -49,10 +49,13 @@
     "@types/sinon": "^7.0.12",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "child-process-promise": "^2.2.1",
     "firebase-admin": "^8.0.0",
     "istanbul": "^0.4.2",
+    "js-yaml": "^3.13.1",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
+    "mz": "^2.7.0",
     "nock": "^10.0.6",
     "prettier": "^1.17.1",
     "sinon": "^7.3.2",
@@ -60,7 +63,9 @@
     "tslint": "^5.17.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.0",
-    "typescript": "^3.5.1"
+    "typedoc": "^0.14.2",
+    "typescript": "^3.5.1",
+    "yargs": "^13.2.4"
   },
   "peerDependencies": {
     "firebase-admin": "^8.0.0"
