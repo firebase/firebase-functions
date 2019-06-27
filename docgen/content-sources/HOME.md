@@ -1,3 +1,3 @@
-# Firebase Admin Node.js SDK Reference
+# Firebase Functions SDK Reference
 
 Functions SDK!!!
