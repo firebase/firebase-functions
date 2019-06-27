@@ -27,7 +27,8 @@
     "format": "prettier --write '**/*.ts'",
     "lint": "tslint --project tsconfig.json --config tslint.json",
     "posttest": "npm run format",
-    "test": "mocha -r ts-node/register ./spec/index.spec.ts"
+    "test": "mocha -r ts-node/register ./spec/index.spec.ts",
+    "apidocs": "node docgen/generate-docs.js"
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
