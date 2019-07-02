@@ -59,7 +59,6 @@ describe('FunctionBuilder', () => {
         'us-east4',
         'europe-west1',
         'europe-west2',
-        'europe-west4',
         'asia-east2',
         'asia-northeast1'
       )
@@ -72,7 +71,6 @@ describe('FunctionBuilder', () => {
       'us-east4',
       'europe-west1',
       'europe-west2',
-      'europe-west4',
       'asia-east2',
       'asia-northeast1',
     ]);
