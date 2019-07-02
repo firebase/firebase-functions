@@ -22,6 +22,7 @@
 
 import { expect } from 'chai';
 import { apps as appsNamespace } from '../src/apps';
+
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import * as sinon from 'sinon';
@@ -29,6 +30,7 @@ import * as sinon from 'sinon';
 describe('apps', () => {
   let apps: appsNamespace.Apps;
   let claims;
+
   beforeEach(() => {
     apps = new appsNamespace.Apps();
     // mock claims intentionally contains dots, square brackets, and nested paths
@@ -36,7 +38,7 @@ describe('apps', () => {
   });
 
   afterEach(() => {
-    _.forEach(firebase.apps, app => {
+    _.forEach(firebase.apps, (app) => {
       app.delete();
     });
   });
@@ -52,37 +54,37 @@ describe('apps', () => {
       clock.restore();
     });
 
-    it('should retain/release ref counters appropriately', function() {
+    it('should retain/release ref counters appropriately', () => {
       apps.retain();
-      expect(apps['_refCounter']).to.deep.equal({
+      expect(_.get(apps, '_refCounter')).to.deep.equal({
         __admin__: 1,
       });
       apps.release();
       clock.tick(appsNamespace.garbageCollectionInterval);
       return Promise.resolve().then(() => {
-        expect(apps['_refCounter']).to.deep.equal({
+        expect(_.get(apps, '_refCounter')).to.deep.equal({
           __admin__: 0,
         });
       });
     });
 
-    it('should only decrement counter after garbageCollectionInterval is up', function() {
+    it('should only decrement counter after garbageCollectionInterval is up', () => {
       apps.retain();
       apps.release();
       clock.tick(appsNamespace.garbageCollectionInterval / 2);
-      expect(apps['_refCounter']).to.deep.equal({
+      expect(_.get(apps, '_refCounter')).to.deep.equal({
         __admin__: 1,
       });
       clock.tick(appsNamespace.garbageCollectionInterval / 2);
       return Promise.resolve().then(() => {
-        expect(apps['_refCounter']).to.deep.equal({
+        expect(_.get(apps, '_refCounter')).to.deep.equal({
           __admin__: 0,
         });
       });
     });
 
-    it('should call _destroyApp if app no longer used', function() {
-      let spy = sinon.spy(apps, '_destroyApp');
+    it('should call _destroyApp if app no longer used', () => {
+      const spy = sinon.spy(apps, '_destroyApp');
       apps.retain();
       apps.release();
       clock.tick(appsNamespace.garbageCollectionInterval);
@@ -91,8 +93,8 @@ describe('apps', () => {
       });
     });
 
-    it('should not call _destroyApp if app used again while waiting for release', function() {
-      let spy = sinon.spy(apps, '_destroyApp');
+    it('should not call _destroyApp if app used again while waiting for release', () => {
+      const spy = sinon.spy(apps, '_destroyApp');
       apps.retain();
       apps.release();
       clock.tick(appsNamespace.garbageCollectionInterval / 2);
@@ -103,22 +105,22 @@ describe('apps', () => {
       });
     });
 
-    it('should increment ref counter for each subsequent retain', function() {
+    it('should increment ref counter for each subsequent retain', () => {
       apps.retain();
-      expect(apps['_refCounter']).to.deep.equal({
+      expect(_.get(apps, '_refCounter')).to.deep.equal({
         __admin__: 1,
       });
       apps.retain();
-      expect(apps['_refCounter']).to.deep.equal({
+      expect(_.get(apps, '_refCounter')).to.deep.equal({
         __admin__: 2,
       });
       apps.retain();
-      expect(apps['_refCounter']).to.deep.equal({
+      expect(_.get(apps, '_refCounter')).to.deep.equal({
         __admin__: 3,
       });
     });
 
-    it('should work with staggering sets of retain/release', function() {
+    it('should work with staggering sets of retain/release', () => {
       apps.retain();
       apps.release();
       clock.tick(appsNamespace.garbageCollectionInterval / 2);
@@ -128,14 +130,14 @@ describe('apps', () => {
       return Promise.resolve()
         .then(() => {
           // Counters are still 1 due second set of retain/release
-          expect(apps['_refCounter']).to.deep.equal({
+          expect(_.get(apps, '_refCounter')).to.deep.equal({
             __admin__: 1,
           });
           clock.tick(appsNamespace.garbageCollectionInterval / 2);
         })
         .then(() => {
           // It's now been a full interval since the second set of retain/release
-          expect(apps['_refCounter']).to.deep.equal({
+          expect(_.get(apps, '_refCounter')).to.deep.equal({
             __admin__: 0,
           });
         });

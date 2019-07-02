@@ -12,7 +12,7 @@ export * from './database-tests';
 export * from './auth-tests';
 export * from './firestore-tests';
 export * from './https-tests';
-// export * from './remoteConfig-tests';
+export * from './remoteConfig-tests';
 export * from './storage-tests';
 const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
 
@@ -32,9 +32,9 @@ function callHttpsTrigger(name: string, data: any, baseUrl) {
           'Content-Type': 'application/json',
         },
       },
-      response => {
+      (response) => {
         let body = '';
-        response.on('data', chunk => {
+        response.on('data', (chunk) => {
           body += chunk;
         });
         response.on('end', () => resolve(body));
@@ -59,9 +59,9 @@ function callScheduleTrigger(functionName: string, region: string) {
           'Content-Type': 'application/json',
         },
       },
-      response => {
+      (response) => {
         let body = '';
-        response.on('data', chunk => {
+        response.on('data', (chunk) => {
           body += chunk;
         });
         response.on('end', () => resolve(body));
@@ -114,7 +114,7 @@ export const integrationTests: any = functions
           password: 'secret',
           displayName: `${testId}`,
         })
-        .then(userRecord => {
+        .then((userRecord) => {
           // A user deletion to trigger the Firebase Auth user deletion tests.
           admin.auth().deleteUser(userRecord.uid);
         }),
@@ -127,25 +127,25 @@ export const integrationTests: any = functions
       // Invoke a callable HTTPS trigger.
       callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
       // A Remote Config update to trigger the Remote Config tests.
-      // admin.credential
-      //   .applicationDefault()
-      //   .getAccessToken()
-      //   .then(accessToken => {
-      //     const options = {
-      //       hostname: 'firebaseremoteconfig.googleapis.com',
-      //       path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-      //       method: 'PUT',
-      //       headers: {
-      //         Authorization: 'Bearer ' + accessToken.access_token,
-      //         'Content-Type': 'application/json; UTF-8',
-      //         'Accept-Encoding': 'gzip',
-      //         'If-Match': '*',
-      //       },
-      //     };
-      //     const request = https.request(options, resp => {});
-      //     request.write(JSON.stringify({ version: { description: testId } }));
-      //     request.end();
-      //   }),
+      admin.credential
+        .applicationDefault()
+        .getAccessToken()
+        .then((accessToken) => {
+          const options = {
+            hostname: 'firebaseremoteconfig.googleapis.com',
+            path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
+            method: 'PUT',
+            headers: {
+              Authorization: 'Bearer ' + accessToken.access_token,
+              'Content-Type': 'application/json; UTF-8',
+              'Accept-Encoding': 'gzip',
+              'If-Match': '*',
+            },
+          };
+          const request = https.request(options, (resp) => {});
+          request.write(JSON.stringify({ version: { description: testId } }));
+          request.end();
+        }),
       // A storage upload to trigger the Storage tests
       admin
         .storage()
@@ -160,7 +160,7 @@ export const integrationTests: any = functions
         let ref = admin.database().ref(`testRuns/${testId}`);
         return new Promise((resolve, reject) => {
           let testsExecuted = 0;
-          ref.on('child_added', snapshot => {
+          ref.on('child_added', (snapshot) => {
             testsExecuted += 1;
             if (snapshot.key != 'timestamp' && !snapshot.val().passed) {
               reject(
@@ -185,7 +185,7 @@ export const integrationTests: any = functions
             ref.off(); // No more need to listen.
             return Promise.resolve();
           })
-          .catch(err => {
+          .catch((err) => {
             ref.off(); // No more need to listen.
             return Promise.reject(err);
           });
@@ -194,7 +194,7 @@ export const integrationTests: any = functions
         console.log('All tests pass!');
         resp.status(200).send('PASS \n');
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(`Some tests failed: ${err}`);
         resp
           .status(500)

@@ -21,8 +21,9 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as storage from '../../src/providers/storage';
+import { Event, EventContext } from '../../src/index';
 import * as functions from '../../src/index';
+import * as storage from '../../src/providers/storage';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
@@ -37,7 +38,7 @@ describe('Storage Functions', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
@@ -53,7 +54,7 @@ describe('Storage Functions', () => {
 
     describe('#onArchive', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage
+        const cloudFunction = storage
           .bucket('bucky')
           .object()
           .onArchive(() => null);
@@ -67,7 +68,7 @@ describe('Storage Functions', () => {
       });
 
       it('should use the default bucket when none is provided', () => {
-        let cloudFunction = storage.object().onArchive(() => null);
+        const cloudFunction = storage.object().onArchive(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.archive',
@@ -78,11 +79,11 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(
+        const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
           {}
         );
-        let result = subjectQualified.onArchive(() => null);
+        const result = subjectQualified.onArchive(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.archive',
@@ -103,17 +104,29 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = storage.object().onArchive(data => {
+        const cloudFunction = storage.object().onArchive((data) => {
           return data.mediaLink;
         });
-        let goodMediaLinkEvent = {
+        const goodMediaLinkEvent: Event = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.archive',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -121,7 +134,7 @@ describe('Storage Functions', () => {
 
     describe('#onDelete', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage
+        const cloudFunction = storage
           .bucket('bucky')
           .object()
           .onDelete(() => null);
@@ -135,7 +148,7 @@ describe('Storage Functions', () => {
       });
 
       it('should use the default bucket when none is provided', () => {
-        let cloudFunction = storage.object().onDelete(() => null);
+        const cloudFunction = storage.object().onDelete(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.delete',
@@ -146,11 +159,11 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(
+        const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
           {}
         );
-        let result = subjectQualified.onDelete(() => null);
+        const result = subjectQualified.onDelete(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.delete',
@@ -171,17 +184,29 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = storage.object().onDelete(data => {
+        const cloudFunction = storage.object().onDelete((data) => {
           return data.mediaLink;
         });
-        let goodMediaLinkEvent = {
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.delete',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -189,7 +214,7 @@ describe('Storage Functions', () => {
 
     describe('#onFinalize', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage
+        const cloudFunction = storage
           .bucket('bucky')
           .object()
           .onFinalize(() => null);
@@ -203,7 +228,7 @@ describe('Storage Functions', () => {
       });
 
       it('should use the default bucket when none is provided', () => {
-        let cloudFunction = storage.object().onFinalize(() => null);
+        const cloudFunction = storage.object().onFinalize(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.finalize',
@@ -214,11 +239,11 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(
+        const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
           {}
         );
-        let result = subjectQualified.onFinalize(() => null);
+        const result = subjectQualified.onFinalize(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.finalize',
@@ -239,17 +264,29 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = storage.object().onFinalize(data => {
+        const cloudFunction = storage.object().onFinalize((data) => {
           return data.mediaLink;
         });
-        let goodMediaLinkEvent = {
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.finalize',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -257,7 +294,7 @@ describe('Storage Functions', () => {
 
     describe('#onMetadataUpdate', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        let cloudFunction = storage
+        const cloudFunction = storage
           .bucket('bucky')
           .object()
           .onMetadataUpdate(() => null);
@@ -271,7 +308,7 @@ describe('Storage Functions', () => {
       });
 
       it('should use the default bucket when none is provided', () => {
-        let cloudFunction = storage.object().onMetadataUpdate(() => null);
+        const cloudFunction = storage.object().onMetadataUpdate(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.metadataUpdate',
@@ -282,11 +319,11 @@ describe('Storage Functions', () => {
       });
 
       it('should allow fully qualified bucket names', () => {
-        let subjectQualified = new storage.ObjectBuilder(
+        const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
           {}
         );
-        let result = subjectQualified.onMetadataUpdate(() => null);
+        const result = subjectQualified.onMetadataUpdate(() => null);
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.storage.object.metadataUpdate',
@@ -307,17 +344,29 @@ describe('Storage Functions', () => {
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = storage.object().onMetadataUpdate(data => {
+        const cloudFunction = storage.object().onMetadataUpdate((data) => {
           return data.mediaLink;
         });
-        let goodMediaLinkEvent = {
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.metadataUpdate',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -337,24 +386,38 @@ describe('Storage Functions', () => {
 
     describe('#onArchive', () => {
       it('should return an empty trigger', () => {
-        let cloudFunction = functions.handler.storage.bucket.onArchive(
+        const cloudFunction = functions.handler.storage.bucket.onArchive(
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = functions.handler.storage.object.onArchive(data => {
-          return data.mediaLink;
-        });
-        let goodMediaLinkEvent = {
+        const cloudFunction = functions.handler.storage.object.onArchive(
+          (data) => {
+            return data.mediaLink;
+          }
+        );
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.archive',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -362,24 +425,38 @@ describe('Storage Functions', () => {
 
     describe('#onDelete', () => {
       it('should return an empty trigger', () => {
-        let cloudFunction = functions.handler.storage.bucket.onDelete(
+        const cloudFunction = functions.handler.storage.bucket.onDelete(
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = functions.handler.storage.object.onDelete(data => {
-          return data.mediaLink;
-        });
-        let goodMediaLinkEvent = {
+        const cloudFunction = functions.handler.storage.object.onDelete(
+          (data) => {
+            return data.mediaLink;
+          }
+        );
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.delete',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -387,26 +464,38 @@ describe('Storage Functions', () => {
 
     describe('#onFinalize', () => {
       it('should return an empty trigger', () => {
-        let cloudFunction = functions.handler.storage.bucket.onFinalize(
+        const cloudFunction = functions.handler.storage.bucket.onFinalize(
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = functions.handler.storage.object.onFinalize(
-          data => {
+        const cloudFunction = functions.handler.storage.object.onFinalize(
+          (data) => {
             return data.mediaLink;
           }
         );
-        let goodMediaLinkEvent = {
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.finalize',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -414,26 +503,38 @@ describe('Storage Functions', () => {
 
     describe('#onMetadataUpdate', () => {
       it('should return an empty trigger', () => {
-        let cloudFunction = functions.handler.storage.bucket.onMetadataUpdate(
+        const cloudFunction = functions.handler.storage.bucket.onMetadataUpdate(
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
       it('should not mess with media links using non-literal slashes', () => {
-        let cloudFunction = functions.handler.storage.object.onMetadataUpdate(
-          data => {
+        const cloudFunction = functions.handler.storage.object.onMetadataUpdate(
+          (data) => {
             return data.mediaLink;
           }
         );
-        let goodMediaLinkEvent = {
+        const goodMediaLinkEvent = {
           data: {
             mediaLink:
               'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
               '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
           },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.metadataUpdate',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
         };
-        return cloudFunction(goodMediaLinkEvent).then((result: any) => {
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
       });
@@ -452,7 +553,7 @@ describe('Storage Functions', () => {
     });
 
     it('should not throw when #run is called', () => {
-      let cf = storage.object().onArchive(() => null);
+      const cf = storage.object().onArchive(() => null);
       expect(cf.run).to.not.throw(Error);
     });
   });

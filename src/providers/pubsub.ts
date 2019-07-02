@@ -126,7 +126,7 @@ export class TopicBuilder {
       service,
       triggerResource: this.triggerResource,
       eventType: 'topic.publish',
-      dataConstructor: raw => new Message(raw.data),
+      dataConstructor: (raw) => new Message(raw.data),
       opts: this.opts,
     });
   }

@@ -34,25 +34,25 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow supported region to be set', () => {
-    let fn = functions
+    const fn = functions
       .region('us-east1')
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
   });
 
   it('should allow multiple supported regions to be set', () => {
-    let fn = functions
+    const fn = functions
       .region('us-east1', 'us-central1')
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['us-east1', 'us-central1']);
   });
 
   it('should allow all supported regions to be set', () => {
-    let fn = functions
+    const fn = functions
       .region(
         'us-central1',
         'us-east1',
@@ -63,7 +63,7 @@ describe('FunctionBuilder', () => {
         'asia-northeast1'
       )
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal([
       'us-central1',
@@ -77,27 +77,27 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow valid runtime options to be set', () => {
-    let fn = functions
+    const fn = functions
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
       })
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
   });
 
   it('should allow both supported region and valid runtime options to be set', () => {
-    let fn = functions
+    const fn = functions
       .region('europe-west2')
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
       })
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['europe-west2']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -105,14 +105,14 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow both valid runtime options and supported region to be set in reverse order', () => {
-    let fn = functions
+    const fn = functions
       .runWith({
         timeoutSeconds: 90,
         memory: '256MB',
       })
       .region('europe-west1')
       .auth.user()
-      .onCreate(user => user);
+      .onCreate((user) => user);
 
     expect(fn.__trigger.regions).to.deep.equal(['europe-west1']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);

@@ -20,28 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
-chai.use(chaiAsPromised);
+import { expect } from 'chai';
+import { setup } from '../src/setup';
 
-import * as nock from 'nock';
-nock.disableNetConnect();
+describe('setup()', () => {
+  afterEach(() => {
+    delete process.env.FIREBASE_CONFIG;
+    delete process.env.GCLOUD_PROJECT;
+  });
 
-import 'mocha';
+  it('sets GCLOUD_PROJECT from FIREBASE_CONFIG', () => {
+    const testProject = 'test-project';
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: testProject,
+    });
+    setup();
+    expect(process.env.GCLOUD_PROJECT).to.equal(testProject);
+  });
 
-import './apps.spec';
-import './cloud-functions.spec';
-import './config.spec';
-import './function-builder.spec';
-import './providers/analytics.spec';
-import './providers/auth.spec';
-import './providers/crashlytics.spec';
-import './providers/database.spec';
-import './providers/firestore.spec';
-import './providers/https.spec';
-import './providers/pubsub.spec';
-import './providers/remoteConfig.spec';
-import './providers/storage.spec';
-import './setup.spec';
-import './testing.spec';
-import './utils.spec';
+  it('does not set GCLOUD_PROJECT if already defined', () => {
+    const existingProject = 'test-project';
+    process.env.GCLOUD_PROJECT = existingProject;
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: 'new-project',
+    });
+    setup();
+    expect(process.env.GCLOUD_PROJECT).to.equal(existingProject);
+  });
+});

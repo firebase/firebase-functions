@@ -22,9 +22,9 @@
 
 import { expect } from 'chai';
 
-import * as crashlytics from '../../src/providers/crashlytics';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
+import * as crashlytics from '../../src/providers/crashlytics';
 
 describe('Crashlytics Functions', () => {
   describe('Issue Builder', () => {
@@ -39,14 +39,14 @@ describe('Crashlytics Functions', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
           memory: '256MB',
         })
         .crashlytics.issue()
-        .onNew(issue => issue);
+        .onNew((issue) => issue);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -55,7 +55,7 @@ describe('Crashlytics Functions', () => {
 
     describe('#onNew', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        const cloudFunction = crashlytics.issue().onNew(data => null);
+        const cloudFunction = crashlytics.issue().onNew((data) => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'providers/firebase.crashlytics/eventTypes/issue.new',
@@ -68,7 +68,7 @@ describe('Crashlytics Functions', () => {
 
     describe('#onRegressed', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        const cloudFunction = crashlytics.issue().onRegressed(data => null);
+        const cloudFunction = crashlytics.issue().onRegressed((data) => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType:
@@ -82,7 +82,9 @@ describe('Crashlytics Functions', () => {
 
     describe('#onVelocityAlert', () => {
       it('should return a TriggerDefinition with appropriate values', () => {
-        const cloudFunction = crashlytics.issue().onVelocityAlert(data => null);
+        const cloudFunction = crashlytics
+          .issue()
+          .onVelocityAlert((data) => null);
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType:
@@ -95,22 +97,10 @@ describe('Crashlytics Functions', () => {
     });
 
     describe('HandlerBuilder', () => {
-      const testIssue = {
-        issueId: '1234',
-        issueTitle: 'testIssue',
-        appInfo: {
-          appName: 'My Awesome Test App',
-          appPlatform: 'ios',
-          appId: '9876',
-          latestAppVersion: '1.2.3.4',
-        },
-        createTime: '2018-12-18T23:05:55+00:00',
-      };
-
       describe('#onNew', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onNew(
-            testIssue => {
+            (testIssue) => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
@@ -123,7 +113,7 @@ describe('Crashlytics Functions', () => {
       describe('#onRegressed', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onRegressed(
-            testIssue => {
+            (testIssue) => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
@@ -136,7 +126,7 @@ describe('Crashlytics Functions', () => {
       describe('#onVelocityAlert', () => {
         it('should return a CloudFunction with appropriate values', () => {
           const cloudFunction = functions.handler.crashlytics.issue.onVelocityAlert(
-            testIssue => {
+            (testIssue) => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
@@ -160,7 +150,7 @@ describe('Crashlytics Functions', () => {
     });
 
     it('should not throw when #run is called', () => {
-      let cf = crashlytics.issue().onNew(() => null);
+      const cf = crashlytics.issue().onNew(() => null);
       expect(cf.run).to.not.throw(Error);
     });
   });

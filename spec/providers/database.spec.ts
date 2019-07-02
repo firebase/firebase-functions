@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as database from '../../src/providers/database';
 import { expect } from 'chai';
 import { apps as appsNamespace } from '../../src/apps';
-import { applyChange } from '../../src/utils';
 import * as functions from '../../src/index';
+import * as database from '../../src/providers/database';
+import { applyChange } from '../../src/utils';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
@@ -43,14 +43,14 @@ describe('Database Functions', () => {
     });
 
     it('should allow both region and runtime options to be set', () => {
-      let fn = functions
+      const fn = functions
         .region('us-east1')
         .runWith({
           timeoutSeconds: 90,
           memory: '256MB',
         })
         .database.ref('/')
-        .onCreate(snap => snap);
+        .onCreate((snap) => snap);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
@@ -59,7 +59,7 @@ describe('Database Functions', () => {
 
     describe('#onWrite()', () => {
       it('should return "ref.write" as the event type', () => {
-        let eventType = database.ref('foo').onWrite(() => null).__trigger
+        const eventType = database.ref('foo').onWrite(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
           'providers/google.firebase.database/eventTypes/ref.write'
@@ -67,39 +67,47 @@ describe('Database Functions', () => {
       });
 
       it('should construct a proper resource path', () => {
-        let resource = database.ref('foo').onWrite(() => null).__trigger
+        const resource = database.ref('foo').onWrite(() => null).__trigger
           .eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
       });
 
       it('should let developers choose a database instance', () => {
-        let func = database
+        const func = database
           .instance('custom')
           .ref('foo')
           .onWrite(() => null);
-        let resource = func.__trigger.eventTrigger.resource;
+        const resource = func.__trigger.eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/custom/refs/foo');
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onWrite(change => {
-          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.write',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+        const handler = database
+          .ref('/users/{id}')
+          .onWrite((change, context) => {
+            expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          });
+
+        return handler(event.data, event.context);
       });
     });
 
     describe('#onCreate()', () => {
       it('should return "ref.create" as the event type', () => {
-        let eventType = database.ref('foo').onCreate(() => null).__trigger
+        const eventType = database.ref('foo').onCreate(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
           'providers/google.firebase.database/eventTypes/ref.create'
@@ -107,39 +115,48 @@ describe('Database Functions', () => {
       });
 
       it('should construct a proper resource path', () => {
-        let resource = database.ref('foo').onCreate(() => null).__trigger
+        const resource = database.ref('foo').onCreate(() => null).__trigger
           .eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
       });
 
       it('should let developers choose a database instance', () => {
-        let func = database
+        const func = database
           .instance('custom')
           .ref('foo')
           .onCreate(() => null);
-        let resource = func.__trigger.eventTrigger.resource;
+        const resource = func.__trigger.eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/custom/refs/foo');
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onCreate(data => {
-          expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.create',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+
+        const handler = database
+          .ref('/users/{id}')
+          .onCreate((data, context) => {
+            expect(data.val()).to.deep.equal({ foo: 'bar' });
+          });
+
+        return handler(event.data, event.context);
       });
     });
 
     describe('#onUpdate()', () => {
       it('should return "ref.update" as the event type', () => {
-        let eventType = database.ref('foo').onUpdate(() => null).__trigger
+        const eventType = database.ref('foo').onUpdate(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
           'providers/google.firebase.database/eventTypes/ref.update'
@@ -147,39 +164,48 @@ describe('Database Functions', () => {
       });
 
       it('should construct a proper resource path', () => {
-        let resource = database.ref('foo').onUpdate(() => null).__trigger
+        const resource = database.ref('foo').onUpdate(() => null).__trigger
           .eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
       });
 
       it('should let developers choose a database instance', () => {
-        let func = database
+        const func = database
           .instance('custom')
           .ref('foo')
           .onUpdate(() => null);
-        let resource = func.__trigger.eventTrigger.resource;
+        const resource = func.__trigger.eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/custom/refs/foo');
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onUpdate(change => {
-          expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.update',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+
+        const handler = database
+          .ref('/users/{id}')
+          .onUpdate((change, context) => {
+            expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          });
+
+        return handler(event.data, event.context);
       });
     });
 
     describe('#onDelete()', () => {
       it('should return "ref.delete" as the event type', () => {
-        let eventType = database.ref('foo').onDelete(() => null).__trigger
+        const eventType = database.ref('foo').onDelete(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
           'providers/google.firebase.database/eventTypes/ref.delete'
@@ -187,33 +213,42 @@ describe('Database Functions', () => {
       });
 
       it('should construct a proper resource path', () => {
-        let resource = database.ref('foo').onDelete(() => null).__trigger
+        const resource = database.ref('foo').onDelete(() => null).__trigger
           .eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/subdomain/refs/foo');
       });
 
       it('should let developers choose a database instance', () => {
-        let func = database
+        const func = database
           .instance('custom')
           .ref('foo')
           .onDelete(() => null);
-        let resource = func.__trigger.eventTrigger.resource;
+        const resource = func.__trigger.eventTrigger.resource;
         expect(resource).to.eq('projects/_/instances/custom/refs/foo');
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = database.ref('/users/{id}').onDelete(data => {
-          expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: { foo: 'bar' },
             delta: null,
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.delete',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+
+        const handler = database
+          .ref('/users/{id}')
+          .onDelete((data, context) => {
+            expect(data.val()).to.deep.equal({ foo: 'bar' });
+          });
+
+        return handler(event.data, event.context);
       });
     });
   });
@@ -221,109 +256,151 @@ describe('Database Functions', () => {
   describe('handler namespace', () => {
     describe('#onWrite()', () => {
       it('correctly sets trigger to {}', () => {
-        let cf = functions.handler.database.ref.onWrite(() => null);
+        const cf = functions.handler.database.ref.onWrite(() => null);
         expect(cf.__trigger).to.deep.equal({});
       });
 
       it('should be able to use the instance entry point', () => {
-        let func = functions.handler.database.instance.ref.onWrite(() => null);
+        const func = functions.handler.database.instance.ref.onWrite(
+          () => null
+        );
         expect(func.__trigger).to.deep.equal({});
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onWrite(change => {
-          return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.write',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+
+        const handler = functions.handler.database.ref.onWrite(
+          (change, context) => {
+            return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
 
     describe('#onCreate()', () => {
       it('correctly sets trigger to {}', () => {
-        let cf = functions.handler.database.ref.onCreate(() => null);
+        const cf = functions.handler.database.ref.onCreate(() => null);
         return expect(cf.__trigger).to.deep.equal({});
       });
 
       it('should be able to use the instance entry point', () => {
-        let func = functions.handler.database.instance.ref.onCreate(() => null);
+        const func = functions.handler.database.instance.ref.onCreate(
+          () => null
+        );
         expect(func.__trigger).to.deep.equal({});
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onCreate(data => {
-          return expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.create',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+        const handler = functions.handler.database.ref.onCreate(
+          (data, context) => {
+            return expect(data.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
 
     describe('#onUpdate()', () => {
       it('correctly sets trigger to {}', () => {
-        let cf = functions.handler.database.ref.onUpdate(() => null);
+        const cf = functions.handler.database.ref.onUpdate(() => null);
         return expect(cf.__trigger).to.deep.equal({});
       });
 
       it('should be able to use the instance entry point', () => {
-        let func = functions.handler.database.instance.ref.onUpdate(() => null);
+        const func = functions.handler.database.instance.ref.onUpdate(
+          () => null
+        );
         expect(func.__trigger).to.deep.equal({});
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onUpdate(change => {
-          return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: null,
             delta: { foo: 'bar' },
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.update',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+        const handler = functions.handler.database.ref.onUpdate(
+          (change, context) => {
+            return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
 
     describe('#onDelete()', () => {
       it('correctly sets trigger to {}', () => {
-        let cf = functions.handler.database.ref.onDelete(() => null);
+        const cf = functions.handler.database.ref.onDelete(() => null);
         return expect(cf.__trigger).to.deep.equal({});
       });
 
       it('should be able to use the instance entry point', () => {
-        let func = functions.handler.database.instance.ref.onDelete(() => null);
+        const func = functions.handler.database.instance.ref.onDelete(
+          () => null
+        );
         expect(func.__trigger).to.deep.equal({});
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        let handler = functions.handler.database.ref.onDelete(data => {
-          return expect(data.val()).to.deep.equal({ foo: 'bar' });
-        });
-
-        return handler({
+        const event = {
           data: {
             data: { foo: 'bar' },
             delta: null,
           },
-          resource: 'projects/_/instances/subdomains/refs/users',
-          eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-        });
+          context: {
+            eventId: '70172329041928',
+            eventType:
+              'providers/google.firebase.database/eventTypes/ref.delete',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            resource: 'projects/_/instances/subdomains/refs/users',
+          },
+        };
+
+        const handler = functions.handler.database.ref.onDelete(
+          (data, context) => {
+            return expect(data.val()).to.deep.equal({ foo: 'bar' });
+          }
+        );
+
+        return handler(event.data, event.context);
       });
     });
   });
@@ -342,14 +419,14 @@ describe('Database Functions', () => {
     });
 
     it('should not throw when #run is called', () => {
-      let cf = database.ref('/path').onWrite(() => null);
+      const cf = database.ref('/path').onWrite(() => null);
       expect(cf.run).to.not.throw(Error);
     });
   });
 
   describe('resourceToInstanceAndPath', () => {
     it('should return the correct instance and path strings', () => {
-      let [instance, path] = database.resourceToInstanceAndPath(
+      const [instance, path] = database.resourceToInstanceAndPath(
         'projects/_/instances/foo/refs/bar'
       );
       expect(instance).to.equal('https://foo.firebaseio.com');
@@ -379,8 +456,8 @@ describe('Database Functions', () => {
     let subject: any;
     const apps = new appsNamespace.Apps();
 
-    let populate = (data: any) => {
-      let [instance, path] = database.resourceToInstanceAndPath(
+    const populate = (data: any) => {
+      const [instance, path] = database.resourceToInstanceAndPath(
         'projects/_/instances/other-subdomain/refs/foo'
       );
       subject = new database.DataSnapshot(data, path, apps.admin, instance);
@@ -498,7 +575,7 @@ describe('Database Functions', () => {
       it('should not execute for leaf or null nodes', () => {
         populate(23);
         let count = 0;
-        let counter = (snap: any) => count++;
+        const counter = (snap: any) => count++;
 
         expect(subject.forEach(counter)).to.equal(false);
         expect(count).to.eq(0);
@@ -571,7 +648,7 @@ describe('Database Functions', () => {
       });
 
       it('should return null for the root', () => {
-        let [instance, path] = database.resourceToInstanceAndPath(
+        const [instance, path] = database.resourceToInstanceAndPath(
           'projects/_/instances/foo/refs/'
         );
         const snapshot = new database.DataSnapshot(

@@ -43,7 +43,7 @@ export const pubsubTests: any = functions.pubsub
         expectEq((context as any).action, undefined)
       )
 
-      .it('should have pubsub data', message => {
+      .it('should have pubsub data', (message) => {
         const decoded = new Buffer(message.data, 'base64').toString();
         const parsed = JSON.parse(decoded);
         return evaluate(
@@ -52,7 +52,7 @@ export const pubsubTests: any = functions.pubsub
         );
       })
 
-      .it('should decode JSON payloads with the json helper', message =>
+      .it('should decode JSON payloads with the json helper', (message) =>
         evaluate(message.json.hasOwnProperty('testId'), message.json)
       )
 
@@ -62,7 +62,7 @@ export const pubsubTests: any = functions.pubsub
 export const schedule: any = functions.pubsub
   .schedule('every 10 hours') // This is a dummy schedule, since we need to put a valid one in.
   // For the test, the job is triggered by the jobs:run api
-  .onRun(context => {
+  .onRun((context) => {
     let testId;
     let db = admin.database();
     return new Promise(async (resolve, reject) => {
@@ -70,7 +70,7 @@ export const schedule: any = functions.pubsub
         .ref('testRuns')
         .orderByChild('timestamp')
         .limitToLast(1)
-        .on('value', snap => {
+        .on('value', (snap) => {
           testId = Object.keys(snap.val())[0];
           new TestSuite('pubsub scheduleOnRun')
             .it('should trigger when the scheduler fires', () => success())

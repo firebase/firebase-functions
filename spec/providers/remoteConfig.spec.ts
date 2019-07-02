@@ -20,10 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import { expect } from 'chai';
-import * as admin from 'firebase-admin';
 import * as _ from 'lodash';
 
-import { CloudFunction } from '../../src/cloud-functions';
+import {
+  CloudFunction,
+  Event,
+  EventContext,
+  TriggerAnnotated,
+} from '../../src/cloud-functions';
 import * as functions from '../../src/index';
 import * as remoteConfig from '../../src/providers/remoteConfig';
 
@@ -42,10 +46,10 @@ describe('RemoteConfig Functions', () => {
     };
   }
 
-  function makeEvent(data: any, context?: { [key: string]: any }) {
+  function makeEvent(data: any, context: { [key: string]: any }): Event {
     context = context || {};
     return {
-      data: data,
+      data,
       context: _.merge(
         {
           eventId: '123',
@@ -62,12 +66,14 @@ describe('RemoteConfig Functions', () => {
   }
 
   describe('#onUpdate', () => {
-    function expectedTrigger() {
+    function expectedTrigger(): TriggerAnnotated {
       return {
-        eventTrigger: {
-          resource: 'projects/project1',
-          eventType: 'google.firebase.remoteconfig.update',
-          service: 'firebaseremoteconfig.googleapis.com',
+        __trigger: {
+          eventTrigger: {
+            resource: 'projects/project1',
+            eventType: 'google.firebase.remoteconfig.update',
+            service: 'firebaseremoteconfig.googleapis.com',
+          },
         },
       };
     }
@@ -82,7 +88,9 @@ describe('RemoteConfig Functions', () => {
 
     it('should have the correct trigger', () => {
       const cloudFunction = remoteConfig.onUpdate(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger());
+      expect(cloudFunction.__trigger).to.deep.equal(
+        expectedTrigger().__trigger
+      );
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -102,14 +110,26 @@ describe('RemoteConfig Functions', () => {
 
   describe('unwraps TemplateVersion', () => {
     let cloudFunctionUpdate: CloudFunction<remoteConfig.TemplateVersion>;
-    let event: any;
+    let event: Event;
+
     before(() => {
       process.env.GCLOUD_PROJECT = 'project1';
       cloudFunctionUpdate = remoteConfig.onUpdate(
-        (version: remoteConfig.TemplateVersion) => version
+        (version: remoteConfig.TemplateVersion, context: EventContext) =>
+          version
       );
+
       event = {
         data: constructVersion(),
+        context: {
+          eventId: '70172329041928',
+          timestamp: '2018-04-09T07:56:12.975Z',
+          eventType: 'google.firebase.remoteconfig.update',
+          resource: {
+            service: 'firebaseremoteconfig.googleapis.com',
+            name: 'projects/project1',
+          },
+        },
       };
     });
 
@@ -119,9 +139,11 @@ describe('RemoteConfig Functions', () => {
 
     it('should unwrap the version in the event', () => {
       return Promise.all([
-        cloudFunctionUpdate(event).then((data: any) => {
-          expect(data).to.deep.equal(constructVersion());
-        }),
+        cloudFunctionUpdate(event.data, event.context).then(
+          (data: any, context: any) => {
+            expect(data).to.deep.equal(constructVersion());
+          }
+        ),
       ]);
     });
   });
@@ -136,17 +158,29 @@ describe('RemoteConfig Functions', () => {
       });
 
       it('should correctly unwrap the event', () => {
-        let cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
-          (version: remoteConfig.TemplateVersion) => version
+        const cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
+          (version: remoteConfig.TemplateVersion, context: EventContext) =>
+            version
         );
-        let event = {
+        const event: Event = {
           data: constructVersion(),
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.firebase.remoteconfig.update',
+            resource: {
+              service: 'firebaseremoteconfig.googleapis.com',
+              name: 'projects/project1',
+            },
+          },
         };
 
         return Promise.all([
-          cloudFunctionUpdate(event).then((data: any) => {
-            expect(data).to.deep.equal(constructVersion());
-          }),
+          cloudFunctionUpdate(event.data, event.context).then(
+            (data: any, context: any) => {
+              expect(data).to.deep.equal(constructVersion());
+            }
+          ),
         ]);
       });
     });
