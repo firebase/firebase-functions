@@ -47,7 +47,7 @@ export class HandlerBuilder {
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
       ): HttpsFunction => {
-        const func = https._onRequestWithOpts(handler, {});
+        const func = https._onRequestWithOptions(handler, {});
         func.__trigger = {};
         return func;
       },
@@ -61,7 +61,7 @@ export class HandlerBuilder {
           context: https.CallableContext
         ) => any | Promise<any>
       ): HttpsFunction => {
-        const func = https._onCallWithOpts(handler, {});
+        const func = https._onCallWithOptions(handler, {});
         func.__trigger = {};
         return func;
       },

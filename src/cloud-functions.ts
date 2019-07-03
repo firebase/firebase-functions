@@ -202,7 +202,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   before?: (raw: Event) => void;
   after?: (raw: Event) => void;
   legacyEventType?: string;
-  opts?: { [key: string]: any };
+  options?: { [key: string]: any };
   labels?: { [key: string]: any };
 }
 
@@ -222,7 +222,7 @@ export function makeCloudFunction<EventData>({
     return;
   },
   legacyEventType,
-  opts = {},
+  options = {},
   labels = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   const cloudFunction: any = (data: any, context: any) => {
@@ -291,7 +291,7 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
-      const trigger: any = _.assign(optsToTrigger(opts), {
+      const trigger: any = _.assign(optionsToTrigger(options), {
         eventTrigger: {
           resource: triggerResource(),
           eventType: legacyEventType || provider + '.' + eventType,
@@ -356,15 +356,15 @@ function _detectAuthType(event: Event) {
   return 'UNAUTHENTICATED';
 }
 
-export function optsToTrigger(opts: DeploymentOptions) {
+export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
-  if (opts.regions) {
-    trigger.regions = opts.regions;
+  if (options.regions) {
+    trigger.regions = options.regions;
   }
-  if (opts.timeoutSeconds) {
-    trigger.timeout = opts.timeoutSeconds.toString() + 's';
+  if (options.timeoutSeconds) {
+    trigger.timeout = options.timeoutSeconds.toString() + 's';
   }
-  if (opts.memory) {
+  if (options.memory) {
     const memoryLookup = {
       '128MB': 128,
       '256MB': 256,
@@ -372,10 +372,10 @@ export function optsToTrigger(opts: DeploymentOptions) {
       '1GB': 1024,
       '2GB': 2048,
     };
-    trigger.availableMemoryMb = _.get(memoryLookup, opts.memory);
+    trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
   }
-  if (opts.schedule) {
-    trigger.schedule = opts.schedule;
+  if (options.schedule) {
+    trigger.schedule = options.schedule;
   }
   return trigger;
 }

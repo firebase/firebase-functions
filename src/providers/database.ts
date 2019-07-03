@@ -48,7 +48,7 @@ const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
  * @param instance The Realtime Database instance to use.
  */
 export function instance(instance: string) {
-  return _instanceWithOpts(instance, {});
+  return _instanceWithOptions(instance, {});
 }
 
 /**
@@ -75,35 +75,35 @@ export function instance(instance: string) {
  * @param ref Path of the database to listen to.
  */
 export function ref(path: string) {
-  return _refWithOpts(path, {});
+  return _refWithOptions(path, {});
 }
 
 /** @internal */
-export function _instanceWithOpts(
+export function _instanceWithOptions(
   instance: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): InstanceBuilder {
-  return new InstanceBuilder(instance, opts);
+  return new InstanceBuilder(instance, options);
 }
 
 export class InstanceBuilder {
   /* @internal */
-  constructor(private instance: string, private opts: DeploymentOptions) {}
+  constructor(private instance: string, private options: DeploymentOptions) {}
 
   ref(path: string): RefBuilder {
     const normalized = normalizePath(path);
     return new RefBuilder(
       apps(),
       () => `projects/_/instances/${this.instance}/refs/${normalized}`,
-      this.opts
+      this.options
     );
   }
 }
 
 /** @internal */
-export function _refWithOpts(
+export function _refWithOptions(
   path: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): RefBuilder {
   const resourceGetter = () => {
     const normalized = normalizePath(path);
@@ -126,7 +126,7 @@ export function _refWithOpts(
     return `projects/_/instances/${subdomain}/refs/${normalized}`;
   };
 
-  return new RefBuilder(apps(), resourceGetter, opts);
+  return new RefBuilder(apps(), resourceGetter, options);
 }
 
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
@@ -135,7 +135,7 @@ export class RefBuilder {
   constructor(
     private apps: apps.Apps,
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /** Respond to any write that affects a ref. */
@@ -210,7 +210,7 @@ export class RefBuilder {
       dataConstructor,
       before: (event) => this.apps.retain(),
       after: (event) => this.apps.release(),
-      opts: this.opts,
+      options: this.options,
     });
   }
 
