@@ -25,7 +25,7 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firebase.crashlytics';
@@ -37,17 +37,17 @@ export const service = 'fabric.io';
  * aggregation of crashes which have a shared root cause.
  */
 export function issue() {
-  return _issueWithOpts({});
+  return _issueWithOptions({});
 }
 
 /** @internal */
-export function _issueWithOpts(opts: DeploymentOptions) {
+export function _issueWithOptions(options: DeploymentOptions) {
   return new IssueBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return 'projects/' + process.env.GCLOUD_PROJECT;
-  }, opts);
+  }, options);
 }
 
 /** Builder used to create Cloud Functions for Crashlytics issue events. */
@@ -55,7 +55,7 @@ export class IssueBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /** @internal */
@@ -95,7 +95,7 @@ export class IssueBuilder {
       service,
       legacyEventType: `providers/firebase.crashlytics/eventTypes/${eventType}`,
       triggerResource: this.triggerResource,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

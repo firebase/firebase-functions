@@ -23,7 +23,14 @@
 import * as express from 'express';
 import * as _ from 'lodash';
 
-import { CloudFunction, EventContext, Schedule } from './cloud-functions';
+import { CloudFunction, EventContext } from './cloud-functions';
+import {
+  DeploymentOptions,
+  MAX_TIMEOUT_SECONDS,
+  RuntimeOptions,
+  SUPPORTED_REGIONS,
+  VALID_MEMORY_OPTIONS,
+} from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as crashlytics from './providers/crashlytics';
@@ -35,34 +42,6 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 
 /**
- * List of all regions supported by Cloud Functions.
- */
-const SUPPORTED_REGIONS = [
-  'us-central1',
-  'us-east1',
-  'us-east4',
-  'europe-west1',
-  'europe-west2',
-  'asia-east2',
-  'asia-northeast1',
-];
-
-/**
- * List of available memory options supported by Cloud Functions.
- */
-const VALID_MEMORY_OPTS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
-
-// Adding this memory type here to error on compile for TS users.
-// Unfortunately I have not found a way to merge this with VALID_MEMORY_OPS
-// without it being super ugly. But here they are right next to each other at least.
-type Memory = '128MB' | '256MB' | '512MB' | '1GB' | '2GB';
-
-/**
- * Cloud Functions max timeout value.
- */
-const MAX_TIMEOUT_SECONDS = 540;
-
-/**
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
  * @throws { Error } Memory and TimeoutSeconds values must be valid.
@@ -70,10 +49,10 @@ const MAX_TIMEOUT_SECONDS = 540;
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   if (
     runtimeOptions.memory &&
-    !_.includes(VALID_MEMORY_OPTS, runtimeOptions.memory)
+    !_.includes(VALID_MEMORY_OPTIONS, runtimeOptions.memory)
   ) {
     throw new Error(
-      `The only valid memory allocation values are: ${VALID_MEMORY_OPTS.join(
+      `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(
         ', '
       )}`
     );
@@ -111,7 +90,9 @@ function assertRegionsAreValid(regions: string[]): boolean {
  * @param regions One of more region strings.
  * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
  */
-export function region(...regions: string[]): FunctionBuilder {
+export function region(
+  ...regions: Array<typeof SUPPORTED_REGIONS[number]>
+): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
   }
@@ -130,18 +111,6 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   }
 }
 
-export interface RuntimeOptions {
-  timeoutSeconds?: number;
-  memory?: Memory;
-}
-
-export interface DeploymentOptions {
-  regions?: string[];
-  timeoutSeconds?: number;
-  memory?: Memory;
-  schedule?: Schedule;
-}
-
 export class FunctionBuilder {
   constructor(private options: DeploymentOptions) {}
 
@@ -150,7 +119,7 @@ export class FunctionBuilder {
    * @param regions One or more region strings.
    * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
    */
-  region(...regions: string[]): FunctionBuilder {
+  region(...regions: Array<typeof SUPPORTED_REGIONS[number]>): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;
@@ -180,7 +149,7 @@ export class FunctionBuilder {
        */
       onRequest: (
         handler: (req: https.Request, resp: express.Response) => void
-      ) => https._onRequestWithOpts(handler, this.options),
+      ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
@@ -190,7 +159,7 @@ export class FunctionBuilder {
           data: any,
           context: https.CallableContext
         ) => any | Promise<any>
-      ) => https._onCallWithOpts(handler, this.options),
+      ) => https._onCallWithOptions(handler, this.options),
     };
   }
 
@@ -202,7 +171,7 @@ export class FunctionBuilder {
        * @param instance The Realtime Database instance to use.
        */
       instance: (instance: string) =>
-        database._instanceWithOpts(instance, this.options),
+        database._instanceWithOptions(instance, this.options),
       /**
        * Select Firebase Realtime Database Reference to listen to.
        *
@@ -226,7 +195,7 @@ export class FunctionBuilder {
        *    about the user who triggered the Cloud Function.
        * @param ref Path of the database to listen to.
        */
-      ref: (path: string) => database._refWithOpts(path, this.options),
+      ref: (path: string) => database._refWithOptions(path, this.options),
     };
   }
 
@@ -240,13 +209,13 @@ export class FunctionBuilder {
        * path is "/users/Ada".
        */
       document: (path: string) =>
-        firestore._documentWithOpts(path, this.options),
+        firestore._documentWithOptions(path, this.options),
       /** @internal */
       namespace: (namespace: string) =>
-        firestore._namespaceWithOpts(namespace, this.options),
+        firestore._namespaceWithOptions(namespace, this.options),
       /** @internal */
       database: (database: string) =>
-        firestore._databaseWithOpts(database, this.options),
+        firestore._databaseWithOptions(database, this.options),
     };
   }
 
@@ -256,7 +225,7 @@ export class FunctionBuilder {
        * Handle events related to Crashlytics issues. An issue in Crashlytics is an
        * aggregation of crashes which have a shared root cause.
        */
-      issue: () => crashlytics._issueWithOpts(this.options),
+      issue: () => crashlytics._issueWithOptions(this.options),
     };
   }
 
@@ -267,7 +236,7 @@ export class FunctionBuilder {
        * @param analyticsEventType Name of the analytics event type.
        */
       event: (analyticsEventType: string) =>
-        analytics._eventWithOpts(analyticsEventType, this.options),
+        analytics._eventWithOptions(analyticsEventType, this.options),
     };
   }
 
@@ -285,9 +254,10 @@ export class FunctionBuilder {
           context: EventContext
         ) => PromiseLike<any> | any
       ) =>
-        remoteConfig._onUpdateWithOpts(handler, this.options) as CloudFunction<
-          remoteConfig.TemplateVersion
-        >,
+        remoteConfig._onUpdateWithOptions(
+          handler,
+          this.options
+        ) as CloudFunction<remoteConfig.TemplateVersion>,
     };
   }
 
@@ -300,12 +270,12 @@ export class FunctionBuilder {
        * @param bucket Name of the Google Cloud Storage bucket to listen to.
        */
       bucket: (bucket?: string) =>
-        storage._bucketWithOpts(this.options, bucket),
+        storage._bucketWithOptions(this.options, bucket),
 
       /**
        * Handle events related to Cloud Storage objects.
        */
-      object: () => storage._objectWithOpts(this.options),
+      object: () => storage._objectWithOptions(this.options),
     };
   }
 
@@ -314,9 +284,9 @@ export class FunctionBuilder {
       /** Select Cloud Pub/Sub topic to listen to.
        * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
        */
-      topic: (topic: string) => pubsub._topicWithOpts(topic, this.options),
+      topic: (topic: string) => pubsub._topicWithOptions(topic, this.options),
       schedule: (schedule: string) =>
-        pubsub._scheduleWithOpts(schedule, this.options),
+        pubsub._scheduleWithOptions(schedule, this.options),
     };
   }
 
@@ -325,7 +295,7 @@ export class FunctionBuilder {
       /**
        * Handle events related to Firebase authentication users.
        */
-      user: () => auth._userWithOpts(this.options),
+      user: () => auth._userWithOptions(this.options),
     };
   }
 }

@@ -32,7 +32,7 @@ import {
   makeCloudFunction,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firestore';
@@ -51,47 +51,50 @@ export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
  * path is "/users/Ada".
  */
 export function document(path: string) {
-  return _documentWithOpts(path, {});
+  return _documentWithOptions(path, {});
 }
 /** @internal */
 // Multiple namespaces are not yet supported by Firestore.
 export function namespace(namespace: string) {
-  return _namespaceWithOpts(namespace, {});
+  return _namespaceWithOptions(namespace, {});
 }
 /** @internal */
 // Multiple databases are not yet supported by Firestore.
 export function database(database: string) {
-  return _databaseWithOpts(database, {});
+  return _databaseWithOptions(database, {});
 }
 
 /** @internal */
-export function _databaseWithOpts(
+export function _databaseWithOptions(
   database: string = defaultDatabase,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ) {
-  return new DatabaseBuilder(database, opts);
+  return new DatabaseBuilder(database, options);
 }
 
 /** @internal */
-export function _namespaceWithOpts(namespace: string, opts: DeploymentOptions) {
-  return _databaseWithOpts(defaultDatabase, opts).namespace(namespace);
+export function _namespaceWithOptions(
+  namespace: string,
+  options: DeploymentOptions
+) {
+  return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
 /** @internal */
-export function _documentWithOpts(path: string, opts: DeploymentOptions) {
-  return _databaseWithOpts(defaultDatabase, opts).document(path);
+export function _documentWithOptions(path: string, options: DeploymentOptions) {
+  return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
 export class DatabaseBuilder {
   /** @internal */
-  constructor(private database: string, private opts: DeploymentOptions) {}
+  constructor(private database: string, private options: DeploymentOptions) {}
 
   namespace(namespace: string) {
-    return new NamespaceBuilder(this.database, this.opts, namespace);
+    return new NamespaceBuilder(this.database, this.options, namespace);
   }
 
   document(path: string) {
-    return new NamespaceBuilder(this.database, this.opts).document(path);
+    return new NamespaceBuilder(this.database, this.options).document(path);
   }
 }
 
@@ -99,7 +102,7 @@ export class NamespaceBuilder {
   /** @internal */
   constructor(
     private database: string,
-    private opts: DeploymentOptions,
+    private options: DeploymentOptions,
     private namespace?: string
   ) {}
 
@@ -119,7 +122,7 @@ export class NamespaceBuilder {
         this.namespace ? `documents@${this.namespace}` : 'documents',
         path
       );
-    }, this.opts);
+    }, this.options);
   }
 }
 
@@ -183,7 +186,7 @@ export class DocumentBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {
     // TODO what validation do we want to do here?
   }
@@ -245,7 +248,7 @@ export class DocumentBuilder {
       triggerResource: this.triggerResource,
       legacyEventType: `providers/cloud.firestore/eventTypes/${eventType}`,
       dataConstructor,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }
