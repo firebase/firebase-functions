@@ -308,7 +308,9 @@ export class DataSnapshot {
   val(): any {
     const parts = pathParts(this._childPath);
     const source = this._data;
-    const node = _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
+    const node = _.cloneDeep(
+      parts.length ? _.get(source, parts, null) : source
+    );
     return this._checkAndConvertToArray(node);
   }
 
@@ -406,7 +408,12 @@ export class DataSnapshot {
   }
 
   private _dup(childPath?: string): DataSnapshot {
-    const dup = new DataSnapshot(this._data, undefined, this.app, this.instance);
+    const dup = new DataSnapshot(
+      this._data,
+      undefined,
+      this.app,
+      this.instance
+    );
     [dup._path, dup._childPath] = [this._path, this._childPath];
 
     if (childPath) {

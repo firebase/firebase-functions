@@ -35,7 +35,7 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import { setup } from './setup';
 
-let app = apps.apps();
+const app = apps.apps();
 
 export {
   analytics,

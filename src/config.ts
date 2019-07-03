@@ -32,7 +32,9 @@ export function config(): config.Config {
 export namespace config {
   // Config type is usable as a object (dot notation allowed), and firebase
   // property will also code complete.
-  export interface Config { [key: string]: any }
+  export interface Config {
+    [key: string]: any;
+  }
 
   /** @internal */
   export let singleton: config.Config;
