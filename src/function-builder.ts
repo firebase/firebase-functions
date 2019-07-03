@@ -213,10 +213,10 @@ export class FunctionBuilder {
       onRequest: (
         handler: (req: https.Request, resp: express.Response) => void
       ) => https._onRequestWithOptions(handler, this.options),
-
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
-       * @param handler A method that takes a data and context and returns a value.
+       * @param handler A method that takes a data and context and returns
+       * a value.
        */
       onCall: (
         handler: (
@@ -278,11 +278,15 @@ export class FunctionBuilder {
       document: (path: string) =>
         firestore._documentWithOptions(path, this.options),
 
-      /** @internal */
+      /**
+       * @internal
+       */
       namespace: (namespace: string) =>
         firestore._namespaceWithOptions(namespace, this.options),
 
-      /** @internal */
+      /**
+       * @internal
+       */
       database: (database: string) =>
         firestore._databaseWithOptions(database, this.options),
     };
@@ -350,7 +354,8 @@ export class FunctionBuilder {
 
   get pubsub() {
     return {
-      /** Select Cloud Pub/Sub topic to listen to.
+      /**
+       * Select Cloud Pub/Sub topic to listen to.
        * @param topic Name of Pub/Sub topic, must belong to the same project as
        * the function.
        */

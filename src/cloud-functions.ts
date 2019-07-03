@@ -22,6 +22,7 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
+import { apps } from './apps';
 import {
   DeploymentOptions,
   FailurePolicy,
@@ -32,7 +33,7 @@ export { Request, Response };
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
- * Wire format for an event
+ * Wire format for an event.
  * @internal
  */
 export interface Event {
