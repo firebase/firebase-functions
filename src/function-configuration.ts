@@ -9,7 +9,7 @@ export const SUPPORTED_REGIONS = [
   'europe-west2',
   'asia-east2',
   'asia-northeast1',
-] as const;
+];
 
 /**
  * Cloud Functions min timeout value.
@@ -30,7 +30,7 @@ export const VALID_MEMORY_OPTIONS = [
   '512MB',
   '1GB',
   '2GB',
-] as const;
+];
 
 /**
  * Scheduler retry options. Applies only to scheduled functions.
