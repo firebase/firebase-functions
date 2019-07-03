@@ -40,13 +40,13 @@ export const service = 'app-measurement.com';
  * @param analyticsEventType Name of the analytics event type.
  */
 export function event(analyticsEventType: string) {
-  return _eventWithOpts(analyticsEventType, {});
+  return _eventWithOptions(analyticsEventType, {});
 }
 
 /** @internal */
-export function _eventWithOpts(
+export function _eventWithOptions(
   analyticsEventType: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -55,7 +55,7 @@ export function _eventWithOpts(
     return (
       'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType
     );
-  }, opts);
+  }, options);
 }
 
 /**
@@ -67,7 +67,7 @@ export class AnalyticsEventBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /**
@@ -97,7 +97,7 @@ export class AnalyticsEventBuilder {
       legacyEventType: `providers/google.firebase.analytics/eventTypes/event.log`,
       triggerResource: this.triggerResource,
       dataConstructor,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }
