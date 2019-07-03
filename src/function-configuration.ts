@@ -24,13 +24,7 @@ export const MAX_TIMEOUT_SECONDS = 540;
 /**
  * List of available memory options supported by Cloud Functions.
  */
-export const VALID_MEMORY_OPTIONS = [
-  '128MB',
-  '256MB',
-  '512MB',
-  '1GB',
-  '2GB',
-];
+export const VALID_MEMORY_OPTIONS = ['128MB', '256MB', '512MB', '1GB', '2GB'];
 
 /**
  * Scheduler retry options. Applies only to scheduled functions.
