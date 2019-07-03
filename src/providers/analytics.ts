@@ -23,12 +23,12 @@
 import * as _ from 'lodash';
 
 import {
-  makeCloudFunction,
   CloudFunction,
   Event,
   EventContext,
+  makeCloudFunction,
 } from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.analytics';

@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  makeCloudFunction,
-  CloudFunction,
-  EventContext,
-  Event,
-} from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import { DeploymentOptions } from '../function-builder';
+import {
+  CloudFunction,
+  Event,
+  EventContext,
+  makeCloudFunction,
+} from '../cloud-functions';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firebase.auth';

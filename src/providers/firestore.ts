@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { posix } from 'path';
-import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
+import { posix } from 'path';
 import { apps } from '../apps';
 import {
-  makeCloudFunction,
-  CloudFunction,
   Change,
+  CloudFunction,
   Event,
   EventContext,
+  makeCloudFunction,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firestore';

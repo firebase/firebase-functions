@@ -22,12 +22,14 @@
 
 import {
   CloudFunction,
-  makeCloudFunction,
   EventContext,
+  makeCloudFunction,
+} from '../cloud-functions';
+import {
+  DeploymentOptions,
   Schedule,
   ScheduleRetryConfig,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+} from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.pubsub';
@@ -91,7 +93,7 @@ export class ScheduleBuilder {
       contextOnlyHandler: handler,
       provider,
       service,
-      triggerResource: triggerResource,
+      triggerResource,
       eventType: 'topic.publish',
       opts: this._opts,
       labels: { 'deployment-scheduled': 'true' },
