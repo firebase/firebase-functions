@@ -26,7 +26,7 @@ import {
   makeCloudFunction,
 } from '../cloud-functions';
 import { firebaseConfig } from '../config';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.storage';

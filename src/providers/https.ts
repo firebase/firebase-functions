@@ -26,7 +26,7 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import { apps } from '../apps';
 import { HttpsFunction, optsToTrigger, Runnable } from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /**
  *
