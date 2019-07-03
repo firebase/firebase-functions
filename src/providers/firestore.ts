@@ -20,16 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { posix } from 'path';
-import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
+import { posix } from 'path';
 import { apps } from '../apps';
 import {
-  makeCloudFunction,
-  CloudFunction,
   Change,
+  CloudFunction,
   Event,
   EventContext,
+  makeCloudFunction,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
 import { DeploymentOptions } from '../function-builder';
@@ -108,7 +108,7 @@ export class NamespaceBuilder {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error('process.env.GCLOUD_PROJECT is not set.');
       }
-      let database = posix.join(
+      const database = posix.join(
         'projects',
         process.env.GCLOUD_PROJECT,
         'databases',
@@ -128,7 +128,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
     // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
     return resource;
   }
-  let proto = {
+  const proto = {
     fields: _.get(data, [valueFieldName, 'fields'], {}),
     createTime: dateToTimestampProto(
       _.get(data, [valueFieldName, 'createTime'])
@@ -146,12 +146,12 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let valueProto = _getValueProto(
+  const valueProto = _getValueProto(
     event.data,
     event.context.resource.name,
     'value'
   );
-  let readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
+  const readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
   return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 }
 
@@ -161,12 +161,12 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let oldValueProto = _getValueProto(
+  const oldValueProto = _getValueProto(
     event.data,
     event.context.resource.name,
     'oldValue'
   );
-  let oldReadTime = dateToTimestampProto(
+  const oldReadTime = dateToTimestampProto(
     _.get(event, 'data.oldValue.readTime')
   );
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');

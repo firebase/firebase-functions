@@ -24,9 +24,10 @@
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
-    "format": "prettier --write '**/*.ts'",
+    "format": "prettier --check '**/*.ts'",
+    "format:fix": "prettier --write '**/*.ts'",
     "lint": "tslint --project tsconfig.json --config tslint.json",
-    "posttest": "npm run format",
+    "lint:fix": "tslint --fix --project tsconfig.json --config tslint.json",
     "test": "mocha -r ts-node/register ./spec/index.spec.ts"
   },
   "dependencies": {
@@ -58,6 +59,7 @@
     "sinon": "^7.3.2",
     "ts-node": "^8.2.0",
     "tslint": "^5.17.0",
+    "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.0",
     "typescript": "^3.5.1"

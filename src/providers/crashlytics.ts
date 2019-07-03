@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import {
-  makeCloudFunction,
   CloudFunction,
   EventContext,
+  makeCloudFunction,
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 

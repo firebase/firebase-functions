@@ -20,9 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
 import * as express from 'express';
+import * as _ from 'lodash';
 
+import { CloudFunction, EventContext, Schedule } from './cloud-functions';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as crashlytics from './providers/crashlytics';
@@ -32,7 +33,6 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext, Schedule } from './cloud-functions';
 
 /**
  * List of all regions supported by Cloud Functions.

@@ -1,6 +1,10 @@
 {
   "defaultSeverity": "warning",
-  "extends": ["tslint:recommended", "tslint-no-unused-expression-chai"],
+  "extends": [
+    "tslint:recommended",
+    "tslint-no-unused-expression-chai",
+    "tslint-config-prettier"
+  ],
   "rules": {
     "interface-name": false,
     "member-access": false,

@@ -22,8 +22,8 @@
 
 import {
   CloudFunction,
-  makeCloudFunction,
   EventContext,
+  makeCloudFunction,
   Schedule,
   ScheduleRetryConfig,
 } from '../cloud-functions';
@@ -91,7 +91,7 @@ export class ScheduleBuilder {
       contextOnlyHandler: handler,
       provider,
       service,
-      triggerResource: triggerResource,
+      triggerResource,
       eventType: 'topic.publish',
       opts: this._opts,
       labels: { 'deployment-scheduled': 'true' },

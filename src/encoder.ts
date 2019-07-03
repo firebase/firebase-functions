@@ -24,8 +24,8 @@ export function dateToTimestampProto(timeString?: string) {
   if (typeof timeString === 'undefined') {
     return;
   }
-  let date = new Date(timeString);
-  let seconds = Math.floor(date.getTime() / 1000);
+  const date = new Date(timeString);
+  const seconds = Math.floor(date.getTime() / 1000);
   let nanos = 0;
   if (timeString.length > 20) {
     const nanoString = timeString.substring(20, timeString.length - 1);
