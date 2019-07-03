@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
 import { firebaseConfig } from './config';
 
 export function apps(): apps.Apps {
@@ -65,7 +65,7 @@ export namespace apps {
 
     _appAlive(appName: string): boolean {
       try {
-        let app = firebase.app(appName);
+        const app = firebase.app(appName);
         return !_.get(app, 'isDeleted_');
       } catch (e) {
         return false;
@@ -83,7 +83,7 @@ export namespace apps {
     }
 
     retain() {
-      let increment = (n?: number) => {
+      const increment = (n?: number) => {
         return (n || 0) + 1;
       };
       // Increment counter for admin because function might use event.data.ref
@@ -91,7 +91,7 @@ export namespace apps {
     }
 
     release() {
-      let decrement = (n: number) => {
+      const decrement = (n: number) => {
         return n - 1;
       };
       return delay(garbageCollectionInterval).then(() => {

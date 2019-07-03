@@ -20,14 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  makeCloudFunction,
-  CloudFunction,
-  EventContext,
-  Event,
-} from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
+import {
+  CloudFunction,
+  Event,
+  EventContext,
+  makeCloudFunction,
+} from '../cloud-functions';
 import { DeploymentOptions } from '../function-builder';
 
 /** @internal */
@@ -120,7 +120,7 @@ export function userRecordConstructor(
   wireData: Object
 ): firebase.auth.UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
-  let falseyValues: any = {
+  const falseyValues: any = {
     email: null,
     emailVerified: false,
     displayName: null,
@@ -133,9 +133,9 @@ export function userRecordConstructor(
     passwordHash: null,
     tokensValidAfterTime: null,
   };
-  let record = _.assign({}, falseyValues, wireData);
+  const record = _.assign({}, falseyValues, wireData);
 
-  let meta = _.get(record, 'metadata');
+  const meta = _.get(record, 'metadata');
   if (meta) {
     _.set(
       record,
