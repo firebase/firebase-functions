@@ -32,6 +32,9 @@ export const VALID_MEMORY_OPTIONS = [
   '2GB',
 ] as const;
 
+/**
+ * Scheduler retry options. Applies only to scheduled functions.
+ */
 export interface ScheduleRetryConfig {
   retryCount?: number;
   maxRetryDuration?: string;
@@ -40,6 +43,9 @@ export interface ScheduleRetryConfig {
   maxDoublings?: number;
 }
 
+/**
+ * Configuration options for scheduled functions.
+ */
 export interface Schedule {
   schedule: string;
   timeZone?: string;
