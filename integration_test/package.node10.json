@@ -14,7 +14,7 @@
   },
   "main": "lib/index.js",
   "devDependencies": {
-    "typescript": "~3.1.0"
+    "typescript": "~3.5.0"
   },
   "engines": {
     "node": "10"
