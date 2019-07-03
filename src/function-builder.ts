@@ -29,7 +29,6 @@ import {
   isEmpty,
   isObjectLike,
 } from 'lodash';
-import * as _ from 'lodash';
 
 import { CloudFunction, EventContext } from './cloud-functions';
 import {
