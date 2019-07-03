@@ -26,8 +26,8 @@
     "build": "tsc -p tsconfig.release.json",
     "format": "prettier --check '**/*.ts'",
     "format:fix": "prettier --write '**/*.ts'",
-    "lint": "tslint --project tsconfig.json --config tslint.json",
-    "lint:fix": "tslint --fix --project tsconfig.json --config tslint.json",
+    "lint": "tslint --config tslint.json --project tsconfig.json ",
+    "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
     "test": "mocha -r ts-node/register ./spec/index.spec.ts"
   },
   "dependencies": {
