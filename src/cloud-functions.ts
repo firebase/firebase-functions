@@ -28,7 +28,8 @@ export { Request, Response };
 
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
-/** Wire format for an event
+/**
+ * Wire format for an event.
  * @internal
  */
 export interface Event {
@@ -41,56 +42,78 @@ export interface Event {
   data: any;
 }
 
-/** The context in which an event occurred.
+/**
+ * The context in which an event occurred.
+ *
  * An EventContext describes:
  * - The time an event occurred.
  * - A unique identifier of the event.
  * - The resource on which the event occurred, if applicable.
- * - Authorization of the request that triggered the event, if applicable and available.
+ * - Authorization of the request that triggered the event, if applicable and
+ *   available.
  */
 export interface EventContext {
-  /** ID of the event */
-  eventId: string;
-  /** Timestamp for when the event occured (ISO string) */
-  timestamp: string;
-  /** Type of event */
-  eventType: string;
-  /** Resource that triggered the event */
-  resource: Resource;
-  /** Key-value pairs that represent the values of wildcards in a database reference
-   * Cannot be accessed while inside the handler namespace.
-   */
-  params: { [option: string]: any };
-  /** Type of authentication for the triggering action, valid value are: 'ADMIN', 'USER',
-   * 'UNAUTHENTICATED'. Only available for database functions.
-   */
-  authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
-  /** Firebase auth variable for the user whose action triggered the function. Field will be
-   * null for unauthenticated users, and will not exist for admin users. Only available
-   * for database functions.
+  /**
+   * Firebase auth variable for the user whose action triggered the function.
+   * Field will be null for unauthenticated users, and will not exist for admin
+   * users. Only available for database functions.
    */
   auth?: {
-    uid: string;
     token: object;
+    uid: string;
   };
+  /**
+   * Type of authentication for the triggering action. Only available for
+   * database functions.
+   */
+  authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
+  /**
+   * ID of the event
+   */
+  eventId: string;
+  /**
+   * Type of event
+   */
+  eventType: string;
+  /**
+   * Key-value pairs that represent the values of wildcards in a database
+   * reference. Cannot be accessed while inside the handler namespace.
+   */
+  params: { [option: string]: any };
+  /**
+   * Resource that triggered the event
+   */
+  resource: Resource;
+  /**
+   * Timestamp for when the event ocurred (ISO 8601 string)
+   */
+  timestamp: string;
 }
 
-/** Change describes a change of state - "before" represents the state prior
- * to the event, "after" represents the state after the event.
+/**
+ * Change describes a change of state - "before" represents the state prior to
+ * the event, "after" represents the state after the event.
  */
 export class Change<T> {
   constructor(public before: T, public after: T) {}
 }
 
-/** ChangeJson is the JSON format used to construct a Change object. */
+/**
+ * ChangeJson is the JSON format used to construct a Change object.
+ */
 export interface ChangeJson {
-  /** Key-value pairs representing state of data before the change.
-   * If `fieldMask` is set, then only fields that changed are present in `before`.
+  /**
+   * Key-value pairs representing state of data after the change.
+   */
+  after?: any;
+  /**
+   * Key-value pairs representing state of data before the change. If
+   * `fieldMask` is set, then only fields that changed are present in `before`.
    */
   before?: any;
-  /** Key-value pairs representing state of data after the change. */
-  after?: any;
-  /** Comma-separated string that represents names of field that changed. */
+  /**
+   * Comma-separated string that represents names of field that changed.
+   */
   fieldMask?: string;
 }
 
@@ -99,13 +122,17 @@ export namespace Change {
     return x as T;
   }
 
-  /** Factory method for creating a Change from a `before` object and an `after` object. */
+  /**
+   * Factory method for creating a Change from a `before` object and an `after`
+   * object.
+   */
   export function fromObjects<T>(before: T, after: T) {
     return new Change(before, after);
   }
 
-  /** Factory method for creating a Change from a JSON and an optional customizer function to be
-   * applied to both the `before` and the `after` fields.
+  /**
+   * Factory method for creating a Change from a JSON and an optional customizer
+   * function to be applied to both the `before` and the `after` fields.
    */
   export function fromJSON<T>(
     json: ChangeJson,
@@ -121,7 +148,9 @@ export namespace Change {
     );
   }
 
-  /** @internal */
+  /**
+   * @internal
+   */
   export function applyFieldMask(
     sparseBefore: any,
     after: any,
@@ -141,8 +170,10 @@ export namespace Change {
   }
 }
 
-/** Resource is a standard format for defining a resource (google.rpc.context.AttributeContext.Resource).
- * In Cloud Functions, it is the resource that triggered the function - such as a storage bucket.
+/**
+ * Resource is a standard format for defining a resource
+ * (google.rpc.context.AttributeContext.Resource). In Cloud Functions, it is the
+ * resource that triggered the function - such as a storage bucket.
  */
 export interface Resource {
   service: string;
@@ -151,83 +182,96 @@ export interface Resource {
   labels?: { [tag: string]: string };
 }
 
-/** TriggerAnnotated is used internally by the firebase CLI to understand what type of Cloud Function to deploy. */
+/**
+ * TriggerAnnotated is used internally by the firebase CLI to understand what
+ * type of Cloud Function to deploy.
+ */
 export interface TriggerAnnotated {
   __trigger: {
-    httpsTrigger?: {};
+    availableMemoryMb?: number;
     eventTrigger?: {
       eventType: string;
       resource: string;
       service: string;
     };
+    httpsTrigger?: {};
     labels?: { [key: string]: string };
     regions?: string[];
-    timeout?: string;
-    availableMemoryMb?: number;
     schedule?: Schedule;
+    timeout?: string;
   };
 }
 
-/** A Runnable has a `run` method which directly invokes the user-defined function - useful for unit testing. */
+/**
+ * A Runnable has a `run` method which directly invokes the user-defined
+ * function - useful for unit testing.
+ */
 export interface Runnable<T> {
   run: (data: T, context: any) => PromiseLike<any> | any;
 }
 
 /**
- * An HttpsFunction is both an object that exports its trigger definitions at __trigger and
- * can be called as a function that takes an express.js Request and Response object.
+ * An HttpsFunction is both an object that exports its trigger definitions at
+ * __trigger and can be called as a function that takes an express.js Request
+ * and Response object.
  */
 export type HttpsFunction = TriggerAnnotated &
   ((req: Request, resp: Response) => void);
 
 /**
- * A CloudFunction is both an object that exports its trigger definitions at __trigger and
- * can be called as a function using the raw JS API for Google Cloud Functions.
+ * A CloudFunction is both an object that exports its trigger definitions at
+ * __trigger and can be called as a function using the raw JS API for Google
+ * Cloud Functions.
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
-/** @internal */
+/**
+ * @internal
+ */
 export interface MakeCloudFunctionArgs<EventData> {
-  // TODO should remove `provider` and require a fully qualified `eventType`
-  // once all providers have migrated to new format.
-  provider: string;
-  eventType: string;
-  triggerResource: () => string;
-  service: string;
-  dataConstructor?: (raw: Event) => EventData;
-  handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
-  contextOnlyHandler?: (context: EventContext) => PromiseLike<any> | any;
-  before?: (raw: Event) => void;
   after?: (raw: Event) => void;
+  before?: (raw: Event) => void;
+  contextOnlyHandler?: (context: EventContext) => PromiseLike<any> | any;
+  dataConstructor?: (raw: Event) => EventData;
+  eventType: string;
+  handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
+  labels?: { [key: string]: any };
   legacyEventType?: string;
   options?: { [key: string]: any };
-  labels?: { [key: string]: any };
+  /*
+   * TODO: should remove `provider` and require a fully qualified `eventType`
+   * once all providers have migrated to new format.
+   */
+  provider: string;
+  service: string;
+  triggerResource: () => string;
 }
 
-/** @internal */
+/**
+ * @internal
+ */
 export function makeCloudFunction<EventData>({
-  provider,
-  eventType,
-  triggerResource,
-  service,
-  dataConstructor = (raw: Event) => raw.data,
-  handler,
+  after = () => {},
+  before = () => {},
   contextOnlyHandler,
-  before = () => {
-    return;
-  },
-  after = () => {
-    return;
-  },
+  dataConstructor = (raw: Event) => raw.data,
+  eventType,
+  handler,
+  labels = {},
   legacyEventType,
   options = {},
-  labels = {},
+  provider,
+  service,
+  triggerResource,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
-      // v1beta1 event flow has different format for context, transform them to new format.
+      /*
+       * v1beta1 event flow has different format for context, transform them to
+       * new format.
+       */
       context.eventType = provider + '.' + eventType;
       context.resource = {
         service,

@@ -28,13 +28,10 @@ import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
-/**
- *
- *
- */
 export interface Request extends express.Request {
   rawBody: Buffer;
 }
+
 /**
  * Handle HTTP requests.
  * @param handler A function that takes a request and response object,
