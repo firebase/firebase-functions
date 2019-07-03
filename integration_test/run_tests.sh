@@ -81,7 +81,7 @@ function deploy {
 
 function run_tests {
   announce "Running integration tests..."
-  
+
   # Construct the URL for the test function. This may change in the future,
   # causing this script to start failing, but currently we don't have a very
   # reliable way of determining the URL dynamically.
@@ -91,7 +91,7 @@ function run_tests {
   fi
   TEST_URL="https://us-central1-${PROJECT_ID}.${TEST_DOMAIN}/integrationTests"
   echo "${TEST_URL}"
-  
+
   curl --fail "${TEST_URL}"
 }
 
