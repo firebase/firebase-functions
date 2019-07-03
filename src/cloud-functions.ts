@@ -23,7 +23,7 @@
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
 import { apps } from './apps';
-import { DeploymentOptions } from './function-builder';
+import { DeploymentOptions, Schedule } from './function-configuration';
 export { Request, Response };
 
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -166,20 +166,6 @@ export interface TriggerAnnotated {
     availableMemoryMb?: number;
     schedule?: Schedule;
   };
-}
-
-export interface ScheduleRetryConfig {
-  retryCount?: number;
-  maxRetryDuration?: string;
-  minBackoffDuration?: string;
-  maxBackoffDuration?: string;
-  maxDoublings?: number;
-}
-
-export interface Schedule {
-  schedule: string;
-  timeZone?: string;
-  retryConfig?: ScheduleRetryConfig;
 }
 
 /** A Runnable has a `run` method which directly invokes the user-defined function - useful for unit testing. */

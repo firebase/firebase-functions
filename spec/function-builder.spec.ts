@@ -123,7 +123,7 @@ describe('FunctionBuilder', () => {
     expect(() => {
       functions
         .runWith({ timeoutSeconds: 90, memory: '256MB' })
-        .region('unsupported');
+        .region('unsupported' as any);
     }).to.throw(Error, 'region');
   });
 
@@ -165,21 +165,21 @@ describe('FunctionBuilder', () => {
 
   it('should throw an error if user chooses an invalid region', () => {
     expect(() => {
-      return functions.region('unsupported');
+      return functions.region('unsupported' as any);
     }).to.throw(Error, 'region');
 
     expect(() => {
-      return functions.region('unsupported').runWith({
+      return functions.region('unsupported' as any).runWith({
         timeoutSeconds: 500,
       } as any);
     }).to.throw(Error, 'region');
 
     expect(() => {
-      return functions.region('unsupported', 'us-east1');
+      return functions.region('unsupported' as any, 'us-east1');
     }).to.throw(Error, 'region');
 
     expect(() => {
-      return functions.region('unsupported', 'us-east1').runWith({
+      return functions.region('unsupported' as any, 'us-east1').runWith({
         timeoutSeconds: 500,
       } as any);
     }).to.throw(Error, 'region');

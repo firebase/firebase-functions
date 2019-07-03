@@ -31,7 +31,7 @@ import {
   makeCloudFunction,
 } from '../cloud-functions';
 import { firebaseConfig } from '../config';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 import { applyChange, joinPath, normalizePath, pathParts } from '../utils';
 
 /** @internal */

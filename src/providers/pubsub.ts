@@ -24,10 +24,12 @@ import {
   CloudFunction,
   EventContext,
   makeCloudFunction,
+} from '../cloud-functions';
+import {
+  DeploymentOptions,
   Schedule,
   ScheduleRetryConfig,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+} from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.pubsub';
