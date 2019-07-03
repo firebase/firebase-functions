@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import * as cors from 'cors';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
@@ -59,7 +59,7 @@ export function _onRequestWithOptions(
   options: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
-  let cloudFunction: any = (req: Request, res: express.Response) => {
+  const cloudFunction: any = (req: Request, res: express.Response) => {
     handler(req, res);
   };
   cloudFunction.__trigger = _.assign(optionsToTrigger(options), {
@@ -231,7 +231,7 @@ export class HttpsError extends Error {
         return 500;
       // This should never happen as long as the type system is doing its job.
       default:
-        throw 'Invalid error code: ' + this.code;
+        throw new Error('Invalid error code: ' + this.code);
     }
   }
 

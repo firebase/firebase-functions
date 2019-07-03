@@ -22,8 +22,8 @@
 
 import {
   CloudFunction,
-  makeCloudFunction,
   EventContext,
+  makeCloudFunction,
 } from '../cloud-functions';
 import {
   DeploymentOptions,
@@ -93,7 +93,7 @@ export class ScheduleBuilder {
       contextOnlyHandler: handler,
       provider,
       service,
-      triggerResource: triggerResource,
+      triggerResource,
       eventType: 'topic.publish',
       options: this._options,
       labels: { 'deployment-scheduled': 'true' },

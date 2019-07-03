@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as express from 'express';
 import {
   assign,
   difference,
@@ -28,8 +29,17 @@ import {
   isEmpty,
   isObjectLike,
 } from 'lodash';
-import * as express from 'express';
+import * as _ from 'lodash';
 
+import { CloudFunction, EventContext } from './cloud-functions';
+import {
+  DeploymentOptions,
+  MAX_TIMEOUT_SECONDS,
+  MIN_TIMEOUT_SECONDS,
+  RuntimeOptions,
+  SUPPORTED_REGIONS,
+  VALID_MEMORY_OPTIONS,
+} from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as crashlytics from './providers/crashlytics';
@@ -39,15 +49,6 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext } from './cloud-functions';
-import {
-  RuntimeOptions,
-  VALID_MEMORY_OPTIONS,
-  MIN_TIMEOUT_SECONDS,
-  MAX_TIMEOUT_SECONDS,
-  SUPPORTED_REGIONS,
-  DeploymentOptions,
-} from './function-configuration';
 
 /**
  * Assert that the runtime options passed in are valid.
@@ -135,7 +136,9 @@ function assertRegionsValidity(regions: string[]): void {
  * @example
  * functions.region('us-east1', 'us-central1')
  */
-export function region(...regions: string[]): FunctionBuilder {
+export function region(
+  ...regions: Array<typeof SUPPORTED_REGIONS[number]>
+): FunctionBuilder {
   assertRegionsValidity(regions);
 
   return new FunctionBuilder({ regions });
@@ -168,7 +171,7 @@ export class FunctionBuilder {
    * @example
    * functions.region('us-east1', 'us-central1')
    */
-  region(...regions: string[]): FunctionBuilder {
+  region(...regions: Array<typeof SUPPORTED_REGIONS[number]>): FunctionBuilder {
     assertRegionsValidity(regions);
 
     this.options.regions = regions;

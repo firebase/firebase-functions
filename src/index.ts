@@ -52,8 +52,8 @@ export {
 };
 
 // Exported root types:
-export * from './config';
 export * from './cloud-functions';
+export * from './config';
 export * from './function-builder';
 export * from './function-configuration';
 

@@ -23,6 +23,7 @@
 import * as express from 'express';
 
 import { apps } from './apps';
+import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as crashlytics from './providers/crashlytics';
@@ -32,7 +33,6 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
-import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
 
 export class HandlerBuilder {
   constructor() {}

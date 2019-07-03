@@ -4,11 +4,12 @@
 export const SUPPORTED_REGIONS = [
   'us-central1',
   'us-east1',
+  'us-east4',
   'europe-west1',
   'europe-west2',
   'asia-east2',
   'asia-northeast1',
-];
+] as const;
 
 /**
  * Cloud Functions min timeout value.
@@ -31,6 +32,9 @@ export const VALID_MEMORY_OPTIONS = [
   '2GB',
 ] as const;
 
+/**
+ * Scheduler retry options. Applies only to scheduled functions.
+ */
 export interface ScheduleRetryConfig {
   retryCount?: number;
   maxRetryDuration?: string;
@@ -39,6 +43,9 @@ export interface ScheduleRetryConfig {
   maxDoublings?: number;
 }
 
+/**
+ * Configuration options for scheduled functions.
+ */
 export interface Schedule {
   schedule: string;
   timeZone?: string;
@@ -66,6 +73,6 @@ export interface RuntimeOptions {
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
-  regions?: string[];
+  regions?: Array<typeof SUPPORTED_REGIONS[number]>;
   schedule?: Schedule;
 }

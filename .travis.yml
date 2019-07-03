@@ -1,3 +1,12 @@
+cache: npm
+jobs:
+  include:
+    - name: lint
+      script: npm run lint
+      stage: verify
+    - name: format
+      script: npm run format
+      stage: verify
 language: node_js
 node_js:
   - '8'
