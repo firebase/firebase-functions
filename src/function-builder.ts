@@ -119,7 +119,7 @@ export class FunctionBuilder {
    * @param regions One or more region strings.
    * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
    */
-  region(...regions: string[]): FunctionBuilder {
+  region(...regions: Array<typeof SUPPORTED_REGIONS[number]>): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;

@@ -60,7 +60,7 @@ describe('FunctionBuilder', () => {
         'europe-west1',
         'europe-west2',
         'asia-east2',
-        'asia-northeast1'
+        'asia-northeast1',
       )
       .auth.user()
       .onCreate((user) => user);
@@ -123,7 +123,7 @@ describe('FunctionBuilder', () => {
     expect(() => {
       functions
         .runWith({ timeoutSeconds: 90, memory: '256MB' })
-        .region('unsupported');
+        .region('unsupported' as any);
     }).to.throw(Error, 'region');
   });
 
