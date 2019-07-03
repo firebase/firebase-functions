@@ -88,7 +88,10 @@ function assertRegionsAreValid(regions: string[]): boolean {
 /**
  * Configure the regions that the function is deployed to.
  * @param regions One of more region strings.
- * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
+ * @example
+ * functions.region('us-east1')
+ * @example
+ * functions.region('us-east1', 'us-central1')
  */
 export function region(
   ...regions: Array<typeof SUPPORTED_REGIONS[number]>
@@ -100,10 +103,11 @@ export function region(
 
 /**
  * Configure runtime options for the function.
- * @param runtimeOptions Object with 2 optional fields:
- * 1. `timeoutSeconds`: timeout for the function in seconds, possible values are 0 to 540
- * 2. `memory`: amount of memory to allocate to the function,
- *    possible values are:  '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * @param runtimeOptions Object with three optional fields:
+ * 1. memory: amount of memory to allocate to the function, possible values
+ *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * 2. timeoutSeconds: timeout for the function in seconds, possible values are
+ *    0 to 540.
  */
 export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   if (assertRuntimeOptionsValid(runtimeOptions)) {
@@ -117,7 +121,10 @@ export class FunctionBuilder {
   /**
    * Configure the regions that the function is deployed to.
    * @param regions One or more region strings.
-   * For example: `functions.region('us-east1')`  or `functions.region('us-east1', 'us-central1')`
+   * @example
+   * functions.region('us-east1')
+   * @example
+   * functions.region('us-east1', 'us-central1')
    */
   region(...regions: Array<typeof SUPPORTED_REGIONS[number]>): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
@@ -128,10 +135,11 @@ export class FunctionBuilder {
 
   /**
    * Configure runtime options for the function.
-   * @param runtimeOptions Object with 2 optional fields:
-   * 1. timeoutSeconds: timeout for the function in seconds, possible values are 0 to 540
-   * 2. memory: amount of memory to allocate to the function, possible values are:
-   * '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * @param runtimeOptions Object with three optional fields:
+   * 1. memory: amount of memory to allocate to the function, possible values
+   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * 2. timeoutSeconds: timeout for the function in seconds, possible values are
+   *    0 to 540.
    */
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     if (assertRuntimeOptionsValid(runtimeOptions)) {
@@ -166,33 +174,36 @@ export class FunctionBuilder {
   get database() {
     return {
       /**
-       * Selects a database instance that will trigger the function.
-       * If omitted, will pick the default database for your project.
+       * Selects a database instance that will trigger the function. If omitted,
+       * will pick the default database for your project.
        * @param instance The Realtime Database instance to use.
        */
       instance: (instance: string) =>
         database._instanceWithOptions(instance, this.options),
+
       /**
        * Select Firebase Realtime Database Reference to listen to.
        *
-       * This method behaves very similarly to the method of the same name in the
-       * client and Admin Firebase SDKs. Any change to the Database that affects the
-       * data at or below the provided `path` will fire an event in Cloud Functions.
+       * This method behaves very similarly to the method of the same name in
+       * the client and Admin Firebase SDKs. Any change to the Database that
+       * affects the data at or below the provided `path` will fire an event in
+       * Cloud Functions.
        *
        * There are three important differences between listening to a Realtime
-       * Database event in Cloud Functions and using the Realtime Database in the
-       * client and Admin SDKs:
-       * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
-       *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
-       *    that matched a certain invocation of a Cloud Function is returned as part
-       *    of the `context.params` object. For example, `ref("messages/{messageId}")`
-       *    matches changes at `/messages/message1` or `/messages/message2`, resulting
-       *    in  `context.params.messageId` being set to `"message1"` or `"message2"`,
-       *    respectively.
-       * 2. Cloud Functions do not fire an event for data that already existed before
-       *    the Cloud Function was deployed.
-       * 3. Cloud Function events have access to more information, including information
-       *    about the user who triggered the Cloud Function.
+       * Database event in Cloud Functions and using the Realtime Database in
+       * the client and Admin SDKs:
+       * 1. Cloud Functions allows wildcards in the `path` name. Any `path`
+       *    component in curly brackets (`{}`) is a wildcard that matches all
+       *    strings. The value that matched a certain invocation of a Cloud
+       *    Function is returned as part of the `context.params` object. For
+       *    example, `ref("messages/{messageId}")` matches changes at
+       *    `/messages/message1` or `/messages/message2`, resulting in
+       *    `context.params.messageId` being set to `"message1"` or
+       *    `"message2"`, respectively.
+       * 2. Cloud Functions do not fire an event for data that already existed
+       *    before the Cloud Function was deployed.
+       * 3. Cloud Function events have access to more information, including
+       *    information about the user who triggered the Cloud Function.
        * @param ref Path of the database to listen to.
        */
       ref: (path: string) => database._refWithOptions(path, this.options),
@@ -210,10 +221,16 @@ export class FunctionBuilder {
        */
       document: (path: string) =>
         firestore._documentWithOptions(path, this.options),
-      /** @internal */
+
+      /**
+       * @internal
+       */
       namespace: (namespace: string) =>
         firestore._namespaceWithOptions(namespace, this.options),
-      /** @internal */
+
+      /**
+       * @internal
+       */
       database: (database: string) =>
         firestore._databaseWithOptions(database, this.options),
     };
@@ -222,8 +239,8 @@ export class FunctionBuilder {
   get crashlytics() {
     return {
       /**
-       * Handle events related to Crashlytics issues. An issue in Crashlytics is an
-       * aggregation of crashes which have a shared root cause.
+       * Handle events related to Crashlytics issues. An issue in Crashlytics is
+       * an aggregation of crashes which have a shared root cause.
        */
       issue: () => crashlytics._issueWithOptions(this.options),
     };
@@ -264,9 +281,9 @@ export class FunctionBuilder {
   get storage() {
     return {
       /**
-       * The optional bucket function allows you to choose which buckets' events to handle.
-       * This step can be bypassed by calling object() directly, which will use the default
-       * Cloud Storage for Firebase bucket.
+       * The optional bucket function allows you to choose which buckets' events
+       * to handle. This step can be bypassed by calling object() directly,
+       * which will use the default Cloud Storage for Firebase bucket.
        * @param bucket Name of the Google Cloud Storage bucket to listen to.
        */
       bucket: (bucket?: string) =>
@@ -281,8 +298,10 @@ export class FunctionBuilder {
 
   get pubsub() {
     return {
-      /** Select Cloud Pub/Sub topic to listen to.
-       * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
+      /**
+       * Select Cloud Pub/Sub topic to listen to.
+       * @param topic Name of Pub/Sub topic, must belong to the same project as
+       * the function.
        */
       topic: (topic: string) => pubsub._topicWithOptions(topic, this.options),
       schedule: (schedule: string) =>
