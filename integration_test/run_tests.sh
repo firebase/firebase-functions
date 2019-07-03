@@ -4,7 +4,7 @@
 set -e
 
 function usage {
-  echo "Usage: $0 <project_id> [<token>]"
+  echo "Usage: ${0} <project_id> [<token>]"
   exit 1
 }
 
@@ -15,16 +15,12 @@ function usage {
 # ./integration_test/run_tests.sh chenky-test-proj
 # Example usage (from root dir) with token:
 # ./integration_test/run_tests.sh chenky-test-proj $TOKEN
-if [[ $1 == "" ]]; then
+if [[ "${1}" == "" ]]; then
   usage
 fi
 
-TOKEN=""
-if [[ $2 != "" ]]; then
-  TOKEN=$2
-fi
-
-PROJECT_ID=$1
+PROJECT_ID="${1}"
+TOKEN="${2}"
 
 # Directory where this script lives.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -35,35 +31,35 @@ function announce {
 
 function build_sdk {
   announce "Building SDK..."
-  cd $DIR/..
+  cd "${DIR}/.."
   rm -f firebase-functions-*.tgz
   npm run build:pack
   mv firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz
 }
 
 function pick_node8 {
-  cd $DIR
+  cd "${DIR}"
   cp package.node8.json functions/package.json
 }
 
 function pick_node10 {
-  cd $DIR
+  cd "${DIR}"
   cp package.node10.json functions/package.json
 }
 
 function install_deps {
   announce "Installing dependencies..."
-  cd $DIR/functions
+  cd "${DIR}/functions"
   rm -rf node_modules/firebase-functions
   npm install
 }
 
 function delete_all_functions {
   announce "Deleting all functions in project..."
-  cd $DIR
+  cd "${DIR}"
   # Try to delete, if there are errors it is because the project is already empty,
-  # in that case do nothing. 
-  if [[ $TOKEN == "" ]]; then
+  # in that case do nothing.
+  if [[ "${TOKEN}" == "" ]]; then
     firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID || : &
   else
     firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID --token=$TOKEN || : &
@@ -73,40 +69,40 @@ function delete_all_functions {
 }
 
 function deploy {
-  cd $DIR
+  cd "${DIR}"
   ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore. If the deploy fails, retry twice
-  if [[ $TOKEN == "" ]]; then
-    for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --only functions,database,firestore && break; done
+  if [[ "${TOKEN}" == "" ]]; then
+    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --only functions,database,firestore && break; done
   else
-    for i in 1 2 3; do firebase deploy --project=$PROJECT_ID --token=$TOKEN --only functions,database,firestore && break; done
+    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --token="${TOKEN}" --only functions,database,firestore && break; done
   fi
 }
 
 function run_tests {
-  announce "Running the integration tests..."
-
+  announce "Running integration tests..."
+  
   # Construct the URL for the test function. This may change in the future,
   # causing this script to start failing, but currently we don't have a very
   # reliable way of determining the URL dynamically.
   TEST_DOMAIN="cloudfunctions.net"
-  if [[ $FIREBASE_FUNCTIONS_URL == "https://preprod-cloudfunctions.sandbox.googleapis.com" ]]; then
+  if [[ "${FIREBASE_FUNCTIONS_URL}" == "https://preprod-cloudfunctions.sandbox.googleapis.com" ]]; then
     TEST_DOMAIN="txcloud.net"
   fi
-  TEST_URL="https://us-central1-$PROJECT_ID.$TEST_DOMAIN/integrationTests"
-  echo $TEST_URL
-
-  curl --fail $TEST_URL
+  TEST_URL="https://us-central1-${PROJECT_ID}.${TEST_DOMAIN}/integrationTests"
+  echo "${TEST_URL}"
+  
+  curl --fail "${TEST_URL}"
 }
 
 function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
-  rm $DIR/functions/firebase-functions.tgz
-  rm $DIR/functions/package.json
-  rm -f $DIR/functions/firebase-debug.log
-  rm -rf $DIR/functions/lib
-  rm -rf $DIR/functions/node_modules
+  rm "${DIR}/functions/firebase-functions.tgz"
+  rm "${DIR}/functions/package.json"
+  rm -f "${DIR}/functions/firebase-debug.log"
+  rm -rf "${DIR}/functions/lib"
+  rm -rf "${DIR}/functions/node_modules"
 }
 
 # Setup
