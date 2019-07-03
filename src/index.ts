@@ -35,7 +35,7 @@ import * as apps from './apps';
 import { handler } from './handler-builder';
 import { setup } from './setup';
 
-var app = apps.apps();
+const app = apps.apps();
 
 export {
   analytics,

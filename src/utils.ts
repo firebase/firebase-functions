@@ -52,7 +52,7 @@ export function applyChange(src: any, dest: any) {
 }
 
 export function pruneNulls(obj: any) {
-  for (let key in obj) {
+  for (const key in obj) {
     if (obj[key] === null) {
       delete obj[key];
     } else if (_.isPlainObject(obj[key])) {
@@ -69,7 +69,7 @@ export function valAt(source: any, path?: string) {
     return path ? null : source;
   }
 
-  let parts = pathParts(path);
+  const parts = pathParts(path);
   if (!parts.length) {
     return source;
   }
@@ -77,7 +77,7 @@ export function valAt(source: any, path?: string) {
   let cur = source;
   let leaf;
   while (parts.length) {
-    let key = parts.shift();
+    const key = parts.shift();
     if (cur[key] === null || leaf) {
       return null;
     } else if (typeof cur[key] === 'object') {

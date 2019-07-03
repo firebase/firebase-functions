@@ -62,7 +62,7 @@ export function _onRequestWithOpts(
   opts: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
-  let cloudFunction: any = (req: Request, res: express.Response) => {
+  const cloudFunction: any = (req: Request, res: express.Response) => {
     handler(req, res);
   };
   cloudFunction.__trigger = _.assign(optsToTrigger(opts), { httpsTrigger: {} });
@@ -232,7 +232,7 @@ export class HttpsError extends Error {
         return 500;
       // This should never happen as long as the type system is doing its job.
       default:
-        throw 'Invalid error code: ' + this.code;
+        throw new Error('Invalid error code: ' + this.code);
     }
   }
 

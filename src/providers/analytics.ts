@@ -141,7 +141,7 @@ export class AnalyticsEvent {
     this.params = {}; // In case of absent field, show empty (not absent) map.
     if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
       // If there's an eventDim, there'll always be exactly one.
-      let eventDim = wireFormat.eventDim[0];
+      const eventDim = wireFormat.eventDim[0];
       copyField(eventDim, this, 'name');
       copyField(eventDim, this, 'params', (p) => _.mapValues(p, unwrapValue));
       copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
@@ -415,7 +415,7 @@ function copyField<T, K extends keyof T>(
 }
 
 function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
-  for (let field of fields) {
+  for (const field of fields) {
     copyField(from, to, field);
   }
 }
@@ -450,7 +450,7 @@ function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
 // method always returns a string, similarly to avoid loss of precision, unlike the less-conservative
 // 'unwrapValue' method just below.
 function unwrapValueAsString(wrapped: any): string {
-  let key: string = _.keys(wrapped)[0];
+  const key: string = _.keys(wrapped)[0];
   return _.toString(wrapped[key]);
 }
 // Ditto as the method above, but returning the values in the idiomatic JavaScript type (string for strings,
@@ -468,8 +468,8 @@ function unwrapValueAsString(wrapped: any): string {
 // in precision for int64 fields, so use with care.
 const xValueNumberFields = ['intValue', 'floatValue', 'doubleValue'];
 function unwrapValue(wrapped: any): any {
-  let key: string = _.keys(wrapped)[0];
-  let value: string = unwrapValueAsString(wrapped);
+  const key: string = _.keys(wrapped)[0];
+  const value: string = unwrapValueAsString(wrapped);
   return _.includes(xValueNumberFields, key) ? _.toNumber(value) : value;
 }
 
@@ -483,7 +483,7 @@ function copyTimestampToMillis<T, K extends keyof T>(
   toName: K
 ) {
   if (from[fromName] !== undefined) {
-    to[toName] = <any>_.round(from[fromName] / 1000);
+    to[toName] = _.round(from[fromName] / 1000) as any;
   }
 }
 
@@ -497,6 +497,6 @@ function copyTimestampToString<T, K extends keyof T>(
   toName: K
 ) {
   if (from[fromName] !== undefined) {
-    to[toName] = <any>new Date(from[fromName] / 1000).toISOString();
+    to[toName] = new Date(from[fromName] / 1000).toISOString() as any;
   }
 }

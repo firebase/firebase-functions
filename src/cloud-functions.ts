@@ -127,8 +127,8 @@ export namespace Change {
     after: any,
     fieldMask: string
   ) {
-    let before = _.assign({}, after);
-    let masks = fieldMask.split(',');
+    const before = _.assign({}, after);
+    const masks = fieldMask.split(',');
     _.forEach(masks, (mask) => {
       const val = _.get(sparseBefore, mask);
       if (typeof val === 'undefined') {
@@ -225,17 +225,17 @@ export function makeCloudFunction<EventData>({
   opts = {},
   labels = {},
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  let cloudFunction: any = (data: any, context: any) => {
+  const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       // v1beta1 event flow has different format for context, transform them to new format.
       context.eventType = provider + '.' + eventType;
       context.resource = {
-        service: service,
+        service,
         name: context.resource,
       };
     }
 
-    let event: Event = {
+    const event: Event = {
       data,
       context,
     };
@@ -291,7 +291,7 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
-      let trigger: any = _.assign(optsToTrigger(opts), {
+      const trigger: any = _.assign(optsToTrigger(opts), {
         eventTrigger: {
           resource: triggerResource(),
           eventType: legacyEventType || provider + '.' + eventType,
@@ -321,15 +321,15 @@ function _makeParams(
     // In unit testing, `resource` may be unpopulated for a test event.
     return {};
   }
-  let triggerResource = triggerResourceGetter();
-  let wildcards = triggerResource.match(WILDCARD_REGEX);
-  let params: { [option: string]: any } = {};
+  const triggerResource = triggerResourceGetter();
+  const wildcards = triggerResource.match(WILDCARD_REGEX);
+  const params: { [option: string]: any } = {};
   if (wildcards) {
-    let triggerResourceParts = _.split(triggerResource, '/');
-    let eventResourceParts = _.split(context.resource.name, '/');
+    const triggerResourceParts = _.split(triggerResource, '/');
+    const eventResourceParts = _.split(context.resource.name, '/');
     _.forEach(wildcards, (wildcard) => {
-      let wildcardNoBraces = wildcard.slice(1, -1);
-      let position = _.indexOf(triggerResourceParts, wildcard);
+      const wildcardNoBraces = wildcard.slice(1, -1);
+      const position = _.indexOf(triggerResourceParts, wildcard);
       params[wildcardNoBraces] = eventResourceParts[position];
     });
   }
@@ -357,7 +357,7 @@ function _detectAuthType(event: Event) {
 }
 
 export function optsToTrigger(opts: DeploymentOptions) {
-  let trigger: any = {};
+  const trigger: any = {};
   if (opts.regions) {
     trigger.regions = opts.regions;
   }

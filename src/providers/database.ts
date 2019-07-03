@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import { apps } from '../apps';
 import {
+  Change,
   CloudFunction,
-  makeCloudFunction,
   Event,
   EventContext,
-  Change,
+  makeCloudFunction,
 } from '../cloud-functions';
-import { normalizePath, applyChange, pathParts, joinPath } from '../utils';
-import * as firebase from 'firebase-admin';
 import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
+import { applyChange, joinPath, normalizePath, pathParts } from '../utils';
 
 /** @internal */
 export const provider = 'google.firebase.database';
@@ -165,8 +165,8 @@ export class RefBuilder {
       context: EventContext
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    let dataConstructor = (raw: Event) => {
-      let [dbInstance, path] = resourceToInstanceAndPath(
+    const dataConstructor = (raw: Event) => {
+      const [dbInstance, path] = resourceToInstanceAndPath(
         raw.context.resource.name
       );
       return new DataSnapshot(
@@ -186,8 +186,8 @@ export class RefBuilder {
       context: EventContext
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    let dataConstructor = (raw: Event) => {
-      let [dbInstance, path] = resourceToInstanceAndPath(
+    const dataConstructor = (raw: Event) => {
+      const [dbInstance, path] = resourceToInstanceAndPath(
         raw.context.resource.name
       );
       return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
@@ -207,7 +207,7 @@ export class RefBuilder {
       eventType,
       legacyEventType: `providers/${provider}/eventTypes/${eventType}`,
       triggerResource: this.triggerResource,
-      dataConstructor: dataConstructor,
+      dataConstructor,
       before: (event) => this.apps.retain(),
       after: (event) => this.apps.release(),
       opts: this.opts,
@@ -215,24 +215,24 @@ export class RefBuilder {
   }
 
   private changeConstructor = (raw: Event): Change<DataSnapshot> => {
-    let [dbInstance, path] = resourceToInstanceAndPath(
+    const [dbInstance, path] = resourceToInstanceAndPath(
       raw.context.resource.name
     );
-    let before = new DataSnapshot(
+    const before = new DataSnapshot(
       raw.data.data,
       path,
       this.apps.admin,
       dbInstance
     );
-    let after = new DataSnapshot(
+    const after = new DataSnapshot(
       applyChange(raw.data.data, raw.data.delta),
       path,
       this.apps.admin,
       dbInstance
     );
     return {
-      before: before,
-      after: after,
+      before,
+      after,
     };
   };
 }
@@ -240,21 +240,21 @@ export class RefBuilder {
 /* Utility function to extract database reference from resource string */
 /** @internal */
 export function resourceToInstanceAndPath(resource: string) {
-  let resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
-  let match = resource.match(new RegExp(resourceRegex));
+  const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
+  const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
     throw new Error(
       `Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
         'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"'
     );
   }
-  let [, project, dbInstanceName, path] = match;
+  const [, project, dbInstanceName, path] = match;
   if (project !== '_') {
     throw new Error(
       `Expect project to be '_' in a Firebase Realtime Database event`
     );
   }
-  let dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
+  const dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
   return [dbInstance, path];
 }
 
@@ -301,14 +301,16 @@ export class DataSnapshot {
   }
 
   get key(): string {
-    let last = _.last(pathParts(this._fullPath()));
+    const last = _.last(pathParts(this._fullPath()));
     return !last || last === '' ? null : last;
   }
 
   val(): any {
-    let parts = pathParts(this._childPath);
-    let source = this._data;
-    let node = _.cloneDeep(parts.length ? _.get(source, parts, null) : source);
+    const parts = pathParts(this._childPath);
+    const source = this._data;
+    const node = _.cloneDeep(
+      parts.length ? _.get(source, parts, null) : source
+    );
     return this._checkAndConvertToArray(node);
   }
 
@@ -334,7 +336,7 @@ export class DataSnapshot {
   }
 
   forEach(action: (a: DataSnapshot) => boolean): boolean {
-    let val = this.val();
+    const val = this.val();
     if (_.isPlainObject(val)) {
       return _.some(
         val,
@@ -349,12 +351,12 @@ export class DataSnapshot {
   }
 
   hasChildren(): boolean {
-    let val = this.val();
+    const val = this.val();
     return _.isPlainObject(val) && _.keys(val).length > 0;
   }
 
   numChildren(): number {
-    let val = this.val();
+    const val = this.val();
     return _.isPlainObject(val) ? Object.keys(val).length : 0;
   }
 
@@ -374,15 +376,15 @@ export class DataSnapshot {
     if (typeof node !== 'object') {
       return node;
     }
-    let obj: any = {};
+    const obj: any = {};
     let numKeys = 0;
     let maxKey = 0;
     let allIntegerKeys = true;
-    for (let key in node) {
+    for (const key in node) {
       if (!node.hasOwnProperty(key)) {
         continue;
       }
-      let childNode = node[key];
+      const childNode = node[key];
       obj[key] = this._checkAndConvertToArray(childNode);
       numKeys++;
       const integerRegExp = /^(0|[1-9]\d*)$/;
@@ -395,7 +397,7 @@ export class DataSnapshot {
 
     if (allIntegerKeys && maxKey < 2 * numKeys) {
       // convert to array.
-      let array: any = [];
+      const array: any = [];
       _.forOwn(obj, (val, key) => {
         array[key] = val;
       });
@@ -406,7 +408,12 @@ export class DataSnapshot {
   }
 
   private _dup(childPath?: string): DataSnapshot {
-    let dup = new DataSnapshot(this._data, undefined, this.app, this.instance);
+    const dup = new DataSnapshot(
+      this._data,
+      undefined,
+      this.app,
+      this.instance
+    );
     [dup._path, dup._childPath] = [this._path, this._childPath];
 
     if (childPath) {
@@ -417,7 +424,7 @@ export class DataSnapshot {
   }
 
   private _fullPath(): string {
-    let out = (this._path || '') + '/' + (this._childPath || '');
+    const out = (this._path || '') + '/' + (this._childPath || '');
     return out;
   }
 }
