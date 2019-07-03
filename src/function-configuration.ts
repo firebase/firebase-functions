@@ -9,7 +9,7 @@ export const SUPPORTED_REGIONS = [
   'europe-west2',
   'asia-east2',
   'asia-northeast1',
-];
+] as const;
 
 /**
  * Cloud Functions min timeout value.

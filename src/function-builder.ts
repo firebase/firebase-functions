@@ -90,7 +90,9 @@ function assertRegionsAreValid(regions: string[]): boolean {
  * @param regions One of more region strings.
  * For example: `functions.region('us-east1')` or `functions.region('us-east1', 'us-central1')`
  */
-export function region(...regions: string[]): FunctionBuilder {
+export function region(
+  ...regions: Array<typeof SUPPORTED_REGIONS[number]>
+): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
   }
