@@ -31,9 +31,9 @@ import {
   ScheduleRetryConfig,
 } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.pubsub';
-/** @internal */
+/** @hidden */
 export const service = 'pubsub.googleapis.com';
 
 /** Select Cloud Pub/Sub topic to listen to.
@@ -43,7 +43,7 @@ export function topic(topic: string) {
   return _topicWithOptions(topic, {});
 }
 
-/** @internal */
+/** @hidden */
 export function _topicWithOptions(
   topic: string,
   options: DeploymentOptions
@@ -67,7 +67,7 @@ export function schedule(schedule: string): ScheduleBuilder {
 export class ScheduleBuilder {
   private _options: DeploymentOptions;
 
-  /** @internal */
+  /** @hidden */
   constructor(private schedule: Schedule, private options: DeploymentOptions) {
     this._options = { schedule, ...options };
   }
@@ -102,7 +102,7 @@ export class ScheduleBuilder {
   }
 }
 
-/** @internal */
+/** @hidden */
 export function _scheduleWithOptions(
   schedule: string,
   options: DeploymentOptions
@@ -112,7 +112,7 @@ export function _scheduleWithOptions(
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
 export class TopicBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions

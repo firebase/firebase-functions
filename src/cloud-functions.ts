@@ -30,7 +30,7 @@ const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
  * Wire format for an event.
- * @internal
+ * @hidden
  */
 export interface Event {
   context: {
@@ -149,7 +149,7 @@ export namespace Change {
   }
 
   /**
-   * @internal
+   * @hidden
    */
   export function applyFieldMask(
     sparseBefore: any,
@@ -228,7 +228,7 @@ export type CloudFunction<T> = Runnable<T> &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
 /**
- * @internal
+ * @hidden
  */
 export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event) => void;
@@ -250,7 +250,7 @@ export interface MakeCloudFunctionArgs<EventData> {
 }
 
 /**
- * @internal
+ * @hidden
  */
 export function makeCloudFunction<EventData>({
   after = () => {},

@@ -30,9 +30,9 @@ import {
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.firebase.remoteconfig';
-/** @internal */
+/** @hidden */
 export const service = 'firebaseremoteconfig.googleapis.com';
 
 /**
@@ -49,7 +49,7 @@ export function onUpdate(
   return _onUpdateWithOptions(handler, {});
 }
 
-/** @internal */
+/** @hidden */
 export function _onUpdateWithOptions(
   handler: (
     version: TemplateVersion,
@@ -68,7 +68,7 @@ export function _onUpdateWithOptions(
 
 /** Builder used to create Cloud Functions for Remote Config. */
 export class UpdateBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions
