@@ -40,7 +40,7 @@ export namespace config {
   export let singleton: config.Config;
 }
 
-/* @hidden */
+/** @hidden */
 export function firebaseConfig(): firebase.AppOptions | null {
   const env = process.env.FIREBASE_CONFIG;
   if (env) {

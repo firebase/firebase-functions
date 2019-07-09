@@ -87,7 +87,7 @@ export function _instanceWithOptions(
 }
 
 export class InstanceBuilder {
-  /* @hidden */
+  /** @hidden */
   constructor(private instance: string, private options: DeploymentOptions) {}
 
   ref(path: string): RefBuilder {
