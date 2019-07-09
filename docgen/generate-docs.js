@@ -132,24 +132,24 @@ function checkForMissingFilesAndFixFilenameCase() {
     .filter(line => line.includes('path:'))
     .map(line => line.split(devsitePath)[1]);
   // Logs warning to console if a file from TOC is not found.
-  console.log(filenames);
+  // console.log(filenames);
   const fileCheckPromises = filenames.map(filename => {
     // Warns if file does not exist, fixes filename case if it does.
     // Preferred filename for devsite should be capitalized and taken from
     // toc.yaml.
-    const tocFilePath = `${docPath}/${filename}.html`;
+    const tocFilePath = `${docPath}/${filename}`;
     // Generated filename from Typedoc will be lowercase.
-    const generatedFilePath = `${docPath}/${filename.toLowerCase()}.html`;
+    const generatedFilePath = `${docPath}/${filename.toLowerCase()}`;
     return fs.exists(generatedFilePath).then(exists => {
       if (exists) {
         // Store in a lookup table for link fixing.
         lowerToUpperLookup[
-          `${filename.toLowerCase()}.html`
-        ] = `${filename}.html`;
+          `${filename.toLowerCase()}`
+        ] = `${filename}`;
         return fs.rename(generatedFilePath, tocFilePath);
       } else {
         console.warn(
-          `Missing file: ${filename}.html requested ` +
+          `Missing file: ${filename} requested ` +
             `in toc.yaml but not found in ${docPath}`
         );
       }
@@ -169,8 +169,7 @@ function checkForMissingFilesAndFixFilenameCase() {
 function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
   return fs.readdir(docPath).then(files => {
     const htmlFiles = files
-      .filter(filename => filename.slice(-4) === 'html')
-      .map(filename => filename.slice(0, -5));
+      .filter(filename => filename.slice(-4) === 'html');
     const removePromises = [];
     htmlFiles.forEach(filename => {
       if (
@@ -180,9 +179,9 @@ function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
       ) {
         if (shouldRemove) {
           console.log(
-            `REMOVING ${docPath}/${filename}.html - not listed in toc.yaml.`
+            `REMOVING ${docPath}/${filename} - not listed in toc.yaml.`
           );
-          removePromises.push(fs.unlink(`${docPath}/${filename}.html`));
+          removePromises.push(fs.unlink(`${docPath}/${filename}`));
         } else {
           // This is just a warning, it doesn't need to finish before
           // the process continues.
@@ -232,7 +231,7 @@ function fixAllLinks(htmlFiles) {
   const writePromises = [];
   htmlFiles.forEach(file => {
     // Update links in each html file to match flattened file structure.
-    writePromises.push(fixLinks(`${docPath}/${file}.html`));
+    writePromises.push(fixLinks(`${docPath}/${file}`));
   });
   return Promise.all(writePromises);
 }

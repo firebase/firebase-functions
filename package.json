@@ -30,7 +30,6 @@
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
     "test": "mocha -r ts-node/register ./spec/index.spec.ts",
     "apidocs": "node docgen/generate-docs.js"
-
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
