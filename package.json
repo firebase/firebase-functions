@@ -24,8 +24,8 @@
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
-    "format": "prettier --check '**/*.ts'",
-    "format:fix": "prettier --write '**/*.ts'",
+    "format": "prettier --check '**/*.{json,md,ts,yml,yaml}'",
+    "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
     "test": "mocha -r ts-node/register ./spec/index.spec.ts"
