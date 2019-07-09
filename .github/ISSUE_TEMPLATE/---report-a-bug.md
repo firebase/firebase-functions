@@ -1,12 +1,12 @@
 ---
-name: "⚠️ Report a Bug"
+name: '⚠️ Report a Bug'
 about: Think you found a bug in the SDK? Report it here.
 title: ''
 labels: ''
 assignees: ''
-
 ---
-<!-- DO NOT DELETE 
+
+<!-- DO NOT DELETE
 validate_template=true
 template_path=.github/ISSUE_TEMPLATE/---report-a-bug.md
 -->
@@ -21,11 +21,13 @@ template_path=.github/ISSUE_TEMPLATE/---report-a-bug.md
 be fixed in the latest versions. -->
 
 **node:**
+
 <!-- Run node --version and print the output here-->
 
 **firebase-functions:**
 
 **firebase-tools:**
+
 <!-- Run firebase --version and print the output here-->
 
 **firebase-admin:**
@@ -34,16 +36,13 @@ be fixed in the latest versions. -->
 
 <!-- Provide a minimal, complete, and verifiable example (http://stackoverflow.com/help/mcve) -->
 
-
 ### [REQUIRED] Steps to reproduce
 
 <!-- Provide the steps needed to reproduce the issue given the above test case. -->
 
-
 ### [REQUIRED] Expected behavior
 
 <!-- What is the expected behavior? -->
-
 
 ### [REQUIRED] Actual behavior
 
