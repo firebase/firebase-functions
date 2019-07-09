@@ -4,6 +4,7 @@
     "lib": ["es2017"],
     "module": "commonjs",
     "noImplicitAny": false,
+    "noUnusedLocals": true,
     "outDir": "lib",
     "stripInternal": true,
     "target": "es2017",

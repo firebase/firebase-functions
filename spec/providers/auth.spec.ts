@@ -23,7 +23,6 @@
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
 
-import { Resolver } from 'dns';
 import { CloudFunction, Event, EventContext } from '../../src/cloud-functions';
 import * as functions from '../../src/index';
 import * as auth from '../../src/providers/auth';
@@ -102,15 +101,9 @@ describe('Auth Functions', () => {
     });
 
     describe('#_dataConstructor', () => {
-      let cloudFunctionCreate: CloudFunction<firebase.auth.UserRecord>;
       let cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord>;
 
       before(() => {
-        cloudFunctionCreate = auth
-          .user()
-          .onCreate(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
-          );
         cloudFunctionDelete = auth
           .user()
           .onDelete(
