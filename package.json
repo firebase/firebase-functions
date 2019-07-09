@@ -24,19 +24,13 @@
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
-<<<<<<< HEAD
-    "format": "prettier --write '**/*.ts'",
-    "lint": "tslint --project tsconfig.json --config tslint.json",
-    "posttest": "npm run format",
-    "test": "mocha -r ts-node/register ./spec/index.spec.ts",
-    "apidocs": "node docgen/generate-docs.js"
-=======
     "format": "prettier --check '**/*.ts'",
     "format:fix": "prettier --write '**/*.ts'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
-    "test": "mocha -r ts-node/register ./spec/index.spec.ts"
->>>>>>> master
+    "test": "mocha -r ts-node/register ./spec/index.spec.ts",
+    "apidocs": "node docgen/generate-docs.js"
+
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
