@@ -16,7 +16,7 @@
  */
 
 const options = {
-  includeDeclarations: true,
+  // includeDeclarations: true,
   excludeExternals: true,
   ignoreCompilerErrors: true,
   name: 'Firebase Functions SDK',
