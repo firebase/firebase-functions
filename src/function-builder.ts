@@ -222,15 +222,11 @@ export class FunctionBuilder {
       document: (path: string) =>
         firestore._documentWithOptions(path, this.options),
 
-      /**
-       * @hidden
-       */
+      /** @hidden */
       namespace: (namespace: string) =>
         firestore._namespaceWithOptions(namespace, this.options),
 
-      /**
-       * @hidden
-       */
+      /** @hidden */
       database: (database: string) =>
         firestore._databaseWithOptions(database, this.options),
     };
