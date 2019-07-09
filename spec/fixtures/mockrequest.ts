@@ -9,7 +9,7 @@ export class MockRequest {
 
   constructor(
     readonly body: any,
-    readonly headers: { [name: string]: string }
+    readonly headers: { [name: string]: string },
   ) {
     // This block intentionally left blank.
   }
@@ -26,7 +26,7 @@ export function mockRequest(
   context: {
     authorization?: string;
     instanceIdToken?: string;
-  } = {}
+  } = {},
 ) {
   const body: any = {};
   if (!_.isUndefined(data)) {

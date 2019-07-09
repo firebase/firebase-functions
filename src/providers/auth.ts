@@ -73,19 +73,25 @@ export class UserBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options?: DeploymentOptions
+    private options?: DeploymentOptions,
   ) {}
 
   /** Respond to the creation of a Firebase Auth user. */
   onCreate(
-    handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
+    handler: (
+      user: UserRecord,
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.create');
   }
 
   /** Respond to the deletion of a Firebase Auth user. */
   onDelete(
-    handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
+    handler: (
+      user: UserRecord,
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.delete');
   }
@@ -93,9 +99,9 @@ export class UserBuilder {
   private onOperation(
     handler: (
       user: UserRecord,
-      context: EventContext
+      context: EventContext,
     ) => PromiseLike<any> | any,
-    eventType: string
+    eventType: string,
   ): CloudFunction<UserRecord> {
     return makeCloudFunction({
       handler,
@@ -117,7 +123,7 @@ export class UserBuilder {
 export type UserRecord = firebase.auth.UserRecord;
 
 export function userRecordConstructor(
-  wireData: Object
+  wireData: Object,
 ): firebase.auth.UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
   const falseyValues: any = {
@@ -142,8 +148,8 @@ export function userRecordConstructor(
       'metadata',
       new UserRecordMetadata(
         meta.createdAt || meta.creationTime,
-        meta.lastSignedInAt || meta.lastSignInTime
-      )
+        meta.lastSignedInAt || meta.lastSignInTime,
+      ),
     );
   } else {
     _.set(record, 'metadata', new UserRecordMetadata(null, null));

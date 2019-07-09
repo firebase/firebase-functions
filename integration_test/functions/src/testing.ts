@@ -30,14 +30,14 @@ export class TestSuite<T> {
         .then(
           (result) => {
             console.log(
-              `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`
+              `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`,
             );
             return { name: testName, passed: !!result };
           },
           (error) => {
             console.error(`Failed: ${testName}`, error);
             return { name: testName, passed: 0, error: error };
-          }
+          },
         );
       running.push(run);
     }
@@ -74,21 +74,21 @@ export function evaluate(value, errMsg) {
 export function expectEq(left, right) {
   return evaluate(
     left === right,
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
+    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right),
   );
 }
 
 export function expectDeepEq(left, right) {
   return evaluate(
     _.isEqual(left, right),
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
+    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right),
   );
 }
 
 export function expectMatches(input: string, regexp) {
   return evaluate(
     input.match(regexp),
-    "Input '" + input + "' did not match regexp '" + regexp + "'"
+    "Input '" + input + "' did not match regexp '" + regexp + "'",
   );
 }
 
@@ -100,7 +100,7 @@ export function expectReject(f) {
         () => {
           throw new Error('Test should have returned a rejected promise');
         },
-        () => true // A rejection is what we expected, and so is a positive result.
+        () => true, // A rejection is what we expected, and so is a positive result.
       );
   };
 }

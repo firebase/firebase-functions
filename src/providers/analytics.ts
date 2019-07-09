@@ -46,7 +46,7 @@ export function event(analyticsEventType: string) {
 /** @internal */
 export function _eventWithOptions(
   analyticsEventType: string,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -67,7 +67,7 @@ export class AnalyticsEventBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {}
 
   /**
@@ -83,8 +83,8 @@ export class AnalyticsEventBuilder {
   onLog(
     handler: (
       event: AnalyticsEvent,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<AnalyticsEvent> {
     const dataConstructor = (raw: Event) => {
       return new AnalyticsEvent(raw.data);
@@ -151,7 +151,7 @@ export class AnalyticsEvent {
         eventDim,
         this,
         'previousTimestampMicros',
-        'previousLogTime'
+        'previousLogTime',
       );
     }
     copyFieldTo(
@@ -159,7 +159,7 @@ export class AnalyticsEvent {
       this,
       'userDim',
       'user',
-      (dim) => new UserDimensions(dim)
+      (dim) => new UserDimensions(dim),
     );
   }
 }
@@ -215,11 +215,11 @@ export class UserDimensions {
       wireFormat,
       this,
       'firstOpenTimestampMicros',
-      'firstOpenTime'
+      'firstOpenTime',
     );
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
     copyField(wireFormat, this, 'userProperties', (r) =>
-      _.mapValues(r, (p) => new UserPropertyValue(p))
+      _.mapValues(r, (p) => new UserPropertyValue(p)),
     );
     copyField(wireFormat, this, 'bundleInfo', (r) => new ExportBundleInfo(r));
 
@@ -388,7 +388,7 @@ export class ExportBundleInfo {
       wireFormat,
       this,
       'serverTimestampOffsetMicros',
-      'serverTimestampOffset'
+      'serverTimestampOffset',
     );
   }
 }
@@ -398,7 +398,7 @@ function copyFieldTo<T, K extends keyof T>(
   to: T,
   fromField: string,
   toField: K,
-  transform: (val: any) => T[K] = _.identity
+  transform: (val: any) => T[K] = _.identity,
 ): void {
   if (from[fromField] !== undefined) {
     to[toField] = transform(from[fromField]);
@@ -409,7 +409,7 @@ function copyField<T, K extends keyof T>(
   from: any,
   to: T,
   field: K,
-  transform: (val: any) => T[K] = _.identity
+  transform: (val: any) => T[K] = _.identity,
 ): void {
   copyFieldTo(from, to, field as string, field, transform);
 }
@@ -480,7 +480,7 @@ function copyTimestampToMillis<T, K extends keyof T>(
   from: any,
   to: T,
   fromName: string,
-  toName: K
+  toName: K,
 ) {
   if (from[fromName] !== undefined) {
     to[toName] = _.round(from[fromName] / 1000) as any;
@@ -494,7 +494,7 @@ function copyTimestampToString<T, K extends keyof T>(
   from: any,
   to: T,
   fromName: string,
-  toName: K
+  toName: K,
 ) {
   if (from[fromName] !== undefined) {
     to[toName] = new Date(from[fromName] / 1000).toISOString() as any;

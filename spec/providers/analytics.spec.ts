@@ -72,7 +72,7 @@ describe('Analytics Functions', () => {
         const cloudFunction = analytics
           .event('first_open')
           .onLog(
-            (data: analytics.AnalyticsEvent, context: EventContext) => data
+            (data: analytics.AnalyticsEvent, context: EventContext) => data,
           );
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
@@ -96,7 +96,7 @@ describe('Analytics Functions', () => {
         };
 
         return expect(
-          cloudFunction(event.data, event.context)
+          cloudFunction(event.data, event.context),
         ).to.eventually.deep.equal({
           params: {},
           user: {
@@ -110,7 +110,7 @@ describe('Analytics Functions', () => {
         const cloudFunction = analytics
           .event('first_open')
           .onLog(
-            (data: analytics.AnalyticsEvent, context: EventContext) => data
+            (data: analytics.AnalyticsEvent, context: EventContext) => data,
           );
 
         // Incoming events will have four kinds of "xValue" fields: "intValue",
@@ -161,7 +161,7 @@ describe('Analytics Functions', () => {
         };
 
         return expect(
-          cloudFunction(event.data, event.context)
+          cloudFunction(event.data, event.context),
         ).to.eventually.deep.equal({
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
@@ -221,7 +221,7 @@ describe('Analytics Functions', () => {
         };
 
         return expect(
-          cloudFunction(event.data, event.context)
+          cloudFunction(event.data, event.context),
         ).to.eventually.deep.equal({
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
@@ -279,7 +279,7 @@ describe('Analytics Functions', () => {
         };
 
         return expect(
-          cloudFunction(event.data, event.context)
+          cloudFunction(event.data, event.context),
         ).to.eventually.deep.equal({
           reportingDate: '20170202',
           name: 'Loaded_In_Background',
@@ -297,7 +297,7 @@ describe('Analytics Functions', () => {
         const payloadContext = analytics_spec_input.fullPayload.context;
 
         return expect(
-          cloudFunction(payloadData, payloadContext)
+          cloudFunction(payloadData, payloadContext),
         ).to.eventually.deep.equal(analytics_spec_input.data);
       });
     });
@@ -307,14 +307,14 @@ describe('Analytics Functions', () => {
     describe('#onLog', () => {
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.analytics.event.onLog(
-          () => null
+          () => null,
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
       it('should handle an event with the appropriate fields', () => {
         const cloudFunction = functions.handler.analytics.event.onLog(
-          (data: analytics.AnalyticsEvent, context: EventContext) => data
+          (data: analytics.AnalyticsEvent, context: EventContext) => data,
         );
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
@@ -338,7 +338,7 @@ describe('Analytics Functions', () => {
         };
 
         return expect(
-          cloudFunction(event.data, event.context)
+          cloudFunction(event.data, event.context),
         ).to.eventually.deep.equal({
           params: {},
           user: {
@@ -353,13 +353,13 @@ describe('Analytics Functions', () => {
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => analytics.event('event').onLog(() => null)).to.not.throw(
-        Error
+        Error,
       );
     });
 
     it('should throw when trigger is accessed', () => {
       expect(
-        () => analytics.event('event').onLog(() => null).__trigger
+        () => analytics.event('event').onLog(() => null).__trigger,
       ).to.throw(Error);
     });
 

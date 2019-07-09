@@ -67,7 +67,7 @@ export function database(database: string) {
 /** @internal */
 export function _databaseWithOptions(
   database: string = defaultDatabase,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ) {
   return new DatabaseBuilder(database, options);
 }
@@ -75,7 +75,7 @@ export function _databaseWithOptions(
 /** @internal */
 export function _namespaceWithOptions(
   namespace: string,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ) {
   return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
@@ -103,7 +103,7 @@ export class NamespaceBuilder {
   constructor(
     private database: string,
     private options: DeploymentOptions,
-    private namespace?: string
+    private namespace?: string,
   ) {}
 
   document(path: string) {
@@ -115,12 +115,12 @@ export class NamespaceBuilder {
         'projects',
         process.env.GCLOUD_PROJECT,
         'databases',
-        this.database
+        this.database,
       );
       return posix.join(
         database,
         this.namespace ? `documents@${this.namespace}` : 'documents',
-        path
+        path,
       );
     }, this.options);
   }
@@ -134,10 +134,10 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
   const proto = {
     fields: _.get(data, [valueFieldName, 'fields'], {}),
     createTime: dateToTimestampProto(
-      _.get(data, [valueFieldName, 'createTime'])
+      _.get(data, [valueFieldName, 'createTime']),
     ),
     updateTime: dateToTimestampProto(
-      _.get(data, [valueFieldName, 'updateTime'])
+      _.get(data, [valueFieldName, 'updateTime']),
     ),
     name: _.get(data, [valueFieldName, 'name'], resource),
   };
@@ -152,7 +152,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
   const valueProto = _getValueProto(
     event.data,
     event.context.resource.name,
-    'value'
+    'value',
   );
   const readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
   return firestoreInstance.snapshot_(valueProto, readTime, 'json');
@@ -167,10 +167,10 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   const oldValueProto = _getValueProto(
     event.data,
     event.context.resource.name,
-    'oldValue'
+    'oldValue',
   );
   const oldReadTime = dateToTimestampProto(
-    _.get(event, 'data.oldValue.readTime')
+    _.get(event, 'data.oldValue.readTime'),
   );
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
 }
@@ -178,7 +178,7 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
 function changeConstructor(raw: Event) {
   return Change.fromObjects(
     beforeSnapshotConstructor(raw),
-    snapshotConstructor(raw)
+    snapshotConstructor(raw),
   );
 }
 
@@ -186,7 +186,7 @@ export class DocumentBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {
     // TODO what validation do we want to do here?
   }
@@ -195,8 +195,8 @@ export class DocumentBuilder {
   onWrite(
     handler: (
       change: Change<DocumentSnapshot>,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
   }
@@ -205,8 +205,8 @@ export class DocumentBuilder {
   onUpdate(
     handler: (
       change: Change<DocumentSnapshot>,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
@@ -215,8 +215,8 @@ export class DocumentBuilder {
   onCreate(
     handler: (
       snapshot: DocumentSnapshot,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<DocumentSnapshot> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
@@ -225,20 +225,20 @@ export class DocumentBuilder {
   onDelete(
     handler: (
       snapshot: DocumentSnapshot,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<DocumentSnapshot> {
     return this.onOperation(
       handler,
       'document.delete',
-      beforeSnapshotConstructor
+      beforeSnapshotConstructor,
     );
   }
 
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event) => any
+    dataConstructor: (raw: Event) => any,
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,

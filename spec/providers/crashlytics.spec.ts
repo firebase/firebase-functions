@@ -104,7 +104,7 @@ describe('Crashlytics Functions', () => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
-            }
+            },
           );
           expect(cloudFunction.__trigger).to.deep.equal({});
         });
@@ -117,7 +117,7 @@ describe('Crashlytics Functions', () => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
-            }
+            },
           );
           expect(cloudFunction.__trigger).to.deep.equal({});
         });
@@ -130,7 +130,7 @@ describe('Crashlytics Functions', () => {
               return (
                 testIssue.issueId + testIssue.issueTitle + testIssue.createTime
               );
-            }
+            },
           );
           expect(cloudFunction.__trigger).to.deep.equal({});
         });
@@ -145,7 +145,7 @@ describe('Crashlytics Functions', () => {
 
     it('should throw if __trigger is accessed', () => {
       expect(() => crashlytics.issue().onNew(() => null).__trigger).to.throw(
-        Error
+        Error,
       );
     });
 

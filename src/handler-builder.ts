@@ -45,7 +45,7 @@ export class HandlerBuilder {
        * same signature as an Express app.
        */
       onRequest: (
-        handler: (req: express.Request, resp: express.Response) => void
+        handler: (req: express.Request, resp: express.Response) => void,
       ): HttpsFunction => {
         const func = https._onRequestWithOptions(handler, {});
         func.__trigger = {};
@@ -58,8 +58,8 @@ export class HandlerBuilder {
       onCall: (
         handler: (
           data: any,
-          context: https.CallableContext
-        ) => any | Promise<any>
+          context: https.CallableContext,
+        ) => any | Promise<any>,
       ): HttpsFunction => {
         const func = https._onCallWithOptions(handler, {});
         func.__trigger = {};
@@ -153,8 +153,8 @@ export class HandlerBuilder {
       onUpdate: (
         handler: (
           version: remoteConfig.TemplateVersion,
-          context: EventContext
-        ) => PromiseLike<any> | any
+          context: EventContext,
+        ) => PromiseLike<any> | any,
       ): CloudFunction<remoteConfig.TemplateVersion> => {
         return new remoteConfig.UpdateBuilder(() => null, {}).onUpdate(handler);
       },

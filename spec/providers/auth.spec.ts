@@ -109,12 +109,12 @@ describe('Auth Functions', () => {
         cloudFunctionCreate = auth
           .user()
           .onCreate(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
+            (data: firebase.auth.UserRecord, context: EventContext) => data,
           );
         cloudFunctionDelete = auth
           .user()
           .onDelete(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
+            (data: firebase.auth.UserRecord, context: EventContext) => data,
           );
       });
 
@@ -122,12 +122,12 @@ describe('Auth Functions', () => {
         return cloudFunctionDelete(event.data, event.context).then(
           (data: any) => {
             expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
+              '2016-12-15T19:37:37.059Z',
             );
             expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
+              '2017-01-01T00:00:00.000Z',
             );
-          }
+          },
         );
       });
     });
@@ -207,7 +207,7 @@ describe('Auth Functions', () => {
       const cloudFunctionDelete: CloudFunction<
         firebase.auth.UserRecord
       > = functions.handler.auth.user.onDelete(
-        (data: firebase.auth.UserRecord) => data
+        (data: firebase.auth.UserRecord) => data,
       );
 
       it('should return an empty trigger', () => {
@@ -222,12 +222,12 @@ describe('Auth Functions', () => {
         return cloudFunctionDelete(event.data, event.context).then(
           (data: any) => {
             expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
+              '2016-12-15T19:37:37.059Z',
             );
             expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
+              '2017-01-01T00:00:00.000Z',
             );
-          }
+          },
         );
       });
     });

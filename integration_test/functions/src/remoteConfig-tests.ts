@@ -8,12 +8,12 @@ export const remoteConfigTests: any = functions.remoteConfig.onUpdate(
       .it('should have a project as resource', (version, context) =>
         expectEq(
           context.resource.name,
-          `projects/${process.env.GCLOUD_PROJECT}`
-        )
+          `projects/${process.env.GCLOUD_PROJECT}`,
+        ),
       )
 
       .it('should have the correct eventType', (version, context) =>
-        expectEq(context.eventType, 'google.firebase.remoteconfig.update')
+        expectEq(context.eventType, 'google.firebase.remoteconfig.update'),
       )
 
       .it('should have an eventId', (version, context) => context.eventId)
@@ -21,9 +21,9 @@ export const remoteConfigTests: any = functions.remoteConfig.onUpdate(
       .it('should have a timestamp', (version, context) => context.timestamp)
 
       .it('should not have auth', (version, context) =>
-        expectEq((context as any).auth, undefined)
+        expectEq((context as any).auth, undefined),
       )
 
       .run(v.description, v, c);
-  }
+  },
 );

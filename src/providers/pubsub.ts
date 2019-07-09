@@ -46,7 +46,7 @@ export function topic(topic: string) {
 /** @internal */
 export function _topicWithOptions(
   topic: string,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): TopicBuilder {
   if (topic.indexOf('/') !== -1) {
     throw new Error('Topic name may not have a /');
@@ -105,7 +105,7 @@ export class ScheduleBuilder {
 /** @internal */
 export function _scheduleWithOptions(
   schedule: string,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): ScheduleBuilder {
   return new ScheduleBuilder({ schedule }, options);
 }
@@ -115,12 +115,15 @@ export class TopicBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {}
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
   onPublish(
-    handler: (message: Message, context: EventContext) => PromiseLike<any> | any
+    handler: (
+      message: Message,
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<Message> {
     return makeCloudFunction({
       handler,

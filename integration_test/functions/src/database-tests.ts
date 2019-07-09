@@ -12,7 +12,7 @@ export const databaseTests: any = functions.database
       console.log(
         'Event for ' +
           ctx.params[testIdFieldName] +
-          ' is null; presuming data cleanup, so skipping.'
+          ' is null; presuming data cleanup, so skipping.',
       );
       return;
     }
@@ -21,14 +21,14 @@ export const databaseTests: any = functions.database
 
       .it(
         'should not have event.app',
-        (change, context) => !(context as any).app
+        (change, context) => !(context as any).app,
       )
 
       .it('should give refs access to admin data', (change) =>
         change.after.ref.parent
           .child('adminOnly')
           .update({ allowed: 1 })
-          .then(() => true)
+          .then(() => true),
       )
 
       .it('should have a correct ref url', (change) => {
@@ -38,8 +38,8 @@ export const databaseTests: any = functions.database
             return expectMatches(
               url,
               new RegExp(
-                `^https://${process.env.GCLOUD_PROJECT}.firebaseio.com/dbTests`
-              )
+                `^https://${process.env.GCLOUD_PROJECT}.firebaseio.com/dbTests`,
+              ),
             );
           })
           .then(() => {
@@ -50,16 +50,16 @@ export const databaseTests: any = functions.database
       .it('should have refs resources', (change, context) =>
         expectEq(
           context.resource.name,
-          `projects/_/instances/${process.env.GCLOUD_PROJECT}/refs/dbTests/${context.params.testId}/start`
-        )
+          `projects/_/instances/${process.env.GCLOUD_PROJECT}/refs/dbTests/${context.params.testId}/start`,
+        ),
       )
 
       .it('should not include path', (change, context) =>
-        expectEq((context as any).path, undefined)
+        expectEq((context as any).path, undefined),
       )
 
       .it('should have the right eventType', (change, context) =>
-        expectEq(context.eventType, 'google.firebase.database.ref.write')
+        expectEq(context.eventType, 'google.firebase.database.ref.write'),
       )
 
       .it('should have eventId', (change, context) => context.eventId)
@@ -67,11 +67,11 @@ export const databaseTests: any = functions.database
       .it('should have timestamp', (change, context) => context.timestamp)
 
       .it('should not have action', (change, context) =>
-        expectEq((context as any).action, undefined)
+        expectEq((context as any).action, undefined),
       )
 
       .it('should have admin authType', (change, context) =>
-        expectEq(context.authType, 'ADMIN')
+        expectEq(context.authType, 'ADMIN'),
       )
 
       .run(ctx.params[testIdFieldName], ch, ctx);

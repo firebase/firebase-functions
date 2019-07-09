@@ -55,7 +55,7 @@ describe('config()', () => {
     });
     expect(firebaseConfig()).to.have.property(
       'databaseURL',
-      'foo@firebaseio.com'
+      'foo@firebaseio.com',
     );
   });
 

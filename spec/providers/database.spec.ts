@@ -62,7 +62,7 @@ describe('Database Functions', () => {
         const eventType = database.ref('foo').onWrite(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
-          'providers/google.firebase.database/eventTypes/ref.write'
+          'providers/google.firebase.database/eventTypes/ref.write',
         );
       });
 
@@ -110,7 +110,7 @@ describe('Database Functions', () => {
         const eventType = database.ref('foo').onCreate(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
-          'providers/google.firebase.database/eventTypes/ref.create'
+          'providers/google.firebase.database/eventTypes/ref.create',
         );
       });
 
@@ -159,7 +159,7 @@ describe('Database Functions', () => {
         const eventType = database.ref('foo').onUpdate(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
-          'providers/google.firebase.database/eventTypes/ref.update'
+          'providers/google.firebase.database/eventTypes/ref.update',
         );
       });
 
@@ -208,7 +208,7 @@ describe('Database Functions', () => {
         const eventType = database.ref('foo').onDelete(() => null).__trigger
           .eventTrigger.eventType;
         expect(eventType).to.eq(
-          'providers/google.firebase.database/eventTypes/ref.delete'
+          'providers/google.firebase.database/eventTypes/ref.delete',
         );
       });
 
@@ -262,7 +262,7 @@ describe('Database Functions', () => {
 
       it('should be able to use the instance entry point', () => {
         const func = functions.handler.database.instance.ref.onWrite(
-          () => null
+          () => null,
         );
         expect(func.__trigger).to.deep.equal({});
       });
@@ -285,7 +285,7 @@ describe('Database Functions', () => {
         const handler = functions.handler.database.ref.onWrite(
           (change, context) => {
             return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-          }
+          },
         );
 
         return handler(event.data, event.context);
@@ -300,7 +300,7 @@ describe('Database Functions', () => {
 
       it('should be able to use the instance entry point', () => {
         const func = functions.handler.database.instance.ref.onCreate(
-          () => null
+          () => null,
         );
         expect(func.__trigger).to.deep.equal({});
       });
@@ -322,7 +322,7 @@ describe('Database Functions', () => {
         const handler = functions.handler.database.ref.onCreate(
           (data, context) => {
             return expect(data.val()).to.deep.equal({ foo: 'bar' });
-          }
+          },
         );
 
         return handler(event.data, event.context);
@@ -337,7 +337,7 @@ describe('Database Functions', () => {
 
       it('should be able to use the instance entry point', () => {
         const func = functions.handler.database.instance.ref.onUpdate(
-          () => null
+          () => null,
         );
         expect(func.__trigger).to.deep.equal({});
       });
@@ -359,7 +359,7 @@ describe('Database Functions', () => {
         const handler = functions.handler.database.ref.onUpdate(
           (change, context) => {
             return expect(change.after.val()).to.deep.equal({ foo: 'bar' });
-          }
+          },
         );
 
         return handler(event.data, event.context);
@@ -374,7 +374,7 @@ describe('Database Functions', () => {
 
       it('should be able to use the instance entry point', () => {
         const func = functions.handler.database.instance.ref.onDelete(
-          () => null
+          () => null,
         );
         expect(func.__trigger).to.deep.equal({});
       });
@@ -397,7 +397,7 @@ describe('Database Functions', () => {
         const handler = functions.handler.database.ref.onDelete(
           (data, context) => {
             return expect(data.val()).to.deep.equal({ foo: 'bar' });
-          }
+          },
         );
 
         return handler(event.data, event.context);
@@ -408,13 +408,13 @@ describe('Database Functions', () => {
   describe('process.env.FIREBASE_CONFIG not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => database.ref('/path').onWrite(() => null)).to.not.throw(
-        Error
+        Error,
       );
     });
 
     it('should throw when trigger is accessed', () => {
       expect(
-        () => database.ref('/path').onWrite(() => null).__trigger
+        () => database.ref('/path').onWrite(() => null).__trigger,
       ).to.throw(Error);
     });
 
@@ -427,7 +427,7 @@ describe('Database Functions', () => {
   describe('resourceToInstanceAndPath', () => {
     it('should return the correct instance and path strings', () => {
       const [instance, path] = database.resourceToInstanceAndPath(
-        'projects/_/instances/foo/refs/bar'
+        'projects/_/instances/foo/refs/bar',
       );
       expect(instance).to.equal('https://foo.firebaseio.com');
       expect(path).to.equal('/bar');
@@ -436,17 +436,17 @@ describe('Database Functions', () => {
     it('should throw an error if the given instance name contains anything except alphanumerics and dashes', () => {
       expect(() => {
         return database.resourceToInstanceAndPath(
-          'projects/_/instances/a.bad.name/refs/bar'
+          'projects/_/instances/a.bad.name/refs/bar',
         );
       }).to.throw(Error);
       expect(() => {
         return database.resourceToInstanceAndPath(
-          'projects/_/instances/a_different_bad_name/refs/bar'
+          'projects/_/instances/a_different_bad_name/refs/bar',
         );
       }).to.throw(Error);
       expect(() => {
         return database.resourceToInstanceAndPath(
-          'projects/_/instances/BAD!!!!/refs/bar'
+          'projects/_/instances/BAD!!!!/refs/bar',
         );
       }).to.throw(Error);
     });
@@ -458,7 +458,7 @@ describe('Database Functions', () => {
 
     const populate = (data: any) => {
       const [instance, path] = database.resourceToInstanceAndPath(
-        'projects/_/instances/other-subdomain/refs/foo'
+        'projects/_/instances/other-subdomain/refs/foo',
       );
       subject = new database.DataSnapshot(data, path, apps.admin, instance);
     };
@@ -467,7 +467,7 @@ describe('Database Functions', () => {
       it('should return a ref for correct instance, not the default instance', () => {
         populate({});
         expect(subject.ref.toJSON()).to.equal(
-          'https://other-subdomain.firebaseio.com/foo'
+          'https://other-subdomain.firebaseio.com/foo',
         );
       });
     });
@@ -526,7 +526,7 @@ describe('Database Functions', () => {
           subject
             .child('a')
             .child('b/c')
-            .val()
+            .val(),
         ).to.equal('d');
       });
     });
@@ -649,13 +649,13 @@ describe('Database Functions', () => {
 
       it('should return null for the root', () => {
         const [instance, path] = database.resourceToInstanceAndPath(
-          'projects/_/instances/foo/refs/'
+          'projects/_/instances/foo/refs/',
         );
         const snapshot = new database.DataSnapshot(
           null,
           path,
           apps.admin,
-          instance
+          instance,
         );
         expect(snapshot.key).to.be.null;
       });

@@ -49,7 +49,7 @@ describe('Pubsub Functions', () => {
     describe('#toJSON', () => {
       it('should be JSON stringify-able', () => {
         const encoded = new Buffer('{"hello":"world"}', 'utf8').toString(
-          'base64'
+          'base64',
         );
         const message = new pubsub.Message({
           data: encoded,
@@ -133,7 +133,7 @@ describe('Pubsub Functions', () => {
         });
 
         return expect(
-          result(event.data, event.context)
+          result(event.data, event.context),
         ).to.eventually.deep.equal({
           raw,
           json: { hello: 'world' },
@@ -208,7 +208,7 @@ describe('Pubsub Functions', () => {
           expect(result.__trigger.labels).to.deep.equal({
             'deployment-scheduled': 'true',
           });
-        }
+        },
       );
 
       it('should return an appropriate trigger when called with region and options', () => {
@@ -345,7 +345,7 @@ describe('Pubsub Functions', () => {
         });
 
         return expect(
-          result(event.data, event.context)
+          result(event.data, event.context),
         ).to.eventually.deep.equal({
           raw,
           json: { hello: 'world' },
@@ -358,13 +358,13 @@ describe('Pubsub Functions', () => {
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() => pubsub.topic('toppy').onPublish(() => null)).to.not.throw(
-        Error
+        Error,
       );
     });
 
     it('should throw when trigger is accessed', () => {
       expect(
-        () => pubsub.topic('toppy').onPublish(() => null).__trigger
+        () => pubsub.topic('toppy').onPublish(() => null).__trigger,
       ).to.throw(Error);
     });
 

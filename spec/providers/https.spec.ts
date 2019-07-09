@@ -113,7 +113,7 @@ interface CallTest {
  */
 function runHandler(
   handler: express.Handler,
-  request: https.Request
+  request: https.Request,
 ): Promise<RunHandlerResult> {
   return new Promise((resolve, reject) => {
     // MockResponse mocks an express.Response.
@@ -487,7 +487,7 @@ describe('callable CORS', () => {
   it('handles OPTIONS preflight', async () => {
     const func = https.onCall((data, context) => {
       throw new Error(
-        `This shouldn't have gotten called for an OPTIONS preflight.`
+        `This shouldn't have gotten called for an OPTIONS preflight.`,
       );
     });
 
@@ -497,7 +497,7 @@ describe('callable CORS', () => {
         'Access-Control-Request-Method': 'POST',
         'Access-Control-Request-Headers': 'origin',
         Origin: 'example.com',
-      }
+      },
     );
     req.method = 'OPTIONS';
 
@@ -541,7 +541,7 @@ describe('callable', () => {
       https.decode({
         '@type': 'type.googleapis.com/google.protobuf.Int64Value',
         value: '-9223372036854775000',
-      })
+      }),
     ).to.equal(-9223372036854775000);
   });
 
@@ -554,7 +554,7 @@ describe('callable', () => {
       https.decode({
         '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
         value: '9223372036854800000',
-      })
+      }),
     ).to.equal(9223372036854800000);
   });
 
@@ -592,7 +592,7 @@ describe('callable', () => {
             '@type': 'type.googleapis.com/google.protobuf.Int64Value',
           },
         ],
-      ])
+      ]),
     ).to.deep.equal([1, '2', [3, 1099511627776]]);
   });
 
@@ -604,7 +604,7 @@ describe('callable', () => {
         foo: 1,
         bar: 'hello',
         baz: [1, 2, 3],
-      })
+      }),
     ).to.deep.equal({
       foo: 1,
       bar: 'hello',
@@ -625,7 +625,7 @@ describe('callable', () => {
             '@type': 'type.googleapis.com/google.protobuf.Int64Value',
           },
         ],
-      })
+      }),
     ).to.deep.equal({
       foo: 1,
       bar: 'hello',

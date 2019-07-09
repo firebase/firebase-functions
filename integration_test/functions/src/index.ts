@@ -38,7 +38,7 @@ function callHttpsTrigger(name: string, data: any, baseUrl) {
           body += chunk;
         });
         response.on('end', () => resolve(body));
-      }
+      },
     );
     request.on('error', reject);
     request.write(JSON.stringify({ data }));
@@ -63,7 +63,7 @@ function callScheduleTrigger(functionName: string, region: string) {
           body += chunk;
         });
         response.on('end', () => resolve(body));
-      }
+      },
     );
     request.on('error', reject);
     request.write('{}');
@@ -163,13 +163,13 @@ export const integrationTests: any = functions
             if (snapshot.key != 'timestamp' && !snapshot.val().passed) {
               reject(
                 new Error(
-                  `test ${snapshot.key} failed; see database for details.`
-                )
+                  `test ${snapshot.key} failed; see database for details.`,
+                ),
               );
               return;
             }
             console.log(
-              `${snapshot.key} passed (${testsExecuted} of ${numTests})`
+              `${snapshot.key} passed (${testsExecuted} of ${numTests})`,
             );
             if (testsExecuted < numTests) {
               // Not all tests have completed. Wait longer.
@@ -197,7 +197,7 @@ export const integrationTests: any = functions
         resp
           .status(500)
           .send(
-            `FAIL - details at https://${process.env.GCLOUD_PROJECT}.firebaseio.com/testRuns/${testId}`
+            `FAIL - details at https://${process.env.GCLOUD_PROJECT}.firebaseio.com/testRuns/${testId}`,
           );
       });
   });

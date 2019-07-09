@@ -38,7 +38,7 @@ export interface Request extends express.Request {
  * same signature as an Express app.
  */
 export function onRequest(
-  handler: (req: Request, resp: express.Response) => void
+  handler: (req: Request, resp: express.Response) => void,
 ): HttpsFunction {
   return _onRequestWithOptions(handler, {});
 }
@@ -48,7 +48,7 @@ export function onRequest(
  * @param handler A method that takes a data and context and returns a value.
  */
 export function onCall(
-  handler: (data: any, context: CallableContext) => any | Promise<any>
+  handler: (data: any, context: CallableContext) => any | Promise<any>,
 ): HttpsFunction & Runnable<any> {
   return _onCallWithOptions(handler, {});
 }
@@ -56,7 +56,7 @@ export function onCall(
 /** @internal */
 export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
   const cloudFunction: any = (req: Request, res: express.Response) => {
@@ -415,7 +415,7 @@ const corsHandler = cors({ origin: true, methods: 'POST' });
 /** @internal */
 export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): HttpsFunction & Runnable<any> {
   const func = async (req: Request, res: express.Response) => {
     try {

@@ -81,7 +81,7 @@ export function ref(path: string) {
 /** @internal */
 export function _instanceWithOptions(
   instance: string,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): InstanceBuilder {
   return new InstanceBuilder(instance, options);
 }
@@ -95,7 +95,7 @@ export class InstanceBuilder {
     return new RefBuilder(
       apps(),
       () => `projects/_/instances/${this.instance}/refs/${normalized}`,
-      this.options
+      this.options,
     );
   }
 }
@@ -103,7 +103,7 @@ export class InstanceBuilder {
 /** @internal */
 export function _refWithOptions(
   path: string,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): RefBuilder {
   const resourceGetter = () => {
     const normalized = normalizePath(path);
@@ -113,13 +113,13 @@ export function _refWithOptions(
         'Missing expected firebase config value databaseURL, ' +
           'config is actually' +
           JSON.stringify(firebaseConfig()) +
-          '\n If you are unit testing, please set process.env.FIREBASE_CONFIG'
+          '\n If you are unit testing, please set process.env.FIREBASE_CONFIG',
       );
     }
     const match = databaseURL.match(databaseURLRegex);
     if (!match) {
       throw new Error(
-        'Invalid value for config firebase.databaseURL: ' + databaseURL
+        'Invalid value for config firebase.databaseURL: ' + databaseURL,
       );
     }
     const subdomain = match[1];
@@ -135,15 +135,15 @@ export class RefBuilder {
   constructor(
     private apps: apps.Apps,
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {}
 
   /** Respond to any write that affects a ref. */
   onWrite(
     handler: (
       change: Change<DataSnapshot>,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.write', this.changeConstructor);
   }
@@ -152,8 +152,8 @@ export class RefBuilder {
   onUpdate(
     handler: (
       change: Change<DataSnapshot>,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.update', this.changeConstructor);
   }
@@ -162,18 +162,18 @@ export class RefBuilder {
   onCreate(
     handler: (
       snapshot: DataSnapshot,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
       const [dbInstance, path] = resourceToInstanceAndPath(
-        raw.context.resource.name
+        raw.context.resource.name,
       );
       return new DataSnapshot(
         raw.data.delta,
         path,
         this.apps.admin,
-        dbInstance
+        dbInstance,
       );
     };
     return this.onOperation(handler, 'ref.create', dataConstructor);
@@ -183,12 +183,12 @@ export class RefBuilder {
   onDelete(
     handler: (
       snapshot: DataSnapshot,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
       const [dbInstance, path] = resourceToInstanceAndPath(
-        raw.context.resource.name
+        raw.context.resource.name,
       );
       return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
     };
@@ -198,7 +198,7 @@ export class RefBuilder {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | Event) => any
+    dataConstructor: (raw: Event | Event) => any,
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
@@ -216,19 +216,19 @@ export class RefBuilder {
 
   private changeConstructor = (raw: Event): Change<DataSnapshot> => {
     const [dbInstance, path] = resourceToInstanceAndPath(
-      raw.context.resource.name
+      raw.context.resource.name,
     );
     const before = new DataSnapshot(
       raw.data.data,
       path,
       this.apps.admin,
-      dbInstance
+      dbInstance,
     );
     const after = new DataSnapshot(
       applyChange(raw.data.data, raw.data.delta),
       path,
       this.apps.admin,
-      dbInstance
+      dbInstance,
     );
     return {
       before,
@@ -245,13 +245,13 @@ export function resourceToInstanceAndPath(resource: string) {
   if (!match) {
     throw new Error(
       `Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
-        'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"'
+        'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"',
     );
   }
   const [, project, dbInstanceName, path] = match;
   if (project !== '_') {
     throw new Error(
-      `Expect project to be '_' in a Firebase Realtime Database event`
+      `Expect project to be '_' in a Firebase Realtime Database event`,
     );
   }
   const dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
@@ -269,7 +269,7 @@ export class DataSnapshot {
     data: any,
     path?: string, // path will be undefined for the database root
     private app?: firebase.app.App,
-    instance?: string
+    instance?: string,
   ) {
     if (instance) {
       // SDK always supplies instance, but user's unit tests may not
@@ -291,7 +291,7 @@ export class DataSnapshot {
       // may be unpopulated in user's unit tests
       throw new Error(
         'Please supply a Firebase app in the constructor for DataSnapshot' +
-          ' in order to use the .ref method.'
+          ' in order to use the .ref method.',
       );
     }
     if (!this._ref) {
@@ -309,7 +309,7 @@ export class DataSnapshot {
     const parts = pathParts(this._childPath);
     const source = this._data;
     const node = _.cloneDeep(
-      parts.length ? _.get(source, parts, null) : source
+      parts.length ? _.get(source, parts, null) : source,
     );
     return this._checkAndConvertToArray(node);
   }
@@ -340,7 +340,7 @@ export class DataSnapshot {
     if (_.isPlainObject(val)) {
       return _.some(
         val,
-        (value, key: string) => action(this.child(key)) === true
+        (value, key: string) => action(this.child(key)) === true,
       );
     }
     return false;
@@ -412,7 +412,7 @@ export class DataSnapshot {
       this._data,
       undefined,
       this.app,
-      this.instance
+      this.instance,
     );
     [dup._path, dup._childPath] = [this._path, this._childPath];
 

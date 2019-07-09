@@ -53,8 +53,8 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   ) {
     throw new Error(
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(
-        ', '
-      )}`
+        ', ',
+      )}`,
     );
   }
   if (
@@ -62,7 +62,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     runtimeOptions.timeoutSeconds < 0
   ) {
     throw new Error(
-      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`,
     );
   }
   return true;
@@ -79,7 +79,7 @@ function assertRegionsAreValid(regions: string[]): boolean {
   }
   if (_.difference(regions, SUPPORTED_REGIONS).length) {
     throw new Error(
-      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')}`
+      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')}`,
     );
   }
   return true;
@@ -156,7 +156,7 @@ export class FunctionBuilder {
        * same signature as an Express app.
        */
       onRequest: (
-        handler: (req: https.Request, resp: express.Response) => void
+        handler: (req: https.Request, resp: express.Response) => void,
       ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
@@ -165,8 +165,8 @@ export class FunctionBuilder {
       onCall: (
         handler: (
           data: any,
-          context: https.CallableContext
-        ) => any | Promise<any>
+          context: https.CallableContext,
+        ) => any | Promise<any>,
       ) => https._onCallWithOptions(handler, this.options),
     };
   }
@@ -268,12 +268,12 @@ export class FunctionBuilder {
       onUpdate: (
         handler: (
           version: remoteConfig.TemplateVersion,
-          context: EventContext
-        ) => PromiseLike<any> | any
+          context: EventContext,
+        ) => PromiseLike<any> | any,
       ) =>
         remoteConfig._onUpdateWithOptions(
           handler,
-          this.options
+          this.options,
         ) as CloudFunction<remoteConfig.TemplateVersion>,
     };
   }

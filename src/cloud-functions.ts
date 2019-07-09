@@ -136,7 +136,7 @@ export namespace Change {
    */
   export function fromJSON<T>(
     json: ChangeJson,
-    customizer: (x: any) => T = reinterpretCast
+    customizer: (x: any) => T = reinterpretCast,
   ): Change<T> {
     let before = _.assign({}, json.before);
     if (json.fieldMask) {
@@ -144,7 +144,7 @@ export namespace Change {
     }
     return Change.fromObjects(
       customizer(before || {}),
-      customizer(json.after || {})
+      customizer(json.after || {}),
     );
   }
 
@@ -154,7 +154,7 @@ export namespace Change {
   export function applyFieldMask(
     sparseBefore: any,
     after: any,
-    fieldMask: string
+    fieldMask: string,
   ) {
     const before = _.assign({}, after);
     const masks = fieldMask.split(',');
@@ -297,7 +297,7 @@ export function makeCloudFunction<EventData>({
       Object.defineProperty(context, 'params', {
         get: () => {
           throw new Error(
-            'context.params is not available when using the handler namespace.'
+            'context.params is not available when using the handler namespace.',
           );
         },
       });
@@ -355,7 +355,7 @@ export function makeCloudFunction<EventData>({
 
 function _makeParams(
   context: EventContext,
-  triggerResourceGetter: () => string
+  triggerResourceGetter: () => string,
 ): { [option: string]: any } {
   if (context.params) {
     // In unit testing, user may directly provide `context.params`.

@@ -81,7 +81,7 @@ describe('Storage Functions', () => {
       it('should allow fully qualified bucket names', () => {
         const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
-          {}
+          {},
         );
         const result = subjectQualified.onArchive(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -99,7 +99,7 @@ describe('Storage Functions', () => {
             storage
               .bucket('bad/bucket/format')
               .object()
-              .onArchive(() => null).__trigger
+              .onArchive(() => null).__trigger,
         ).to.throw(Error);
       });
 
@@ -125,7 +125,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -161,7 +161,7 @@ describe('Storage Functions', () => {
       it('should allow fully qualified bucket names', () => {
         const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
-          {}
+          {},
         );
         const result = subjectQualified.onDelete(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -179,7 +179,7 @@ describe('Storage Functions', () => {
             storage
               .bucket('bad/bucket/format')
               .object()
-              .onDelete(() => null).__trigger
+              .onDelete(() => null).__trigger,
         ).to.throw(Error);
       });
 
@@ -205,7 +205,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -241,7 +241,7 @@ describe('Storage Functions', () => {
       it('should allow fully qualified bucket names', () => {
         const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
-          {}
+          {},
         );
         const result = subjectQualified.onFinalize(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -259,7 +259,7 @@ describe('Storage Functions', () => {
             storage
               .bucket('bad/bucket/format')
               .object()
-              .onFinalize(() => null).__trigger
+              .onFinalize(() => null).__trigger,
         ).to.throw(Error);
       });
 
@@ -285,7 +285,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -321,7 +321,7 @@ describe('Storage Functions', () => {
       it('should allow fully qualified bucket names', () => {
         const subjectQualified = new storage.ObjectBuilder(
           () => 'projects/_/buckets/bucky',
-          {}
+          {},
         );
         const result = subjectQualified.onMetadataUpdate(() => null);
         expect(result.__trigger).to.deep.equal({
@@ -339,7 +339,7 @@ describe('Storage Functions', () => {
             storage
               .bucket('bad/bucket/format')
               .object()
-              .onMetadataUpdate(() => null).__trigger
+              .onMetadataUpdate(() => null).__trigger,
         ).to.throw(Error);
       });
 
@@ -365,7 +365,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -387,7 +387,7 @@ describe('Storage Functions', () => {
     describe('#onArchive', () => {
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.storage.bucket.onArchive(
-          () => null
+          () => null,
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
@@ -396,7 +396,7 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.object.onArchive(
           (data) => {
             return data.mediaLink;
-          }
+          },
         );
         const goodMediaLinkEvent = {
           data: {
@@ -416,7 +416,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -426,7 +426,7 @@ describe('Storage Functions', () => {
     describe('#onDelete', () => {
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.storage.bucket.onDelete(
-          () => null
+          () => null,
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
@@ -435,7 +435,7 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.object.onDelete(
           (data) => {
             return data.mediaLink;
-          }
+          },
         );
         const goodMediaLinkEvent = {
           data: {
@@ -455,7 +455,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -465,7 +465,7 @@ describe('Storage Functions', () => {
     describe('#onFinalize', () => {
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.storage.bucket.onFinalize(
-          () => null
+          () => null,
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
@@ -474,7 +474,7 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.object.onFinalize(
           (data) => {
             return data.mediaLink;
-          }
+          },
         );
         const goodMediaLinkEvent = {
           data: {
@@ -494,7 +494,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -504,7 +504,7 @@ describe('Storage Functions', () => {
     describe('#onMetadataUpdate', () => {
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.storage.bucket.onMetadataUpdate(
-          () => null
+          () => null,
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
@@ -513,7 +513,7 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.object.onMetadataUpdate(
           (data) => {
             return data.mediaLink;
-          }
+          },
         );
         const goodMediaLinkEvent = {
           data: {
@@ -533,7 +533,7 @@ describe('Storage Functions', () => {
         };
         return cloudFunction(
           goodMediaLinkEvent.data,
-          goodMediaLinkEvent.context
+          goodMediaLinkEvent.context,
         ).then((result: any, context: EventContext) => {
           expect(result).equals(goodMediaLinkEvent.data.mediaLink);
         });
@@ -548,7 +548,7 @@ describe('Storage Functions', () => {
 
     it('should throw when trigger is accessed', () => {
       expect(() => storage.object().onArchive(() => null).__trigger).to.throw(
-        Error
+        Error,
       );
     });
 

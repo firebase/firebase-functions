@@ -43,8 +43,8 @@ export const service = 'firebaseremoteconfig.googleapis.com';
 export function onUpdate(
   handler: (
     version: TemplateVersion,
-    context: EventContext
-  ) => PromiseLike<any> | any
+    context: EventContext,
+  ) => PromiseLike<any> | any,
 ): CloudFunction<TemplateVersion> {
   return _onUpdateWithOptions(handler, {});
 }
@@ -53,9 +53,9 @@ export function onUpdate(
 export function _onUpdateWithOptions(
   handler: (
     version: TemplateVersion,
-    context: EventContext
+    context: EventContext,
   ) => PromiseLike<any> | any,
-  options: DeploymentOptions
+  options: DeploymentOptions,
 ): CloudFunction<TemplateVersion> {
   const triggerResource = () => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -71,7 +71,7 @@ export class UpdateBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {}
 
   /**
@@ -83,8 +83,8 @@ export class UpdateBuilder {
   onUpdate(
     handler: (
       version: TemplateVersion,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<TemplateVersion> {
     return makeCloudFunction({
       handler,

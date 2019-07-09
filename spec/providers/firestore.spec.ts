@@ -51,7 +51,7 @@ describe('Firestore Functions', () => {
             service: 'service',
           },
         },
-        context
+        context,
       ),
     };
   }
@@ -118,7 +118,7 @@ describe('Firestore Functions', () => {
         .document('users/{uid}')
         .onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(
-        expectedTrigger(resource, 'document.write')
+        expectedTrigger(resource, 'document.write'),
       );
     });
 
@@ -130,7 +130,7 @@ describe('Firestore Functions', () => {
         .document('users/{uid}')
         .onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(
-        expectedTrigger(resource, 'document.write')
+        expectedTrigger(resource, 'document.write'),
       );
     });
 
@@ -141,7 +141,7 @@ describe('Firestore Functions', () => {
         .document('users/{uid}')
         .onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(
-        expectedTrigger(resource, 'document.write')
+        expectedTrigger(resource, 'document.write'),
       );
     });
 
@@ -154,7 +154,7 @@ describe('Firestore Functions', () => {
         .document('users/{uid}')
         .onWrite(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(
-        expectedTrigger(resource, 'document.write')
+        expectedTrigger(resource, 'document.write'),
       );
     });
 
@@ -179,7 +179,7 @@ describe('Firestore Functions', () => {
       const eventType = firestore.document('users/{uid}').onCreate(() => null)
         .__trigger.eventTrigger.eventType;
       expect(eventType).to.eq(
-        expectedTrigger(resource, 'document.create').eventTrigger.eventType
+        expectedTrigger(resource, 'document.create').eventTrigger.eventType,
       );
     });
 
@@ -189,7 +189,7 @@ describe('Firestore Functions', () => {
       const eventType = firestore.document('users/{uid}').onUpdate(() => null)
         .__trigger.eventTrigger.eventType;
       expect(eventType).to.eq(
-        expectedTrigger(resource, 'document.update').eventTrigger.eventType
+        expectedTrigger(resource, 'document.update').eventTrigger.eventType,
       );
     });
 
@@ -199,7 +199,7 @@ describe('Firestore Functions', () => {
       const eventType = firestore.document('users/{uid}').onDelete(() => null)
         .__trigger.eventTrigger.eventType;
       expect(eventType).to.eq(
-        expectedTrigger(resource, 'document.delete').eventTrigger.eventType
+        expectedTrigger(resource, 'document.delete').eventTrigger.eventType,
       );
     });
   });
@@ -207,13 +207,13 @@ describe('Firestore Functions', () => {
   describe('process.env.GCLOUD_PROJECT not set', () => {
     it('should not throw if __trigger is not accessed', () => {
       expect(() =>
-        firestore.document('input').onCreate(() => null)
+        firestore.document('input').onCreate(() => null),
       ).to.not.throw(Error);
     });
 
     it('should throw when trigger is accessed', () => {
       expect(
-        () => firestore.document('input').onCreate(() => null).__trigger
+        () => firestore.document('input').onCreate(() => null).__trigger,
       ).to.throw(Error);
     });
 
@@ -248,7 +248,7 @@ describe('Firestore Functions', () => {
       const event = constructEvent(
         createOldValue(),
         createValue(),
-        'document.write'
+        'document.write',
       );
       return testFunction(event.data, event.context);
     }).timeout(5000);
@@ -281,7 +281,7 @@ describe('Firestore Functions', () => {
       const event = constructEvent(
         createOldValue(),
         createValue(),
-        'document.update'
+        'document.update',
       );
       return testFunction(event.data, event.context);
     }).timeout(5000);
@@ -319,13 +319,13 @@ describe('Firestore Functions', () => {
           expect(change.after.data()).to.deep.equal({ key1: true, key2: 123 });
           expect(change.after.get('key1')).to.equal(true);
           return true; // otherwise will get warning about returning undefined
-        }
+        },
       );
       expect(testFunction.__trigger).to.deep.equal({});
       const event = constructEvent(
         createOldValue(),
         createValue(),
-        'document.write'
+        'document.write',
       );
       return testFunction(event.data, event.context);
     }).timeout(5000);
@@ -336,7 +336,7 @@ describe('Firestore Functions', () => {
           expect(data.data()).to.deep.equal({ key1: true, key2: 123 });
           expect(data.get('key1')).to.equal(true);
           return true; // otherwise will get warning about returning undefined
-        }
+        },
       );
       expect(testFunction.__trigger).to.deep.equal({});
       const event = constructEvent({}, createValue(), 'document.create');
@@ -354,13 +354,13 @@ describe('Firestore Functions', () => {
           expect(change.after.data()).to.deep.equal({ key1: true, key2: 123 });
           expect(change.after.get('key1')).to.equal(true);
           return true; // otherwise will get warning about returning undefined
-        }
+        },
       );
       expect(testFunction.__trigger).to.deep.equal({});
       const event = constructEvent(
         createOldValue(),
         createValue(),
-        'document.update'
+        'document.update',
       );
       return testFunction(event.data, event.context);
     }).timeout(5000);
@@ -371,7 +371,7 @@ describe('Firestore Functions', () => {
           expect(data.data()).to.deep.equal({ key1: false, key2: 111 });
           expect(data.get('key1')).to.equal(false);
           return true; // otherwise will get warning about returning undefined
-        }
+        },
       );
       const event = constructEvent(createOldValue(), {}, 'document.delete');
       expect(testFunction.__trigger).to.deep.equal({});
@@ -385,7 +385,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: constructValue({ key: { integerValue: '123' } }),
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({ key: 123 });
       });
@@ -394,7 +394,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: constructValue({ key: { doubleValue: 12.34 } }),
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({ key: 12.34 });
       });
@@ -403,7 +403,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: constructValue({ key: { nullValue: null } }),
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({ key: null });
       });
@@ -412,7 +412,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: constructValue({ key: { booleanValue: true } }),
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({ key: true });
       });
@@ -421,7 +421,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: constructValue({ key: { stringValue: 'foo' } }),
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({ key: 'foo' });
       });
@@ -437,7 +437,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({ key: [1, 2] });
       });
@@ -460,7 +460,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({
           keyParent: { key1: 'val1', key2: 'val2' },
@@ -485,7 +485,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({
           geoPointValue: {
@@ -505,7 +505,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(_.get(snapshot.data(), 'referenceVal').path).to.equal('doc1/id');
       });
@@ -519,11 +519,11 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({
           timestampVal: admin.firestore.Timestamp.fromDate(
-            new Date('2017-06-13T00:58:40.349Z')
+            new Date('2017-06-13T00:58:40.349Z'),
           ),
         });
       });
@@ -537,11 +537,11 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({
           timestampVal: admin.firestore.Timestamp.fromDate(
-            new Date('2017-06-13T00:58:40Z')
+            new Date('2017-06-13T00:58:40Z'),
           ),
         });
       });
@@ -556,7 +556,7 @@ describe('Firestore Functions', () => {
         const snapshot = firestore.snapshotConstructor(
           makeEvent({
             value: raw,
-          })
+          }),
         );
         expect(snapshot.data()).to.deep.equal({
           binaryVal: new Buffer('foobar'),
@@ -577,7 +577,7 @@ describe('Firestore Functions', () => {
               readTime: '2017-07-31T18:23:26.928527Z',
               name: 'projects/pid/databases/(default)/documents/collection/123',
             },
-          })
+          }),
         );
       });
 
@@ -621,8 +621,8 @@ describe('Firestore Functions', () => {
                 name:
                   'projects/pid/databases/(default)/documents/collection/123',
               },
-            }
-          )
+            },
+          ),
         );
         expect(snapshot.exists).to.be.false;
         expect(snapshot.ref.path).to.equal('collection/123');
@@ -637,7 +637,7 @@ describe('Firestore Functions', () => {
               updateTime: '2017-07-02T18:48:58.920638Z',
               name: 'projects/pid/databases/(default)/documents/collection/123',
             },
-          })
+          }),
         );
         expect(snapshot.exists).to.be.true;
         expect(snapshot.ref.path).to.equal('collection/123');

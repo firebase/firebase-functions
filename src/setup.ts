@@ -37,7 +37,7 @@ export function setup() {
   // WORKAROUND (BUG 134416569): GCLOUD_PROJECT missing in Node 10
   if (!process.env.GCLOUD_PROJECT && process.env.FIREBASE_CONFIG) {
     process.env.GCLOUD_PROJECT = JSON.parse(
-      process.env.FIREBASE_CONFIG
+      process.env.FIREBASE_CONFIG,
     ).projectId;
   }
 
@@ -45,7 +45,7 @@ export function setup() {
   if (!process.env.FIREBASE_CONFIG) {
     if (process.env.GCLOUD_PROJECT) {
       console.warn(
-        'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
+        'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail',
       );
       process.env.FIREBASE_CONFIG = JSON.stringify({
         databaseURL:
@@ -58,7 +58,7 @@ export function setup() {
       });
     } else {
       console.warn(
-        'Warning, FIREBASE_CONFIG and GCLOUD_PROJECT environment variables are missing. Initializing firebase-admin will fail'
+        'Warning, FIREBASE_CONFIG and GCLOUD_PROJECT environment variables are missing. Initializing firebase-admin will fail',
       );
     }
   }

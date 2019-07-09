@@ -53,14 +53,14 @@ export function object() {
 /** @internal */
 export function _bucketWithOptions(
   options: DeploymentOptions,
-  bucket?: string
+  bucket?: string,
 ): BucketBuilder {
   const resourceGetter = () => {
     bucket = bucket || firebaseConfig().storageBucket;
     if (!bucket) {
       throw new Error(
         'Missing bucket name. If you are unit testing, please provide a bucket name' +
-          ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.'
+          ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.',
       );
     }
     if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
@@ -80,7 +80,7 @@ export class BucketBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {}
 
   /** Handle events for objects in this bucket. */
@@ -93,14 +93,14 @@ export class ObjectBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private options: DeploymentOptions
+    private options: DeploymentOptions,
   ) {}
 
   /** @internal */
   onChange(handler: any): Error {
     throw new Error(
       '"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
-        '"onFinalize", or "onMetadataUpdate".'
+        '"onFinalize", or "onMetadataUpdate".',
     );
   }
 
@@ -108,8 +108,8 @@ export class ObjectBuilder {
   onArchive(
     handler: (
       object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.archive');
   }
@@ -118,8 +118,8 @@ export class ObjectBuilder {
   onDelete(
     handler: (
       object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.delete');
   }
@@ -128,8 +128,8 @@ export class ObjectBuilder {
   onFinalize(
     handler: (
       object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.finalize');
   }
@@ -138,8 +138,8 @@ export class ObjectBuilder {
   onMetadataUpdate(
     handler: (
       object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+      context: EventContext,
+    ) => PromiseLike<any> | any,
   ): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, 'object.metadataUpdate');
   }
@@ -147,9 +147,9 @@ export class ObjectBuilder {
   private onOperation(
     handler: (
       object: ObjectMetadata,
-      context: EventContext
+      context: EventContext,
     ) => PromiseLike<any> | any,
-    eventType: string
+    eventType: string,
   ): CloudFunction<ObjectMetadata> {
     return makeCloudFunction({
       handler,
@@ -204,7 +204,7 @@ export interface ObjectMetadata {
         team?: string;
       };
       etag?: string;
-    }
+    },
   ];
   owner?: {
     entity?: string;

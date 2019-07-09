@@ -60,7 +60,7 @@ describe('RemoteConfig Functions', () => {
             service: 'service',
           },
         },
-        context
+        context,
       ),
     };
   }
@@ -89,7 +89,7 @@ describe('RemoteConfig Functions', () => {
     it('should have the correct trigger', () => {
       const cloudFunction = remoteConfig.onUpdate(() => null);
       expect(cloudFunction.__trigger).to.deep.equal(
-        expectedTrigger().__trigger
+        expectedTrigger().__trigger,
       );
     });
 
@@ -116,7 +116,7 @@ describe('RemoteConfig Functions', () => {
       process.env.GCLOUD_PROJECT = 'project1';
       cloudFunctionUpdate = remoteConfig.onUpdate(
         (version: remoteConfig.TemplateVersion, context: EventContext) =>
-          version
+          version,
       );
 
       event = {
@@ -142,7 +142,7 @@ describe('RemoteConfig Functions', () => {
         cloudFunctionUpdate(event.data, event.context).then(
           (data: any, context: any) => {
             expect(data).to.deep.equal(constructVersion());
-          }
+          },
         ),
       ]);
     });
@@ -152,7 +152,7 @@ describe('RemoteConfig Functions', () => {
     describe('#onUpdate', () => {
       it('should have an empty trigger', () => {
         const cloudFunction = functions.handler.remoteConfig.onUpdate(
-          () => null
+          () => null,
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
@@ -160,7 +160,7 @@ describe('RemoteConfig Functions', () => {
       it('should correctly unwrap the event', () => {
         const cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
           (version: remoteConfig.TemplateVersion, context: EventContext) =>
-            version
+            version,
         );
         const event: Event = {
           data: constructVersion(),
@@ -179,7 +179,7 @@ describe('RemoteConfig Functions', () => {
           cloudFunctionUpdate(event.data, event.context).then(
             (data: any, context: any) => {
               expect(data).to.deep.equal(constructVersion());
-            }
+            },
           ),
         ]);
       });

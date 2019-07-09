@@ -159,7 +159,7 @@ describe('makeParams', () => {
     };
 
     return expect(
-      cf(testEvent.data, testEvent.context)
+      cf(testEvent.data, testEvent.context),
     ).to.eventually.deep.equal({
       foo: 'a',
       bar: 'b',
@@ -193,7 +193,7 @@ describe('makeAuth and makeAuthType', () => {
     };
 
     return expect(
-      cf(testEvent.data, testEvent.context)
+      cf(testEvent.data, testEvent.context),
     ).to.eventually.deep.equal({
       auth: undefined,
       authType: 'ADMIN',
@@ -211,7 +211,7 @@ describe('makeAuth and makeAuthType', () => {
     };
 
     return expect(
-      cf(testEvent.data, testEvent.context)
+      cf(testEvent.data, testEvent.context),
     ).to.eventually.deep.equal({
       auth: null,
       authType: 'UNAUTHENTICATED',
@@ -236,7 +236,7 @@ describe('makeAuth and makeAuthType', () => {
     };
 
     return expect(
-      cf(testEvent.data, testEvent.context)
+      cf(testEvent.data, testEvent.context),
     ).to.eventually.deep.equal({
       auth: {
         uid: 'user',
@@ -264,7 +264,7 @@ describe('Change', () => {
       const sparseBefore = { baz: 'qux' };
       const fieldMask = 'baz';
       expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
+        Change.applyFieldMask(sparseBefore, after, fieldMask),
       ).to.deep.equal({
         foo: 'bar',
         num: 2,
@@ -280,7 +280,7 @@ describe('Change', () => {
       const sparseBefore = {};
       const fieldMask = 'num,obj.a';
       expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
+        Change.applyFieldMask(sparseBefore, after, fieldMask),
       ).to.deep.equal({
         foo: 'bar',
         obj: {
@@ -298,7 +298,7 @@ describe('Change', () => {
       };
       const fieldMask = 'num,obj.a';
       expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
+        Change.applyFieldMask(sparseBefore, after, fieldMask),
       ).to.deep.equal({
         foo: 'bar',
         num: 3,
@@ -331,7 +331,7 @@ describe('Change', () => {
           before: { foo: 'bar' },
           after: { foo: 'faz' },
         },
-        customizer
+        customizer,
       );
       expect(created.before).to.deep.equal({
         foo: 'bar',

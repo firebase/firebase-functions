@@ -37,7 +37,7 @@ export function mockRCVariableFetch(
   projectId: string,
   varName: string,
   data: any,
-  token: string = 'thetoken'
+  token: string = 'thetoken',
 ): nock.Scope {
   return nock('https://runtimeconfig.googleapis.com')
     .get(`/v1beta1/projects/${projectId}/configs/firebase/variables/${varName}`)
@@ -49,11 +49,11 @@ export function mockMetaVariableWatch(
   projectId: string,
   data: any,
   token: string = 'thetoken',
-  updateTime: string = new Date().toISOString()
+  updateTime: string = new Date().toISOString(),
 ): nock.Scope {
   return nock('https://runtimeconfig.googleapis.com')
     .post(
-      `/v1beta1/projects/${projectId}/configs/firebase/variables/meta:watch`
+      `/v1beta1/projects/${projectId}/configs/firebase/variables/meta:watch`,
     )
     .matchHeader('Authorization', `Bearer ${token}`)
     .reply(200, {
@@ -66,10 +66,10 @@ export function mockMetaVariableWatch(
 export function mockMetaVariableWatchTimeout(
   projectId: string,
   delay: number,
-  token?: string
+  token?: string,
 ): nock.Scope {
   let interceptor = nock('https://runtimeconfig.googleapis.com').post(
-    `/v1beta1/projects/${projectId}/configs/firebase/variables/meta:watch`
+    `/v1beta1/projects/${projectId}/configs/firebase/variables/meta:watch`,
   );
 
   if (interceptor) {
@@ -80,7 +80,7 @@ export function mockMetaVariableWatchTimeout(
 }
 
 export function mockCreateToken(
-  token: AccessToken = { access_token: 'aToken', expires_in: 3600 }
+  token: AccessToken = { access_token: 'aToken', expires_in: 3600 },
 ): nock.Scope {
   return nock('https://accounts.google.com')
     .post('/o/oauth2/token')
@@ -88,7 +88,7 @@ export function mockCreateToken(
 }
 
 export function mockRefreshToken(
-  token: AccessToken = { access_token: 'aToken', expires_in: 3600 }
+  token: AccessToken = { access_token: 'aToken', expires_in: 3600 },
 ): nock.Scope {
   return nock('https://www.googleapis.com')
     .post('/oauth2/v4/token')
@@ -96,7 +96,7 @@ export function mockRefreshToken(
 }
 
 export function mockMetadataServiceToken(
-  token: AccessToken = { access_token: 'aToken', expires_in: 3600 }
+  token: AccessToken = { access_token: 'aToken', expires_in: 3600 },
 ): nock.Scope {
   return nock('http://metadata.google.internal')
     .get('/computeMetadata/v1beta1/instance/service-accounts/default/token')
