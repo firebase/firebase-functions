@@ -20,7 +20,7 @@ const options = {
   excludeExternals: true,
   ignoreCompilerErrors: true,
   name: 'Firebase Functions SDK',
-  mode: 'file',
+  mode: 'modules',
   hideGenerator: true
 };
 
