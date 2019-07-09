@@ -1,1 +1,0 @@
-fixed - bug where auth.UserRecord.metadata was undefined.

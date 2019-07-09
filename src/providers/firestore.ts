@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { posix } from 'path';
-import * as _ from 'lodash';
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
+import { posix } from 'path';
 import { apps } from '../apps';
 import {
-  makeCloudFunction,
-  CloudFunction,
   Change,
+  CloudFunction,
   Event,
   EventContext,
+  makeCloudFunction,
 } from '../cloud-functions';
 import { dateToTimestampProto } from '../encoder';
-import { DeploymentOptions } from '../function-builder';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firestore';
@@ -51,47 +51,50 @@ export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
  * path is "/users/Ada".
  */
 export function document(path: string) {
-  return _documentWithOpts(path, {});
+  return _documentWithOptions(path, {});
 }
 /** @internal */
 // Multiple namespaces are not yet supported by Firestore.
 export function namespace(namespace: string) {
-  return _namespaceWithOpts(namespace, {});
+  return _namespaceWithOptions(namespace, {});
 }
 /** @internal */
 // Multiple databases are not yet supported by Firestore.
 export function database(database: string) {
-  return _databaseWithOpts(database, {});
+  return _databaseWithOptions(database, {});
 }
 
 /** @internal */
-export function _databaseWithOpts(
+export function _databaseWithOptions(
   database: string = defaultDatabase,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ) {
-  return new DatabaseBuilder(database, opts);
+  return new DatabaseBuilder(database, options);
 }
 
 /** @internal */
-export function _namespaceWithOpts(namespace: string, opts: DeploymentOptions) {
-  return _databaseWithOpts(defaultDatabase, opts).namespace(namespace);
+export function _namespaceWithOptions(
+  namespace: string,
+  options: DeploymentOptions
+) {
+  return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
 /** @internal */
-export function _documentWithOpts(path: string, opts: DeploymentOptions) {
-  return _databaseWithOpts(defaultDatabase, opts).document(path);
+export function _documentWithOptions(path: string, options: DeploymentOptions) {
+  return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
 export class DatabaseBuilder {
   /** @internal */
-  constructor(private database: string, private opts: DeploymentOptions) {}
+  constructor(private database: string, private options: DeploymentOptions) {}
 
   namespace(namespace: string) {
-    return new NamespaceBuilder(this.database, this.opts, namespace);
+    return new NamespaceBuilder(this.database, this.options, namespace);
   }
 
   document(path: string) {
-    return new NamespaceBuilder(this.database, this.opts).document(path);
+    return new NamespaceBuilder(this.database, this.options).document(path);
   }
 }
 
@@ -99,7 +102,7 @@ export class NamespaceBuilder {
   /** @internal */
   constructor(
     private database: string,
-    private opts: DeploymentOptions,
+    private options: DeploymentOptions,
     private namespace?: string
   ) {}
 
@@ -108,7 +111,7 @@ export class NamespaceBuilder {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error('process.env.GCLOUD_PROJECT is not set.');
       }
-      let database = posix.join(
+      const database = posix.join(
         'projects',
         process.env.GCLOUD_PROJECT,
         'databases',
@@ -119,7 +122,7 @@ export class NamespaceBuilder {
         this.namespace ? `documents@${this.namespace}` : 'documents',
         path
       );
-    }, this.opts);
+    }, this.options);
   }
 }
 
@@ -128,7 +131,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
     // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
     return resource;
   }
-  let proto = {
+  const proto = {
     fields: _.get(data, [valueFieldName, 'fields'], {}),
     createTime: dateToTimestampProto(
       _.get(data, [valueFieldName, 'createTime'])
@@ -146,12 +149,12 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let valueProto = _getValueProto(
+  const valueProto = _getValueProto(
     event.data,
     event.context.resource.name,
     'value'
   );
-  let readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
+  const readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
   return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 }
 
@@ -161,12 +164,12 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
-  let oldValueProto = _getValueProto(
+  const oldValueProto = _getValueProto(
     event.data,
     event.context.resource.name,
     'oldValue'
   );
-  let oldReadTime = dateToTimestampProto(
+  const oldReadTime = dateToTimestampProto(
     _.get(event, 'data.oldValue.readTime')
   );
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
@@ -183,7 +186,7 @@ export class DocumentBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {
     // TODO what validation do we want to do here?
   }
@@ -245,7 +248,7 @@ export class DocumentBuilder {
       triggerResource: this.triggerResource,
       legacyEventType: `providers/cloud.firestore/eventTypes/${eventType}`,
       dataConstructor,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

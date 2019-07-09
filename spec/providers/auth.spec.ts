@@ -23,10 +23,10 @@
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
 
+import { Resolver } from 'dns';
 import { CloudFunction, Event, EventContext } from '../../src/cloud-functions';
 import * as functions from '../../src/index';
 import * as auth from '../../src/providers/auth';
-import { Resolver } from 'dns';
 
 describe('Auth Functions', () => {
   const event: Event = {

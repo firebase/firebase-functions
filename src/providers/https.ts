@@ -20,21 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import * as cors from 'cors';
 import { apps } from '../apps';
-import { HttpsFunction, optsToTrigger, Runnable } from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import { DeploymentOptions } from '../function-configuration';
 
-/**
- *
- *
- */
 export interface Request extends express.Request {
   rawBody: Buffer;
 }
+
 /**
  * Handle HTTP requests.
  * @param handler A function that takes a request and response object,
@@ -42,8 +39,8 @@ export interface Request extends express.Request {
  */
 export function onRequest(
   handler: (req: Request, resp: express.Response) => void
-) {
-  return _onRequestWithOpts(handler, {});
+): HttpsFunction {
+  return _onRequestWithOptions(handler, {});
 }
 
 /**
@@ -53,20 +50,22 @@ export function onRequest(
 export function onCall(
   handler: (data: any, context: CallableContext) => any | Promise<any>
 ): HttpsFunction & Runnable<any> {
-  return _onCallWithOpts(handler, {});
+  return _onCallWithOptions(handler, {});
 }
 
 /** @internal */
-export function _onRequestWithOpts(
+export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
-  let cloudFunction: any = (req: Request, res: express.Response) => {
+  const cloudFunction: any = (req: Request, res: express.Response) => {
     handler(req, res);
   };
-  cloudFunction.__trigger = _.assign(optsToTrigger(opts), { httpsTrigger: {} });
-  // TODO parse the opts
+  cloudFunction.__trigger = _.assign(optionsToTrigger(options), {
+    httpsTrigger: {},
+  });
+  // TODO parse the options
   return cloudFunction;
 }
 
@@ -232,7 +231,7 @@ export class HttpsError extends Error {
         return 500;
       // This should never happen as long as the type system is doing its job.
       default:
-        throw 'Invalid error code: ' + this.code;
+        throw new Error('Invalid error code: ' + this.code);
     }
   }
 
@@ -414,9 +413,9 @@ export function decode(data: any): any {
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
 /** @internal */
-export function _onCallWithOpts(
+export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
   const func = async (req: Request, res: express.Response) => {
     try {
@@ -483,7 +482,7 @@ export function _onCallWithOpts(
     return corsHandler(req, res, () => func(req, res));
   };
 
-  corsFunc.__trigger = _.assign(optsToTrigger(opts), {
+  corsFunc.__trigger = _.assign(optionsToTrigger(options), {
     httpsTrigger: {},
     labels: { 'deployment-callable': 'true' },
   });

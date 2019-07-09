@@ -22,12 +22,14 @@
 
 import {
   CloudFunction,
-  makeCloudFunction,
   EventContext,
+  makeCloudFunction,
+} from '../cloud-functions';
+import {
+  DeploymentOptions,
   Schedule,
   ScheduleRetryConfig,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-builder';
+} from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.pubsub';
@@ -38,13 +40,13 @@ export const service = 'pubsub.googleapis.com';
  * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
  */
 export function topic(topic: string) {
-  return _topicWithOpts(topic, {});
+  return _topicWithOptions(topic, {});
 }
 
 /** @internal */
-export function _topicWithOpts(
+export function _topicWithOptions(
   topic: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): TopicBuilder {
   if (topic.indexOf('/') !== -1) {
     throw new Error('Topic name may not have a /');
@@ -55,28 +57,28 @@ export function _topicWithOpts(
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
-  }, opts);
+  }, options);
 }
 
 export function schedule(schedule: string): ScheduleBuilder {
-  return _scheduleWithOpts(schedule, {});
+  return _scheduleWithOptions(schedule, {});
 }
 
 export class ScheduleBuilder {
-  private _opts: DeploymentOptions;
+  private _options: DeploymentOptions;
 
   /** @internal */
-  constructor(private schedule: Schedule, private opts: DeploymentOptions) {
-    this._opts = { schedule, ...opts };
+  constructor(private schedule: Schedule, private options: DeploymentOptions) {
+    this._options = { schedule, ...options };
   }
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
-    this._opts.schedule.retryConfig = config;
+    this._options.schedule.retryConfig = config;
     return this;
   }
 
   timeZone(timeZone: string): ScheduleBuilder {
-    this._opts.schedule.timeZone = timeZone;
+    this._options.schedule.timeZone = timeZone;
     return this;
   }
 
@@ -91,9 +93,9 @@ export class ScheduleBuilder {
       contextOnlyHandler: handler,
       provider,
       service,
-      triggerResource: triggerResource,
+      triggerResource,
       eventType: 'topic.publish',
-      opts: this._opts,
+      options: this._options,
       labels: { 'deployment-scheduled': 'true' },
     });
     return cloudFunction;
@@ -101,11 +103,11 @@ export class ScheduleBuilder {
 }
 
 /** @internal */
-export function _scheduleWithOpts(
+export function _scheduleWithOptions(
   schedule: string,
-  opts: DeploymentOptions
+  options: DeploymentOptions
 ): ScheduleBuilder {
-  return new ScheduleBuilder({ schedule }, opts);
+  return new ScheduleBuilder({ schedule }, options);
 }
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
@@ -113,7 +115,7 @@ export class TopicBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts: DeploymentOptions
+    private options: DeploymentOptions
   ) {}
 
   /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
@@ -127,7 +129,7 @@ export class TopicBuilder {
       triggerResource: this.triggerResource,
       eventType: 'topic.publish',
       dataConstructor: (raw) => new Message(raw.data),
-      opts: this.opts,
+      options: this.options,
     });
   }
 }

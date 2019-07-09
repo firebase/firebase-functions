@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  makeCloudFunction,
-  CloudFunction,
-  EventContext,
-  Event,
-} from '../cloud-functions';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import { DeploymentOptions } from '../function-builder';
+import {
+  CloudFunction,
+  Event,
+  EventContext,
+  makeCloudFunction,
+} from '../cloud-functions';
+import { DeploymentOptions } from '../function-configuration';
 
 /** @internal */
 export const provider = 'google.firebase.auth';
@@ -39,17 +39,17 @@ export const service = 'firebaseauth.googleapis.com';
  * Handle events related to Firebase authentication users.
  */
 export function user() {
-  return _userWithOpts({});
+  return _userWithOptions({});
 }
 
 /** @internal */
-export function _userWithOpts(opts: DeploymentOptions) {
+export function _userWithOptions(options: DeploymentOptions) {
   return new UserBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return 'projects/' + process.env.GCLOUD_PROJECT;
-  }, opts);
+  }, options);
 }
 
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
@@ -73,7 +73,7 @@ export class UserBuilder {
   /** @internal */
   constructor(
     private triggerResource: () => string,
-    private opts?: DeploymentOptions
+    private options?: DeploymentOptions
   ) {}
 
   /** Respond to the creation of a Firebase Auth user. */
@@ -105,7 +105,7 @@ export class UserBuilder {
       triggerResource: this.triggerResource,
       dataConstructor: UserBuilder.dataConstructor,
       legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
-      opts: this.opts,
+      options: this.options,
     });
   }
 }
@@ -125,7 +125,7 @@ export function userRecordConstructor(
   wireData: Object
 ): firebase.auth.UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
-  let falseyValues: any = {
+  const falseyValues: any = {
     email: null,
     emailVerified: false,
     displayName: null,
@@ -138,9 +138,9 @@ export function userRecordConstructor(
     passwordHash: null,
     tokensValidAfterTime: null,
   };
-  let record = _.assign({}, falseyValues, wireData);
+  const record = _.assign({}, falseyValues, wireData);
 
-  let meta = _.get(record, 'metadata');
+  const meta = _.get(record, 'metadata');
   if (meta) {
     _.set(
       record,
