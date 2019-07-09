@@ -106,7 +106,6 @@ function generateTempHomeMdFile(tocRaw, homeRaw) {
   const { toc } = yaml.safeLoad(tocRaw);
   let tocPageLines = [homeRaw, '# API Reference'];
   toc.forEach(group => {
-    console.log(group);
     tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
     const section = group.section || [];
     section.forEach(item => {

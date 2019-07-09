@@ -1,6 +1,26 @@
 toc:
 - title: "functions"
-  path: /docs/reference/functions/globals.html
+  path: /docs/reference/functions/_cloud_functions_.html
+  section:
+  - title: "CloudFunction"
+    path: /docs/reference/functions/_cloud_functions_.html#cloudfunction
+  - title: "HttpsFunction"
+    path: /docs/reference/functions/_cloud_functions_.html#httpsfunction
+  - title: "Event"
+    path: /docs/reference/functions/_cloud_functions_.event.html
+  - title: "EventContext"
+    path: /docs/reference/functions/_cloud_functions_.eventcontext.html
+  - title: "FunctionBuilder"
+    path: /docs/reference/functions/_function_builder_.functionbuilder.html
+  - title: "Change"
+    path: /docs/reference/functions/_cloud_functions_.change.html
+  
+
+- title: "functions.config"
+  path: /docs/reference/functions/_config_.html
+  section:
+  - title: "Config"
+    path: /docs/reference/functions/_config_.config.html
 
 - title: "functions.analytics"
   path: /docs/reference/functions/_providers_analytics_.html
@@ -34,16 +54,41 @@ toc:
   - title: "UserRecord"
     path: /docs/reference/functions/_providers_auth_.html#userrecord
 
+- title: "functions.crashlytics"
+  path: /docs/reference/functions/_providers_crashlytics_.html
+  section:
+  - title: "Issue"
+    path: /docs/reference/functions/_providers_crashlytics_.issue.html
+  - title: "IssueBuilder"
+    path: /docs/reference/functions/_providers_crashlytics_.issuebuilder.html
+  - title: "AppInfo"
+    path: /docs/reference/functions/_providers_crashlytics_.appinfo.html
+  - title: "VelocityAlert"
+    path: /docs/reference/functions/_providers_crashlytics_.velocityalert.html
+
+- title: "functions.firestore"
+  path: /docs/reference/functions/_providers_firestore_.html
+  section:
+  - title: "DocumentBuilder"
+    path: /docs/reference/functions/_providers_firestore_.documentbuilder.html
+  - title: "DocumentSnapshot"
+    path: /docs/reference/functions/_providers_firestore_.html#documentsnapshot
+
 - title: "functions.database"
   path: /docs/reference/functions/_providers_database_.html
   section:
-  - title: "DeltaSnapshot"
-    path: /docs/reference/functions/_providers_database_.deltasnapshot.html
+  - title: "DataSnapshot"
+    path: /docs/reference/functions/_providers_database_.datasnapshot.html
   - title: "RefBuilder"
     path: /docs/reference/functions/_providers_database_.refbuilder.html
+  - title: "InstanceBuilder"
+    path: /docs/reference/functions/_providers_database_.instancebuilder.html
 
 - title: "functions.https"
   path: /docs/reference/functions/_providers_https_.html
+  section:
+    - title: "HttpsError"
+      path: /docs/reference/functions/_providers_https_.httpserror.html
 
 - title: "functions.pubsub"
   path: /docs/reference/functions/_providers_pubsub_.html
@@ -52,6 +97,14 @@ toc:
     path: /docs/reference/functions/_providers_pubsub_.message.html
   - title: "TopicBuilder"
     path: /docs/reference/functions/_providers_pubsub_.topicbuilder.html
+
+- title: "functions.remoteconfig"
+  path: /docs/reference/functions/_providers_remoteconfig_.html
+  section:
+  - title: "RemoteConfigUser"
+    path: /docs/reference/functions/_providers_remoteconfig_.remoteconfiguser.html
+  - title: "TemplateVersion"
+    path: /docs/reference/functions/_providers_remoteconfig_.templateversion.html
 
 - title: "functions.storage"
   path: /docs/reference/functions/_providers_storage_.html
@@ -62,14 +115,3 @@ toc:
     path: /docs/reference/functions/_providers_storage_.objectbuilder.html
   - title: "ObjectMetadata"
     path: /docs/reference/functions/_providers_storage_.objectmetadata.html
-
-- title: "CloudFunction"
-  path: /docs/reference/functions/_cloud_functions_.html
-- title: "Config"
-  path: /docs/reference/functions/_config_config.html
-- title: "Event"
-  path: /docs/reference/functions/_cloud_functions_.event.html
-- title: "functions.config"
-  path: /docs/reference/functions/_config_.html
-- title: "HttpsFunction"
-  path: /docs/reference/functions/functions.HttpsFunction.html

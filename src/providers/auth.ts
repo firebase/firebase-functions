@@ -117,7 +117,7 @@ export class UserBuilder {
 export type UserRecord = firebase.auth.UserRecord;
 
 /**
- * UserInfo that is part of the UserRecord object.
+ * UserInfo that is part of the UserRecord
  */
 export type UserInfo = firebase.auth.UserInfo;
 
