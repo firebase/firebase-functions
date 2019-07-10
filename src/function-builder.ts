@@ -21,14 +21,7 @@
 // SOFTWARE.
 
 import * as express from 'express';
-import {
-  assign,
-  difference,
-  includes,
-  isBoolean,
-  isEmpty,
-  isObjectLike,
-} from 'lodash';
+import * as _ from 'lodash';
 
 import { CloudFunction, EventContext } from './cloud-functions';
 import {
@@ -56,7 +49,7 @@ import * as storage from './providers/storage';
  * valid.
  */
 function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
-  if (isObjectLike(runtimeOptions) === false) {
+  if (_.isObjectLike(runtimeOptions) === false) {
     throw new Error('RuntimeOptions must be an object.');
   }
 
@@ -64,8 +57,8 @@ function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
 
   if (failurePolicy !== undefined) {
     if (
-      isBoolean(failurePolicy) === false &&
-      isObjectLike(failurePolicy) === false
+      _.isBoolean(failurePolicy) === false &&
+      _.isObjectLike(failurePolicy) === false
     ) {
       throw new Error(
         `RuntimeOptions.failurePolicy must be a boolean or an object.`
@@ -74,8 +67,8 @@ function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
 
     if (typeof failurePolicy === 'object') {
       if (
-        isObjectLike(failurePolicy.retry) === false ||
-        isEmpty(failurePolicy.retry) === false
+        _.isObjectLike(failurePolicy.retry) === false ||
+        _.isEmpty(failurePolicy.retry) === false
       ) {
         throw new Error(
           'RuntimeOptions.failurePolicy.retry must be an empty object.'
@@ -85,7 +78,7 @@ function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
   }
 
   if (memory !== undefined) {
-    if (includes(VALID_MEMORY_OPTIONS, memory) === false) {
+    if (_.includes(VALID_MEMORY_OPTIONS, memory) === false) {
       throw new Error(
         `RuntimeOptions.memory must be one of: ${VALID_MEMORY_OPTIONS.join(
           ', '
@@ -120,7 +113,7 @@ function assertRegionsValidity(regions: string[]): void {
     throw new Error('You must specify at least one region.');
   }
 
-  if (difference(regions, SUPPORTED_REGIONS).length !== 0) {
+  if (_.difference(regions, SUPPORTED_REGIONS).length !== 0) {
     throw new Error(
       `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')},`
     );
@@ -191,7 +184,7 @@ export class FunctionBuilder {
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     assertRuntimeOptionsValidity(runtimeOptions);
 
-    this.options = assign(this.options, runtimeOptions);
+    this.options = _.assign(this.options, runtimeOptions);
 
     return this;
   }
