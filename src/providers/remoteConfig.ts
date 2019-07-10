@@ -24,7 +24,6 @@ import * as _ from 'lodash';
 
 import {
   CloudFunction,
-  Event,
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
