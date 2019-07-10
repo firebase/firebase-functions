@@ -10,5 +10,5 @@
     "target": "es2017",
     "typeRoots": ["./node_modules/@types"]
   },
-  "files": ["./src/index.ts", "./src/testing.ts"]
+  "files": ["./src/index.ts"]
 }
