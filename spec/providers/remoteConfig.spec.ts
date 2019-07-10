@@ -46,25 +46,6 @@ describe('RemoteConfig Functions', () => {
     };
   }
 
-  function makeEvent(data: any, context: { [key: string]: any }): Event {
-    context = context || {};
-    return {
-      data,
-      context: _.merge(
-        {
-          eventId: '123',
-          timestamp: '2018-07-03T00:49:04.264Z',
-          eventType: 'google.firebase.remoteconfig.update',
-          resource: {
-            name: 'projects/project1',
-            service: 'service',
-          },
-        },
-        context
-      ),
-    };
-  }
-
   describe('#onUpdate', () => {
     function expectedTrigger(): TriggerAnnotated {
       return {

@@ -27,13 +27,12 @@ import {
 } from '../cloud-functions';
 import {
   DeploymentOptions,
-  Schedule,
   ScheduleRetryConfig,
 } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.pubsub';
-/** @internal */
+/** @hidden */
 export const service = 'pubsub.googleapis.com';
 
 /** Select Cloud Pub/Sub topic to listen to.
@@ -43,7 +42,7 @@ export function topic(topic: string) {
   return _topicWithOptions(topic, {});
 }
 
-/** @internal */
+/** @hidden */
 export function _topicWithOptions(
   topic: string,
   options: DeploymentOptions
@@ -65,20 +64,16 @@ export function schedule(schedule: string): ScheduleBuilder {
 }
 
 export class ScheduleBuilder {
-  private _options: DeploymentOptions;
-
-  /** @internal */
-  constructor(private schedule: Schedule, private options: DeploymentOptions) {
-    this._options = { schedule, ...options };
-  }
+  /** @hidden */
+  constructor(private options: DeploymentOptions) {}
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
-    this._options.schedule.retryConfig = config;
+    this.options.schedule.retryConfig = config;
     return this;
   }
 
   timeZone(timeZone: string): ScheduleBuilder {
-    this._options.schedule.timeZone = timeZone;
+    this.options.schedule.timeZone = timeZone;
     return this;
   }
 
@@ -95,24 +90,24 @@ export class ScheduleBuilder {
       service,
       triggerResource,
       eventType: 'topic.publish',
-      options: this._options,
+      options: this.options,
       labels: { 'deployment-scheduled': 'true' },
     });
     return cloudFunction;
   }
 }
 
-/** @internal */
+/** @hidden */
 export function _scheduleWithOptions(
   schedule: string,
   options: DeploymentOptions
 ): ScheduleBuilder {
-  return new ScheduleBuilder({ schedule }, options);
+  return new ScheduleBuilder({ ...options, schedule: { schedule } });
 }
 
 /** Builder used to create Cloud Functions for Google Pub/Sub topics. */
 export class TopicBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions

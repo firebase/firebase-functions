@@ -32,10 +32,10 @@ export function apps(): apps.Apps {
 }
 
 export namespace apps {
-  /** @internal */
+  /** @hidden */
   export const garbageCollectionInterval = 2 * 60 * 1000;
 
-  /** @internal */
+  /** @hidden */
   export function delay(delay: number) {
     return new Promise((resolve) => {
       setTimeout(resolve, delay);
@@ -51,7 +51,7 @@ export namespace apps {
     variable?: any;
   }
 
-  /** @internal */
+  /** @hidden */
   export interface RefCounter {
     [appName: string]: number;
   }
