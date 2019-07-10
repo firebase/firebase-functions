@@ -20,6 +20,7 @@ const fs = require('mz/fs');
 const path = require('path');
 const yargs = require('yargs');
 const yaml = require('js-yaml');
+const _ = require('lodash');
 
 const repoPath = path.resolve(`${__dirname}/..`);
 
@@ -75,11 +76,42 @@ function moveFilesToRoot(subdir) {
     .catch(e => console.error(e));
 }
 
+function removeUnderscores(htmlFiles) {
+  // console.log(htmlFiles);
+  let newHtmlFiles = [];
+  htmlFiles.forEach(file => {
+    // const fullFile = `${docPath}/${file}`;
+    // console.log(fullFile);
+    // const fileBits = fullFile.split("/");
+    // const path = _.dropRight(fileBits).join("/");
+    // const originalFile = _.last(fileBits);
+    let newFileName = file;
+    if (_.startsWith(file, "_")) {
+      newFileName = _.trimStart(file, "_");
+    }
+    fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`, (err) => {
+      if (err) console.log(err)
+    });
+    newHtmlFiles.push(newFileName);
+  })
+  return newHtmlFiles;
+}
+
 /**
  * Reformat links to match flat structure.
  * @param {string} file File to fix links in.
  */
 function fixLinks(file) {
+  // const fileBits = file.split("/");
+  // const path = _.dropRight(fileBits).join("/");
+  // const originalFile = _.last(fileBits);
+  // let newFileName = originalFile;
+  // if (_.startsWith(originalFile, "_")) {
+  //   newFileName = path + "/" + _.trimStart(originalFile, "_");
+  // }
+  // fs.rename(file, newFileName, (err) => {
+  //   if (err) console.log(err)
+  // });
   return fs.readFile(file, 'utf8').then(data => {
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
@@ -293,6 +325,7 @@ Promise.all([
   .then(htmlFiles => writeGeneratedFileList(htmlFiles))
   // Correct the links in all the generated html files now that files have
   // all been moved to top level.
+  .then(removeUnderscores)
   .then(fixAllLinks)
   .then(() => {
     fs.readFile(`${docPath}/index.html`, 'utf8').then(data => {
