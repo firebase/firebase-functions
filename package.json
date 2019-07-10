@@ -18,6 +18,7 @@
   },
   "license": "MIT",
   "author": "Firebase Team",
+  "files": ["lib"],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
