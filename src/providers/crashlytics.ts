@@ -27,9 +27,9 @@ import {
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.firebase.crashlytics';
-/** @internal */
+/** @hidden */
 export const service = 'fabric.io';
 
 /**
@@ -40,7 +40,7 @@ export function issue() {
   return _issueWithOptions({});
 }
 
-/** @internal */
+/** @hidden */
 export function _issueWithOptions(options: DeploymentOptions) {
   return new IssueBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -52,13 +52,13 @@ export function _issueWithOptions(options: DeploymentOptions) {
 
 /** Builder used to create Cloud Functions for Crashlytics issue events. */
 export class IssueBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions
   ) {}
 
-  /** @internal */
+  /** @hidden */
   onNewDetected(handler: any): Error {
     throw new Error('"onNewDetected" is now deprecated, please use "onNew"');
   }

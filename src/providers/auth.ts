@@ -30,9 +30,9 @@ import {
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.firebase.auth';
-/** @internal */
+/** @hidden */
 export const service = 'firebaseauth.googleapis.com';
 
 /**
@@ -42,7 +42,7 @@ export function user() {
   return _userWithOptions({});
 }
 
-/** @internal */
+/** @hidden */
 export function _userWithOptions(options: DeploymentOptions) {
   return new UserBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -70,7 +70,7 @@ export class UserBuilder {
     return userRecordConstructor(raw.data);
   }
 
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options?: DeploymentOptions

@@ -28,9 +28,9 @@ import {
 import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.storage';
-/** @internal */
+/** @hidden */
 export const service = 'storage.googleapis.com';
 
 /**
@@ -50,7 +50,7 @@ export function object() {
   return _objectWithOptions({});
 }
 
-/** @internal */
+/** @hidden */
 export function _bucketWithOptions(
   options: DeploymentOptions,
   bucket?: string
@@ -71,13 +71,13 @@ export function _bucketWithOptions(
   return new BucketBuilder(resourceGetter, options);
 }
 
-/** @internal */
+/** @hidden */
 export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
   return _bucketWithOptions(options).object();
 }
 
 export class BucketBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions
@@ -90,13 +90,13 @@ export class BucketBuilder {
 }
 
 export class ObjectBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions
   ) {}
 
-  /** @internal */
+  /** @hidden */
   onChange(handler: any): Error {
     throw new Error(
       '"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
