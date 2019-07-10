@@ -3,7 +3,9 @@ import { EventContext } from 'firebase-functions';
 import * as _ from 'lodash';
 
 export type TestCase<T> = (data: T, context?: EventContext) => any;
-export interface TestCaseMap<T> { [key: string]: TestCase<T> }
+export interface TestCaseMap<T> {
+  [key: string]: TestCase<T>;
+}
 
 export class TestSuite<T> {
   private name: string;
