@@ -21,27 +21,9 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { applyChange, normalizePath, pathParts, valAt } from '../src/utils';
+import { applyChange, valAt } from '../src/utils';
 
 describe('utils', () => {
-  describe('.normalizePath(path: string)', () => {
-    it('should strip leading and trailing slash', () => {
-      expect(normalizePath('/my/path/is/{rad}/')).to.eq('my/path/is/{rad}');
-    });
-  });
-
-  describe('.pathParts(path: string): string[]', () => {
-    it('should turn a path into an array of strings', () => {
-      expect(pathParts('/foo/bar/baz')).to.deep.equal(['foo', 'bar', 'baz']);
-    });
-
-    it('should turn a root path, empty string, or null path into an empty array', () => {
-      expect(pathParts('')).to.deep.equal([]);
-      expect(pathParts(null)).to.deep.equal([]);
-      expect(pathParts('/')).to.deep.equal([]);
-    });
-  });
-
   describe('.valAt(source: any, path?: string): any', () => {
     it('should be null if null along any point in the path', () => {
       expect(valAt(null)).to.be.null;
