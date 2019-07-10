@@ -1,0 +1,10 @@
+exit: true
+extension:
+  - ts
+file:
+  - mocha/setup.ts
+package: ./package.json
+reporter: spec
+require:
+  - 'ts-node/register'
+spec: spec/**/*.spec.ts
