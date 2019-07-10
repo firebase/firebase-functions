@@ -5,8 +5,8 @@ and make note of the following:
 
 Run the linter and test suite
 ==============================
-Run `npm test` to make sure your changes compile properly and the tests all pass on your local machine. 
-We've hooked up this repo with continuous integration to double check those things for you. 
+Run `npm test` to make sure your changes compile properly and the tests all pass on your local machine.
+We've hooked up this repo with continuous integration to double check those things for you.
 
 Add tests (if applicable)
 ==============================
@@ -19,7 +19,6 @@ Please sign our Contributor License Agreement (https://cla.developers.google.com
 before sending PRs. We cannot accept code without this.
 
 -->
-
 
 ### Description
 

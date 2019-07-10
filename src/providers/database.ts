@@ -34,9 +34,9 @@ import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
 import { applyChange, joinPath, normalizePath, pathParts } from '../utils';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.firebase.database';
-/** @internal */
+/** @hidden */
 export const service = 'firebaseio.com';
 
 // NOTE(inlined): Should we relax this a bit to allow staging or alternate implementations of our API?
@@ -78,7 +78,7 @@ export function ref(path: string) {
   return _refWithOptions(path, {});
 }
 
-/** @internal */
+/** @hidden */
 export function _instanceWithOptions(
   instance: string,
   options: DeploymentOptions
@@ -87,7 +87,7 @@ export function _instanceWithOptions(
 }
 
 export class InstanceBuilder {
-  /* @internal */
+  /** @hidden */
   constructor(private instance: string, private options: DeploymentOptions) {}
 
   ref(path: string): RefBuilder {
@@ -100,7 +100,7 @@ export class InstanceBuilder {
   }
 }
 
-/** @internal */
+/** @hidden */
 export function _refWithOptions(
   path: string,
   options: DeploymentOptions
@@ -131,7 +131,7 @@ export function _refWithOptions(
 
 /** Builder used to create Cloud Functions for Firebase Realtime Database References. */
 export class RefBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private apps: apps.Apps,
     private triggerResource: () => string,
@@ -238,7 +238,7 @@ export class RefBuilder {
 }
 
 /* Utility function to extract database reference from resource string */
-/** @internal */
+/** @hidden */
 export function resourceToInstanceAndPath(resource: string) {
   const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));

@@ -1,12 +1,8 @@
 {
   "compilerOptions": {
-    "lib": ["es2017"],
-    "module": "commonjs",
-    "noImplicitAny": false,
-    "outDir": ".tmp",
     "resolveJsonModule": true,
-    "sourceMap": true,
-    "target": "es2017"
+    "sourceMap": true
   },
-  "include": ["src/**/*.ts", "spec/**/*.ts"]
+  "extends": "./tsconfig.release.json",
+  "include": ["./src/**/*.ts", "./spec/**/*.ts"]
 }
