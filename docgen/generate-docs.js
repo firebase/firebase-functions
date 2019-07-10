@@ -115,7 +115,8 @@ function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
-      .replace(/(modules|interfaces|classes)\//g, '');
+      .replace(/(modules|interfaces|classes)\//g, '')
+      .replace(/\"_/g, '"');
     let caseFixedLinks = flattenedLinks;
     for (const lower in lowerToUpperLookup) {
       const re = new RegExp(lower, 'g');
