@@ -4,9 +4,6 @@ import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 
-import * as PubSub from '@google-cloud/pubsub';
-const pubsub = PubSub();
-
 export * from './pubsub-tests';
 export * from './database-tests';
 export * from './auth-tests';

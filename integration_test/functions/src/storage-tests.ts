@@ -1,7 +1,6 @@
 import * as functions from 'firebase-functions';
-import { TestSuite, expectEq, expectDeepEq } from './testing';
+import { TestSuite, expectEq } from './testing';
 import ObjectMetadata = functions.storage.ObjectMetadata;
-const testIdFieldName = 'documentId';
 
 export const storageTests: any = functions
   .runWith({
