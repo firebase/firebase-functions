@@ -5,4 +5,3 @@ import * as nock from 'nock';
 chai.use(chaiAsPromised);
 
 nock.disableNetConnect();
-
