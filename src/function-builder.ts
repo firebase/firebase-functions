@@ -115,7 +115,7 @@ function assertRegionsValidity(regions: string[]): void {
 
   if (_.difference(regions, SUPPORTED_REGIONS).length !== 0) {
     throw new Error(
-      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')},`
+      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')}.`
     );
   }
 }
