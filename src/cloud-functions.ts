@@ -22,7 +22,6 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { apps } from './apps';
 import { DeploymentOptions, Schedule } from './function-configuration';
 export { Request, Response };
 
