@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { TestSuite, expectEq } from './testing';
+import { expectEq, TestSuite } from './testing';
 import ObjectMetadata = functions.storage.ObjectMetadata;
 
 export const storageTests: any = functions

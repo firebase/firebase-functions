@@ -1,6 +1,6 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
-import { TestSuite, expectEq, evaluate, success } from './testing';
+import * as functions from 'firebase-functions';
+import { evaluate, expectEq, success, TestSuite } from './testing';
 import PubsubMessage = functions.pubsub.Message;
 
 // TODO(inlined) use multiple queues to run inline.
@@ -64,7 +64,7 @@ export const schedule: any = functions.pubsub
   // For the test, the job is triggered by the jobs:run api
   .onRun((context) => {
     let testId;
-    let db = admin.database();
+    const db = admin.database();
     return new Promise(async (resolve, reject) => {
       await db
         .ref('testRuns')

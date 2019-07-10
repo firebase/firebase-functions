@@ -1,9 +1,9 @@
 import * as firebase from 'firebase-admin';
-import * as _ from 'lodash';
 import { EventContext } from 'firebase-functions';
+import * as _ from 'lodash';
 
 export type TestCase<T> = (data: T, context?: EventContext) => any;
-export type TestCaseMap<T> = { [key: string]: TestCase<T> };
+export interface TestCaseMap<T> { [key: string]: TestCase<T> }
 
 export class TestSuite<T> {
   private name: string;
@@ -20,8 +20,8 @@ export class TestSuite<T> {
   }
 
   run(testId: string, data: T, context?: EventContext): Promise<any> {
-    let running: Array<Promise<any>> = [];
-    for (let testName in this.tests) {
+    const running: Array<Promise<any>> = [];
+    for (const testName in this.tests) {
       if (!this.tests.hasOwnProperty(testName)) {
         continue;
       }
@@ -36,7 +36,7 @@ export class TestSuite<T> {
           },
           (error) => {
             console.error(`Failed: ${testName}`, error);
-            return { name: testName, passed: 0, error: error };
+            return { name: testName, passed: 0, error };
           }
         );
       running.push(run);
