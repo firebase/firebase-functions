@@ -30,9 +30,9 @@ import {
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
-/** @internal */
+/** @hidden */
 export const provider = 'google.analytics';
-/** @internal */
+/** @hidden */
 export const service = 'app-measurement.com';
 
 /**
@@ -43,7 +43,7 @@ export function event(analyticsEventType: string) {
   return _eventWithOptions(analyticsEventType, {});
 }
 
-/** @internal */
+/** @hidden */
 export function _eventWithOptions(
   analyticsEventType: string,
   options: DeploymentOptions
@@ -64,7 +64,7 @@ export function _eventWithOptions(
  * Access via [`functions.analytics.event()`](functions.analytics#event).
  */
 export class AnalyticsEventBuilder {
-  /** @internal */
+  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions
@@ -136,7 +136,7 @@ export class AnalyticsEvent {
   /** User-related dimensions. */
   user?: UserDimensions;
 
-  /** @internal */
+  /** @hidden */
   constructor(wireFormat: any) {
     this.params = {}; // In case of absent field, show empty (not absent) map.
     if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
@@ -200,7 +200,7 @@ export class UserDimensions {
   /** Information regarding the bundle in which these events were uploaded. */
   bundleInfo: ExportBundleInfo;
 
-  /** @internal */
+  /** @hidden */
   constructor(wireFormat: any) {
     // These are interfaces or primitives, no transformation needed.
     copyFields(wireFormat, this, [
@@ -242,7 +242,7 @@ export class UserPropertyValue {
   /** UTC client time when the user property was last set. */
   setTime: string;
 
-  /** @internal */
+  /** @hidden */
   constructor(wireFormat: any) {
     copyField(wireFormat, this, 'value', unwrapValueAsString);
     copyTimestampToString(wireFormat, this, 'setTimestampUsec', 'setTime');
@@ -381,7 +381,7 @@ export class ExportBundleInfo {
   /** Timestamp offset (in milliseconds) between collection time and upload time. */
   serverTimestampOffset: number;
 
-  /** @internal */
+  /** @hidden */
   constructor(wireFormat: any) {
     copyField(wireFormat, this, 'bundleSequenceId');
     copyTimestampToMillis(
