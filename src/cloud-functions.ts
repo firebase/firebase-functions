@@ -29,7 +29,6 @@ const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
  * Wire format for an event.
- * @hidden
  */
 export interface Event {
   context: {
