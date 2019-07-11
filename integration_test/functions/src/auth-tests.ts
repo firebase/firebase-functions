@@ -1,10 +1,10 @@
-import * as functions from 'firebase-functions';
-import { TestSuite, expectEq } from './testing';
 import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
+import { expectEq, TestSuite } from './testing';
 import UserMetadata = admin.auth.UserRecord;
 
 export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
-  let testId: string = u.displayName;
+  const testId: string = u.displayName;
   console.log(`testId is ${testId}`);
 
   return new TestSuite<UserMetadata>('auth user onCreate')
@@ -38,7 +38,7 @@ export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
 });
 
 export const deleteUserTests: any = functions.auth.user().onDelete((u, c) => {
-  let testId: string = u.displayName;
+  const testId: string = u.displayName;
   console.log(`testId is ${testId}`);
 
   return new TestSuite<UserMetadata>('auth user onDelete')
