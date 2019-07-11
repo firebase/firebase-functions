@@ -76,6 +76,21 @@ function moveFilesToRoot(subdir) {
     .catch(e => console.error(e));
 }
 
+function renameFiles() {
+  return fs.readdir(docPath).then(files => {
+    console.log(files);
+    files.forEach(file => {
+      let newFileName = file;
+      if (_.startsWith(file, "_") && _.endsWith(file, "html")) {
+        newFileName = _.trimStart(file, "_");
+        fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`, (err) => {
+          if (err) console.log(err)
+        });
+      }
+    })
+  })
+}
+
 function removeUnderscores(htmlFiles) {
   // console.log(htmlFiles);
   let newHtmlFiles = [];
@@ -313,6 +328,7 @@ Promise.all([
       moveFilesToRoot('interfaces'),
     ]);
   })
+  .then(renameFiles)
   // Check for files listed in TOC that are missing and warn if so.
   // Not blocking.
   .then(checkForMissingFilesAndFixFilenameCase)
@@ -326,7 +342,7 @@ Promise.all([
   .then(htmlFiles => writeGeneratedFileList(htmlFiles))
   // Correct the links in all the generated html files now that files have
   // all been moved to top level.
-  .then(removeUnderscores)
+  // .then(removeUnderscores)
   .then(fixAllLinks)
   .then(() => {
     fs.readFile(`${docPath}/index.html`, 'utf8').then(data => {
