@@ -76,6 +76,12 @@ function moveFilesToRoot(subdir) {
     .catch(e => console.error(e));
 }
 
+/**
+ * Renames files to remove the leading underscores.
+ * We need to do this because devsite hides these files.
+ * Example: 
+ * _cloud_functions_.resource.html => cloud_functions_.resource.html
+ */
 function renameFiles() {
   return fs.readdir(docPath).then(files => {
     console.log(files);
@@ -91,42 +97,11 @@ function renameFiles() {
   })
 }
 
-function removeUnderscores(htmlFiles) {
-  // console.log(htmlFiles);
-  let newHtmlFiles = [];
-  htmlFiles.forEach(file => {
-    // const fullFile = `${docPath}/${file}`;
-    // console.log(fullFile);
-    // const fileBits = fullFile.split("/");
-    // const path = _.dropRight(fileBits).join("/");
-    // const originalFile = _.last(fileBits);
-    let newFileName = file;
-    if (_.startsWith(file, "_")) {
-      newFileName = _.trimStart(file, "_");
-    }
-    fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`, (err) => {
-      if (err) console.log(err)
-    });
-    newHtmlFiles.push(newFileName);
-  })
-  return newHtmlFiles;
-}
-
 /**
  * Reformat links to match flat structure.
  * @param {string} file File to fix links in.
  */
 function fixLinks(file) {
-  // const fileBits = file.split("/");
-  // const path = _.dropRight(fileBits).join("/");
-  // const originalFile = _.last(fileBits);
-  // let newFileName = originalFile;
-  // if (_.startsWith(originalFile, "_")) {
-  //   newFileName = path + "/" + _.trimStart(originalFile, "_");
-  // }
-  // fs.rename(file, newFileName, (err) => {
-  //   if (err) console.log(err)
-  // });
   return fs.readFile(file, 'utf8').then(data => {
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
@@ -328,6 +303,7 @@ Promise.all([
       moveFilesToRoot('interfaces'),
     ]);
   })
+  // Rename files to remove the underscores since devsite hides those.
   .then(renameFiles)
   // Check for files listed in TOC that are missing and warn if so.
   // Not blocking.
