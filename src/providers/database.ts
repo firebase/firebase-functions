@@ -32,7 +32,8 @@ import {
 } from '../cloud-functions';
 import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
-import { applyChange, joinPath, normalizePath, pathParts } from '../utils';
+import { joinPath, normalizePath, pathParts } from '../utilities/path';
+import { applyChange } from '../utils';
 
 /** @hidden */
 export const provider = 'google.firebase.database';

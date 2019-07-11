@@ -43,4 +43,5 @@ import './providers/pubsub.spec';
 import './providers/remoteConfig.spec';
 import './providers/storage.spec';
 import './setup.spec';
+import './utilities/path.spec';
 import './utils.spec';
