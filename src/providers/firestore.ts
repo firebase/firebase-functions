@@ -182,6 +182,12 @@ function changeConstructor(raw: Event) {
   );
 }
 
+
+/**
+ * The Cloud Firestore document builder interface.
+ *
+ * Access via [`functions.firestore.document()`](functions.firestore#.document).
+ */
 export class DocumentBuilder {
   /** @hidden */
   constructor(
@@ -191,7 +197,20 @@ export class DocumentBuilder {
     // TODO what validation do we want to do here?
   }
 
-  /** Respond to all document writes (creates, updates, or deletes). */
+  /**
+   * Event handler that fires every time a Cloud Firestore write
+   * of any kind (creation, update, or delete) occurs.
+   *
+   * @param {
+   * !function(functions.Change<!functions.firestore.DocumentSnapshot>,
+   *   !functions.EventContext=)}
+   *   handler Event handler which is run every time a Cloud Firestore
+   *   write occurs.
+   *
+   * @return {
+   * !functions.CloudFunction}
+   *    A Cloud Function which you can export and deploy.
+   */
   onWrite(
     handler: (
       change: Change<DocumentSnapshot>,
@@ -201,7 +220,15 @@ export class DocumentBuilder {
     return this.onOperation(handler, 'document.write', changeConstructor);
   }
 
-  /** Respond only to document updates. */
+  /**
+   * Event handler that fires every time data is updated in
+   * Cloud Firestore.
+   *
+   * @param handler Event handler which is run every time data is updated in
+   *   Cloud Firestore.
+   *
+   * @return A Cloud Function which you can export and deploy.
+   */
   onUpdate(
     handler: (
       change: Change<DocumentSnapshot>,
@@ -211,7 +238,15 @@ export class DocumentBuilder {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
-  /** Respond only to document creations. */
+  /**
+   * Event handler that fires every time new data is created in
+   * Cloud Firestore.
+   *
+   * @param handler Event handler which is run every time new data is created in
+   *   Cloud Firestore.
+   *
+   * @return A Cloud Function which you can export and deploy.
+   */
   onCreate(
     handler: (
       snapshot: DocumentSnapshot,
@@ -221,7 +256,15 @@ export class DocumentBuilder {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
-  /** Respond only to document deletions. */
+  /**
+   * Event handler that fires every time data is deleted from
+   * Cloud Firestore.
+   *
+   * @param handler Event handler which is run every time data is deleted from
+   *   Cloud Firestore.
+   *
+   * @return A Cloud Function which you can export.
+   */
   onDelete(
     handler: (
       snapshot: DocumentSnapshot,
