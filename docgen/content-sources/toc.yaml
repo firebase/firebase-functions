@@ -6,8 +6,6 @@ toc:
         path: /docs/reference/functions/cloud_functions_.html#cloudfunction
       - title: 'HttpsFunction'
         path: /docs/reference/functions/cloud_functions_.html#httpsfunction
-      - title: 'Event'
-        path: /docs/reference/functions/cloud_functions_.event.html
       - title: 'EventContext'
         path: /docs/reference/functions/cloud_functions_.eventcontext.html
       - title: 'FunctionBuilder'
