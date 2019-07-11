@@ -21,30 +21,9 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { applyChange, valAt } from '../src/utils';
+import { applyChange } from '../src/utils';
 
 describe('utils', () => {
-  describe('.valAt(source: any, path?: string): any', () => {
-    it('should be null if null along any point in the path', () => {
-      expect(valAt(null)).to.be.null;
-      expect(valAt(null, '/foo')).to.be.null;
-      expect(valAt({ a: { b: null } }, '/a/b/c')).to.be.null;
-    });
-
-    it('should be null if accessing a path past a leaf value', () => {
-      expect(valAt({ a: 2 }, '/a/b')).to.be.null;
-    });
-
-    it('should be the leaf value if one is present', () => {
-      expect(valAt({ a: { b: 23 } }, '/a/b')).to.eq(23);
-      expect(valAt({ a: { b: 23 } }, '/a')).to.deep.equal({ b: 23 });
-    });
-
-    it('should be undefined if in unexplored territory', () => {
-      expect(valAt({ a: 23 }, '/b')).to.be.undefined;
-    });
-  });
-
   describe('.applyChange(from: any, to: any): any', () => {
     it('should return the to value for non-object values of from and to', () => {
       expect(applyChange({ a: 'b' }, null)).to.eq(null);
