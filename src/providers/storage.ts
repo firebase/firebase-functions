@@ -81,7 +81,6 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
   return _bucketWithOptions(options).object();
 }
 
-
 /**
  * The Google Cloud Storage bucket builder interface.
  *
@@ -229,7 +228,6 @@ export class ObjectBuilder {
 
 /** Interface representing a Google Google Cloud Storage object metadata object. */
 export interface ObjectMetadata {
-
   /** The kind of the object, which is always `storage#object`. */
   kind: string;
 
@@ -360,7 +358,7 @@ export interface ObjectMetadata {
    * a composite object was created.
    */
   componentCount?: string;
-  
+
   etag?: string;
 
   /**
