@@ -22,26 +22,6 @@
 
 import * as _ from 'lodash';
 
-export function normalizePath(path: string): string {
-  if (!path) {
-    return '';
-  }
-  return path.replace(/^\//, '').replace(/\/$/, '');
-}
-
-export function pathParts(path: string): string[] {
-  if (!path || path === '' || path === '/') {
-    return [];
-  }
-  return normalizePath(path).split('/');
-}
-
-export function joinPath(base: string, child: string) {
-  return pathParts(base)
-    .concat(pathParts(child))
-    .join('/');
-}
-
 export function applyChange(src: any, dest: any) {
   // if not mergeable, don't merge
   if (!_.isPlainObject(dest) || !_.isPlainObject(src)) {
