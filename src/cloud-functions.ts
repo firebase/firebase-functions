@@ -25,6 +25,7 @@ import * as _ from 'lodash';
 import { DeploymentOptions, Schedule } from './function-configuration';
 export { Request, Response };
 
+/** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
@@ -264,17 +265,23 @@ export interface Runnable<T> {
 }
 
 /**
- * An HttpsFunction is both an object that exports its trigger definitions at
- * __trigger and can be called as a function that takes an express.js Request
- * and Response object.
+ * The Cloud Function type for HTTPS triggers. This should be exported from your
+ * JavaScript file to define a Cloud Function.
+ *
+ * This type is a special JavaScript function which takes Express
+ * [`Request`](https://expressjs.com/en/api.html#req) and
+ * [`Response`](https://expressjs.com/en/api.html#res) objects as its only
+ * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
   ((req: Request, resp: Response) => void);
 
 /**
- * A CloudFunction is both an object that exports its trigger definitions at
- * __trigger and can be called as a function using the raw JS API for Google
- * Cloud Functions.
+ * The Cloud Function type for all non-HTTPS triggers. This should be exported
+ * from your JavaScript file to define a Cloud Function.
+ *
+ * This type is a special JavaScript function which takes a templated
+ * [`Event`](functions.Event) object as its only argument.
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
@@ -402,6 +409,7 @@ export function makeCloudFunction<EventData>({
   return cloudFunction;
 }
 
+/** @hidden */
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
@@ -429,6 +437,7 @@ function _makeParams(
   return params;
 }
 
+/** @hidden */
 function _makeAuth(event: Event, authType: string) {
   if (authType === 'UNAUTHENTICATED') {
     return null;
@@ -439,6 +448,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
+/** @hidden */
 function _detectAuthType(event: Event) {
   if (_.get(event, 'context.auth.admin')) {
     return 'ADMIN';
@@ -449,6 +459,7 @@ function _detectAuthType(event: Event) {
   return 'UNAUTHENTICATED';
 }
 
+/** @hidden */
 export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
   if (options.regions) {
