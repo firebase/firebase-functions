@@ -61,34 +61,3 @@ export function pruneNulls(obj: any) {
   }
   return obj;
 }
-
-export function valAt(source: any, path?: string) {
-  if (source === null) {
-    return null;
-  } else if (typeof source !== 'object') {
-    return path ? null : source;
-  }
-
-  const parts = pathParts(path);
-  if (!parts.length) {
-    return source;
-  }
-
-  let cur = source;
-  let leaf;
-  while (parts.length) {
-    const key = parts.shift();
-    if (cur[key] === null || leaf) {
-      return null;
-    } else if (typeof cur[key] === 'object') {
-      if (parts.length) {
-        cur = cur[key];
-      } else {
-        return cur[key];
-      }
-    } else {
-      leaf = cur[key];
-    }
-  }
-  return leaf;
-}
