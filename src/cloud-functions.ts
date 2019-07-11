@@ -25,11 +25,13 @@ import * as _ from 'lodash';
 import { DeploymentOptions, Schedule } from './function-configuration';
 export { Request, Response };
 
+/** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
- * Wire format for an event.
  * @hidden
+ *
+ * Wire format for an event.
  */
 export interface Event {
   context: {
@@ -53,38 +55,92 @@ export interface Event {
  */
 export interface EventContext {
   /**
-   * Firebase auth variable for the user whose action triggered the function.
-   * Field will be null for unauthenticated users, and will not exist for admin
-   * users. Only available for database functions.
+   * Authentication information for the user that triggered the function.
+   * This object contains `uid` and `token` properties for authenticated users.
+   * For more detail including token keys, see the
+   * [security rules reference](/docs/firestore/reference/security/#properties).
+   *
+   * This field is only populated for Realtime Database triggers and Callable
+   * functions. For an unauthenticated user, this field is null. For Firebase
+   * admin users and event types that do not provide user information, this field
+   * does not exist.
    */
   auth?: {
     token: object;
     uid: string;
   };
+
   /**
-   * Type of authentication for the triggering action. Only available for
-   * database functions.
+   * The level of permissions for a user. Valid values are:
+   *
+   * * `ADMIN` Developer user or user authenticated via a service account.
+   * * `USER` Known user.
+   * * `UNAUTHENTICATED` Unauthenticated action
+   * * `null` For event types that do not provide user information (all except
+   *   Realtime Database).
+   *
    */
   authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
+
   /**
-   * ID of the event
+   * The event’s unique identifier.
    */
   eventId: string;
+
   /**
-   * Type of event
+   * Type of event. Valid values are:
+   *
+   * * `providers/google.firebase.analytics/eventTypes/event.log`
+   * * `providers/firebase.auth/eventTypes/user.create`
+   * * `providers/firebase.auth/eventTypes/user.delete`
+   * * `providers/firebase.crashlytics/eventTypes/issue.new`
+   * * `providers/firebase.crashlytics/eventTypes/issue.regressed`
+   * * `providers/firebase.crashlytics/eventTypes/issue.velocityAlert`
+   * * `providers/google.firebase.database/eventTypes/ref.write`
+   * * `providers/google.firebase.database/eventTypes/ref.create`
+   * * `providers/google.firebase.database/eventTypes/ref.update`
+   * * `providers/google.firebase.database/eventTypes/ref.delete`
+   * * `providers/cloud.firestore/eventTypes/document.write`
+   * * `providers/cloud.firestore/eventTypes/document.create`
+   * * `providers/cloud.firestore/eventTypes/document.update`
+   * * `providers/cloud.firestore/eventTypes/document.delete`
+   * * `google.pubsub.topic.publish`
+   * * `google.storage.object.finalize`
+   * * `google.storage.object.archive`
+   * * `google.storage.object.delete`
+   * * `google.storage.object.metadataUpdate`
+   * * `google.firebase.remoteconfig.update`
    */
   eventType: string;
+
   /**
-   * Key-value pairs that represent the values of wildcards in a database
-   * reference. Cannot be accessed while inside the handler namespace.
+   * An object containing the values of the wildcards in the `path` parameter
+   * provided to the [`ref()`](functions.database#.ref) method for a Realtime
+   * Database trigger. Cannot be accessed while inside the handler namespace.
    */
   params: { [option: string]: any };
+
   /**
-   * Resource that triggered the event
+   * The resource that emitted the event. Valid values are:
+   *
+   * * Analytics &mdash; `projects/<projectId>/events/<analyticsEventType>`
+   * * Realtime Database &mdash;
+       `projects/_/instances/<databaseInstance>/refs/<databasePath>`
+  * * Storage &mdash;
+      `projects/_/buckets/<bucketName>/objects/<fileName>#<generation>`
+  * * Authentication &mdash; `projects/<projectId>`
+  * * Pub/Sub &mdash; `projects/<projectId>/topics/<topicName>`
+  *
+  * Because Realtime Database instances and Cloud Storage buckets are globally
+  * unique and not tied to the project, their resources start with `projects/_`.
+  * Underscore is not a valid project name.
+  *
    */
   resource: Resource;
   /**
-   * Timestamp for when the event ocurred (ISO 8601 string)
+   * Timestamp for the event as an
+   * [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) string.
+   *
    */
   timestamp: string;
 }
@@ -179,7 +235,7 @@ export interface Resource {
   labels?: { [tag: string]: string };
 }
 
-/**
+/** @hidden
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
  */
@@ -208,17 +264,23 @@ export interface Runnable<T> {
 }
 
 /**
- * An HttpsFunction is both an object that exports its trigger definitions at
- * __trigger and can be called as a function that takes an express.js Request
- * and Response object.
+ * The Cloud Function type for HTTPS triggers. This should be exported from your
+ * JavaScript file to define a Cloud Function.
+ *
+ * This type is a special JavaScript function which takes Express
+ * [`Request`](https://expressjs.com/en/api.html#req) and
+ * [`Response`](https://expressjs.com/en/api.html#res) objects as its only
+ * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
   ((req: Request, resp: Response) => void);
 
 /**
- * A CloudFunction is both an object that exports its trigger definitions at
- * __trigger and can be called as a function using the raw JS API for Google
- * Cloud Functions.
+ * The Cloud Function type for all non-HTTPS triggers. This should be exported
+ * from your JavaScript file to define a Cloud Function.
+ *
+ * This type is a special JavaScript function which takes a templated
+ * [`Event`](functions.Event) object as its only argument.
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
@@ -346,6 +408,7 @@ export function makeCloudFunction<EventData>({
   return cloudFunction;
 }
 
+/** @hidden */
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
@@ -373,6 +436,7 @@ function _makeParams(
   return params;
 }
 
+/** @hidden */
 function _makeAuth(event: Event, authType: string) {
   if (authType === 'UNAUTHENTICATED') {
     return null;
@@ -383,6 +447,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
+/** @hidden */
 function _detectAuthType(event: Event) {
   if (_.get(event, 'context.auth.admin')) {
     return 'ADMIN';
@@ -393,6 +458,7 @@ function _detectAuthType(event: Event) {
   return 'UNAUTHENTICATED';
 }
 
+/** @hidden */
 export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
   if (options.regions) {
