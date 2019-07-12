@@ -127,32 +127,64 @@ export type FunctionsErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 
+export type CanonicalErrorCodeName =
+  | 'OK'
+  | 'CANCELLED'
+  | 'UNKNOWN'
+  | 'INVALID_ARGUMENT'
+  | 'DEADLINE_EXCEEDED'
+  | 'NOT_FOUND'
+  | 'ALREADY_EXISTS'
+  | 'PERMISSION_DENIED'
+  | 'UNAUTHENTICATED'
+  | 'RESOURCE_EXHAUSTED'
+  | 'FAILED_PRECONDITION'
+  | 'ABORTED'
+  | 'OUT_OF_RANGE'
+  | 'UNIMPLEMENTED'
+  | 'INTERNAL'
+  | 'UNAVAILABLE'
+  | 'DATA_LOSS';
+
+interface HttpErrorCode {
+  canonicalName: CanonicalErrorCodeName;
+  status: number;
+}
+
 /**
- * Standard error codes for different ways a request can fail, as defined by:
+ * Standard error codes and HTTP statuses for different ways a request can fail,
+ * as defined by:
  * https://github.com/googleapis/googleapis/blob/master/google/rpc/code.proto
  *
  * This map is used primarily to convert from a client error code string to
- * to the HTTP format error code string, and make sure it's in the supported set.
+ * to the HTTP format error code string and status, and make sure it's in the
+ * supported set.
  */
-const errorCodeMap: { [name: string]: string } = {
-  ok: 'OK',
-  cancelled: 'CANCELLED',
-  unknown: 'UNKNOWN',
-  'invalid-argument': 'INVALID_ARGUMENT',
-  'deadline-exceeded': 'DEADLINE_EXCEEDED',
-  'not-found': 'NOT_FOUND',
-  'already-exists': 'ALREADY_EXISTS',
-  'permission-denied': 'PERMISSION_DENIED',
-  unauthenticated: 'UNAUTHENTICATED',
-  'resource-exhausted': 'RESOURCE_EXHAUSTED',
-  'failed-precondition': 'FAILED_PRECONDITION',
-  aborted: 'ABORTED',
-  'out-of-range': 'OUT_OF_RANGE',
-  unimplemented: 'UNIMPLEMENTED',
-  internal: 'INTERNAL',
-  unavailable: 'UNAVAILABLE',
-  'data-loss': 'DATA_LOSS',
+const errorCodeMap: { [name in FunctionsErrorCode]: HttpErrorCode } = {
+  ok: { canonicalName: 'OK', status: 200 },
+  cancelled: { canonicalName: 'CANCELLED', status: 499 },
+  unknown: { canonicalName: 'UNKNOWN', status: 500 },
+  'invalid-argument': { canonicalName: 'INVALID_ARGUMENT', status: 400 },
+  'deadline-exceeded': { canonicalName: 'DEADLINE_EXCEEDED', status: 504 },
+  'not-found': { canonicalName: 'NOT_FOUND', status: 404 },
+  'already-exists': { canonicalName: 'ALREADY_EXISTS', status: 409 },
+  'permission-denied': { canonicalName: 'PERMISSION_DENIED', status: 403 },
+  unauthenticated: { canonicalName: 'UNAUTHENTICATED', status: 401 },
+  'resource-exhausted': { canonicalName: 'RESOURCE_EXHAUSTED', status: 429 },
+  'failed-precondition': { canonicalName: 'FAILED_PRECONDITION', status: 400 },
+  aborted: { canonicalName: 'ABORTED', status: 409 },
+  'out-of-range': { canonicalName: 'OUT_OF_RANGE', status: 400 },
+  unimplemented: { canonicalName: 'UNIMPLEMENTED', status: 501 },
+  internal: { canonicalName: 'INTERNAL', status: 500 },
+  unavailable: { canonicalName: 'UNAVAILABLE', status: 503 },
+  'data-loss': { canonicalName: 'DATA_LOSS', status: 500 },
 };
+
+interface HttpErrorWireFormat {
+  details?: unknown;
+  message: string;
+  status: CanonicalErrorCodeName;
+}
 
 /**
  * An explicit error that can be thrown from a handler to send an error to the
@@ -163,88 +195,44 @@ export class HttpsError extends Error {
    * A standard error code that will be returned to the client. This also
    * determines the HTTP status code of the response, as defined in code.proto.
    */
-  readonly code: FunctionsErrorCode;
+  public readonly code: FunctionsErrorCode;
 
   /**
    * Extra data to be converted to JSON and included in the error response.
    */
-  readonly details?: unknown;
+  public readonly details: unknown;
+
+  /**
+   * A wire format representation of a provided error code.
+   */
+  public readonly httpErrorCode: HttpErrorCode;
 
   constructor(code: FunctionsErrorCode, message: string, details?: unknown) {
     super(message);
 
-    if (!errorCodeMap[code]) {
-      throw new Error('Unknown error status: ' + code);
+    // A sanity check for non-TypeScript consumers.
+    if (code in errorCodeMap === false) {
+      throw new Error(`Unknown error code: ${code}.`);
     }
 
     this.code = code;
     this.details = details;
-  }
-
-  /**
-   * @hidden
-   * A string representation of the Google error code for this error for HTTP.
-   */
-  get status() {
-    return errorCodeMap[this.code];
-  }
-
-  /**
-   * @hidden
-   * Returns the canonical http status code for the given error.
-   */
-  get httpStatus(): number {
-    switch (this.code) {
-      case 'ok':
-        return 200;
-      case 'cancelled':
-        return 499;
-      case 'unknown':
-        return 500;
-      case 'invalid-argument':
-        return 400;
-      case 'deadline-exceeded':
-        return 504;
-      case 'not-found':
-        return 404;
-      case 'already-exists':
-        return 409;
-      case 'permission-denied':
-        return 403;
-      case 'unauthenticated':
-        return 401;
-      case 'resource-exhausted':
-        return 429;
-      case 'failed-precondition':
-        return 400;
-      case 'aborted':
-        return 409;
-      case 'out-of-range':
-        return 400;
-      case 'unimplemented':
-        return 501;
-      case 'internal':
-        return 500;
-      case 'unavailable':
-        return 503;
-      case 'data-loss':
-        return 500;
-      // This should never happen as long as the type system is doing its job.
-      default:
-        throw new Error('Invalid error code: ' + this.code);
-    }
+    this.httpErrorCode = errorCodeMap[code];
   }
 
   /** @hidden */
-  public toJSON() {
-    const json: any = {
-      status: this.status,
-      message: this.message,
+  public toJSON(): HttpErrorWireFormat {
+    const {
+      details,
+      httpErrorCode: { canonicalName: status },
+      message,
+    } = this;
+
+    return {
+      ...(details === undefined ? {} : { details }),
+      message,
+      status,
     };
-    if (!_.isUndefined(this.details)) {
-      json.details = this.details;
-    }
-    return json;
   }
 }
 
@@ -471,8 +459,9 @@ export function _onCallWithOptions(
         error = new HttpsError('internal', 'INTERNAL');
       }
 
-      const status = error.httpStatus;
+      const { status } = error.httpErrorCode;
       const body = { error: error.toJSON() };
+
       res.status(status).send(body);
     }
   };
