@@ -30,7 +30,7 @@ const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
  * @hidden
- * 
+ *
  * Wire format for an event.
  */
 export interface Event {
@@ -54,7 +54,6 @@ export interface Event {
  *   available.
  */
 export interface EventContext {
-
   /**
    * Authentication information for the user that triggered the function.
    * This object contains `uid` and `token` properties for authenticated users.
@@ -89,7 +88,7 @@ export interface EventContext {
 
   /**
    * Type of event. Valid values are:
-   * 
+   *
    * * `providers/google.firebase.analytics/eventTypes/event.log`
    * * `providers/firebase.auth/eventTypes/user.create`
    * * `providers/firebase.auth/eventTypes/user.delete`
@@ -119,7 +118,7 @@ export interface EventContext {
    * Database trigger. Cannot be accessed while inside the handler namespace.
    */
   params: { [option: string]: any };
-  
+
   /**
    * The resource that emitted the event. Valid values are:
    *
@@ -233,7 +232,7 @@ export interface Resource {
   labels?: { [tag: string]: string };
 }
 
-/** 
+/**
  * @hidden
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
