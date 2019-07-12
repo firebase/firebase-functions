@@ -3,6 +3,7 @@
 .tmp
 .vscode/
 coverage
+docgen/html
 firebase-functions-*.tgz
 integration_test/.firebaserc
 integration_test/*.log
