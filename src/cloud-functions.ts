@@ -30,7 +30,7 @@ const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
  * @hidden
- *
+ * 
  * Wire format for an event.
  */
 export interface Event {
@@ -54,6 +54,7 @@ export interface Event {
  *   available.
  */
 export interface EventContext {
+
   /**
    * Authentication information for the user that triggered the function.
    * This object contains `uid` and `token` properties for authenticated users.
@@ -78,7 +79,6 @@ export interface EventContext {
    * * `UNAUTHENTICATED` Unauthenticated action
    * * `null` For event types that do not provide user information (all except
    *   Realtime Database).
-   *
    */
   authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
 
@@ -89,7 +89,7 @@ export interface EventContext {
 
   /**
    * Type of event. Valid values are:
-   *
+   * 
    * * `providers/google.firebase.analytics/eventTypes/event.log`
    * * `providers/firebase.auth/eventTypes/user.create`
    * * `providers/firebase.auth/eventTypes/user.delete`
@@ -119,28 +119,26 @@ export interface EventContext {
    * Database trigger. Cannot be accessed while inside the handler namespace.
    */
   params: { [option: string]: any };
-
+  
   /**
    * The resource that emitted the event. Valid values are:
    *
    * * Analytics &mdash; `projects/<projectId>/events/<analyticsEventType>`
    * * Realtime Database &mdash;
        `projects/_/instances/<databaseInstance>/refs/<databasePath>`
-  * * Storage &mdash;
+   * * Storage &mdash;
       `projects/_/buckets/<bucketName>/objects/<fileName>#<generation>`
-  * * Authentication &mdash; `projects/<projectId>`
-  * * Pub/Sub &mdash; `projects/<projectId>/topics/<topicName>`
-  *
-  * Because Realtime Database instances and Cloud Storage buckets are globally
-  * unique and not tied to the project, their resources start with `projects/_`.
-  * Underscore is not a valid project name.
-  *
+   * * Authentication &mdash; `projects/<projectId>`
+   * * Pub/Sub &mdash; `projects/<projectId>/topics/<topicName>`
+   *
+   * Because Realtime Database instances and Cloud Storage buckets are globally
+   * unique and not tied to the project, their resources start with `projects/_`.
+   * Underscore is not a valid project name.
    */
   resource: Resource;
   /**
    * Timestamp for the event as an
    * [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) string.
-   *
    */
   timestamp: string;
 }
@@ -235,7 +233,8 @@ export interface Resource {
   labels?: { [tag: string]: string };
 }
 
-/** @hidden
+/** 
+ * @hidden
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
  */
@@ -280,7 +279,7 @@ export type HttpsFunction = TriggerAnnotated &
  * from your JavaScript file to define a Cloud Function.
  *
  * This type is a special JavaScript function which takes a templated
- * [`Event`](functions.Event) object as its only argument.
+ * `Event` object as its only argument.
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
