@@ -18,10 +18,13 @@
   },
   "license": "MIT",
   "author": "Firebase Team",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "apidocs": "node docgen/generate-docs.js",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
@@ -51,10 +54,13 @@
     "@types/sinon": "^7.0.13",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
+    "child-process-promise": "^2.2.1",
     "firebase-admin": "^8.2.0",
     "istanbul": "^0.4.5",
+    "js-yaml": "^3.13.1",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
+    "mz": "^2.7.0",
     "nock": "^10.0.6",
     "prettier": "^1.18.2",
     "sinon": "^7.3.2",
@@ -63,7 +69,9 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typescript": "^3.5.2"
+    "typedoc": "^0.14.2",
+    "typescript": "^3.5.2",
+    "yargs": "^13.2.4"
   },
   "peerDependencies": {
     "firebase-admin": "^8.0.0"
