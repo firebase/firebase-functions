@@ -182,7 +182,6 @@ function changeConstructor(raw: Event) {
   );
 }
 
-
 /**
  * The Cloud Firestore document builder interface.
  *
@@ -201,15 +200,10 @@ export class DocumentBuilder {
    * Event handler that fires every time a Cloud Firestore write
    * of any kind (creation, update, or delete) occurs.
    *
-   * @param {
-   * !function(functions.Change<!functions.firestore.DocumentSnapshot>,
-   *   !functions.EventContext=)}
-   *   handler Event handler which is run every time a Cloud Firestore
+   * @param handler Event handler which is run every time a Cloud Firestore
    *   write occurs.
    *
-   * @return {
-   * !functions.CloudFunction}
-   *    A Cloud Function which you can export and deploy.
+   * @return A Cloud Function which you can export and deploy.
    */
   onWrite(
     handler: (
