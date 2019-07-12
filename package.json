@@ -18,10 +18,13 @@
   },
   "license": "MIT",
   "author": "Firebase Team",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "apidocs": "node docgen/generate-docs.js",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
@@ -29,8 +32,7 @@
     "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
-    "test": "mocha -r ts-node/register ./spec/index.spec.ts",
-    "apidocs": "node docgen/generate-docs.js"
+    "test": "mocha"
   },
   "dependencies": {
     "@types/express": "^4.17.0",
