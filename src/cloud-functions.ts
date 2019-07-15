@@ -143,15 +143,19 @@ export interface EventContext {
 }
 
 /**
- * Change describes a change of state - "before" represents the state prior to
- * the event, "after" represents the state after the event.
+ * The Functions interface for events that change state, such as
+ * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
+ *
+ * For more information about the format used to construct `Change` objects, see
+ * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
+ *
  */
 export class Change<T> {
   constructor(public before: T, public after: T) {}
 }
 
 /**
- * ChangeJson is the JSON format used to construct a Change object.
+ * `ChangeJson` is the JSON format used to construct a Change object.
  */
 export interface ChangeJson {
   /**
@@ -164,17 +168,20 @@ export interface ChangeJson {
    */
   before?: any;
   /**
-   * Comma-separated string that represents names of field that changed.
+   * @hidden
+   * Comma-separated string that represents names of fields that changed.
    */
   fieldMask?: string;
 }
 
 export namespace Change {
+  /** @hidden */
   function reinterpretCast<T>(x: any) {
     return x as T;
   }
 
   /**
+   * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
    * object.
    */
@@ -183,6 +190,7 @@ export namespace Change {
   }
 
   /**
+   * @hidden
    * Factory method for creating a Change from a JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */
