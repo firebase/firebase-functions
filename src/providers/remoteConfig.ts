@@ -151,7 +151,7 @@ export interface RemoteConfigUser {
   /** Name of the Remote Config account that performed the update. */
   name?: string;
 
-  /** Email address of the Remote Config account that performed an update. */
+  /** Email address of the Remote Config account that performed the update. */
   email: string;
 
   /** Image URL of the Remote Config account that performed an update. */
