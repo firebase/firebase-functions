@@ -144,7 +144,7 @@ export interface TemplateVersion {
 
 /**
  * An interface representing metadata for a Remote Config account
- * that performed an update. Contains the same fields as
+ * that performed the update. Contains the same fields as
  * [`RemoteConfigUser`](/docs/reference/remote-config/rest/v1/Version#remoteconfiguser).
  */
 export interface RemoteConfigUser {
