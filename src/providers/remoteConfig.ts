@@ -136,9 +136,8 @@ export interface TemplateVersion {
   updateType: string;
 
   /**
-   *
-   * The version number of the Remote config template that this update rolled back to.
-   * Only applies of this update was a rollback.
+   * The version number of the Remote Config template that this update rolled back to.
+   * Only applies if this update was a rollback.
    */
   rollbackSource?: number;
 }
