@@ -27,6 +27,7 @@ import * as _ from 'lodash';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
+import { assertNever } from '../utilities/assertions';
 
 export interface Request extends express.Request {
   rawBody: Buffer;
@@ -231,7 +232,7 @@ export class HttpsError extends Error {
         return 500;
       // This should never happen as long as the type system is doing its job.
       default:
-        throw new Error('Invalid error code: ' + this.code);
+        assertNever(this.code);
     }
   }
 
