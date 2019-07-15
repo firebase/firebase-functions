@@ -145,10 +145,10 @@ export interface EventContext {
 /**
  * The Functions interface for events that change state, such as
  * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
- * 
+ *
  * For more information about the format used to construct `Change` objects, see
  * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
- * 
+ *
  */
 export class Change<T> {
   constructor(public before: T, public after: T) {}
