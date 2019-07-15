@@ -148,7 +148,7 @@ export interface TemplateVersion {
  * [`RemoteConfigUser`](/docs/reference/remote-config/rest/v1/Version#remoteconfiguser).
  */
 export interface RemoteConfigUser {
-  /** Name of the Remote Config account that performed an update. */
+  /** Name of the Remote Config account that performed the update. */
   name?: string;
 
   /** Email address of the Remote Config account that performed an update. */
