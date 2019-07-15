@@ -41,7 +41,7 @@ export const service = 'firebaseremoteconfig.googleapis.com';
  * @param handler A function that takes the updated Remote Config
  *   template version metadata as an argument.
  *
- * @return A Cloud Function which you can export and deploy.
+ * @return A Cloud Function that you can export and deploy.
  */
 export function onUpdate(
   handler: (
