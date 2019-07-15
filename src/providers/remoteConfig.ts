@@ -121,7 +121,7 @@ export interface TemplateVersion {
   description: string;
 
   /**
-   * The origin of the caller, either the Firebase console or the Remote Config
+   * The origin of the caller - either the Firebase console or the Remote Config
    * REST API. See [`RemoteConfigUpdateOrigin`](/docs/reference/remote-config/rest/v1/Version#remoteconfigupdateorigin)
    * for valid values.
    */
