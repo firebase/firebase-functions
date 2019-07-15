@@ -12,6 +12,8 @@ toc:
         path: /docs/reference/functions/function_builder_.functionbuilder.html
       - title: 'Change'
         path: /docs/reference/functions/cloud_functions_.change.html
+      - title: 'ChangeJson'
+        path: /docs/reference/functions/cloud_functions_.changejson.html
 
   - title: 'functions.config'
     path: /docs/reference/functions/config_.html
