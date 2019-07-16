@@ -46,7 +46,7 @@ import * as storage from './providers/storage';
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
  * @throws { Error } FailurePolicy, Memory and TimeoutSeconds values must be
- * valid.
+ *     valid.
  */
 function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
   if (_.isObjectLike(runtimeOptions) === false) {
@@ -208,7 +208,7 @@ export class FunctionBuilder {
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns
-       * a value.
+       *     a value.
        */
       onCall: (
         handler: (
