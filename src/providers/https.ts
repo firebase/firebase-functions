@@ -220,7 +220,6 @@ export class HttpsError extends Error {
     this.httpErrorCode = errorCodeMap[code];
   }
 
-  /** @hidden */
   public toJSON(): HttpErrorWireFormat {
     const {
       details,
