@@ -27,6 +27,7 @@ import * as _ from 'lodash';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
+import { assertNever } from '../utilities/assertions';
 
 export interface Request extends express.Request {
   rawBody: Buffer;
