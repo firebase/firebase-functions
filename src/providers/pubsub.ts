@@ -111,7 +111,7 @@ export function _scheduleWithOptions(
 }
 
 /**
- * The Google Cloud Pub/Sub topic builder interface.
+ * The Google Cloud Pub/Sub topic builder.
  *
  * Access via [`functions.pubsub.topic()`](functions.pubsub#.topic).
  */
@@ -129,7 +129,7 @@ export class TopicBuilder {
    * @param handler Event handler that runs every time a Cloud Pub/Sub message
    *   is published.
    *
-   * @return A Cloud Function which you can export and deploy.
+   * @return A Cloud Function that you can export and deploy.
    */
   onPublish(
     handler: (message: Message, context: EventContext) => PromiseLike<any> | any
@@ -161,6 +161,8 @@ export class Message {
    * User-defined attributes published with the message, if any.
    */
   readonly attributes: { [key: string]: string };
+
+  /** @hidden */
   private _json: any;
 
   constructor(data: any) {
