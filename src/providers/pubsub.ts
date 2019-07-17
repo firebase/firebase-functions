@@ -40,7 +40,6 @@ export const service = 'pubsub.googleapis.com';
  * is sent to a specified topic.
  *
  * @param topic The Pub/Sub topic to watch for message events.
- *
  * @return Pub/Sub topic builder interface.
  */
 export function topic(topic: string) {
@@ -128,7 +127,6 @@ export class TopicBuilder {
    *
    * @param handler Event handler that runs every time a Cloud Pub/Sub message
    *   is published.
-   *
    * @return A Cloud Function that you can export and deploy.
    */
   onPublish(
