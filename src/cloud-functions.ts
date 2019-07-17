@@ -25,6 +25,7 @@ import * as _ from 'lodash';
 import {
   DeploymentOptions,
   FailurePolicy,
+  MEMORY_LOOKUP,
   Schedule,
 } from './function-configuration';
 export { Request, Response };
@@ -332,14 +333,6 @@ export function optionsToTrigger({
     retry: {},
   };
 
-  const memoryLookup = {
-    '128MB': 128,
-    '256MB': 256,
-    '512MB': 512,
-    '1GB': 1024,
-    '2GB': 2048,
-  };
-
   return {
     ...(failurePolicy === undefined || failurePolicy === false
       ? {}
@@ -348,7 +341,7 @@ export function optionsToTrigger({
       : { failurePolicy }),
     ...(memory === undefined
       ? {}
-      : { availableMemoryMb: memoryLookup[memory] }),
+      : { availableMemoryMb: MEMORY_LOOKUP[memory] }),
     ...(regions === undefined ? {} : { regions }),
     ...(schedule === undefined ? {} : { schedule }),
     ...(timeoutSeconds === undefined ? {} : { timeout: `${timeoutSeconds}s` }),
