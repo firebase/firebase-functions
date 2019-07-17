@@ -150,7 +150,7 @@ describe('FunctionBuilder', () => {
     }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
   });
 
-  it('should throw an error if user chooses a failurePolicy of type number', () => {
+  it('should throw an error if user chooses a failurePolicy which is neither an object nor a boolean', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: (1234 as unknown) as boolean,
@@ -158,26 +158,10 @@ describe('FunctionBuilder', () => {
     ).to.throw(Error, 'RuntimeOptions.failurePolicy');
   });
 
-  it('should throw an error if user chooses a failurePolicy of type string', () => {
-    expect(() =>
-      functions.runWith({
-        failurePolicy: ('string-value' as unknown) as boolean,
-      })
-    ).to.throw(Error, 'RuntimeOptions.failurePolicy');
-  });
-
-  it('should throw an error if user chooses a failurePolicy.retry of type number', () => {
+  it('should throw an error if user chooses a failurePolicy.retry which is not an object', () => {
     expect(() =>
       functions.runWith({
         failurePolicy: { retry: (1234 as unknown) as object },
-      })
-    ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
-  });
-
-  it('should throw an error if user chooses a failurePolicy.retry of type string', () => {
-    expect(() =>
-      functions.runWith({
-        failurePolicy: { retry: ('string-value' as unknown) as object },
       })
     ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
   });
