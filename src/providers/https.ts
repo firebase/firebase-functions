@@ -204,6 +204,8 @@ export class HttpsError extends Error {
 
   /**
    * A wire format representation of a provided error code.
+   *
+   * @hidden
    */
   public readonly httpErrorCode: HttpErrorCode;
 
@@ -220,6 +222,7 @@ export class HttpsError extends Error {
     this.httpErrorCode = errorCodeMap[code];
   }
 
+  /** @hidden */
   public toJSON(): HttpErrorWireFormat {
     const {
       details,
