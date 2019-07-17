@@ -35,8 +35,12 @@ export const provider = 'google.pubsub';
 /** @hidden */
 export const service = 'pubsub.googleapis.com';
 
-/** Select Cloud Pub/Sub topic to listen to.
- * @param topic Name of Pub/Sub topic, must belong to the same project as the function.
+/**
+ * Registers a Cloud Function triggered when a Google Cloud Pub/Sub message
+ * is sent to a specified topic.
+ *
+ * @param topic The Pub/Sub topic to watch for message events.
+ * @return Pub/Sub topic builder interface.
  */
 export function topic(topic: string) {
   return _topicWithOptions(topic, {});
@@ -105,7 +109,11 @@ export function _scheduleWithOptions(
   return new ScheduleBuilder({ ...options, schedule: { schedule } });
 }
 
-/** Builder used to create Cloud Functions for Google Pub/Sub topics. */
+/**
+ * The Google Cloud Pub/Sub topic builder.
+ *
+ * Access via [`functions.pubsub.topic()`](functions.pubsub#.topic).
+ */
 export class TopicBuilder {
   /** @hidden */
   constructor(
@@ -113,7 +121,14 @@ export class TopicBuilder {
     private options: DeploymentOptions
   ) {}
 
-  /** Handle a Pub/Sub message that was published to a Cloud Pub/Sub topic */
+  /**
+   * Event handler that fires every time a Cloud Pub/Sub message is
+   * published.
+   *
+   * @param handler Event handler that runs every time a Cloud Pub/Sub message
+   *   is published.
+   * @return A Cloud Function that you can export and deploy.
+   */
   onPublish(
     handler: (message: Message, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<Message> {
@@ -130,15 +145,22 @@ export class TopicBuilder {
 }
 
 /**
- * A Pub/Sub message.
+ * Interface representing a Google Cloud Pub/Sub message.
  *
- * This class has an additional .json helper which will correctly deserialize any
- * message that was a JSON object when published with the JS SDK. .json will throw
- * if the message is not a base64 encoded JSON string.
+ * @param data Payload of a Pub/Sub message.
  */
 export class Message {
+  /**
+   * The data payload of this message object as a base64-encoded string.
+   */
   readonly data: string;
+
+  /**
+   * User-defined attributes published with the message, if any.
+   */
   readonly attributes: { [key: string]: string };
+
+  /** @hidden */
   private _json: any;
 
   constructor(data: any) {
@@ -149,6 +171,9 @@ export class Message {
     ];
   }
 
+  /**
+   * The JSON data payload of this message object, if any.
+   */
   get json(): any {
     if (typeof this._json === 'undefined') {
       this._json = JSON.parse(new Buffer(this.data, 'base64').toString('utf8'));
@@ -157,6 +182,11 @@ export class Message {
     return this._json;
   }
 
+  /**
+   * Returns a JSON-serializable representation of this object.
+   *
+   * @return A JSON-serializable representation of this object.
+   */
   toJSON(): any {
     return {
       data: this.data,
