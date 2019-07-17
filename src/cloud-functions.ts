@@ -23,6 +23,7 @@
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
 import {
+  DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   FailurePolicy,
   MEMORY_LOOKUP,
@@ -329,15 +330,11 @@ export function optionsToTrigger({
   schedule,
   timeoutSeconds,
 }: DeploymentOptions): TriggerAnnotated['__trigger'] {
-  const defaultFailurePolicy: FailurePolicy = {
-    retry: {},
-  };
-
   return {
     ...(failurePolicy === undefined || failurePolicy === false
       ? {}
       : failurePolicy === true
-      ? { failurePolicy: defaultFailurePolicy }
+      ? { failurePolicy: DEFAULT_FAILURE_POLICY }
       : { failurePolicy }),
     ...(memory === undefined
       ? {}
