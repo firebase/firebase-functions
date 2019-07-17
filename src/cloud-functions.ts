@@ -324,24 +324,35 @@ export interface MakeCloudFunctionArgs<EventData> {
 
 /** @hidden */
 export function optionsToTrigger({
-  failurePolicy,
+  failurePolicy: failurePolicyOrAlias,
   memory,
   regions,
   schedule,
   timeoutSeconds,
 }: DeploymentOptions): TriggerAnnotated['__trigger'] {
+  /*
+   * FailurePolicy can be aliased with a boolean value in the public API.
+   * Convert aliases `true` and `false` to a standardized interface.
+   */
+  const failurePolicy: FailurePolicy | undefined =
+    failurePolicyOrAlias === false
+      ? undefined
+      : failurePolicyOrAlias === true
+      ? DEFAULT_FAILURE_POLICY
+      : failurePolicyOrAlias;
+
+  const availableMemoryMb: number | undefined =
+    memory === undefined ? undefined : MEMORY_LOOKUP[memory];
+
+  const timeout: string | undefined =
+    timeoutSeconds === undefined ? undefined : `${timeoutSeconds}s`;
+
   return {
-    ...(failurePolicy === undefined || failurePolicy === false
-      ? {}
-      : failurePolicy === true
-      ? { failurePolicy: DEFAULT_FAILURE_POLICY }
-      : { failurePolicy }),
-    ...(memory === undefined
-      ? {}
-      : { availableMemoryMb: MEMORY_LOOKUP[memory] }),
+    ...(failurePolicy === undefined ? {} : { failurePolicy }),
+    ...(availableMemoryMb === undefined ? {} : { availableMemoryMb }),
     ...(regions === undefined ? {} : { regions }),
     ...(schedule === undefined ? {} : { schedule }),
-    ...(timeoutSeconds === undefined ? {} : { timeout: `${timeoutSeconds}s` }),
+    ...(timeout === undefined ? {} : { timeout }),
   };
 }
 
