@@ -60,9 +60,9 @@ function delete_all_functions {
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing.
   if [[ "${TOKEN}" == "" ]]; then
-    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID || : &
+    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests testLabTests --force --project=$PROJECT_ID || : &
   else
-    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID --token=$TOKEN || : &
+    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests testLabTests --force --project=$PROJECT_ID --token=$TOKEN || : &
   fi
   wait
   announce "Project emptied."

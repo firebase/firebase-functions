@@ -14,7 +14,11 @@ export * from './firestore-tests';
 export * from './https-tests';
 export * from './remoteConfig-tests';
 export * from './storage-tests';
+export * from './testLab-tests';
 const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
+
+import * as utils from './test-utils';
+import * as testLab from './testLab-utils';
 
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
@@ -22,28 +26,17 @@ admin.initializeApp();
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any, baseUrl) {
-  return new Promise((resolve, reject) => {
-    const request = https.request(
-      {
-        method: 'POST',
-        host: 'us-central1-' + firebaseConfig.projectId + '.' + baseUrl,
-        path: '/' + name,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+  return utils.makeRequest(
+    {
+      method: 'POST',
+      host: 'us-central1-' + firebaseConfig.projectId + '.' + baseUrl,
+      path: '/' + name,
+      headers: {
+        'Content-Type': 'application/json',
       },
-      (response) => {
-        let body = '';
-        response.on('data', (chunk) => {
-          body += chunk;
-        });
-        response.on('end', () => resolve(body));
-      }
-    );
-    request.on('error', reject);
-    request.write(JSON.stringify({ data }));
-    request.end();
-  });
+    },
+    JSON.stringify({ data })
+  );
 }
 
 function callScheduleTrigger(functionName: string, region: string) {
@@ -149,6 +142,7 @@ export const integrationTests: any = functions
         .storage()
         .bucket()
         .upload('/tmp/' + testId + '.txt'),
+      testLab.startTestRun(firebaseConfig.projectId, testId),
       // Invoke the schedule for our scheduled function to fire
       callScheduleTrigger('schedule', 'us-central1'),
     ])

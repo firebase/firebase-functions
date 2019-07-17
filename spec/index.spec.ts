@@ -42,6 +42,7 @@ import './providers/https.spec';
 import './providers/pubsub.spec';
 import './providers/remoteConfig.spec';
 import './providers/storage.spec';
+import './providers/testLab.spec';
 import './setup.spec';
 import './testing.spec';
 import './utils.spec';
