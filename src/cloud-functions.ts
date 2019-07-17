@@ -22,15 +22,16 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { apps } from './apps';
 import { DeploymentOptions, Schedule } from './function-configuration';
 export { Request, Response };
 
+/** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
+ * @hidden
+ *
  * Wire format for an event.
- * @internal
  */
 export interface Event {
   context: {
@@ -54,52 +55,107 @@ export interface Event {
  */
 export interface EventContext {
   /**
-   * Firebase auth variable for the user whose action triggered the function.
-   * Field will be null for unauthenticated users, and will not exist for admin
-   * users. Only available for database functions.
+   * Authentication information for the user that triggered the function.
+   * This object contains `uid` and `token` properties for authenticated users.
+   * For more detail including token keys, see the
+   * [security rules reference](/docs/firestore/reference/security/#properties).
+   *
+   * This field is only populated for Realtime Database triggers and Callable
+   * functions. For an unauthenticated user, this field is null. For Firebase
+   * admin users and event types that do not provide user information, this field
+   * does not exist.
    */
   auth?: {
     token: object;
     uid: string;
   };
+
   /**
-   * Type of authentication for the triggering action. Only available for
-   * database functions.
+   * The level of permissions for a user. Valid values are:
+   *
+   * * `ADMIN` Developer user or user authenticated via a service account.
+   * * `USER` Known user.
+   * * `UNAUTHENTICATED` Unauthenticated action
+   * * `null` For event types that do not provide user information (all except
+   *   Realtime Database).
    */
   authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
+
   /**
-   * ID of the event
+   * The event’s unique identifier.
    */
   eventId: string;
+
   /**
-   * Type of event
+   * Type of event. Valid values are:
+   *
+   * * `providers/google.firebase.analytics/eventTypes/event.log`
+   * * `providers/firebase.auth/eventTypes/user.create`
+   * * `providers/firebase.auth/eventTypes/user.delete`
+   * * `providers/firebase.crashlytics/eventTypes/issue.new`
+   * * `providers/firebase.crashlytics/eventTypes/issue.regressed`
+   * * `providers/firebase.crashlytics/eventTypes/issue.velocityAlert`
+   * * `providers/google.firebase.database/eventTypes/ref.write`
+   * * `providers/google.firebase.database/eventTypes/ref.create`
+   * * `providers/google.firebase.database/eventTypes/ref.update`
+   * * `providers/google.firebase.database/eventTypes/ref.delete`
+   * * `providers/cloud.firestore/eventTypes/document.write`
+   * * `providers/cloud.firestore/eventTypes/document.create`
+   * * `providers/cloud.firestore/eventTypes/document.update`
+   * * `providers/cloud.firestore/eventTypes/document.delete`
+   * * `google.pubsub.topic.publish`
+   * * `google.storage.object.finalize`
+   * * `google.storage.object.archive`
+   * * `google.storage.object.delete`
+   * * `google.storage.object.metadataUpdate`
+   * * `google.firebase.remoteconfig.update`
    */
   eventType: string;
+
   /**
-   * Key-value pairs that represent the values of wildcards in a database
-   * reference. Cannot be accessed while inside the handler namespace.
+   * An object containing the values of the wildcards in the `path` parameter
+   * provided to the [`ref()`](functions.database#.ref) method for a Realtime
+   * Database trigger. Cannot be accessed while inside the handler namespace.
    */
   params: { [option: string]: any };
+
   /**
-   * Resource that triggered the event
+   * The resource that emitted the event. Valid values are:
+   *
+   * * Analytics &mdash; `projects/<projectId>/events/<analyticsEventType>`
+   * * Realtime Database &mdash;
+       `projects/_/instances/<databaseInstance>/refs/<databasePath>`
+   * * Storage &mdash;
+      `projects/_/buckets/<bucketName>/objects/<fileName>#<generation>`
+   * * Authentication &mdash; `projects/<projectId>`
+   * * Pub/Sub &mdash; `projects/<projectId>/topics/<topicName>`
+   *
+   * Because Realtime Database instances and Cloud Storage buckets are globally
+   * unique and not tied to the project, their resources start with `projects/_`.
+   * Underscore is not a valid project name.
    */
   resource: Resource;
   /**
-   * Timestamp for when the event ocurred (ISO 8601 string)
+   * Timestamp for the event as an
+   * [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) string.
    */
   timestamp: string;
 }
 
 /**
- * Change describes a change of state - "before" represents the state prior to
- * the event, "after" represents the state after the event.
+ * The Functions interface for events that change state, such as
+ * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
+ *
+ * For more information about the format used to construct `Change` objects, see
+ * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
+ *
  */
 export class Change<T> {
   constructor(public before: T, public after: T) {}
 }
 
 /**
- * ChangeJson is the JSON format used to construct a Change object.
+ * `ChangeJson` is the JSON format used to construct a Change object.
  */
 export interface ChangeJson {
   /**
@@ -112,17 +168,20 @@ export interface ChangeJson {
    */
   before?: any;
   /**
-   * Comma-separated string that represents names of field that changed.
+   * @hidden
+   * Comma-separated string that represents names of fields that changed.
    */
   fieldMask?: string;
 }
 
 export namespace Change {
+  /** @hidden */
   function reinterpretCast<T>(x: any) {
     return x as T;
   }
 
   /**
+   * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
    * object.
    */
@@ -131,6 +190,7 @@ export namespace Change {
   }
 
   /**
+   * @hidden
    * Factory method for creating a Change from a JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */
@@ -148,9 +208,7 @@ export namespace Change {
     );
   }
 
-  /**
-   * @internal
-   */
+  /** @hidden */
   export function applyFieldMask(
     sparseBefore: any,
     after: any,
@@ -183,6 +241,7 @@ export interface Resource {
 }
 
 /**
+ * @hidden
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
  */
@@ -211,25 +270,29 @@ export interface Runnable<T> {
 }
 
 /**
- * An HttpsFunction is both an object that exports its trigger definitions at
- * __trigger and can be called as a function that takes an express.js Request
- * and Response object.
+ * The Cloud Function type for HTTPS triggers. This should be exported from your
+ * JavaScript file to define a Cloud Function.
+ *
+ * This type is a special JavaScript function which takes Express
+ * [`Request`](https://expressjs.com/en/api.html#req) and
+ * [`Response`](https://expressjs.com/en/api.html#res) objects as its only
+ * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
   ((req: Request, resp: Response) => void);
 
 /**
- * A CloudFunction is both an object that exports its trigger definitions at
- * __trigger and can be called as a function using the raw JS API for Google
- * Cloud Functions.
+ * The Cloud Function type for all non-HTTPS triggers. This should be exported
+ * from your JavaScript file to define a Cloud Function.
+ *
+ * This type is a special JavaScript function which takes a templated
+ * `Event` object as its only argument.
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
-/**
- * @internal
- */
+/** @hidden */
 export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event) => void;
   before?: (raw: Event) => void;
@@ -249,9 +312,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
 }
 
-/**
- * @internal
- */
+/** @hidden */
 export function makeCloudFunction<EventData>({
   after = () => {},
   before = () => {},
@@ -353,6 +414,7 @@ export function makeCloudFunction<EventData>({
   return cloudFunction;
 }
 
+/** @hidden */
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
@@ -380,6 +442,7 @@ function _makeParams(
   return params;
 }
 
+/** @hidden */
 function _makeAuth(event: Event, authType: string) {
   if (authType === 'UNAUTHENTICATED') {
     return null;
@@ -390,6 +453,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
+/** @hidden */
 function _detectAuthType(event: Event) {
   if (_.get(event, 'context.auth.admin')) {
     return 'ADMIN';
@@ -400,6 +464,7 @@ function _detectAuthType(event: Event) {
   return 'UNAUTHENTICATED';
 }
 
+/** @hidden */
 export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
   if (options.regions) {

@@ -120,11 +120,11 @@ export class HandlerBuilder {
       get document() {
         return new firestore.DocumentBuilder(() => null, {});
       },
-      /** @internal */
+      /** @hidden */
       get namespace() {
         return new firestore.DocumentBuilder(() => null, {});
       },
-      /** @internal */
+      /** @hidden */
       get database() {
         return new firestore.DocumentBuilder(() => null, {});
       },

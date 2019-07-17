@@ -1,6 +1,6 @@
 import * as functions from 'firebase-functions';
 import * as _ from 'lodash';
-import { TestSuite, expectEq } from './testing';
+import { expectEq, TestSuite } from './testing';
 
 export const callableTests: any = functions.https.onCall((d) => {
   return new TestSuite('https onCall')

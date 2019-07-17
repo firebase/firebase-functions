@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions';
-import { TestSuite, expectEq } from './testing';
+import { expectEq, TestSuite } from './testing';
 import TemplateVersion = functions.remoteConfig.TemplateVersion;
 
 export const remoteConfigTests: any = functions.remoteConfig.onUpdate(

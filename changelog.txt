@@ -1,2 +1,2 @@
 feature - Adds support for Test Lab triggered functions with `functions.testLab`.
-feature - Adds region support for us-east4.
+fixed - Upgrade lodash dependency to resolve security vulnerability CVE-2019-10744.

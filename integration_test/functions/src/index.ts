@@ -1,11 +1,8 @@
-import * as functions from 'firebase-functions';
-import * as https from 'https';
-import * as admin from 'firebase-admin';
 import { Request, Response } from 'express';
+import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 import * as fs from 'fs';
-
-import * as PubSub from '@google-cloud/pubsub';
-const pubsub = PubSub();
+import * as https from 'https';
 
 export * from './pubsub-tests';
 export * from './database-tests';
@@ -75,7 +72,7 @@ export const integrationTests: any = functions
       .split('.')
       .slice(1)
       .join('.');
-    let pubsub: any = require('@google-cloud/pubsub')();
+    const pubsub: any = require('@google-cloud/pubsub')();
     const testId = admin
       .database()
       .ref()
@@ -149,7 +146,7 @@ export const integrationTests: any = functions
       .then(() => {
         // On test completion, check that all tests pass and reply "PASS", or provide further details.
         console.log('Waiting for all tests to report they pass...');
-        let ref = admin.database().ref(`testRuns/${testId}`);
+        const ref = admin.database().ref(`testRuns/${testId}`);
         return new Promise((resolve, reject) => {
           let testsExecuted = 0;
           ref.on('child_added', (snapshot) => {

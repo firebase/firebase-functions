@@ -29,12 +29,9 @@ import * as sinon from 'sinon';
 
 describe('apps', () => {
   let apps: appsNamespace.Apps;
-  let claims;
 
   beforeEach(() => {
     apps = new appsNamespace.Apps();
-    // mock claims intentionally contains dots, square brackets, and nested paths
-    claims = { token: { firebase: { identities: { 'google.com': ['111'] } } } };
   });
 
   afterEach(() => {

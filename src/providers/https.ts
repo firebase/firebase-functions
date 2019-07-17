@@ -27,6 +27,7 @@ import * as _ from 'lodash';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
+import { assertNever } from '../utilities/assertions';
 
 export interface Request extends express.Request {
   rawBody: Buffer;
@@ -53,7 +54,7 @@ export function onCall(
   return _onCallWithOptions(handler, {});
 }
 
-/** @internal */
+/** @hidden */
 export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void,
   options: DeploymentOptions
@@ -182,7 +183,7 @@ export class HttpsError extends Error {
   }
 
   /**
-   * @internal
+   * @hidden
    * A string representation of the Google error code for this error for HTTP.
    */
   get status() {
@@ -190,7 +191,7 @@ export class HttpsError extends Error {
   }
 
   /**
-   * @internal
+   * @hidden
    * Returns the canonical http status code for the given error.
    */
   get httpStatus(): number {
@@ -231,11 +232,11 @@ export class HttpsError extends Error {
         return 500;
       // This should never happen as long as the type system is doing its job.
       default:
-        throw new Error('Invalid error code: ' + this.code);
+        assertNever(this.code);
     }
   }
 
-  /** @internal */
+  /** @hidden */
   public toJSON() {
     const json: any = {
       status: this.status,
@@ -334,7 +335,7 @@ const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
  * Encodes arbitrary data in our special format for JSON.
  * This is exposed only for testing.
  */
-/** @internal */
+/** @hidden */
 export function encode(data: any): any {
   if (_.isNull(data) || _.isUndefined(data)) {
     return null;
@@ -372,7 +373,7 @@ export function encode(data: any): any {
  * Decodes our special format for JSON into native types.
  * This is exposed only for testing.
  */
-/** @internal */
+/** @hidden */
 export function decode(data: any): any {
   if (data === null) {
     return data;
@@ -412,7 +413,7 @@ export function decode(data: any): any {
 
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
-/** @internal */
+/** @hidden */
 export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions

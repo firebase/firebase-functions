@@ -36,11 +36,11 @@ export namespace config {
     [key: string]: any;
   }
 
-  /** @internal */
+  /** @hidden */
   export let singleton: config.Config;
 }
 
-/* @internal */
+/** @hidden */
 export function firebaseConfig(): firebase.AppOptions | null {
   const env = process.env.FIREBASE_CONFIG;
   if (env) {
