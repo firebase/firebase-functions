@@ -139,8 +139,8 @@ export function region(
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with three optional fields:
- * 1. failurePolicy: failure policy policy of the function, boolean `true` is
- *    equivalent to providing an empty policy.
+ * 1. failurePolicy: failure policy of the function, with boolean true being
+ *    equivalent to providing an empty retry object.
  * 2. memory: amount of memory to allocate to the function, possible values
  *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
  * 3. timeoutSeconds: timeout for the function in seconds, possible values are
@@ -174,8 +174,8 @@ export class FunctionBuilder {
   /**
    * Configure runtime options for the function.
    * @param runtimeOptions Object with three optional fields:
-   * 1. failurePolicy: failure policy policy of the function, boolean `true` is
-   *    equivalent to providing an empty policy.
+   * 1. failurePolicy: failure policy of the function, with boolean true being
+   *    equivalent to providing an empty retry object.
    * 2. memory: amount of memory to allocate to the function, possible values
    *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
    * 3. timeoutSeconds: timeout for the function in seconds, possible values are
