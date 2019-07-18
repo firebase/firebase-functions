@@ -44,16 +44,26 @@ export const service = 'firebaseio.com';
 const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
 
 /**
- * Selects a database instance that will trigger the function.
- * If omitted, will pick the default database for your project.
- * @param instance The Realtime Database instance to use.
+ * Registers a function that triggers on events from a specific
+ * Firebase Realtime Database instance.
+ *
+ * Use this method together with `ref` to specify the instance on which to
+ * watch for database events. For example: `firebase.database.instance('my-app-db-2').ref('/foo/bar')`
+ *
+ * Note that `functions.database.ref` used without `instance` watches the
+ * *default* instance for events.
+ *
+ * @param instance The instance name of the database instance
+ *   to watch for write events.
+ * @return Firebase Realtime Database instance builder interface.
  */
 export function instance(instance: string) {
   return _instanceWithOptions(instance, {});
 }
 
 /**
- * Select Firebase Realtime Database Reference to listen to.
+ * Registers a function that triggers on Firebase Realtime Database write
+ * events.
  *
  * This method behaves very similarly to the method of the same name in the
  * client and Admin Firebase SDKs. Any change to the Database that affects the
@@ -65,15 +75,19 @@ export function instance(instance: string) {
  * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
  *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
  *    that matched a certain invocation of a Cloud Function is returned as part
- *    of the `context.params` object. For example, `ref("messages/{messageId}")`
- *    matches changes at `/messages/message1` or `/messages/message2`, resulting
- *    in  `context.params.messageId` being set to `"message1"` or `"message2"`,
+ *    of the [`event.params`](functions.EventContext#params) object. For
+ *    example, `ref("messages/{messageId}")` matches changes at
+ *    `/messages/message1` or `/messages/message2`, resulting in
+ *    `event.params.messageId` being set to `"message1"` or `"message2"`,
  *    respectively.
  * 2. Cloud Functions do not fire an event for data that already existed before
  *    the Cloud Function was deployed.
- * 3. Cloud Function events have access to more information, including information
- *    about the user who triggered the Cloud Function.
- * @param ref Path of the database to listen to.
+ * 3. Cloud Function events have access to more information, including a
+ *    snapshot of the previous event data and information about the user who
+ *    triggered the Cloud Function.
+ *
+ * @param path The path within the Database to watch for write events.
+ * @return Firebase Realtime Database builder interface.
  */
 export function ref(path: string) {
   return _refWithOptions(path, {});
@@ -87,10 +101,18 @@ export function _instanceWithOptions(
   return new InstanceBuilder(instance, options);
 }
 
+/**
+ * The Firebase Realtime Database instance builder interface.
+ *
+ * Access via [`functions.database.instance()`](functions.database#.instance).
+ */
 export class InstanceBuilder {
   /** @hidden */
   constructor(private instance: string, private options: DeploymentOptions) {}
 
+  /**
+   * @return Firebase Realtime Database reference builder interface.
+   */
   ref(path: string): RefBuilder {
     const normalized = normalizePath(path);
     return new RefBuilder(
@@ -130,7 +152,11 @@ export function _refWithOptions(
   return new RefBuilder(apps(), resourceGetter, options);
 }
 
-/** Builder used to create Cloud Functions for Firebase Realtime Database References. */
+/**
+ * The Firebase Realtime Database reference builder interface.
+ *
+ * Access via [`functions.database.ref()`](functions.database#.ref).
+ */
 export class RefBuilder {
   /** @hidden */
   constructor(
@@ -139,7 +165,14 @@ export class RefBuilder {
     private options: DeploymentOptions
   ) {}
 
-  /** Respond to any write that affects a ref. */
+  /**
+   * Event handler that fires every time a Firebase Realtime Database write
+   * of any kind (creation, update, or delete) occurs.
+   *
+   * @param handler Event handler that runs every time a Firebase Realtime Database
+   *   write occurs.
+   * @return A Cloud Function that you can export and deploy.
+   */
   onWrite(
     handler: (
       change: Change<DataSnapshot>,
@@ -149,7 +182,15 @@ export class RefBuilder {
     return this.onOperation(handler, 'ref.write', this.changeConstructor);
   }
 
-  /** Respond to update on a ref. */
+  /**
+   * Event handler that fires every time data is updated in
+   * Firebase Realtime Database.
+   *
+   * @param handler Event handler which is run every time a Firebase Realtime Database
+   *   write occurs.
+   * @return A Cloud
+   *   Function which you can export and deploy.
+   */
   onUpdate(
     handler: (
       change: Change<DataSnapshot>,
@@ -159,7 +200,14 @@ export class RefBuilder {
     return this.onOperation(handler, 'ref.update', this.changeConstructor);
   }
 
-  /** Respond to new data on a ref. */
+  /**
+   * Event handler that fires every time new data is created in
+   * Firebase Realtime Database.
+   *
+   * @param handler Event handler that runs every time new data is created in
+   *   Firebase Realtime Database.
+   * @return A Cloud Function that you can export and deploy.
+   */
   onCreate(
     handler: (
       snapshot: DataSnapshot,
@@ -180,7 +228,14 @@ export class RefBuilder {
     return this.onOperation(handler, 'ref.create', dataConstructor);
   }
 
-  /** Respond to all data being deleted from a ref. */
+  /**
+   * Event handler that fires every time data is deleted from
+   * Firebase Realtime Database.
+   *
+   * @param handler Event handler that runs every time data is deleted from
+   *   Firebase Realtime Database.
+   * @return A Cloud Function that you can export and deploy.
+   */
   onDelete(
     handler: (
       snapshot: DataSnapshot,
@@ -259,11 +314,22 @@ export function resourceToInstanceAndPath(resource: string) {
   return [dbInstance, path];
 }
 
+/**
+ * Interface representing a Firebase Realtime Database data snapshot.
+ */
 export class DataSnapshot {
   public instance: string;
+
+  /** @hidden */
   private _ref: firebase.database.Reference;
+
+  /** @hidden */
   private _path: string;
+
+  /** @hidden */
   private _data: any;
+
+  /** @hidden */
   private _childPath: string;
 
   constructor(
@@ -286,7 +352,11 @@ export class DataSnapshot {
     this._data = data;
   }
 
-  /** Ref returns a reference to the database with full admin access. */
+  /**
+   * Returns a [`Reference`](/docs/reference/admin/node/admin.database.Reference)
+   * to the Database location where the triggering write occurred. Has
+   * full read and write access.
+   */
   get ref(): firebase.database.Reference {
     if (!this.app) {
       // may be unpopulated in user's unit tests
@@ -301,11 +371,30 @@ export class DataSnapshot {
     return this._ref;
   }
 
+  /**
+   * The key (last part of the path) of the location of this `DataSnapshot`.
+   *
+   * The last token in a Database location is considered its key. For example,
+   * "ada" is the key for the `/users/ada/` node. Accessing the key on any
+   * `DataSnapshot` will return the key for the location that generated it.
+   * However, accessing the key on the root URL of a Database will return `null`.
+   */
   get key(): string {
     const last = _.last(pathParts(this._fullPath()));
     return !last || last === '' ? null : last;
   }
 
+  /**
+   * Extracts a JavaScript value from a `DataSnapshot`.
+   *
+   * Depending on the data in a `DataSnapshot`, the `val()` method may return a
+   * scalar type (string, number, or boolean), an array, or an object. It may also
+   * return `null`, indicating that the `DataSnapshot` is empty (contains no
+   * data).
+   *
+   * @return The DataSnapshot's contents as a JavaScript value (Object,
+   *   Array, string, number, boolean, or `null`).
+   */
   val(): any {
     const parts = pathParts(this._childPath);
     const source = this._data;
@@ -315,20 +404,52 @@ export class DataSnapshot {
     return this._checkAndConvertToArray(node);
   }
 
-  // TODO(inlined): figure out what to do here
+  /**
+   * Exports the entire contents of the `DataSnapshot` as a JavaScript object.
+   *
+   * The `exportVal()` method is similar to `val()`, except priority information
+   * is included (if available), making it suitable for backing up your data.
+   *
+   * @return The contents of the `DataSnapshot` as a JavaScript value
+   *   (Object, Array, string, number, boolean, or `null`).
+   */
   exportVal(): any {
     return this.val();
   }
 
-  // TODO(inlined): figure out what to do here
+  /**
+   * Gets the priority value of the data in this `DataSnapshot`.
+   *
+   * As an alternative to using priority, applications can order collections by
+   * ordinary properties. See [Sorting and filtering
+   * data](/docs/database/web/lists-of-data#sorting_and_filtering_data).
+   *
+   * @return The priority value of the data.
+   */
   getPriority(): string | number | null {
     return 0;
   }
 
+  /**
+   * Returns `true` if this `DataSnapshot` contains any data. It is slightly more
+   * efficient than using `snapshot.val() !== null`.
+   *
+   * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
+   */
   exists(): boolean {
     return !_.isNull(this.val());
   }
 
+  /**
+   * Gets a `DataSnapshot` for the location at the specified relative path.
+   *
+   * The relative path can either be a simple child name (for example, "ada") or
+   * a deeper slash-separated path (for example, "ada/name/first").
+   *
+   * @param path A relative path from this location to the desired child
+   *   location.
+   * @return The specified child location.
+   */
   child(childPath: string): DataSnapshot {
     if (!childPath) {
       return this;
@@ -336,6 +457,25 @@ export class DataSnapshot {
     return this._dup(childPath);
   }
 
+  /**
+   * Enumerates the `DataSnapshot`s of the children items.
+   *
+   * Because of the way JavaScript objects work, the ordering of data in the
+   * JavaScript object returned by `val()` is not guaranteed to match the ordering
+   * on the server nor the ordering of `child_added` events. That is where
+   * `forEach()` comes in handy. It guarantees the children of a `DataSnapshot`
+   * will be iterated in their query order.
+   *
+   * If no explicit `orderBy*()` method is used, results are returned
+   * ordered by key (unless priorities are used, in which case, results are
+   * returned by priority).
+   *
+   * @param action A function that will be called for each child `DataSnapshot`.
+   *   The callback can return `true` to cancel further enumeration.
+   *
+   * @return `true` if enumeration was canceled due to your callback
+   *   returning `true`.
+   */
   forEach(action: (a: DataSnapshot) => boolean): boolean {
     const val = this.val();
     if (_.isPlainObject(val)) {
@@ -347,29 +487,57 @@ export class DataSnapshot {
     return false;
   }
 
+  /**
+   * Returns `true` if the specified child path has (non-`null`) data.
+   *
+   * @param path A relative path to the location of a potential child.
+   * @return `true` if data exists at the specified child path; otherwise,
+   *   `false`.
+   */
   hasChild(childPath: string): boolean {
     return this.child(childPath).exists();
   }
 
+  /**
+   * Returns whether or not the `DataSnapshot` has any non-`null` child
+   * properties.
+   *
+   * You can use `hasChildren()` to determine if a `DataSnapshot` has any
+   * children. If it does, you can enumerate them using `forEach()`. If it
+   * doesn't, then either this snapshot contains a primitive value (which can be
+   * retrieved with `val()`) or it is empty (in which case, `val()` will return
+   * `null`).
+   *
+   * @return `true` if this snapshot has any children; else `false`.
+   */
   hasChildren(): boolean {
     const val = this.val();
     return _.isPlainObject(val) && _.keys(val).length > 0;
   }
 
+  /**
+   * Returns the number of child properties of this `DataSnapshot`.
+   *
+   * @return Number of child properties of this `DataSnapshot`.
+   */
   numChildren(): number {
     const val = this.val();
     return _.isPlainObject(val) ? Object.keys(val).length : 0;
   }
 
   /**
-   * Prints the value of the snapshot; use '.previous.toJSON()' and '.current.toJSON()' to explicitly see
-   * the previous and current values of the snapshot.
+   * Returns a JSON-serializable representation of this object.
+   *
+   * @return A JSON-serializable representation of this object.
    */
   toJSON(): Object {
     return this.val();
   }
 
-  /* Recursive function to check if keys are numeric & convert node object to array if they are */
+  /** Recursive function to check if keys are numeric & convert node object to array if they are
+   *
+   * @hidden
+   */
   private _checkAndConvertToArray(node: any): any {
     if (node === null || typeof node === 'undefined') {
       return null;
@@ -408,6 +576,7 @@ export class DataSnapshot {
     return obj;
   }
 
+  /** @hidden */
   private _dup(childPath?: string): DataSnapshot {
     const dup = new DataSnapshot(
       this._data,
@@ -424,6 +593,7 @@ export class DataSnapshot {
     return dup;
   }
 
+  /** @hidden */
   private _fullPath(): string {
     const out = (this._path || '') + '/' + (this._childPath || '');
     return out;
