@@ -75,7 +75,7 @@ export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
 
 export interface RuntimeOptions {
   /**
-   * Failure policy of the function, with boolean true being equivalent to
+   * Failure policy of the function, with boolean `true` being equivalent to
    * providing an empty retry object.
    */
   failurePolicy?: FailurePolicy | boolean;
