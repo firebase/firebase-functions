@@ -319,9 +319,17 @@ export function resourceToInstanceAndPath(resource: string) {
  */
 export class DataSnapshot {
   public instance: string;
+
+  /** @hidden */
   private _ref: firebase.database.Reference;
+
+  /** @hidden */
   private _path: string;
+
+  /** @hidden */
   private _data: any;
+
+  /** @hidden */
   private _childPath: string;
 
   constructor(
@@ -526,7 +534,10 @@ export class DataSnapshot {
     return this.val();
   }
 
-  /* Recursive function to check if keys are numeric & convert node object to array if they are */
+  /** Recursive function to check if keys are numeric & convert node object to array if they are
+   *
+   * @hidden
+   */
   private _checkAndConvertToArray(node: any): any {
     if (node === null || typeof node === 'undefined') {
       return null;
@@ -565,6 +576,7 @@ export class DataSnapshot {
     return obj;
   }
 
+  /** @hidden */
   private _dup(childPath?: string): DataSnapshot {
     const dup = new DataSnapshot(
       this._data,
@@ -581,6 +593,7 @@ export class DataSnapshot {
     return dup;
   }
 
+  /** @hidden */
   private _fullPath(): string {
     const out = (this._path || '') + '/' + (this._childPath || '');
     return out;
