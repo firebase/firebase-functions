@@ -33,8 +33,9 @@ export const provider = 'google.firebase.crashlytics';
 export const service = 'fabric.io';
 
 /**
- * Handle events related to Crashlytics issues. An issue in Crashlytics is an
- * aggregation of crashes which have a shared root cause.
+ * Registers a Cloud Function to handle Crashlytics issue events.
+ *
+ * @returns Crashlytics issue event builder interface.
  */
 export function issue() {
   return _issueWithOptions({});
@@ -50,7 +51,7 @@ export function _issueWithOptions(options: DeploymentOptions) {
   }, options);
 }
 
-/** Builder used to create Cloud Functions for Crashlytics issue events. */
+/** The Firebase Crashlytics issue builder interface. */
 export class IssueBuilder {
   /** @hidden */
   constructor(
@@ -63,21 +64,46 @@ export class IssueBuilder {
     throw new Error('"onNewDetected" is now deprecated, please use "onNew"');
   }
 
-  /** Handle Crashlytics New Issue events. */
+  /**
+   * Event handler that fires every time a new issue occurs in a project.
+   *
+   * @param handler Event handler that fires every time a new issue event occurs.
+   * @example
+   * ```javascript
+   * exports.postOnNewIssue = functions.crashlytics.issue().onNew(event => {
+   *   const { data } = event;
+   *   issueId = data.issueId;
+   *   issueTitle =  data.issueTitle;
+   *   const slackMessage = ` There's a new issue (${issueId}) ` +
+   *       `in your app - ${issueTitle}`;
+   *   return notifySlack(slackMessage).then(() => {
+   *     console.log(`Posted new issue ${issueId} successfully to Slack`);
+   *   });
+   * });
+   * ```
+   */
   onNew(
     handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.new');
   }
 
-  /** Handle Crashlytics Regressed Issue events. */
+  /**
+   * Event handler that fires every time a regressed issue reoccurs in a project.
+   *
+   * @param handler Event handler that fires every time a regressed issue event occurs.
+   */
   onRegressed(
     handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<Issue> {
     return this.onEvent(handler, 'issue.regressed');
   }
 
-  /** Handle Crashlytics Velocity Alert events. */
+  /**
+   * Event handler that fires every time a velocity alert occurs in a project.
+   *
+   * @param handler handler that fires every time a velocity alert issue event occurs.
+   */
   onVelocityAlert(
     handler: (issue: Issue, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<Issue> {
@@ -101,30 +127,42 @@ export class IssueBuilder {
 }
 
 /**
- * Interface representing a Crashlytics issue event that was logged for a specific issue.
+ * Interface representing a Firebase Crashlytics event that was logged for a specific issue.
  */
 export interface Issue {
-  /** Fabric Issue ID. */
+  /** Crashlytics-provided issue ID. */
   issueId: string;
 
-  /** Issue title. */
+  /** Crashlytics-provided issue title. */
   issueTitle: string;
 
-  /** App information. */
+  /** AppInfo interface describing the App. */
   appInfo: AppInfo;
 
-  /** When the issue was created (ISO8601 time stamp). */
+  /**
+   * UTC when the issue occurred in ISO8601 standard representation.
+   *
+   * Example: 1970-01-17T10:52:15.661-08:00
+   */
   createTime: string;
 
-  /** When the issue was resolved, if the issue has been resolved (ISO8601 time stamp). */
+  /** UTC When the issue was closed in ISO8601 standard representation.
+   *
+   * Example: 1970-01-17T10:52:15.661-08:00
+   */
   resolvedTime?: string;
 
-  /** Contains details about the velocity alert, if this event was triggered by a velocity alert. */
+  /** Information about the velocity alert, like number of crashes and percentage of users affected by the issue. */
   velocityAlert?: VelocityAlert;
 }
 
+/** Interface representing Firebase Crashlytics VelocityAlert data. */
 export interface VelocityAlert {
-  /** The percentage of sessions which have been impacted by this issue. Example: .04 */
+  /**
+   * The percentage of sessions which have been impacted by this issue.
+   *
+   * Example: .04
+   */
   crashPercentage: number;
 
   /** The number of crashes that this issue has caused. */
@@ -132,21 +170,29 @@ export interface VelocityAlert {
 }
 
 /**
- * Interface representing the application where this issue occurred.
+ * Interface representing Firebase Crashlytics AppInfo data.
  */
 export interface AppInfo {
-  /** The app's name. Example: "My Awesome App". */
+  /**
+   * The app's name.
+   *
+   * Example: "My Awesome App".
+   */
   appName: string;
 
-  /** The app's platform. Examples: "android", "ios". */
+  /** The app's platform.
+   *
+   * Examples: "android", "ios".
+   */
   appPlatform: string;
 
   /** Unique application identifier within an app store, either the Android package name or the iOS bundle id. */
   appId: string;
 
   /**
-   *  The latest app version which is affected by the issue.
-   *  Examples: "1.0", "4.3.1.1.213361", "2.3 (1824253)", "v1.8b22p6".
+   * The app's version name.
+   *
+   * Examples: "1.0", "4.3.1.1.213361", "2.3 (1824253)", "v1.8b22p6".
    */
   latestAppVersion: string;
 }
