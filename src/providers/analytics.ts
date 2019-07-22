@@ -36,7 +36,7 @@ export const provider = 'google.analytics';
 export const service = 'app-measurement.com';
 
 /**
- * Registers a Cloud Function to handle analytics events.
+ * Registers a function to handle analytics events.
  *
  * @param analyticsEventType Name of the analytics event type to which
  *   this Cloud Function is scoped.
@@ -80,7 +80,7 @@ export class AnalyticsEventBuilder {
    * @param handler Event handler that fires every time a Firebase Analytics event
    *   occurs.
    *
-   * @return A Cloud Function that you can export and deploy.
+   * @return A function that you can export and deploy.
    */
   onLog(
     handler: (
@@ -372,7 +372,7 @@ export interface AppInfo {
   appVersion?: string;
 
   /**
-   * Unique id for this instance of the app.
+   * Unique ID for this instance of the app.
    *
    * Example: "71683BF9FA3B4B0D9535A1F05188BAF3".
    */
