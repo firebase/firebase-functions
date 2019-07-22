@@ -146,7 +146,8 @@ export interface Issue {
    */
   createTime: string;
 
-  /** UTC When the issue was closed in ISO8601 standard representation.
+  /**
+   * UTC When the issue was closed in ISO8601 standard representation.
    *
    * Example: 1970-01-17T10:52:15.661-08:00
    */
@@ -169,9 +170,7 @@ export interface VelocityAlert {
   crashes: number;
 }
 
-/**
- * Interface representing Firebase Crashlytics AppInfo data.
- */
+/** Interface representing Firebase Crashlytics AppInfo data. */
 export interface AppInfo {
   /**
    * The app's name.
