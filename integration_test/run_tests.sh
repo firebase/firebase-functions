@@ -20,6 +20,7 @@ if [[ "${1}" == "" ]]; then
 fi
 
 PROJECT_ID="${1}"
+TIMESTAMP=$(date +%s)
 TOKEN="${2}"
 
 # Directory where this script lives.
@@ -34,17 +35,19 @@ function build_sdk {
   cd "${DIR}/.."
   rm -f firebase-functions-*.tgz
   npm run build:pack
-  mv firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz
+  mv firebase-functions-*.tgz "integration_test/functions/firebase-functions-${TIMESTAMP}.tgz"
 }
 
 function pick_node8 {
   cd "${DIR}"
   cp package.node8.json functions/package.json
+  sed -i '' "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
 }
 
 function pick_node10 {
   cd "${DIR}"
   cp package.node10.json functions/package.json
+  sed -i '' "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
 }
 
 function install_deps {
@@ -98,7 +101,7 @@ function run_tests {
 function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
-  rm "${DIR}/functions/firebase-functions.tgz"
+  rm "${DIR}/functions/firebase-functions-*.tgz"
   rm "${DIR}/functions/package.json"
   rm -f "${DIR}/functions/firebase-debug.log"
   rm -rf "${DIR}/functions/lib"
