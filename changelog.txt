@@ -1,2 +1,0 @@
-feature - Adds support for Test Lab triggered functions with `functions.testLab`.
-fixed - Upgrade lodash dependency to resolve security vulnerability CVE-2019-10744.
