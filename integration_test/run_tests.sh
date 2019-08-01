@@ -107,7 +107,7 @@ function run_tests {
 function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
-  rm "${DIR}/functions/firebase-functions-*.tgz"
+  rm "${DIR}/functions/firebase-functions-${TIMESTAMP}.tgz"
   rm "${DIR}/functions/package.json"
   rm -f "${DIR}/functions/firebase-debug.log"
   rm -rf "${DIR}/functions/lib"
