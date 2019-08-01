@@ -41,13 +41,19 @@ function build_sdk {
 function pick_node8 {
   cd "${DIR}"
   cp package.node8.json functions/package.json
-  sed -i '' "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  # we have to do the -e flag here so that it work both on linux and mac os, but that creates an extra
+  # backup file called package.json-e that we should clean up afterwards.
+  sed -i -e "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  rm -f functions/package.json-e
 }
 
 function pick_node10 {
   cd "${DIR}"
   cp package.node10.json functions/package.json
-  sed -i '' "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  # we have to do the -e flag here so that it work both on linux and mac os, but that creates an extra
+  # backup file called package.json-e that we should clean up afterwards.
+  sed -i -e "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  rm -f functions/package.json-e
 }
 
 function install_deps {
