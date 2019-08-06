@@ -39,6 +39,9 @@ const contentPath = path.resolve(`${__dirname}/content-sources`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
 const devsitePath = `/docs/reference/functions/`;
 
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
+
 /**
  * Strips path prefix and returns only filename.
  * @param {string} path
@@ -103,6 +106,8 @@ function renameFiles() {
  */
 function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
+    console.log(file);
+    data = addTypeAliasLinks(data);
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
       .replace(/(modules|interfaces|classes)\//g, '')
@@ -114,6 +119,35 @@ function fixLinks(file) {
     }
     return fs.writeFile(file, caseFixedLinks);
   });
+}
+
+/** 
+ * Adds links to external documentation for type aliases that
+ * reference an external library.
+ * 
+ * @param data File data to add external library links to.
+ */
+function addTypeAliasLinks(data) {
+  const htmlDom = new JSDOM(data);
+  const fileTags = htmlDom.window.document.querySelectorAll(".tsd-signature-type");
+  fileTags.forEach(tag => {
+    for (const type of typeMap.keys()) {
+      const lastTypeOccurrence = tag.textContent.lastIndexOf(type);
+
+      // Helps to prevent matching similar types, like 'UserRecord' and 'UserRecordMetadata'.
+      if (lastTypeOccurrence >= 0 && lastTypeOccurrence + type.length == tag.textContent.length) {
+        console.log('  Found the '+type+' type! Adding link.');
+        
+        // Add the corresponding document link to this type
+        const linkChild = htmlDom.window.document.createElement('a');
+        linkChild.setAttribute('href', typeMap.get(type));
+        linkChild.textContent = tag.textContent;
+        tag.textContent = null;
+        tag.appendChild(linkChild);
+      }
+    }
+  });
+  return htmlDom.serialize();
 }
 
 let tocText = '';
@@ -271,6 +305,12 @@ function fixAllLinks(htmlFiles) {
  *    links as needed.
  * 5) Check for mismatches between TOC list and generated file list.
  */
+
+var typeMap = new Map();
+typeMap.set('DocumentSnapshot', `https://googleapis.dev/nodejs/firestore/latest/DocumentSnapshot.html`);
+typeMap.set('UserRecord', 'https://firebase.google.com/docs/reference/functions/functions.auth.UserRecord.html');
+typeMap.set('UserInfo', 'https://firebase.google.com/docs/reference/functions/functions.auth.UserInfo.html');
+
 Promise.all([
   fs.readFile(`${contentPath}/toc.yaml`, 'utf8'),
   fs.readFile(`${contentPath}/HOME.md`, 'utf8')
