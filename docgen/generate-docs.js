@@ -308,8 +308,8 @@ function fixAllLinks(htmlFiles) {
 
 var typeMap = new Map();
 typeMap.set('DocumentSnapshot', `https://googleapis.dev/nodejs/firestore/latest/DocumentSnapshot.html`);
-typeMap.set('UserRecord', 'https://firebase.google.com/docs/reference/functions/functions.auth.UserRecord.html');
-typeMap.set('UserInfo', 'https://firebase.google.com/docs/reference/functions/functions.auth.UserInfo.html');
+typeMap.set('UserRecord', 'https://firebase.google.com/docs/reference/admin/node/admin.auth.UserRecord.html');
+typeMap.set('UserInfo', 'https://firebase.google.com/docs/reference/admin/node/admin.auth.UserInfo.html');
 
 Promise.all([
   fs.readFile(`${contentPath}/toc.yaml`, 'utf8'),
