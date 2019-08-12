@@ -36,8 +36,12 @@ export const provider = 'google.analytics';
 export const service = 'app-measurement.com';
 
 /**
- * Select analytics events to listen to for events.
- * @param analyticsEventType Name of the analytics event type.
+ * Registers a function to handle analytics events.
+ *
+ * @param analyticsEventType Name of the analytics event type to which
+ *   this Cloud Function is scoped.
+ *
+ * @return Analytics event builder interface.
  */
 export function event(analyticsEventType: string) {
   return _eventWithOptions(analyticsEventType, {});
@@ -61,7 +65,7 @@ export function _eventWithOptions(
 /**
  * The Firebase Analytics event builder interface.
  *
- * Access via [`functions.analytics.event()`](functions.analytics#event).
+ * Access via [`functions.analytics.event()`](functions.analytics#.event).
  */
 export class AnalyticsEventBuilder {
   /** @hidden */
@@ -73,12 +77,10 @@ export class AnalyticsEventBuilder {
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
    *
-   * @param {!function(!functions.Event<!functions.analytics.AnalyticsEvent>)}
-   *   handler Event handler that fires every time a Firebase Analytics event
+   * @param handler Event handler that fires every time a Firebase Analytics event
    *   occurs.
    *
-   * @return {!functions.CloudFunction<!functions.analytics.AnalyticsEvent>} A
-   *   Cloud Function you can export.
+   * @return A function that you can export and deploy.
    */
   onLog(
     handler: (
@@ -102,13 +104,11 @@ export class AnalyticsEventBuilder {
   }
 }
 
-/**
- * Interface representing a Firebase Analytics event that was logged for a specific user.
- */
+/** Interface representing a Firebase Analytics event that was logged for a specific user. */
 export class AnalyticsEvent {
   /**
-   *  The date on which the event.was logged.
-   *  (`YYYYMMDD` format in the registered timezone of your app).
+   * The date on which the event.was logged.
+   * (`YYYYMMDD` format in the registered timezone of your app).
    */
   reportingDate: string;
 
@@ -232,11 +232,9 @@ export class UserDimensions {
   }
 }
 
-/**
- * Predefined or custom properties stored on the client side.
- */
+/** Predefined or custom properties stored on the client side. */
 export class UserPropertyValue {
-  /** Last set value of a user property. */
+  /** The last set value of a user property. */
   value: string;
 
   /** UTC client time when the user property was last set. */
@@ -250,47 +248,55 @@ export class UserPropertyValue {
 }
 
 /**
- * Interface representing the device that triggered these Firebase Analytics events.
+ * Interface representing the device that triggered these
+ * Firebase Analytics events.
  */
 export interface DeviceInfo {
   /**
    * Device category.
+   *
    * Examples: "tablet" or "mobile".
    */
   deviceCategory?: string;
 
   /**
    * Device brand name.
+   *
    * Examples: "Samsung", "HTC"
    */
   mobileBrandName?: string;
 
   /**
    * Device model name in human-readable format.
+   *
    * Example: "iPhone 7"
    */
   mobileModelName?: string;
 
   /**
    * Device marketing name.
+   *
    * Example: "Galaxy S4 Mini"
    */
   mobileMarketingName?: string;
 
   /**
    * Device model, as read from the OS.
+   *
    * Example: "iPhone9,1"
    */
   deviceModel?: string;
 
   /**
    * Device OS version when data capture ended.
+   *
    * Example: "4.4.2"
    */
   platformVersion?: string;
 
   /**
    * Vendor specific device identifier. This is IDFV on iOS. Not used for Android.
+   *
    * Example: '599F9C00-92DC-4B5C-9464-7971F01F8370'
    */
   deviceId?: string;
@@ -313,69 +319,86 @@ export interface DeviceInfo {
 
   /**
    * The time zone of the device when data was uploaded, as seconds skew from UTC.
-   * Use this to calculate the device's local time for [`event.timestamp`](functions.Event#timestamp)`.
+   * Use this to calculate the device's local time for [`event.timestamp`](functions.Event#timestamp).
    */
   deviceTimeZoneOffsetSeconds: number;
 
   /**
    * The device's Limit Ad Tracking setting.
    * When `true`, you cannot use `resettableDeviceId` for remarketing, demographics or influencing ads serving
-   * behaviour. However, you can use resettableDeviceId for conversion tracking and campaign attribution.
+   * behaviour. However, you can use `resettableDeviceId` for conversion tracking and campaign attribution.
    */
   limitedAdTracking: boolean;
 }
 
-/**
- * Interface representing the geographic origin of the events.
- */
+/** Interface representing the geographic origin of the events. */
 export interface GeoInfo {
-  /** The geographic continent. Example: "Americas". */
+  /**
+   * The geographic continent.
+   *
+   * Example: "South America".
+   */
   continent?: string;
 
-  /** The geographic country. Example: "Brazil". */
+  /**
+   * The geographic country.
+   *
+   * Example: "Brazil".
+   */
   country?: string;
 
-  /** The geographic region. Example: "State of Sao Paulo". */
+  /**
+   * The geographic region.
+   *
+   * Example: "State of Sao Paulo".
+   */
   region?: string;
 
-  /** The geographic city. Example: "Sao Paulo". */
+  /**
+   * The geographic city.
+   *
+   * Example: "Sao Paulo".
+   */
   city?: string;
 }
 
-/**
- * Interface representing the application that triggered these events.
- */
+/** Interface representing the application that triggered these events. */
 export interface AppInfo {
   /**
-   *  The app's version name.
-   *  Examples: "1.0", "4.3.1.1.213361", "2.3 (1824253)", "v1.8b22p6".
+   * The app's version name.
+   *
+   * Examples: "1.0", "4.3.1.1.213361", "2.3 (1824253)", "v1.8b22p6".
    */
   appVersion?: string;
 
   /**
-   *  Unique id for this instance of the app.
-   *  Example: "71683BF9FA3B4B0D9535A1F05188BAF3".
+   * Unique ID for this instance of the app.
+   *
+   * Example: "71683BF9FA3B4B0D9535A1F05188BAF3".
    */
   appInstanceId: string;
 
   /**
-   *  The identifier of the store that installed the app.
-   *  Examples: "com.sec.android.app.samsungapps", "com.amazon.venezia", "com.nokia.nstore".
+   * The identifier of the store that installed the app.
+   *
+   * Examples: "com.sec.android.app.samsungapps", "com.amazon.venezia", "com.nokia.nstore".
    */
   appStore?: string;
 
-  /** The app platform. Examples: "ANDROID", "IOS". */
+  /**
+   * The app platform.
+   *
+   * Examples: "ANDROID", "IOS".
+   */
   appPlatform: string;
 
   /** Unique application identifier within an app store. */
   appId?: string;
 }
 
-/**
- * Interface representing the bundle in which these events were uploaded.
- */
+/** Interface representing the bundle these events were uploaded to. */
 export class ExportBundleInfo {
-  /**  Monotonically increasing index for each bundle set by the Analytics SDK. */
+  /** Monotonically increasing index for each bundle set by the Analytics SDK. */
   bundleSequenceId: number;
 
   /** Timestamp offset (in milliseconds) between collection time and upload time. */
@@ -393,6 +416,7 @@ export class ExportBundleInfo {
   }
 }
 
+/** @hidden */
 function copyFieldTo<T, K extends keyof T>(
   from: any,
   to: T,
@@ -405,6 +429,7 @@ function copyFieldTo<T, K extends keyof T>(
   }
 }
 
+/** @hidden */
 function copyField<T, K extends keyof T>(
   from: any,
   to: T,
@@ -414,6 +439,7 @@ function copyField<T, K extends keyof T>(
   copyFieldTo(from, to, field as string, field, transform);
 }
 
+/** @hidden */
 function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
   for (const field of fields) {
     copyField(from, to, field);
@@ -449,10 +475,12 @@ function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
 // is due to the encoding library, which renders int64 values as strings to avoid loss of precision. This
 // method always returns a string, similarly to avoid loss of precision, unlike the less-conservative
 // 'unwrapValue' method just below.
+/** @hidden */
 function unwrapValueAsString(wrapped: any): string {
   const key: string = _.keys(wrapped)[0];
   return _.toString(wrapped[key]);
 }
+
 // Ditto as the method above, but returning the values in the idiomatic JavaScript type (string for strings,
 // number for numbers):
 // {
@@ -466,7 +494,10 @@ function unwrapValueAsString(wrapped: any): string {
 // purposes can be divided into 'number' versus 'string'. This method will render all the numbers as
 // JavaScript's 'number' type, since we prefer using idiomatic types. Note that this may lead to loss
 // in precision for int64 fields, so use with care.
+/** @hidden */
 const xValueNumberFields = ['intValue', 'floatValue', 'doubleValue'];
+
+/** @hidden */
 function unwrapValue(wrapped: any): any {
   const key: string = _.keys(wrapped)[0];
   const value: string = unwrapValueAsString(wrapped);
@@ -476,6 +507,7 @@ function unwrapValue(wrapped: any): any {
 // The JSON payload delivers timestamp fields as strings of timestamps denoted in microseconds.
 // The JavaScript convention is to use numbers denoted in milliseconds. This method
 // makes it easy to convert a field of one type into the other.
+/** @hidden */
 function copyTimestampToMillis<T, K extends keyof T>(
   from: any,
   to: T,
@@ -490,6 +522,7 @@ function copyTimestampToMillis<T, K extends keyof T>(
 // The JSON payload delivers timestamp fields as strings of timestamps denoted in microseconds.
 // In our SDK, we'd like to present timestamp as ISO-format strings. This method makes it easy
 // to convert a field of one type into the other.
+/** @hidden */
 function copyTimestampToString<T, K extends keyof T>(
   from: any,
   to: T,
