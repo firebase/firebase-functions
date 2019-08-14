@@ -41,6 +41,8 @@ const devsitePath = `/docs/reference/functions/`;
 
 const { JSDOM } = require("jsdom");
 
+const typeMap = require('./type-aliases.json');
+
 /**
  * Strips path prefix and returns only filename.
  * @param {string} path
@@ -129,22 +131,18 @@ function addTypeAliasLinks(data) {
   const htmlDom = new JSDOM(data);
   const fileTags = htmlDom.window.document.querySelectorAll(".tsd-signature-type");
   fileTags.forEach(tag => {
-    for (const type of typeMap.keys()) {
-      const lastTypeOccurrence = tag.textContent.lastIndexOf(type);
-
-      // Helps to prevent matching similar types, like `UserRecord` and `UserRecordMetadata`.
-      if (lastTypeOccurrence >= 0 && lastTypeOccurrence + type.length == tag.textContent.length) {
-        console.log('Adding link to '+type);
+    const mapping = typeMap[tag.textContent];
+      if (mapping) {
+        console.log('Adding link to '+tag.textContent+" documentation.");
         
         // Add the corresponding document link to this type
         const linkChild = htmlDom.window.document.createElement('a');
-        linkChild.setAttribute('href', typeMap.get(type));
+        linkChild.setAttribute('href', mapping);
         linkChild.textContent = tag.textContent;
         tag.textContent = null;
         tag.appendChild(linkChild);
       }
-    }
-  });
+    });
   return htmlDom.serialize();
 }
 
@@ -303,18 +301,6 @@ function fixAllLinks(htmlFiles) {
  *    links as needed.
  * 5) Check for mismatches between TOC list and generated file list.
  */
-var typeMap = new Map();
-fs.readFile('./type-aliases.json', (err, jsonString) => {
-  if (err) {
-    console.log('Error: type-aliases.json not found in this directory. Unable to link to external library documentation.');
-    return;
-  }
-
-  typeJson = JSON.parse(jsonString);
-  typeJson.forEach(alias => {
-    typeMap.set(alias.type, alias.link);
-  });
-});
 Promise.all([
   fs.readFile(`${contentPath}/toc.yaml`, 'utf8'),
   fs.readFile(`${contentPath}/HOME.md`, 'utf8')
