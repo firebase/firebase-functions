@@ -1,0 +1,5 @@
+[
+    { "type": "DocumentSnapshot", "link": "https://googleapis.dev/nodejs/firestore/latest/DocumentSnapshot.html" },
+    { "type": "UserRecord", "link": "https://firebase.google.com/docs/reference/admin/node/admin.auth.UserRecord.html" },
+    { "type": "UserInfo", "link": "https://firebase.google.com/docs/reference/admin/node/admin.auth.UserInfo.html" }
+]

@@ -39,8 +39,7 @@ const contentPath = path.resolve(`${__dirname}/content-sources`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
 const devsitePath = `/docs/reference/functions/`;
 
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+const { JSDOM } = require("jsdom");
 
 /**
  * Strips path prefix and returns only filename.
@@ -106,7 +105,6 @@ function renameFiles() {
  */
 function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
-    console.log(file);
     data = addTypeAliasLinks(data);
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
@@ -134,9 +132,9 @@ function addTypeAliasLinks(data) {
     for (const type of typeMap.keys()) {
       const lastTypeOccurrence = tag.textContent.lastIndexOf(type);
 
-      // Helps to prevent matching similar types, like 'UserRecord' and 'UserRecordMetadata'.
+      // Helps to prevent matching similar types, like `UserRecord` and `UserRecordMetadata`.
       if (lastTypeOccurrence >= 0 && lastTypeOccurrence + type.length == tag.textContent.length) {
-        console.log('  Found the '+type+' type! Adding link.');
+        console.log('Adding link to '+type);
         
         // Add the corresponding document link to this type
         const linkChild = htmlDom.window.document.createElement('a');
@@ -305,12 +303,18 @@ function fixAllLinks(htmlFiles) {
  *    links as needed.
  * 5) Check for mismatches between TOC list and generated file list.
  */
-
 var typeMap = new Map();
-typeMap.set('DocumentSnapshot', `https://googleapis.dev/nodejs/firestore/latest/DocumentSnapshot.html`);
-typeMap.set('UserRecord', 'https://firebase.google.com/docs/reference/admin/node/admin.auth.UserRecord.html');
-typeMap.set('UserInfo', 'https://firebase.google.com/docs/reference/admin/node/admin.auth.UserInfo.html');
+fs.readFile('./type-aliases.json', (err, jsonString) => {
+  if (err) {
+    console.log('Error: type-aliases.json not found in this directory. Unable to link to external library documentation.');
+    return;
+  }
 
+  typeJson = JSON.parse(jsonString);
+  typeJson.forEach(alias => {
+    typeMap.set(alias.type, alias.link);
+  });
+});
 Promise.all([
   fs.readFile(`${contentPath}/toc.yaml`, 'utf8'),
   fs.readFile(`${contentPath}/HOME.md`, 'utf8')
