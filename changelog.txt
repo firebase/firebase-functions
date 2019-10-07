@@ -1,0 +1,1 @@
+feature - Add a helper function for the Firebase Emulator suite.
