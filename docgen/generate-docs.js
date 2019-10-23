@@ -129,6 +129,10 @@ function fixLinks(file) {
  */
 function addTypeAliasLinks(data) {
   const htmlDom = new JSDOM(data);
+  /**
+   * Select .tsd-signature-type because all potential external
+   * links will have this identifier.
+   */
   const fileTags = htmlDom.window.document.querySelectorAll(".tsd-signature-type");
   fileTags.forEach(tag => {
     const mapping = typeMap[tag.textContent];
