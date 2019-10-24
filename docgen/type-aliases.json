@@ -1,0 +1,5 @@
+{
+  "firebase.firestore.DocumentSnapshot": "https://googleapis.dev/nodejs/firestore/latest/DocumentSnapshot.html",
+  "firebase.auth.UserRecord": "https://firebase.google.com/docs/reference/admin/node/admin.auth.UserRecord.html",
+  "firebase.auth.UserInfo": "https://firebase.google.com/docs/reference/admin/node/admin.auth.UserInfo.html"
+}
