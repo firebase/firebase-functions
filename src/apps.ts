@@ -58,6 +58,7 @@ export namespace apps {
 
   export class Apps {
     private _refCounter: RefCounter;
+    private _emulatedAdminApp?: firebase.app.App;
 
     constructor() {
       this._refCounter = {};
@@ -105,10 +106,23 @@ export namespace apps {
     }
 
     get admin(): firebase.app.App {
+      if (this._emulatedAdminApp) {
+        return this._emulatedAdminApp;
+      }
+
       if (this._appAlive('__admin__')) {
         return firebase.app('__admin__');
       }
       return firebase.initializeApp(this.firebaseArgs, '__admin__');
+    }
+
+    /**
+     * This function allows the Firebase Emulator Suite to override the FirebaseApp instance
+     * used by the Firebase Functions SDK. Developers should never call this function for
+     * other purposes.
+     */
+    setEmulatedAdminApp(app: firebase.app.App) {
+      this._emulatedAdminApp = app;
     }
 
     private get firebaseArgs() {

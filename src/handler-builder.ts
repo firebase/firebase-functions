@@ -33,6 +33,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as testLab from './providers/testLab';
 
 export class HandlerBuilder {
   constructor() {}
@@ -210,6 +211,15 @@ export class HandlerBuilder {
        */
       get user() {
         return new auth.UserBuilder(() => null, {});
+      },
+    };
+  }
+
+  get testLab() {
+    /** Handle events related to Test Lab test matrices. */
+    return {
+      get testMatrix() {
+        return new testLab.TestMatrixBuilder(() => null, {});
       },
     };
   }

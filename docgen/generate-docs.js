@@ -39,6 +39,10 @@ const contentPath = path.resolve(`${__dirname}/content-sources`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
 const devsitePath = `/docs/reference/functions/`;
 
+const { JSDOM } = require("jsdom");
+
+const typeMap = require('./type-aliases.json');
+
 /**
  * Strips path prefix and returns only filename.
  * @param {string} path
@@ -103,6 +107,7 @@ function renameFiles() {
  */
 function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
+    data = addTypeAliasLinks(data);
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
       .replace(/(modules|interfaces|classes)\//g, '')
@@ -114,6 +119,35 @@ function fixLinks(file) {
     }
     return fs.writeFile(file, caseFixedLinks);
   });
+}
+
+/** 
+ * Adds links to external documentation for type aliases that
+ * reference an external library.
+ * 
+ * @param data File data to add external library links to.
+ */
+function addTypeAliasLinks(data) {
+  const htmlDom = new JSDOM(data);
+  /**
+   * Select .tsd-signature-type because all potential external
+   * links will have this identifier.
+   */
+  const fileTags = htmlDom.window.document.querySelectorAll(".tsd-signature-type");
+  fileTags.forEach(tag => {
+    const mapping = typeMap[tag.textContent];
+      if (mapping) {
+        console.log('Adding link to '+tag.textContent+" documentation.");
+        
+        // Add the corresponding document link to this type
+        const linkChild = htmlDom.window.document.createElement('a');
+        linkChild.setAttribute('href', mapping);
+        linkChild.textContent = tag.textContent;
+        tag.textContent = null;
+        tag.appendChild(linkChild);
+      }
+    });
+  return htmlDom.serialize();
 }
 
 let tocText = '';

@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.1.0",
+  "version": "3.3.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -39,7 +39,7 @@
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.14"
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
@@ -58,6 +58,7 @@
     "firebase-admin": "^8.2.0",
     "istanbul": "^0.4.5",
     "js-yaml": "^3.13.1",
+    "jsdom": "^15.2.0",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",

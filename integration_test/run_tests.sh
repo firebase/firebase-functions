@@ -20,6 +20,7 @@ if [[ "${1}" == "" ]]; then
 fi
 
 PROJECT_ID="${1}"
+TIMESTAMP=$(date +%s)
 TOKEN="${2}"
 
 # Directory where this script lives.
@@ -34,17 +35,25 @@ function build_sdk {
   cd "${DIR}/.."
   rm -f firebase-functions-*.tgz
   npm run build:pack
-  mv firebase-functions-*.tgz integration_test/functions/firebase-functions.tgz
+  mv firebase-functions-*.tgz "integration_test/functions/firebase-functions-${TIMESTAMP}.tgz"
 }
 
 function pick_node8 {
   cd "${DIR}"
   cp package.node8.json functions/package.json
+  # we have to do the -e flag here so that it work both on linux and mac os, but that creates an extra
+  # backup file called package.json-e that we should clean up afterwards.
+  sed -i -e "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  rm -f functions/package.json-e
 }
 
 function pick_node10 {
   cd "${DIR}"
   cp package.node10.json functions/package.json
+  # we have to do the -e flag here so that it work both on linux and mac os, but that creates an extra
+  # backup file called package.json-e that we should clean up afterwards.
+  sed -i -e "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  rm -f functions/package.json-e
 }
 
 function install_deps {
@@ -60,9 +69,9 @@ function delete_all_functions {
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing.
   if [[ "${TOKEN}" == "" ]]; then
-    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID || : &
+    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests testLabTests --force --project=$PROJECT_ID || : &
   else
-    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests --force --project=$PROJECT_ID --token=$TOKEN || : &
+    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests testLabTests --force --project=$PROJECT_ID --token=$TOKEN || : &
   fi
   wait
   announce "Project emptied."
@@ -98,7 +107,7 @@ function run_tests {
 function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
-  rm "${DIR}/functions/firebase-functions.tgz"
+  rm "${DIR}/functions/firebase-functions-${TIMESTAMP}.tgz"
   rm "${DIR}/functions/package.json"
   rm -f "${DIR}/functions/firebase-debug.log"
   rm -rf "${DIR}/functions/lib"
