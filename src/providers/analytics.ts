@@ -65,7 +65,7 @@ export function _eventWithOptions(
 /**
  * The Firebase Analytics event builder interface.
  *
- * Access via [`functions.analytics.event()`](functions.analytics#.event).
+ * Access via [`functions.analytics.event()`](providers_analytics_.html#event).
  */
 export class AnalyticsEventBuilder {
   /** @hidden */
@@ -319,7 +319,8 @@ export interface DeviceInfo {
 
   /**
    * The time zone of the device when data was uploaded, as seconds skew from UTC.
-   * Use this to calculate the device's local time for [`event.timestamp`](functions.Event#timestamp).
+   * Use this to calculate the device's local time for
+   * [`EventContext.timestamp`](cloud_functions_.eventcontext.html#timestamp).
    */
   deviceTimeZoneOffsetSeconds: number;
 
