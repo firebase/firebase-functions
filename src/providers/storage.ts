@@ -84,7 +84,7 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
 /**
  * The Google Cloud Storage bucket builder interface.
  *
- * Access via [`functions.storage.bucket()`](functions.storage#.bucket).
+ * Access via [`functions.storage.bucket()`](providers_storage_.html#bucket).
  */
 export class BucketBuilder {
   /** @hidden */
@@ -107,7 +107,7 @@ export class BucketBuilder {
 /**
  * The Google Cloud Storage object builder interface.
  *
- * Access via [`functions.storage.object()`](functions.storage#.object).
+ * Access via [`functions.storage.object()`](providers_storage_.html#object).
  */
 export class ObjectBuilder {
   /** @hidden */

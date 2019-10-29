@@ -184,7 +184,7 @@ export class UserDimensions {
    * A map of user properties set with the
    * [`setUserProperty`](https://firebase.google.com/docs/analytics/android/properties) API.
    *
-   * All values are [`UserPropertyValue`](functions.analytics.UserPropertyValue) objects.
+   * All values are [`UserPropertyValue`](providers_analytics_.userpropertyvalue) objects.
    */
   userProperties: { [key: string]: UserPropertyValue };
 
