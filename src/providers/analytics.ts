@@ -184,7 +184,7 @@ export class UserDimensions {
    * A map of user properties set with the
    * [`setUserProperty`](https://firebase.google.com/docs/analytics/android/properties) API.
    *
-   * All values are [`UserPropertyValue`](functions.analytics.UserPropertyValue) objects.
+   * All values are [`UserPropertyValue`](providers_analytics_.userpropertyvalue) objects.
    */
   userProperties: { [key: string]: UserPropertyValue };
 
@@ -319,7 +319,8 @@ export interface DeviceInfo {
 
   /**
    * The time zone of the device when data was uploaded, as seconds skew from UTC.
-   * Use this to calculate the device's local time for [`event.timestamp`](functions.Event#timestamp).
+   * Use this to calculate the device's local time for
+   * [`EventContext.timestamp`](cloud_functions_eventcontext.html#timestamp).
    */
   deviceTimeZoneOffsetSeconds: number;
 
