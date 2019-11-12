@@ -29,9 +29,18 @@ export function config(): config.Config {
   return config.singleton;
 }
 
+/**
+ * Store and retrieve project configuration data such as third-party API
+ * keys or other settings. You can set configuration values using the
+ * Firebase CLI as described in
+ * [Environment Configuration](/docs/functions/config-env).
+ */
 export namespace config {
-  // Config type is usable as a object (dot notation allowed), and firebase
-  // property will also code complete.
+  /**
+   * The Functions configuration interface.
+   *
+   * Access via [`functions.config()`](functions.config#config).
+   */
   export interface Config {
     [key: string]: any;
   }
