@@ -39,7 +39,7 @@ export namespace config {
   /**
    * The Functions configuration interface.
    *
-   * Access via [`functions.config()`](functions.config#config).
+   * Access via `functions.config()`.
    */
   export interface Config {
     [key: string]: any;
