@@ -20,6 +20,8 @@ toc:
     section:
       - title: 'Config'
         path: /docs/reference/functions/config_.config.html
+      - title: 'config.Config'
+        path: /docs/reference/functions/config_.config.config.html
 
   - title: 'functions.analytics'
     path: /docs/reference/functions/providers_analytics_.html
