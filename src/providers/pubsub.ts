@@ -112,7 +112,7 @@ export function _scheduleWithOptions(
 /**
  * The Google Cloud Pub/Sub topic builder.
  *
- * Access via [`functions.pubsub.topic()`](functions.pubsub#.topic).
+ * Access via [`functions.pubsub.topic()`](providers_pubsub_.html#topic).
  */
 export class TopicBuilder {
   /** @hidden */

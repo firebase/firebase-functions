@@ -1,2 +1,1 @@
-fixed - Upgrade lodash dependency to resolve security vulnerability CVE-2019-10744.
 feature - Allow specifying retry policies for event triggered functions.

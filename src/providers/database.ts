@@ -75,7 +75,7 @@ export function instance(instance: string) {
  * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
  *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
  *    that matched a certain invocation of a Cloud Function is returned as part
- *    of the [`event.params`](functions.EventContext#params) object. For
+ *    of the [`EventContext.params`](cloud_functions_eventcontext.html#params object. For
  *    example, `ref("messages/{messageId}")` matches changes at
  *    `/messages/message1` or `/messages/message2`, resulting in
  *    `event.params.messageId` being set to `"message1"` or `"message2"`,
@@ -104,7 +104,7 @@ export function _instanceWithOptions(
 /**
  * The Firebase Realtime Database instance builder interface.
  *
- * Access via [`functions.database.instance()`](functions.database#.instance).
+ * Access via [`database.instance()`](providers_database_.html#instance).
  */
 export class InstanceBuilder {
   /** @hidden */

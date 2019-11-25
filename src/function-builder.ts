@@ -41,6 +41,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as testLab from './providers/testLab';
 
 /**
  * Assert that the runtime options passed in are valid.
@@ -363,6 +364,15 @@ export class FunctionBuilder {
        * Handle events related to Firebase authentication users.
        */
       user: () => auth._userWithOptions(this.options),
+    };
+  }
+
+  get testLab() {
+    return {
+      /**
+       * Handle events related to Test Lab test matrices.
+       */
+      testMatrix: () => testLab._testMatrixWithOpts(this.options),
     };
   }
 }

@@ -30,6 +30,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as testLab from './providers/testLab';
 
 import * as apps from './apps';
 import { handler } from './handler-builder';
@@ -49,6 +50,7 @@ export {
   pubsub,
   remoteConfig,
   storage,
+  testLab,
 };
 
 // Exported root types:

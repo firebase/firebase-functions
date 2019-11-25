@@ -120,7 +120,7 @@ export interface EventContext {
 
   /**
    * An object containing the values of the wildcards in the `path` parameter
-   * provided to the [`ref()`](functions.database#.ref) method for a Realtime
+   * provided to the [`ref()`](providers_database_.html#ref) method for a Realtime
    * Database trigger. Cannot be accessed while inside the handler namespace.
    */
   params: { [option: string]: any };
