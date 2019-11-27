@@ -22,7 +22,13 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { DeploymentOptions, Schedule } from './function-configuration';
+import {
+  DEFAULT_FAILURE_POLICY,
+  DeploymentOptions,
+  FailurePolicy,
+  MEMORY_LOOKUP,
+  Schedule,
+} from './function-configuration';
 export { Request, Response };
 
 /** @hidden */
@@ -202,6 +208,7 @@ export namespace Change {
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
+
     return Change.fromObjects(
       customizer(before || {}),
       customizer(json.after || {})
@@ -216,7 +223,8 @@ export namespace Change {
   ) {
     const before = _.assign({}, after);
     const masks = fieldMask.split(',');
-    _.forEach(masks, (mask) => {
+
+    masks.forEach((mask) => {
       const val = _.get(sparseBefore, mask);
       if (typeof val === 'undefined') {
         _.unset(before, mask);
@@ -224,6 +232,7 @@ export namespace Change {
         _.set(before, mask, val);
       }
     });
+
     return before;
   }
 }
@@ -253,6 +262,7 @@ export interface TriggerAnnotated {
       resource: string;
       service: string;
     };
+    failurePolicy?: FailurePolicy;
     httpsTrigger?: {};
     labels?: { [key: string]: string };
     regions?: string[];
@@ -310,6 +320,40 @@ export interface MakeCloudFunctionArgs<EventData> {
   provider: string;
   service: string;
   triggerResource: () => string;
+}
+
+/** @hidden */
+export function optionsToTrigger({
+  failurePolicy: failurePolicyOrAlias,
+  memory,
+  regions,
+  schedule,
+  timeoutSeconds,
+}: DeploymentOptions): TriggerAnnotated['__trigger'] {
+  /*
+   * FailurePolicy can be aliased with a boolean value in the public API.
+   * Convert aliases `true` and `false` to a standardized interface.
+   */
+  const failurePolicy: FailurePolicy | undefined =
+    failurePolicyOrAlias === false
+      ? undefined
+      : failurePolicyOrAlias === true
+      ? DEFAULT_FAILURE_POLICY
+      : failurePolicyOrAlias;
+
+  const availableMemoryMb: number | undefined =
+    memory === undefined ? undefined : MEMORY_LOOKUP[memory];
+
+  const timeout: string | undefined =
+    timeoutSeconds === undefined ? undefined : `${timeoutSeconds}s`;
+
+  return {
+    ...(failurePolicy === undefined ? {} : { failurePolicy }),
+    ...(availableMemoryMb === undefined ? {} : { availableMemoryMb }),
+    ...(regions === undefined ? {} : { regions }),
+    ...(schedule === undefined ? {} : { schedule }),
+    ...(timeout === undefined ? {} : { timeout }),
+  };
 }
 
 /** @hidden */
@@ -462,29 +506,4 @@ function _detectAuthType(event: Event) {
     return 'USER';
   }
   return 'UNAUTHENTICATED';
-}
-
-/** @hidden */
-export function optionsToTrigger(options: DeploymentOptions) {
-  const trigger: any = {};
-  if (options.regions) {
-    trigger.regions = options.regions;
-  }
-  if (options.timeoutSeconds) {
-    trigger.timeout = options.timeoutSeconds.toString() + 's';
-  }
-  if (options.memory) {
-    const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-    };
-    trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
-  }
-  if (options.schedule) {
-    trigger.schedule = options.schedule;
-  }
-  return trigger;
 }
