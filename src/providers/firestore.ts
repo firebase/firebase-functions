@@ -146,6 +146,9 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 
 /** @hidden */
 export function snapshotConstructor(event: Event): DocumentSnapshot {
+  console.log(JSON.stringify(_.get(event, 'data.value.readTime')));
+  console.log(JSON.stringify(_.get(event, 'data.value')));
+  console.log(JSON.stringify(event));
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
