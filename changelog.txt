@@ -1,1 +1,2 @@
 feature - Allow specifying retry policies for event triggered functions.
+feature - Add support for writing scheduled functions under handler namespace
