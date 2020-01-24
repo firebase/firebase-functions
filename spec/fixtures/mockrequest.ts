@@ -73,7 +73,7 @@ export function generateIdToken(projectId: string): string {
     expiresIn: 60 * 60, // 1 hour in seconds
     issuer: 'https://securetoken.google.com/' + projectId,
     subject: mocks.user_id,
-    algorithm: "RS256",
+    algorithm: 'RS256',
     header: {
       kid: mocks.key_id,
     },
