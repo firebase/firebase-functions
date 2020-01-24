@@ -68,12 +68,12 @@ export function mockFetchPublicKeys(): nock.Scope {
  */
 export function generateIdToken(projectId: string): string {
   const claims = {};
-  const options = {
+  const options: jwt.SignOptions = {
     audience: projectId,
     expiresIn: 60 * 60, // 1 hour in seconds
     issuer: 'https://securetoken.google.com/' + projectId,
     subject: mocks.user_id,
-    algorithm: 'RS256',
+    algorithm: "RS256",
     header: {
       kid: mocks.key_id,
     },
