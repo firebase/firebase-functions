@@ -22,7 +22,9 @@ export const firestoreTests: any = functions
       .it('should have well-formatted resource', (snap, context) =>
         expectEq(
           context.resource.name,
-          `projects/${process.env.GCLOUD_PROJECT}/databases/(default)/documents/tests/${context.params.documentId}`
+          `projects/${
+            process.env.GCLOUD_PROJECT
+          }/databases/(default)/documents/tests/${context.params.documentId}`
         )
       )
 

@@ -50,7 +50,9 @@ export const databaseTests: any = functions.database
       .it('should have refs resources', (change, context) =>
         expectEq(
           context.resource.name,
-          `projects/_/instances/${process.env.GCLOUD_PROJECT}/refs/dbTests/${context.params.testId}/start`
+          `projects/_/instances/${process.env.GCLOUD_PROJECT}/refs/dbTests/${
+            context.params.testId
+          }/start`
         )
       )
 
