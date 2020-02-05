@@ -197,7 +197,9 @@ describe('Auth Functions', () => {
     });
 
     describe('#onDelete', () => {
-      const cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord> = functions.handler.auth.user.onDelete(
+      const cloudFunctionDelete: CloudFunction<
+        firebase.auth.UserRecord
+      > = functions.handler.auth.user.onDelete(
         (data: firebase.auth.UserRecord) => data
       );
 
