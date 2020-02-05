@@ -79,29 +79,14 @@ describe('FunctionBuilder', () => {
   it('should allow valid runtime options to be set', () => {
     const fn = functions
       .runWith({
-        failurePolicy: { retry: {} },
-        memory: '256MB',
         timeoutSeconds: 90,
+        memory: '256MB',
       })
       .auth.user()
       .onCreate((user) => user);
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
-    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
-  });
-
-  it("should apply a default failure policy if it's aliased with `true`", () => {
-    const fn = functions
-      .runWith({
-        failurePolicy: true,
-        memory: '256MB',
-        timeoutSeconds: 90,
-      })
-      .auth.user()
-      .onCreate((user) => user);
-
-    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
   });
 
   it('should allow both supported region and valid runtime options to be set', () => {
@@ -147,26 +132,7 @@ describe('FunctionBuilder', () => {
       functions
         .region('asia-northeast1')
         .runWith({ timeoutSeconds: 600, memory: '256MB' });
-    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
-  });
-
-  it('should throw an error if user chooses a failurePolicy which is neither an object nor a boolean', () => {
-    expect(() =>
-      functions.runWith({
-        failurePolicy: (1234 as unknown) as functions.RuntimeOptions['failurePolicy'],
-      })
-    ).to.throw(
-      Error,
-      'RuntimeOptions.failurePolicy must be a boolean or an object'
-    );
-  });
-
-  it('should throw an error if user chooses a failurePolicy.retry which is not an object', () => {
-    expect(() =>
-      functions.runWith({
-        failurePolicy: { retry: (1234 as unknown) as object },
-      })
-    ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
+    }).to.throw(Error, 'TimeoutSeconds');
   });
 
   it('should throw an error if user chooses an invalid memory allocation', () => {
@@ -188,13 +154,13 @@ describe('FunctionBuilder', () => {
       return functions.runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
+    }).to.throw(Error, 'TimeoutSeconds');
 
     expect(() => {
       return functions.region('asia-east2').runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
+    }).to.throw(Error, 'TimeoutSeconds');
   });
 
   it('should throw an error if user chooses an invalid region', () => {
