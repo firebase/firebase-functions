@@ -42,9 +42,7 @@ function callScheduleTrigger(functionName: string, region: string) {
       {
         method: 'POST',
         host: 'cloudscheduler.googleapis.com',
-        path: `projects/${
-          firebaseConfig.projectId
-        }/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
+        path: `projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -190,9 +188,7 @@ export const integrationTests: any = functions
         resp
           .status(500)
           .send(
-            `FAIL - details at https://${
-              process.env.GCLOUD_PROJECT
-            }.firebaseio.com/testRuns/${testId}`
+            `FAIL - details at https://${process.env.GCLOUD_PROJECT}.firebaseio.com/testRuns/${testId}`
           );
       });
   });
