@@ -311,45 +311,83 @@ describe('Pubsub Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onPublish', () => {
-      it('should return an empty trigger', () => {
-        const result = functions.handler.pubsub.topic.onPublish(() => null);
-        expect(result.__trigger).to.deep.equal({});
-      });
-
-      it('should properly handle a new-style event', () => {
-        const raw = new Buffer('{"hello":"world"}', 'utf8').toString('base64');
-        const event = {
-          data: {
-            data: raw,
-            attributes: {
-              foo: 'bar',
-            },
-          },
-          context: {
-            eventId: '70172329041928',
-            timestamp: '2018-04-09T07:56:12.975Z',
-            eventType: 'google.pubsub.topic.publish',
-            resource: {
-              service: 'pubsub.googleapis.com',
-              name: 'projects/project1/topics/toppy',
-            },
-          },
-        };
-
-        const result = functions.handler.pubsub.topic.onPublish((data) => {
-          return {
-            raw: data.data,
-            json: data.json,
-            attributes: data.attributes,
-          };
+      describe('#topic', () => {
+        it('should return an empty trigger', () => {
+          const result = functions.handler.pubsub.topic.onPublish(() => null);
+          expect(result.__trigger).to.deep.equal({});
         });
 
-        return expect(
-          result(event.data, event.context)
-        ).to.eventually.deep.equal({
-          raw,
-          json: { hello: 'world' },
-          attributes: { foo: 'bar' },
+        it('should properly handle a new-style event', () => {
+          const raw = new Buffer('{"hello":"world"}', 'utf8').toString(
+            'base64'
+          );
+          const event = {
+            data: {
+              data: raw,
+              attributes: {
+                foo: 'bar',
+              },
+            },
+            context: {
+              eventId: '70172329041928',
+              timestamp: '2018-04-09T07:56:12.975Z',
+              eventType: 'google.pubsub.topic.publish',
+              resource: {
+                service: 'pubsub.googleapis.com',
+                name: 'projects/project1/topics/toppy',
+              },
+            },
+          };
+
+          const result = functions.handler.pubsub.topic.onPublish((data) => {
+            return {
+              raw: data.data,
+              json: data.json,
+              attributes: data.attributes,
+            };
+          });
+
+          return expect(
+            result(event.data, event.context)
+          ).to.eventually.deep.equal({
+            raw,
+            json: { hello: 'world' },
+            attributes: { foo: 'bar' },
+          });
+        });
+      });
+      describe('#schedule', () => {
+        it('should return an empty trigger', () => {
+          const result = functions.handler.pubsub.schedule.onRun(() => null);
+          expect(result.__trigger).to.deep.equal({});
+        });
+        it('should return a handler with a proper event context', () => {
+          const raw = new Buffer('{"hello":"world"}', 'utf8').toString(
+            'base64'
+          );
+          const event = {
+            data: {
+              data: raw,
+              attributes: {
+                foo: 'bar',
+              },
+            },
+            context: {
+              eventId: '70172329041928',
+              timestamp: '2018-04-09T07:56:12.975Z',
+              eventType: 'google.pubsub.topic.publish',
+              resource: {
+                service: 'pubsub.googleapis.com',
+                name: 'projects/project1/topics/toppy',
+              },
+            },
+          };
+          const result = functions.handler.pubsub.schedule.onRun(
+            (context) => context.eventId
+          );
+          return expect(result(event.data, event.context)).to.eventually.equal(
+            '70172329041928'
+          );
         });
       });
     });

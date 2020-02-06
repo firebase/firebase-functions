@@ -63,52 +63,6 @@ export function _topicWithOptions(
   }, options);
 }
 
-export function schedule(schedule: string): ScheduleBuilder {
-  return _scheduleWithOptions(schedule, {});
-}
-
-export class ScheduleBuilder {
-  /** @hidden */
-  constructor(private options: DeploymentOptions) {}
-
-  retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
-    this.options.schedule.retryConfig = config;
-    return this;
-  }
-
-  timeZone(timeZone: string): ScheduleBuilder {
-    this.options.schedule.timeZone = timeZone;
-    return this;
-  }
-
-  onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
-    const triggerResource = () => {
-      if (!process.env.GCLOUD_PROJECT) {
-        throw new Error('process.env.GCLOUD_PROJECT is not set.');
-      }
-      return `projects/${process.env.GCLOUD_PROJECT}/topics`; // The CLI will append the correct topic name based on region and function name
-    };
-    const cloudFunction = makeCloudFunction({
-      contextOnlyHandler: handler,
-      provider,
-      service,
-      triggerResource,
-      eventType: 'topic.publish',
-      options: this.options,
-      labels: { 'deployment-scheduled': 'true' },
-    });
-    return cloudFunction;
-  }
-}
-
-/** @hidden */
-export function _scheduleWithOptions(
-  schedule: string,
-  options: DeploymentOptions
-): ScheduleBuilder {
-  return new ScheduleBuilder({ ...options, schedule: { schedule } });
-}
-
 /**
  * The Google Cloud Pub/Sub topic builder.
  *
@@ -141,6 +95,59 @@ export class TopicBuilder {
       dataConstructor: (raw) => new Message(raw.data),
       options: this.options,
     });
+  }
+}
+
+export function schedule(schedule: string): ScheduleBuilder {
+  return _scheduleWithOptions(schedule, {});
+}
+
+/** @hidden */
+export function _scheduleWithOptions(
+  schedule: string,
+  options: DeploymentOptions
+): ScheduleBuilder {
+  const triggerResource = () => {
+    if (!process.env.GCLOUD_PROJECT) {
+      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+    }
+    // The CLI will append the correct topic name based on region and function name
+    return `projects/${process.env.GCLOUD_PROJECT}/topics`;
+  };
+  return new ScheduleBuilder(triggerResource, {
+    ...options,
+    schedule: { schedule },
+  });
+}
+
+export class ScheduleBuilder {
+  /** @hidden */
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
+
+  retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
+    this.options.schedule.retryConfig = config;
+    return this;
+  }
+
+  timeZone(timeZone: string): ScheduleBuilder {
+    this.options.schedule.timeZone = timeZone;
+    return this;
+  }
+
+  onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
+    const cloudFunction = makeCloudFunction({
+      contextOnlyHandler: handler,
+      provider,
+      service,
+      triggerResource: this.triggerResource,
+      eventType: 'topic.publish',
+      options: this.options,
+      labels: { 'deployment-scheduled': 'true' },
+    });
+    return cloudFunction;
   }
 }
 
