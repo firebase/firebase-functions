@@ -61,6 +61,11 @@ export interface RuntimeOptions {
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
   timeoutSeconds?: number;
+
+  /**
+   * Max number of actual instances allowed to be running in parallel
+   */
+  maxInstances?: number;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
