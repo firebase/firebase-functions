@@ -7,6 +7,7 @@ export const SUPPORTED_REGIONS = [
   'us-east4',
   'europe-west1',
   'europe-west2',
+  'europe-west3',
   'asia-east2',
   'asia-northeast1',
 ] as const;
