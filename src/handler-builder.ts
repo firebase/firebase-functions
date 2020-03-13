@@ -43,7 +43,7 @@ export class HandlerBuilder {
       /**
        * Handle HTTP requests.
        * @param handler A function that takes a request and response object,
-       * same signature as an Express app.
+       * with the same signature as an Express app.
        */
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
@@ -54,7 +54,7 @@ export class HandlerBuilder {
       },
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
-       * @param handler A method that takes a data and context and returns a value.
+       * @param handler A method that takes data and context and returns a value.
        */
       onCall: (
         handler: (
@@ -72,7 +72,7 @@ export class HandlerBuilder {
   get database() {
     return {
       /**
-       * Selects a database instance that will trigger the function.
+       * Selects a database instance to trigger the function.
        * If omitted, will pick the default database for your project.
        */
       get instance() {
