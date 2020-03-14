@@ -36,11 +36,11 @@ import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
 /**
- * The HandlerBuilder class facilitates the writing of functions by producers
+ * The `HandlerBuilder` class facilitates the writing of functions by producers
  * of Firebase Extensions (currenly in limited beta).
  * 
- * **Do not use HandlerBuilder when writing normal functions for deployment via
- * Cloud Functions for Firebase.** For normal purposes, use FunctionBuilder.
+ * **Do not use `HandlerBuilder` when writing normal functions for deployment via
+ * Cloud Functions for Firebase.** For normal purposes, use `FunctionBuilder`.
  */
 export class HandlerBuilder {
   constructor() {}
