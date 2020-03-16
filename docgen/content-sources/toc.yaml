@@ -120,5 +120,5 @@ toc:
   - title: 'functions.handler'
     path: /docs/reference/functions/handler_builder_.html
     section:
-     - title: "HandlerBuilder"
-       path: /docs/reference/functions/handler_builder_handlerbuilder.html
+      - title: 'HandlerBuilder'
+        path: /docs/reference/functions/handler_builder_handlerbuilder.html
