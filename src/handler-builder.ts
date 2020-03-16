@@ -43,6 +43,8 @@ import * as testLab from './providers/testLab';
  * **Do not use `HandlerBuilder` when writing normal functions for deployment via
  * Cloud Functions for Firebase.** For normal purposes, use `FunctionBuilder`.
  */
+
+/** @hidden */
 export class HandlerBuilder {
   constructor() {}
 
