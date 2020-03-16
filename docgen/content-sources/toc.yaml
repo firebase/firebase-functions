@@ -15,12 +15,6 @@ toc:
       - title: 'ChangeJson'
         path: /docs/reference/functions/cloud_functions_.changejson.html
 
-  - title: 'functions.HandlerBuilder'
-    path: /docs/reference/functions/handler_builder_.html
-    section:
-     - title: "HandlerBuilder"
-       path: /docs/reference/functions/handler_builder_handlerbuilder.html
-
   - title: 'functions.config'
     path: /docs/reference/functions/config_.html
     section:
@@ -122,3 +116,9 @@ toc:
         path: /docs/reference/functions/providers_storage_.objectbuilder.html
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage_.objectmetadata.html
+
+  - title: 'functions.handler'
+    path: /docs/reference/functions/handler_builder_.html
+    section:
+     - title: "HandlerBuilder"
+       path: /docs/reference/functions/handler_builder_handlerbuilder.html
