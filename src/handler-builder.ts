@@ -37,18 +37,18 @@ import * as testLab from './providers/testLab';
 
 /**
  * The `HandlerBuilder` class facilitates the writing of functions by producers
- * of Firebase Extensions and developers that want to use gcloud CLI or Cloud Console
- * to deploy their functions.
+ * of Firebase Extensions and developers that want to use gcloud CLI or 
+ * Cloud Console to deploy their functions.
  *
- * **Do not use `HandlerBuilder` when writing normal functions for deployment via
- * Cloud Functions for Firebase.** For normal purposes, use `FunctionBuilder`.
+ * **Do not use `HandlerBuilder` when writing normal functions for deployment
+ * via Cloud Functions for Firebase.** For normal purposes,
+ * use `FunctionBuilder`.
  */
 export class HandlerBuilder {
-  constructor() {}
+  constructor() { }
 
   get https() {
     return {
-
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
       ): HttpsFunction => {
@@ -56,7 +56,6 @@ export class HandlerBuilder {
         func.__trigger = {};
         return func;
       },
- 
       onCall: (
         handler: (
           data: any,
@@ -72,7 +71,6 @@ export class HandlerBuilder {
 
   get database() {
     return {
-
       get instance() {
         return {
           get ref() {
@@ -80,7 +78,6 @@ export class HandlerBuilder {
           },
         };
       },
-
       get ref() {
         return new database.RefBuilder(apps(), () => null, {});
       },
@@ -89,7 +86,6 @@ export class HandlerBuilder {
 
   get firestore() {
     return {
-
       get document() {
         return new firestore.DocumentBuilder(() => null, {});
       },
@@ -103,10 +99,8 @@ export class HandlerBuilder {
       },
     };
   }
-
   get crashlytics() {
     return {
-
       get issue() {
         return new crashlytics.IssueBuilder(() => null, {});
       },
@@ -115,7 +109,6 @@ export class HandlerBuilder {
 
   get remoteConfig() {
     return {
-
       onUpdate: (
         handler: (
           version: remoteConfig.TemplateVersion,
@@ -129,7 +122,6 @@ export class HandlerBuilder {
 
   get analytics() {
     return {
-
       get event() {
         return new analytics.AnalyticsEventBuilder(() => null, {});
       },
@@ -138,11 +130,9 @@ export class HandlerBuilder {
 
   get storage() {
     return {
-
       get bucket() {
         return new storage.BucketBuilder(() => null, {}).object();
       },
-
       get object() {
         return new storage.ObjectBuilder(() => null, {});
       },
@@ -151,11 +141,9 @@ export class HandlerBuilder {
 
   get pubsub() {
     return {
-
       get topic() {
         return new pubsub.TopicBuilder(() => null, {});
       },
-
       get schedule() {
         return new pubsub.ScheduleBuilder(() => null, {});
       },
@@ -164,7 +152,6 @@ export class HandlerBuilder {
 
   get auth() {
     return {
-
       get user() {
         return new auth.UserBuilder(() => null, {});
       },
@@ -172,7 +159,6 @@ export class HandlerBuilder {
   }
 
   get testLab() {
-
     return {
       get testMatrix() {
         return new testLab.TestMatrixBuilder(() => null, {});
