@@ -486,5 +486,9 @@ export function optionsToTrigger(options: DeploymentOptions) {
   if (options.schedule) {
     trigger.schedule = options.schedule;
   }
+
+  if (options.maxInstances) {
+    trigger.maxInstances = options.maxInstances;
+  }
   return trigger;
 }
