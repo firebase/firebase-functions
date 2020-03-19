@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import * as firebase from 'firebase-admin';
+import * as path from 'path';
 
 export function config(): config.Config {
   if (typeof config.singleton === 'undefined') {
@@ -68,9 +69,10 @@ export function firebaseConfig(): firebase.AppOptions | null {
 
   // Could have Runtime Config with Firebase in it as an ENV location or default.
   try {
-    const path =
-      process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
-    const config = require(path);
+    const configPath =
+      process.env.CLOUD_RUNTIME_CONFIG ||
+      path.join(process.env.PWD, '.runtimeconfig.json');
+    const config = require(configPath);
     if (config.firebase) {
       return config.firebase;
     }
@@ -92,9 +94,10 @@ function init() {
   }
 
   try {
-    const path =
-      process.env.CLOUD_RUNTIME_CONFIG || '../../../.runtimeconfig.json';
-    const parsed = require(path);
+    const configPath =
+      process.env.CLOUD_RUNTIME_CONFIG ||
+      path.join(process.env.PWD, '.runtimeconfig.json');
+    const parsed = require(configPath);
     delete parsed.firebase;
     config.singleton = parsed;
     return;
