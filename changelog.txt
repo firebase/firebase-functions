@@ -1,2 +1,2 @@
-**IMPORTANT: Please update to this version of firebase-functions if you are using Node.js 10 functions, otherwise your functions will break in production.** 
+**IMPORTANT: Please update to this version of `firebase-functions` if you are using Node.js 10 functions, otherwise your functions will break in production.** 
 Prevents deployment and runtime issue for Node.js 10 functions, due to `process.env.FIREBASE_CONFIG` and `functions.config()` being empty. (Issue #630)
