@@ -1,1 +1,1 @@
-Adds support for maxInstances.
+- Adds support for maxInstances.
