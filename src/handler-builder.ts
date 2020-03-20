@@ -41,7 +41,7 @@ import * as testLab from './providers/testLab';
  * Google Cloud Console to deploy their functions.
  *
  * **Do not use `HandlerBuilder` when writing normal functions for deployment via
- * Cloud Functions for Firebase.** For normal purposes, use
+ * the Firebase CLI.** For normal purposes, use
  * [`FunctionBuilder`](/docs/reference/functions/function_builder_.functionbuilder).
  */
 export class HandlerBuilder {
