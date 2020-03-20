@@ -116,3 +116,9 @@ toc:
         path: /docs/reference/functions/providers_storage_.objectbuilder.html
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage_.objectmetadata.html
+
+  - title: 'functions.handler'
+    path: /docs/reference/functions/handler_builder_.html
+    section:
+      - title: 'HandlerBuilder'
+        path: /docs/reference/functions/handler_builder_.handlerbuilder.html
