@@ -1,2 +1,2 @@
-- Adds support for defining maximum instances via e.g. `.runWith({maximumInstances: 5})`. Learn more in the [Google Cloud documentation.](https://cloud.google.com/functions/docs/max-instances)
+- Adds support for [defining maximum instances](https://cloud.google.com/functions/docs/max-instances) via e.g. `.runWith({maxInstances: 5})`.
 - Fixes TypeScript build error when `package-lock.json` is present by updating dependencies (Issue #637).
