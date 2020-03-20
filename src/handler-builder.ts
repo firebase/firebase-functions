@@ -37,11 +37,12 @@ import * as testLab from './providers/testLab';
 
 /**
  * The `HandlerBuilder` class facilitates the writing of functions by producers
- * of Firebase Extensions and developers that want to use gcloud CLI or Cloud Console
- * to deploy their functions.
+ * of Firebase Extensions and developers who want to use the gcloud CLI or
+ * Google Cloud Console to deploy their functions.
  *
  * **Do not use `HandlerBuilder` when writing normal functions for deployment via
- * Cloud Functions for Firebase.** For normal purposes, use `FunctionBuilder`.
+ * Cloud Functions for Firebase.** For normal purposes, use
+ * [`FunctionBuilder`](/docs/reference/functions/function_builder_.functionbuilder).
  */
 export class HandlerBuilder {
   constructor() {}
