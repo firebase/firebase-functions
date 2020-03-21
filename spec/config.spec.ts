@@ -25,6 +25,12 @@ import * as mockRequire from 'mock-require';
 import { config, firebaseConfig } from '../src/config';
 
 describe('config()', () => {
+  before(() => {
+    process.env.PWD = '/srv';
+  });
+  after(() => {
+    delete process.env.PWD;
+  });
   afterEach(() => {
     mockRequire.stopAll();
     delete config.singleton;
@@ -33,19 +39,19 @@ describe('config()', () => {
   });
 
   it('loads config values from .runtimeconfig.json', () => {
-    mockRequire('../../../.runtimeconfig.json', { foo: 'bar', firebase: {} });
+    mockRequire('/srv/.runtimeconfig.json', { foo: 'bar', firebase: {} });
     const loaded = config();
     expect(loaded).to.not.have.property('firebase');
     expect(loaded).to.have.property('foo', 'bar');
   });
 
   it('does not provide firebase config if .runtimeconfig.json not invalid', () => {
-    mockRequire('../../../.runtimeconfig.json', 'does-not-exist');
+    mockRequire('/srv/.runtimeconfig.json', 'does-not-exist');
     expect(firebaseConfig()).to.be.null;
   });
 
   it('does not provide firebase config if .ruuntimeconfig.json has no firebase property', () => {
-    mockRequire('../../../.runtimeconfig.json', {});
+    mockRequire('/srv/.runtimeconfig.json', {});
     expect(firebaseConfig()).to.be.null;
   });
 

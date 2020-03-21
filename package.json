@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.3.0",
+  "version": "3.5.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/firebase/firebase-functions.git"
+    "url": "https://github.com/firebase/firebase-functions.git"
   },
   "license": "MIT",
   "author": "Firebase Team",
@@ -23,10 +23,13 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "publishConfig": {
+    "registry": "https://wombat-dressing-room.appspot.com"
+  },
   "scripts": {
     "apidocs": "node docgen/generate-docs.js",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
-    "build:release": "npm install --production && npm install typescript firebase-admin && tsc -p tsconfig.release.json",
+    "build:release": "npm install --production && npm install --no-save typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "format": "prettier --check '**/*.{json,md,ts,yml,yaml}'",
     "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
@@ -35,7 +38,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "@types/express": "^4.17.0",
+    "@types/express": "^4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
@@ -58,7 +61,7 @@
     "firebase-admin": "^8.2.0",
     "istanbul": "^0.4.5",
     "js-yaml": "^3.13.1",
-    "jsdom": "^15.2.0",
+    "jsdom": "^16.2.1",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
@@ -70,9 +73,9 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "^0.14.2",
+    "typedoc": "^0.17.1",
     "typescript": "^3.5.2",
-    "yargs": "^13.2.4"
+    "yargs": "^15.3.1"
   },
   "peerDependencies": {
     "firebase-admin": "^8.0.0"

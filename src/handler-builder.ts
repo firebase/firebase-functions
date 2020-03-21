@@ -201,6 +201,12 @@ export class HandlerBuilder {
       get topic() {
         return new pubsub.TopicBuilder(() => null, {});
       },
+      /**
+       * Handle periodic events triggered by Cloud Scheduler.
+       */
+      get schedule() {
+        return new pubsub.ScheduleBuilder(() => null, {});
+      },
     };
   }
 
