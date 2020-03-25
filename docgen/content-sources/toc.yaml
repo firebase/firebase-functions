@@ -117,6 +117,18 @@ toc:
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage_.objectmetadata.html
 
+  - title: 'functions.testLab'
+    path: /docs/reference/functions/providers_testlab_.html
+    section:
+      - title: 'testLab.clientInfo'
+        path: /docs/reference/functions/providers_testlab_.clientinfo.html
+      - title: 'testLab.resultStorage'
+        path: /docs/reference/functions/providers_testlab_.resultstorage.html
+      - title: 'testLab.testMatrix'
+        path: /docs/reference/functions/providers_testlab_.testmatrix.html
+      - title: 'testLab.testMatrixBuilder'
+        path: /docs/reference/functions/providers_testlab_.testmatrixbuilder.html
+
   - title: 'functions.handler'
     path: /docs/reference/functions/handler_builder_.html
     section:
