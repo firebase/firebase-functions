@@ -47,13 +47,22 @@ import * as testLab from './providers/testLab';
 export class HandlerBuilder {
   constructor() {}
 
+  /**
+   * Create a handler for HTTPS events.
+  
+   * `onRequest` handles an HTTPS request and has the same signature as an Express app.
+   * `exports.myFunction = functions.handler.https.onRequest((req, res) => { ... })`
+   *  This is identical to writing:
+   * `exports.myFunction = functions.https.onRequest((req, res) => { ... })`
+
+   * `onCall` declares a callable function for clients to call using a Firebase SDK.
+   * `exports.myFunction = functions.handler.https.onCall((data, context) => { ... })`
+   *  This is identical to writing:
+   * `exports.myFunction = functions.https.onCall((data, context) => { ... })`
+   * 
+   */
   get https() {
     return {
-      /**
-       * Handle HTTP requests.
-       * @param handler A function that takes a request and response object,
-       * same signature as an Express app.
-       */
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
       ): HttpsFunction => {
@@ -74,8 +83,24 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Realtime Database events.
+   * 
+   * `ref.onCreate` handles new data creation.
+   * `exports.myFunction = functions.handler.database.ref.onCreate((snap, context) => { ... })`
+   
+   * `ref.onUpdate` handles data updates.
+   * `exports.myFunction = functions.handler.database.ref.onUpdate((change, context) => { ... })`
+   
+   * `ref.onDelete` handles data deletion.
+   * `exports.myFunction = functions.handler.database.ref.onDelete((snap, context) => { ... })`
+   
+   * `ref.onWrite` handles data creation, update, or deletion.
+   * `exports.myFunction = functions.handler.database.ref.onWrite((change, context) => { ... })`
+   */
   get database() {
     return {
+      /** @hidden */
       get instance() {
         return {
           get ref() {
@@ -89,6 +114,21 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Firestore events.
+   * 
+   * `document.onCreate` handles document creations.
+   * `exports.myFunction = functions.handler.firestore.document.onCreate((snap, context) => { ... })`
+   
+   * `document.onUpdate` handles document updates.
+   * `exports.myFunction = functions.handler.firestore.document.onUpdate((change, context) => { ... })`
+   
+   * `document.onDelete` handles document deletes.
+   * `exports.myFunction = functions.handler.firestore.document.onDelete((snap, context) => { ... })`
+   
+   * `document.onWrite` handles document creates, updates, and deletes.
+   * `exports.myFunction = functions.handler.firestore.document.onWrite((change, context) => { ... })`
+   */
   get firestore() {
     return {
       get document() {
