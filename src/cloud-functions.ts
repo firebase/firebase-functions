@@ -104,11 +104,12 @@ export interface EventContext {
    * * `providers/cloud.firestore/eventTypes/document.update`
    * * `providers/cloud.firestore/eventTypes/document.delete`
    * * `google.pubsub.topic.publish`
+   * * `google.firebase.remoteconfig.update`
    * * `google.storage.object.finalize`
    * * `google.storage.object.archive`
    * * `google.storage.object.delete`
    * * `google.storage.object.metadataUpdate`
-   * * `google.firebase.remoteconfig.update`
+   * * `google.testing.testMatrix.complete`
    */
   eventType: string;
 
