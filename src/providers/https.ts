@@ -60,7 +60,7 @@ export function _onRequestWithOptions(
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
   const cloudFunction: any = (req: Request, res: express.Response) => {
-    handler(req, res);
+    return handler(req, res);
   };
   cloudFunction.__trigger = _.assign(optionsToTrigger(options), {
     httpsTrigger: {},
