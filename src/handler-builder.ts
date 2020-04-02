@@ -52,14 +52,9 @@ export class HandlerBuilder {
   
    * `onRequest` handles an HTTPS request and has the same signature as an Express app.
    * `exports.myFunction = functions.handler.https.onRequest((req, res) => { ... })`
-   *  This is identical to writing:
-   * `exports.myFunction = functions.https.onRequest((req, res) => { ... })`
 
    * `onCall` declares a callable function for clients to call using a Firebase SDK.
    * `exports.myFunction = functions.handler.https.onCall((data, context) => { ... })`
-   *  This is identical to writing:
-   * `exports.myFunction = functions.https.onCall((data, context) => { ... })`
-   * 
    */
   get https() {
     return {
