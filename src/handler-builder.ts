@@ -51,10 +51,18 @@ export class HandlerBuilder {
    * Create a handler for HTTPS events.
   
    * `onRequest` handles an HTTPS request and has the same signature as an Express app.
-   * `exports.myFunction = functions.handler.https.onRequest((req, res) => { ... })`
-
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.https.onRequest((req, res) => { ... })
+   * ```
+   * 
    * `onCall` declares a callable function for clients to call using a Firebase SDK.
-   * `exports.myFunction = functions.handler.https.onCall((data, context) => { ... })`
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.https.onCall((data, context) => { ... })
+   * ```
    */
   get https() {
     return {
@@ -82,16 +90,32 @@ export class HandlerBuilder {
    * Create a handler for Realtime Database events.
    * 
    * `ref.onCreate` handles new data creation.
-   * `exports.myFunction = functions.handler.database.ref.onCreate((snap, context) => { ... })`
-   
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onCreate((snap, context) => { ... })
+   * ```
+   * 
    * `ref.onUpdate` handles data updates.
-   * `exports.myFunction = functions.handler.database.ref.onUpdate((change, context) => { ... })`
-   
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onUpdate((change, context) => { ... })
+   * ```
+  
    * `ref.onDelete` handles data deletion.
-   * `exports.myFunction = functions.handler.database.ref.onDelete((snap, context) => { ... })`
-   
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onDelete((snap, context) => { ... })
+   * ```
+
    * `ref.onWrite` handles data creation, update, or deletion.
-   * `exports.myFunction = functions.handler.database.ref.onWrite((change, context) => { ... })`
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onWrite((change, context) => { ... })
+   * ```
    */
   get database() {
     return {
@@ -113,16 +137,34 @@ export class HandlerBuilder {
    * Create a handler for Firestore events.
    * 
    * `document.onCreate` handles document creations.
-   * `exports.myFunction = functions.handler.firestore.document.onCreate((snap, context) => { ... })`
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onCreate((snap, context) => { ... })
+   * ```
    
    * `document.onUpdate` handles document updates.
-   * `exports.myFunction = functions.handler.firestore.document.onUpdate((change, context) => { ... })`
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onUpdate((change, context) => { ... })
+   * ```
    
    * `document.onDelete` handles document deletes.
-   * `exports.myFunction = functions.handler.firestore.document.onDelete((snap, context) => { ... })`
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onDelete((snap, context) =>
+   * { ... })
+   * ```
    
    * `document.onWrite` handles document creates, updates, and deletes.
-   * `exports.myFunction = functions.handler.firestore.document.onWrite((change, context) => { ... })`
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onWrite((change, context) =>
+   * { ... })
+   * ```
    */
   get firestore() {
     return {
@@ -140,6 +182,36 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Crashlytics events.
+  
+   * `issue.onNew` handles events where the app experiences an issue for the first time.
+
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.crashlytics.issue().onNew(async
+   * (issue) => { ... })
+   * ```
+
+   * `issue.onRegressed` handles events where an issue reoccurs after it
+   * is closed in Crashlytics.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.crashlytics.issue().onRegressed(async
+   * (issue) => { ... })
+   * ```
+   
+   * `issue.onVelocityAlert` handles events where a statistically significant number
+   * of sessions in a given build crash.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.crashlytics.issue().onVelocityAlert(async
+   * (issue) => { ... })
+   * ```
+
+   */
   get crashlytics() {
     return {
       get issue() {
