@@ -250,7 +250,7 @@ export class HandlerBuilder {
  
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.analtics.event.onLog((event) => { ... })
+   * exports.myFunction = functions.handler.analytics.event.onLog((event) => { ... })
    * ```
    */
   get analytics() {
