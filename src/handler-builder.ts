@@ -223,7 +223,7 @@ export class HandlerBuilder {
   /**
    * Create a handler for Remote Config events.
 
-   * `remoteConfig.onUpdate` returns a `TemplateVersion` object.
+   * `remoteConfig.onUpdate` handles events that update a Remote Config template.
  
    * @example
    * ```javascript
@@ -246,7 +246,7 @@ export class HandlerBuilder {
   /**
    * Create a handler for Anlytics events.
    
-   * `remoteConfig.onUpdate` returns a `TemplateVersion` object.
+   * `event.onLog` handles the logging of Analytics conversion events.
  
    * @example
    * ```javascript
@@ -306,6 +306,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Cloud Pub/Sub events.
+
+   * `pubsub.onPublish` handles the publication of messages to a topic.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.pubsub.topic.onPublish((message) => { ... })
+   * ```
+   */
   get pubsub() {
     return {
       get topic() {
@@ -325,6 +335,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Test Lab events.
+
+   * `testMatrix.onComplete` handles the completion of a test matrix.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.testLab.testMatrix.onComplete((testMatrix) => { ... })
+   * ```
+   */
   get testLab() {
     return {
       get testMatrix() {
