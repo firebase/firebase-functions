@@ -189,7 +189,7 @@ export class HandlerBuilder {
 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue().onNew(async
+   * exports.myFunction = functions.handler.crashlytics.issue.onNew(async
    * (issue) => { ... })
    * ```
 
@@ -198,7 +198,7 @@ export class HandlerBuilder {
    * 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue().onRegressed(async
+   * exports.myFunction = functions.handler.crashlytics.issue.onRegressed(async
    * (issue) => { ... })
    * ```
    
@@ -207,7 +207,7 @@ export class HandlerBuilder {
    * 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue().onVelocityAlert(async
+   * exports.myFunction = functions.handler.crashlytics.issue.onVelocityAlert(async
    * (issue) => { ... })
    * ```
 
