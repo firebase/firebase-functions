@@ -220,6 +220,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Remote Config events.
+
+   * `remoteConfig.onUpdate` handles events that update a Remote Config template.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.remoteConfig.onUpdate() => { ... })
+   * ```
+   */
   get remoteConfig() {
     return {
       onUpdate: (
@@ -233,6 +243,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Anlytics events.
+   
+   * `event.onLog` handles the logging of Analytics conversion events.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.analytics.event.onLog((event) => { ... })
+   * ```
+   */
   get analytics() {
     return {
       get event() {
@@ -241,6 +261,39 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Storage events.
+   * 
+   * `object.onArchive` handles archival of Storage objects.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onArchive(async (object) => { ... })
+   * ```
+   
+   * `object.onDelete` handles Storage object deletions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onDelete(async (object) => { ... })
+   * ```
+   
+   * `object.onFinalize` handles the creation of Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onFinalize(async (object) =>
+   * { ... })
+   * ```
+   
+   * `object.onMetadataUpdate` handles changes to the metadata of existing Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onMetadataUpdate(async (object) =>
+   * { ... })
+   * ```
+   */
   get storage() {
     return {
       get bucket() {
@@ -253,6 +306,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Cloud Pub/Sub events.
+
+   * `pubsub.onPublish` handles the publication of messages to a topic.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.pubsub.topic.onPublish((message) => { ... })
+   * ```
+   */
   get pubsub() {
     return {
       get topic() {
@@ -264,6 +327,24 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Firebase Auth events.
+   * 
+   * `user.onCreate` handles user creations.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.auth.user.onCreate((user) => { ... })
+   * ```
+   
+   * `user.onDelete` handles user deletions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.auth.user.onDelete((user => { ... })
+   * ```
+   
+   */
   get auth() {
     return {
       get user() {
@@ -272,6 +353,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Test Lab events.
+
+   * `testMatrix.onComplete` handles the completion of a test matrix.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.testLab.testMatrix.onComplete((testMatrix) => { ... })
+   * ```
+   */
   get testLab() {
     return {
       get testMatrix() {
