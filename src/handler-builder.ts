@@ -261,6 +261,39 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Storage events.
+   * 
+   * `object.onArchive` handles archival of Storage objects.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onArchive(async (object) => { ... })
+   * ```
+   
+   * `object.onDelete` handles Storage object deletions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onDelete(async (object) => { ... })
+   * ```
+   
+   * `object.onFinalize` handles the creation of Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onFinalize(async (object) =>
+   * { ... })
+   * ```
+   
+   * `object.onMetadataUpdate` handles changes to the metadata of existing Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onMetadataUpdate(async (object) =>
+   * { ... })
+   * ```
+   */
   get storage() {
     return {
       get bucket() {
