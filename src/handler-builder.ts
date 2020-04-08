@@ -327,6 +327,24 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Firebase Auth events.
+   * 
+   * `user.onCreate` handles user creations.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.auth.user.onCreate((user) => { ... })
+   * ```
+   
+   * `user.onDelete` handles user deletions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.auth.user.onDelete((user => { ... })
+   * ```
+   
+   */
   get auth() {
     return {
       get user() {
