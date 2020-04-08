@@ -220,6 +220,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Remote Config events.
+
+   * `remoteConfig.onUpdate` returns a `TemplateVersion` object.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.remoteConfig.onUpdate() => { ... })
+   * ```
+   */
   get remoteConfig() {
     return {
       onUpdate: (
@@ -233,6 +243,16 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Anlytics events.
+   
+   * `remoteConfig.onUpdate` returns a `TemplateVersion` object.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.analtics.event.onLog((event) => { ... })
+   * ```
+   */
   get analytics() {
     return {
       get event() {
