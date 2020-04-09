@@ -189,8 +189,7 @@ export class HandlerBuilder {
 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onNew(async
-   * (issue) => { ... })
+   * exports.myFunction = functions.handler.crashlytics.issue.onNew((issue) => { ... })ß
    * ```
 
    * `issue.onRegressed` handles events where an issue reoccurs after it
@@ -198,8 +197,7 @@ export class HandlerBuilder {
    * 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onRegressed(async
-   * (issue) => { ... })
+   * exports.myFunction = functions.handler.crashlytics.issue.onRegressed((issue) => { ... })
    * ```
    
    * `issue.onVelocityAlert` handles events where a statistically significant number
@@ -207,8 +205,7 @@ export class HandlerBuilder {
    * 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onVelocityAlert(async
-   * (issue) => { ... })
+   * exports.myFunction = functions.handler.crashlytics.issue.onVelocityAlert((issue) => { ... })
    * ```
 
    */
