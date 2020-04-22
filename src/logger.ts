@@ -51,6 +51,10 @@ export interface LogEntry {
   [key: string]: any;
 }
 
+/**
+ * Writes a LogEntry to `stdout`/`stderr` (depending on severity).
+ * @param entry The LogEntry including severity, message, and any additional structured metadata.
+ */
 export function write(entry: LogEntry) {
   if (SUPPORTS_STRUCTURED_LOGS) {
     unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(entry));
@@ -71,22 +75,47 @@ export function write(entry: LogEntry) {
   }
 }
 
+/**
+ * Writes a `DEBUG` severity log. If the last argument provided is a plain object,
+ * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * @param args Arguments, concatenated into the log message with space separators.
+ */
 export function debug(...args: any[]) {
   write(entryFromArgs('DEBUG', args));
 }
 
+/**
+ * Writes an `INFO` severity log. If the last argument provided is a plain object,
+ * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * @param args Arguments, concatenated into the log message with space separators.
+ */
 export function log(...args: any[]) {
   write(entryFromArgs('INFO', args));
 }
 
+/**
+ * Writes an `INFO` severity log. If the last argument provided is a plain object,
+ * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * @param args Arguments, concatenated into the log message with space separators.
+ */
 export function info(...args: any[]) {
   write(entryFromArgs('INFO', args));
 }
 
+/**
+ * Writes a `WARNING` severity log. If the last argument provided is a plain object,
+ * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * @param args Arguments, concatenated into the log message with space separators.
+ */
 export function warn(...args: any[]) {
   write(entryFromArgs('WARNING', args));
 }
 
+/**
+ * Writes an `ERROR` severity log. If the last argument provided is a plain object,
+ * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * @param args Arguments, concatenated into the log message with space separators.
+ */
 export function error(...args: any[]) {
   write(entryFromArgs('ERROR', args));
 }
