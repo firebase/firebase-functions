@@ -58,21 +58,22 @@ export interface LogEntry {
 export function write(entry: LogEntry) {
   if (SUPPORTS_STRUCTURED_LOGS) {
     unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(entry));
-  } else {
-    let message = entry.message || '';
-    const jsonPayload: { [key: string]: any } = {};
-    let jsonKeyCount = 0;
-    for (const k in entry) {
-      if (!['severity', 'message'].includes(k)) {
-        jsonKeyCount++;
-        jsonPayload[k] = entry[k];
-      }
-    }
-    if (jsonKeyCount > 0) {
-      message = `${message} ${JSON.stringify(jsonPayload, null, 2)}`;
-    }
-    unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](message);
+    return;
   }
+
+  let message = entry.message || '';
+  const jsonPayload: { [key: string]: any } = {};
+  let jsonKeyCount = 0;
+  for (const k in entry) {
+    if (!['severity', 'message'].includes(k)) {
+      jsonKeyCount++;
+      jsonPayload[k] = entry[k];
+    }
+  }
+  if (jsonKeyCount > 0) {
+    message = `${message} ${JSON.stringify(jsonPayload, null, 2)}`;
+  }
+  unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](message);
 }
 
 /**
