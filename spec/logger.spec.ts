@@ -5,7 +5,9 @@ import * as logger from '../src/logger';
 const SUPPORTS_STRUCTURED_LOGS =
   parseInt(process.versions?.node?.split('.')?.[0] || '8', 10) >= 10;
 
-describe('logger with structure support', () => {
+describe(`logger (${
+  SUPPORTS_STRUCTURED_LOGS ? 'structured' : 'unstructured'
+})`, () => {
   let sandbox: sinon.SinonSandbox;
   let stdoutStub: sinon.SinonStub;
   let stderrStub: sinon.SinonStub;
@@ -14,12 +16,6 @@ describe('logger with structure support', () => {
     sandbox = sinon.createSandbox();
     stdoutStub = sandbox.stub(process.stdout, 'write');
     stderrStub = sandbox.stub(process.stderr, 'write');
-  });
-
-  afterEach(() => {
-    stdoutStub.restore();
-    stderrStub.restore();
-    sandbox.restore();
   });
 
   function expectOutput(stdStub: sinon.SinonStub, entry: any) {
@@ -57,6 +53,7 @@ describe('logger with structure support', () => {
         severity: 'INFO',
         message: "hello { middle: 'obj' } end message",
       });
+      sandbox.restore(); // to avoid swallowing test runner output
     });
 
     it('should merge structured data from the last argument', () => {
@@ -66,6 +63,7 @@ describe('logger with structure support', () => {
         message: 'hello world',
         additional: 'context',
       });
+      sandbox.restore(); // to avoid swallowing test runner output
     });
   });
 
@@ -80,6 +78,7 @@ describe('logger with structure support', () => {
             };
             logger.write(entry);
             expectStdout(entry);
+            sandbox.restore(); // to avoid swallowing test runner output
           });
         }
 
@@ -97,6 +96,7 @@ describe('logger with structure support', () => {
             };
             logger.write(entry);
             expectStderr(entry);
+            sandbox.restore(); // to avoid swallowing test runner output
           });
         }
       });
