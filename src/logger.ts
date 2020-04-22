@@ -51,57 +51,55 @@ export interface LogEntry {
   [key: string]: any;
 }
 
-export function log(entry: LogEntry) {
-  output(entry);
-}
-
-export function debug(...args: any[]) {
-  output(payloadFromArgs('DEBUG', args));
-}
-
-export function info(...args: any[]) {
-  output(payloadFromArgs('INFO', args));
-}
-
-export function warn(...args: any[]) {
-  output(payloadFromArgs('WARNING', args));
-}
-
-export function error(...args: any[]) {
-  output(payloadFromArgs('ERROR', args));
-}
-
-function payloadFromArgs(severity: LogSeverity, args: any[]): LogEntry {
-  let payload = {};
-  const lastArg = args[args.length - 1];
-  if (typeof lastArg == 'object' && lastArg.constructor == Object) {
-    payload = args.pop();
-  }
-  return Object.assign({}, payload, {
-    severity,
-    // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
-    message: format.apply(null, args),
-  });
-}
-
-function output(payload: LogEntry): void {
+export function write(entry: LogEntry) {
   if (SUPPORTS_STRUCTURED_LOGS) {
-    unpatchedConsole[CONSOLE_SEVERITY[payload.severity]](
-      JSON.stringify(payload)
-    );
+    unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(entry));
   } else {
-    let message = payload.message || '';
+    let message = entry.message || '';
     const jsonPayload: { [key: string]: any } = {};
     let jsonKeyCount = 0;
-    for (const k in payload) {
+    for (const k in entry) {
       if (!['severity', 'message'].includes(k)) {
         jsonKeyCount++;
-        jsonPayload[k] = payload[k];
+        jsonPayload[k] = entry[k];
       }
     }
     if (jsonKeyCount > 0) {
       message = `${message} ${JSON.stringify(jsonPayload, null, 2)}`;
     }
-    unpatchedConsole[CONSOLE_SEVERITY[payload.severity]](message);
+    unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](message);
   }
+}
+
+export function debug(...args: any[]) {
+  write(entryFromArgs('DEBUG', args));
+}
+
+export function log(...args: any[]) {
+  write(entryFromArgs('INFO', args));
+}
+
+export function info(...args: any[]) {
+  write(entryFromArgs('INFO', args));
+}
+
+export function warn(...args: any[]) {
+  write(entryFromArgs('WARNING', args));
+}
+
+export function error(...args: any[]) {
+  write(entryFromArgs('ERROR', args));
+}
+
+function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
+  let entry = {};
+  const lastArg = args[args.length - 1];
+  if (typeof lastArg == 'object' && lastArg.constructor == Object) {
+    entry = args.pop();
+  }
+  return Object.assign({}, entry, {
+    severity,
+    // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
+    message: format.apply(null, args),
+  });
 }
