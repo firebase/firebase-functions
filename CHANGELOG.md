@@ -1,0 +1,1 @@
+- Update TypeScript dependency to fix build issues (Issue #667)
