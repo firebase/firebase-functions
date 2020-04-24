@@ -1,4 +1,3 @@
-// Determine if structured logs are supported (node >= 10). If something goes wrong,
 import { format } from 'util';
 
 // safely preserve unpatched console.* methods in case of compat require
@@ -10,6 +9,7 @@ const unpatchedConsole = {
   error: console.error,
 };
 
+// Determine if structured logs are supported (node >= 10). If something goes wrong,
 // assume no since unstructured is safer.
 const SUPPORTS_STRUCTURED_LOGS =
   parseInt(process.versions?.node?.split('.')?.[0] || '8', 10) >= 10;

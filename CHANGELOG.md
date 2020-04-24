@@ -14,3 +14,5 @@
   ```js
   require('firebase-functions/logger/compat');
   ```
+
+  In older runtimes, the logger will print to console, no structured data is saved.
