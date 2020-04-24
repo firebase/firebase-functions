@@ -42,6 +42,7 @@ export const service = 'firestore.googleapis.com';
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
 export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
+export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
 
 /**
  * Select the Firestore document to listen to for events.
@@ -204,30 +205,30 @@ export class DocumentBuilder {
   /** Respond only to document updates. */
   onUpdate(
     handler: (
-      change: Change<DocumentSnapshot>,
+      change: Change<QueryDocumentSnapshot>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DocumentSnapshot>> {
+  ): CloudFunction<Change<QueryDocumentSnapshot>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
   /** Respond only to document creations. */
   onCreate(
     handler: (
-      snapshot: DocumentSnapshot,
+      snapshot: QueryDocumentSnapshot,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<DocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
   onDelete(
     handler: (
-      snapshot: DocumentSnapshot,
+      snapshot: QueryDocumentSnapshot,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<DocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot> {
     return this.onOperation(
       handler,
       'document.delete',
