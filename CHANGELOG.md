@@ -1,4 +1,4 @@
-- Adds `functions.logger` SDK to enabled structured logging in the Node.js 10 runtime. Example:
+- Adds `functions.logger` SDK to enable structured logging in the Node.js 10 runtime. For example:
 
   ```js
   const functions = require('firebase-functions');
@@ -15,4 +15,4 @@
   require('firebase-functions/logger/compat');
   ```
 
-  In older runtimes, the logger will print to console, no structured data is saved.
+  In older runtimes, logger prints to the console, and no structured data is saved.

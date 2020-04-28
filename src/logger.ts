@@ -29,7 +29,7 @@ const CONSOLE_SEVERITY: {
 };
 
 /**
- * LogSeverity indicates the detailed severity of the log entry. See [Cloud Logging docs](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity) for more.
+ * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity) for more.
  */
 export type LogSeverity =
   | 'DEBUG'
@@ -42,7 +42,7 @@ export type LogSeverity =
   | 'EMERGENCY';
 
 /**
- * LogEntry represents a structured Cloud Logging entry. All keys aside from `severity` and `message` are
+ * `LogEntry` represents a structured Cloud Logging entry. All keys aside from `severity` and `message` are
  * included in the `jsonPayload` of the logged entry.
  */
 export interface LogEntry {
@@ -52,7 +52,7 @@ export interface LogEntry {
 }
 
 /**
- * Writes a LogEntry to `stdout`/`stderr` (depending on severity).
+ * Writes a `LogEntry` to `stdout`/`stderr` (depending on severity).
  * @param entry The LogEntry including severity, message, and any additional structured metadata.
  */
 export function write(entry: LogEntry) {
