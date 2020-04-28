@@ -135,7 +135,7 @@ export class HandlerBuilder {
   get crashlytics() {
     return {
       /**
-       * Handle events related to Firebase Crashlytics issues.
+       * Handles events related to Firebase Crashlytics issues.
        * An issue in Crashlytics is an aggregation of crashes
        * which have a shared root cause.
        */
@@ -148,7 +148,7 @@ export class HandlerBuilder {
   get remoteConfig() {
     return {
       /**
-       * Handle events (including rollbacks) related to
+       * Handles events (including rollbacks) related to
        * Firebase Remote Config templates.
        * @param handler A function that takes the updated
        * Remote Config template version metadata as an argument.
@@ -204,7 +204,7 @@ export class HandlerBuilder {
         return new pubsub.TopicBuilder(() => null, {});
       },
       /**
-       * Handle periodic events triggered by Cloud Scheduler.
+       * Handles periodic events triggered by Cloud Scheduler.
        */
       get schedule() {
         return new pubsub.ScheduleBuilder(() => null, {});
@@ -215,7 +215,7 @@ export class HandlerBuilder {
   get auth() {
     return {
       /**
-       * Handle events related to Firebase Authentication users.
+       * Handles events related to Firebase Authentication users.
        */
       get user() {
         return new auth.UserBuilder(() => null, {});
@@ -224,7 +224,7 @@ export class HandlerBuilder {
   }
 
   get testLab() {
-    /** Handle events related to Firebase Test Lab test matrices. */
+    /** Handles events related to Firebase Test Lab test matrices. */
     return {
       get testMatrix() {
         return new testLab.TestMatrixBuilder(() => null, {});
