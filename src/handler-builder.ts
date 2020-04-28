@@ -36,8 +36,8 @@ import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
 /**
- * The `HandlerBuilder` class facilitates the writing of functions by producers
- * of Firebase Extensions and developers who want to use the gcloud CLI or
+ * The `HandlerBuilder` class facilitates the writing of functions by developers
+ * building Firebase Extensions as well as developers who want to use the gcloud CLI or
  * Google Cloud Console to deploy their functions.
  *
  * **Do not use `HandlerBuilder` when writing normal functions for deployment via
@@ -87,30 +87,30 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Realtime Database events.
+   * Create a handler for Firebase Realtime Database events.
    * 
-   * `ref.onCreate` handles new data creation.
+   * `ref.onCreate` handles the creation of new data.
    * 
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.database.ref.onCreate((snap, context) => { ... })
    * ```
    * 
-   * `ref.onUpdate` handles data updates.
+   * `ref.onUpdate` handles updates to existing data.
    * 
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.database.ref.onUpdate((change, context) => { ... })
    * ```
   
-   * `ref.onDelete` handles data deletion.
+   * `ref.onDelete` handles the deletion of existing data.
    *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.database.ref.onDelete((snap, context) => { ... })
    * ```
 
-   * `ref.onWrite` handles data creation, update, or deletion.
+   * `ref.onWrite` handles the creation, update, or deletion of data.
    *
    * @example
    * ```javascript
@@ -134,23 +134,23 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Firestore events.
+   * Create a handler for Cloud Firestore events.
    * 
-   * `document.onCreate` handles document creations.
+   * `document.onCreate` handles the creation of new documents.
    * 
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.firestore.document.onCreate((snap, context) => { ... })
    * ```
    
-   * `document.onUpdate` handles document updates.
+   * `document.onUpdate` handles updates to existing documents.
    *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.firestore.document.onUpdate((change, context) => { ... })
    * ```
    
-   * `document.onDelete` handles document deletes.
+   * `document.onDelete` handles the deletion of existing documents.
    *
    * @example
    * ```javascript
@@ -158,7 +158,7 @@ export class HandlerBuilder {
    * { ... })
    * ```
    
-   * `document.onWrite` handles document creates, updates, and deletes.
+   * `document.onWrite` handles the creation, update, or deletion of documents.
    *
    * @example
    * ```javascript
@@ -183,7 +183,7 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Crashlytics events.
+   * Create a handler for Firebase Crashlytics events.
   
    * `issue.onNew` handles events where the app experiences an issue for the first time.
 
@@ -218,7 +218,7 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Remote Config events.
+   * Create a handler for Firebase Remote Config events.
 
    * `remoteConfig.onUpdate` handles events that update a Remote Config template.
  
@@ -241,7 +241,7 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Anlytics events.
+   * Create a handler for Google Analytics events.
    
    * `event.onLog` handles the logging of Analytics conversion events.
  
@@ -259,16 +259,16 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Storage events.
+   * Create a handler for Cloud Storage for Firebase events.
    * 
-   * `object.onArchive` handles archival of Storage objects.
+   * `object.onArchive` handles the archiving of Storage objects.
    * 
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.storage.object.onArchive(async (object) => { ... })
    * ```
    
-   * `object.onDelete` handles Storage object deletions.
+   * `object.onDelete` handles the deletion of Storage objects.
    *
    * @example
    * ```javascript
@@ -325,16 +325,16 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Firebase Auth events.
+   * Create a handler for Firebase Authentication events.
    * 
-   * `user.onCreate` handles user creations.
+   * `user.onCreate` handles the creation of users.
    * 
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.auth.user.onCreate((user) => { ... })
    * ```
    
-   * `user.onDelete` handles user deletions.
+   * `user.onDelete` handles the deletion of users.
    *
    * @example
    * ```javascript
@@ -351,7 +351,7 @@ export class HandlerBuilder {
   }
 
   /**
-   * Create a handler for Test Lab events.
+   * Create a handler for Firebase Test Lab events.
 
    * `testMatrix.onComplete` handles the completion of a test matrix.
  
