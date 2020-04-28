@@ -41,7 +41,7 @@ export class HandlerBuilder {
   get https() {
     return {
       /**
-       * Handle HTTP requests.
+       * Handles HTTP/S requests.
        * @param handler A function that takes a request and response object,
        * same signature as an Express app.
        */
@@ -72,8 +72,8 @@ export class HandlerBuilder {
   get database() {
     return {
       /**
-       * Selects a database instance that will trigger the function.
-       * If omitted, will pick the default database for your project.
+       * Selects a Realtime Database instance that will trigger the function.
+       * If omitted, will pick the default Realtime Database instance for your project.
        */
       get instance() {
         return {
@@ -87,7 +87,7 @@ export class HandlerBuilder {
        * Select Firebase Realtime Database Reference to listen to.
        *
        * This method behaves very similarly to the method of the same name in the
-       * client and Admin Firebase SDKs. Any change to the Database that affects the
+       * client and Admin Firebase SDKs. Any change to the database that affects the
        * data at or below the provided `path` will fire an event in Cloud Functions.
        *
        * There are three important differences between listening to a Realtime
@@ -95,10 +95,10 @@ export class HandlerBuilder {
        * client and Admin SDKs:
        * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
        *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
-       *    that matched a certain invocation of a Cloud Function is returned as part
+       *    that matches a certain invocation of a Cloud Function is returned as part
        *    of the `context.params` object. For example, `ref("messages/{messageId}")`
        *    matches changes at `/messages/message1` or `/messages/message2`, resulting
-       *    in  `context.params.messageId` being set to `"message1"` or `"message2"`,
+       *    in `context.params.messageId` being set to `"message1"` or `"message2"`,
        *    respectively.
        * 2. Cloud Functions do not fire an event for data that already existed before
        *    the Cloud Function was deployed.
@@ -114,8 +114,9 @@ export class HandlerBuilder {
   get firestore() {
     return {
       /**
-       * Listen for events on a Firestore document. A Firestore document contains a set of
-       * key-value pairs and may contain subcollections and nested objects.
+       * Handles events related to Cloud Firestore documents.
+       * A document contains a set of key-value pairs and
+       * may contain subcollections and nested objects.
        */
       get document() {
         return new firestore.DocumentBuilder(() => null, {});
@@ -134,8 +135,9 @@ export class HandlerBuilder {
   get crashlytics() {
     return {
       /**
-       * Handle events related to Crashlytics issues. An issue in Crashlytics is an
-       * aggregation of crashes which have a shared root cause.
+       * Handle events related to Firebase Crashlytics issues.
+       * An issue in Crashlytics is an aggregation of crashes
+       * which have a shared root cause.
        */
       get issue() {
         return new crashlytics.IssueBuilder(() => null, {});
@@ -146,10 +148,10 @@ export class HandlerBuilder {
   get remoteConfig() {
     return {
       /**
-       * Handle all updates (including rollbacks) that affect a Remote Config
-       * project.
-       * @param handler A function that takes the updated Remote Config template
-       * version metadata as an argument.
+       * Handle events (including rollbacks) related to
+       * Firebase Remote Config templates.
+       * @param handler A function that takes the updated
+       * Remote Config template version metadata as an argument.
        */
       onUpdate: (
         handler: (
@@ -165,7 +167,7 @@ export class HandlerBuilder {
   get analytics() {
     return {
       /**
-       * Select analytics events to listen to for events.
+       * Select Google Analytics events to listen to for events.
        */
       get event() {
         return new analytics.AnalyticsEventBuilder(() => null, {});
@@ -176,9 +178,9 @@ export class HandlerBuilder {
   get storage() {
     return {
       /**
-       * The optional bucket function allows you to choose which buckets' events to handle.
-       * This step can be bypassed by calling object() directly, which will use the default
-       * Cloud Storage for Firebase bucket.
+       * The optional Cloud Storage bucket function allows you to choose which
+       * buckets' events to handle. This step can be bypassed by calling `object()`
+       * directly, which will use the default Storage bucket for your project.
        */
       get bucket() {
         return new storage.BucketBuilder(() => null, {}).object();
@@ -213,7 +215,7 @@ export class HandlerBuilder {
   get auth() {
     return {
       /**
-       * Handle events related to Firebase authentication users.
+       * Handle events related to Firebase Authentication users.
        */
       get user() {
         return new auth.UserBuilder(() => null, {});
@@ -222,7 +224,7 @@ export class HandlerBuilder {
   }
 
   get testLab() {
-    /** Handle events related to Test Lab test matrices. */
+    /** Handle events related to Firebase Test Lab test matrices. */
     return {
       get testMatrix() {
         return new testLab.TestMatrixBuilder(() => null, {});
