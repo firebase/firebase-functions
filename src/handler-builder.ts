@@ -189,7 +189,7 @@ export class HandlerBuilder {
 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onNew((issue) => { ... })ß
+   * exports.myFunction = functions.handler.crashlytics.issue.onNew((issue) => { ... })
    * ```
 
    * `issue.onRegressed` handles events where an issue reoccurs after it
@@ -265,21 +265,21 @@ export class HandlerBuilder {
    * 
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.storage.object.onArchive(async (object) => { ... })
+   * exports.myFunction = functions.handler.storage.object.onArchive((object) => { ... })
    * ```
    
    * `object.onDelete` handles the deletion of Storage objects.
    *
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.storage.object.onDelete(async (object) => { ... })
+   * exports.myFunction = functions.handler.storage.object.onDelete((object) => { ... })
    * ```
    
    * `object.onFinalize` handles the creation of Storage objects.
    *
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.storage.object.onFinalize(async (object) =>
+   * exports.myFunction = functions.handler.storage.object.onFinalize((object) =>
    * { ... })
    * ```
    
@@ -287,7 +287,7 @@ export class HandlerBuilder {
    *
    * @example
    * ```javascript
-   * exports.myFunction = functions.handler.storage.object.onMetadataUpdate(async (object) =>
+   * exports.myFunction = functions.handler.storage.object.onMetadataUpdate((object) =>
    * { ... })
    * ```
    */
