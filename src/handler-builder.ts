@@ -35,16 +35,37 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
+/**
+ * The `HandlerBuilder` class facilitates the writing of functions by developers
+ * building Firebase Extensions as well as developers who want to use the gcloud CLI or
+ * Google Cloud Console to deploy their functions.
+ *
+ * **Do not use `HandlerBuilder` when writing normal functions for deployment via
+ * the Firebase CLI.** For normal purposes, use
+ * [`FunctionBuilder`](/docs/reference/functions/function_builder_.functionbuilder).
+ */
 export class HandlerBuilder {
   constructor() {}
 
+  /**
+   * Create a handler for HTTPS events.
+  
+   * `onRequest` handles an HTTPS request and has the same signature as an Express app.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.https.onRequest((req, res) => { ... })
+   * ```
+   * 
+   * `onCall` declares a callable function for clients to call using a Firebase SDK.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.https.onCall((data, context) => { ... })
+   * ```
+   */
   get https() {
     return {
-      /**
-       * Handle HTTP requests.
-       * @param handler A function that takes a request and response object,
-       * same signature as an Express app.
-       */
       onRequest: (
         handler: (req: express.Request, resp: express.Response) => void
       ): HttpsFunction => {
@@ -52,10 +73,6 @@ export class HandlerBuilder {
         func.__trigger = {};
         return func;
       },
-      /**
-       * Declares a callable method for clients to call using a Firebase SDK.
-       * @param handler A method that takes a data and context and returns a value.
-       */
       onCall: (
         handler: (
           data: any,
@@ -69,12 +86,40 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Firebase Realtime Database events.
+   * 
+   * `ref.onCreate` handles the creation of new data.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onCreate((snap, context) => { ... })
+   * ```
+   * 
+   * `ref.onUpdate` handles updates to existing data.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onUpdate((change, context) => { ... })
+   * ```
+  
+   * `ref.onDelete` handles the deletion of existing data.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onDelete((snap, context) => { ... })
+   * ```
+
+   * `ref.onWrite` handles the creation, update, or deletion of data.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.database.ref.onWrite((change, context) => { ... })
+   * ```
+   */
   get database() {
     return {
-      /**
-       * Selects a database instance that will trigger the function.
-       * If omitted, will pick the default database for your project.
-       */
+      /** @hidden */
       get instance() {
         return {
           get ref() {
@@ -82,41 +127,47 @@ export class HandlerBuilder {
           },
         };
       },
-
-      /**
-       * Select Firebase Realtime Database Reference to listen to.
-       *
-       * This method behaves very similarly to the method of the same name in the
-       * client and Admin Firebase SDKs. Any change to the Database that affects the
-       * data at or below the provided `path` will fire an event in Cloud Functions.
-       *
-       * There are three important differences between listening to a Realtime
-       * Database event in Cloud Functions and using the Realtime Database in the
-       * client and Admin SDKs:
-       * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
-       *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
-       *    that matched a certain invocation of a Cloud Function is returned as part
-       *    of the `context.params` object. For example, `ref("messages/{messageId}")`
-       *    matches changes at `/messages/message1` or `/messages/message2`, resulting
-       *    in  `context.params.messageId` being set to `"message1"` or `"message2"`,
-       *    respectively.
-       * 2. Cloud Functions do not fire an event for data that already existed before
-       *    the Cloud Function was deployed.
-       * 3. Cloud Function events have access to more information, including information
-       *    about the user who triggered the Cloud Function.
-       */
       get ref() {
         return new database.RefBuilder(apps(), () => null, {});
       },
     };
   }
 
+  /**
+   * Create a handler for Cloud Firestore events.
+   * 
+   * `document.onCreate` handles the creation of new documents.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onCreate((snap, context) => { ... })
+   * ```
+   
+   * `document.onUpdate` handles updates to existing documents.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onUpdate((change, context) => { ... })
+   * ```
+   
+   * `document.onDelete` handles the deletion of existing documents.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onDelete((snap, context) =>
+   * { ... })
+   * ```
+   
+   * `document.onWrite` handles the creation, update, or deletion of documents.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.firestore.document.onWrite((change, context) =>
+   * { ... })
+   * ```
+   */
   get firestore() {
     return {
-      /**
-       * Listen for events on a Firestore document. A Firestore document contains a set of
-       * key-value pairs and may contain subcollections and nested objects.
-       */
       get document() {
         return new firestore.DocumentBuilder(() => null, {});
       },
@@ -131,26 +182,53 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Firebase Crashlytics events.
+  
+   * `issue.onNew` handles events where the app experiences an issue for the first time.
+
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.crashlytics.issue.onNew((issue) => { ... })
+   * ```
+
+   * `issue.onRegressed` handles events where an issue reoccurs after it
+   * is closed in Crashlytics.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.crashlytics.issue.onRegressed((issue) => { ... })
+   * ```
+   
+   * `issue.onVelocityAlert` handles events where a statistically significant number
+   * of sessions in a given build crash.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.crashlytics.issue.onVelocityAlert((issue) => { ... })
+   * ```
+
+   */
   get crashlytics() {
     return {
-      /**
-       * Handle events related to Crashlytics issues. An issue in Crashlytics is an
-       * aggregation of crashes which have a shared root cause.
-       */
       get issue() {
         return new crashlytics.IssueBuilder(() => null, {});
       },
     };
   }
 
+  /**
+   * Create a handler for Firebase Remote Config events.
+
+   * `remoteConfig.onUpdate` handles events that update a Remote Config template.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.remoteConfig.onUpdate() => { ... })
+   * ```
+   */
   get remoteConfig() {
     return {
-      /**
-       * Handle all updates (including rollbacks) that affect a Remote Config
-       * project.
-       * @param handler A function that takes the updated Remote Config template
-       * version metadata as an argument.
-       */
       onUpdate: (
         handler: (
           version: remoteConfig.TemplateVersion,
@@ -162,67 +240,127 @@ export class HandlerBuilder {
     };
   }
 
+  /**
+   * Create a handler for Google Analytics events.
+   
+   * `event.onLog` handles the logging of Analytics conversion events.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.analytics.event.onLog((event) => { ... })
+   * ```
+   */
   get analytics() {
     return {
-      /**
-       * Select analytics events to listen to for events.
-       */
       get event() {
         return new analytics.AnalyticsEventBuilder(() => null, {});
       },
     };
   }
 
+  /**
+   * Create a handler for Cloud Storage for Firebase events.
+   * 
+   * `object.onArchive` handles the archiving of Storage objects.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onArchive((object) => { ... })
+   * ```
+   
+   * `object.onDelete` handles the deletion of Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onDelete((object) => { ... })
+   * ```
+   
+   * `object.onFinalize` handles the creation of Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onFinalize((object) =>
+   * { ... })
+   * ```
+   
+   * `object.onMetadataUpdate` handles changes to the metadata of existing Storage objects.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.storage.object.onMetadataUpdate((object) =>
+   * { ... })
+   * ```
+   */
   get storage() {
     return {
-      /**
-       * The optional bucket function allows you to choose which buckets' events to handle.
-       * This step can be bypassed by calling object() directly, which will use the default
-       * Cloud Storage for Firebase bucket.
-       */
       get bucket() {
         return new storage.BucketBuilder(() => null, {}).object();
       },
 
-      /**
-       * Handle events related to Cloud Storage objects.
-       */
       get object() {
         return new storage.ObjectBuilder(() => null, {});
       },
     };
   }
 
+  /**
+   * Create a handler for Cloud Pub/Sub events.
+
+   * `pubsub.onPublish` handles the publication of messages to a topic.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.pubsub.topic.onPublish((message) => { ... })
+   * ```
+   */
   get pubsub() {
     return {
-      /**
-       * Select Cloud Pub/Sub topic to listen to.
-       */
       get topic() {
         return new pubsub.TopicBuilder(() => null, {});
       },
-      /**
-       * Handle periodic events triggered by Cloud Scheduler.
-       */
       get schedule() {
         return new pubsub.ScheduleBuilder(() => null, {});
       },
     };
   }
 
+  /**
+   * Create a handler for Firebase Authentication events.
+   * 
+   * `user.onCreate` handles the creation of users.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.auth.user.onCreate((user) => { ... })
+   * ```
+   
+   * `user.onDelete` handles the deletion of users.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.auth.user.onDelete((user => { ... })
+   * ```
+   
+   */
   get auth() {
     return {
-      /**
-       * Handle events related to Firebase authentication users.
-       */
       get user() {
         return new auth.UserBuilder(() => null, {});
       },
     };
   }
 
+  /**
+   * Create a handler for Firebase Test Lab events.
+
+   * `testMatrix.onComplete` handles the completion of a test matrix.
+ 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.testLab.testMatrix.onComplete((testMatrix) => { ... })
+   * ```
+   */
   get testLab() {
-    /** Handle events related to Test Lab test matrices. */
     return {
       get testMatrix() {
         return new testLab.TestMatrixBuilder(() => null, {});
