@@ -33,6 +33,7 @@ describe('Auth Functions', () => {
       metadata: {
         creationTime: '2016-12-15T19:37:37.059Z',
         lastSignInTime: '2017-01-01T00:00:00.000Z',
+        lastRefreshTime: '2019-05-07T00:00:00.000Z',
       },
     },
     context: {
@@ -107,7 +108,7 @@ describe('Auth Functions', () => {
         cloudFunctionDelete = auth
           .user()
           .onDelete(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
+            (data: firebase.auth.UserRecord, context: EventContext) => data,
           );
       });
 
@@ -115,12 +116,15 @@ describe('Auth Functions', () => {
         return cloudFunctionDelete(event.data, event.context).then(
           (data: any) => {
             expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
+              '2016-12-15T19:37:37.059Z',
             );
             expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
+              '2017-01-01T00:00:00.000Z',
             );
-          }
+            expect(data.metadata.lastRefreshTime).to.equal(
+              '2019-05-07T00:00:00.000Z',
+            );
+          },
         );
       });
     });
@@ -145,6 +149,7 @@ describe('Auth Functions', () => {
         metadata: {
           creationTime: null,
           lastSignInTime: null,
+          lastRefreshTime: null,
         },
       });
     });
@@ -166,6 +171,7 @@ describe('Auth Functions', () => {
         metadata: {
           creationTime: '2017-02-02T23:06:26.124Z',
           lastSignInTime: '2017-02-02T23:01:19.797Z',
+          lastRefreshTime: '2019-05-07T00:00:00.000Z',
         },
       };
       const record = auth.userRecordConstructor(raw);
@@ -178,12 +184,14 @@ describe('Auth Functions', () => {
         metadata: {
           createdAt: '2017-02-02T23:06:26.124Z',
           lastSignedInAt: '2017-02-02T23:01:19.797Z',
+          lastRefreshTime: '2019-05-07T00:00:00.000Z',
         },
       };
       const record = auth.userRecordConstructor(raw);
       expect(record.metadata).to.deep.equal({
         creationTime: '2017-02-02T23:06:26.124Z',
         lastSignInTime: '2017-02-02T23:01:19.797Z',
+        lastRefreshTime: '2019-05-07T00:00:00.000Z',
       });
     });
   });
@@ -198,7 +206,7 @@ describe('Auth Functions', () => {
 
     describe('#onDelete', () => {
       const cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord> = functions.handler.auth.user.onDelete(
-        (data: firebase.auth.UserRecord) => data
+        (data: firebase.auth.UserRecord) => data,
       );
 
       it('should return an empty trigger', () => {
@@ -213,12 +221,15 @@ describe('Auth Functions', () => {
         return cloudFunctionDelete(event.data, event.context).then(
           (data: any) => {
             expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
+              '2016-12-15T19:37:37.059Z',
             );
             expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
+              '2017-01-01T00:00:00.000Z',
             );
-          }
+            expect(data.metadata.lastRefreshTime).to.equal(
+              '2019-05-07T00:00:00.000Z',
+            );
+          },
         );
       });
     });

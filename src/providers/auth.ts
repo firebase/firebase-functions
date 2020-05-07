@@ -53,13 +53,14 @@ export function _userWithOptions(options: DeploymentOptions) {
 }
 
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
-  constructor(public creationTime: string, public lastSignInTime: string) {}
+  constructor(public creationTime: string, public lastSignInTime: string, public lastRefreshTime: string) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
   toJSON() {
     return {
       creationTime: this.creationTime,
       lastSignInTime: this.lastSignInTime,
+      lastRefreshTime: this.lastRefreshTime
     };
   }
 }
@@ -147,11 +148,12 @@ export function userRecordConstructor(
       'metadata',
       new UserRecordMetadata(
         meta.createdAt || meta.creationTime,
-        meta.lastSignedInAt || meta.lastSignInTime
+        meta.lastSignedInAt || meta.lastSignInTime,
+        meta.lastRefreshTime
       )
     );
   } else {
-    _.set(record, 'metadata', new UserRecordMetadata(null, null));
+    _.set(record, 'metadata', new UserRecordMetadata(null, null, null));
   }
   _.forEach(record.providerData, (entry) => {
     _.set(entry, 'toJSON', () => {
