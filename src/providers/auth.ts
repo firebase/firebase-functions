@@ -53,14 +53,18 @@ export function _userWithOptions(options: DeploymentOptions) {
 }
 
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
-  constructor(public creationTime: string, public lastSignInTime: string, public lastRefreshTime: string) {}
+  constructor(
+    public creationTime: string,
+    public lastSignInTime: string,
+    public lastRefreshTime: string
+  ) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
   toJSON() {
     return {
       creationTime: this.creationTime,
       lastSignInTime: this.lastSignInTime,
-      lastRefreshTime: this.lastRefreshTime
+      lastRefreshTime: this.lastRefreshTime,
     };
   }
 }
