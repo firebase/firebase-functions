@@ -215,9 +215,7 @@ export class RefBuilder {
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
-      const [dbInstance, path] = resourceToInstanceAndPath(
-        raw.context.resource.name
-      );
+      const [dbInstance, path] = extractInstanceAndPath(raw);
       return new DataSnapshot(
         raw.data.delta,
         path,
@@ -243,9 +241,7 @@ export class RefBuilder {
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
-      const [dbInstance, path] = resourceToInstanceAndPath(
-        raw.context.resource.name
-      );
+      const [dbInstance, path] = extractInstanceAndPath(raw);
       return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
     };
     return this.onOperation(handler, 'ref.delete', dataConstructor);
@@ -271,9 +267,7 @@ export class RefBuilder {
   }
 
   private changeConstructor = (raw: Event): Change<DataSnapshot> => {
-    const [dbInstance, path] = resourceToInstanceAndPath(
-      raw.context.resource.name
-    );
+    const [dbInstance, path] = extractInstanceAndPath(raw);
     const before = new DataSnapshot(
       raw.data.data,
       path,
@@ -295,7 +289,8 @@ export class RefBuilder {
 
 /* Utility function to extract database reference from resource string */
 /** @hidden */
-export function resourceToInstanceAndPath(resource: string) {
+export function extractInstanceAndPath(raw: Event) {
+  const resource = raw.context.resource.name
   const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
@@ -310,7 +305,11 @@ export function resourceToInstanceAndPath(resource: string) {
       `Expect project to be '_' in a Firebase Realtime Database event`
     );
   }
-  const dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
+  let domain = "firebaseio.com";
+  if (raw.context.domain) {
+    domain = raw.context.domain;
+  }
+  const dbInstance = 'https://' + dbInstanceName + '.' + domain;
   return [dbInstance, path];
 }
 
