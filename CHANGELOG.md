@@ -1,0 +1,1 @@
+- Adds support for multi-region RTDB.
