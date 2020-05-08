@@ -309,7 +309,7 @@ export function extractInstanceAndPath(raw: Event) {
   if (raw.context.domain) {
     // See go/rtdb-multi-region-function-sdk.
     // Multi-region RTDB are served from different domains.
-    // Since region information is not part of resource name, it is provided through context.
+    // Since region is not part of the resource name, it is provided through context.
     domain = raw.context.domain;
   }
   const dbInstance = 'https://' + dbInstanceName + '.' + domain;
