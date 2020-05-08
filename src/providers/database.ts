@@ -39,8 +39,8 @@ import { applyChange } from '../utils';
 export const provider = 'google.firebase.database';
 /** @hidden */
 function service(): string {
- if (process.env.REALTIME_DATABASE_EVEENTFLOW_SERVICE) {
-   return process.env.REALTIME_DATABASE_EVEENTFLOW_SERVICE;
+ if (process.env.REALTIME_DATABASE_PROVIDER_SERVICE) {
+   return process.env.REALTIME_DATABASE_PROVIDER_SERVICE;
  }
  return 'firebaseio.com';
 }
