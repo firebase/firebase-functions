@@ -425,7 +425,7 @@ describe('Database Functions', () => {
   });
 
   describe('extractInstanceAndPath', () => {
-    it('should return the correct instance and path strings', () => {
+    it('should return the correct instance with default domain and path strings', () => {
       const [instance, path] = database.extractInstanceAndPath(
         {
           context: {
@@ -436,6 +436,36 @@ describe('Database Functions', () => {
         }
       );
       expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/bar');
+    });
+
+    it('should return the correct staging instance and path strings', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        {
+          context: {
+            resource: {
+              name: 'projects/_/instances/foo/refs/bar'
+            },
+            domain: 'firebaseio.com'
+          },
+        }
+      );
+      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/bar');
+    });
+
+    it('should return the correct multi-region instance and path strings', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        {
+          context: {
+            resource: {
+              name: 'projects/_/instances/foo/refs/bar'
+            },
+            domain: 'euw1.firebasedatabase.app'
+          }
+        }
+      );
+      expect(instance).to.equal('https://foo.euw1.firebasedatabase.app');
       expect(path).to.equal('/bar');
     });
 
@@ -486,7 +516,8 @@ describe('Database Functions', () => {
           context: {
             resource: {
               name: 'projects/_/instances/other-subdomain/refs/foo'
-            }
+            },
+            domain: 'firebaseio-staging.com'
           }
         }
       );
@@ -497,7 +528,7 @@ describe('Database Functions', () => {
       it('should return a ref for correct instance, not the default instance', () => {
         populate({});
         expect(subject.ref.toJSON()).to.equal(
-          'https://other-subdomain.firebaseio.com/foo'
+          'https://other-subdomain.firebaseio-staging.com/foo'
         );
       });
     });
