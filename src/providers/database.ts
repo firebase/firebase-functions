@@ -481,7 +481,7 @@ export class DataSnapshot {
    * @return `true` if enumeration was canceled due to your callback
    *   returning `true`.
    */
-  forEach(action: (a: DataSnapshot) => boolean): boolean {
+  forEach(action: (a: DataSnapshot) => boolean | void): boolean {
     const val = this.val();
     if (_.isPlainObject(val)) {
       return _.some(
