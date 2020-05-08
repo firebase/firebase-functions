@@ -307,6 +307,9 @@ export function extractInstanceAndPath(raw: Event) {
   }
   let domain = "firebaseio.com";
   if (raw.context.domain) {
+    // See go/rtdb-multi-region-function-sdk.
+    // Multi-region RTDB are served from different domains.
+    // Since region information is not part of resource name, it is provided through context.
     domain = raw.context.domain;
   }
   const dbInstance = 'https://' + dbInstanceName + '.' + domain;
