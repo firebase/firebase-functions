@@ -424,10 +424,16 @@ describe('Database Functions', () => {
     });
   });
 
-  describe('resourceToInstanceAndPath', () => {
+  describe('extractInstanceAndPath', () => {
     it('should return the correct instance and path strings', () => {
-      const [instance, path] = database.resourceToInstanceAndPath(
-        'projects/_/instances/foo/refs/bar'
+      const [instance, path] = database.extractInstanceAndPath(
+        {
+          context: {
+            resource: {
+              name: 'projects/_/instances/foo/refs/bar'
+            }
+          }
+        }
       );
       expect(instance).to.equal('https://foo.firebaseio.com');
       expect(path).to.equal('/bar');
@@ -435,18 +441,36 @@ describe('Database Functions', () => {
 
     it('should throw an error if the given instance name contains anything except alphanumerics and dashes', () => {
       expect(() => {
-        return database.resourceToInstanceAndPath(
-          'projects/_/instances/a.bad.name/refs/bar'
+        return database.extractInstanceAndPath(
+          {
+            context: {
+              resource: {
+                name: 'projects/_/instances/a.bad.name/refs/bar' 
+              }
+            }
+          }
         );
       }).to.throw(Error);
       expect(() => {
-        return database.resourceToInstanceAndPath(
-          'projects/_/instances/a_different_bad_name/refs/bar'
+        return database.extractInstanceAndPath(
+          {
+            context: {
+              resource: {
+                name: 'projects/_/instances/a_different_bad_name/refs/bar'
+              }
+            }
+          }
         );
       }).to.throw(Error);
       expect(() => {
-        return database.resourceToInstanceAndPath(
-          'projects/_/instances/BAD!!!!/refs/bar'
+        return database.extractInstanceAndPath(
+          {
+            context: {
+              resource: {
+                name: 'projects/_/instances/BAD!!!!/refs/bar'
+              }
+            }
+          }
         );
       }).to.throw(Error);
     });
@@ -457,8 +481,14 @@ describe('Database Functions', () => {
     const apps = new appsNamespace.Apps();
 
     const populate = (data: any) => {
-      const [instance, path] = database.resourceToInstanceAndPath(
-        'projects/_/instances/other-subdomain/refs/foo'
+      const [instance, path] = database.extractInstanceAndPath(
+        {
+          context: {
+            resource: {
+              name: 'projects/_/instances/other-subdomain/refs/foo'
+            }
+          }
+        }
       );
       subject = new database.DataSnapshot(data, path, apps.admin, instance);
     };
@@ -648,8 +678,14 @@ describe('Database Functions', () => {
       });
 
       it('should return null for the root', () => {
-        const [instance, path] = database.resourceToInstanceAndPath(
-          'projects/_/instances/foo/refs/'
+        const [instance, path] = database.extractInstanceAndPath(
+          {
+            context: {
+              resource: {
+                name: 'projects/_/instances/foo/refs/'
+              }
+            }
+          }
         );
         const snapshot = new database.DataSnapshot(
           null,

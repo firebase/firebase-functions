@@ -289,7 +289,7 @@ export class RefBuilder {
 
 /* Utility function to extract database reference from resource string */
 /** @hidden */
-export function extractInstanceAndPath(event: Event) {
+export function extractInstanceAndPath(event: any) {
   const resource = event.context.resource.name
   const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));
