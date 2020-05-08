@@ -289,8 +289,8 @@ export class RefBuilder {
 
 /* Utility function to extract database reference from resource string */
 /** @hidden */
-export function extractInstanceAndPath(raw: Event) {
-  const resource = raw.context.resource.name
+export function extractInstanceAndPath(event: Event) {
+  const resource = event.context.resource.name
   const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
@@ -306,11 +306,11 @@ export function extractInstanceAndPath(raw: Event) {
     );
   }
   let domain = "firebaseio.com";
-  if (raw.context.domain) {
+  if (_.has(event, 'context.domain')) {
     // See go/rtdb-multi-region-function-sdk.
     // Multi-region RTDB are served from different domains.
     // Since region is not part of the resource name, it is provided through context.
-    domain = raw.context.domain;
+    domain = _.get(event, 'context.domain');
   }
   const dbInstance = 'https://' + dbInstanceName + '.' + domain;
   return [dbInstance, path];
