@@ -426,82 +426,70 @@ describe('Database Functions', () => {
 
   describe('extractInstanceAndPath', () => {
     it('should return the correct us-central prod instance and path strings', () => {
-      const [instance, path] = database.extractInstanceAndPath(
-        {
-          context: {
-            resource: {
-              name: 'projects/_/instances/foo/refs/bar'
-            }
-          }
-        }
-      );
+      const [instance, path] = database.extractInstanceAndPath({
+        context: {
+          resource: {
+            name: 'projects/_/instances/foo/refs/bar',
+          },
+        },
+      });
       expect(instance).to.equal('https://foo.firebaseio.com');
       expect(path).to.equal('/bar');
     });
 
     it('should return the correct staging instance and path strings', () => {
-      const [instance, path] = database.extractInstanceAndPath(
-        {
-          context: {
-            resource: {
-              name: 'projects/_/instances/foo/refs/bar'
-            },
-            domain: 'firebaseio-staging.com'
+      const [instance, path] = database.extractInstanceAndPath({
+        context: {
+          resource: {
+            name: 'projects/_/instances/foo/refs/bar',
           },
-        }
-      );
+          domain: 'firebaseio-staging.com',
+        },
+      });
       expect(instance).to.equal('https://foo.firebaseio-staging.com');
       expect(path).to.equal('/bar');
     });
 
     it('should return the correct multi-region instance and path strings', () => {
-      const [instance, path] = database.extractInstanceAndPath(
-        {
-          context: {
-            resource: {
-              name: 'projects/_/instances/foo/refs/bar'
-            },
-            domain: 'euw1.firebasedatabase.app'
-          }
-        }
-      );
+      const [instance, path] = database.extractInstanceAndPath({
+        context: {
+          resource: {
+            name: 'projects/_/instances/foo/refs/bar',
+          },
+          domain: 'euw1.firebasedatabase.app',
+        },
+      });
       expect(instance).to.equal('https://foo.euw1.firebasedatabase.app');
       expect(path).to.equal('/bar');
     });
 
     it('should throw an error if the given instance name contains anything except alphanumerics and dashes', () => {
       expect(() => {
-        return database.extractInstanceAndPath(
-          {
-            context: {
-              resource: {
-                name: 'projects/_/instances/a.bad.name/refs/bar' 
-              }
-            }
-          }
-        );
+        return database.extractInstanceAndPath({
+          context: {
+            resource: {
+              name: 'projects/_/instances/a.bad.name/refs/bar',
+            },
+          },
+        });
       }).to.throw(Error);
       expect(() => {
-        return database.extractInstanceAndPath(
-          {
-            context: {
-              resource: {
-                name: 'projects/_/instances/a_different_bad_name/refs/bar'
-              }
-            }
-          }
-        );
+        return database.extractInstanceAndPath({
+          context: {
+            resource: {
+              name: 'projects/_/instances/a_different_bad_name/refs/bar',
+            },
+          },
+        });
       }).to.throw(Error);
       expect(() => {
-        return database.extractInstanceAndPath(
-          {
-            context: {
-              resource: {
-                name: 'projects/_/instances/BAD!!!!/refs/bar'
-              }
-            }
-          }
-        );
+        return database.extractInstanceAndPath({
+          context: {
+            resource: {
+              name: 'projects/_/instances/BAD!!!!/refs/bar',
+            },
+          },
+        });
       }).to.throw(Error);
     });
   });
@@ -511,16 +499,14 @@ describe('Database Functions', () => {
     const apps = new appsNamespace.Apps();
 
     const populate = (data: any) => {
-      const [instance, path] = database.extractInstanceAndPath(
-        {
-          context: {
-            resource: {
-              name: 'projects/_/instances/other-subdomain/refs/foo'
-            },
-            domain: 'firebaseio-staging.com'
-          }
-        }
-      );
+      const [instance, path] = database.extractInstanceAndPath({
+        context: {
+          resource: {
+            name: 'projects/_/instances/other-subdomain/refs/foo',
+          },
+          domain: 'firebaseio-staging.com',
+        },
+      });
       subject = new database.DataSnapshot(data, path, apps.admin, instance);
     };
 
@@ -709,15 +695,13 @@ describe('Database Functions', () => {
       });
 
       it('should return null for the root', () => {
-        const [instance, path] = database.extractInstanceAndPath(
-          {
-            context: {
-              resource: {
-                name: 'projects/_/instances/foo/refs/'
-              }
-            }
-          }
-        );
+        const [instance, path] = database.extractInstanceAndPath({
+          context: {
+            resource: {
+              name: 'projects/_/instances/foo/refs/',
+            },
+          },
+        });
         const snapshot = new database.DataSnapshot(
           null,
           path,

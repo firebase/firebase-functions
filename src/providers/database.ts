@@ -293,7 +293,7 @@ export class RefBuilder {
  */
 /** @hidden */
 export function extractInstanceAndPath(rawEvent: any) {
-  const resource = rawEvent.context.resource.name
+  const resource = rawEvent.context.resource.name;
   const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
@@ -308,7 +308,7 @@ export function extractInstanceAndPath(rawEvent: any) {
       `Expect project to be '_' in a Firebase Realtime Database event`
     );
   }
-  let domain = "firebaseio.com";
+  let domain = 'firebaseio.com';
   if (_.has(rawEvent, 'context.domain')) {
     // See go/rtdb-multi-region-function-sdk.
     // Multi-region RTDB are served from different domains.
