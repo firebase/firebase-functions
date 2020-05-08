@@ -39,10 +39,10 @@ import { applyChange } from '../utils';
 export const provider = 'google.firebase.database';
 /** @hidden */
 function service(): string {
- if (process.env.REALTIME_DATABASE_PROVIDER_SERVICE) {
-   return process.env.REALTIME_DATABASE_PROVIDER_SERVICE;
- }
- return 'firebaseio.com';
+  if (process.env.REALTIME_DATABASE_PROVIDER_SERVICE) {
+    return process.env.REALTIME_DATABASE_PROVIDER_SERVICE;
+  }
+  return 'firebaseio.com';
 }
 
 // NOTE(inlined): Should we relax this a bit to allow staging or alternate implementations of our API?
