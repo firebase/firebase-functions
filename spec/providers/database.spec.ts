@@ -446,11 +446,11 @@ describe('Database Functions', () => {
             resource: {
               name: 'projects/_/instances/foo/refs/bar'
             },
-            domain: 'firebaseio.com'
+            domain: 'firebaseio-staging.com'
           },
         }
       );
-      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(instance).to.equal('https://foo.firebaseio-staging.com');
       expect(path).to.equal('/bar');
     });
 
