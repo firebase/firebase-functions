@@ -425,7 +425,7 @@ describe('Database Functions', () => {
   });
 
   describe('extractInstanceAndPath', () => {
-    it('should return the correct instance with default domain and path strings', () => {
+    it('should return the correct us-central prod instance and path strings', () => {
       const [instance, path] = database.extractInstanceAndPath(
         {
           context: {
