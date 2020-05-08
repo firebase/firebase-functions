@@ -38,7 +38,12 @@ import { applyChange } from '../utils';
 /** @hidden */
 export const provider = 'google.firebase.database';
 /** @hidden */
-export const service = 'firebaseio.com';
+function service(): string {
+ if (process.env.REALTIME_DATABASE_EVEENTFLOW_SERVICE) {
+   return process.env.REALTIME_DATABASE_EVEENTFLOW_SERVICE;
+ }
+ return 'firebaseio.com';
+}
 
 // NOTE(inlined): Should we relax this a bit to allow staging or alternate implementations of our API?
 const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
@@ -259,7 +264,7 @@ export class RefBuilder {
     return makeCloudFunction({
       handler,
       provider,
-      service,
+      service: service(),
       eventType,
       legacyEventType: `providers/${provider}/eventTypes/${eventType}`,
       triggerResource: this.triggerResource,
