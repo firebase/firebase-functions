@@ -1,1 +1,1 @@
-- Pin `@types/express` version to 4.17.6 to fix type definition issue (#685)
+- Pin `@types/express` version to 4.17.3 to fix type definition issue (#685)
