@@ -1,3 +1,4 @@
+/** @hidden */
 /**
  * Removes leading and trailing slashes from a path.
  *
