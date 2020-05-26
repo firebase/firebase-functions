@@ -147,6 +147,7 @@ export type CanonicalErrorCodeName =
   | 'UNAVAILABLE'
   | 'DATA_LOSS';
 
+/** @hidden */
 interface HttpErrorCode {
   canonicalName: CanonicalErrorCodeName;
   status: number;
@@ -271,6 +272,7 @@ interface HttpRequest extends Request {
   };
 }
 
+/** @hidden */
 // The format for the http body response to a callable function.
 interface HttpResponseBody {
   result?: any;
