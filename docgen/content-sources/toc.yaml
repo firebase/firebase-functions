@@ -90,6 +90,8 @@ toc:
     section:
       - title: 'HttpsError'
         path: /docs/reference/functions/providers_https_.httpserror.html
+      - title: 'CallableContext'
+        path: /docs/reference/functions/providers_https_.callablecontext.html
 
   - title: 'functions.pubsub'
     path: /docs/reference/functions/providers_pubsub_.html

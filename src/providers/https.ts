@@ -28,6 +28,7 @@ import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
+/** @hidden */
 export interface Request extends express.Request {
   rawBody: Buffer;
 }
@@ -127,6 +128,7 @@ export type FunctionsErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 
+/** @hidden */
 export type CanonicalErrorCodeName =
   | 'OK'
   | 'CANCELLED'
@@ -146,6 +148,7 @@ export type CanonicalErrorCodeName =
   | 'UNAVAILABLE'
   | 'DATA_LOSS';
 
+/** @hidden */
 interface HttpErrorCode {
   canonicalName: CanonicalErrorCodeName;
   status: number;
@@ -180,6 +183,7 @@ const errorCodeMap: { [name in FunctionsErrorCode]: HttpErrorCode } = {
   'data-loss': { canonicalName: 'DATA_LOSS', status: 500 },
 };
 
+/** @hidden */
 interface HttpErrorWireFormat {
   details?: unknown;
   message: string;
@@ -261,19 +265,22 @@ export interface CallableContext {
   rawRequest: Request;
 }
 
-// The allowed interface for an http request for a callable function.
+// The allowed interface for an HTTP request to a Callable function.
+/** @hidden*/
 interface HttpRequest extends Request {
   body: {
     data: any;
   };
 }
 
-// The format for the http body response to a callable function.
+/** @hidden */
+// The format for an HTTP body response from a Callable function.
 interface HttpResponseBody {
   result?: any;
   error?: HttpsError;
 }
 
+/** @hidden */
 // Returns true if req is a properly formatted callable request.
 function isValidRequest(req: Request): req is HttpRequest {
   // The body must not be empty.
@@ -317,7 +324,9 @@ function isValidRequest(req: Request): req is HttpRequest {
   return true;
 }
 
+/** @hidden */
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
+/** @hidden */
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
 /**
@@ -400,6 +409,7 @@ export function decode(data: any): any {
   return data;
 }
 
+/** @hidden */
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
 /** @hidden */
