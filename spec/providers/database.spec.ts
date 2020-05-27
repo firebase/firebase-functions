@@ -32,7 +32,7 @@ describe('Database Functions', () => {
 
     before(() => {
       process.env.FIREBASE_CONFIG = JSON.stringify({
-        databaseURL: 'https://subdomain.firebaseio.com',
+        databaseURL: 'https://subdomain.apse.firebasedatabase.app',
       });
       appsNamespace.init();
     });
@@ -424,29 +424,51 @@ describe('Database Functions', () => {
     });
   });
 
-  describe('resourceToInstanceAndPath', () => {
-    it('should return the correct instance and path strings', () => {
-      const [instance, path] = database.resourceToInstanceAndPath(
-        'projects/_/instances/foo/refs/bar'
+  describe('extractInstanceAndPath', () => {
+    it('should return correct us-central prod instance and path strings if domain is missing', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/bar',
+        undefined
       );
       expect(instance).to.equal('https://foo.firebaseio.com');
       expect(path).to.equal('/bar');
     });
 
+    it('should return the correct staging instance and path strings if domain is present', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/bar',
+        'firebaseio-staging.com'
+      );
+      expect(instance).to.equal('https://foo.firebaseio-staging.com');
+      expect(path).to.equal('/bar');
+    });
+
+    it('should return the correct multi-region instance and path strings if domain is present', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/bar',
+        'euw1.firebasedatabase.app'
+      );
+      expect(instance).to.equal('https://foo.euw1.firebasedatabase.app');
+      expect(path).to.equal('/bar');
+    });
+
     it('should throw an error if the given instance name contains anything except alphanumerics and dashes', () => {
       expect(() => {
-        return database.resourceToInstanceAndPath(
-          'projects/_/instances/a.bad.name/refs/bar'
+        return database.extractInstanceAndPath(
+          'projects/_/instances/a.bad.name/refs/bar',
+          undefined
         );
       }).to.throw(Error);
       expect(() => {
-        return database.resourceToInstanceAndPath(
-          'projects/_/instances/a_different_bad_name/refs/bar'
+        return database.extractInstanceAndPath(
+          'projects/_/instances/a_different_bad_name/refs/bar',
+          undefined
         );
       }).to.throw(Error);
       expect(() => {
-        return database.resourceToInstanceAndPath(
-          'projects/_/instances/BAD!!!!/refs/bar'
+        return database.extractInstanceAndPath(
+          'projects/_/instances/BAD!!!!/refs/bar',
+          undefined
         );
       }).to.throw(Error);
     });
@@ -457,8 +479,9 @@ describe('Database Functions', () => {
     const apps = new appsNamespace.Apps();
 
     const populate = (data: any) => {
-      const [instance, path] = database.resourceToInstanceAndPath(
-        'projects/_/instances/other-subdomain/refs/foo'
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/other-subdomain/refs/foo',
+        'firebaseio-staging.com'
       );
       subject = new database.DataSnapshot(data, path, apps.admin, instance);
     };
@@ -467,7 +490,7 @@ describe('Database Functions', () => {
       it('should return a ref for correct instance, not the default instance', () => {
         populate({});
         expect(subject.ref.toJSON()).to.equal(
-          'https://other-subdomain.firebaseio.com/foo'
+          'https://other-subdomain.firebaseio-staging.com/foo'
         );
       });
     });
@@ -648,8 +671,9 @@ describe('Database Functions', () => {
       });
 
       it('should return null for the root', () => {
-        const [instance, path] = database.resourceToInstanceAndPath(
-          'projects/_/instances/foo/refs/'
+        const [instance, path] = database.extractInstanceAndPath(
+          'projects/_/instances/foo/refs/',
+          undefined
         );
         const snapshot = new database.DataSnapshot(
           null,
