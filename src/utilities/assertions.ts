@@ -1,5 +1,4 @@
-/** @hidden */
-/**
+/** @hidden
  * @file Provides common assertion helpers which can be used to improve
  * strictness of both type checking and runtime.
  */

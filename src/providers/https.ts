@@ -128,6 +128,7 @@ export type FunctionsErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 
+/** @hidden */
 export type CanonicalErrorCodeName =
   | 'OK'
   | 'CANCELLED'
@@ -264,7 +265,7 @@ export interface CallableContext {
   rawRequest: Request;
 }
 
-// The allowed interface for an http request for a callable function.
+// The allowed interface for an HTTP request to a Callable function.
 /** @hidden*/
 interface HttpRequest extends Request {
   body: {

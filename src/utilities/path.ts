@@ -1,5 +1,4 @@
-/** @hidden */
-/**
+/** @hidden
  * Removes leading and trailing slashes from a path.
  *
  * @param path A path to normalize, in POSIX format.
