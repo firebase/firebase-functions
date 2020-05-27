@@ -90,6 +90,8 @@ toc:
     section:
       - title: 'HttpsError'
         path: /docs/reference/functions/providers_https_.httpserror.html
+      - title: 'CallableContext'
+        path: /docs/reference/functions/providers_https_.callablecontext.html
 
   - title: 'functions.pubsub'
     path: /docs/reference/functions/providers_pubsub_.html
@@ -117,6 +119,11 @@ toc:
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage_.objectmetadata.html
 
+  - title: 'functions.handler'
+    path: /docs/reference/functions/handler_builder_.html
+    section:
+      - title: 'HandlerBuilder'
+        path: /docs/reference/functions/handler_builder_.handlerbuilder.html
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab_.html
     section:
