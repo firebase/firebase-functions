@@ -274,7 +274,7 @@ interface HttpRequest extends Request {
 }
 
 /** @hidden */
-// The format for the http body response to a callable function.
+// The format for an HTTP body response from a Callable function.
 interface HttpResponseBody {
   result?: any;
   error?: HttpsError;
