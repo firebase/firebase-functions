@@ -1,3 +1,0 @@
-- Pin `@types/express` version to 4.17.3 to fix type definition issue (Issue #685).
-- Firestore onCreate, onUpdate, and onDelete now receive a `QueryDocumentSnapshot` instead of `DocumentSnapshot`, which guarantees that data is not undefined (Issue #659).
-- Modify return type of `DataSnapshot.forEach` to `boolean | void` match `firebase-admin` SDK.
