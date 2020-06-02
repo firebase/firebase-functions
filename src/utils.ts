@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/** @hidden */
 import * as _ from 'lodash';
 
 export function applyChange(src: any, dest: any) {
