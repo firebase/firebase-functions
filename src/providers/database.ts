@@ -40,8 +40,7 @@ export const provider = 'google.firebase.database';
 /** @hidden */
 export const service = 'firebaseio.com';
 
-// NOTE(inlined): Should we relax this a bit to allow staging or alternate implementations of our API?
-const databaseURLRegex = new RegExp('https://([^.]+).firebaseio.com');
+const databaseURLRegex = new RegExp('^https://([^.]+).');
 
 /**
  * Registers a function that triggers on events from a specific
@@ -215,8 +214,9 @@ export class RefBuilder {
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
-      const [dbInstance, path] = resourceToInstanceAndPath(
-        raw.context.resource.name
+      const [dbInstance, path] = extractInstanceAndPath(
+        raw.context.resource.name,
+        raw.context.domain
       );
       return new DataSnapshot(
         raw.data.delta,
@@ -243,8 +243,9 @@ export class RefBuilder {
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
-      const [dbInstance, path] = resourceToInstanceAndPath(
-        raw.context.resource.name
+      const [dbInstance, path] = extractInstanceAndPath(
+        raw.context.resource.name,
+        raw.context.domain
       );
       return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
     };
@@ -271,8 +272,9 @@ export class RefBuilder {
   }
 
   private changeConstructor = (raw: Event): Change<DataSnapshot> => {
-    const [dbInstance, path] = resourceToInstanceAndPath(
-      raw.context.resource.name
+    const [dbInstance, path] = extractInstanceAndPath(
+      raw.context.resource.name,
+      raw.context.domain
     );
     const before = new DataSnapshot(
       raw.data.data,
@@ -293,9 +295,19 @@ export class RefBuilder {
   };
 }
 
-/* Utility function to extract database reference from resource string */
+/**
+ * Utility function to extract database reference from resource string
+ *
+ * @param optional database domain override for the original of the source database.
+ *    It defaults to `firebaseio.com`.
+ *    Multi-region RTDB will be served from different domains.
+ *    Since region is not part of the resource name, it is provided through context.
+ */
 /** @hidden */
-export function resourceToInstanceAndPath(resource: string) {
+export function extractInstanceAndPath(
+  resource: string,
+  domain = 'firebaseio.com'
+) {
   const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
@@ -310,7 +322,7 @@ export function resourceToInstanceAndPath(resource: string) {
       `Expect project to be '_' in a Firebase Realtime Database event`
     );
   }
-  const dbInstance = 'https://' + dbInstanceName + '.firebaseio.com';
+  const dbInstance = 'https://' + dbInstanceName + '.' + domain;
   return [dbInstance, path];
 }
 
