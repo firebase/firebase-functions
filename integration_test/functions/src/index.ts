@@ -115,24 +115,33 @@ export const integrationTests: any = functions
       // Invoke a callable HTTPS trigger.
       callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
       // A Remote Config update to trigger the Remote Config tests.
-      admin.credential
-        .applicationDefault()
-        .getAccessToken()
-        .then((accessToken) => {
-          const options = {
-            hostname: 'firebaseremoteconfig.googleapis.com',
-            path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-            method: 'PUT',
-            headers: {
-              Authorization: 'Bearer ' + accessToken.access_token,
-              'Content-Type': 'application/json; UTF-8',
-              'Accept-Encoding': 'gzip',
-              'If-Match': '*',
-            },
-          };
-          const request = https.request(options, (resp) => {});
-          request.write(JSON.stringify({ version: { description: testId } }));
-          request.end();
+      
+      //Bug
+      var config = admin.remoteConfig();
+      var template = config.getTemplate();
+      template.parameterGroups['version'].parameters['description'] = {testId};
+                       
+      //parameter? or parameter group?
+      //what parameter to set? description? want to set to testID. to trigger test, set testID
+                       
+      //admin.credential
+//         .applicationDefault()
+//         .getAccessToken()
+//         .then((accessToken) => {
+//           const options = {
+//             hostname: 'firebaseremoteconfig.googleapis.com',
+//             path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
+//             method: 'PUT',
+//             headers: {
+//               Authorization: 'Bearer ' + accessToken.access_token,
+//               'Content-Type': 'application/json; UTF-8',
+//               'Accept-Encoding': 'gzip',
+//               'If-Match': '*',
+//             },
+//           };
+//           const request = https.request(options, (resp) => {});
+//           request.write(JSON.stringify({ version: { description: testId } }));
+//           request.end();
         }),
       // A storage upload to trigger the Storage tests
       admin
