@@ -9,10 +9,10 @@
   });
   ```
 
-- Adds a special require that mimics Node.js 8 runtime logging in newer runtimes:
+- Adds a special require that mimics Node.js 8 runtime logging in Node.js 10 and later runtimes:
 
   ```js
   require('firebase-functions/logger/compat');
   ```
 
-  In new runtimes, requiring this will emit text logs with multi-line support and appropriate severity.
+  In newer runtimes, requiring this will emit text logs with multi-line support and appropriate severity. In the Node.js 8 runtime, the `compat` module has no effect.
