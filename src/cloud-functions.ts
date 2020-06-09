@@ -281,7 +281,7 @@ export interface Runnable<T> {
  * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
-  ((req: Request, resp: Response) => void);
+  ((req: Request, resp: Response) => void | Promise<void>);
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported
