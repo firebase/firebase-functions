@@ -9,10 +9,10 @@
   });
   ```
 
-  The logger can also override default behavior of `console.*` methods through a special require:
+- Adds a special require that mimics Node.js 8 runtime logging in newer runtimes:
 
   ```js
   require('firebase-functions/logger/compat');
   ```
 
-  In older runtimes, logger prints to the console, and no structured data is saved.
+  In new runtimes, requiring this will emit text logs with multi-line support and appropriate severity.
