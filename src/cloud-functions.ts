@@ -39,6 +39,7 @@ export interface Event {
     timestamp: string;
     eventType: string;
     resource: Resource;
+    domain?: string;
   };
   data: any;
 }

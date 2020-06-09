@@ -33,6 +33,7 @@ import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
 import * as apps from './apps';
+import * as logger from './logger';
 import { handler } from './handler-builder';
 import { setup } from './setup';
 
@@ -51,6 +52,7 @@ export {
   remoteConfig,
   storage,
   testLab,
+  logger,
 };
 
 // Exported root types:
