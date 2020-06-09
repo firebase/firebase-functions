@@ -17,4 +17,4 @@
 
   In newer runtimes, requiring this will emit text logs with multi-line support and appropriate severity. In the Node.js 8 runtime, the `compat` module has no effect.
 
-- Fixes `https.onRequest` type to allow Promises for `async` functions.
+- Fixes `https.onRequest` type signature to allow Promises for `async` functions.
