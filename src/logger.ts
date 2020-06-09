@@ -1,32 +1,10 @@
 import { format } from 'util';
 
-// safely preserve unpatched console.* methods in case of compat require
-const unpatchedConsole = {
-  debug: console.debug,
-  info: console.info,
-  log: console.log,
-  warn: console.warn,
-  error: console.error,
-};
-
-// Determine if structured logs are supported (node >= 10). If something goes wrong,
-// assume no since unstructured is safer.
-const SUPPORTS_STRUCTURED_LOGS =
-  parseInt(process.versions?.node?.split('.')?.[0] || '8', 10) >= 10;
-
-// Map LogSeverity types to their equivalent `console.*` method.
-const CONSOLE_SEVERITY: {
-  [severity: string]: 'debug' | 'info' | 'warn' | 'error';
-} = {
-  DEBUG: 'debug',
-  INFO: 'info',
-  NOTICE: 'info',
-  WARNING: 'warn',
-  ERROR: 'error',
-  CRITICAL: 'error',
-  ALERT: 'error',
-  EMERGENCY: 'error',
-};
+import {
+  SUPPORTS_STRUCTURED_LOGS,
+  CONSOLE_SEVERITY,
+  UNPATCHED_CONSOLE,
+} from './logger/common';
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity) for more.
@@ -57,7 +35,7 @@ export interface LogEntry {
  */
 export function write(entry: LogEntry) {
   if (SUPPORTS_STRUCTURED_LOGS) {
-    unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(entry));
+    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(entry));
     return;
   }
 
@@ -73,7 +51,7 @@ export function write(entry: LogEntry) {
   if (jsonKeyCount > 0) {
     message = `${message} ${JSON.stringify(jsonPayload, null, 2)}`;
   }
-  unpatchedConsole[CONSOLE_SEVERITY[entry.severity]](message);
+  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](message);
 }
 
 /**
