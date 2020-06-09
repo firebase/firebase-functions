@@ -39,7 +39,7 @@ export interface Request extends express.Request {
  * same signature as an Express app.
  */
 export function onRequest(
-  handler: (req: Request, resp: express.Response) => void
+  handler: (req: Request, resp: express.Response) => void | Promise<void>
 ): HttpsFunction {
   return _onRequestWithOptions(handler, {});
 }
@@ -56,7 +56,7 @@ export function onCall(
 
 /** @hidden */
 export function _onRequestWithOptions(
-  handler: (req: Request, resp: express.Response) => void,
+  handler: (req: Request, resp: express.Response) => void | Promise<void>,
   options: DeploymentOptions
 ): HttpsFunction {
   // lets us add __trigger without altering handler:
