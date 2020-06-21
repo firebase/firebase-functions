@@ -41,8 +41,9 @@ export const service = 'firestore.googleapis.com';
 /** @hidden */
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
-export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
-export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+export type DocumentData = firebase.firestore.DocumentData;
+export type DocumentSnapshot<T = DocumentData> = firebase.firestore.DocumentSnapshot<T>;
+export type QueryDocumentSnapshot<T = DocumentData> = firebase.firestore.QueryDocumentSnapshot<T>;
 
 /**
  * Select the Firestore document to listen to for events.
@@ -146,7 +147,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 }
 
 /** @hidden */
-export function snapshotConstructor(event: Event): DocumentSnapshot {
+export function snapshotConstructor<T>(event: Event): DocumentSnapshot<T> {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
@@ -161,7 +162,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
 
 /** @hidden */
 // TODO remove this function when wire format changes to new format
-export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
+export function beforeSnapshotConstructor<T>(event: Event): DocumentSnapshot<T> {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
@@ -193,42 +194,42 @@ export class DocumentBuilder {
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite(
+  onWrite<T>(
     handler: (
-      change: Change<DocumentSnapshot>,
+      change: Change<DocumentSnapshot<T>>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DocumentSnapshot>> {
+  ): CloudFunction<Change<DocumentSnapshot<T>>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
   }
 
   /** Respond only to document updates. */
-  onUpdate(
+  onUpdate<T>(
     handler: (
-      change: Change<QueryDocumentSnapshot>,
+      change: Change<QueryDocumentSnapshot<T>>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<QueryDocumentSnapshot>> {
+  ): CloudFunction<Change<QueryDocumentSnapshot<T>>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
   /** Respond only to document creations. */
-  onCreate(
+  onCreate<T>(
     handler: (
-      snapshot: QueryDocumentSnapshot,
+      snapshot: QueryDocumentSnapshot<T>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot<T>> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
-  onDelete(
+  onDelete<T>(
     handler: (
-      snapshot: QueryDocumentSnapshot,
+      snapshot: QueryDocumentSnapshot<T>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot<T>> {
     return this.onOperation(
       handler,
       'document.delete',
