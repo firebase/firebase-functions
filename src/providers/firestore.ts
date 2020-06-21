@@ -147,7 +147,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 }
 
 /** @hidden */
-export function snapshotConstructor<T>(event: Event): DocumentSnapshot<T> {
+export function snapshotConstructor<T = DocumentData>(event: Event): DocumentSnapshot<T> {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
@@ -162,7 +162,7 @@ export function snapshotConstructor<T>(event: Event): DocumentSnapshot<T> {
 
 /** @hidden */
 // TODO remove this function when wire format changes to new format
-export function beforeSnapshotConstructor<T>(event: Event): DocumentSnapshot<T> {
+export function beforeSnapshotConstructor<T = DocumentData>(event: Event): DocumentSnapshot<T> {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
@@ -194,7 +194,7 @@ export class DocumentBuilder {
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite<T>(
+  onWrite<T = DocumentData>(
     handler: (
       change: Change<DocumentSnapshot<T>>,
       context: EventContext
@@ -204,7 +204,7 @@ export class DocumentBuilder {
   }
 
   /** Respond only to document updates. */
-  onUpdate<T>(
+  onUpdate<T = DocumentData>(
     handler: (
       change: Change<QueryDocumentSnapshot<T>>,
       context: EventContext
@@ -214,7 +214,7 @@ export class DocumentBuilder {
   }
 
   /** Respond only to document creations. */
-  onCreate<T>(
+  onCreate<T = DocumentData>(
     handler: (
       snapshot: QueryDocumentSnapshot<T>,
       context: EventContext
@@ -224,7 +224,7 @@ export class DocumentBuilder {
   }
 
   /** Respond only to document deletions. */
-  onDelete<T>(
+  onDelete<T = DocumentData>(
     handler: (
       snapshot: QueryDocumentSnapshot<T>,
       context: EventContext
