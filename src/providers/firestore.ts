@@ -42,8 +42,12 @@ export const service = 'firestore.googleapis.com';
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
 export type DocumentData = firebase.firestore.DocumentData;
-export type DocumentSnapshot<T = DocumentData> = firebase.firestore.DocumentSnapshot<T>;
-export type QueryDocumentSnapshot<T = DocumentData> = firebase.firestore.QueryDocumentSnapshot<T>;
+export type DocumentSnapshot<
+  T = DocumentData
+> = firebase.firestore.DocumentSnapshot<T>;
+export type QueryDocumentSnapshot<
+  T = DocumentData
+> = firebase.firestore.QueryDocumentSnapshot<T>;
 
 /**
  * Select the Firestore document to listen to for events.
@@ -147,7 +151,9 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 }
 
 /** @hidden */
-export function snapshotConstructor<T = DocumentData>(event: Event): DocumentSnapshot<T> {
+export function snapshotConstructor<T = DocumentData>(
+  event: Event
+): DocumentSnapshot<T> {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
@@ -162,7 +168,9 @@ export function snapshotConstructor<T = DocumentData>(event: Event): DocumentSna
 
 /** @hidden */
 // TODO remove this function when wire format changes to new format
-export function beforeSnapshotConstructor<T = DocumentData>(event: Event): DocumentSnapshot<T> {
+export function beforeSnapshotConstructor<T = DocumentData>(
+  event: Event
+): DocumentSnapshot<T> {
   if (!firestoreInstance) {
     firestoreInstance = firebase.firestore(apps().admin);
   }
