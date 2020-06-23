@@ -7,7 +7,7 @@ import {
 } from './logger/common';
 
 /**
- * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity) for more.
+ * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).
  */
 export type LogSeverity =
   | 'DEBUG'
@@ -31,7 +31,7 @@ export interface LogEntry {
 
 /**
  * Writes a `LogEntry` to `stdout`/`stderr` (depending on severity).
- * @param entry The LogEntry including severity, message, and any additional structured metadata.
+ * @param entry The `LogEntry` including severity, message, and any additional structured metadata.
  */
 export function write(entry: LogEntry) {
   if (SUPPORTS_STRUCTURED_LOGS) {
@@ -56,7 +56,7 @@ export function write(entry: LogEntry) {
 
 /**
  * Writes a `DEBUG` severity log. If the last argument provided is a plain object,
- * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * it is added to the `jsonPayload` in the Cloud Logging entry.
  * @param args Arguments, concatenated into the log message with space separators.
  */
 export function debug(...args: any[]) {
@@ -65,7 +65,7 @@ export function debug(...args: any[]) {
 
 /**
  * Writes an `INFO` severity log. If the last argument provided is a plain object,
- * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * it is added to the `jsonPayload` in the Cloud Logging entry.
  * @param args Arguments, concatenated into the log message with space separators.
  */
 export function log(...args: any[]) {
@@ -74,7 +74,7 @@ export function log(...args: any[]) {
 
 /**
  * Writes an `INFO` severity log. If the last argument provided is a plain object,
- * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * it is added to the `jsonPayload` in the Cloud Logging entry.
  * @param args Arguments, concatenated into the log message with space separators.
  */
 export function info(...args: any[]) {
@@ -83,7 +83,7 @@ export function info(...args: any[]) {
 
 /**
  * Writes a `WARNING` severity log. If the last argument provided is a plain object,
- * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * it is added to the `jsonPayload` in the Cloud Logging entry.
  * @param args Arguments, concatenated into the log message with space separators.
  */
 export function warn(...args: any[]) {
@@ -92,13 +92,14 @@ export function warn(...args: any[]) {
 
 /**
  * Writes an `ERROR` severity log. If the last argument provided is a plain object,
- * it will be added to the `jsonPayload` in the Cloud Logging entry.
+ * it is added to the `jsonPayload` in the Cloud Logging entry.
  * @param args Arguments, concatenated into the log message with space separators.
  */
 export function error(...args: any[]) {
   write(entryFromArgs('ERROR', args));
 }
 
+/** @hidden */
 function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];

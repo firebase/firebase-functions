@@ -93,6 +93,12 @@ toc:
       - title: 'CallableContext'
         path: /docs/reference/functions/providers_https_.callablecontext.html
 
+  - title: 'functions.logger'
+    path: /docs/reference/functions/logger_.html
+    section:
+      - title: 'LogEntry'
+        path: /docs/reference/functions/logger_.logentry.html
+
   - title: 'functions.pubsub'
     path: /docs/reference/functions/providers_pubsub_.html
     section:
