@@ -20,7 +20,8 @@ export type LogSeverity =
   | 'EMERGENCY';
 
 /**
- * `LogEntry` represents a structured Cloud Logging entry. All keys aside from `severity` and `message` are
+ * `LogEntry` represents a [structured Cloud Logging](https://cloud.google.com/logging/docs/structured-logging)
+ * entry. All keys aside from `severity` and `message` are
  * included in the `jsonPayload` of the logged entry.
  */
 export interface LogEntry {
