@@ -104,7 +104,7 @@ export function error(...args: any[]) {
 function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];
-  if (typeof lastArg == 'object' && lastArg.constructor == Object) {
+  if (lastArg && typeof lastArg == 'object' && lastArg.constructor == Object) {
     entry = args.pop();
   }
   return Object.assign({}, entry, {
