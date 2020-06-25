@@ -1,0 +1,1 @@
+- Fixes error when last argument to logger methods is `null`. (#716)
