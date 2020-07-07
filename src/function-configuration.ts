@@ -13,7 +13,7 @@ export const SUPPORTED_REGIONS = [
   'asia-east2',
   'asia-northeast1',
   'northamerica-northeast1',
-  'australia-southeast1'
+  'australia-southeast1',
 ] as const;
 
 /**
