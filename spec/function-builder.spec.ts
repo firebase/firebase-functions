@@ -121,14 +121,6 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.timeout).to.deep.equal('90s');
   });
 
-  it('should fail if valid runtime options but unsupported region are set (reverse order)', () => {
-    expect(() => {
-      functions
-        .runWith({ timeoutSeconds: 90, memory: '256MB' })
-        .region('unsupported' as any);
-    }).to.throw(Error, 'region');
-  });
-
   it('should fail if supported region but invalid runtime options are set (reverse order)', () => {
     expect(() => {
       functions
@@ -163,28 +155,6 @@ describe('FunctionBuilder', () => {
         timeoutSeconds: 1000000,
       } as any);
     }).to.throw(Error, 'TimeoutSeconds');
-  });
-
-  it('should throw an error if user chooses an invalid region', () => {
-    expect(() => {
-      return functions.region('unsupported' as any);
-    }).to.throw(Error, 'region');
-
-    expect(() => {
-      return functions.region('unsupported' as any).runWith({
-        timeoutSeconds: 500,
-      } as any);
-    }).to.throw(Error, 'region');
-
-    expect(() => {
-      return functions.region('unsupported' as any, 'us-east1');
-    }).to.throw(Error, 'region');
-
-    expect(() => {
-      return functions.region('unsupported' as any, 'us-east1').runWith({
-        timeoutSeconds: 500,
-      } as any);
-    }).to.throw(Error, 'region');
   });
 
   it('should throw an error if user chooses no region when using .region()', () => {
