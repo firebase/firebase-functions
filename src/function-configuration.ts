@@ -74,6 +74,6 @@ export interface RuntimeOptions {
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
-  regions?: Array<typeof SUPPORTED_REGIONS[number]>;
+  regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
   schedule?: Schedule;
 }
