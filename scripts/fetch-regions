@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -z $1 ]; then
+  echo "Must provide a project id as first argument." && exit 1
+fi;
+
+gcloud functions regions list --project $1 --format=json | jq 'map(.locationId)'

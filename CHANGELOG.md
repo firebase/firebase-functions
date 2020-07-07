@@ -1,2 +1,3 @@
 - Fixes error when last argument to logger methods is `null`. (#716)
 - Adds newly available locations `us-west3`, `europe-west6`, `northamerica-northeast1`, and `australia-southeast1`.
+- No longer throw errors for unrecognized regions (deploy will error instead).
