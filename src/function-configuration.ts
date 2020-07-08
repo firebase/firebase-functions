@@ -5,11 +5,15 @@ export const SUPPORTED_REGIONS = [
   'us-central1',
   'us-east1',
   'us-east4',
+  'us-west3',
   'europe-west1',
   'europe-west2',
   'europe-west3',
+  'europe-west6',
   'asia-east2',
   'asia-northeast1',
+  'northamerica-northeast1',
+  'australia-southeast1',
 ] as const;
 
 /**
@@ -70,6 +74,6 @@ export interface RuntimeOptions {
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
-  regions?: Array<typeof SUPPORTED_REGIONS[number]>;
+  regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
   schedule?: Schedule;
 }
