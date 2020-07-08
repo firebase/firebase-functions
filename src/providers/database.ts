@@ -41,6 +41,7 @@ export const provider = 'google.firebase.database';
 export const service = 'firebaseio.com';
 
 const databaseURLRegex = new RegExp('^https://([^.]+).');
+const emulatorDatabaseURLRegex = new RegExp('^http://.*ns=([^\&]+)');
 
 /**
  * Registers a function that triggers on events from a specific
@@ -138,14 +139,23 @@ export function _refWithOptions(
           '\n If you are unit testing, please set process.env.FIREBASE_CONFIG'
       );
     }
-    const match = databaseURL.match(databaseURLRegex);
-    if (!match) {
+
+    let instance = undefined;
+    const prodMatch = databaseURL.match(databaseURLRegex);
+    const emulatorMatch = databaseURL.match(emulatorDatabaseURLRegex);
+    if (prodMatch) {
+      instance = prodMatch[1];
+    } else if (emulatorMatch) {
+      instance = emulatorMatch[1];
+    }
+
+    if (!instance) {
       throw new Error(
         'Invalid value for config firebase.databaseURL: ' + databaseURL
       );
     }
-    const subdomain = match[1];
-    return `projects/_/instances/${subdomain}/refs/${normalized}`;
+
+    return `projects/_/instances/${instance}/refs/${normalized}`;
   };
 
   return new RefBuilder(apps(), resourceGetter, options);
@@ -350,7 +360,10 @@ export class DataSnapshot {
     private app?: firebase.app.App,
     instance?: string
   ) {
-    if (instance) {
+    if (app && app.options.databaseURL.startsWith("http:")) {
+      // In this case we're dealing with an emulator
+      this.instance = app.options.databaseURL;
+    } else if (instance) {
       // SDK always supplies instance, but user's unit tests may not
       this.instance = instance;
     } else if (app) {
