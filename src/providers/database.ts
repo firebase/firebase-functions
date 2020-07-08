@@ -142,11 +142,13 @@ export function _refWithOptions(
 
     let instance = undefined;
     const prodMatch = databaseURL.match(databaseURLRegex);
-    const emulatorMatch = databaseURL.match(emulatorDatabaseURLRegex);
     if (prodMatch) {
       instance = prodMatch[1];
-    } else if (emulatorMatch) {
-      instance = emulatorMatch[1];
+    } else {
+      const emulatorMatch = databaseURL.match(emulatorDatabaseURLRegex);
+      if (emulatorMatch) {
+        instance = emulatorMatch[1];
+      }
     }
 
     if (!instance) {
