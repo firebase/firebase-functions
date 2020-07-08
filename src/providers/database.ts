@@ -41,7 +41,7 @@ export const provider = 'google.firebase.database';
 export const service = 'firebaseio.com';
 
 const databaseURLRegex = new RegExp('^https://([^.]+).');
-const emulatorDatabaseURLRegex = new RegExp('^http://.*ns=([^\&]+)');
+const emulatorDatabaseURLRegex = new RegExp('^http://.*ns=([^&]+)');
 
 /**
  * Registers a function that triggers on events from a specific
@@ -360,7 +360,7 @@ export class DataSnapshot {
     private app?: firebase.app.App,
     instance?: string
   ) {
-    if (app && app.options.databaseURL.startsWith("http:")) {
+    if (app && app.options.databaseURL.startsWith('http:')) {
       // In this case we're dealing with an emulator
       this.instance = app.options.databaseURL;
     } else if (instance) {
