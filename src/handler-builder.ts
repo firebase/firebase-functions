@@ -305,12 +305,19 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for Cloud Pub/Sub events.
-
-   * `pubsub.onPublish` handles the publication of messages to a topic.
- 
+   * 
+   * `topic.onPublish` handles messages published to a Pub/Sub topic, from SDKs, Cloud Console or Gcloud CLI. 
+   * 
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.pubsub.topic.onPublish((message) => { ... })
+   * ```
+   
+   * `schedule.onPublish` handles messages published to a Pub/Sub topic on a schedule.
+   * 
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.pubsub.schedule.onPublish((message) => { ... })
    * ```
    */
   get pubsub() {
