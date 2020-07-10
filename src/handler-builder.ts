@@ -306,7 +306,7 @@ export class HandlerBuilder {
   /**
    * Create a handler for Cloud Pub/Sub events.
    * 
-   * `topic.onPublish` handles messages published to a Pub/Sub topic from SDKs, Cloud Console, or Gcloud CLI. 
+   * `topic.onPublish` handles messages published to a Pub/Sub topic from SDKs, Cloud Console, or gcloud CLI. 
    * 
    * @example
    * ```javascript
