@@ -99,13 +99,10 @@ export class TopicBuilder {
 }
 
 /**
- * The builder for scheduled functions, which are powered by
- * Google Pub/Sub and Cloud Scheduler. Describes the Cloud Scheduler
- * job that is deployed to trigger a scheduled function at the provided
- * frequency. For more information, see
- * [Schedule functions](/docs/functions/schedule-functions).
+ * Registers a Cloud Function to run at specified times.
  *
- * Access via [`functions.pubsub.schedule()`](providers_pubsub_.html#schedule).
+ * @param schedule The scheduling logic, in Unix Crontab or AppEngine syntax.
+ * @return ScheduleBuilder interface.
  */
 export function schedule(schedule: string): ScheduleBuilder {
   return _scheduleWithOptions(schedule, {});
@@ -129,6 +126,15 @@ export function _scheduleWithOptions(
   });
 }
 
+/**
+ * The builder for scheduled functions, which are powered by
+ * Google Pub/Sub and Cloud Scheduler. Describes the Cloud Scheduler
+ * job that is deployed to trigger a scheduled function at the provided
+ * frequency. For more information, see
+ * [Schedule functions](/docs/functions/schedule-functions).
+ *
+ * Access via [`functions.pubsub.schedule()`](providers_pubsub_.html#schedule).
+ */
 export class ScheduleBuilder {
   /** @hidden */
   constructor(
