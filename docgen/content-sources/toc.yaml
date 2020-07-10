@@ -107,7 +107,7 @@ toc:
       - title: 'TopicBuilder'
         path: /docs/reference/functions/providers_pubsub_.topicbuilder.html
       - title: 'ScheduleBuilder'
-        path: /docs/reference/functions/providers_pubsub_.schedulebuilder
+        path: /docs/reference/functions/providers_pubsub_.schedulebuilder.html
 
   - title: 'functions.remoteconfig'
     path: /docs/reference/functions/providers_remoteconfig_.html

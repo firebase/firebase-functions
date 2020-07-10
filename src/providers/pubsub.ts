@@ -99,7 +99,11 @@ export class TopicBuilder {
 }
 
 /**
- * The Google Cloud Pub/Sub schedule builder.
+ * The builder for scheduled functions, which are powered by
+ * Google Pub/Sub and Cloud Scheduler. Describes the Cloud Scheduler
+ * job that is deployed to trigger a scheduled function at the provided
+ * frequency. For more information, see
+ * [Schedule functions](/docs/functions/schedule-functions).
  *
  * Access via [`functions.pubsub.schedule()`](providers_pubsub_.html#schedule).
  */
@@ -143,11 +147,11 @@ export class ScheduleBuilder {
   }
 
   /**
-   * Event handler that fires when a scheduled event occurs for
-   * a specified Cloud Pub/Sub message.
+   * Event handler for scheduled functions. Triggered whenever the associated
+   * scheduler job sends a Pub/Sub message.
    *
-   * @param handler Event handler that fires when a scheduled event occurs for
-   *   a specified Cloud Pub/Sub message.
+   * @param handler Handler that fires whenever the associated
+   *   scheduler job sends a Pub/Sub message.
    * @return A Cloud Function that you can export and deploy.
    */
   onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
