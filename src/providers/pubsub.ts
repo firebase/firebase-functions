@@ -101,7 +101,7 @@ export class TopicBuilder {
 /**
  * Registers a Cloud Function to run at specified times.
  *
- * @param schedule The scheduling logic, in Unix Crontab or AppEngine syntax.
+ * @param schedule The schedule, in Unix Crontab or AppEngine syntax.
  * @return ScheduleBuilder interface.
  */
 export function schedule(schedule: string): ScheduleBuilder {
