@@ -234,7 +234,7 @@ export class RefBuilder {
         raw.data.delta,
         path,
         this.apps.admin,
-        dbInstance
+        this.apps.admin.options?.databaseURL || dbInstance
       );
     };
     return this.onOperation(handler, 'ref.create', dataConstructor);
@@ -259,7 +259,12 @@ export class RefBuilder {
         raw.context.resource.name,
         raw.context.domain
       );
-      return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
+      return new DataSnapshot(
+        raw.data.data,
+        path,
+        this.apps.admin,
+        this.apps.admin.options?.databaseURL || dbInstance
+      );
     };
     return this.onOperation(handler, 'ref.delete', dataConstructor);
   }
