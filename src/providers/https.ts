@@ -420,7 +420,7 @@ export function _onCallWithOptions(
   const func = async (req: Request, res: express.Response) => {
     try {
       if (!isValidRequest(req)) {
-        console.error('Invalid request', req);
+        console.error('Invalid request');
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
