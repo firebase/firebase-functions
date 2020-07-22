@@ -23,6 +23,7 @@
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
 import { DeploymentOptions, Schedule } from './function-configuration';
+import { warn } from './logger';
 export { Request, Response };
 
 /** @hidden */
@@ -379,7 +380,7 @@ export function makeCloudFunction<EventData>({
       promise = handler(dataOrChange, context);
     }
     if (typeof promise === 'undefined') {
-      console.warn('Function returned undefined, expected Promise or value');
+      warn('Function returned undefined, expected Promise or value');
     }
     return Promise.resolve(promise)
       .then((result) => {

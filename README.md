@@ -29,7 +29,7 @@ const notifyUsers = require('./notify-users');
 exports.newPost = functions.database
   .ref('/posts/{postId}')
   .onCreate((snapshot, context) => {
-    console.log('Received new post with ID:', context.params.postId);
+    functions.logger.info('Received new post with ID:', context.params.postId);
     return notifyUsers(snapshot.val());
   });
 ```
