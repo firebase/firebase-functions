@@ -65,6 +65,15 @@ describe(`logger (${
       });
       sandbox.restore(); // to avoid swallowing test runner output
     });
+
+    it('should not recognize null as a structured logging object', () => {
+      logger.log('hello', 'world', null);
+      expectStdout({
+        severity: 'INFO',
+        message: 'hello world null',
+      });
+      sandbox.restore(); // to avoid swallowing test runner output
+    });
   });
 
   describe('write', () => {

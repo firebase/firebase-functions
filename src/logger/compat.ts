@@ -5,6 +5,7 @@ import {
 } from './common';
 import { format } from 'util';
 
+/** @hidden */
 function patchedConsole(severity: string): (data: any, ...args: any[]) => void {
   return function(data: any, ...args: any[]): void {
     if (SUPPORTS_STRUCTURED_LOGS) {

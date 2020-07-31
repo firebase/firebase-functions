@@ -77,7 +77,7 @@ export class IssueBuilder {
    *   const slackMessage = ` There's a new issue (${issueId}) ` +
    *       `in your app - ${issueTitle}`;
    *   return notifySlack(slackMessage).then(() => {
-   *     console.log(`Posted new issue ${issueId} successfully to Slack`);
+   *     functions.logger.info(`Posted new issue ${issueId} successfully to Slack`);
    *   });
    * });
    * ```
