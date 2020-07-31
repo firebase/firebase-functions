@@ -154,7 +154,10 @@ export class FunctionBuilder {
        * same signature as an Express app.
        */
       onRequest: (
-        handler: (req: https.Request, resp: express.Response) => void
+        handler: (
+          req: https.Request,
+          resp: express.Response
+        ) => void | Promise<void>
       ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
