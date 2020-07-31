@@ -78,11 +78,6 @@ function assertRegionsAreValid(regions: string[]): boolean {
   if (!regions.length) {
     throw new Error('You must specify at least one region');
   }
-  if (_.difference(regions, SUPPORTED_REGIONS).length) {
-    throw new Error(
-      `The only valid regions are: ${SUPPORTED_REGIONS.join(', ')}`
-    );
-  }
   return true;
 }
 
@@ -95,7 +90,7 @@ function assertRegionsAreValid(regions: string[]): boolean {
  * functions.region('us-east1', 'us-central1')
  */
 export function region(
-  ...regions: Array<typeof SUPPORTED_REGIONS[number]>
+  ...regions: Array<typeof SUPPORTED_REGIONS[number] | string>
 ): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
@@ -127,7 +122,9 @@ export class FunctionBuilder {
    * @example
    * functions.region('us-east1', 'us-central1')
    */
-  region(...regions: Array<typeof SUPPORTED_REGIONS[number]>): FunctionBuilder {
+  region(
+    ...regions: Array<typeof SUPPORTED_REGIONS[number] | string>
+  ): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;
@@ -157,7 +154,10 @@ export class FunctionBuilder {
        * same signature as an Express app.
        */
       onRequest: (
-        handler: (req: https.Request, resp: express.Response) => void
+        handler: (
+          req: https.Request,
+          resp: express.Response
+        ) => void | Promise<void>
       ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.

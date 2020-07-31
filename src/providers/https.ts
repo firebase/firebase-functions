@@ -24,9 +24,11 @@ import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
+
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
+import { warn, error } from '../logger';
 
 /** @hidden */
 export interface Request extends express.Request {
@@ -285,13 +287,13 @@ interface HttpResponseBody {
 function isValidRequest(req: Request): req is HttpRequest {
   // The body must not be empty.
   if (!req.body) {
-    console.warn('Request is missing body.');
+    warn('Request is missing body.');
     return false;
   }
 
   // Make sure it's a POST.
   if (req.method !== 'POST') {
-    console.warn('Request has invalid method.', req.method);
+    warn('Request has invalid method.', req.method);
     return false;
   }
 
@@ -303,13 +305,13 @@ function isValidRequest(req: Request): req is HttpRequest {
     contentType = contentType.substr(0, semiColon).trim();
   }
   if (contentType !== 'application/json') {
-    console.warn('Request has incorrect Content-Type.', contentType);
+    warn('Request has incorrect Content-Type.', contentType);
     return false;
   }
 
   // The body must have data.
   if (_.isUndefined(req.body.data)) {
-    console.warn('Request body is missing data.', req.body);
+    warn('Request body is missing data.', req.body);
     return false;
   }
 
@@ -318,7 +320,7 @@ function isValidRequest(req: Request): req is HttpRequest {
   // Verify that the body does not have any extra fields.
   const extras = _.omit(req.body, 'data');
   if (!_.isEmpty(extras)) {
-    console.warn('Request body has extra fields.', extras);
+    warn('Request body has extra fields.', extras);
     return false;
   }
   return true;
@@ -363,7 +365,7 @@ export function encode(data: any): any {
     return _.mapValues(data, encode);
   }
   // If we got this far, the data is not encodable.
-  console.error('Data cannot be encoded in JSON.', data);
+  error('Data cannot be encoded in JSON.', data);
   throw new Error('Data cannot be encoded in JSON: ' + data);
 }
 
@@ -386,13 +388,13 @@ export function decode(data: any): any {
         // worth all the extra code to detect that case.
         const value = parseFloat(data.value);
         if (_.isNaN(value)) {
-          console.error('Data cannot be decoded from JSON.', data);
+          error('Data cannot be decoded from JSON.', data);
           throw new Error('Data cannot be decoded from JSON: ' + data);
         }
         return value;
       }
       default: {
-        console.error('Data cannot be decoded from JSON.', data);
+        error('Data cannot be decoded from JSON.', data);
         throw new Error('Data cannot be decoded from JSON: ' + data);
       }
     }
@@ -420,7 +422,7 @@ export function _onCallWithOptions(
   const func = async (req: Request, res: express.Response) => {
     try {
       if (!isValidRequest(req)) {
-        console.error('Invalid request', req);
+        error('Invalid request, unable to process.');
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
@@ -441,7 +443,7 @@ export function _onCallWithOptions(
             uid: authToken.uid,
             token: authToken,
           };
-        } catch (e) {
+        } catch (err) {
           throw new HttpsError('unauthenticated', 'Unauthenticated');
         }
       }
@@ -464,15 +466,15 @@ export function _onCallWithOptions(
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
       res.status(200).send(responseBody);
-    } catch (error) {
-      if (!(error instanceof HttpsError)) {
+    } catch (err) {
+      if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        console.error('Unhandled error', error);
-        error = new HttpsError('internal', 'INTERNAL');
+        error('Unhandled error', error);
+        err = new HttpsError('internal', 'INTERNAL');
       }
 
-      const { status } = error.httpErrorCode;
-      const body = { error: error.toJSON() };
+      const { status } = err.httpErrorCode;
+      const body = { error: err.toJSON() };
 
       res.status(status).send(body);
     }

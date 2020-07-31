@@ -22,6 +22,7 @@
 
 /** @hidden */
 import { firebaseConfig } from './config';
+import { warn } from './logger';
 
 // Set up for config and vars
 export function setup() {
@@ -45,7 +46,7 @@ export function setup() {
   // If FIREBASE_CONFIG is still not found, try using GCLOUD_PROJECT to estimate
   if (!process.env.FIREBASE_CONFIG) {
     if (process.env.GCLOUD_PROJECT) {
-      console.warn(
+      warn(
         'Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail'
       );
       process.env.FIREBASE_CONFIG = JSON.stringify({
@@ -58,7 +59,7 @@ export function setup() {
         projectId: process.env.GCLOUD_PROJECT,
       });
     } else {
-      console.warn(
+      warn(
         'Warning, FIREBASE_CONFIG and GCLOUD_PROJECT environment variables are missing. Initializing firebase-admin will fail'
       );
     }

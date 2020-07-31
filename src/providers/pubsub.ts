@@ -98,6 +98,12 @@ export class TopicBuilder {
   }
 }
 
+/**
+ * Registers a Cloud Function to run at specified times.
+ *
+ * @param schedule The schedule, in Unix Crontab or AppEngine syntax.
+ * @return ScheduleBuilder interface.
+ */
 export function schedule(schedule: string): ScheduleBuilder {
   return _scheduleWithOptions(schedule, {});
 }
@@ -120,6 +126,15 @@ export function _scheduleWithOptions(
   });
 }
 
+/**
+ * The builder for scheduled functions, which are powered by
+ * Google Pub/Sub and Cloud Scheduler. Describes the Cloud Scheduler
+ * job that is deployed to trigger a scheduled function at the provided
+ * frequency. For more information, see
+ * [Schedule functions](/docs/functions/schedule-functions).
+ *
+ * Access via [`functions.pubsub.schedule()`](providers_pubsub_.html#schedule).
+ */
 export class ScheduleBuilder {
   /** @hidden */
   constructor(
@@ -137,6 +152,14 @@ export class ScheduleBuilder {
     return this;
   }
 
+  /**
+   * Event handler for scheduled functions. Triggered whenever the associated
+   * scheduler job sends a Pub/Sub message.
+   *
+   * @param handler Handler that fires whenever the associated
+   *   scheduler job sends a Pub/Sub message.
+   * @return A Cloud Function that you can export and deploy.
+   */
   onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
     const cloudFunction = makeCloudFunction({
       contextOnlyHandler: handler,
