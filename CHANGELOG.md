@@ -1,0 +1,1 @@
+- Adds type hints for new Cloud Functions regions `asia-northeast3`, `asia-south1`, and `asia-southeast2`.
