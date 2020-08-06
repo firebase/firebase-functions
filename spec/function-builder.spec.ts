@@ -168,4 +168,43 @@ describe('FunctionBuilder', () => {
       } as any);
     }).to.throw(Error, 'at least one region');
   });
+
+  it('should allow a vpcConnector to be set', () => {
+    const fn = functions
+      .runWith({
+        vpcConnector: 'test-connector',
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.vpcConnector).to.equal('test-connector');
+  });
+
+  it('should allow a vpcConnectorEgressSettings to be set', () => {
+    const fn = functions
+      .runWith({
+        vpcConnector: 'test-connector',
+        vpcConnectorEgressSettings: 'PRIVATE_RANGES_ONLY',
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.vpcConnectorEgressSettings).to.equal(
+      'PRIVATE_RANGES_ONLY'
+    );
+  });
+
+  it('should throw an error if user chooses an invalid vpcConnectorEgressSettings', () => {
+    expect(() => {
+      return functions.runWith({
+        vpcConnector: 'test-connector',
+        vpcConnectorEgressSettings: 'INCORRECT_OPTION',
+      } as any);
+    }).to.throw(
+      Error,
+      `The only valid vpcConnectorEgressSettings values are: ${functions.VPC_EGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
+    );
+  });
 });

@@ -30,6 +30,7 @@ import {
   RuntimeOptions,
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
+  VPC_EGRESS_SETTINGS_OPTIONS,
 } from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
@@ -64,6 +65,19 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   ) {
     throw new Error(
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+    );
+  }
+  if (
+    runtimeOptions.vpcConnectorEgressSettings &&
+    !_.includes(
+      VPC_EGRESS_SETTINGS_OPTIONS,
+      runtimeOptions.vpcConnectorEgressSettings
+    )
+  ) {
+    throw new Error(
+      `The only valid vpcConnectorEgressSettings values are: ${VPC_EGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
     );
   }
   return true;
@@ -104,6 +118,7 @@ export function region(
  *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
  * 2. timeoutSeconds: timeout for the function in seconds, possible values are
  *    0 to 540.
+ * 3. vpcConnector and vpcConnectorEgressSettings.
  */
 export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   if (assertRuntimeOptionsValid(runtimeOptions)) {
