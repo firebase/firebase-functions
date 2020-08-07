@@ -89,22 +89,22 @@ export interface EventContext {
   eventId: string;
 
   /**
-   * Type of event. Valid values are:
+   * Type of event. Possible values are:
    *
-   * * `providers/google.firebase.analytics/eventTypes/event.log`
-   * * `providers/firebase.auth/eventTypes/user.create`
-   * * `providers/firebase.auth/eventTypes/user.delete`
-   * * `providers/firebase.crashlytics/eventTypes/issue.new`
-   * * `providers/firebase.crashlytics/eventTypes/issue.regressed`
-   * * `providers/firebase.crashlytics/eventTypes/issue.velocityAlert`
-   * * `providers/google.firebase.database/eventTypes/ref.write`
-   * * `providers/google.firebase.database/eventTypes/ref.create`
-   * * `providers/google.firebase.database/eventTypes/ref.update`
-   * * `providers/google.firebase.database/eventTypes/ref.delete`
-   * * `providers/cloud.firestore/eventTypes/document.write`
-   * * `providers/cloud.firestore/eventTypes/document.create`
-   * * `providers/cloud.firestore/eventTypes/document.update`
-   * * `providers/cloud.firestore/eventTypes/document.delete`
+   * * `google.analytics.event.log`
+   * * `google.firebase.auth.user.create`
+   * * `google.firebase.auth.user.delete`
+   * * `google.firebase.crashlytics.issue.new`
+   * * `google.firebase.crashlytics.issue.regressed`
+   * * `google.firebase.crashlytics.issue.velocityAlert`
+   * * `google.firebase.database.ref.write`
+   * * `google.firebase.database.ref.create`
+   * * `google.firebase.database.ref.update`
+   * * `google.firebase.database.ref.delete`
+   * * `google.firestore.document.write`
+   * * `google.firestore.document.create`
+   * * `google.firestore.document.update`
+   * * `google.firestore.document.delete`
    * * `google.pubsub.topic.publish`
    * * `google.firebase.remoteconfig.update`
    * * `google.storage.object.finalize`
