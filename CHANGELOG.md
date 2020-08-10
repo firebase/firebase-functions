@@ -1,0 +1,1 @@
+- Updates `firebase-admin` dependency to support `^9.0.0` in addition to `^8.0.0`. Note that `firebase-admin` no longer supports Node.js 8.x as of `9.0.0`.
