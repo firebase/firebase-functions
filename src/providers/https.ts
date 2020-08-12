@@ -469,7 +469,7 @@ export function _onCallWithOptions(
     } catch (err) {
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        error('Unhandled error', error);
+        error('Unhandled error', err);
         err = new HttpsError('internal', 'INTERNAL');
       }
 
