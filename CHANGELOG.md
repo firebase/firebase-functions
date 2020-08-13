@@ -1,0 +1,1 @@
+- Adds support for functions failure policies (#482)
