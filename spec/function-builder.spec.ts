@@ -151,7 +151,7 @@ describe('FunctionBuilder', () => {
       })
     ).to.throw(
       Error,
-      'RuntimeOptions.failurePolicy must be a boolean or an object'
+      'failurePolicy must be a boolean or an object'
     );
   });
 
@@ -160,7 +160,7 @@ describe('FunctionBuilder', () => {
       functions.runWith({
         failurePolicy: { retry: (1234 as unknown) as object },
       })
-    ).to.throw(Error, 'FailurePolicy.retry');
+    ).to.throw(Error, 'failurePolicy.retry');
   });
 
   it('should throw an error if user chooses an invalid memory allocation', () => {

@@ -97,7 +97,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
  */
 function assertRegionsAreValid(regions: string[]): boolean {
   if (!regions.length) {
-    throw new Error('You must specify at least one region.');
+    throw new Error('You must specify at least one region');
   }
   return true;
 }
