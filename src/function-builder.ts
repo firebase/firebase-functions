@@ -71,9 +71,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       _.isBoolean(runtimeOptions.failurePolicy) === false &&
       _.isObjectLike(runtimeOptions.failurePolicy) === false
     ) {
-      throw new Error(
-        `failurePolicy must be a boolean or an object.`
-      );
+      throw new Error(`failurePolicy must be a boolean or an object.`);
     }
 
     if (typeof runtimeOptions.failurePolicy === 'object') {
@@ -81,9 +79,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
         _.isObjectLike(runtimeOptions.failurePolicy.retry) === false ||
         _.isEmpty(runtimeOptions.failurePolicy.retry) === false
       ) {
-        throw new Error(
-          'failurePolicy.retry must be an empty object.'
-        );
+        throw new Error('failurePolicy.retry must be an empty object.');
       }
     }
   }
