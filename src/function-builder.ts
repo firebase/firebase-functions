@@ -27,6 +27,7 @@ import { CloudFunction, EventContext } from './cloud-functions';
 import {
   DeploymentOptions,
   MAX_TIMEOUT_SECONDS,
+  MIN_TIMEOUT_SECONDS,
   RuntimeOptions,
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
@@ -45,28 +46,62 @@ import * as testLab from './providers/testLab';
 /**
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
- * @throws { Error } Memory and TimeoutSeconds values must be valid.
+ * @throws { Error } FailurePolicy, Memory and TimeoutSeconds values must be
+ *     valid.
  */
-function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
-  if (
-    runtimeOptions.memory &&
-    !_.includes(VALID_MEMORY_OPTIONS, runtimeOptions.memory)
-  ) {
-    throw new Error(
-      `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(
-        ', '
-      )}`
-    );
+function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
+  if (_.isObjectLike(runtimeOptions) === false) {
+    throw new Error('RuntimeOptions must be an object.');
   }
-  if (
-    runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS ||
-    runtimeOptions.timeoutSeconds < 0
-  ) {
-    throw new Error(
-      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
-    );
+
+  const { failurePolicy, memory, timeoutSeconds } = runtimeOptions;
+
+  if (failurePolicy !== undefined) {
+    if (
+      _.isBoolean(failurePolicy) === false &&
+      _.isObjectLike(failurePolicy) === false
+    ) {
+      throw new Error(
+        `RuntimeOptions.failurePolicy must be a boolean or an object.`
+      );
+    }
+
+    if (typeof failurePolicy === 'object') {
+      if (
+        _.isObjectLike(failurePolicy.retry) === false ||
+        _.isEmpty(failurePolicy.retry) === false
+      ) {
+        throw new Error(
+          'RuntimeOptions.failurePolicy.retry must be an empty object.'
+        );
+      }
+    }
   }
-  return true;
+
+  if (memory !== undefined) {
+    if (_.includes(VALID_MEMORY_OPTIONS, memory) === false) {
+      throw new Error(
+        `RuntimeOptions.memory must be one of: ${VALID_MEMORY_OPTIONS.join(
+          ', '
+        )}.`
+      );
+    }
+  }
+
+  if (timeoutSeconds !== undefined) {
+    if (typeof timeoutSeconds !== 'number') {
+      throw new Error('RuntimeOptions.timeoutSeconds must be a number.');
+    }
+
+    if (
+      timeoutSeconds < MIN_TIMEOUT_SECONDS ||
+      timeoutSeconds > MAX_TIMEOUT_SECONDS
+    ) {
+      throw new Error(
+        `RuntimeOptions.timeoutSeconds must be between ${MIN_TIMEOUT_SECONDS} and ${MAX_TIMEOUT_SECONDS}.`
+      );
+    }
+  }
 }
 
 /**
@@ -75,8 +110,8 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
  * @throws { Error } Regions must be in list of supported regions.
  */
 function assertRegionsAreValid(regions: string[]): boolean {
-  if (!regions.length) {
-    throw new Error('You must specify at least one region');
+  if (regions.length === 0) {
+    throw new Error('You must specify at least one region.');
   }
   return true;
 }
@@ -100,15 +135,19 @@ export function region(
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with three optional fields:
- * 1. memory: amount of memory to allocate to the function, possible values
- *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
- * 2. timeoutSeconds: timeout for the function in seconds, possible values are
- *    0 to 540.
+ * 1. failurePolicy: failure policy of the function, with boolean `true` being
+ *    equivalent to providing an empty retry object.
+ * 2. memory: amount of memory to allocate to the function, with possible
+ *    values being '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * 3. timeoutSeconds: timeout for the function in seconds, with possible
+ *    values being 0 to 540.
+ *
+ * Value must not be null.
  */
 export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
-  if (assertRuntimeOptionsValid(runtimeOptions)) {
-    return new FunctionBuilder(runtimeOptions);
-  }
+  assertRuntimeOptionsValidity(runtimeOptions);
+
+  return new FunctionBuilder(runtimeOptions);
 }
 
 export class FunctionBuilder {
@@ -134,19 +173,30 @@ export class FunctionBuilder {
   /**
    * Configure runtime options for the function.
    * @param runtimeOptions Object with three optional fields:
-   * 1. memory: amount of memory to allocate to the function, possible values
-   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
-   * 2. timeoutSeconds: timeout for the function in seconds, possible values are
-   *    0 to 540.
+   * 1. failurePolicy: failure policy of the function, with boolean `true` being
+   *    equivalent to providing an empty retry object.
+   * 2. memory: amount of memory to allocate to the function, with possible
+   *    values being '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * 3. timeoutSeconds: timeout for the function in seconds, with possible
+   *    values being 0 to 540.
+   *
+   * Value must not be null.
    */
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
-    if (assertRuntimeOptionsValid(runtimeOptions)) {
-      this.options = _.assign(this.options, runtimeOptions);
-      return this;
-    }
+    assertRuntimeOptionsValidity(runtimeOptions);
+
+    this.options = _.assign(this.options, runtimeOptions);
+
+    return this;
   }
 
   get https() {
+    if (this.options.failurePolicy !== undefined) {
+      console.warn(
+        'RuntimeOptions.failurePolicy is not supported in https functions.'
+      );
+    }
+
     return {
       /**
        * Handle HTTP requests.
@@ -161,7 +211,8 @@ export class FunctionBuilder {
       ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
-       * @param handler A method that takes a data and context and returns a value.
+       * @param handler A method that takes a data and context and returns
+       *     a value.
        */
       onCall: (
         handler: (
