@@ -149,10 +149,7 @@ describe('FunctionBuilder', () => {
       functions.runWith({
         failurePolicy: (1234 as unknown) as functions.RuntimeOptions['failurePolicy'],
       })
-    ).to.throw(
-      Error,
-      'failurePolicy must be a boolean or an object'
-    );
+    ).to.throw(Error, 'failurePolicy must be a boolean or an object');
   });
 
   it('should throw an error if user chooses a failurePolicy.retry which is not an object', () => {
