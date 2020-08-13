@@ -45,19 +45,6 @@ export const VALID_MEMORY_OPTIONS = [
 ] as const;
 
 /**
- * A mapping of memory options to its representation in the Cloud Functions API.
- */
-export const MEMORY_LOOKUP: {
-  [Name in typeof VALID_MEMORY_OPTIONS[number]]: number;
-} = {
-  '128MB': 128,
-  '256MB': 256,
-  '512MB': 512,
-  '1GB': 1024,
-  '2GB': 2048,
-};
-
-/**
  * Scheduler retry options. Applies only to scheduled functions.
  */
 export interface ScheduleRetryConfig {

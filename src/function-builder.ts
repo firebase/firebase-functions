@@ -46,30 +46,41 @@ import * as testLab from './providers/testLab';
 /**
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
- * @throws { Error } FailurePolicy, Memory and TimeoutSeconds values must be
- *     valid.
+ * @throws { Error } Memory and TimeoutSeconds values must be valid.
  */
-function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
-  if (_.isObjectLike(runtimeOptions) === false) {
-    throw new Error('RuntimeOptions must be an object.');
+function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
+  if (
+    runtimeOptions.memory &&
+    !_.includes(VALID_MEMORY_OPTIONS, runtimeOptions.memory)
+  ) {
+    throw new Error(
+      `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(
+        ', '
+      )}`
+    );
   }
-
-  const { failurePolicy, memory, timeoutSeconds } = runtimeOptions;
-
-  if (failurePolicy !== undefined) {
+  if (
+    runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS ||
+    runtimeOptions.timeoutSeconds < 0
+  ) {
+    throw new Error(
+      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+    );
+  }
+  if (runtimeOptions.failurePolicy !== undefined) {
     if (
-      _.isBoolean(failurePolicy) === false &&
-      _.isObjectLike(failurePolicy) === false
+      _.isBoolean(runtimeOptions.failurePolicy) === false &&
+      _.isObjectLike(runtimeOptions.failurePolicy) === false
     ) {
       throw new Error(
         `RuntimeOptions.failurePolicy must be a boolean or an object.`
       );
     }
 
-    if (typeof failurePolicy === 'object') {
+    if (typeof runtimeOptions.failurePolicy === 'object') {
       if (
-        _.isObjectLike(failurePolicy.retry) === false ||
-        _.isEmpty(failurePolicy.retry) === false
+        _.isObjectLike(runtimeOptions.failurePolicy.retry) === false ||
+        _.isEmpty(runtimeOptions.failurePolicy.retry) === false
       ) {
         throw new Error(
           'RuntimeOptions.failurePolicy.retry must be an empty object.'
@@ -77,31 +88,7 @@ function assertRuntimeOptionsValidity(runtimeOptions: RuntimeOptions): void {
       }
     }
   }
-
-  if (memory !== undefined) {
-    if (_.includes(VALID_MEMORY_OPTIONS, memory) === false) {
-      throw new Error(
-        `RuntimeOptions.memory must be one of: ${VALID_MEMORY_OPTIONS.join(
-          ', '
-        )}.`
-      );
-    }
-  }
-
-  if (timeoutSeconds !== undefined) {
-    if (typeof timeoutSeconds !== 'number') {
-      throw new Error('RuntimeOptions.timeoutSeconds must be a number.');
-    }
-
-    if (
-      timeoutSeconds < MIN_TIMEOUT_SECONDS ||
-      timeoutSeconds > MAX_TIMEOUT_SECONDS
-    ) {
-      throw new Error(
-        `RuntimeOptions.timeoutSeconds must be between ${MIN_TIMEOUT_SECONDS} and ${MAX_TIMEOUT_SECONDS}.`
-      );
-    }
-  }
+  return true;
 }
 
 /**
@@ -145,9 +132,9 @@ export function region(
  * Value must not be null.
  */
 export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
-  assertRuntimeOptionsValidity(runtimeOptions);
-
-  return new FunctionBuilder(runtimeOptions);
+  if (assertRuntimeOptionsValid(runtimeOptions)) {
+    return new FunctionBuilder(runtimeOptions);
+  }
 }
 
 export class FunctionBuilder {
@@ -183,11 +170,10 @@ export class FunctionBuilder {
    * Value must not be null.
    */
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
-    assertRuntimeOptionsValidity(runtimeOptions);
-
-    this.options = _.assign(this.options, runtimeOptions);
-
-    return this;
+    if (assertRuntimeOptionsValid(runtimeOptions)) {
+      this.options = _.assign(this.options, runtimeOptions);
+      return this;
+    }
   }
 
   get https() {
@@ -238,7 +224,6 @@ export class FunctionBuilder {
        *
        * This method behaves very similarly to the method of the same name in
        * the client and Admin Firebase SDKs. Any change to the Database that
-       * affects the data at or below the provided `path` will fire an event in
        * Cloud Functions.
        *
        * There are three important differences between listening to a Realtime
