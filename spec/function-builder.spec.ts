@@ -81,9 +81,9 @@ describe('FunctionBuilder', () => {
   it('should allow valid runtime options to be set', () => {
     const fn = functions
       .runWith({
+        timeoutSeconds: 90,
         failurePolicy: { retry: {} },
         memory: '256MB',
-        timeoutSeconds: 90,
       })
       .auth.user()
       .onCreate((user) => user);
@@ -141,7 +141,7 @@ describe('FunctionBuilder', () => {
       functions
         .region('asia-northeast1')
         .runWith({ timeoutSeconds: 600, memory: '256MB' });
-    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
+    }).to.throw(Error, 'TimeoutSeconds');
   });
 
   it('should throw an error if user chooses a failurePolicy which is neither an object nor a boolean', () => {
@@ -160,7 +160,7 @@ describe('FunctionBuilder', () => {
       functions.runWith({
         failurePolicy: { retry: (1234 as unknown) as object },
       })
-    ).to.throw(Error, 'RuntimeOptions.failurePolicy.retry');
+    ).to.throw(Error, 'FailurePolicy.retry');
   });
 
   it('should throw an error if user chooses an invalid memory allocation', () => {
@@ -182,13 +182,13 @@ describe('FunctionBuilder', () => {
       return functions.runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
+    }).to.throw(Error, 'TimeoutSeconds');
 
     expect(() => {
       return functions.region('asia-east2').runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'RuntimeOptions.timeoutSeconds');
+    }).to.throw(Error, 'TimeoutSeconds');
   });
 
   it('should throw an error if user chooses no region when using .region()', () => {

@@ -27,7 +27,6 @@ import { CloudFunction, EventContext } from './cloud-functions';
 import {
   DeploymentOptions,
   MAX_TIMEOUT_SECONDS,
-  MIN_TIMEOUT_SECONDS,
   RuntimeOptions,
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
@@ -73,7 +72,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       _.isObjectLike(runtimeOptions.failurePolicy) === false
     ) {
       throw new Error(
-        `RuntimeOptions.failurePolicy must be a boolean or an object.`
+        `failurePolicy must be a boolean or an object.`
       );
     }
 
@@ -83,7 +82,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
         _.isEmpty(runtimeOptions.failurePolicy.retry) === false
       ) {
         throw new Error(
-          'RuntimeOptions.failurePolicy.retry must be an empty object.'
+          'failurePolicy.retry must be an empty object.'
         );
       }
     }
@@ -97,7 +96,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
  * @throws { Error } Regions must be in list of supported regions.
  */
 function assertRegionsAreValid(regions: string[]): boolean {
-  if (regions.length === 0) {
+  if (!regions.length) {
     throw new Error('You must specify at least one region.');
   }
   return true;
@@ -197,8 +196,7 @@ export class FunctionBuilder {
       ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
-       * @param handler A method that takes a data and context and returns
-       *     a value.
+       * @param handler A method that takes a data and context and returns a value.
        */
       onCall: (
         handler: (
@@ -224,6 +222,7 @@ export class FunctionBuilder {
        *
        * This method behaves very similarly to the method of the same name in
        * the client and Admin Firebase SDKs. Any change to the Database that
+       * affects the data at or below the provided `path` will fire an event in
        * Cloud Functions.
        *
        * There are three important differences between listening to a Realtime
