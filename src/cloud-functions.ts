@@ -22,8 +22,13 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { DeploymentOptions, Schedule } from './function-configuration';
 import { warn } from './logger';
+import {
+  DEFAULT_FAILURE_POLICY,
+  DeploymentOptions,
+  FailurePolicy,
+  Schedule,
+} from './function-configuration';
 export { Request, Response };
 
 /** @hidden */
@@ -205,6 +210,7 @@ export namespace Change {
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
+
     return Change.fromObjects(
       customizer(before || {}),
       customizer(json.after || {})
@@ -219,7 +225,8 @@ export namespace Change {
   ) {
     const before = _.assign({}, after);
     const masks = fieldMask.split(',');
-    _.forEach(masks, (mask) => {
+
+    masks.forEach((mask) => {
       const val = _.get(sparseBefore, mask);
       if (typeof val === 'undefined') {
         _.unset(before, mask);
@@ -227,6 +234,7 @@ export namespace Change {
         _.set(before, mask, val);
       }
     });
+
     return before;
   }
 }
@@ -256,6 +264,7 @@ export interface TriggerAnnotated {
       resource: string;
       service: string;
     };
+    failurePolicy?: FailurePolicy;
     httpsTrigger?: {};
     labels?: { [key: string]: string };
     regions?: string[];
@@ -474,6 +483,18 @@ export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
   if (options.regions) {
     trigger.regions = options.regions;
+  }
+  if (options.failurePolicy !== undefined) {
+    switch (options.failurePolicy) {
+      case false:
+        trigger.failurePolicy = undefined;
+        break;
+      case true:
+        trigger.failurePolicy = DEFAULT_FAILURE_POLICY;
+        break;
+      default:
+        trigger.failurePolicy = options.failurePolicy;
+    }
   }
   if (options.timeoutSeconds) {
     trigger.timeout = options.timeoutSeconds.toString() + 's';

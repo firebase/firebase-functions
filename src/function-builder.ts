@@ -67,6 +67,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
     );
   }
+  
   if (
     runtimeOptions.vpcConnectorEgressSettings &&
     !_.includes(
@@ -79,6 +80,24 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
         ','
       )}`
     );
+  }
+  
+  if (runtimeOptions.failurePolicy !== undefined) {
+    if (
+      _.isBoolean(runtimeOptions.failurePolicy) === false &&
+      _.isObjectLike(runtimeOptions.failurePolicy) === false
+    ) {
+      throw new Error(`failurePolicy must be a boolean or an object.`);
+    }
+
+    if (typeof runtimeOptions.failurePolicy === 'object') {
+      if (
+        _.isObjectLike(runtimeOptions.failurePolicy.retry) === false ||
+        _.isEmpty(runtimeOptions.failurePolicy.retry) === false
+      ) {
+        throw new Error('failurePolicy.retry must be an empty object.');
+      }
+    }
   }
   return true;
 }
@@ -113,12 +132,18 @@ export function region(
 
 /**
  * Configure runtime options for the function.
- * @param runtimeOptions Object with three optional fields:
+ * @param runtimeOptions Object with optional fields:
  * 1. memory: amount of memory to allocate to the function, possible values
  *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
  * 2. timeoutSeconds: timeout for the function in seconds, possible values are
  *    0 to 540.
- * 3. vpcConnector and vpcConnectorEgressSettings.
+ * 3. failurePolicy: failure policy of the function, with boolean `true` being
+ *    equivalent to providing an empty retry object.
+ * 4. vpcConnector: id of a VPC connector in same project and region
+ * 5. vpcConnectorEgressSettings: when a vpcConnector is set, control which
+ *    egress traffic is sent through the vpcConnector.
+ *
+ * Value must not be null.
  */
 export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   if (assertRuntimeOptionsValid(runtimeOptions)) {
@@ -149,10 +174,14 @@ export class FunctionBuilder {
   /**
    * Configure runtime options for the function.
    * @param runtimeOptions Object with three optional fields:
-   * 1. memory: amount of memory to allocate to the function, possible values
-   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
-   * 2. timeoutSeconds: timeout for the function in seconds, possible values are
-   *    0 to 540.
+   * 1. failurePolicy: failure policy of the function, with boolean `true` being
+   *    equivalent to providing an empty retry object.
+   * 2. memory: amount of memory to allocate to the function, with possible
+   *    values being '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * 3. timeoutSeconds: timeout for the function in seconds, with possible
+   *    values being 0 to 540.
+   *
+   * Value must not be null.
    */
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     if (assertRuntimeOptionsValid(runtimeOptions)) {
@@ -162,6 +191,12 @@ export class FunctionBuilder {
   }
 
   get https() {
+    if (this.options.failurePolicy !== undefined) {
+      console.warn(
+        'RuntimeOptions.failurePolicy is not supported in https functions.'
+      );
+    }
+
     return {
       /**
        * Handle HTTP requests.

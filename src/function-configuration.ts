@@ -73,7 +73,20 @@ export interface Schedule {
   retryConfig?: ScheduleRetryConfig;
 }
 
+export interface FailurePolicy {
+  retry: {};
+}
+
+export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
+  retry: {},
+};
+
 export interface RuntimeOptions {
+  /**
+   * Failure policy of the function, with boolean `true` being equivalent to
+   * providing an empty retry object.
+   */
+  failurePolicy?: FailurePolicy | boolean;
   /**
    * Amount of memory to allocate to the function.
    */
