@@ -67,7 +67,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
     );
   }
-  
+
   if (
     runtimeOptions.vpcConnectorEgressSettings &&
     !_.includes(
@@ -81,7 +81,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       )}`
     );
   }
-  
+
   if (runtimeOptions.failurePolicy !== undefined) {
     if (
       _.isBoolean(runtimeOptions.failurePolicy) === false &&
