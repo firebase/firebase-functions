@@ -45,6 +45,15 @@ export const VALID_MEMORY_OPTIONS = [
 ] as const;
 
 /**
+ * List of available options for VpcConnectorEgressSettings.
+ */
+export const VPC_EGRESS_SETTINGS_OPTIONS = [
+  'VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED',
+  'PRIVATE_RANGES_ONLY',
+  'ALL_TRAFFIC',
+] as const;
+
+/**
  * Scheduler retry options. Applies only to scheduled functions.
  */
 export interface ScheduleRetryConfig {
@@ -91,6 +100,16 @@ export interface RuntimeOptions {
    * Max number of actual instances allowed to be running in parallel
    */
   maxInstances?: number;
+
+  /**
+   * Connect cloud function to specified VPC connector
+   */
+  vpcConnector?: string;
+
+  /**
+   * Egress settings for VPC connector
+   */
+  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
 }
 
 export interface DeploymentOptions extends RuntimeOptions {

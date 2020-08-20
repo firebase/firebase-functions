@@ -270,6 +270,8 @@ export interface TriggerAnnotated {
     regions?: string[];
     schedule?: Schedule;
     timeout?: string;
+    vpcConnector?: string;
+    vpcConnectorEgressSettings?: string;
   };
 }
 
@@ -514,5 +516,14 @@ export function optionsToTrigger(options: DeploymentOptions) {
   if (options.maxInstances) {
     trigger.maxInstances = options.maxInstances;
   }
+
+  if (options.vpcConnector) {
+    trigger.vpcConnector = options.vpcConnector;
+  }
+
+  if (options.vpcConnectorEgressSettings) {
+    trigger.vpcConnectorEgressSettings = options.vpcConnectorEgressSettings;
+  }
+
   return trigger;
 }

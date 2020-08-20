@@ -30,6 +30,7 @@ import {
   RuntimeOptions,
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
+  VPC_EGRESS_SETTINGS_OPTIONS,
 } from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
@@ -66,6 +67,21 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
     );
   }
+
+  if (
+    runtimeOptions.vpcConnectorEgressSettings &&
+    !_.includes(
+      VPC_EGRESS_SETTINGS_OPTIONS,
+      runtimeOptions.vpcConnectorEgressSettings
+    )
+  ) {
+    throw new Error(
+      `The only valid vpcConnectorEgressSettings values are: ${VPC_EGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
+    );
+  }
+
   if (runtimeOptions.failurePolicy !== undefined) {
     if (
       _.isBoolean(runtimeOptions.failurePolicy) === false &&
@@ -116,13 +132,16 @@ export function region(
 
 /**
  * Configure runtime options for the function.
- * @param runtimeOptions Object with three optional fields:
- * 1. failurePolicy: failure policy of the function, with boolean `true` being
+ * @param runtimeOptions Object with optional fields:
+ * 1. memory: amount of memory to allocate to the function, possible values
+ *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ * 2. timeoutSeconds: timeout for the function in seconds, possible values are
+ *    0 to 540.
+ * 3. failurePolicy: failure policy of the function, with boolean `true` being
  *    equivalent to providing an empty retry object.
- * 2. memory: amount of memory to allocate to the function, with possible
- *    values being '128MB', '256MB', '512MB', '1GB', and '2GB'.
- * 3. timeoutSeconds: timeout for the function in seconds, with possible
- *    values being 0 to 540.
+ * 4. vpcConnector: id of a VPC connector in same project and region
+ * 5. vpcConnectorEgressSettings: when a vpcConnector is set, control which
+ *    egress traffic is sent through the vpcConnector.
  *
  * Value must not be null.
  */
