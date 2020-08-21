@@ -1,1 +1,0 @@
-- Adds support for `vpcConnector` and `vpcConnectorEgressSettings` fields in `functions.runWith()`. **Must be used in conjunction with firebase-tools v8.9.0 or higher.** Thanks @pcboy! (#752)
