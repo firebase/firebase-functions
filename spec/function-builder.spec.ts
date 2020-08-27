@@ -249,6 +249,6 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__trigger.vpcConnector).to.equal(serviceAccountEmail);
+    expect(fn.__trigger.serviceAccountEmail).to.equal(serviceAccountEmail);
   });
 });
