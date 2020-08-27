@@ -142,6 +142,7 @@ export function region(
  * 4. vpcConnector: id of a VPC connector in same project and region
  * 5. vpcConnectorEgressSettings: when a vpcConnector is set, control which
  *    egress traffic is sent through the vpcConnector.
+ * 6. serviceAccountEmail: email address of specific service account
  *
  * Value must not be null.
  */
