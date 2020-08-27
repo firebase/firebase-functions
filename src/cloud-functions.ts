@@ -272,6 +272,7 @@ export interface TriggerAnnotated {
     timeout?: string;
     vpcConnector?: string;
     vpcConnectorEgressSettings?: string;
+    serviceAccountEmail?: string;
   };
 }
 
@@ -523,6 +524,10 @@ export function optionsToTrigger(options: DeploymentOptions) {
 
   if (options.vpcConnectorEgressSettings) {
     trigger.vpcConnectorEgressSettings = options.vpcConnectorEgressSettings;
+  }
+
+  if(options.serviceAccountEmail){
+    trigger.serviceAccountEmail = options.serviceAccountEmail;
   }
 
   return trigger;

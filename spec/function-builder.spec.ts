@@ -238,4 +238,17 @@ describe('FunctionBuilder', () => {
       )}`
     );
   });
+
+  it('should allow a serviceAccountEmail to be set', () => {
+    const serviceAccountEmail =
+      'test-service-account@test.iam.gserviceaccount.com';
+    const fn = functions
+      .runWith({
+        serviceAccountEmail,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.equal(serviceAccountEmail);
+  });
 });

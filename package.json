@@ -1,5 +1,5 @@
 {
-  "name": "firebase-functions",
+  "name": "@backtowork-app/firebase-functions",
   "version": "3.11.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
@@ -8,13 +8,14 @@
     "google",
     "cloud"
   ],
-  "homepage": "https://github.com/firebase/firebase-functions#readme",
+  "homepage": "https://github.com/@backtowork-app/firebase-functions#readme",
   "bugs": {
-    "url": "https://github.com/firebase/firebase-functions/issues"
+    "url": "https://github.com/@backtowork-app/firebase-functions/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/firebase/firebase-functions.git"
+    "url": "https://github.com/backtowork-app/firebase-functions.git",
+    "directory": "packages/firebase-functions"
   },
   "license": "MIT",
   "author": "Firebase Team",
@@ -24,7 +25,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "publishConfig": {
-    "registry": "https://wombat-dressing-room.appspot.com"
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "apidocs": "node docgen/generate-docs.js",

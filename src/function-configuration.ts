@@ -110,6 +110,11 @@ export interface RuntimeOptions {
    * Egress settings for VPC connector
    */
   vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
+
+  /**
+   * Set specific service account
+   */
+  serviceAccountEmail?: string;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
