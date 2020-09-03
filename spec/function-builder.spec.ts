@@ -239,7 +239,7 @@ describe('FunctionBuilder', () => {
     );
   });
 
-  it('should allow a serviceAccountEmail to be set', () => {
+  it('should allow a serviceAccountEmail to be set as-is', () => {
     const serviceAccountEmail =
       'test-service-account@test.iam.gserviceaccount.com';
     const fn = functions
@@ -250,5 +250,20 @@ describe('FunctionBuilder', () => {
       .onCreate((user) => user);
 
     expect(fn.__trigger.serviceAccountEmail).to.equal(serviceAccountEmail);
+  });
+
+  it('should allow a serviceAccountEmail to be set with generated service account email', () => {
+    const serviceAccountEmail = 'test-service-account';
+    const projectId = process.env.GCLOUD_PROJECT;
+    const fn = functions
+      .runWith({
+        serviceAccountEmail,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.equal(
+      `${serviceAccountEmail}@${projectId}.iam.gserviceaccount.com`
+    );
   });
 });

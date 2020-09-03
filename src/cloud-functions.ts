@@ -527,7 +527,14 @@ export function optionsToTrigger(options: DeploymentOptions) {
   }
 
   if (options.serviceAccountEmail) {
-    trigger.serviceAccountEmail = options.serviceAccountEmail;
+    if (options.serviceAccountEmail.includes('@')) {
+      trigger.serviceAccountEmail = options.serviceAccountEmail;
+    } else {
+      if (!process.env.GCLOUD_PROJECT) {
+        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      }
+      trigger.serviceAccountEmail = `${options.serviceAccountEmail}@${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
+    }
   }
 
   return trigger;
