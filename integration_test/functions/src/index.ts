@@ -20,7 +20,7 @@ import * as testLab from './testLab-utils';
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
-const REGION = functions.config().functions.test_region
+const REGION = functions.config().functions.test_region;
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any, baseUrl) {
