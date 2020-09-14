@@ -4,8 +4,9 @@ import { expectEq, expectMatches, TestSuite } from './testing';
 import DataSnapshot = admin.database.DataSnapshot;
 
 const testIdFieldName = 'testId';
+const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || "us-central1";
 
-export const databaseTests: any = functions.database
+export const databaseTests: any = functions.region(REGION).database
   .ref('dbTests/{testId}/start')
   .onWrite((ch, ctx) => {
     if (ch.after.val() === null) {

@@ -3,7 +3,9 @@ import * as functions from 'firebase-functions';
 import { expectEq, TestSuite } from './testing';
 import UserMetadata = admin.auth.UserRecord;
 
-export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
+const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || "us-central1";
+
+export const createUserTests: any = functions.region(REGION).auth.user().onCreate((u, c) => {
   const testId: string = u.displayName;
   console.log(`testId is ${testId}`);
 
@@ -37,7 +39,7 @@ export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
     .run(testId, u, c);
 });
 
-export const deleteUserTests: any = functions.auth.user().onDelete((u, c) => {
+export const deleteUserTests: any = functions.region(REGION).auth.user().onDelete((u, c) => {
   const testId: string = u.displayName;
   console.log(`testId is ${testId}`);
 

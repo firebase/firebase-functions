@@ -2,7 +2,9 @@ import * as functions from 'firebase-functions';
 import { expectEq, TestSuite } from './testing';
 import TemplateVersion = functions.remoteConfig.TemplateVersion;
 
-export const remoteConfigTests: any = functions.remoteConfig.onUpdate(
+const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || "us-central1";
+
+export const remoteConfigTests: any = functions.region(REGION).remoteConfig.onUpdate(
   (v, c) => {
     return new TestSuite<TemplateVersion>('remoteConfig onUpdate')
       .it('should have a project as resource', (version, context) =>

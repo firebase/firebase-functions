@@ -38,6 +38,26 @@ function build_sdk {
   mv firebase-functions-*.tgz "integration_test/functions/firebase-functions-${TIMESTAMP}.tgz"
 }
 
+function set_region {
+  if [[ "${FIREBASE_FUNCTIONS_TEST_REGION}" == "" ]]; then
+    FIREBASE_FUNCTIONS_TEST_REGION="us-central1"
+  fi
+  if [[ "${TOKEN}" == "" ]]; then 
+    firebase functions:config:set functions.test_region=$FIREBASE_FUNCTIONS_TEST_REGION --project=$PROJECT_ID
+  else
+    firebase functions:config:set functions.test_region=$FIREBASE_FUNCTIONS_TEST_REGION --project=$PROJECT_ID --token=$TOKEN
+  fi
+  announce "Set region to ${FIREBASE_FUNCTIONS_TEST_REGION}"
+}
+
+function unset_region {
+  if [[ "${TOKEN}" == "" ]]; then 
+    firebase functions:config:unset functions.test_region --project=$PROJECT_ID
+  else
+    firebase functions:config:unset functions.test_region --project=$PROJECT_ID --token=$TOKEN
+  fi
+}
+
 function pick_node8 {
   cd "${DIR}"
   cp package.node8.json functions/package.json
@@ -98,7 +118,10 @@ function run_tests {
   if [[ "${FIREBASE_FUNCTIONS_URL}" == "https://preprod-cloudfunctions.sandbox.googleapis.com" ]]; then
     TEST_DOMAIN="txcloud.net"
   fi
-  TEST_URL="https://us-central1-${PROJECT_ID}.${TEST_DOMAIN}/integrationTests"
+  if [[ "${FIREBASE_FUNCTIONS_TEST_REGION}" == "" ]]; then
+    FIREBASE_FUNCTIONS_TEST_REGION="us-central1"
+  fi
+  TEST_URL="https://${FIREBASE_FUNCTIONS_TEST_REGION}-${PROJECT_ID}.${TEST_DOMAIN}/integrationTests"
   echo "${TEST_URL}"
 
   curl --fail "${TEST_URL}"
@@ -107,6 +130,7 @@ function run_tests {
 function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
+  unset_region
   rm "${DIR}/functions/firebase-functions-${TIMESTAMP}.tgz"
   rm "${DIR}/functions/package.json"
   rm -f "${DIR}/functions/firebase-debug.log"
@@ -117,6 +141,7 @@ function cleanup {
 # Setup
 build_sdk
 delete_all_functions
+set_region
 
 # Node 8 tests
 pick_node8

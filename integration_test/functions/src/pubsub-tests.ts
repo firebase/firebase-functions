@@ -3,9 +3,11 @@ import * as functions from 'firebase-functions';
 import { evaluate, expectEq, success, TestSuite } from './testing';
 import PubsubMessage = functions.pubsub.Message;
 
+const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || "us-central1";
+
 // TODO(inlined) use multiple queues to run inline.
 // Expected message data: {"hello": "world"}
-export const pubsubTests: any = functions.pubsub
+export const pubsubTests: any = functions.region(REGION).pubsub
   .topic('pubsubTests')
   .onPublish((m, c) => {
     let testId: string;
@@ -59,7 +61,7 @@ export const pubsubTests: any = functions.pubsub
       .run(testId, m, c);
   });
 
-export const schedule: any = functions.pubsub
+export const schedule: any = functions.region(REGION).pubsub
   .schedule('every 10 hours') // This is a dummy schedule, since we need to put a valid one in.
   // For the test, the job is triggered by the jobs:run api
   .onRun((context) => {

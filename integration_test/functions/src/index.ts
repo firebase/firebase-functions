@@ -20,13 +20,14 @@ import * as testLab from './testLab-utils';
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
+const REGION = functions.config().functions.test_region
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any, baseUrl) {
   return utils.makeRequest(
     {
       method: 'POST',
-      host: 'us-central1-' + firebaseConfig.projectId + '.' + baseUrl,
+      host: REGION + '-' + firebaseConfig.projectId + '.' + baseUrl,
       path: '/' + name,
       headers: {
         'Content-Type': 'application/json',
@@ -62,6 +63,7 @@ function callScheduleTrigger(functionName: string, region: string) {
 }
 
 export const integrationTests: any = functions
+  .region(REGION)
   .runWith({
     timeoutSeconds: 540,
   })
