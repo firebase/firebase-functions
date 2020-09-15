@@ -58,7 +58,6 @@
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
     "firebase-admin": "^8.2.0",
-    "istanbul": "^0.4.5",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
