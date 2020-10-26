@@ -23,6 +23,20 @@ toc:
       - title: 'config.Config'
         path: /docs/reference/functions/config_.config.config.html
 
+  - title: 'functions.function-configuration'
+    path: /docs/reference/functions/function_configuration_.html
+    section:
+      - title: 'config.DeploymentOptions'
+        path: /docs/reference/functions/function_configuration_.deploymentoptions.html
+      - title: 'config.FailurePolicy'
+        path: /docs/reference/functions/function_configuration_.failurepolicy.html
+      - title: 'config.RuntimeOptions'
+        path: /docs/reference/functions/function_configuration_.runtimeoptions.html
+      - title: 'config.Schedule'
+        path: /docs/reference/functions/function_configuration_.schedule.html
+      - title: 'config.ScheduleRetryConfig'
+        path: /docs/reference/functions/function_configuration_.scheduleretryconfig.html
+
   - title: 'functions.analytics'
     path: /docs/reference/functions/providers_analytics_.html
     section:
@@ -127,11 +141,6 @@ toc:
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage_.objectmetadata.html
 
-  - title: 'functions.handler'
-    path: /docs/reference/functions/handler_builder_.html
-    section:
-      - title: 'HandlerBuilder'
-        path: /docs/reference/functions/handler_builder_.handlerbuilder.html
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab_.html
     section:
@@ -143,3 +152,9 @@ toc:
         path: /docs/reference/functions/providers_testlab_.testmatrix.html
       - title: 'testLab.testMatrixBuilder'
         path: /docs/reference/functions/providers_testlab_.testmatrixbuilder.html
+
+  - title: 'functions.handler'
+    path: /docs/reference/functions/handler_builder_.html
+    section:
+      - title: 'HandlerBuilder'
+        path: /docs/reference/functions/handler_builder_.handlerbuilder.html
