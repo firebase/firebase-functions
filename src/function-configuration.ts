@@ -45,12 +45,22 @@ export const VALID_MEMORY_OPTIONS = [
 ] as const;
 
 /**
- * List of available options for VpcConnectorEgressSettings.
+ * List of available options for IngressSettings.
  */
 export const VPC_EGRESS_SETTINGS_OPTIONS = [
   'VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED',
   'PRIVATE_RANGES_ONLY',
   'ALL_TRAFFIC',
+] as const;
+
+/**
+ * List of available options for 
+ */
+export const INGRESS_SETTINGS_OPTIONS = [
+  "INGRESS_SETTINGS_UNSPECIFIED", 
+  "ALLOW_ALL", 
+  "ALLOW_INTERNAL_ONLY", 
+  "ALLOW_INTERNAL_AND_GCLB"
 ] as const;
 
 /**
@@ -110,6 +120,11 @@ export interface RuntimeOptions {
    * Egress settings for VPC connector
    */
   vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
+
+  /**
+   * Ingress settings
+   */
+  ingressSettings?:typeof INGRESS_SETTINGS_OPTIONS[number];
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
