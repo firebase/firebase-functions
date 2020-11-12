@@ -42,6 +42,7 @@ export const VALID_MEMORY_OPTIONS = [
   '512MB',
   '1GB',
   '2GB',
+  '4GB',
 ] as const;
 
 /**
