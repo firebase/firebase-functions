@@ -45,7 +45,7 @@ export const VALID_MEMORY_OPTIONS = [
 ] as const;
 
 /**
- * List of available options for IngressSettings.
+ * List of available options for VpcConnectorEgressSettings.
  */
 export const VPC_EGRESS_SETTINGS_OPTIONS = [
   'VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED',
@@ -54,7 +54,7 @@ export const VPC_EGRESS_SETTINGS_OPTIONS = [
 ] as const;
 
 /**
- * List of available options for 
+ * List of available options for IngressSettings.
  */
 export const INGRESS_SETTINGS_OPTIONS = [
   "INGRESS_SETTINGS_UNSPECIFIED", 
