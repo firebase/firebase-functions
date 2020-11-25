@@ -55,6 +55,16 @@ export const VPC_EGRESS_SETTINGS_OPTIONS = [
 ] as const;
 
 /**
+ * List of available options for IngressSettings.
+ */
+export const INGRESS_SETTINGS_OPTIONS = [
+  'INGRESS_SETTINGS_UNSPECIFIED',
+  'ALLOW_ALL',
+  'ALLOW_INTERNAL_ONLY',
+  'ALLOW_INTERNAL_AND_GCLB',
+] as const;
+
+/**
  * Scheduler retry options. Applies only to scheduled functions.
  */
 export interface ScheduleRetryConfig {
@@ -111,6 +121,11 @@ export interface RuntimeOptions {
    * Egress settings for VPC connector
    */
   vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
+
+  /**
+   * Ingress settings
+   */
+  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
