@@ -133,16 +133,16 @@ export function region(
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with optional fields:
- * 1. memory: amount of memory to allocate to the function, possible values
+ * 1. `memory`: amount of memory to allocate to the function, possible values
  *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
- * 2. timeoutSeconds: timeout for the function in seconds, possible values are
+ * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
  *    0 to 540.
- * 3. failurePolicy: failure policy of the function, with boolean `true` being
+ * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
  *    equivalent to providing an empty retry object.
- * 4. vpcConnector: id of a VPC connector in same project and region
- * 5. vpcConnectorEgressSettings: when a vpcConnector is set, control which
+ * 4. `vpcConnector`: id of a VPC connector in same project and region
+ * 5. `vpcConnectorEgressSettings`: when a vpcConnector is set, control which
  *    egress traffic is sent through the vpcConnector.
- * 6. serviceAccountEmail: Specific service account for the function
+ * 6. `serviceAccountEmail`: Specific service account for the function
  *
  * Value must not be null.
  */
@@ -174,13 +174,16 @@ export class FunctionBuilder {
 
   /**
    * Configure runtime options for the function.
-   * @param runtimeOptions Object with three optional fields:
-   * 1. failurePolicy: failure policy of the function, with boolean `true` being
+   * @param runtimeOptions Object with optional fields:
+   * 1. `memory`: amount of memory to allocate to the function, possible values
+   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
+   *    0 to 540.
+   * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
    *    equivalent to providing an empty retry object.
-   * 2. memory: amount of memory to allocate to the function, with possible
-   *    values being '128MB', '256MB', '512MB', '1GB', and '2GB'.
-   * 3. timeoutSeconds: timeout for the function in seconds, with possible
-   *    values being 0 to 540.
+   * 4. `vpcConnector`: id of a VPC connector in the same project and region
+   * 5. `vpcConnectorEgressSettings`: when a `vpcConnector` is set, control which
+   *    egress traffic is sent through the `vpcConnector`.
    *
    * Value must not be null.
    */

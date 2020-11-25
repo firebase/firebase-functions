@@ -3,68 +3,82 @@ import * as functions from 'firebase-functions';
 import { expectEq, TestSuite } from './testing';
 import UserMetadata = admin.auth.UserRecord;
 
-export const createUserTests: any = functions.auth.user().onCreate((u, c) => {
-  const testId: string = u.displayName;
-  console.log(`testId is ${testId}`);
+const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
-  return new TestSuite<UserMetadata>('auth user onCreate')
-    .it('should have a project as resource', (user, context) =>
-      expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
-    )
+export const createUserTests: any = functions
+  .region(REGION)
+  .auth.user()
+  .onCreate((u, c) => {
+    const testId: string = u.displayName;
+    console.log(`testId is ${testId}`);
 
-    .it('should not have a path', (user, context) =>
-      expectEq((context as any).path, undefined)
-    )
+    return new TestSuite<UserMetadata>('auth user onCreate')
+      .it('should have a project as resource', (user, context) =>
+        expectEq(
+          context.resource.name,
+          `projects/${process.env.GCLOUD_PROJECT}`
+        )
+      )
 
-    .it('should have the correct eventType', (user, context) =>
-      expectEq(context.eventType, 'google.firebase.auth.user.create')
-    )
+      .it('should not have a path', (user, context) =>
+        expectEq((context as any).path, undefined)
+      )
 
-    .it('should have an eventId', (user, context) => context.eventId)
+      .it('should have the correct eventType', (user, context) =>
+        expectEq(context.eventType, 'google.firebase.auth.user.create')
+      )
 
-    .it('should have a timestamp', (user, context) => context.timestamp)
+      .it('should have an eventId', (user, context) => context.eventId)
 
-    .it('should not have auth', (user, context) =>
-      expectEq((context as any).auth, undefined)
-    )
+      .it('should have a timestamp', (user, context) => context.timestamp)
 
-    .it('should not have action', (user, context) =>
-      expectEq((context as any).action, undefined)
-    )
+      .it('should not have auth', (user, context) =>
+        expectEq((context as any).auth, undefined)
+      )
 
-    .it('should have properly defined meta', (user, context) => user.metadata)
+      .it('should not have action', (user, context) =>
+        expectEq((context as any).action, undefined)
+      )
 
-    .run(testId, u, c);
-});
+      .it('should have properly defined meta', (user, context) => user.metadata)
 
-export const deleteUserTests: any = functions.auth.user().onDelete((u, c) => {
-  const testId: string = u.displayName;
-  console.log(`testId is ${testId}`);
+      .run(testId, u, c);
+  });
 
-  return new TestSuite<UserMetadata>('auth user onDelete')
-    .it('should have a project as resource', (user, context) =>
-      expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
-    )
+export const deleteUserTests: any = functions
+  .region(REGION)
+  .auth.user()
+  .onDelete((u, c) => {
+    const testId: string = u.displayName;
+    console.log(`testId is ${testId}`);
 
-    .it('should not have a path', (user, context) =>
-      expectEq((context as any).path, undefined)
-    )
+    return new TestSuite<UserMetadata>('auth user onDelete')
+      .it('should have a project as resource', (user, context) =>
+        expectEq(
+          context.resource.name,
+          `projects/${process.env.GCLOUD_PROJECT}`
+        )
+      )
 
-    .it('should have the correct eventType', (user, context) =>
-      expectEq(context.eventType, 'google.firebase.auth.user.delete')
-    )
+      .it('should not have a path', (user, context) =>
+        expectEq((context as any).path, undefined)
+      )
 
-    .it('should have an eventId', (user, context) => context.eventId)
+      .it('should have the correct eventType', (user, context) =>
+        expectEq(context.eventType, 'google.firebase.auth.user.delete')
+      )
 
-    .it('should have a timestamp', (user, context) => context.timestamp)
+      .it('should have an eventId', (user, context) => context.eventId)
 
-    .it('should not have auth', (user, context) =>
-      expectEq((context as any).auth, undefined)
-    )
+      .it('should have a timestamp', (user, context) => context.timestamp)
 
-    .it('should not have action', (user, context) =>
-      expectEq((context as any).action, undefined)
-    )
+      .it('should not have auth', (user, context) =>
+        expectEq((context as any).auth, undefined)
+      )
 
-    .run(testId, u, c);
-});
+      .it('should not have action', (user, context) =>
+        expectEq((context as any).action, undefined)
+      )
+
+      .run(testId, u, c);
+  });
