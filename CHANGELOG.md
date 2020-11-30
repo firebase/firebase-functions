@@ -1,2 +1,0 @@
-- Adds `4GB` as a `memory` option for `runWith()`.
-- Adds support for choosing `ingressSettings` via `runWith()`.
