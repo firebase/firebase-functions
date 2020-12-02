@@ -526,14 +526,18 @@ export function optionsToTrigger(options: DeploymentOptions) {
     trigger.vpcConnectorEgressSettings = options.vpcConnectorEgressSettings;
   }
 
-  if (options.serviceAccountEmail) {
-    if (options.serviceAccountEmail.includes('@')) {
-      trigger.serviceAccountEmail = options.serviceAccountEmail;
+  if (options.serviceAccount) {
+    if (options.serviceAccount === 'default') {
+      // Do nothing, since this is equivalent to not setting serviceAccount.
+    } else if (options.serviceAccount.includes('@')) {
+      trigger.serviceAccountEmail = options.serviceAccount;
     } else {
       if (!process.env.GCLOUD_PROJECT) {
-        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+        throw new Error(
+          `Unable to determine email for service account '${options.serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
+        );
       }
-      trigger.serviceAccountEmail = `${options.serviceAccountEmail}@${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
+      trigger.serviceAccountEmail = `${options.serviceAccount}@${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
     }
   }
 
