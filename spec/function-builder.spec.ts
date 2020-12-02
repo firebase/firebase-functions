@@ -265,4 +265,16 @@ describe('FunctionBuilder', () => {
       `${serviceAccount}@${projectId}.iam.gserviceaccount.com`
     );
   });
+
+  it('should not set a serviceAccountEmail if service account is set to `default`', () => {
+    const serviceAccount = 'default';
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.be.undefined;
+  });
 });
