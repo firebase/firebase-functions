@@ -262,7 +262,7 @@ describe('FunctionBuilder', () => {
       .onCreate((user) => user);
 
     expect(fn.__trigger.serviceAccountEmail).to.equal(
-      `${serviceAccount}@${projectId}.iam.gserviceaccount.com`
+      `test-service-account@${projectId}.iam.gserviceaccount.com`
     );
   });
 

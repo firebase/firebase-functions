@@ -535,7 +535,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
           `Unable to determine email for service account '${options.serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
         );
       }
-      trigger.serviceAccountEmail = `${options.serviceAccount}@${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
+      trigger.serviceAccountEmail = `${options.serviceAccount}${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
     } else if (options.serviceAccount.includes('@')) {
       trigger.serviceAccountEmail = options.serviceAccount;
     } else {
