@@ -529,15 +529,19 @@ export function optionsToTrigger(options: DeploymentOptions) {
   if (options.serviceAccount) {
     if (options.serviceAccount === 'default') {
       // Do nothing, since this is equivalent to not setting serviceAccount.
-    } else if (options.serviceAccount.includes('@')) {
-      trigger.serviceAccountEmail = options.serviceAccount;
-    } else {
+    } else if (options.serviceAccount.endsWith('@')) {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error(
           `Unable to determine email for service account '${options.serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
         );
       }
       trigger.serviceAccountEmail = `${options.serviceAccount}@${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
+    } else if (options.serviceAccount.includes('@')) {
+      trigger.serviceAccountEmail = options.serviceAccount;
+    } else {
+      throw new Error(
+        `Invalid option for serviceAccount: '${options.serviceAccount}'. Valid options are 'default', a service account email, or '{serviceAccountName}@'`
+      );
     }
   }
 

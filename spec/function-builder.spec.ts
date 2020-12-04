@@ -252,7 +252,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow a serviceAccount to be set with generated service account email', () => {
-    const serviceAccount = 'test-service-account';
+    const serviceAccount = 'test-service-account@';
     const projectId = process.env.GCLOUD_PROJECT;
     const fn = functions
       .runWith({
@@ -276,5 +276,14 @@ describe('FunctionBuilder', () => {
       .onCreate((user) => user);
 
     expect(fn.__trigger.serviceAccountEmail).to.be.undefined;
+  });
+
+  it('should throw an error if serviceAccount is set to an invalid value', () => {
+    const serviceAccount = 'test-service-account';
+    expect(() => {
+      functions.runWith({
+        serviceAccount,
+      });
+    }).to.throw();
   });
 });

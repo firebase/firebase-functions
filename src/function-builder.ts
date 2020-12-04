@@ -99,6 +99,16 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       }
     }
   }
+
+  if (
+    runtimeOptions.serviceAccount &&
+    runtimeOptions.serviceAccount !== 'default' &&
+    !_.includes(runtimeOptions.serviceAccount, '@')
+  ) {
+    throw new Error(
+      `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
+    );
+  }
   return true;
 }
 
