@@ -238,4 +238,52 @@ describe('FunctionBuilder', () => {
       )}`
     );
   });
+
+  it('should allow a serviceAccount to be set as-is', () => {
+    const serviceAccount = 'test-service-account@test.iam.gserviceaccount.com';
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.equal(serviceAccount);
+  });
+
+  it('should allow a serviceAccount to be set with generated service account email', () => {
+    const serviceAccount = 'test-service-account@';
+    const projectId = process.env.GCLOUD_PROJECT;
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.equal(
+      `test-service-account@${projectId}.iam.gserviceaccount.com`
+    );
+  });
+
+  it('should not set a serviceAccountEmail if service account is set to `default`', () => {
+    const serviceAccount = 'default';
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.be.undefined;
+  });
+
+  it('should throw an error if serviceAccount is set to an invalid value', () => {
+    const serviceAccount = 'test-service-account';
+    expect(() => {
+      functions.runWith({
+        serviceAccount,
+      });
+    }).to.throw();
+  });
 });

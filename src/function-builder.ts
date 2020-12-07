@@ -99,6 +99,16 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       }
     }
   }
+
+  if (
+    runtimeOptions.serviceAccount &&
+    runtimeOptions.serviceAccount !== 'default' &&
+    !_.includes(runtimeOptions.serviceAccount, '@')
+  ) {
+    throw new Error(
+      `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
+    );
+  }
   return true;
 }
 
@@ -139,9 +149,12 @@ export function region(
  *    0 to 540.
  * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
  *    equivalent to providing an empty retry object.
- * 4. `vpcConnector`: id of a VPC connector in the same project and region
- * 5. `vpcConnectorEgressSettings`: when a `vpcConnector` is set, control which
- *    egress traffic is sent through the `vpcConnector`.
+ * 4. `vpcConnector`: id of a VPC connector in same project and region.
+ * 5. `vpcConnectorEgressSettings`: when a vpcConnector is set, control which
+ *    egress traffic is sent through the vpcConnector.
+ * 6. `serviceAccount`: Specific service account for the function.
+ * 7. `ingressSettings`: ingress settings for the function, which control where a HTTPS
+ *    function can be called from.
  *
  * Value must not be null.
  */
