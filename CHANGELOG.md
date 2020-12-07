@@ -1,4 +1,4 @@
-- Adds `serviceAccount` option to `runtimeOptions`, which lets users to specify what service account a Cloud Function should run as. For example: ```
+- Adds `serviceAccount` option to `runtimeOptions` to specify which service account Cloud Function should use at runtime. For example: ```
   const functions = require('firebase-functions');
 
 exports.myFunction = functions.runWith({
