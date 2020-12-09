@@ -123,6 +123,11 @@ export interface RuntimeOptions {
   vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
 
   /**
+   * Specific service account for the function to run as
+   */
+  serviceAccount?: 'default' | string;
+
+  /**
    * Ingress settings
    */
   ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
