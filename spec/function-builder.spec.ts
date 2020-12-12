@@ -200,6 +200,27 @@ describe('FunctionBuilder', () => {
     }).to.throw(Error, 'at least one region');
   });
 
+  it('should allow a ingressSettings to be set', () => {
+    const fn = functions
+      .runWith({ ingressSettings: 'ALLOW_INTERNAL_ONLY' })
+      .https.onRequest(() => {});
+
+    expect(fn.__trigger.ingressSettings).to.equal('ALLOW_INTERNAL_ONLY');
+  });
+
+  it('should throw an error if user chooses an invalid ingressSettings', () => {
+    expect(() => {
+      return functions.runWith({
+        ingressSettings: 'INVALID_OPTION',
+      } as any);
+    }).to.throw(
+      Error,
+      `The only valid ingressSettings values are: ${functions.INGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
+    );
+  });
+
   it('should allow a vpcConnector to be set', () => {
     const fn = functions
       .runWith({
