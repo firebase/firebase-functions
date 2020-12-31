@@ -336,7 +336,7 @@ export function extractInstanceAndPath(
   }
 
   const emuHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST;
-  if (apps().hasEmulatedAdminApp && emuHost) {
+  if (emuHost) {
     const dbInstance = `http://${emuHost}/?ns=${dbInstanceName}`;
     return [dbInstance, path];
   } else {
