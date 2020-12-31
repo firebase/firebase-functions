@@ -125,6 +125,10 @@ export namespace apps {
       this._emulatedAdminApp = app;
     }
 
+    hasEmulatedAdminApp(): boolean {
+      return !!this._emulatedAdminApp;
+    }
+
     private get firebaseArgs() {
       return _.assign({}, firebaseConfig(), {
         credential: firebase.credential.applicationDefault(),
