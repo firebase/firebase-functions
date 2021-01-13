@@ -507,6 +507,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
       '512MB': 512,
       '1GB': 1024,
       '2GB': 2048,
+      '4GB': 4096,
     };
     trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
   }
