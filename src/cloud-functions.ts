@@ -22,7 +22,13 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { DeploymentOptions, Schedule } from './function-configuration';
+import { warn } from './logger';
+import {
+  DEFAULT_FAILURE_POLICY,
+  DeploymentOptions,
+  FailurePolicy,
+  Schedule,
+} from './function-configuration';
 export { Request, Response };
 
 /** @hidden */
@@ -88,22 +94,22 @@ export interface EventContext {
   eventId: string;
 
   /**
-   * Type of event. Valid values are:
+   * Type of event. Possible values are:
    *
-   * * `providers/google.firebase.analytics/eventTypes/event.log`
-   * * `providers/firebase.auth/eventTypes/user.create`
-   * * `providers/firebase.auth/eventTypes/user.delete`
-   * * `providers/firebase.crashlytics/eventTypes/issue.new`
-   * * `providers/firebase.crashlytics/eventTypes/issue.regressed`
-   * * `providers/firebase.crashlytics/eventTypes/issue.velocityAlert`
-   * * `providers/google.firebase.database/eventTypes/ref.write`
-   * * `providers/google.firebase.database/eventTypes/ref.create`
-   * * `providers/google.firebase.database/eventTypes/ref.update`
-   * * `providers/google.firebase.database/eventTypes/ref.delete`
-   * * `providers/cloud.firestore/eventTypes/document.write`
-   * * `providers/cloud.firestore/eventTypes/document.create`
-   * * `providers/cloud.firestore/eventTypes/document.update`
-   * * `providers/cloud.firestore/eventTypes/document.delete`
+   * * `google.analytics.event.log`
+   * * `google.firebase.auth.user.create`
+   * * `google.firebase.auth.user.delete`
+   * * `google.firebase.crashlytics.issue.new`
+   * * `google.firebase.crashlytics.issue.regressed`
+   * * `google.firebase.crashlytics.issue.velocityAlert`
+   * * `google.firebase.database.ref.write`
+   * * `google.firebase.database.ref.create`
+   * * `google.firebase.database.ref.update`
+   * * `google.firebase.database.ref.delete`
+   * * `google.firestore.document.write`
+   * * `google.firestore.document.create`
+   * * `google.firestore.document.update`
+   * * `google.firestore.document.delete`
    * * `google.pubsub.topic.publish`
    * * `google.firebase.remoteconfig.update`
    * * `google.storage.object.finalize`
@@ -204,6 +210,7 @@ export namespace Change {
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
+
     return Change.fromObjects(
       customizer(before || {}),
       customizer(json.after || {})
@@ -218,7 +225,8 @@ export namespace Change {
   ) {
     const before = _.assign({}, after);
     const masks = fieldMask.split(',');
-    _.forEach(masks, (mask) => {
+
+    masks.forEach((mask) => {
       const val = _.get(sparseBefore, mask);
       if (typeof val === 'undefined') {
         _.unset(before, mask);
@@ -226,6 +234,7 @@ export namespace Change {
         _.set(before, mask, val);
       }
     });
+
     return before;
   }
 }
@@ -255,11 +264,15 @@ export interface TriggerAnnotated {
       resource: string;
       service: string;
     };
+    failurePolicy?: FailurePolicy;
     httpsTrigger?: {};
     labels?: { [key: string]: string };
     regions?: string[];
     schedule?: Schedule;
     timeout?: string;
+    vpcConnector?: string;
+    vpcConnectorEgressSettings?: string;
+    serviceAccountEmail?: string;
   };
 }
 
@@ -379,7 +392,7 @@ export function makeCloudFunction<EventData>({
       promise = handler(dataOrChange, context);
     }
     if (typeof promise === 'undefined') {
-      console.warn('Function returned undefined, expected Promise or value');
+      warn('Function returned undefined, expected Promise or value');
     }
     return Promise.resolve(promise)
       .then((result) => {
@@ -472,6 +485,18 @@ export function optionsToTrigger(options: DeploymentOptions) {
   if (options.regions) {
     trigger.regions = options.regions;
   }
+  if (options.failurePolicy !== undefined) {
+    switch (options.failurePolicy) {
+      case false:
+        trigger.failurePolicy = undefined;
+        break;
+      case true:
+        trigger.failurePolicy = DEFAULT_FAILURE_POLICY;
+        break;
+      default:
+        trigger.failurePolicy = options.failurePolicy;
+    }
+  }
   if (options.timeoutSeconds) {
     trigger.timeout = options.timeoutSeconds.toString() + 's';
   }
@@ -482,6 +507,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
       '512MB': 512,
       '1GB': 1024,
       '2GB': 2048,
+      '4GB': 4096,
     };
     trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
   }
@@ -492,5 +518,33 @@ export function optionsToTrigger(options: DeploymentOptions) {
   if (options.maxInstances) {
     trigger.maxInstances = options.maxInstances;
   }
+
+  if (options.vpcConnector) {
+    trigger.vpcConnector = options.vpcConnector;
+  }
+
+  if (options.vpcConnectorEgressSettings) {
+    trigger.vpcConnectorEgressSettings = options.vpcConnectorEgressSettings;
+  }
+
+  if (options.serviceAccount) {
+    if (options.serviceAccount === 'default') {
+      // Do nothing, since this is equivalent to not setting serviceAccount.
+    } else if (options.serviceAccount.endsWith('@')) {
+      if (!process.env.GCLOUD_PROJECT) {
+        throw new Error(
+          `Unable to determine email for service account '${options.serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
+        );
+      }
+      trigger.serviceAccountEmail = `${options.serviceAccount}${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
+    } else if (options.serviceAccount.includes('@')) {
+      trigger.serviceAccountEmail = options.serviceAccount;
+    } else {
+      throw new Error(
+        `Invalid option for serviceAccount: '${options.serviceAccount}'. Valid options are 'default', a service account email, or '{serviceAccountName}@'`
+      );
+    }
+  }
+
   return trigger;
 }

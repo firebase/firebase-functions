@@ -15,6 +15,9 @@ export const SUPPORTED_REGIONS = [
   'asia-east2',
   'asia-northeast1',
   'asia-northeast2',
+  'asia-northeast3',
+  'asia-south1',
+  'asia-southeast2',
   'northamerica-northeast1',
   'southamerica-east1',
   'australia-southeast1',
@@ -39,6 +42,26 @@ export const VALID_MEMORY_OPTIONS = [
   '512MB',
   '1GB',
   '2GB',
+  '4GB',
+] as const;
+
+/**
+ * List of available options for VpcConnectorEgressSettings.
+ */
+export const VPC_EGRESS_SETTINGS_OPTIONS = [
+  'VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED',
+  'PRIVATE_RANGES_ONLY',
+  'ALL_TRAFFIC',
+] as const;
+
+/**
+ * List of available options for IngressSettings.
+ */
+export const INGRESS_SETTINGS_OPTIONS = [
+  'INGRESS_SETTINGS_UNSPECIFIED',
+  'ALLOW_ALL',
+  'ALLOW_INTERNAL_ONLY',
+  'ALLOW_INTERNAL_AND_GCLB',
 ] as const;
 
 /**
@@ -61,7 +84,20 @@ export interface Schedule {
   retryConfig?: ScheduleRetryConfig;
 }
 
+export interface FailurePolicy {
+  retry: {};
+}
+
+export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
+  retry: {},
+};
+
 export interface RuntimeOptions {
+  /**
+   * Failure policy of the function, with boolean `true` being equivalent to
+   * providing an empty retry object.
+   */
+  failurePolicy?: FailurePolicy | boolean;
   /**
    * Amount of memory to allocate to the function.
    */
@@ -75,6 +111,26 @@ export interface RuntimeOptions {
    * Max number of actual instances allowed to be running in parallel
    */
   maxInstances?: number;
+
+  /**
+   * Connect cloud function to specified VPC connector
+   */
+  vpcConnector?: string;
+
+  /**
+   * Egress settings for VPC connector
+   */
+  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
+
+  /**
+   * Specific service account for the function to run as
+   */
+  serviceAccount?: 'default' | string;
+
+  /**
+   * Ingress settings
+   */
+  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
 }
 
 export interface DeploymentOptions extends RuntimeOptions {

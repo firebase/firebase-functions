@@ -472,6 +472,17 @@ describe('Database Functions', () => {
         );
       }).to.throw(Error);
     });
+
+    it('should use the emulator host when present', () => {
+      process.env.FIREBASE_DATABASE_EMULATOR_HOST = 'localhost:1234';
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/bar',
+        'firebaseio-staging.com'
+      );
+      expect(instance).to.equal('http://localhost:1234/?ns=foo');
+      expect(path).to.equal('/bar');
+      delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+    });
   });
 
   describe('DataSnapshot', () => {
