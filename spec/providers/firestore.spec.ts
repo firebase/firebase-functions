@@ -566,6 +566,7 @@ describe('Firestore Functions', () => {
 
     describe('Other DocumentSnapshot methods', () => {
       let snapshot: FirebaseFirestore.DocumentSnapshot;
+      let newSnapshot: FirebaseFirestore.DocumentSnapshot;
 
       before(() => {
         snapshot = firestore.snapshotConstructor(
@@ -576,6 +577,16 @@ describe('Firestore Functions', () => {
               updateTime: '2017-08-31T18:05:26.928527Z',
               readTime: '2017-07-31T18:23:26.928527Z',
               name: 'projects/pid/databases/(default)/documents/collection/123',
+            },
+          })
+        );
+        newSnapshot = firestore.snapshotConstructor(
+          makeEvent({
+            value: {
+              fields: { key: { integerValue: '2' } },
+              createTime: '2017-06-17T14:45:17.876479Z',
+              updateTime: '2017-06-17T14:45:17.876479Z',
+              name: 'projects/pid/databases/(default)/documents/collection/124',
             },
           })
         );
@@ -606,6 +617,8 @@ describe('Firestore Functions', () => {
       it('should support #readTime', () => {
         expect(snapshot.readTime.seconds).to.be.a('number');
         expect(snapshot.readTime.nanoseconds).to.be.a('number');
+        expect(newSnapshot.readTime.seconds).to.be.a('number');
+        expect(newSnapshot.readTime.nanoseconds).to.be.a('number');
       });
     });
 

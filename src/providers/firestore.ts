@@ -155,7 +155,10 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
     event.context.resource.name,
     'value'
   );
-  const readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
+  const timeString =
+    _.get(event, 'data.value.readTime') ??
+    _.get(event, 'data.value.updateTime');
+  const readTime = dateToTimestampProto(timeString);
   return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 }
 
