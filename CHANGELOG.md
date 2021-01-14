@@ -1,0 +1,1 @@
+- Fixes a bug that prevented Functions from being deployed with `availableMemoryMb` set to `4GB`.
