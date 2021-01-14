@@ -8,7 +8,7 @@ describe(`logger (${
   SUPPORTS_STRUCTURED_LOGS ? 'structured' : 'unstructured'
 })`, () => {
   let stdoutWrite = process.stdout.write.bind(process.stdout);
-  let stderrWrite = process.stderr.write.bind(process.stdout);
+  let stderrWrite = process.stderr.write.bind(process.stderr);
   let lastOut: string;
   let lastErr: string;
 
