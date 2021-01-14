@@ -82,6 +82,7 @@ describe('FunctionBuilder', () => {
     const fn = functions
       .runWith({
         timeoutSeconds: 90,
+        failurePolicy: { retry: {} },
         memory: '256MB',
       })
       .auth.user()
@@ -89,6 +90,20 @@ describe('FunctionBuilder', () => {
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
+  });
+
+  it("should apply a default failure policy if it's aliased with `true`", () => {
+    const fn = functions
+      .runWith({
+        failurePolicy: true,
+        memory: '256MB',
+        timeoutSeconds: 90,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
   });
 
   it('should allow both supported region and valid runtime options to be set', () => {
@@ -129,6 +144,22 @@ describe('FunctionBuilder', () => {
     }).to.throw(Error, 'TimeoutSeconds');
   });
 
+  it('should throw an error if user chooses a failurePolicy which is neither an object nor a boolean', () => {
+    expect(() =>
+      functions.runWith({
+        failurePolicy: (1234 as unknown) as functions.RuntimeOptions['failurePolicy'],
+      })
+    ).to.throw(Error, 'failurePolicy must be a boolean or an object');
+  });
+
+  it('should throw an error if user chooses a failurePolicy.retry which is not an object', () => {
+    expect(() =>
+      functions.runWith({
+        failurePolicy: { retry: (1234 as unknown) as object },
+      })
+    ).to.throw(Error, 'failurePolicy.retry');
+  });
+
   it('should throw an error if user chooses an invalid memory allocation', () => {
     expect(() => {
       return functions.runWith({
@@ -167,5 +198,104 @@ describe('FunctionBuilder', () => {
         timeoutSeconds: 500,
       } as any);
     }).to.throw(Error, 'at least one region');
+  });
+
+  it('should allow a vpcConnector to be set', () => {
+    const fn = functions
+      .runWith({
+        vpcConnector: 'test-connector',
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.vpcConnector).to.equal('test-connector');
+  });
+
+  it('should allow a vpcConnectorEgressSettings to be set', () => {
+    const fn = functions
+      .runWith({
+        vpcConnector: 'test-connector',
+        vpcConnectorEgressSettings: 'PRIVATE_RANGES_ONLY',
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.vpcConnectorEgressSettings).to.equal(
+      'PRIVATE_RANGES_ONLY'
+    );
+  });
+
+  it('should throw an error if user chooses an invalid vpcConnectorEgressSettings', () => {
+    expect(() => {
+      return functions.runWith({
+        vpcConnector: 'test-connector',
+        vpcConnectorEgressSettings: 'INCORRECT_OPTION',
+      } as any);
+    }).to.throw(
+      Error,
+      `The only valid vpcConnectorEgressSettings values are: ${functions.VPC_EGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
+    );
+  });
+
+  it('should allow a serviceAccount to be set as-is', () => {
+    const serviceAccount = 'test-service-account@test.iam.gserviceaccount.com';
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.equal(serviceAccount);
+  });
+
+  it('should allow a serviceAccount to be set with generated service account email', () => {
+    const serviceAccount = 'test-service-account@';
+    const projectId = process.env.GCLOUD_PROJECT;
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.equal(
+      `test-service-account@${projectId}.iam.gserviceaccount.com`
+    );
+  });
+
+  it('should not set a serviceAccountEmail if service account is set to `default`', () => {
+    const serviceAccount = 'default';
+    const fn = functions
+      .runWith({
+        serviceAccount,
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.serviceAccountEmail).to.be.undefined;
+  });
+
+  it('should throw an error if serviceAccount is set to an invalid value', () => {
+    const serviceAccount = 'test-service-account';
+    expect(() => {
+      functions.runWith({
+        serviceAccount,
+      });
+    }).to.throw();
+  });
+
+  it('should allow setting 4GB memory option', () => {
+    const fn = functions
+      .runWith({
+        memory: '4GB',
+      })
+      .region('europe-west1')
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(4096);
   });
 });

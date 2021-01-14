@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.8.0",
+  "version": "3.13.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -31,6 +31,7 @@
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install --no-save typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
+    "build:watch": "npm run build -- -w",
     "format": "prettier --check '**/*.{json,md,ts,yml,yaml}'",
     "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",
@@ -58,7 +59,6 @@
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
     "firebase-admin": "^8.2.0",
-    "istanbul": "^0.4.5",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
@@ -73,12 +73,12 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "0.14.2",
+    "typedoc": "^0.19.1",
     "typescript": "^3.8.3",
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
-    "firebase-admin": "^8.0.0"
+    "firebase-admin": "^8.0.0 || ^9.0.0"
   },
   "engines": {
     "node": "^8.13.0 || >=10.10.0"
