@@ -31,26 +31,28 @@ export interface LogEntry {
 }
 
 function removeCircular(obj: any, refs: any[] = []): any {
-  let copiedObj = Object.assign({}, obj);
-  if (typeof copiedObj !== 'object' || !copiedObj) {
-    return copiedObj;
+  if (typeof obj !== 'object' || !obj) {
+    return obj;
   }
-
-  if (refs.includes(copiedObj)) {
+  if (refs.includes(obj)) {
     return '[Circular]';
   } else {
-    refs.push(copiedObj);
+    refs.push(obj);
   }
-
-  for (const k in copiedObj) {
-    if (refs.includes(copiedObj[k])) {
-      copiedObj[k] = '[Circular]';
+  let returnObj: any;
+  if (Array.isArray(obj)) {
+    returnObj = new Array(obj.length);
+  } else {
+    returnObj = {};
+  }
+  for (const k in obj) {
+    if (refs.includes(obj[k])) {
+      returnObj[k] = '[Circular]';
     } else {
-      copiedObj[k] = removeCircular(copiedObj[k], refs);
+      returnObj[k] = removeCircular(obj[k], refs);
     }
   }
-
-  return copiedObj;
+  return returnObj;
 }
 
 /**
