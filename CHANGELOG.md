@@ -1,0 +1,2 @@
+- Fixes a bug that prevented Functions from being deployed with `availableMemoryMb` set to `4GB`.
+- Fixes bug where `functions.logger.log` crashes function if circular dependencies are passed in
