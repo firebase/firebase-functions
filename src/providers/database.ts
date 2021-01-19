@@ -334,8 +334,15 @@ export function extractInstanceAndPath(
       `Expect project to be '_' in a Firebase Realtime Database event`
     );
   }
-  const dbInstance = 'https://' + dbInstanceName + '.' + domain;
-  return [dbInstance, path];
+
+  const emuHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+  if (emuHost) {
+    const dbInstance = `http://${emuHost}/?ns=${dbInstanceName}`;
+    return [dbInstance, path];
+  } else {
+    const dbInstance = 'https://' + dbInstanceName + '.' + domain;
+    return [dbInstance, path];
+  }
 }
 
 /**

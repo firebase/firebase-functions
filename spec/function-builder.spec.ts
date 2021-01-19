@@ -307,4 +307,16 @@ describe('FunctionBuilder', () => {
       });
     }).to.throw();
   });
+
+  it('should allow setting 4GB memory option', () => {
+    const fn = functions
+      .runWith({
+        memory: '4GB',
+      })
+      .region('europe-west1')
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(4096);
+  });
 });
