@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import * as sinon from 'sinon';
 import * as logger from '../src/logger';
 
 const SUPPORTS_STRUCTURED_LOGS =
@@ -8,52 +7,51 @@ const SUPPORTS_STRUCTURED_LOGS =
 describe(`logger (${
   SUPPORTS_STRUCTURED_LOGS ? 'structured' : 'unstructured'
 })`, () => {
-  let sandbox: sinon.SinonSandbox;
-  let stdoutStub: sinon.SinonStub;
-  let stderrStub: sinon.SinonStub;
+  let stdoutWrite = process.stdout.write.bind(process.stdout);
+  let stderrWrite = process.stderr.write.bind(process.stderr);
+  let lastOut: string;
+  let lastErr: string;
 
   beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    stdoutStub = sandbox.stub(process.stdout, 'write');
-    stderrStub = sandbox.stub(process.stderr, 'write');
+    process.stdout.write = (msg: Buffer | string, cb?: any): boolean => {
+      lastOut = msg as string;
+      return stdoutWrite(msg, cb);
+    };
+    process.stderr.write = (msg: Buffer | string, cb?: any): boolean => {
+      lastErr = msg as string;
+      return stderrWrite(msg, cb);
+    };
   });
 
-  function expectOutput(stdStub: sinon.SinonStub, entry: any) {
+  afterEach(() => {
+    process.stdout.write = stdoutWrite;
+    process.stderr.write = stderrWrite;
+  });
+
+  function expectOutput(last: string, entry: any) {
     if (SUPPORTS_STRUCTURED_LOGS) {
-      return expect(
-        JSON.parse((stdStub.getCalls()[0].args[0] as string).trim())
-      ).to.deep.eq(entry);
+      return expect(JSON.parse(last.trim())).to.deep.eq(entry);
     } else {
       // legacy logging is not structured, but do a sanity check
-      return expect(stdStub.getCalls()[0].args[0]).to.include(entry.message);
+      return expect(last).to.include(entry.message);
     }
   }
 
   function expectStdout(entry: any) {
-    return expectOutput(stdoutStub, entry);
+    return expectOutput(lastOut, entry);
   }
 
   function expectStderr(entry: any) {
-    return expectOutput(stderrStub, entry);
+    return expectOutput(lastErr, entry);
   }
 
   describe('logging methods', () => {
-    let writeStub: sinon.SinonStub;
-    beforeEach(() => {
-      writeStub = sinon.stub(logger, 'write');
-    });
-
-    afterEach(() => {
-      writeStub.restore();
-    });
-
     it('should coalesce arguments into the message', () => {
       logger.log('hello', { middle: 'obj' }, 'end message');
       expectStdout({
         severity: 'INFO',
         message: "hello { middle: 'obj' } end message",
       });
-      sandbox.restore(); // to avoid swallowing test runner output
     });
 
     it('should merge structured data from the last argument', () => {
@@ -63,7 +61,6 @@ describe(`logger (${
         message: 'hello world',
         additional: 'context',
       });
-      sandbox.restore(); // to avoid swallowing test runner output
     });
 
     it('should not recognize null as a structured logging object', () => {
@@ -72,13 +69,46 @@ describe(`logger (${
         severity: 'INFO',
         message: 'hello world null',
       });
-      sandbox.restore(); // to avoid swallowing test runner output
     });
   });
 
   describe('write', () => {
     describe('structured logging', () => {
       describe('write', () => {
+        it('should remove circular references', () => {
+          const circ: any = { b: 'foo' };
+          circ.circ = circ;
+
+          const entry: logger.LogEntry = {
+            severity: 'ERROR',
+            message: 'testing circular',
+            circ,
+          };
+          logger.write(entry);
+          expectStderr({
+            severity: 'ERROR',
+            message: 'testing circular',
+            circ: { b: 'foo', circ: '[Circular]' },
+          });
+        });
+
+        it('should remove circular references in arrays', () => {
+          const circ: any = { b: 'foo' };
+          circ.circ = [circ];
+
+          const entry: logger.LogEntry = {
+            severity: 'ERROR',
+            message: 'testing circular',
+            circ,
+          };
+          logger.write(entry);
+          expectStderr({
+            severity: 'ERROR',
+            message: 'testing circular',
+            circ: { b: 'foo', circ: ['[Circular]'] },
+          });
+        });
+
         for (const severity of ['DEBUG', 'INFO', 'NOTICE']) {
           it(`should output ${severity} severity to stdout`, () => {
             let entry: logger.LogEntry = {
@@ -87,7 +117,6 @@ describe(`logger (${
             };
             logger.write(entry);
             expectStdout(entry);
-            sandbox.restore(); // to avoid swallowing test runner output
           });
         }
 
@@ -105,7 +134,6 @@ describe(`logger (${
             };
             logger.write(entry);
             expectStderr(entry);
-            sandbox.restore(); // to avoid swallowing test runner output
           });
         }
       });
