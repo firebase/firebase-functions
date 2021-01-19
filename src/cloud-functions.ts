@@ -273,6 +273,7 @@ export interface TriggerAnnotated {
     vpcConnector?: string;
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
+    ingressSettings?: string;
   };
 }
 
@@ -517,6 +518,10 @@ export function optionsToTrigger(options: DeploymentOptions) {
 
   if (options.maxInstances) {
     trigger.maxInstances = options.maxInstances;
+  }
+
+  if (options.ingressSettings) {
+    trigger.ingressSettings = options.ingressSettings;
   }
 
   if (options.vpcConnector) {

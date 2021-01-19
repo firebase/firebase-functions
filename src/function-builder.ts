@@ -31,6 +31,7 @@ import {
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
   VPC_EGRESS_SETTINGS_OPTIONS,
+  INGRESS_SETTINGS_OPTIONS,
 } from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
@@ -65,6 +66,17 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   ) {
     throw new Error(
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+    );
+  }
+
+  if (
+    runtimeOptions.ingressSettings &&
+    !_.includes(INGRESS_SETTINGS_OPTIONS, runtimeOptions.ingressSettings)
+  ) {
+    throw new Error(
+      `The only valid ingressSettings values are: ${INGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
     );
   }
 
