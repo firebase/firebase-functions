@@ -1,0 +1,2 @@
+- Fixes issue where DATABASE_URL and STORAGE_BUCKET_URL could not be set to undefined. (#829)
+- Fixes a bug where ingressSettings could not be set. (#827)
