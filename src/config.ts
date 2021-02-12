@@ -22,6 +22,7 @@
 
 import * as firebase from 'firebase-admin';
 import * as path from 'path';
+import { existsSync, findUpSync } from './utilities/fs';
 
 export function config(): config.Config {
   if (typeof config.singleton === 'undefined') {
@@ -51,6 +52,25 @@ export namespace config {
 }
 
 /** @hidden */
+function findConfigPath(): string {
+  // Config path preferences in order:
+  // 1. ENV value CLOUD_RUNTIME_CONFIG.
+  // 2. The .runtimeconfig.json in the working directory.
+  // 3. The .runtimeconfig.json in ancestor directory (traversing up from PWD).
+
+  if (process.env.CLOUD_RUNTIME_CONFIG) {
+    return process.env.CLOUD_RUNTIME_CONFIG as string;
+  }
+
+  const configPathAtPwd = path.join(process.env.PWD, '.runtimeconfig.json');
+  if (existsSync(configPathAtPwd)) {
+    return configPathAtPwd;
+  }
+
+  return findUpSync('.runtimeconfig.json') as string;
+}
+
+/** @hidden */
 export function firebaseConfig(): firebase.AppOptions | null {
   const env = process.env.FIREBASE_CONFIG;
   if (env) {
@@ -69,10 +89,7 @@ export function firebaseConfig(): firebase.AppOptions | null {
 
   // Could have Runtime Config with Firebase in it as an ENV location or default.
   try {
-    const configPath =
-      process.env.CLOUD_RUNTIME_CONFIG ||
-      path.join(process.env.PWD, '.runtimeconfig.json');
-    const config = require(configPath);
+    const config = require(findConfigPath());
     if (config.firebase) {
       return config.firebase;
     }
@@ -94,10 +111,7 @@ function init() {
   }
 
   try {
-    const configPath =
-      process.env.CLOUD_RUNTIME_CONFIG ||
-      path.join(process.env.PWD, '.runtimeconfig.json');
-    const parsed = require(configPath);
+    const parsed = require(findConfigPath());
     delete parsed.firebase;
     config.singleton = parsed;
     return;

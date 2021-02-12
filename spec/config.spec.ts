@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
+import * as mockFs from 'mock-fs';
 import * as mockRequire from 'mock-require';
 import { config, firebaseConfig } from '../src/config';
 
@@ -32,6 +33,7 @@ describe('config()', () => {
     delete process.env.PWD;
   });
   afterEach(() => {
+    mockFs.restore();
     mockRequire.stopAll();
     delete config.singleton;
     delete process.env.FIREBASE_CONFIG;
@@ -39,10 +41,53 @@ describe('config()', () => {
   });
 
   it('loads config values from .runtimeconfig.json', () => {
-    mockRequire('/srv/.runtimeconfig.json', { foo: 'bar', firebase: {} });
+    const configPath = '/srv/.runtimeconfig.json';
+    const mockConfig = {
+      foo: 'bar',
+      firebase: {},
+    };
+    mockRequire(configPath, mockConfig);
+    mockFs({ [configPath]: JSON.stringify(mockConfig) });
+
     const loaded = config();
     expect(loaded).to.not.have.property('firebase');
     expect(loaded).to.have.property('foo', 'bar');
+  });
+
+  it('loads config values from hoisted .runtimeconfig.json', () => {
+    const hoistedConfigPath = '/.runtimeconfig.json'; // One directory up from /srv
+    const mockConfig = {
+      foo: 'bar',
+      firebase: {},
+    };
+    mockRequire(hoistedConfigPath, mockConfig);
+    mockFs({ [hoistedConfigPath]: JSON.stringify(mockConfig) });
+
+    const loaded = config();
+    expect(loaded).to.not.have.property('firebase');
+    expect(loaded).to.have.property('foo', 'bar');
+  });
+
+  it('loads config values from node_modules sibling before other hoisted .runtimeconfig.json files', () => {
+    const hoistedConfigPath = '/.runtimeconfig.json'; // One directory up from /srv
+    const nodeModulesSiblingConfigPath = '/srv/.runtimeconfig.json';
+    const configValid = {
+      foo: 'bar',
+      firebase: {},
+    };
+    const configInvalid = {
+      foo: 'baz',
+      firebase: {},
+    };
+    mockRequire(hoistedConfigPath, configInvalid);
+    mockRequire(nodeModulesSiblingConfigPath, configValid);
+    mockFs({
+      [hoistedConfigPath]: JSON.stringify(configInvalid),
+      [nodeModulesSiblingConfigPath]: JSON.stringify(configValid),
+    });
+
+    const loaded = config();
+    expect(loaded).to.have.property('foo', configValid.foo);
   });
 
   it('does not provide firebase config if .runtimeconfig.json not invalid', () => {
