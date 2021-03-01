@@ -1,6 +1,5 @@
 import * as firebase from 'firebase-admin';
 import { EventContext } from 'firebase-functions';
-import * as _ from 'lodash';
 
 export type TestCase<T> = (data: T, context?: EventContext) => any;
 export interface TestCaseMap<T> {
@@ -66,43 +65,66 @@ function failure(reason: string) {
   return Promise.reject(reason);
 }
 
-export function evaluate(value, errMsg) {
+export function evaluate(value: boolean, errMsg: string) {
   if (value) {
     return success();
   }
   return failure(errMsg);
 }
 
-export function expectEq(left, right) {
+export function expectEq(left: any, right: any) {
   return evaluate(
-    left === right,
+    left == right,
     JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
   );
 }
 
-export function expectDeepEq(left, right) {
-  return evaluate(
-    _.isEqual(left, right),
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
-  );
+function deepEq(left: any, right: any) {
+  if (left === right) {
+    return true;
+  }
+
+  if (!(left instanceof Object && right instanceof Object)) {
+    return false;
+  }
+
+  if (Object.keys(left).length != Object.keys(right).length) {
+    return false;
+  }
+
+  for (let key in left) {
+    if (!right.hasOwnProperty(key)) {
+      return false;
+    }
+    if (!deepEq(left[key], right[key])) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-export function expectMatches(input: string, regexp) {
+export function expectDeepEq(left: any, right: any) {
+  return evaluate(deepEq(left, right), `${JSON.stringify(left)} does not deep equal ${JSON.stringify(right)}`);
+}
+
+export function expectMatches(input: string, regexp: RegExp) {
   return evaluate(
-    input.match(regexp),
+    input.match(regexp) !== null,
     "Input '" + input + "' did not match regexp '" + regexp + "'"
   );
 }
 
-export function expectReject(f) {
-  return function(event) {
-    return Promise.resolve()
-      .then(() => f(event))
-      .then(
-        () => {
-          throw new Error('Test should have returned a rejected promise');
-        },
-        () => true // A rejection is what we expected, and so is a positive result.
-      );
-  };
+export function expectReject<EventType>(f: (e: EventType) => Promise<void>) {
+  return async (event: EventType) => {
+    let rejected = false;
+    try {
+      await f(event);
+    } catch {
+      rejected = true;
+    }
+
+    if (!rejected) {}
+      throw new Error('Test should have returned a rejected promise');
+  }
 }
