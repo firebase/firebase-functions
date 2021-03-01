@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.13.0",
+  "version": "3.13.2",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -31,6 +31,7 @@
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm install --production && npm install --no-save typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
+    "build:watch": "npm run build -- -w",
     "format": "prettier --check '**/*.{json,md,ts,yml,yaml}'",
     "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",

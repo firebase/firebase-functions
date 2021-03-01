@@ -51,10 +51,10 @@ export function setup() {
       );
       process.env.FIREBASE_CONFIG = JSON.stringify({
         databaseURL:
-          `${process.env.DATABASE_URL}` ||
+          process.env.DATABASE_URL ||
           `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
         storageBucket:
-          `${process.env.STORAGE_BUCKET_URL}` ||
+          process.env.STORAGE_BUCKET_URL ||
           `${process.env.GCLOUD_PROJECT}.appspot.com`,
         projectId: process.env.GCLOUD_PROJECT,
       });

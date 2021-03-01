@@ -31,6 +31,7 @@ import {
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
   VPC_EGRESS_SETTINGS_OPTIONS,
+  INGRESS_SETTINGS_OPTIONS,
 } from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
@@ -64,6 +65,17 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   ) {
     throw new Error(
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+    );
+  }
+
+  if (
+    runtimeOptions.ingressSettings &&
+    !_.includes(INGRESS_SETTINGS_OPTIONS, runtimeOptions.ingressSettings)
+  ) {
+    throw new Error(
+      `The only valid ingressSettings values are: ${INGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
     );
   }
 
@@ -143,7 +155,7 @@ export function region(
  * Configure runtime options for the function.
  * @param runtimeOptions Object with optional fields:
  * 1. `memory`: amount of memory to allocate to the function, possible values
- *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ *    are: '128MB', '256MB', '512MB', '1GB', '2GB', and '4GB'.
  * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
  *    0 to 540.
  * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
@@ -187,7 +199,7 @@ export class FunctionBuilder {
    * Configure runtime options for the function.
    * @param runtimeOptions Object with optional fields:
    * 1. `memory`: amount of memory to allocate to the function, possible values
-   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   *    are: '128MB', '256MB', '512MB', '1GB', '2GB', and '4GB'.
    * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
    *    0 to 540.
    * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
