@@ -99,9 +99,6 @@ export interface EventContext {
    * * `google.analytics.event.log`
    * * `google.firebase.auth.user.create`
    * * `google.firebase.auth.user.delete`
-   * * `google.firebase.crashlytics.issue.new`
-   * * `google.firebase.crashlytics.issue.regressed`
-   * * `google.firebase.crashlytics.issue.velocityAlert`
    * * `google.firebase.database.ref.write`
    * * `google.firebase.database.ref.create`
    * * `google.firebase.database.ref.update`
