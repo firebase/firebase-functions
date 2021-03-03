@@ -72,7 +72,7 @@ export const schedule: any = functions
       .ref('testRuns')
       .orderByChild('timestamp')
       .limitToLast(1)
-      .once("value");
+      .once('value');
     const testId = Object.keys(snap.val())[0];
     return new TestSuite('pubsub scheduleOnRun')
       .it('should trigger when the scheduler fires', () => success())

@@ -3,7 +3,7 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
 import * as https from 'https';
-import {PubSub} from '@google-cloud/pubsub';
+import { PubSub } from '@google-cloud/pubsub';
 
 export * from './pubsub-tests';
 export * from './database-tests';
@@ -40,7 +40,9 @@ function callHttpsTrigger(name: string, data: any, baseUrl) {
 }
 
 async function callScheduleTrigger(functionName: string, region: string) {
-  const accessToken = await admin.credential.applicationDefault().getAccessToken();
+  const accessToken = await admin.credential
+    .applicationDefault()
+    .getAccessToken();
   return new Promise<string>((resolve, reject) => {
     const request = https.request(
       {
@@ -49,12 +51,14 @@ async function callScheduleTrigger(functionName: string, region: string) {
         path: `/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken.access_token}`,
+          Authorization: `Bearer ${accessToken.access_token}`,
         },
       },
       (response) => {
         if (response.statusCode! / 100 != 2) {
-          reject(new Error("Failed request with status " + response.statusCode!));
+          reject(
+            new Error('Failed request with status ' + response.statusCode!)
+          );
           return;
         }
         let body = '';
@@ -68,7 +72,7 @@ async function callScheduleTrigger(functionName: string, region: string) {
       }
     );
     request.on('error', (err) => {
-      console.error("Failed to schedule cloud scheduler job with error", err);
+      console.error('Failed to schedule cloud scheduler job with error', err);
       reject(err);
     });
     request.write('{}');
@@ -163,7 +167,7 @@ export const integrationTests: any = functions
       // On test completion, check that all tests pass and reply "PASS", or provide further details.
       console.log('Waiting for all tests to report they pass...');
       await new Promise<void>((resolve, reject) => {
-        setTimeout(() => reject(new Error("Timeout")), 5 * 60 * 1000);
+        setTimeout(() => reject(new Error('Timeout')), 5 * 60 * 1000);
         let testsExecuted = 0;
         testIdRef.on('child_added', (snapshot) => {
           testsExecuted += 1;
@@ -192,7 +196,10 @@ export const integrationTests: any = functions
       console.log(`Some tests failed: ${err}`);
       resp
         .status(500)
-        .send(`FAIL - details at ${functions.firebaseConfig().databaseURL!}/testRuns/${testId}`);
+        .send(
+          `FAIL - details at ${functions.firebaseConfig()
+            .databaseURL!}/testRuns/${testId}`
+        );
     } finally {
       testIdRef.off('child_added');
     }

@@ -105,7 +105,10 @@ function deepEq(left: any, right: any) {
 }
 
 export function expectDeepEq(left: any, right: any) {
-  return evaluate(deepEq(left, right), `${JSON.stringify(left)} does not deep equal ${JSON.stringify(right)}`);
+  return evaluate(
+    deepEq(left, right),
+    `${JSON.stringify(left)} does not deep equal ${JSON.stringify(right)}`
+  );
 }
 
 export function expectMatches(input: string, regexp: RegExp) {
@@ -124,7 +127,8 @@ export function expectReject<EventType>(f: (e: EventType) => Promise<void>) {
       rejected = true;
     }
 
-    if (!rejected) {}
+    if (!rejected) {
       throw new Error('Test should have returned a rejected promise');
-  }
+    }
+  };
 }
