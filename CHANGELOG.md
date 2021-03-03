@@ -1,1 +1,1 @@
-Remove no-longer-functional Crashlytics handlers
+- Removes non-functional Crashlytics handlers.
