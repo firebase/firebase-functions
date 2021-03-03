@@ -99,9 +99,6 @@ export interface EventContext {
    * * `google.analytics.event.log`
    * * `google.firebase.auth.user.create`
    * * `google.firebase.auth.user.delete`
-   * * `google.firebase.crashlytics.issue.new`
-   * * `google.firebase.crashlytics.issue.regressed`
-   * * `google.firebase.crashlytics.issue.velocityAlert`
    * * `google.firebase.database.ref.write`
    * * `google.firebase.database.ref.create`
    * * `google.firebase.database.ref.update`
@@ -273,6 +270,7 @@ export interface TriggerAnnotated {
     vpcConnector?: string;
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
+    ingressSettings?: string;
   };
 }
 
@@ -507,6 +505,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
       '512MB': 512,
       '1GB': 1024,
       '2GB': 2048,
+      '4GB': 4096,
     };
     trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
   }
@@ -516,6 +515,10 @@ export function optionsToTrigger(options: DeploymentOptions) {
 
   if (options.maxInstances) {
     trigger.maxInstances = options.maxInstances;
+  }
+
+  if (options.ingressSettings) {
+    trigger.ingressSettings = options.ingressSettings;
   }
 
   if (options.vpcConnector) {
