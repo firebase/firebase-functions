@@ -66,20 +66,15 @@ export const schedule: any = functions
   .region(REGION)
   .pubsub.schedule('every 10 hours') // This is a dummy schedule, since we need to put a valid one in.
   // For the test, the job is triggered by the jobs:run api
-  .onRun((context) => {
-    let testId;
+  .onRun(async (context) => {
     const db = admin.database();
-    return new Promise(async (resolve, reject) => {
-      await db
-        .ref('testRuns')
-        .orderByChild('timestamp')
-        .limitToLast(1)
-        .on('value', (snap) => {
-          testId = Object.keys(snap.val())[0];
-          new TestSuite('pubsub scheduleOnRun')
-            .it('should trigger when the scheduler fires', () => success())
-            .run(testId, null);
-        });
-      resolve();
-    });
+    const snap = await db
+      .ref('testRuns')
+      .orderByChild('timestamp')
+      .limitToLast(1)
+      .once('value');
+    const testId = Object.keys(snap.val())[0];
+    return new TestSuite('pubsub scheduleOnRun')
+      .it('should trigger when the scheduler fires', () => success())
+      .run(testId, null);
   });
