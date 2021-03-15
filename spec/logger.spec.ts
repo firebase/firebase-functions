@@ -109,6 +109,22 @@ describe(`logger (${
           });
         });
 
+        it('should not alter parameters that are logged', () => {
+          const circ: any = { b: 'foo' };
+          circ.array = [circ];
+          circ.object = circ;
+          const entry: logger.LogEntry = {
+            severity: 'ERROR',
+            message: 'testing circular',
+            circ,
+          };
+          logger.write(entry);
+
+          expect(circ.array[0].b).to.equal('foo');
+          expect(circ.object.b).to.equal('foo');
+          expect(circ.object.array[0].object.array[0].b).to.equal('foo');
+        });
+
         for (const severity of ['DEBUG', 'INFO', 'NOTICE']) {
           it(`should output ${severity} severity to stdout`, () => {
             let entry: logger.LogEntry = {
