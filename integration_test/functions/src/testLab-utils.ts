@@ -1,7 +1,6 @@
 import * as http from 'http';
 import * as https from 'https';
 import * as admin from 'firebase-admin';
-import * as _ from 'lodash';
 import * as utils from './test-utils';
 
 interface AndroidDevice {
@@ -35,7 +34,7 @@ async function fetchDefaultDevice(
     requestOptions(accessToken, 'GET', '/v1/testEnvironmentCatalog/ANDROID')
   );
   const data = JSON.parse(response);
-  const models = _.get(data, 'androidDeviceCatalog.models', []);
+  const models = data?.androidDeviceCatalog?.models || [];
   const defaultModels = models.filter(
     (m) =>
       m.tags !== undefined &&
