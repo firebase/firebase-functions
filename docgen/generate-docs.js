@@ -323,7 +323,9 @@ Promise.all([
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(tempHomePath);
     // Devsite doesn't like css.map files.
-    return fs.unlink(`${docPath}/assets/css/main.css.map`);
+    if (fs.existsSync(`${docPath}/assets/css/main.css.map`)) { 
+      return fs.unlink(`${docPath}/assets/css/main.css.map`);
+    }
   })
   // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
   // erroring when it finds an unexpected file in the target dir.
