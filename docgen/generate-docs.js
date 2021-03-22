@@ -20,7 +20,6 @@ const fs = require('mz/fs');
 const path = require('path');
 const yargs = require('yargs');
 const yaml = require('js-yaml');
-const _ = require('lodash');
 
 const repoPath = path.resolve(`${__dirname}/..`);
 
@@ -87,13 +86,13 @@ async function renameFiles() {
   const files = await fs.readdir(docPath);
   console.log(files);
   const renames = [];
-  files.forEach(file => {
+  for (const file in files) {
     let newFileName = file;
-    if (_.startsWith(file, "_") && _.endsWith(file, "html")) {
-      newFileName = _.trimStart(file, "_");
+    if (file.startsWith("_") && file.endsWith("html")) {
+      newFileName = file.substring(1);
         renames.push(fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`));
     }
-  });
+  }
   await Promise.all(renames);
 }
 
@@ -359,3 +358,4 @@ function fixAllLinks(htmlFiles) {
   }
 }
 })();
+
