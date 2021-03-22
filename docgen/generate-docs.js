@@ -215,18 +215,18 @@ async function checkForMissingFilesAndFixFilenameCase() {
  * @param {boolean} shouldRemove Should just remove the file
  */
 async function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
-  const files = fs.readdir(docPath);
+  const files = await fs.readdir(docPath);
   const htmlFiles = files
     .filter(filename => filename.slice(-4) === 'html');
   const removePromises = [];
   const filesToRemove = htmlFiles
-    .select(filename => !filenamesFromToc.includes(filename))
-    .select(filename => filename !== 'index' && filename != 'globals');
+    .filter(filename => !filenamesFromToc.includes(filename))
+    .filter(filename => filename !== 'index' && filename != 'globals');
   if (filesToRemove.length && !shouldRemove) {
     // This is just a warning, it doesn't need to finish before
     // the process continues.
     console.warn(
-      `Unlisted file: ${filename} generated ` +
+      `Unlisted files: ${filesToRemove.join(" ,")} generated ` +
         `but not listed in toc.yaml.`
     );
     return htmlFiles;
@@ -345,7 +345,7 @@ function fixAllLinks(htmlFiles) {
 
     // Correct the links in all the generated html files now that files have
     // all been moved to top level.
-    await fixAllLinks(await removeUnderscores(fileList));
+    await fixAllLinks(fileList);
     const data = await fs.readFile(`${docPath}/index.html`, 'utf8');
     // String to include devsite local variables.
     const localVariablesIncludeString = `{% include "docs/web/_local_variables.html" %}\n`;
