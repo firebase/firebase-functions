@@ -84,13 +84,11 @@ async function moveFilesToRoot(subdir) {
  */
 async function renameFiles() {
   const files = await fs.readdir(docPath);
-  console.log(files);
   const renames = [];
-  for (const file in files) {
-    let newFileName = file;
+  for (const file of files) {
     if (file.startsWith("_") && file.endsWith("html")) {
-      newFileName = file.substring(1);
-        renames.push(fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`));
+      let newFileName = file.substring(1);
+      renames.push(fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`));
     }
   }
   await Promise.all(renames);
@@ -101,7 +99,7 @@ async function renameFiles() {
  * @param {string} file File to fix links in.
  */
 async function fixLinks(file) {
-  let data = fs.readFile(file, 'utf8');
+  let data = await fs.readFile(file, 'utf8');
   data = addTypeAliasLinks(data);
   const flattenedLinks = data
     .replace(/\.\.\//g, '')
@@ -144,8 +142,6 @@ function addTypeAliasLinks(data) {
   return htmlDom.serialize();
 }
 
-let tocText = '';
-
 /**
  * Generates temporary markdown file that will be sourced by Typedoc to
  * create index.html.
@@ -176,14 +172,13 @@ const lowerToUpperLookup = {};
  * Checks to see if any files listed in toc.yaml were not generated.
  * If files exist, fixes filename case to match toc.yaml version.
  */
-async function checkForMissingFilesAndFixFilenameCase() {
+async function checkForMissingFilesAndFixFilenameCase(tocText) {
   // Get filenames from toc.yaml.
   const filenames = tocText
     .split('\n')
     .filter(line => line.includes('path:'))
     .map(line => line.split(devsitePath)[1]);
   // Logs warning to console if a file from TOC is not found.
-  // console.log(filenames);
   const fileCheckPromises = filenames.map(async filename => {
     // Warns if file does not exist, fixes filename case if it does.
     // Preferred filename for devsite should be capitalized and taken from
@@ -226,7 +221,7 @@ async function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
     // This is just a warning, it doesn't need to finish before
     // the process continues.
     console.warn(
-      `Unlisted files: ${filesToRemove.join(" ,")} generated ` +
+      `Unlisted files: ${filesToRemove.join(", ")} generated ` +
         `but not listed in toc.yaml.`
     );
     return htmlFiles;
@@ -293,13 +288,9 @@ function fixAllLinks(htmlFiles) {
       fs.readFile(`${contentPath}/HOME.md`, 'utf8')
     ])
 
-    // Read TOC and homepage text and assemble a homepage markdown file.
-    // This file will be sourced by Typedoc to generate index.html.
-    const tocText = tocRaw;
-
     // Run main Typedoc process (uses index.d.ts and generated temp file above).
-    const homeMdFile = await generateTempHomeMdFile(tocRaw, homeRaw);
-    const output = runTypedoc(homeMdFile);
+    await generateTempHomeMdFile(tocRaw, homeRaw);
+    const output = await runTypedoc();
 
     // Typedoc output.
     console.log(output.stdout);
@@ -318,22 +309,22 @@ function fixAllLinks(htmlFiles) {
 
       // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
       // erroring when it finds an unexpected file in the target dir.
-      fs.writeFile(`${docPath}/_toc.yaml`, tocText),
+      fs.writeFile(`${docPath}/_toc.yaml`, tocRaw),
     ]);
 
     // Flatten file structure. These categories don't matter to us and it makes
     // it easier to manage the docs directory.
-    const filesToRename = await Promise.all([
+    await Promise.all([
       moveFilesToRoot('classes'),
       moveFilesToRoot('modules'),
       moveFilesToRoot('interfaces'),
     ]);
     // Rename files to remove the underscores since devsite hides those.
-    const newNames = await renameFiles(filesToRename);
+    await renameFiles();
 
     // Check for files listed in TOC that are missing and warn if so.
     // Not blocking.
-    const filenamesFromToc = await checkForMissingFilesAndFixFilenameCase(newNames);
+    const filenamesFromToc = await checkForMissingFilesAndFixFilenameCase(tocRaw);
 
     // Check for files that exist but aren't listed in the TOC and warn.
     // (If API is node, actually remove the file.)
