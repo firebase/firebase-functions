@@ -20,7 +20,6 @@ const fs = require('mz/fs');
 const path = require('path');
 const yargs = require('yargs');
 const yaml = require('js-yaml');
-const _ = require('lodash');
 
 const repoPath = path.resolve(`${__dirname}/..`);
 
@@ -72,59 +71,52 @@ function runTypedoc() {
  * Moves files from subdir to root.
  * @param {string} subdir Subdir to move files out of.
  */
-function moveFilesToRoot(subdir) {
-  return exec(`mv ${docPath}/${subdir}/* ${docPath}`)
-    .then(() => {
-      exec(`rmdir ${docPath}/${subdir}`);
-    })
-    .catch(e => console.error(e));
+async function moveFilesToRoot(subdir) {
+  await exec(`mv ${docPath}/${subdir}/* ${docPath}`)
+  await exec(`rmdir ${docPath}/${subdir}`);
 }
 
 /**
  * Renames files to remove the leading underscores.
  * We need to do this because devsite hides these files.
- * Example: 
+ * Example:
  * _cloud_functions_.resource.html => cloud_functions_.resource.html
  */
-function renameFiles() {
-  return fs.readdir(docPath).then(files => {
-    console.log(files);
-    files.forEach(file => {
-      let newFileName = file;
-      if (_.startsWith(file, "_") && _.endsWith(file, "html")) {
-        newFileName = _.trimStart(file, "_");
-        fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`, (err) => {
-          if (err) console.log(err)
-        });
-      }
-    })
-  })
+async function renameFiles() {
+  const files = await fs.readdir(docPath);
+  const renames = [];
+  for (const file of files) {
+    if (file.startsWith("_") && file.endsWith("html")) {
+      let newFileName = file.substring(1);
+      renames.push(fs.rename(`${docPath}/${file}`, `${docPath}/${newFileName}`));
+    }
+  }
+  await Promise.all(renames);
 }
 
 /**
  * Reformat links to match flat structure.
  * @param {string} file File to fix links in.
  */
-function fixLinks(file) {
-  return fs.readFile(file, 'utf8').then(data => {
-    data = addTypeAliasLinks(data);
-    const flattenedLinks = data
-      .replace(/\.\.\//g, '')
-      .replace(/(modules|interfaces|classes)\//g, '')
-      .replace(/\"_/g, '"');
-    let caseFixedLinks = flattenedLinks;
-    for (const lower in lowerToUpperLookup) {
-      const re = new RegExp(lower, 'g');
-      caseFixedLinks = caseFixedLinks.replace(re, lowerToUpperLookup[lower]);
-    }
-    return fs.writeFile(file, caseFixedLinks);
-  });
+async function fixLinks(file) {
+  let data = await fs.readFile(file, 'utf8');
+  data = addTypeAliasLinks(data);
+  const flattenedLinks = data
+    .replace(/\.\.\//g, '')
+    .replace(/(modules|interfaces|classes)\//g, '')
+    .replace(/\"_/g, '"');
+  let caseFixedLinks = flattenedLinks;
+  for (const lower in lowerToUpperLookup) {
+    const re = new RegExp(lower, 'g');
+    caseFixedLinks = caseFixedLinks.replace(re, lowerToUpperLookup[lower]);
+  }
+  return fs.writeFile(file, caseFixedLinks);
 }
 
-/** 
+/**
  * Adds links to external documentation for type aliases that
  * reference an external library.
- * 
+ *
  * @param data File data to add external library links to.
  */
 function addTypeAliasLinks(data) {
@@ -136,21 +128,19 @@ function addTypeAliasLinks(data) {
   const fileTags = htmlDom.window.document.querySelectorAll(".tsd-signature-type");
   fileTags.forEach(tag => {
     const mapping = typeMap[tag.textContent];
-      if (mapping) {
-        console.log('Adding link to '+tag.textContent+" documentation.");
-        
-        // Add the corresponding document link to this type
-        const linkChild = htmlDom.window.document.createElement('a');
-        linkChild.setAttribute('href', mapping);
-        linkChild.textContent = tag.textContent;
-        tag.textContent = null;
-        tag.appendChild(linkChild);
-      }
-    });
+    if (mapping) {
+      console.log('Adding link to '+tag.textContent+" documentation.");
+
+      // Add the corresponding document link to this type
+      const linkChild = htmlDom.window.document.createElement('a');
+      linkChild.setAttribute('href', mapping);
+      linkChild.textContent = tag.textContent;
+      tag.textContent = null;
+      tag.appendChild(linkChild);
+    }
+  });
   return htmlDom.serialize();
 }
-
-let tocText = '';
 
 /**
  * Generates temporary markdown file that will be sourced by Typedoc to
@@ -182,37 +172,33 @@ const lowerToUpperLookup = {};
  * Checks to see if any files listed in toc.yaml were not generated.
  * If files exist, fixes filename case to match toc.yaml version.
  */
-function checkForMissingFilesAndFixFilenameCase() {
+async function checkForMissingFilesAndFixFilenameCase(tocText) {
   // Get filenames from toc.yaml.
   const filenames = tocText
     .split('\n')
     .filter(line => line.includes('path:'))
     .map(line => line.split(devsitePath)[1]);
   // Logs warning to console if a file from TOC is not found.
-  // console.log(filenames);
-  const fileCheckPromises = filenames.map(filename => {
+  const fileCheckPromises = filenames.map(async filename => {
     // Warns if file does not exist, fixes filename case if it does.
     // Preferred filename for devsite should be capitalized and taken from
     // toc.yaml.
     const tocFilePath = `${docPath}/${filename}`;
     // Generated filename from Typedoc will be lowercase.
     const generatedFilePath = `${docPath}/${filename.toLowerCase()}`;
-    return fs.exists(generatedFilePath).then(exists => {
-      if (exists) {
-        // Store in a lookup table for link fixing.
-        lowerToUpperLookup[
-          `${filename.toLowerCase()}`
-        ] = `${filename}`;
-        return fs.rename(generatedFilePath, tocFilePath);
-      } else {
-        console.warn(
-          `Missing file: ${filename} requested ` +
-            `in toc.yaml but not found in ${docPath}`
-        );
-      }
-    });
+    if (await fs.exists(generatedFilePath)) {
+      // Store in a lookup table for link fixing.
+      lowerToUpperLookup[filename.toLowerCase()] = filename;
+      return fs.rename(generatedFilePath, tocFilePath);
+    } else {
+      console.warn(
+        `Missing file: ${filename} requested ` +
+          `in toc.yaml but not found in ${docPath}`
+      );
+    }
   });
-  return Promise.all(fileCheckPromises).then(() => filenames);
+  await Promise.all(fileCheckPromises);
+  return filenames;
 }
 
 /**
@@ -223,40 +209,31 @@ function checkForMissingFilesAndFixFilenameCase() {
  * @param {Array} filenamesFromToc Filenames pulled from toc.yaml
  * @param {boolean} shouldRemove Should just remove the file
  */
-function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
-  return fs.readdir(docPath).then(files => {
-    const htmlFiles = files
-      .filter(filename => filename.slice(-4) === 'html');
-    const removePromises = [];
-    htmlFiles.forEach(filename => {
-      if (
-        !filenamesFromToc.includes(filename) &&
-        filename !== 'index' &&
-        filename !== 'globals'
-      ) {
-        if (shouldRemove) {
-          console.log(
-            `REMOVING ${docPath}/${filename} - not listed in toc.yaml.`
-          );
-          removePromises.push(fs.unlink(`${docPath}/${filename}`));
-        } else {
-          // This is just a warning, it doesn't need to finish before
-          // the process continues.
-          console.warn(
-            `Unlisted file: ${filename} generated ` +
-              `but not listed in toc.yaml.`
-          );
-        }
-      }
-    });
-    if (shouldRemove) {
-      return Promise.all(removePromises).then(() =>
-        htmlFiles.filter(filename => filenamesFromToc.includes(filename))
-      );
-    } else {
-      return htmlFiles;
-    }
-  });
+async function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
+  const files = await fs.readdir(docPath);
+  const htmlFiles = files
+    .filter(filename => filename.slice(-4) === 'html');
+  const removePromises = [];
+  const filesToRemove = htmlFiles
+    .filter(filename => !filenamesFromToc.includes(filename))
+    .filter(filename => filename !== 'index' && filename != 'globals');
+  if (filesToRemove.length && !shouldRemove) {
+    // This is just a warning, it doesn't need to finish before
+    // the process continues.
+    console.warn(
+      `Unlisted files: ${filesToRemove.join(", ")} generated ` +
+        `but not listed in toc.yaml.`
+    );
+    return htmlFiles;
+  }
+
+  await Promise.all(filesToRemove.map(filename => {
+    console.log(
+      `REMOVING ${docPath}/${filename} - not listed in toc.yaml.`
+    );
+    return fs.unlink(`${docPath}/${filename})`);
+  }));
+  return htmlFiles.filter(filename => filenamesFromToc.includes(filename))
 }
 
 /**
@@ -265,7 +242,7 @@ function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
  *
  * @param {Array} htmlFiles List of html files found in generated dir.
  */
-function writeGeneratedFileList(htmlFiles) {
+async function writeGeneratedFileList(htmlFiles) {
   const fileList = htmlFiles.map(filename => {
     return {
       title: filename,
@@ -273,9 +250,8 @@ function writeGeneratedFileList(htmlFiles) {
     };
   });
   const generatedTocYAML = yaml.safeDump({ toc: fileList });
-  return fs
-    .writeFile(`${docPath}/_toc_autogenerated.yaml`, generatedTocYAML)
-    .then(() => htmlFiles);
+  await fs.writeFile(`${docPath}/_toc_autogenerated.yaml`, generatedTocYAML);
+  return htmlFiles;
 }
 
 /**
@@ -305,69 +281,72 @@ function fixAllLinks(htmlFiles) {
  *    links as needed.
  * 5) Check for mismatches between TOC list and generated file list.
  */
-Promise.all([
-  fs.readFile(`${contentPath}/toc.yaml`, 'utf8'),
-  fs.readFile(`${contentPath}/HOME.md`, 'utf8')
-])
-  // Read TOC and homepage text and assemble a homepage markdown file.
-  // This file will be sourced by Typedoc to generate index.html.
-  .then(([tocRaw, homeRaw]) => {
-    tocText = tocRaw;
-    return generateTempHomeMdFile(tocRaw, homeRaw);
-  })
-  // Run main Typedoc process (uses index.d.ts and generated temp file above).
-  .then(runTypedoc)
-  .then(output => {
+(async function() {
+  try {
+    const [tocRaw, homeRaw] = await Promise.all([
+      fs.readFile(`${contentPath}/toc.yaml`, 'utf8'),
+      fs.readFile(`${contentPath}/HOME.md`, 'utf8')
+    ])
+
+    // Run main Typedoc process (uses index.d.ts and generated temp file above).
+    await generateTempHomeMdFile(tocRaw, homeRaw);
+    const output = await runTypedoc();
+
     // Typedoc output.
     console.log(output.stdout);
-    // Clean up temp home markdown file. (Nothing needs to wait for this.)
-    fs.unlink(tempHomePath);
-    // Devsite doesn't like css.map files.
-    return fs.unlink(`${docPath}/assets/css/main.css.map`);
-  })
-  // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
-  // erroring when it finds an unexpected file in the target dir.
-  .then(() => fs.writeFile(`${docPath}/_toc.yaml`, tocText))
-  // Flatten file structure. These categories don't matter to us and it makes
-  // it easier to manage the docs directory.
-  .then(() => {
-    return Promise.all([
+    await Promise.all([
+      // Clean up temp home markdown file. (Nothing needs to wait for this.)
+      fs.unlink(tempHomePath),
+
+      // Devsite doesn't like css.map files.
+      // NOTE: This doesn't seem to actually get generated anymore, but we'll keep this here just in case.
+      async () => {
+        const cssMap = `${docPath}/assets/css/main.css.map`;
+        if (await fs.exists(cssMap)) {
+          await fs.unlink();
+        }
+      },
+
+      // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
+      // erroring when it finds an unexpected file in the target dir.
+      fs.writeFile(`${docPath}/_toc.yaml`, tocRaw),
+    ]);
+
+    // Flatten file structure. These categories don't matter to us and it makes
+    // it easier to manage the docs directory.
+    await Promise.all([
       moveFilesToRoot('classes'),
       moveFilesToRoot('modules'),
       moveFilesToRoot('interfaces'),
     ]);
-  })
-  // Rename files to remove the underscores since devsite hides those.
-  .then(renameFiles)
-  // Check for files listed in TOC that are missing and warn if so.
-  // Not blocking.
-  .then(checkForMissingFilesAndFixFilenameCase)
-  // Check for files that exist but aren't listed in the TOC and warn.
-  // (If API is node, actually remove the file.)
-  // Removal is blocking, warnings aren't.
-  .then(filenamesFromToc =>
-    checkForUnlistedFiles(filenamesFromToc, false)
-  )
-  // Write a _toc_autogenerated.yaml to record what files were created.
-  .then(htmlFiles => writeGeneratedFileList(htmlFiles))
-  // Correct the links in all the generated html files now that files have
-  // all been moved to top level.
-  // .then(removeUnderscores)
-  .then(fixAllLinks)
-  .then(() => {
-    fs.readFile(`${docPath}/index.html`, 'utf8').then(data => {
-      // String to include devsite local variables.
-      const localVariablesIncludeString = `{% include "docs/web/_local_variables.html" %}\n`;
-      return fs.writeFile(
-        `${docPath}/index.html`,
-        localVariablesIncludeString + data
-      );
-    });
-  })
-  .catch(e => {
-    if (e.stdout) {
-      console.error(e.stdout);
-    } else {
-      console.error(e);
-    }
-  });
+    // Rename files to remove the underscores since devsite hides those.
+    await renameFiles();
+
+    // Check for files listed in TOC that are missing and warn if so.
+    // Not blocking.
+    const filenamesFromToc = await checkForMissingFilesAndFixFilenameCase(tocRaw);
+
+    // Check for files that exist but aren't listed in the TOC and warn.
+    // (If API is node, actually remove the file.)
+    // Removal is blocking, warnings aren't.
+    const htmlFiles = await checkForUnlistedFiles(filenamesFromToc, false);
+
+    // Write a _toc_autogenerated.yaml to record what files were created.
+    const fileList = await writeGeneratedFileList(htmlFiles);
+
+    // Correct the links in all the generated html files now that files have
+    // all been moved to top level.
+    await fixAllLinks(fileList);
+    const data = await fs.readFile(`${docPath}/index.html`, 'utf8');
+    // String to include devsite local variables.
+    const localVariablesIncludeString = `{% include "docs/web/_local_variables.html" %}\n`;
+    await fs.writeFile(`${docPath}/index.html`, localVariablesIncludeString + data);
+  } catch (err) {
+  if (err.stdout) {
+    console.error(err.stdout);
+  } else {
+    console.error(err);
+  }
+}
+})();
+
