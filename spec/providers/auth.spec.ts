@@ -131,17 +131,10 @@ describe('Auth Functions', () => {
       const record = auth.userRecordConstructor({ uid: '123' });
       expect(record.toJSON()).to.deep.equal({
         uid: '123',
-        email: null,
         emailVerified: false,
-        displayName: null,
-        photoURL: null,
-        phoneNumber: null,
         disabled: false,
         providerData: [],
         customClaims: {},
-        passwordSalt: null,
-        passwordHash: null,
-        tokensValidAfterTime: null,
         metadata: {
           creationTime: null,
           lastSignInTime: null,
