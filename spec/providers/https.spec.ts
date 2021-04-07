@@ -30,7 +30,9 @@ import * as https from '../../src/providers/https';
 import * as mocks from '../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,
+  generateAppCheckToken,
   generateIdToken,
+  mockFetchAppCheckPublicJwks,
   mockFetchPublicKeys,
   MockRequest,
   mockRequest,
@@ -396,6 +398,58 @@ describe('callable.FunctionBuilder', () => {
       await runTest({
         httpRequest: mockRequest(null, 'application/json', {
           authorization: 'Bearer FAKE',
+        }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              status: 'UNAUTHENTICATED',
+              message: 'Unauthenticated',
+            },
+          },
+        },
+      });
+    });
+
+    it('should handle AppCheck token', async () => {
+      const mock = mockFetchAppCheckPublicJwks();
+      const projectId = appsNamespace().admin.options.projectId;
+      const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+      const appCheckToken = generateAppCheckToken(projectId, appId);
+      await runTest({
+        httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.app).to.not.be.undefined;
+          expect(context.app).to.not.be.null;
+          expect(context.app.appId).to.equal(appId);
+          expect(context.app.token.app_id).to.be.equal(appId);
+          expect(context.app.token.sub).to.be.equal(appId);
+          expect(context.app.token.aud).to.be.deep.equal([
+            `/projects/${projectId}`,
+          ]);
+          expect(context.auth).to.be.undefined;
+          expect(context.instanceIdToken).to.be.undefined;
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+      mock.done();
+    });
+
+    it('should reject bad AppCheck token', async () => {
+      await runTest({
+        httpRequest: mockRequest(null, 'application/json', {
+          appCheckToken: 'FAKE',
         }),
         expectedData: null,
         callableFunction: (data, context) => {

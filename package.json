@@ -62,6 +62,7 @@
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.5",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
