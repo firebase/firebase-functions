@@ -6,7 +6,7 @@
   },
   "dependencies": {
     "@google-cloud/pubsub": "^2.10.0",
-    "firebase-admin": "^9.1.0",
+    "firebase-admin": "^9.100.0-alpha.0",
     "firebase-functions": "__SDK_TARBALL__",
     "lodash": "~4.17.2"
   },

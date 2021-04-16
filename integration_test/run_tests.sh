@@ -42,7 +42,7 @@ function set_region {
   if [[ "${FIREBASE_FUNCTIONS_TEST_REGION}" == "" ]]; then
     FIREBASE_FUNCTIONS_TEST_REGION="us-central1"
   fi
-  if [[ "${TOKEN}" == "" ]]; then 
+  if [[ "${TOKEN}" == "" ]]; then
     firebase functions:config:set functions.test_region=$FIREBASE_FUNCTIONS_TEST_REGION --project=$PROJECT_ID
   else
     firebase functions:config:set functions.test_region=$FIREBASE_FUNCTIONS_TEST_REGION --project=$PROJECT_ID --token=$TOKEN
@@ -51,7 +51,7 @@ function set_region {
 }
 
 function unset_region {
-  if [[ "${TOKEN}" == "" ]]; then 
+  if [[ "${TOKEN}" == "" ]]; then
     firebase functions:config:unset functions.test_region --project=$PROJECT_ID
   else
     firebase functions:config:unset functions.test_region --project=$PROJECT_ID --token=$TOKEN
@@ -138,7 +138,7 @@ build_sdk
 delete_all_functions
 set_region
 
-for version in 10 12 14; do
+for version in 12 14; do
   create_package_json $TIMESTAMP $version
   install_deps
   announce "Re-deploying the same functions to Node $version runtime ..."

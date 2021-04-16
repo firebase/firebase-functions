@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["es6", "dom"],
+    "lib": ["es2018", "dom"],
     "module": "commonjs",
     "target": "es6",
     "noImplicitAny": false,
@@ -8,5 +8,5 @@
     "declaration": true,
     "typeRoots": ["node_modules/@types"]
   },
-  "files": ["src/index.ts"]
+  "include": ["src/**/*.ts"]
 }
