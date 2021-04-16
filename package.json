@@ -58,7 +58,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
-    "firebase-admin": "^8.2.0",
+    "firebase-admin": "9.100.0-alpha.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
@@ -78,7 +78,7 @@
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
-    "firebase-admin": "^8.0.0 || ^9.0.0"
+    "firebase-admin": "^9.100.0-alpha.0"
   },
   "engines": {
     "node": "^8.13.0 || >=10.10.0"

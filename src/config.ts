@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
+import { AppOptions } from 'firebase-admin/app';
 import * as path from 'path';
 
 export function config(): config.Config {
@@ -51,7 +51,7 @@ export namespace config {
 }
 
 /** @hidden */
-export function firebaseConfig(): firebase.AppOptions | null {
+export function firebaseConfig(): AppOptions | null {
   const env = process.env.FIREBASE_CONFIG;
   if (env) {
     return JSON.parse(env);

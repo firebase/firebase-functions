@@ -1,4 +1,4 @@
-import * as firebase from 'firebase-admin';
+import { getDatabase } from 'firebase-admin/database';
 import { EventContext } from 'firebase-functions';
 
 export type TestCase<T> = (data: T, context?: EventContext) => any;
@@ -49,8 +49,7 @@ export class TestSuite<T> {
       const passed = sum === running.length;
       console.log(summary);
       const result = { passed, summary, tests: results };
-      return firebase
-        .database()
+      return getDatabase()
         .ref(`testRuns/${testId}/${this.name}`)
         .set(result);
     });
@@ -92,7 +91,7 @@ function deepEq(left: any, right: any) {
     return false;
   }
 
-  for (let key in left) {
+  for (const key in left) {
     if (!right.hasOwnProperty(key)) {
       return false;
     }

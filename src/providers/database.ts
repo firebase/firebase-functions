@@ -20,8 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
+import { App } from 'firebase-admin/app';
+import { getDatabaseWithUrl, Reference } from 'firebase-admin/database';
 import * as _ from 'lodash';
+
 import { apps } from '../apps';
 import {
   Change,
@@ -140,7 +142,7 @@ export function _refWithOptions(
       );
     }
 
-    let instance = undefined;
+    let instance;
     const prodMatch = databaseURL.match(databaseURLRegex);
     if (prodMatch) {
       instance = prodMatch[1];
@@ -352,7 +354,7 @@ export class DataSnapshot {
   public instance: string;
 
   /** @hidden */
-  private _ref: firebase.database.Reference;
+  private _ref: Reference;
 
   /** @hidden */
   private _path: string;
@@ -366,7 +368,7 @@ export class DataSnapshot {
   constructor(
     data: any,
     path?: string, // path will be undefined for the database root
-    private app?: firebase.app.App,
+    private app?: App,
     instance?: string
   ) {
     if (app && app.options.databaseURL.startsWith('http:')) {
@@ -391,7 +393,7 @@ export class DataSnapshot {
    * to the Database location where the triggering write occurred. Has
    * full read and write access.
    */
-  get ref(): firebase.database.Reference {
+  get ref(): Reference {
     if (!this.app) {
       // may be unpopulated in user's unit tests
       throw new Error(
@@ -400,7 +402,7 @@ export class DataSnapshot {
       );
     }
     if (!this._ref) {
-      this._ref = this.app.database(this.instance).ref(this._fullPath());
+      this._ref = getDatabaseWithUrl(this.instance, this.app).ref(this._fullPath());
     }
     return this._ref;
   }

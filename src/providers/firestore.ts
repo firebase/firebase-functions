@@ -20,10 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
-import * as _ from 'lodash';
+import {
+  DocumentSnapshot,
+  getFirestore,
+  QueryDocumentSnapshot,
+} from 'firebase-admin/firestore';
 import { posix } from 'path';
 import { apps } from '../apps';
+import * as _ from 'lodash';
+
 import {
   Change,
   CloudFunction,
@@ -41,8 +46,8 @@ export const service = 'firestore.googleapis.com';
 /** @hidden */
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
-export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
-export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+
+export { DocumentSnapshot, QueryDocumentSnapshot };
 
 /**
  * Select the Firestore document to listen to for events.
@@ -148,7 +153,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 /** @hidden */
 export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
-    firestoreInstance = firebase.firestore(apps().admin);
+    firestoreInstance = getFirestore(apps().admin);
   }
   const valueProto = _getValueProto(
     event.data,
@@ -163,7 +168,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
 // TODO remove this function when wire format changes to new format
 export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
-    firestoreInstance = firebase.firestore(apps().admin);
+    firestoreInstance = getFirestore(apps().admin);
   }
   const oldValueProto = _getValueProto(
     event.data,

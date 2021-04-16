@@ -1,8 +1,8 @@
 import { format } from 'util';
 
 import {
-  SUPPORTS_STRUCTURED_LOGS,
   CONSOLE_SEVERITY,
+  SUPPORTS_STRUCTURED_LOGS,
   UNPATCHED_CONSOLE,
 } from './logger/common';
 

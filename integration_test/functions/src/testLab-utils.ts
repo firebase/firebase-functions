@@ -1,6 +1,7 @@
+import { applicationDefault, GoogleOAuthAccessToken } from 'firebase-admin/app';
+import { getStorage } from 'firebase-admin/storage';
 import * as http from 'http';
 import * as https from 'https';
-import * as admin from 'firebase-admin';
 import * as utils from './test-utils';
 
 interface AndroidDevice {
@@ -20,15 +21,13 @@ const TESTING_API_SERVICE_NAME = 'testing.googleapis.com';
  * @param testId Test id which will be encoded in client info details
  */
 export async function startTestRun(projectId: string, testId: string) {
-  const accessToken = await admin.credential
-    .applicationDefault()
-    .getAccessToken();
+  const accessToken = await applicationDefault().getAccessToken();
   const device = await fetchDefaultDevice(accessToken);
   return await createTestMatrix(accessToken, projectId, testId, device);
 }
 
 async function fetchDefaultDevice(
-  accessToken: admin.GoogleOAuthAccessToken
+  accessToken: GoogleOAuthAccessToken
 ): Promise<AndroidDevice> {
   const response = await utils.makeRequest(
     requestOptions(accessToken, 'GET', '/v1/testEnvironmentCatalog/ANDROID')
@@ -50,16 +49,16 @@ async function fetchDefaultDevice(
   const model = defaultModels[0];
   const versions = model.supportedVersionIds;
 
-  return <AndroidDevice>{
+  return {
     androidModelId: model.id,
     androidVersionId: versions[versions.length - 1],
     locale: 'en',
     orientation: 'portrait',
-  };
+  } as AndroidDevice;
 }
 
 function createTestMatrix(
-  accessToken: admin.GoogleOAuthAccessToken,
+  accessToken: GoogleOAuthAccessToken,
   projectId: string,
   testId: string,
   device: AndroidDevice
@@ -70,7 +69,7 @@ function createTestMatrix(
     '/v1/projects/' + projectId + '/testMatrices'
   );
   const body = {
-    projectId: projectId,
+    projectId,
     testSpecification: {
       androidRoboTest: {
         appApk: {
@@ -85,7 +84,7 @@ function createTestMatrix(
     },
     resultStorage: {
       googleCloudStorage: {
-        gcsPath: 'gs://' + admin.storage().bucket().name,
+        gcsPath: 'gs://' + getStorage().bucket().name,
       },
     },
     clientInfo: {
@@ -100,14 +99,14 @@ function createTestMatrix(
 }
 
 function requestOptions(
-  accessToken: admin.GoogleOAuthAccessToken,
+  accessToken: GoogleOAuthAccessToken,
   method: string,
   path: string
 ): https.RequestOptions {
   return {
-    method: method,
+    method,
     hostname: TESTING_API_SERVICE_NAME,
-    path: path,
+    path,
     headers: {
       Authorization: 'Bearer ' + accessToken.access_token,
       'Content-Type': 'application/json',

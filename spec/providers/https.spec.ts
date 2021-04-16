@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
+import { App, deleteApp, initializeApp } from 'firebase-admin/app';
 import * as _ from 'lodash';
 import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
@@ -169,7 +169,7 @@ async function runTest(test: CallTest): Promise<any> {
 }
 
 describe('callable.FunctionBuilder', () => {
-  let app: firebase.app.App;
+  let app: App;
 
   before(() => {
     const credential = {
@@ -185,7 +185,7 @@ describe('callable.FunctionBuilder', () => {
         };
       },
     };
-    app = firebase.initializeApp({
+    app = initializeApp({
       projectId: 'aProjectId',
       credential,
     });
@@ -193,7 +193,7 @@ describe('callable.FunctionBuilder', () => {
   });
 
   after(() => {
-    app.delete();
+    deleteApp(app);
     delete appsNamespace.singleton;
   });
 

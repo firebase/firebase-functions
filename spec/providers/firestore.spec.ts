@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as admin from 'firebase-admin';
+import { Timestamp } from 'firebase-admin/firestore';
 import * as _ from 'lodash';
 
 import * as functions from '../../src/index';
@@ -522,7 +522,7 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          timestampVal: admin.firestore.Timestamp.fromDate(
+          timestampVal: Timestamp.fromDate(
             new Date('2017-06-13T00:58:40.349Z')
           ),
         });
@@ -540,9 +540,7 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          timestampVal: admin.firestore.Timestamp.fromDate(
-            new Date('2017-06-13T00:58:40Z')
-          ),
+          timestampVal: Timestamp.fromDate(new Date('2017-06-13T00:58:40Z')),
         });
       });
 

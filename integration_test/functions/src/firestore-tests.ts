@@ -1,7 +1,6 @@
-import * as admin from 'firebase-admin';
+import { DocumentSnapshot } from 'firebase-admin/firestore';
 import * as functions from 'firebase-functions';
 import { expectDeepEq, expectEq, TestSuite } from './testing';
-import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 
 const testIdFieldName = 'documentId';
 const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';

@@ -20,8 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
+import { UserInfo, UserMetadata, UserRecord } from 'firebase-admin/auth';
 import * as _ from 'lodash';
+
 import {
   CloudFunction,
   Event,
@@ -29,6 +30,11 @@ import {
   makeCloudFunction,
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
+
+/**
+ * The UserRecord and UserInfo passed to Cloud Functions is the same as Firebase Admin
+ */
+export { UserInfo, UserRecord };
 
 /** @hidden */
 export const provider = 'google.firebase.auth';
@@ -52,7 +58,7 @@ export function _userWithOptions(options: DeploymentOptions) {
   }, options);
 }
 
-export class UserRecordMetadata implements firebase.auth.UserMetadata {
+export class UserRecordMetadata implements UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
@@ -66,7 +72,7 @@ export class UserRecordMetadata implements firebase.auth.UserMetadata {
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
-  private static dataConstructor(raw: Event): firebase.auth.UserRecord {
+  private static dataConstructor(raw: Event): UserRecord {
     return userRecordConstructor(raw.data);
   }
 
@@ -110,20 +116,7 @@ export class UserBuilder {
   }
 }
 
-/**
- * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
- * SDK.
- */
-export type UserRecord = firebase.auth.UserRecord;
-
-/**
- * UserInfo that is part of the UserRecord
- */
-export type UserInfo = firebase.auth.UserInfo;
-
-export function userRecordConstructor(
-  wireData: Object
-): firebase.auth.UserRecord {
+export function userRecordConstructor(wireData: Object): UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
   const falseyValues: any = {
     email: null,
@@ -176,5 +169,5 @@ export function userRecordConstructor(
     json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
     return json;
   });
-  return record as firebase.auth.UserRecord;
+  return record as UserRecord;
 }

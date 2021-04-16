@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin';
+import { getDatabase } from 'firebase-admin/database';
 import * as functions from 'firebase-functions';
 import { evaluate, expectEq, success, TestSuite } from './testing';
 import PubsubMessage = functions.pubsub.Message;
@@ -67,7 +67,7 @@ export const schedule: any = functions
   .pubsub.schedule('every 10 hours') // This is a dummy schedule, since we need to put a valid one in.
   // For the test, the job is triggered by the jobs:run api
   .onRun(async (context) => {
-    const db = admin.database();
+    const db = getDatabase();
     const snap = await db
       .ref('testRuns')
       .orderByChild('timestamp')

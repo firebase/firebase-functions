@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
+import { deleteApp, getApp, initializeApp, applicationDefault, App } from 'firebase-admin/app';
 import * as _ from 'lodash';
 import { firebaseConfig } from './config';
 
@@ -58,7 +58,7 @@ export namespace apps {
 
   export class Apps {
     private _refCounter: RefCounter;
-    private _emulatedAdminApp?: firebase.app.App;
+    private _emulatedAdminApp?: App;
 
     constructor() {
       this._refCounter = {};
@@ -66,7 +66,7 @@ export namespace apps {
 
     _appAlive(appName: string): boolean {
       try {
-        const app = firebase.app(appName);
+        const app = getApp(appName);
         return !_.get(app, 'isDeleted_');
       } catch (e) {
         return false;
@@ -77,10 +77,7 @@ export namespace apps {
       if (!this._appAlive(appName)) {
         return;
       }
-      firebase
-        .app(appName)
-        .delete()
-        .catch(_.noop);
+      deleteApp(getApp(appName)).catch(() => {});
     }
 
     retain() {
@@ -105,15 +102,15 @@ export namespace apps {
       });
     }
 
-    get admin(): firebase.app.App {
+    get admin(): App {
       if (this._emulatedAdminApp) {
         return this._emulatedAdminApp;
       }
 
       if (this._appAlive('__admin__')) {
-        return firebase.app('__admin__');
+        return getApp('__admin__');
       }
-      return firebase.initializeApp(this.firebaseArgs, '__admin__');
+      return initializeApp(this.firebaseArgs, '__admin__');
     }
 
     /**
@@ -121,14 +118,15 @@ export namespace apps {
      * used by the Firebase Functions SDK. Developers should never call this function for
      * other purposes.
      */
-    setEmulatedAdminApp(app: firebase.app.App) {
+    setEmulatedAdminApp(app: App) {
       this._emulatedAdminApp = app;
     }
 
     private get firebaseArgs() {
-      return _.assign({}, firebaseConfig(), {
-        credential: firebase.credential.applicationDefault(),
-      });
+      return {
+        ...firebaseConfig(),
+        credential: applicationDefault(),
+      };
     }
   }
 }

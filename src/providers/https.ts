@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import * as cors from 'cors';
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
-import { warn, error } from '../logger';
+import { error, warn } from '../logger';
 
 /** @hidden */
 export interface Request extends express.Request {
@@ -253,7 +253,7 @@ export interface CallableContext {
    */
   auth?: {
     uid: string;
-    token: firebase.auth.DecodedIdToken;
+    token: DecodedIdToken;
   };
 
   /**
@@ -436,9 +436,7 @@ export function _onCallWithOptions(
         }
         const idToken = match[1];
         try {
-          const authToken = await apps()
-            .admin.auth()
-            .verifyIdToken(idToken);
+          const authToken = await getAuth(apps().admin).verifyIdToken(idToken);
           context.auth = {
             uid: authToken.uid,
             token: authToken,

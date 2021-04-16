@@ -23,7 +23,7 @@
 import { expect } from 'chai';
 import { apps as appsNamespace } from '../src/apps';
 
-import * as firebase from 'firebase-admin';
+import { deleteApp, getApps } from 'firebase-admin/app';
 import * as _ from 'lodash';
 import * as sinon from 'sinon';
 
@@ -35,9 +35,7 @@ describe('apps', () => {
   });
 
   afterEach(() => {
-    _.forEach(firebase.apps, (app) => {
-      app.delete();
-    });
+    getApps().forEach(deleteApp);
   });
 
   describe('retain/release', () => {

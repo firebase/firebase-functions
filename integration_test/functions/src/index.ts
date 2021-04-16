@@ -1,9 +1,13 @@
+import { PubSub } from '@google-cloud/pubsub';
 import { Request, Response } from 'express';
-import * as admin from 'firebase-admin';
+import { applicationDefault, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getDatabase } from 'firebase-admin/database';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getStorage } from 'firebase-admin/storage';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
 import * as https from 'https';
-import { PubSub } from '@google-cloud/pubsub';
 
 export * from './pubsub-tests';
 export * from './database-tests';
@@ -21,7 +25,7 @@ import * as testLab from './testLab-utils';
 import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
 import { config } from 'firebase-functions';
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
-admin.initializeApp();
+initializeApp();
 const REGION = functions.config().functions.test_region;
 
 // TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
@@ -40,9 +44,7 @@ function callHttpsTrigger(name: string, data: any, baseUrl) {
 }
 
 async function callScheduleTrigger(functionName: string, region: string) {
-  const accessToken = await admin.credential
-    .applicationDefault()
-    .getAccessToken();
+  const accessToken = await applicationDefault().getAccessToken();
   return new Promise<string>((resolve, reject) => {
     const request = https.request(
       {
@@ -92,22 +94,19 @@ export const integrationTests: any = functions
       .split('.')
       .slice(1)
       .join('.');
-    const testId = admin
-      .database()
+    const testId = getDatabase()
       .ref()
       .push().key;
-    admin
-      .database()
+    getDatabase()
       .ref(`testRuns/${testId}/timestamp`)
       .set(Date.now());
-    const testIdRef = admin.database().ref(`testRuns/${testId}`);
+    const testIdRef = getDatabase().ref(`testRuns/${testId}`);
     console.log('testId is: ', testId);
     fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {});
     try {
       await Promise.all([
         // A database write to trigger the Firebase Realtime Database tests.
-        admin
-          .database()
+        getDatabase()
           .ref(`dbTests/${testId}/start`)
           .set({ '.sv': 'timestamp' }),
         // A Pub/Sub publish to trigger the Cloud Pub/Sub tests.
@@ -115,8 +114,7 @@ export const integrationTests: any = functions
           .topic('pubsubTests')
           .publish(Buffer.from(JSON.stringify({ testId }))),
         // A user creation to trigger the Firebase Auth user creation tests.
-        admin
-          .auth()
+        getAuth()
           .createUser({
             email: `${testId}@fake.com`,
             password: 'secret',
@@ -124,19 +122,17 @@ export const integrationTests: any = functions
           })
           .then((userRecord) => {
             // A user deletion to trigger the Firebase Auth user deletion tests.
-            admin.auth().deleteUser(userRecord.uid);
+            getAuth().deleteUser(userRecord.uid);
           }),
         // A firestore write to trigger the Cloud Firestore tests.
-        admin
-          .firestore()
+        getFirestore()
           .collection('tests')
           .doc(testId)
           .set({ test: testId }),
         // Invoke a callable HTTPS trigger.
         callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
         // A Remote Config update to trigger the Remote Config tests.
-        admin.credential
-          .applicationDefault()
+        applicationDefault()
           .getAccessToken()
           .then((accessToken) => {
             const options = {
@@ -155,8 +151,7 @@ export const integrationTests: any = functions
             request.end();
           }),
         // A storage upload to trigger the Storage tests
-        admin
-          .storage()
+        getStorage()
           .bucket()
           .upload('/tmp/' + testId + '.txt'),
         testLab.startTestRun(firebaseConfig.projectId, testId),

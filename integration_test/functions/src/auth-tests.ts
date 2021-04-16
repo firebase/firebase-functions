@@ -1,7 +1,6 @@
-import * as admin from 'firebase-admin';
+import { UserRecord as UserMetadata } from 'firebase-admin/auth';
 import * as functions from 'firebase-functions';
 import { expectEq, TestSuite } from './testing';
-import UserMetadata = admin.auth.UserRecord;
 
 const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
