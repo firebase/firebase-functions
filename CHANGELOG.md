@@ -1,0 +1,3 @@
+* Functions may now be deployed with 8GB RAM
+* Functions may now be deployed to europe-central2 (Warsaw)
+* Functions may now reserve a minimum number of instances (updated CLI required)
