@@ -8,6 +8,7 @@ export const SUPPORTED_REGIONS = [
   'us-west2',
   'us-west3',
   'us-west4',
+  'europe-central2',
   'europe-west1',
   'europe-west2',
   'europe-west3',
@@ -43,6 +44,7 @@ export const VALID_MEMORY_OPTIONS = [
   '1GB',
   '2GB',
   '4GB',
+  '8GB',
 ] as const;
 
 /**
@@ -106,6 +108,12 @@ export interface RuntimeOptions {
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
   timeoutSeconds?: number;
+
+  /**
+   * Min number of actual instances allowed to be running in parallel
+   * Instances will be billed while idle.
+   */
+  minInstances?: number;
 
   /**
    * Max number of actual instances allowed to be running in parallel

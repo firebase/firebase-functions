@@ -203,7 +203,7 @@ export namespace Change {
     json: ChangeJson,
     customizer: (x: any) => T = reinterpretCast
   ): Change<T> {
-    let before = _.assign({}, json.before);
+    let before = { ...json.before };
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
@@ -220,7 +220,7 @@ export namespace Change {
     after: any,
     fieldMask: string
   ) {
-    const before = _.assign({}, after);
+    const before = { ...after };
     const masks = fieldMask.split(',');
 
     masks.forEach((mask) => {
@@ -506,11 +506,16 @@ export function optionsToTrigger(options: DeploymentOptions) {
       '1GB': 1024,
       '2GB': 2048,
       '4GB': 4096,
+      '8GB': 8192,
     };
     trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
   }
   if (options.schedule) {
     trigger.schedule = options.schedule;
+  }
+
+  if (options.minInstances) {
+    trigger.minInstances = options.minInstances;
   }
 
   if (options.maxInstances) {
