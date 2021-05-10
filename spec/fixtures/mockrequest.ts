@@ -95,7 +95,7 @@ export function mockFetchAppCheckPublicJwks(): nock.Scope {
   };
 
   return nock('https://firebaseappcheck.googleapis.com:443')
-    .get('/v1alpha/jwks')
+    .get('/v1beta/jwks')
     .reply(200, mockedResponse);
 }
 
@@ -108,7 +108,7 @@ export function generateAppCheckToken(
 ): string {
   const claims = {};
   const options: jwt.SignOptions = {
-    audience: [`/projects/${projectId}`],
+    audience: [`projects/${projectId}`],
     expiresIn: 60 * 60, // 1 hour in seconds
     issuer: `https://firebaseappcheck.googleapis.com/${projectId}`,
     subject: appId,

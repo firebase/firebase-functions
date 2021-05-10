@@ -431,7 +431,7 @@ describe('callable.FunctionBuilder', () => {
           expect(context.app.token.app_id).to.be.equal(appId);
           expect(context.app.token.sub).to.be.equal(appId);
           expect(context.app.token.aud).to.be.deep.equal([
-            `/projects/${projectId}`,
+            `projects/${projectId}`,
           ]);
           expect(context.auth).to.be.undefined;
           expect(context.instanceIdToken).to.be.undefined;
