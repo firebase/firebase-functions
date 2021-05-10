@@ -1,3 +1,6 @@
 - Functions may now be deployed with 8GB RAM
 - Functions may now be deployed to europe-central2 (Warsaw)
 - Functions may now reserve a minimum number of instances (updated CLI required)
+- Add support for validating AppCheck tokens
+- Updates `firebase-admin` dependency to support `^9.8.0` which is the minimum version required to run AppCheck token verifications.
+- Drop support for Node.js 8.x - `firebase-admin` no longer supports Node.js 8.x as of `9.0.0`
