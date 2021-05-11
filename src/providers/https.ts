@@ -454,6 +454,11 @@ async function checkTokens(
   if (appCheck) {
     status.app = 'INVALID';
     try {
+      if (apps().admin.appCheck == null) {
+        throw new Error(
+          'Cannot validate AppCheck token. Please uupdate Firebase Admin SDK to >v9.8.0'
+        );
+      }
       const appCheckToken = await apps()
         .admin.appCheck()
         .verifyToken(appCheck);
