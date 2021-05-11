@@ -448,11 +448,14 @@ async function checkTokens(
   req: Request,
   ctx: CallableContext
 ): Promise<CallableTokenStatus> {
-  const status: CallableTokenStatus = { app: 'MISSING', auth: 'MISSING' };
+  const verifications: CallableTokenStatus = {
+    app: 'MISSING',
+    auth: 'MISSING',
+  };
 
   const appCheck = req.header('X-Firebase-AppCheck');
   if (appCheck) {
-    status.app = 'INVALID';
+    verifications.app = 'INVALID';
     try {
       if (apps().admin.appCheck == null) {
         throw new Error(
@@ -466,7 +469,7 @@ async function checkTokens(
         appId: appCheckToken.appId,
         token: appCheckToken.token,
       };
-      status.app = 'VALID';
+      verifications.app = 'VALID';
     } catch (err) {
       warn('Failed to validate AppCheck token.', err);
     }
@@ -474,7 +477,7 @@ async function checkTokens(
 
   const authorization = req.header('Authorization');
   if (authorization) {
-    status.auth = 'INVALID';
+    verifications.auth = 'INVALID';
     const match = authorization.match(/^Bearer (.*)$/);
     if (match) {
       const idToken = match[1];
@@ -483,7 +486,7 @@ async function checkTokens(
           .admin.auth()
           .verifyIdToken(idToken);
 
-        status.auth = 'VALID';
+        verifications.auth = 'VALID';
         ctx.auth = {
           uid: authToken.uid,
           token: authToken,
@@ -495,17 +498,17 @@ async function checkTokens(
   }
 
   const logPayload = {
-    verfications: status,
+    verifications,
     'logging.googleapis.com/labels': {
       'firebase-log-type': 'callable-request-verification',
     },
   };
 
   const errs = [];
-  if (status.app === 'INVALID') {
+  if (verifications.app === 'INVALID') {
     errs.push('AppCheck token was rejected.');
   }
-  if (status.auth === 'INVALID') {
+  if (verifications.auth === 'INVALID') {
     errs.push('Auth token was rejected.');
   }
 
@@ -515,7 +518,7 @@ async function checkTokens(
     warn(`Callable request verification failed: ${errs.join(' ')}`, logPayload);
   }
 
-  return status;
+  return verifications;
 }
 
 /** @hidden */
