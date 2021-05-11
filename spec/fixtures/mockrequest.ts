@@ -90,8 +90,9 @@ export function generateIdToken(projectId: string): string {
  * verifying an AppCheck token.
  */
 export function mockFetchAppCheckPublicJwks(): nock.Scope {
+  const { kty, use, alg, kid, n, e } = mockJWK;
   const mockedResponse = {
-    keys: [_.pick(mockJWK, ['kty', 'use', 'alg', 'kid', 'n', 'e'])],
+    keys: [{ kty, use, alg, kid, n, e }],
   };
 
   return nock('https://firebaseappcheck.googleapis.com:443')
