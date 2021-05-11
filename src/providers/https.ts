@@ -457,9 +457,9 @@ async function checkTokens(
   if (appCheck) {
     verifications.app = 'INVALID';
     try {
-      if (apps().admin.appCheck == null) {
+      if (!apps().admin.appCheck) {
         throw new Error(
-          'Cannot validate AppCheck token. Please uupdate Firebase Admin SDK to >v9.8.0'
+          'Cannot validate AppCheck token. Please uupdate Firebase Admin SDK to >= v9.8.0'
         );
       }
       const appCheckToken = await apps()
