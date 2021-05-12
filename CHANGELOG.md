@@ -1,2 +1,3 @@
 - Functions may now be deployed with 8GB RAM
 - Functions may now be deployed to europe-central2 (Warsaw)
+- Add support for validating AppCheck tokens for Callable Functions

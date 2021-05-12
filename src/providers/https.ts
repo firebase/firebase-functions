@@ -28,7 +28,7 @@ import * as _ from 'lodash';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
-import { warn, error } from '../logger';
+import { error, info, warn } from '../logger';
 
 /** @hidden */
 export interface Request extends express.Request {
@@ -249,6 +249,14 @@ export class HttpsError extends Error {
  */
 export interface CallableContext {
   /**
+   * The result of decoding and verifying a Firebase AppCheck token.
+   */
+  app?: {
+    appId: string;
+    token: firebase.appCheck.DecodedAppCheckToken;
+  };
+
+  /**
    * The result of decoding and verifying a Firebase Auth ID token.
    */
   auth?: {
@@ -411,6 +419,108 @@ export function decode(data: any): any {
   return data;
 }
 
+/**
+ * Be careful when changing token status values.
+ *
+ * Users are encouraged to setup log-based metric based on these values, and
+ * changing their values may cause their metrics to break.
+ *
+ */
+/** @hidden */
+type TokenStatus = 'MISSING' | 'VALID' | 'INVALID';
+
+/** @hidden */
+interface CallableTokenStatus {
+  app: TokenStatus;
+  auth: TokenStatus;
+}
+
+/**
+ * Check and verify tokens included in the requests. Once verified, tokens
+ * are injected into the callable context.
+ *
+ * @param {Request} req - Request sent to the Callable function.
+ * @param {CallableContext} ctx - Context to be sent to callable function handler.
+ * @return {CallableTokenStatus} Status of the token verifications.
+ */
+/** @hidden */
+async function checkTokens(
+  req: Request,
+  ctx: CallableContext
+): Promise<CallableTokenStatus> {
+  const verifications: CallableTokenStatus = {
+    app: 'MISSING',
+    auth: 'MISSING',
+  };
+
+  const appCheck = req.header('X-Firebase-AppCheck');
+  if (appCheck) {
+    verifications.app = 'INVALID';
+    try {
+      if (!apps().admin.appCheck) {
+        throw new Error(
+          'Cannot validate AppCheck token. Please uupdate Firebase Admin SDK to >= v9.8.0'
+        );
+      }
+      const appCheckToken = await apps()
+        .admin.appCheck()
+        .verifyToken(appCheck);
+      ctx.app = {
+        appId: appCheckToken.appId,
+        token: appCheckToken.token,
+      };
+      verifications.app = 'VALID';
+    } catch (err) {
+      warn('Failed to validate AppCheck token.', err);
+    }
+  }
+
+  const authorization = req.header('Authorization');
+  if (authorization) {
+    verifications.auth = 'INVALID';
+    const match = authorization.match(/^Bearer (.*)$/);
+    if (match) {
+      const idToken = match[1];
+      try {
+        const authToken = await apps()
+          .admin.auth()
+          .verifyIdToken(idToken);
+
+        verifications.auth = 'VALID';
+        ctx.auth = {
+          uid: authToken.uid,
+          token: authToken,
+        };
+      } catch (err) {
+        warn('Failed to validate auth token.', err);
+      }
+    }
+  }
+
+  const logPayload = {
+    verifications,
+    'logging.googleapis.com/labels': {
+      'firebase-log-type': 'callable-request-verification',
+    },
+  };
+
+  const errs = [];
+  if (verifications.app === 'INVALID') {
+    errs.push('AppCheck token was rejected.');
+  }
+  if (verifications.auth === 'INVALID') {
+    errs.push('Auth token was rejected.');
+  }
+
+  if (errs.length == 0) {
+    info('Callable request verification passed', logPayload);
+  } else {
+    warn(`Callable request verification failed: ${errs.join(' ')}`, logPayload);
+  }
+
+  return verifications;
+}
+
 /** @hidden */
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
@@ -427,25 +537,9 @@ export function _onCallWithOptions(
       }
 
       const context: CallableContext = { rawRequest: req };
-
-      const authorization = req.header('Authorization');
-      if (authorization) {
-        const match = authorization.match(/^Bearer (.*)$/);
-        if (!match) {
-          throw new HttpsError('unauthenticated', 'Unauthenticated');
-        }
-        const idToken = match[1];
-        try {
-          const authToken = await apps()
-            .admin.auth()
-            .verifyIdToken(idToken);
-          context.auth = {
-            uid: authToken.uid,
-            token: authToken,
-          };
-        } catch (err) {
-          throw new HttpsError('unauthenticated', 'Unauthenticated');
-        }
+      const tokenStatus = await checkTokens(req, context);
+      if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 
       const instanceId = req.header('Firebase-Instance-ID-Token');
