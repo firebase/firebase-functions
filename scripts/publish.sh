@@ -87,7 +87,7 @@ npm run build:release
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
-npm version $VERSION
+npm version --no-git-tag-version $VERSION
 NEW_VERSION=$(jq -r ".version" package.json)
 echo "Made a $VERSION version."
 
