@@ -112,6 +112,7 @@ export interface RuntimeOptions {
   /**
    * Min number of actual instances allowed to be running in parallel
    * Instances will be billed while idle.
+   * @hidden
    */
   minInstances?: number;
 
