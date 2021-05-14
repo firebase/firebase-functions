@@ -34,7 +34,6 @@ describe('Database Functions', () => {
       process.env.FIREBASE_CONFIG = JSON.stringify({
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
       });
-      const apps = appsNamespace.init();
     });
 
     after(() => {

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { deleteApp, getApp, initializeApp, applicationDefault, App } from 'firebase-admin/app';
+import { App, applicationDefault, deleteApp, getApp, initializeApp } from 'firebase-admin/app';
 import * as _ from 'lodash';
 import { firebaseConfig } from './config';
 

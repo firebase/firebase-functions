@@ -25,9 +25,9 @@ import {
   getFirestore,
   QueryDocumentSnapshot,
 } from 'firebase-admin/firestore';
+import * as _ from 'lodash';
 import { posix } from 'path';
 import { apps } from '../apps';
-import * as _ from 'lodash';
 
 import {
   Change,

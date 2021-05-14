@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { getAuth, DecodedIdToken } from 'firebase-admin/auth';
 import * as cors from 'cors';
 import * as express from 'express';
+import { DecodedIdToken, getAuth } from 'firebase-admin/auth';
 import * as _ from 'lodash';
 
 import { apps } from '../apps';
