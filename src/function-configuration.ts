@@ -117,6 +117,13 @@ export interface RuntimeOptions {
   minInstances?: number;
 
   /**
+   * Which version of the internal contract between the CLI and the SDK are
+   * we using? For internal testing only.
+   * @hidden
+   */
+  apiVersion?: 1 | 2;
+
+  /**
    * Max number of actual instances allowed to be running in parallel
    */
   maxInstances?: number;
