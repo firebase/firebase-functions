@@ -7,8 +7,8 @@ const SUPPORTS_STRUCTURED_LOGS =
 describe(`logger (${
   SUPPORTS_STRUCTURED_LOGS ? 'structured' : 'unstructured'
 })`, () => {
-  let stdoutWrite = process.stdout.write.bind(process.stdout);
-  let stderrWrite = process.stderr.write.bind(process.stderr);
+  const stdoutWrite = process.stdout.write.bind(process.stdout);
+  const stderrWrite = process.stderr.write.bind(process.stderr);
   let lastOut: string;
   let lastErr: string;
 
@@ -127,7 +127,7 @@ describe(`logger (${
 
         for (const severity of ['DEBUG', 'INFO', 'NOTICE']) {
           it(`should output ${severity} severity to stdout`, () => {
-            let entry: logger.LogEntry = {
+            const entry: logger.LogEntry = {
               severity: severity as logger.LogSeverity,
               message: 'test',
             };
@@ -144,7 +144,7 @@ describe(`logger (${
           'EMERGENCY',
         ]) {
           it(`should output ${severity} severity to stderr`, () => {
-            let entry: logger.LogEntry = {
+            const entry: logger.LogEntry = {
               severity: severity as logger.LogSeverity,
               message: 'test',
             };

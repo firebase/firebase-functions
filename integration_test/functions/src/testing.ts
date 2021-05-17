@@ -92,7 +92,7 @@ function deepEq(left: any, right: any) {
     return false;
   }
 
-  for (let key in left) {
+  for (const key in left) {
     if (!right.hasOwnProperty(key)) {
       return false;
     }
