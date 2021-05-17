@@ -1,9 +1,9 @@
+import { format } from 'util';
 import {
+  CONSOLE_SEVERITY,
   SUPPORTS_STRUCTURED_LOGS,
   UNPATCHED_CONSOLE,
-  CONSOLE_SEVERITY,
 } from './common';
-import { format } from 'util';
 
 /** @hidden */
 function patchedConsole(severity: string): (data: any, ...args: any[]) => void {

@@ -269,14 +269,14 @@ export interface CallableContext {
        * same project number specified in the [`aud`](#aud) property.
        */
       iss: string;
-  
+
       /**
        * The Firebase App ID corresponding to the app the token belonged to.
        *
        * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
        */
       sub: string;
-  
+
       /**
        * The audience for which this token is intended.
        *
@@ -284,20 +284,20 @@ export interface CallableContext {
        * Firebase project, and the second is the project ID of the same project.
        */
       aud: string[];
-  
+
       /**
        * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
        * time at which this App Check token expires and should no longer be considered valid.
        */
       exp: number;
-  
+
       /**
        * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
        * time at which this App Check token was issued and should start to be considered
        * valid.
        */
       iat: number;
-  
+
       /**
        * The App ID corresponding to the App the App Check token belonged to.
        *

@@ -66,23 +66,23 @@ describe('Test Lab Functions', () => {
             resource: {},
           },
         };
-        const expected = <testLab.TestMatrix>{
+        const expected = {
           testMatrixId: 'matrix-375mfeu9mnw8t',
           state: 'INVALID',
           createTime: '2019-04-15T17:43:32.538Z',
           outcomeSummary: undefined,
           invalidMatrixDetails: 'INVALID_INPUT_APK',
-          resultStorage: <testLab.ResultStorage>{
+          resultStorage: {
             gcsPath: 'gs://test.appspot.com',
             resultsUrl: undefined,
             toolResultsHistoryId: undefined,
             toolResultsExecutionId: undefined,
-          },
-          clientInfo: <testLab.ClientInfo>{
+          } as testLab.ResultStorage,
+          clientInfo: {
             name: 'test',
             details: {},
-          },
-        };
+          } as testLab.ClientInfo,
+        } as testLab.TestMatrix;
         const func = testLab.testMatrix().onComplete((matrix) => matrix);
         return expect(func(event.data, event.context)).to.eventually.deep.equal(
           expected
@@ -119,23 +119,23 @@ describe('Test Lab Functions', () => {
             resource: {},
           },
         };
-        const expected = <testLab.TestMatrix>{
+        const expected = {
           testMatrixId: 'matrix-tsgjk8pnvxhya',
           state: 'FINISHED',
           createTime: '2019-04-15T18:03:11.115Z',
           outcomeSummary: 'FAILURE',
           invalidMatrixDetails: undefined,
-          resultStorage: <testLab.ResultStorage>{
+          resultStorage: {
             gcsPath: 'gs://test.appspot.com',
             toolResultsHistoryId: 'bh.9b6f4dac24d3049',
             toolResultsExecutionId: '6352915701487950333',
             resultsUrl: 'https://path/to/results',
-          },
-          clientInfo: <testLab.ClientInfo>{
+          } as testLab.ResultStorage,
+          clientInfo: {
             name: 'test',
             details: {},
-          },
-        };
+          } as testLab.ClientInfo,
+        } as testLab.TestMatrix;
         const func = testLab.testMatrix().onComplete((matrix) => matrix);
         return expect(func(event.data, event.context)).to.eventually.deep.equal(
           expected
@@ -161,7 +161,7 @@ describe('Test Lab Functions', () => {
   describe('TestMatrix', () => {
     describe('constructor', () => {
       it('should populate basic fields', () => {
-        const expected = <testLab.TestMatrix>{
+        const expected = {
           testMatrixId: 'id1',
           createTime: '2019-02-08T18:50:32.178Z',
           state: 'FINISHED',
@@ -169,7 +169,7 @@ describe('Test Lab Functions', () => {
           invalidMatrixDetails: 'DETAILS_UNAVAILABLE',
           resultStorage: new testLab.ResultStorage(),
           clientInfo: new testLab.ClientInfo(),
-        };
+        } as testLab.TestMatrix;
         const actual = new testLab.TestMatrix({
           testMatrixId: 'id1',
           timestamp: '2019-02-08T18:50:32.178Z',
@@ -185,10 +185,10 @@ describe('Test Lab Functions', () => {
   describe('ClientInfo', () => {
     describe('constructor', () => {
       it('should populate basic fields', () => {
-        const expected = <testLab.ClientInfo>{
+        const expected = {
           name: 'client',
           details: {},
-        };
+        } as testLab.ClientInfo;
         const actual = new testLab.ClientInfo({
           name: 'client',
         });
@@ -196,13 +196,13 @@ describe('Test Lab Functions', () => {
       });
 
       it('should populate key/value details', () => {
-        const expected = <testLab.ClientInfo>{
+        const expected = {
           name: 'client',
           details: {
             k0: 'v0',
             k1: '',
           },
-        };
+        } as testLab.ClientInfo;
         const actual = new testLab.ClientInfo({
           name: 'client',
           clientInfoDetails: [
@@ -223,12 +223,12 @@ describe('Test Lab Functions', () => {
   describe('ResultStorage', () => {
     describe('constructor', () => {
       it('should populate basic fields', () => {
-        const expected = <testLab.ResultStorage>{
+        const expected = {
           gcsPath: 'path',
           toolResultsHistoryId: 'h1',
           toolResultsExecutionId: 'e2',
           resultsUrl: 'http://example.com/',
-        };
+        } as testLab.ResultStorage;
         const actual = new testLab.ResultStorage({
           googleCloudStorage: {
             gcsPath: 'path',
