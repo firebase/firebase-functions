@@ -2,8 +2,8 @@ import * as jwt from 'jsonwebtoken';
 import * as jwkToPem from 'jwk-to-pem';
 import * as _ from 'lodash';
 import * as nock from 'nock';
-import * as mockKey from '../fixtures/credential/key.json';
 import * as mockJWK from '../fixtures/credential/jwk.json';
+import * as mockKey from '../fixtures/credential/key.json';
 
 // MockRequest mocks an https.Request.
 export class MockRequest {

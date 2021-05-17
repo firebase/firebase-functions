@@ -1,6 +1,6 @@
+import * as admin from 'firebase-admin';
 import * as http from 'http';
 import * as https from 'https';
-import * as admin from 'firebase-admin';
 import * as utils from './test-utils';
 
 interface AndroidDevice {
@@ -50,12 +50,12 @@ async function fetchDefaultDevice(
   const model = defaultModels[0];
   const versions = model.supportedVersionIds;
 
-  return <AndroidDevice>{
+  return {
     androidModelId: model.id,
     androidVersionId: versions[versions.length - 1],
     locale: 'en',
     orientation: 'portrait',
-  };
+  } as AndroidDevice;
 }
 
 function createTestMatrix(
@@ -70,7 +70,7 @@ function createTestMatrix(
     '/v1/projects/' + projectId + '/testMatrices'
   );
   const body = {
-    projectId: projectId,
+    projectId,
     testSpecification: {
       androidRoboTest: {
         appApk: {
@@ -105,9 +105,9 @@ function requestOptions(
   path: string
 ): https.RequestOptions {
   return {
-    method: method,
+    method,
     hostname: TESTING_API_SERVICE_NAME,
-    path: path,
+    path,
     headers: {
       Authorization: 'Bearer ' + accessToken.access_token,
       'Content-Type': 'application/json',
