@@ -1,0 +1,1 @@
+- Fixes a bug where typescript would fail to compile with old (but supported) versions of firebase-admin
