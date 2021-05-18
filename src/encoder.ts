@@ -20,9 +20,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export function dateToTimestampProto(timeString?: string) {
-  if (typeof timeString === 'undefined') {
-    return;
+// Vendored definition of google.protobuf.Timestamp
+interface ITimestamp {
+
+  /** Timestamp seconds */
+  seconds?: (number|string|null);
+
+  /** Timestamp nanos */
+  nanos?: (number|null);
+}
+
+// Takes an ITimestamp mainly just to silence the compiler.
+// As a general rule, it's better to vendor types from a Proto definition. Unfortunately
+// google.protobuf.* (including google.protobuf.Timestamp) override their JSON encoding.
+// This means that JSON _definitions_ of a protobuf will have an ITimestamp but
+// the actual wire data is an ISO8601 string.
+export function dateToTimestampProto(timeString?: string | ITimestamp): ITimestamp {
+  if (typeof timeString !== 'string') {
+    return timeString;
   }
   const date = new Date(timeString);
   const seconds = Math.floor(date.getTime() / 1000);
