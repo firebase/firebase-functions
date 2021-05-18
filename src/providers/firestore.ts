@@ -79,6 +79,11 @@ export function _databaseWithOptions(
   return new DatabaseBuilder(database, options);
 }
 
+let _useExperimentalProxyObjects = false;
+export function useExperimentalProxyObjects(value: boolean = true) {
+  _useExperimentalProxyObjects = value;
+}
+
 /** @hidden */
 export function _namespaceWithOptions(
   namespace: string,
@@ -319,17 +324,63 @@ function parseValue(value: proto.google.firestore.v1.IValue): unknown {
   }
 }
 
+function _getValueProto(data: any, resource: string, valueFieldName: string) {
+  if (_.isEmpty(_.get(data, valueFieldName))) {
+    // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
+    return resource;
+  }
+  const proto = {
+    fields: _.get(data, [valueFieldName, 'fields'], {}),
+    createTime: dateToTimestampProto(
+      _.get(data, [valueFieldName, 'createTime'])
+    ),
+    updateTime: dateToTimestampProto(
+      _.get(data, [valueFieldName, 'updateTime'])
+    ),
+    name: _.get(data, [valueFieldName, 'name'], resource),
+  };
+  return proto;
+}
+
+let firestoreInstance: any;
+
 /** @hidden */
 export function snapshotConstructor(event: Event): DocumentSnapshot {
   const data = event.data as EventData;
-  return makeProxyDocument(data.value, event.context.resource.name);
+  if (_useExperimentalProxyObjects) {
+    return makeProxyDocument(data.value, event.context.resource.name);
+  }
+  if (!firestoreInstance) {
+    firestoreInstance = firebase.firestore(apps().admin);
+  }
+  const valueProto = _getValueProto(
+    event.data,
+    event.context.resource.name,
+    'value'
+  );
+  const readTime = dateToTimestampProto(_.get(event, 'data.value.readTime'));
+  return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 }
 
 /** @hidden */
 // TODO remove this function when wire format changes to new format
 export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   const data = event.data as EventData;
-  return makeProxyDocument(data.oldValue, event.context.resource.name);
+  if (_useExperimentalProxyObjects) {
+    return makeProxyDocument(data.oldValue, event.context.resource.name);
+  }
+  if (!firestoreInstance) {
+    firestoreInstance = firebase.firestore(apps().admin);
+  }
+  const oldValueProto = _getValueProto(
+    event.data,
+    event.context.resource.name,
+    'oldValue'
+  );
+  const oldReadTime = dateToTimestampProto(
+    _.get(event, 'data.oldValue.readTime')
+  );
+  return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
 }
 
 function changeConstructor(raw: Event) {
