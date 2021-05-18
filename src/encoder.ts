@@ -22,12 +22,11 @@
 
 // Vendored definition of google.protobuf.Timestamp
 interface ITimestamp {
-
   /** Timestamp seconds */
-  seconds?: (number|string|null);
+  seconds?: number | string | null;
 
   /** Timestamp nanos */
-  nanos?: (number|null);
+  nanos?: number | null;
 }
 
 // Takes an ITimestamp mainly just to silence the compiler.
@@ -35,7 +34,9 @@ interface ITimestamp {
 // google.protobuf.* (including google.protobuf.Timestamp) override their JSON encoding.
 // This means that JSON _definitions_ of a protobuf will have an ITimestamp but
 // the actual wire data is an ISO8601 string.
-export function dateToTimestampProto(timeString?: string | ITimestamp): ITimestamp {
+export function dateToTimestampProto(
+  timeString?: string | ITimestamp
+): ITimestamp {
   if (typeof timeString !== 'string') {
     return timeString;
   }
