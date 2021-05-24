@@ -34,7 +34,7 @@ import {
 } from '../../cloud-functions';
 import { dateToTimestampProto } from '../../encoder';
 import { DeploymentOptions } from '../../function-configuration';
-import { makeProxyDocument, EventData } from "./types";
+import { EventData, makeProxyDocument } from './types';
 
 /** @hidden */
 export const provider = 'google.firestore';

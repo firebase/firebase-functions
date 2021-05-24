@@ -1,7 +1,7 @@
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 
-import { apps } from "../../apps";
+import { apps } from '../../apps';
 
 export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
 export type DocumentReference = firebase.firestore.DocumentReference;
@@ -57,7 +57,6 @@ class GeoPoint {
 };
 
 class Timestamp {
-  constructor(private _seconds: number, private _nanoseconds: number) {}
 
   // The Firestore SDK type hase these same named fields and properties;
   // we need to also have them for unit tests to pass.
@@ -78,6 +77,7 @@ class Timestamp {
     }
     return new Timestamp(seconds, nanos);
   }
+  constructor(private _seconds: number, private _nanoseconds: number) {}
   isEqual(other: {seconds: number, nanoseconds: number}): boolean {
     return this.seconds === other.seconds && this.nanoseconds === other.nanoseconds;
   }
