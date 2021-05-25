@@ -417,7 +417,7 @@ export function makeCloudFunction<EventData>({
         },
       });
       if (!_.isEmpty(labels)) {
-        trigger.labels = labels;
+        trigger.labels = Object.assign(labels, trigger.labels);
       }
       return trigger;
     },
@@ -551,6 +551,10 @@ export function optionsToTrigger(options: DeploymentOptions) {
         `Invalid option for serviceAccount: '${options.serviceAccount}'. Valid options are 'default', a service account email, or '{serviceAccountName}@'`
       );
     }
+  }
+
+  if (options.labels) {
+    trigger.labels = options.labels;
   }
 
   return trigger;

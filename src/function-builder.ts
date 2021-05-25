@@ -27,6 +27,7 @@ import { CloudFunction, EventContext } from './cloud-functions';
 import {
   DeploymentOptions,
   INGRESS_SETTINGS_OPTIONS,
+  MAX_NUMBER_USER_LABELS,
   MAX_TIMEOUT_SECONDS,
   RuntimeOptions,
   SUPPORTED_REGIONS,
@@ -119,6 +120,36 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     throw new Error(
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
     );
+  }
+
+  if (runtimeOptions.labels) {
+    if (Object.keys(runtimeOptions.labels).length > MAX_NUMBER_USER_LABELS) {
+      throw new Error(
+        `A function must not have more than 58 user-defined labels`
+      );
+    }
+
+    const invalidLengthKeys = Object.keys(runtimeOptions.labels).filter(
+      (label) => label.length < 1 || label.length > 63
+    );
+    if (invalidLengthKeys.length) {
+      throw new Error(
+        `Invalid label - ${invalidLengthKeys.join(
+          ', '
+        )} must be between 1 and 63 characters in length.`
+      );
+    }
+
+    const invalidLengthValues = Object.values(runtimeOptions.labels).filter(
+      (value) => value.length > 63
+    );
+    if (invalidLengthValues.length) {
+      throw new Error(
+        `Invalid label value - ${invalidLengthValues.join(
+          ', '
+        )} must be less than 64 charcters`
+      );
+    }
   }
   return true;
 }

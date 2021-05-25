@@ -94,6 +94,8 @@ export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
   retry: {},
 };
 
+export const MAX_NUMBER_USER_LABELS = 58;
+
 export interface RuntimeOptions {
   /**
    * Failure policy of the function, with boolean `true` being equivalent to
@@ -147,6 +149,11 @@ export interface RuntimeOptions {
    * Ingress settings
    */
   ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
+
+  /**
+   *
+   */
+  labels?: Record<string, string>;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
