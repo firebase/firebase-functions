@@ -417,7 +417,7 @@ export function makeCloudFunction<EventData>({
         },
       });
       if (!_.isEmpty(labels)) {
-        trigger.labels = Object.assign(labels, trigger.labels);
+        trigger.labels = { ...labels, ...trigger.labels };
       }
       return trigger;
     },

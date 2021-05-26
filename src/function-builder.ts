@@ -125,7 +125,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   if (runtimeOptions.labels) {
     if (Object.keys(runtimeOptions.labels).length > MAX_NUMBER_USER_LABELS) {
       throw new Error(
-        `A function must not have more than 58 user-defined labels`
+        `A function must not have more than ${MAX_NUMBER_USER_LABELS} user-defined labels.`
       );
     }
 
@@ -147,7 +147,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       throw new Error(
         `Invalid labels: ${invalidLengthValues.join(
           ', '
-        )}. Label values must be less than 64 charcters`
+        )}. Label values must be less than 64 charcters.`
       );
     }
 
