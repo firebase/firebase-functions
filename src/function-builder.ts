@@ -132,22 +132,47 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     const invalidLengthKeys = Object.keys(runtimeOptions.labels).filter(
       (label) => label.length < 1 || label.length > 63
     );
-    if (invalidLengthKeys.length) {
+    if (invalidLengthKeys.length > 0) {
       throw new Error(
-        `Invalid label - ${invalidLengthKeys.join(
+        `Invalid labels: ${invalidLengthKeys.join(
           ', '
-        )} must be between 1 and 63 characters in length.`
+        )}. Label keys must be between 1 and 63 characters in length.`
       );
     }
 
     const invalidLengthValues = Object.values(runtimeOptions.labels).filter(
       (value) => value.length > 63
     );
-    if (invalidLengthValues.length) {
+    if (invalidLengthValues.length > 0) {
       throw new Error(
-        `Invalid label value - ${invalidLengthValues.join(
+        `Invalid labels: ${invalidLengthValues.join(
           ', '
-        )} must be less than 64 charcters`
+        )}. Label values must be less than 64 charcters`
+      );
+    }
+
+    // Keys can contain lowercase letters, foreign characters, numbers, _ or -. They must start with a letter.
+    const validKeyPattern = /^[\p{Ll}\p{Lo}][\p{Ll}\p{Lo}\p{N}_-]{0,62}$/u;
+    const invalidKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => !validKeyPattern.test(key)
+    );
+    if (invalidKeys.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidKeys.join(
+          ', '
+        )}. Label keys can only contain lowercase letters, international characters, numbers, _ or -, and must start with a letter.`
+      );
+    }
+    // Values can contain lowercase letters, foreign characters, numbers, _ or -.
+    const validValuePattern = /^[\p{Ll}\p{Lo}\p{N}_-]{0,63}$/u;
+    const invalidValues = Object.values(runtimeOptions.labels).filter(
+      (value) => !validValuePattern.test(value)
+    );
+    if (invalidValues.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidValues.join(
+          ', '
+        )}. Label values can only contain lowercase letters, international characters, numbers, _ or -.`
       );
     }
   }

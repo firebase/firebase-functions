@@ -377,4 +377,48 @@ describe('FunctionBuilder', () => {
       })
     ).to.throw();
   });
+
+  it('should throw an error if labels has a key that contains invalid characters', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          Key: 'value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'key ': 'value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          '1key': 'value',
+        },
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if labels has a value that contains invalid characters', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          key: 'Value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'key ': 'va lue',
+        },
+      })
+    ).to.throw();
+  });
 });
