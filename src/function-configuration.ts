@@ -126,32 +126,32 @@ export interface RuntimeOptions {
   apiVersion?: 1 | 2;
 
   /**
-   * Max number of actual instances allowed to be running in parallel
+   * Max number of actual instances allowed to be running in parallel.
    */
   maxInstances?: number;
 
   /**
-   * Connect cloud function to specified VPC connector
+   * Connect cloud function to specified VPC connector.
    */
   vpcConnector?: string;
 
   /**
-   * Egress settings for VPC connector
+   * Egress settings for VPC connector.
    */
   vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
 
   /**
-   * Specific service account for the function to run as
+   * Specific service account for the function to run as.
    */
   serviceAccount?: 'default' | string;
 
   /**
-   * Ingress settings
+   * Ingress settings which control where this function can be called from.
    */
   ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
 
   /**
-   *
+   * User labels to set on the function.
    */
   labels?: Record<string, string>;
 }

@@ -421,4 +421,22 @@ describe('FunctionBuilder', () => {
       })
     ).to.throw();
   });
+
+  it('should throw an error if a label key starts with a reserved namespace', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'firebase-foo': 'value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'deployment-bar': 'value',
+        },
+      })
+    ).to.throw();
+  });
 });

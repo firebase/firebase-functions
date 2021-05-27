@@ -123,14 +123,29 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   if (runtimeOptions.labels) {
+    // Labels must follow the rules listed in
+    // https://cloud.google.com/resource-manager/docs/creating-managing-labels#requirements
+
     if (Object.keys(runtimeOptions.labels).length > MAX_NUMBER_USER_LABELS) {
       throw new Error(
         `A function must not have more than ${MAX_NUMBER_USER_LABELS} user-defined labels.`
       );
     }
 
+    // We reserve the 'deployment-' and 'firebase-' namespaces for future feature development.
+    const reservedKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => key.startsWith('deployment') || key.startsWith('firebase')
+    );
+    if (reservedKeys.length) {
+      throw new Error(
+        `Invalid labels: ${reservedKeys.join(
+          ', '
+        )}. Labels may not start with reserved names 'deployment' or 'firebase'`
+      );
+    }
+
     const invalidLengthKeys = Object.keys(runtimeOptions.labels).filter(
-      (label) => label.length < 1 || label.length > 63
+      (key) => key.length < 1 || key.length > 63
     );
     if (invalidLengthKeys.length > 0) {
       throw new Error(
@@ -163,6 +178,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
         )}. Label keys can only contain lowercase letters, international characters, numbers, _ or -, and must start with a letter.`
       );
     }
+
     // Values can contain lowercase letters, foreign characters, numbers, _ or -.
     const validValuePattern = /^[\p{Ll}\p{Lo}\p{N}_-]{0,63}$/u;
     const invalidValues = Object.values(runtimeOptions.labels).filter(
