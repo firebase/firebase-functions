@@ -87,7 +87,11 @@ npm run build:release
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
-npm version --no-git-tag-version $VERSION
+# TODO: Remove the following command.
+#   npm version command had previously failed claiming unclean git repo, and we don't know why.
+echo "DEBUG: Running git status to show dirty files..."
+git status
+npm version $VERSION
 NEW_VERSION=$(jq -r ".version" package.json)
 echo "Made a $VERSION version."
 
