@@ -319,4 +319,124 @@ describe('FunctionBuilder', () => {
 
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(4096);
   });
+
+  it('should allow labels to be set', () => {
+    const fn = functions
+      .runWith({
+        labels: {
+          'valid-key': 'valid-value',
+        },
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.labels).to.deep.equal({
+      'valid-key': 'valid-value',
+    });
+  });
+
+  it('should throw an error if more than 58 labels are set', () => {
+    const labels = {};
+    for (let i = 0; i < 59; i++) {
+      labels[`label${i}`] = 'value';
+    }
+
+    expect(() =>
+      functions.runWith({
+        labels,
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if labels has a key that is too long', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'a-very-long-key-that-is-more-than-the-maximum-allowed-length-for-keys':
+            'value',
+        },
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if labels has key that is too short', () => {
+    expect(() =>
+      functions.runWith({
+        labels: { '': 'value' },
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if labels has a value that is too long', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          key:
+            'a-very-long-value-that-is-more-than-the-maximum-allowed-length-for-values',
+        },
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if labels has a key that contains invalid characters', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          Key: 'value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'key ': 'value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          '1key': 'value',
+        },
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if labels has a value that contains invalid characters', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          key: 'Value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'key ': 'va lue',
+        },
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if a label key starts with a reserved namespace', () => {
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'firebase-foo': 'value',
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          'deployment-bar': 'value',
+        },
+      })
+    ).to.throw();
+  });
 });

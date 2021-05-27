@@ -27,6 +27,7 @@ import { CloudFunction, EventContext } from './cloud-functions';
 import {
   DeploymentOptions,
   INGRESS_SETTINGS_OPTIONS,
+  MAX_NUMBER_USER_LABELS,
   MAX_TIMEOUT_SECONDS,
   RuntimeOptions,
   SUPPORTED_REGIONS,
@@ -119,6 +120,77 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     throw new Error(
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
     );
+  }
+
+  if (runtimeOptions.labels) {
+    // Labels must follow the rules listed in
+    // https://cloud.google.com/resource-manager/docs/creating-managing-labels#requirements
+
+    if (Object.keys(runtimeOptions.labels).length > MAX_NUMBER_USER_LABELS) {
+      throw new Error(
+        `A function must not have more than ${MAX_NUMBER_USER_LABELS} user-defined labels.`
+      );
+    }
+
+    // We reserve the 'deployment' and 'firebase' namespaces for future feature development.
+    const reservedKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => key.startsWith('deployment') || key.startsWith('firebase')
+    );
+    if (reservedKeys.length) {
+      throw new Error(
+        `Invalid labels: ${reservedKeys.join(
+          ', '
+        )}. Labels may not start with reserved names 'deployment' or 'firebase'`
+      );
+    }
+
+    const invalidLengthKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => key.length < 1 || key.length > 63
+    );
+    if (invalidLengthKeys.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidLengthKeys.join(
+          ', '
+        )}. Label keys must be between 1 and 63 characters in length.`
+      );
+    }
+
+    const invalidLengthValues = Object.values(runtimeOptions.labels).filter(
+      (value) => value.length > 63
+    );
+    if (invalidLengthValues.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidLengthValues.join(
+          ', '
+        )}. Label values must be less than 64 charcters.`
+      );
+    }
+
+    // Keys can contain lowercase letters, foreign characters, numbers, _ or -. They must start with a letter.
+    const validKeyPattern = /^[\p{Ll}\p{Lo}][\p{Ll}\p{Lo}\p{N}_-]{0,62}$/u;
+    const invalidKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => !validKeyPattern.test(key)
+    );
+    if (invalidKeys.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidKeys.join(
+          ', '
+        )}. Label keys can only contain lowercase letters, international characters, numbers, _ or -, and must start with a letter.`
+      );
+    }
+
+    // Values can contain lowercase letters, foreign characters, numbers, _ or -.
+    const validValuePattern = /^[\p{Ll}\p{Lo}\p{N}_-]{0,63}$/u;
+    const invalidValues = Object.values(runtimeOptions.labels).filter(
+      (value) => !validValuePattern.test(value)
+    );
+    if (invalidValues.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidValues.join(
+          ', '
+        )}. Label values can only contain lowercase letters, international characters, numbers, _ or -.`
+      );
+    }
   }
   return true;
 }
