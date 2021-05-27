@@ -132,7 +132,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       );
     }
 
-    // We reserve the 'deployment-' and 'firebase-' namespaces for future feature development.
+    // We reserve the 'deployment' and 'firebase' namespaces for future feature development.
     const reservedKeys = Object.keys(runtimeOptions.labels).filter(
       (key) => key.startsWith('deployment') || key.startsWith('firebase')
     );
