@@ -58,21 +58,16 @@ function unset_region {
   fi
 }
 
-function pick_node8 {
+# Creates a Package.json from package.json.template
+# @param timestmap of the current SDK build
+# @param Node version to test under
+function create_package_json {
   cd "${DIR}"
-  cp package.node8.json functions/package.json
+  cp package.json.template functions/package.json
   # we have to do the -e flag here so that it work both on linux and mac os, but that creates an extra
   # backup file called package.json-e that we should clean up afterwards.
-  sed -i -e "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
-  rm -f functions/package.json-e
-}
-
-function pick_node10 {
-  cd "${DIR}"
-  cp package.node10.json functions/package.json
-  # we have to do the -e flag here so that it work both on linux and mac os, but that creates an extra
-  # backup file called package.json-e that we should clean up afterwards.
-  sed -i -e "s/firebase-functions.tgz/firebase-functions-${TIMESTAMP}.tgz/g" functions/package.json
+  sed -i -e "s/__SDK_TARBALL__/firebase-functions-$1.tgz/g" functions/package.json
+  sed -i -e "s/__NODE_VERSION__/$2/g" functions/package.json
   rm -f functions/package.json-e
 }
 
@@ -143,19 +138,13 @@ build_sdk
 delete_all_functions
 set_region
 
-# Node 8 tests
-pick_node8
-install_deps
-announce "Deploying functions to Node 8 runtime ..."
-deploy
-run_tests
-
-# Node 10 tests
-pick_node10
-install_deps
-announce "Re-deploying the same functions to Node 10 runtime ..."
-deploy
-run_tests
+for version in 10 12 14; do
+  create_package_json $TIMESTAMP $version
+  install_deps
+  announce "Re-deploying the same functions to Node $version runtime ..."
+  deploy
+  run_tests
+done
 
 # Cleanup
 cleanup

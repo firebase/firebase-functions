@@ -8,6 +8,7 @@ export const SUPPORTED_REGIONS = [
   'us-west2',
   'us-west3',
   'us-west4',
+  'europe-central2',
   'europe-west1',
   'europe-west2',
   'europe-west3',
@@ -43,6 +44,7 @@ export const VALID_MEMORY_OPTIONS = [
   '1GB',
   '2GB',
   '4GB',
+  '8GB',
 ] as const;
 
 /**
@@ -92,6 +94,8 @@ export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
   retry: {},
 };
 
+export const MAX_NUMBER_USER_LABELS = 58;
+
 export interface RuntimeOptions {
   /**
    * Failure policy of the function, with boolean `true` being equivalent to
@@ -108,29 +112,48 @@ export interface RuntimeOptions {
   timeoutSeconds?: number;
 
   /**
-   * Max number of actual instances allowed to be running in parallel
+   * Min number of actual instances allowed to be running in parallel
+   * Instances will be billed while idle.
+   * @hidden
+   */
+  minInstances?: number;
+
+  /**
+   * Which version of the internal contract between the CLI and the SDK are
+   * we using? For internal testing only.
+   * @hidden
+   */
+  apiVersion?: 1 | 2;
+
+  /**
+   * Max number of actual instances allowed to be running in parallel.
    */
   maxInstances?: number;
 
   /**
-   * Connect cloud function to specified VPC connector
+   * Connect cloud function to specified VPC connector.
    */
   vpcConnector?: string;
 
   /**
-   * Egress settings for VPC connector
+   * Egress settings for VPC connector.
    */
   vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
 
   /**
-   * Specific service account for the function to run as
+   * Specific service account for the function to run as.
    */
   serviceAccount?: 'default' | string;
 
   /**
-   * Ingress settings
+   * Ingress settings which control where this function can be called from.
    */
   ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
+
+  /**
+   * User labels to set on the function.
+   */
+  labels?: Record<string, string>;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {

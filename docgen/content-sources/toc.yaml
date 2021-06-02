@@ -69,18 +69,6 @@ toc:
       - title: 'UserRecord'
         path: /docs/reference/functions/providers_auth_.html#userrecord
 
-  - title: 'functions.crashlytics'
-    path: /docs/reference/functions/providers_crashlytics_.html
-    section:
-      - title: 'Issue'
-        path: /docs/reference/functions/providers_crashlytics_.issue.html
-      - title: 'IssueBuilder'
-        path: /docs/reference/functions/providers_crashlytics_.issuebuilder.html
-      - title: 'AppInfo'
-        path: /docs/reference/functions/providers_crashlytics_.appinfo.html
-      - title: 'VelocityAlert'
-        path: /docs/reference/functions/providers_crashlytics_.velocityalert.html
-
   - title: 'functions.firestore'
     path: /docs/reference/functions/providers_firestore_.html
     section:

@@ -22,13 +22,13 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { warn } from './logger';
 import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   FailurePolicy,
   Schedule,
 } from './function-configuration';
+import { warn } from './logger';
 export { Request, Response };
 
 /** @hidden */
@@ -99,9 +99,6 @@ export interface EventContext {
    * * `google.analytics.event.log`
    * * `google.firebase.auth.user.create`
    * * `google.firebase.auth.user.delete`
-   * * `google.firebase.crashlytics.issue.new`
-   * * `google.firebase.crashlytics.issue.regressed`
-   * * `google.firebase.crashlytics.issue.velocityAlert`
    * * `google.firebase.database.ref.write`
    * * `google.firebase.database.ref.create`
    * * `google.firebase.database.ref.update`
@@ -206,7 +203,7 @@ export namespace Change {
     json: ChangeJson,
     customizer: (x: any) => T = reinterpretCast
   ): Change<T> {
-    let before = _.assign({}, json.before);
+    let before = { ...json.before };
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
@@ -223,7 +220,7 @@ export namespace Change {
     after: any,
     fieldMask: string
   ) {
-    const before = _.assign({}, after);
+    const before = { ...after };
     const masks = fieldMask.split(',');
 
     masks.forEach((mask) => {
@@ -273,6 +270,7 @@ export interface TriggerAnnotated {
     vpcConnector?: string;
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
+    ingressSettings?: string;
   };
 }
 
@@ -419,7 +417,7 @@ export function makeCloudFunction<EventData>({
         },
       });
       if (!_.isEmpty(labels)) {
-        trigger.labels = labels;
+        trigger.labels = { ...trigger.labels, ...labels };
       }
       return trigger;
     },
@@ -507,6 +505,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
       '512MB': 512,
       '1GB': 1024,
       '2GB': 2048,
+      '4GB': 4096,
+      '8GB': 8192,
     };
     trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
   }
@@ -514,8 +514,16 @@ export function optionsToTrigger(options: DeploymentOptions) {
     trigger.schedule = options.schedule;
   }
 
+  if (options.minInstances) {
+    trigger.minInstances = options.minInstances;
+  }
+
   if (options.maxInstances) {
     trigger.maxInstances = options.maxInstances;
+  }
+
+  if (options.ingressSettings) {
+    trigger.ingressSettings = options.ingressSettings;
   }
 
   if (options.vpcConnector) {
@@ -543,6 +551,10 @@ export function optionsToTrigger(options: DeploymentOptions) {
         `Invalid option for serviceAccount: '${options.serviceAccount}'. Valid options are 'default', a service account email, or '{serviceAccountName}@'`
       );
     }
+  }
+
+  if (options.labels) {
+    trigger.labels = options.labels;
   }
 
   return trigger;

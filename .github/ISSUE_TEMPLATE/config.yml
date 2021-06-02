@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💻 Bug in the Firebase CLI
+    url: https://github.com/firebase/firebase-tools/issues/new/choose
+    about: Have you found a bug in the Firebase CLI?
+  - name: 🔥 Firebase Support
+    url: https://firebase.google.com/support/
+    about: If you have an issue with your functions in production, please contact support.

@@ -26,7 +26,6 @@ import { apps } from './apps';
 import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
-import * as crashlytics from './providers/crashlytics';
 import * as database from './providers/database';
 import * as firestore from './providers/firestore';
 import * as https from './providers/https';
@@ -178,41 +177,6 @@ export class HandlerBuilder {
       /** @hidden */
       get database() {
         return new firestore.DocumentBuilder(() => null, {});
-      },
-    };
-  }
-
-  /**
-   * Create a handler for Firebase Crashlytics events.
-  
-   * `issue.onNew` handles events where the app experiences an issue for the first time.
-
-   * @example
-   * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onNew((issue) => { ... })
-   * ```
-
-   * `issue.onRegressed` handles events where an issue reoccurs after it
-   * is closed in Crashlytics.
-   * 
-   * @example
-   * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onRegressed((issue) => { ... })
-   * ```
-   
-   * `issue.onVelocityAlert` handles events where a statistically significant number
-   * of sessions in a given build crash.
-   * 
-   * @example
-   * ```javascript
-   * exports.myFunction = functions.handler.crashlytics.issue.onVelocityAlert((issue) => { ... })
-   * ```
-
-   */
-  get crashlytics() {
-    return {
-      get issue() {
-        return new crashlytics.IssueBuilder(() => null, {});
       },
     };
   }

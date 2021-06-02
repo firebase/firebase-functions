@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.13.0",
+  "version": "3.14.1",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -58,10 +58,11 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
-    "firebase-admin": "^8.2.0",
+    "firebase-admin": "^9.8.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.5",
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",

@@ -1,6 +1,6 @@
 ---
 name: '⚠️ Report a Bug'
-about: Think you found a bug in the SDK? Report it here.
+about: Think you found a bug in the firebase-functions SDK? Report it here. Please do not use this form if your function is deployed successfully but not working as you expected.
 title: ''
 labels: ''
 assignees: ''

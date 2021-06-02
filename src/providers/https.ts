@@ -28,7 +28,7 @@ import * as _ from 'lodash';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
-import { warn, error } from '../logger';
+import { error, info, warn } from '../logger';
 
 /** @hidden */
 export interface Request extends express.Request {
@@ -249,6 +249,67 @@ export class HttpsError extends Error {
  */
 export interface CallableContext {
   /**
+   * The result of decoding and verifying a Firebase AppCheck token.
+   */
+  app?: {
+    appId: string;
+
+    // This is actually a firebase.appCheck.DecodedAppCheckToken, but
+    // that type may not be available in some supported SDK versions.
+    // Declare as an inline type, which DecodedAppCheckToken will be
+    // able to merge with.
+    // TODO: Replace with the real type once we bump the min-version of
+    // the admin SDK
+    token: {
+      /**
+       * The issuer identifier for the issuer of the response.
+       *
+       * This value is a URL with the format
+       * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
+       * same project number specified in the [`aud`](#aud) property.
+       */
+      iss: string;
+
+      /**
+       * The Firebase App ID corresponding to the app the token belonged to.
+       *
+       * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
+       */
+      sub: string;
+
+      /**
+       * The audience for which this token is intended.
+       *
+       * This value is a JSON array of two strings, the first is the project number of your
+       * Firebase project, and the second is the project ID of the same project.
+       */
+      aud: string[];
+
+      /**
+       * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
+       * time at which this App Check token expires and should no longer be considered valid.
+       */
+      exp: number;
+
+      /**
+       * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
+       * time at which this App Check token was issued and should start to be considered
+       * valid.
+       */
+      iat: number;
+
+      /**
+       * The App ID corresponding to the App the App Check token belonged to.
+       *
+       * This value is not actually one of the JWT token claims. It is added as a
+       * convenience, and is set as the value of the [`sub`](#sub) property.
+       */
+      app_id: string;
+      [key: string]: any;
+    };
+  };
+
+  /**
    * The result of decoding and verifying a Firebase Auth ID token.
    */
   auth?: {
@@ -411,6 +472,108 @@ export function decode(data: any): any {
   return data;
 }
 
+/**
+ * Be careful when changing token status values.
+ *
+ * Users are encouraged to setup log-based metric based on these values, and
+ * changing their values may cause their metrics to break.
+ *
+ */
+/** @hidden */
+type TokenStatus = 'MISSING' | 'VALID' | 'INVALID';
+
+/** @hidden */
+interface CallableTokenStatus {
+  app: TokenStatus;
+  auth: TokenStatus;
+}
+
+/**
+ * Check and verify tokens included in the requests. Once verified, tokens
+ * are injected into the callable context.
+ *
+ * @param {Request} req - Request sent to the Callable function.
+ * @param {CallableContext} ctx - Context to be sent to callable function handler.
+ * @return {CallableTokenStatus} Status of the token verifications.
+ */
+/** @hidden */
+async function checkTokens(
+  req: Request,
+  ctx: CallableContext
+): Promise<CallableTokenStatus> {
+  const verifications: CallableTokenStatus = {
+    app: 'MISSING',
+    auth: 'MISSING',
+  };
+
+  const appCheck = req.header('X-Firebase-AppCheck');
+  if (appCheck) {
+    verifications.app = 'INVALID';
+    try {
+      if (!apps().admin.appCheck) {
+        throw new Error(
+          'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
+        );
+      }
+      const appCheckToken = await apps()
+        .admin.appCheck()
+        .verifyToken(appCheck);
+      ctx.app = {
+        appId: appCheckToken.appId,
+        token: appCheckToken.token,
+      };
+      verifications.app = 'VALID';
+    } catch (err) {
+      warn('Failed to validate AppCheck token.', err);
+    }
+  }
+
+  const authorization = req.header('Authorization');
+  if (authorization) {
+    verifications.auth = 'INVALID';
+    const match = authorization.match(/^Bearer (.*)$/);
+    if (match) {
+      const idToken = match[1];
+      try {
+        const authToken = await apps()
+          .admin.auth()
+          .verifyIdToken(idToken);
+
+        verifications.auth = 'VALID';
+        ctx.auth = {
+          uid: authToken.uid,
+          token: authToken,
+        };
+      } catch (err) {
+        warn('Failed to validate auth token.', err);
+      }
+    }
+  }
+
+  const logPayload = {
+    verifications,
+    'logging.googleapis.com/labels': {
+      'firebase-log-type': 'callable-request-verification',
+    },
+  };
+
+  const errs = [];
+  if (verifications.app === 'INVALID') {
+    errs.push('AppCheck token was rejected.');
+  }
+  if (verifications.auth === 'INVALID') {
+    errs.push('Auth token was rejected.');
+  }
+
+  if (errs.length == 0) {
+    info('Callable request verification passed', logPayload);
+  } else {
+    warn(`Callable request verification failed: ${errs.join(' ')}`, logPayload);
+  }
+
+  return verifications;
+}
+
 /** @hidden */
 const corsHandler = cors({ origin: true, methods: 'POST' });
 
@@ -427,25 +590,9 @@ export function _onCallWithOptions(
       }
 
       const context: CallableContext = { rawRequest: req };
-
-      const authorization = req.header('Authorization');
-      if (authorization) {
-        const match = authorization.match(/^Bearer (.*)$/);
-        if (!match) {
-          throw new HttpsError('unauthenticated', 'Unauthenticated');
-        }
-        const idToken = match[1];
-        try {
-          const authToken = await apps()
-            .admin.auth()
-            .verifyIdToken(idToken);
-          context.auth = {
-            uid: authToken.uid,
-            token: authToken,
-          };
-        } catch (err) {
-          throw new HttpsError('unauthenticated', 'Unauthenticated');
-        }
+      const tokenStatus = await checkTokens(req, context);
+      if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 
       const instanceId = req.header('Firebase-Instance-ID-Token');

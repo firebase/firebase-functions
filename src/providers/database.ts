@@ -140,7 +140,7 @@ export function _refWithOptions(
       );
     }
 
-    let instance = undefined;
+    let instance;
     const prodMatch = databaseURL.match(databaseURLRegex);
     if (prodMatch) {
       instance = prodMatch[1];

@@ -1,8 +1,8 @@
 import { format } from 'util';
 
 import {
-  SUPPORTS_STRUCTURED_LOGS,
   CONSOLE_SEVERITY,
+  SUPPORTS_STRUCTURED_LOGS,
   UNPATCHED_CONSOLE,
 } from './logger/common';
 
@@ -30,13 +30,40 @@ export interface LogEntry {
   [key: string]: any;
 }
 
+function removeCircular(obj: any, refs: any[] = []): any {
+  if (typeof obj !== 'object' || !obj) {
+    return obj;
+  }
+  if (refs.includes(obj)) {
+    return '[Circular]';
+  } else {
+    refs.push(obj);
+  }
+  let returnObj: any;
+  if (Array.isArray(obj)) {
+    returnObj = new Array(obj.length);
+  } else {
+    returnObj = {};
+  }
+  for (const k in obj) {
+    if (refs.includes(obj[k])) {
+      returnObj[k] = '[Circular]';
+    } else {
+      returnObj[k] = removeCircular(obj[k], refs);
+    }
+  }
+  return returnObj;
+}
+
 /**
  * Writes a `LogEntry` to `stdout`/`stderr` (depending on severity).
  * @param entry The `LogEntry` including severity, message, and any additional structured metadata.
  */
 export function write(entry: LogEntry) {
   if (SUPPORTS_STRUCTURED_LOGS) {
-    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(entry));
+    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](
+      JSON.stringify(removeCircular(entry))
+    );
     return;
   }
 
@@ -50,7 +77,11 @@ export function write(entry: LogEntry) {
     }
   }
   if (jsonKeyCount > 0) {
-    message = `${message} ${JSON.stringify(jsonPayload, null, 2)}`;
+    message = `${message} ${JSON.stringify(
+      removeCircular(jsonPayload),
+      null,
+      2
+    )}`;
   }
   UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](message);
 }

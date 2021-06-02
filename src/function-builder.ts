@@ -26,6 +26,8 @@ import * as _ from 'lodash';
 import { CloudFunction, EventContext } from './cloud-functions';
 import {
   DeploymentOptions,
+  INGRESS_SETTINGS_OPTIONS,
+  MAX_NUMBER_USER_LABELS,
   MAX_TIMEOUT_SECONDS,
   RuntimeOptions,
   SUPPORTED_REGIONS,
@@ -34,7 +36,6 @@ import {
 } from './function-configuration';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
-import * as crashlytics from './providers/crashlytics';
 import * as database from './providers/database';
 import * as firestore from './providers/firestore';
 import * as https from './providers/https';
@@ -65,6 +66,17 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   ) {
     throw new Error(
       `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
+    );
+  }
+
+  if (
+    runtimeOptions.ingressSettings &&
+    !_.includes(INGRESS_SETTINGS_OPTIONS, runtimeOptions.ingressSettings)
+  ) {
+    throw new Error(
+      `The only valid ingressSettings values are: ${INGRESS_SETTINGS_OPTIONS.join(
+        ','
+      )}`
     );
   }
 
@@ -109,6 +121,77 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
     );
   }
+
+  if (runtimeOptions.labels) {
+    // Labels must follow the rules listed in
+    // https://cloud.google.com/resource-manager/docs/creating-managing-labels#requirements
+
+    if (Object.keys(runtimeOptions.labels).length > MAX_NUMBER_USER_LABELS) {
+      throw new Error(
+        `A function must not have more than ${MAX_NUMBER_USER_LABELS} user-defined labels.`
+      );
+    }
+
+    // We reserve the 'deployment' and 'firebase' namespaces for future feature development.
+    const reservedKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => key.startsWith('deployment') || key.startsWith('firebase')
+    );
+    if (reservedKeys.length) {
+      throw new Error(
+        `Invalid labels: ${reservedKeys.join(
+          ', '
+        )}. Labels may not start with reserved names 'deployment' or 'firebase'`
+      );
+    }
+
+    const invalidLengthKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => key.length < 1 || key.length > 63
+    );
+    if (invalidLengthKeys.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidLengthKeys.join(
+          ', '
+        )}. Label keys must be between 1 and 63 characters in length.`
+      );
+    }
+
+    const invalidLengthValues = Object.values(runtimeOptions.labels).filter(
+      (value) => value.length > 63
+    );
+    if (invalidLengthValues.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidLengthValues.join(
+          ', '
+        )}. Label values must be less than 64 charcters.`
+      );
+    }
+
+    // Keys can contain lowercase letters, foreign characters, numbers, _ or -. They must start with a letter.
+    const validKeyPattern = /^[\p{Ll}\p{Lo}][\p{Ll}\p{Lo}\p{N}_-]{0,62}$/u;
+    const invalidKeys = Object.keys(runtimeOptions.labels).filter(
+      (key) => !validKeyPattern.test(key)
+    );
+    if (invalidKeys.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidKeys.join(
+          ', '
+        )}. Label keys can only contain lowercase letters, international characters, numbers, _ or -, and must start with a letter.`
+      );
+    }
+
+    // Values can contain lowercase letters, foreign characters, numbers, _ or -.
+    const validValuePattern = /^[\p{Ll}\p{Lo}\p{N}_-]{0,63}$/u;
+    const invalidValues = Object.values(runtimeOptions.labels).filter(
+      (value) => !validValuePattern.test(value)
+    );
+    if (invalidValues.length > 0) {
+      throw new Error(
+        `Invalid labels: ${invalidValues.join(
+          ', '
+        )}. Label values can only contain lowercase letters, international characters, numbers, _ or -.`
+      );
+    }
+  }
   return true;
 }
 
@@ -144,7 +227,7 @@ export function region(
  * Configure runtime options for the function.
  * @param runtimeOptions Object with optional fields:
  * 1. `memory`: amount of memory to allocate to the function, possible values
- *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+ *    are: '128MB', '256MB', '512MB', '1GB', '2GB', and '4GB'.
  * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
  *    0 to 540.
  * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
@@ -188,7 +271,7 @@ export class FunctionBuilder {
    * Configure runtime options for the function.
    * @param runtimeOptions Object with optional fields:
    * 1. `memory`: amount of memory to allocate to the function, possible values
-   *    are: '128MB', '256MB', '512MB', '1GB', and '2GB'.
+   *    are: '128MB', '256MB', '512MB', '1GB', '2GB', and '4GB'.
    * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
    *    0 to 540.
    * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
@@ -296,16 +379,6 @@ export class FunctionBuilder {
       /** @hidden */
       database: (database: string) =>
         firestore._databaseWithOptions(database, this.options),
-    };
-  }
-
-  get crashlytics() {
-    return {
-      /**
-       * Handle events related to Crashlytics issues. An issue in Crashlytics is
-       * an aggregation of crashes which have a shared root cause.
-       */
-      issue: () => crashlytics._issueWithOptions(this.options),
     };
   }
 

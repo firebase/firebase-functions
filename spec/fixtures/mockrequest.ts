@@ -1,7 +1,9 @@
 import * as jwt from 'jsonwebtoken';
+import * as jwkToPem from 'jwk-to-pem';
 import * as _ from 'lodash';
 import * as nock from 'nock';
-import * as mocks from '../fixtures/credential/key.json';
+import * as mockJWK from '../fixtures/credential/jwk.json';
+import * as mockKey from '../fixtures/credential/key.json';
 
 // MockRequest mocks an https.Request.
 export class MockRequest {
@@ -26,6 +28,7 @@ export function mockRequest(
   context: {
     authorization?: string;
     instanceIdToken?: string;
+    appCheckToken?: string;
   } = {}
 ) {
   const body: any = {};
@@ -37,6 +40,7 @@ export function mockRequest(
     'content-type': contentType,
     authorization: context.authorization,
     'firebase-instance-id-token': context.instanceIdToken,
+    'x-firebase-appcheck': context.appCheckToken,
     origin: 'example.com',
   };
 
@@ -53,7 +57,7 @@ export const expectedResponseHeaders = {
  * verifying an id token.
  */
 export function mockFetchPublicKeys(): nock.Scope {
-  const mockedResponse = { [mocks.key_id]: mocks.public_key };
+  const mockedResponse = { [mockKey.key_id]: mockKey.public_key };
   const headers = {
     'cache-control': 'public, max-age=1, must-revalidate, no-transform',
   };
@@ -72,11 +76,48 @@ export function generateIdToken(projectId: string): string {
     audience: projectId,
     expiresIn: 60 * 60, // 1 hour in seconds
     issuer: 'https://securetoken.google.com/' + projectId,
-    subject: mocks.user_id,
+    subject: mockKey.user_id,
     algorithm: 'RS256',
     header: {
-      kid: mocks.key_id,
+      kid: mockKey.key_id,
     },
   };
-  return jwt.sign(claims, mocks.private_key, options);
+  return jwt.sign(claims, mockKey.private_key, options);
+}
+
+/**
+ * Mocks out the http request used by the firebase-admin SDK to get the jwks for
+ * verifying an AppCheck token.
+ */
+export function mockFetchAppCheckPublicJwks(): nock.Scope {
+  const { kty, use, alg, kid, n, e } = mockJWK;
+  const mockedResponse = {
+    keys: [{ kty, use, alg, kid, n, e }],
+  };
+
+  return nock('https://firebaseappcheck.googleapis.com:443')
+    .get('/v1beta/jwks')
+    .reply(200, mockedResponse);
+}
+
+/**
+ * Generates a mocked AppCheck token.
+ */
+export function generateAppCheckToken(
+  projectId: string,
+  appId: string
+): string {
+  const claims = {};
+  const options: jwt.SignOptions = {
+    audience: [`projects/${projectId}`],
+    expiresIn: 60 * 60, // 1 hour in seconds
+    issuer: `https://firebaseappcheck.googleapis.com/${projectId}`,
+    subject: appId,
+    header: {
+      alg: 'RS256',
+      typ: 'JWT',
+      kid: mockJWK.kid,
+    },
+  };
+  return jwt.sign(claims, jwkToPem(mockJWK, { private: true }), options);
 }
