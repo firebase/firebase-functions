@@ -315,6 +315,7 @@ export interface CallableContext {
   auth?: {
     uid: string;
     token: firebase.auth.DecodedIdToken;
+    provider: string;
   };
 
   /**
