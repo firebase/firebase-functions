@@ -25,20 +25,21 @@ import { apps as appsNamespace } from '../../src/apps';
 import * as functions from '../../src/index';
 import * as database from '../../src/providers/database';
 import { applyChange } from '../../src/utils';
+import * as config from '../../src/config';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
     // TODO add tests for building a data or change based on the type of operation
 
     before(() => {
-      process.env.FIREBASE_CONFIG = JSON.stringify({
+      (config as any).firebaseConfigCache = {
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
-      });
+      }
       appsNamespace.init();
     });
 
     after(() => {
-      delete process.env.FIREBASE_CONFIG;
+      (config as any).firebaseConfigCache = null;
       delete appsNamespace.singleton;
     });
 

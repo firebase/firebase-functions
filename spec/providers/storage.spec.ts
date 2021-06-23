@@ -24,17 +24,18 @@ import { expect } from 'chai';
 import { Event, EventContext } from '../../src/index';
 import * as functions from '../../src/index';
 import * as storage from '../../src/providers/storage';
+import * as config from '../../src/config';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
     before(() => {
-      process.env.FIREBASE_CONFIG = JSON.stringify({
+      (config as any).firebaseConfigCache = {
         storageBucket: 'bucket',
-      });
+      }
     });
 
     after(() => {
-      delete process.env.FIREBASE_CONFIG;
+      (config as any).firebaseConfigcache = null;
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -542,6 +543,11 @@ describe('Storage Functions', () => {
   });
 
   describe('process.env.FIREBASE_CONFIG not set', () => {
+    beforeEach(() => {
+      (config as any).firebaseConfigCache = null;
+      delete process.env.FIREBASE_CONFIG;
+    });
+
     it('should not throw if __trigger is not accessed', () => {
       expect(() => storage.object().onArchive(() => null)).to.not.throw(Error);
     });

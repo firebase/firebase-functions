@@ -20,8 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
+import * as fs from 'fs';
 import * as path from 'path';
+
+import * as firebase from 'firebase-admin';
 
 export function config(): config.Config {
   if (typeof config.singleton === 'undefined') {
@@ -51,17 +53,33 @@ export namespace config {
 }
 
 /** @hidden */
+export let firebaseConfigCache: firebase.AppOptions | null = null;
+
+/** @hidden */
 export function firebaseConfig(): firebase.AppOptions | null {
-  const env = process.env.FIREBASE_CONFIG;
+  if (firebaseConfigCache) {
+    return firebaseConfigCache;
+  }
+
+  let env = process.env.FIREBASE_CONFIG;
   if (env) {
-    return JSON.parse(env);
+    // Firebase Tools will always use a JSON blob in prod, but docs
+    // explicitly state that the user can set the env to a file:
+    // https://firebase.google.com/docs/admin/setup#initialize-without-parameters
+    if (!env.startsWith("{")) {
+      env = fs.readFileSync(path.join(process.env.PWD, env)).toString("utf8");
+    }
+
+    firebaseConfigCache = JSON.parse(env);
+    return firebaseConfigCache;
   }
 
   // Could have Runtime Config with Firebase in it as an ENV value.
   try {
     const config = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
     if (config.firebase) {
-      return config.firebase;
+      firebaseConfigCache = config.firebase;
+      return firebaseConfigCache;
     }
   } catch (e) {
     // Do nothing
@@ -74,7 +92,8 @@ export function firebaseConfig(): firebase.AppOptions | null {
       path.join(process.env.PWD, '.runtimeconfig.json');
     const config = require(configPath);
     if (config.firebase) {
-      return config.firebase;
+      firebaseConfigCache = config.firebase;
+      return firebaseConfigCache;
     }
   } catch (e) {
     // Do nothing
