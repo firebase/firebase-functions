@@ -66,8 +66,8 @@ export function firebaseConfig(): firebase.AppOptions | null {
     // Firebase Tools will always use a JSON blob in prod, but docs
     // explicitly state that the user can set the env to a file:
     // https://firebase.google.com/docs/admin/setup#initialize-without-parameters
-    if (!env.startsWith("{")) {
-      env = fs.readFileSync(path.join(process.env.PWD, env)).toString("utf8");
+    if (!env.startsWith('{')) {
+      env = fs.readFileSync(path.join(process.env.PWD, env)).toString('utf8');
     }
 
     firebaseConfigCache = JSON.parse(env);

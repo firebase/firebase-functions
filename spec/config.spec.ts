@@ -31,8 +31,8 @@ describe('config()', () => {
   let readFileSync: Sinon.SinonStub; 
 
   before(() => {
-    readFileSync = Sinon.stub(fs, "readFileSync");
-    readFileSync.throws("Unexpected call");
+    readFileSync = Sinon.stub(fs, 'readFileSync');
+    readFileSync.throws('Unexpected call');
     process.env.PWD = '/srv';
   });
 
@@ -80,7 +80,7 @@ describe('config()', () => {
     const oldEnv = process.env;
     process.env = {
       ...oldEnv,
-      FIREBASE_CONFIG: ".firebaseconfig.json",
+      FIREBASE_CONFIG: '.firebaseconfig.json',
     };
     try {
       readFileSync.returns(Buffer.from('{"databaseURL": "foo@firebaseio.com"}'));

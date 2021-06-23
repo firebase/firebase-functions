@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
+import * as config from '../../src/config';
 import { Event, EventContext } from '../../src/index';
 import * as functions from '../../src/index';
 import * as storage from '../../src/providers/storage';
-import * as config from '../../src/config';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {

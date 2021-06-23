@@ -22,10 +22,10 @@
 
 import { expect } from 'chai';
 import { apps as appsNamespace } from '../../src/apps';
+import * as config from '../../src/config';
 import * as functions from '../../src/index';
 import * as database from '../../src/providers/database';
 import { applyChange } from '../../src/utils';
-import * as config from '../../src/config';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
