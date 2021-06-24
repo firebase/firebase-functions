@@ -22,9 +22,9 @@
 
 import { expect } from 'chai';
 
-import { Event, EventContext } from '../../src/cloud-functions';
-import * as functions from '../../src/index';
-import * as analytics from '../../src/providers/analytics';
+import * as functions from '../../../src/v1';
+import { Event, EventContext } from '../../../src/v1/cloud-functions';
+import * as analytics from '../../../src/v1/providers/analytics';
 import * as analytics_spec_input from './analytics.spec.input';
 
 describe('Analytics Functions', () => {

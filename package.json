@@ -23,6 +23,14 @@
   ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./v1": "./lib/v1/index.js",
+    "./logger": "./lib/logger",
+    "./logger/compat": "./lib/logger/compat",
+    "./lib/logger": "./lib/logger",
+    "./lib/logger/compat": "./lib/logger/compat"
+  },
   "publishConfig": {
     "registry": "https://wombat-dressing-room.appspot.com"
   },
