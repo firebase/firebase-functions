@@ -1,1 +1,2 @@
 - Adds support for setting user labels on functions via `runWith()`.
+- Adds support for FIREBASE_CONFIG env as the name of a JSON file
