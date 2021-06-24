@@ -31,7 +31,7 @@ describe('Storage Functions', () => {
     before(() => {
       (config as any).firebaseConfigCache = {
         storageBucket: 'bucket',
-      }
+      };
     });
 
     after(() => {

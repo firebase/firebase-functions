@@ -28,7 +28,7 @@ import Sinon = require('sinon');
 import * as config from '../src/config';
 
 describe('config()', () => {
-  let readFileSync: Sinon.SinonStub; 
+  let readFileSync: Sinon.SinonStub;
 
   before(() => {
     readFileSync = Sinon.stub(fs, 'readFileSync');
@@ -83,10 +83,12 @@ describe('config()', () => {
       FIREBASE_CONFIG: '.firebaseconfig.json',
     };
     try {
-      readFileSync.returns(Buffer.from('{"databaseURL": "foo@firebaseio.com"}'));
+      readFileSync.returns(
+        Buffer.from('{"databaseURL": "foo@firebaseio.com"}')
+      );
       expect(config.firebaseConfig()).to.have.property(
         'databaseURL',
-        'foo@firebaseio.com',
+        'foo@firebaseio.com'
       );
     } finally {
       process.env = oldEnv;

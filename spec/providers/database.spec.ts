@@ -34,7 +34,7 @@ describe('Database Functions', () => {
     before(() => {
       (config as any).firebaseConfigCache = {
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
-      }
+      };
       appsNamespace.init();
     });
 
