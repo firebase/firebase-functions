@@ -30,7 +30,7 @@ export interface LogEntry {
   [key: string]: any;
 }
 
-function removeCircular(obj: any, refs:any[] = []): any {
+function removeCircular(obj: any, refs: any[] = []): any {
   const cleanedObj = JSON.parse(JSON.stringify(obj));
   return removeCircularRecursive(cleanedObj, refs);
 }
