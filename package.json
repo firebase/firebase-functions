@@ -26,10 +26,10 @@
   "exports": {
     ".": "./lib/index.js",
     "./v1": "./lib/v1/index.js",
-    "./logger": "./lib/logger",
-    "./logger/compat": "./lib/logger/compat",
-    "./lib/logger": "./lib/logger",
-    "./lib/logger/compat": "./lib/logger/compat"
+    "./logger": "./lib/logger/index.js",
+    "./logger/compat": "./lib/logger/compat.js",
+    "./lib/logger": "./lib/logger/index.js",
+    "./lib/logger/compat": "./lib/logger/compat.js"
   },
   "publishConfig": {
     "registry": "https://wombat-dressing-room.appspot.com"
