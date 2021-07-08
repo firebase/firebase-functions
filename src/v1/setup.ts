@@ -21,8 +21,8 @@
 // SOFTWARE.
 
 /** @hidden */
+import { warn } from '../logger';
 import { firebaseConfig } from './config';
-import { warn } from './logger';
 
 // Set up for config and vars
 export function setup() {

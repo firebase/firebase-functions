@@ -22,6 +22,7 @@
 
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
+import { joinPath, normalizePath, pathParts } from '../../utilities/path';
 import { apps } from '../apps';
 import {
   Change,
@@ -32,7 +33,6 @@ import {
 } from '../cloud-functions';
 import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
-import { joinPath, normalizePath, pathParts } from '../utilities/path';
 import { applyChange } from '../utils';
 
 /** @hidden */

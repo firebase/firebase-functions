@@ -4,7 +4,7 @@ import {
   CONSOLE_SEVERITY,
   SUPPORTS_STRUCTURED_LOGS,
   UNPATCHED_CONSOLE,
-} from './logger/common';
+} from './common';
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).

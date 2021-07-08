@@ -21,30 +21,21 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { setup } from '../src/setup';
+import { applyChange } from '../../src/v1/utils';
 
-describe('setup()', () => {
-  afterEach(() => {
-    delete process.env.FIREBASE_CONFIG;
-    delete process.env.GCLOUD_PROJECT;
-  });
-
-  it('sets GCLOUD_PROJECT from FIREBASE_CONFIG', () => {
-    const testProject = 'test-project';
-    process.env.FIREBASE_CONFIG = JSON.stringify({
-      projectId: testProject,
+describe('utils', () => {
+  describe('.applyChange(from: any, to: any): any', () => {
+    it('should return the to value for non-object values of from and to', () => {
+      expect(applyChange({ a: 'b' }, null)).to.eq(null);
+      expect(applyChange(null, { a: 'b' })).to.deep.equal({ a: 'b' });
+      expect(applyChange(23, null)).to.be.null;
     });
-    setup();
-    expect(process.env.GCLOUD_PROJECT).to.equal(testProject);
-  });
 
-  it('does not set GCLOUD_PROJECT if already defined', () => {
-    const existingProject = 'test-project';
-    process.env.GCLOUD_PROJECT = existingProject;
-    process.env.FIREBASE_CONFIG = JSON.stringify({
-      projectId: 'new-project',
+    it('should return the merged value of two objects', () => {
+      const from = { a: { b: 'foo', c: 23, d: 444 }, d: { e: 42 } };
+      const to: any = { a: { b: 'bar', c: null }, d: null, e: { f: 'g' } };
+      const result = { a: { b: 'bar', d: 444 }, e: { f: 'g' } };
+      expect(applyChange(from, to)).to.deep.equal(result);
     });
-    setup();
-    expect(process.env.GCLOUD_PROJECT).to.equal(existingProject);
   });
 });

@@ -25,7 +25,7 @@ import * as fs from 'fs';
 import * as mockRequire from 'mock-require';
 import Sinon = require('sinon');
 
-import * as config from '../src/config';
+import * as config from '../../src/v1/config';
 
 describe('config()', () => {
   let readFileSync: Sinon.SinonStub;

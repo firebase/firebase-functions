@@ -24,8 +24,8 @@ import { expect } from 'chai';
 import * as admin from 'firebase-admin';
 import * as _ from 'lodash';
 
-import * as functions from '../../src/index';
-import * as firestore from '../../src/providers/firestore';
+import * as functions from '../../../src/index';
+import * as firestore from '../../../src/v1/providers/firestore';
 
 describe('Firestore Functions', () => {
   function constructValue(fields: any) {

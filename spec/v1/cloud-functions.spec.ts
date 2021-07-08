@@ -29,7 +29,7 @@ import {
   EventContext,
   makeCloudFunction,
   MakeCloudFunctionArgs,
-} from '../src/cloud-functions';
+} from '../../src/v1/cloud-functions';
 
 describe('makeCloudFunction', () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
