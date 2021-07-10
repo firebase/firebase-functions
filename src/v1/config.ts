@@ -89,8 +89,9 @@ export function firebaseConfig(): firebase.AppOptions | null {
   try {
     const configPath =
       process.env.CLOUD_RUNTIME_CONFIG ||
-      path.join(process.env.PWD, '.runtimeconfig.json');
-    const config = require(configPath);
+      path.join(process.cwd(), '.runtimeconfig.json');
+    const contents = fs.readFileSync(configPath);
+    const config = JSON.parse(contents.toString('utf8'));
     if (config.firebase) {
       firebaseConfigCache = config.firebase;
       return firebaseConfigCache;
@@ -115,8 +116,9 @@ function init() {
   try {
     const configPath =
       process.env.CLOUD_RUNTIME_CONFIG ||
-      path.join(process.env.PWD, '.runtimeconfig.json');
-    const parsed = require(configPath);
+      path.join(process.cwd(), '.runtimeconfig.json');
+    const contents = fs.readFileSync(configPath);
+    const parsed = JSON.parse(contents.toString('utf8'));
     delete parsed.firebase;
     config.singleton = parsed;
     return;
