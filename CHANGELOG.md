@@ -1,3 +1,4 @@
 - Adds support for setting user labels on functions via `runWith()`.
 - Adds support for FIREBASE_CONFIG env as the name of a JSON file
 - Formalize module exports. Loggers can now be accessed at 'firebase-functions/logger' and 'firebase-functions/logger/compat'
+- Fixes an issue where Remote Config coiuld not be emulated in Windows machines on the classic Command Prompt.
