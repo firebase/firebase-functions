@@ -20,4 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export * from './v1';
+export { setGlobalOptions, GlobalOptions } from './options';
+
+import * as https from './providers/https';
+export { https };
