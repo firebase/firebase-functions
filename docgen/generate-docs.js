@@ -130,7 +130,7 @@ function addTypeAliasLinks(data) {
   const fileTags = htmlDom.window.document.querySelectorAll(
     '.tsd-signature-type'
   );
-  fileTags.forEach((tag) => {
+  for (const tag of fileTags) {
     const mapping = typeMap[tag.textContent];
     if (mapping) {
       console.log('Adding link to ' + tag.textContent + ' documentation.');
@@ -142,7 +142,7 @@ function addTypeAliasLinks(data) {
       tag.textContent = null;
       tag.appendChild(linkChild);
     }
-  });
+  }
   return htmlDom.serialize();
 }
 
@@ -156,13 +156,13 @@ function addTypeAliasLinks(data) {
 function generateTempHomeMdFile(tocRaw, homeRaw) {
   const { toc } = yaml.safeLoad(tocRaw);
   let tocPageLines = [homeRaw, '# API Reference'];
-  toc.forEach((group) => {
+  for (const group of toc) {
     tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
     const section = group.section || [];
-    section.forEach((item) => {
+    for (const item of section) {
       tocPageLines.push(`- [${item.title}](${stripPath(item.path)})`);
-    });
-  });
+    }
+  }
   return fs.writeFile(tempHomePath, tocPageLines.join('\n'));
 }
 
@@ -265,10 +265,10 @@ async function writeGeneratedFileList(htmlFiles) {
  */
 function fixAllLinks(htmlFiles) {
   const writePromises = [];
-  htmlFiles.forEach((file) => {
+  for (const file of htmlFiles) {
     // Update links in each html file to match flattened file structure.
     writePromises.push(fixLinks(`${docPath}/${file}`));
-  });
+  }
   return Promise.all(writePromises);
 }
 
