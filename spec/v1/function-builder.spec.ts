@@ -287,7 +287,7 @@ describe('FunctionBuilder', () => {
     );
   });
 
-  it('should not set a serviceAccountEmail if service account is set to `default`', () => {
+  it('should set a null serviceAccountEmail if service account is set to `default`', () => {
     const serviceAccount = 'default';
     const fn = functions
       .runWith({
@@ -296,7 +296,7 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__trigger.serviceAccountEmail).to.be.undefined;
+    expect(fn.__trigger.serviceAccountEmail).to.be.null;
   });
 
   it('should throw an error if serviceAccount is set to an invalid value', () => {
