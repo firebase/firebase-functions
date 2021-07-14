@@ -1,2 +1,3 @@
 - Adds support for setting user labels on functions via `runWith()`.
 - Adds support for FIREBASE_CONFIG env as the name of a JSON file
+- Fixes an issue where objects that define `toJSON` could not be logged successfully (#907).
