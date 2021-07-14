@@ -30,6 +30,13 @@ import {
   Schedule,
 } from './function-configuration';
 export { Request, Response };
+import {
+  convertIfPresent,
+  copyIfPresent,
+  Duration,
+  durationFromSeconds,
+  serviceAccountFromShorthand,
+} from '../common/encoding';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -266,7 +273,7 @@ export interface TriggerAnnotated {
     labels?: { [key: string]: string };
     regions?: string[];
     schedule?: Schedule;
-    timeout?: string;
+    timeout?: Duration;
     vpcConnector?: string;
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
@@ -480,25 +487,41 @@ function _detectAuthType(event: Event) {
 /** @hidden */
 export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
-  if (options.regions) {
-    trigger.regions = options.regions;
-  }
-  if (options.failurePolicy !== undefined) {
-    switch (options.failurePolicy) {
-      case false:
-        trigger.failurePolicy = undefined;
-        break;
-      case true:
-        trigger.failurePolicy = DEFAULT_FAILURE_POLICY;
-        break;
-      default:
-        trigger.failurePolicy = options.failurePolicy;
+  copyIfPresent(
+    trigger,
+    options,
+    'regions',
+    'schedule',
+    'minInstances',
+    'maxInstances',
+    'ingressSettings',
+    'vpcConnectorEgressSettings',
+    'vpcConnector',
+    'labels'
+  );
+  convertIfPresent(
+    trigger,
+    options,
+    'failurePolicy',
+    'failurePolicy',
+    (policy) => {
+      if (policy === false) {
+        return undefined;
+      } else if (policy === true) {
+        return DEFAULT_FAILURE_POLICY;
+      } else {
+        return policy;
+      }
     }
-  }
-  if (options.timeoutSeconds) {
-    trigger.timeout = options.timeoutSeconds.toString() + 's';
-  }
-  if (options.memory) {
+  );
+  convertIfPresent(
+    trigger,
+    options,
+    'timeout',
+    'timeoutSeconds',
+    durationFromSeconds
+  );
+  convertIfPresent(trigger, options, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
       '128MB': 128,
       '256MB': 256,
@@ -508,54 +531,15 @@ export function optionsToTrigger(options: DeploymentOptions) {
       '4GB': 4096,
       '8GB': 8192,
     };
-    trigger.availableMemoryMb = _.get(memoryLookup, options.memory);
-  }
-  if (options.schedule) {
-    trigger.schedule = options.schedule;
-  }
-
-  if (options.minInstances) {
-    trigger.minInstances = options.minInstances;
-  }
-
-  if (options.maxInstances) {
-    trigger.maxInstances = options.maxInstances;
-  }
-
-  if (options.ingressSettings) {
-    trigger.ingressSettings = options.ingressSettings;
-  }
-
-  if (options.vpcConnector) {
-    trigger.vpcConnector = options.vpcConnector;
-  }
-
-  if (options.vpcConnectorEgressSettings) {
-    trigger.vpcConnectorEgressSettings = options.vpcConnectorEgressSettings;
-  }
-
-  if (options.serviceAccount) {
-    if (options.serviceAccount === 'default') {
-      // Do nothing, since this is equivalent to not setting serviceAccount.
-    } else if (options.serviceAccount.endsWith('@')) {
-      if (!process.env.GCLOUD_PROJECT) {
-        throw new Error(
-          `Unable to determine email for service account '${options.serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
-        );
-      }
-      trigger.serviceAccountEmail = `${options.serviceAccount}${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
-    } else if (options.serviceAccount.includes('@')) {
-      trigger.serviceAccountEmail = options.serviceAccount;
-    } else {
-      throw new Error(
-        `Invalid option for serviceAccount: '${options.serviceAccount}'. Valid options are 'default', a service account email, or '{serviceAccountName}@'`
-      );
-    }
-  }
-
-  if (options.labels) {
-    trigger.labels = options.labels;
-  }
+    return memoryLookup[mem];
+  });
+  convertIfPresent(
+    trigger,
+    options,
+    'serviceAccountEmail',
+    'serviceAccount',
+    serviceAccountFromShorthand
+  );
 
   return trigger;
 }
