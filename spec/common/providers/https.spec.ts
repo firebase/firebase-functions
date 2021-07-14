@@ -6,6 +6,7 @@ import * as https from '../../../src/common/providers/https';
 import { apps as appsNamespace } from '../../../src/v1/apps';
 import * as mocks from '../../fixtures/credential/key.json';
 import {
+  expectedResponseHeaders,
   generateAppCheckToken,
   generateIdToken,
   mockFetchAppCheckPublicJwks,
@@ -90,7 +91,8 @@ function runHandler(
 
 // Runs a CallTest test.
 async function runTest(test: CallTest): Promise<any> {
-  const callableFunction = https.onCallHandler((data, context) => {
+  const opts = { origin: true, methods: 'POST' };
+  const callableFunction = https.onCallHandler(opts, (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     return test.callableFunction(data, context);
   });
@@ -138,7 +140,7 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => ({ baz: 'qux' }),
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: { baz: 'qux' } },
       },
     });
@@ -151,7 +153,7 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => null,
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });
@@ -166,7 +168,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });
@@ -183,7 +185,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 400,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: {
           error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
         },
@@ -200,7 +202,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });
@@ -215,7 +217,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 400,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: {
           error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
         },
@@ -234,7 +236,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 400,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: {
           error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
         },
@@ -251,7 +253,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 500,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { error: { status: 'INTERNAL', message: 'INTERNAL' } },
       },
     });
@@ -266,7 +268,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 500,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { error: { status: 'INTERNAL', message: 'INTERNAL' } },
       },
     });
@@ -281,7 +283,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 404,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { error: { status: 'NOT_FOUND', message: 'i am error' } },
       },
     });
@@ -308,7 +310,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });
@@ -326,7 +328,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 401,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: {
           error: {
             status: 'UNAUTHENTICATED',
@@ -360,7 +362,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });
@@ -378,7 +380,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 401,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: {
           error: {
             status: 'UNAUTHENTICATED',
@@ -402,7 +404,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });
@@ -420,7 +422,7 @@ describe('onCallHandler', () => {
       },
       expectedHttpResponse: {
         status: 200,
-        headers: {},
+        headers: expectedResponseHeaders,
         body: { result: null },
       },
     });

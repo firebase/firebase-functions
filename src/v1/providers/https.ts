@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as cors from 'cors';
 import * as express from 'express';
 
 import * as common from '../../common/providers/https';
@@ -71,28 +70,23 @@ export function _onRequestWithOptions(
 }
 
 /** @hidden */
-const corsHandler = cors({ origin: true, methods: 'POST' });
-
-/** @hidden */
 export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  const func = common.onCallHandler(handler);
+  const func: any = common.onCallHandler(
+    { origin: true, methods: 'POST' },
+    handler
+  );
 
-  // Wrap the function with a cors handler.
-  const corsFunc: any = (req: Request, res: express.Response) => {
-    return corsHandler(req, res, () => func(req, res));
-  };
-
-  corsFunc.__trigger = {
+  func.__trigger = {
     labels: {},
     ...optionsToTrigger(options),
     httpsTrigger: {},
   };
-  corsFunc.__trigger.labels['deployment-callable'] = 'true';
+  func.__trigger.labels['deployment-callable'] = 'true';
 
-  corsFunc.run = handler;
+  func.run = handler;
 
-  return corsFunc;
+  return func;
 }

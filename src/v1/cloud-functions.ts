@@ -31,12 +31,12 @@ import {
 } from './function-configuration';
 export { Request, Response };
 import {
+  convertIfPresent,
   copyIfPresent,
   Duration,
   durationFromSeconds,
-  renameIfPresent,
   serviceAccountFromShorthand,
-} from '../common/proto';
+} from '../common/encoding';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -499,7 +499,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'vpcConnector',
     'labels'
   );
-  renameIfPresent(
+  convertIfPresent(
     trigger,
     options,
     'failurePolicy',
@@ -514,14 +514,14 @@ export function optionsToTrigger(options: DeploymentOptions) {
       }
     }
   );
-  renameIfPresent(
+  convertIfPresent(
     trigger,
     options,
     'timeout',
     'timeoutSeconds',
     durationFromSeconds
   );
-  renameIfPresent(trigger, options, 'availableMemoryMb', 'memory', (mem) => {
+  convertIfPresent(trigger, options, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
       '128MB': 128,
       '256MB': 256,
@@ -533,7 +533,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
     };
     return memoryLookup[mem];
   });
-  renameIfPresent(
+  convertIfPresent(
     trigger,
     options,
     'serviceAccountEmail',

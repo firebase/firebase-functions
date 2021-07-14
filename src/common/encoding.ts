@@ -29,7 +29,7 @@ export function copyIfPresent<Src, Dest>(
   }
 }
 
-export function renameIfPresent<Src, Dest>(
+export function convertIfPresent<Src, Dest>(
   dest: Dest,
   src: Src,
   destField: keyof Dest,

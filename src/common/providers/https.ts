@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 
@@ -542,8 +543,21 @@ async function checkTokens(
   return verifications;
 }
 
+/** @hidden */
+export function onCallHandler(
+  options: cors.CorsOptions,
+  handler: (data: any, context: CallableContext) => any | Promise<any>
+): (req: Request, res: express.Response) => Promise<void> {
+  const wrapped = wrapOnCallHandler(handler);
+  return async (req: Request, res: express.Response) => {
+    cors(options)(req, res, () => {
+      return wrapped(req, res);
+    });
+  };
+}
+
 /** @internal */
-export let onCallHandler = (
+const wrapOnCallHandler = (
   handler: (data: any, context: CallableContext) => any | Promise<any>
 ) => async (req: Request, res: express.Response) => {
   try {
