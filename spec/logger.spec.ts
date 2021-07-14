@@ -111,8 +111,8 @@ describe(`logger (${
         });
 
         it('should not break on objects that override toJSON', () => {
-          const obj: any = { a: new Date('August 26, 1994 12:24:00Z')};
-          
+          const obj: any = { a: new Date('August 26, 1994 12:24:00Z') };
+
           const entry: logger.LogEntry = {
             severity: 'ERROR',
             message: 'testing toJSON',
@@ -122,9 +122,9 @@ describe(`logger (${
           expectStderr({
             severity: 'ERROR',
             message: 'testing toJSON',
-            obj: { a: "1994-08-26T12:24:00.000Z" },
+            obj: { a: '1994-08-26T12:24:00.000Z' },
           });
-        })
+        });
 
         it('should not alter parameters that are logged', () => {
           const circ: any = { b: 'foo' };
