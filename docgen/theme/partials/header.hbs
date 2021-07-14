@@ -6,7 +6,7 @@
             {{else}}
                 <ul class="tsd-breadcrumb">
                     {{#with model.parent}}{{> breadcrumb}}{{/with}}
-                    <li class="model-name">{{model.name}}</li>
+                    <li class="model-name">{{cleanBreadcrumb model.name}}</li>
                     {{#if model.typeParameters}}
                         &lt;
                         {{#each model.typeParameters}}

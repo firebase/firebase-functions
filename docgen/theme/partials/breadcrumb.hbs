@@ -3,7 +3,7 @@
     {{#with parent}}{{> breadcrumb}}{{/with}}
     <li class="breadcrumb-name">
         {{#if url}}
-            <small><a href="{{relativeURL url}}">{{name}}</a>.</small>
+            <small><a href="{{relativeURL url}}">{{cleanBreadcrumb name}}</a>.</small>
         {{else}}
             <span><small>{{name}}</small></span>
         {{/if}}

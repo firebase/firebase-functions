@@ -22,13 +22,13 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
+import { warn } from '../logger';
 import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   FailurePolicy,
   Schedule,
 } from './function-configuration';
-import { warn } from './logger';
 export { Request, Response };
 
 /** @hidden */

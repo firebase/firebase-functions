@@ -24,10 +24,10 @@ import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import { apps as appsNamespace } from '../../src/apps';
-import * as functions from '../../src/index';
-import * as https from '../../src/providers/https';
-import * as mocks from '../fixtures/credential/key.json';
+import * as functions from '../../../src/index';
+import { apps as appsNamespace } from '../../../src/v1/apps';
+import * as https from '../../../src/v1/providers/https';
+import * as mocks from '../../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,
   generateAppCheckToken,
@@ -36,7 +36,7 @@ import {
   mockFetchPublicKeys,
   MockRequest,
   mockRequest,
-} from '../fixtures/mockrequest';
+} from '../../fixtures/mockrequest';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {

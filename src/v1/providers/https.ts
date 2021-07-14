@@ -25,10 +25,10 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 
+import { error, info, warn } from '../../logger';
 import { apps } from '../apps';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
-import { error, info, warn } from '../logger';
 
 /** @hidden */
 export interface Request extends express.Request {
