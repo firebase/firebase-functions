@@ -30,6 +30,7 @@ export interface LogEntry {
   [key: string]: any;
 }
 
+/** @internal */
 function removeCircular(obj: any, refs: any[] = []): any {
   if (typeof obj !== 'object' || !obj) {
     return obj;
