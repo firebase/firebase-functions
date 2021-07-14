@@ -196,6 +196,7 @@ export type CanonicalErrorCodeName =
   | 'UNAVAILABLE'
   | 'DATA_LOSS';
 
+/** @hidden */
 interface HttpErrorCode {
   canonicalName: CanonicalErrorCodeName;
   status: number;
@@ -230,6 +231,7 @@ const errorCodeMap: { [name in FunctionsErrorCode]: HttpErrorCode } = {
   'data-loss': { canonicalName: 'DATA_LOSS', status: 500 },
 };
 
+/** @hidden */
 interface HttpErrorWireFormat {
   details?: unknown;
   message: string;
@@ -287,6 +289,7 @@ export class HttpsError extends Error {
   }
 }
 
+/** @hidden */
 // The allowed interface for an HTTP request to a Callable function.
 interface HttpRequest extends Request {
   body: {
@@ -294,12 +297,14 @@ interface HttpRequest extends Request {
   };
 }
 
+/** @hidden */
 // The format for an HTTP body response from a Callable function.
 interface HttpResponseBody {
   result?: any;
   error?: HttpsError;
 }
 
+/** @hidden */
 // Returns true if req is a properly formatted callable request.
 function isValidRequest(req: Request): req is HttpRequest {
   // The body must not be empty.
@@ -343,7 +348,9 @@ function isValidRequest(req: Request): req is HttpRequest {
   return true;
 }
 
+/** @hidden */
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
+/** @hidden */
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
 /**
@@ -437,8 +444,10 @@ export function decode(data: any): any {
  * changing their values may cause their metrics to break.
  *
  */
+/** @hidden */
 type TokenStatus = 'MISSING' | 'VALID' | 'INVALID';
 
+/** @hidden */
 interface CallableTokenStatus {
   app: TokenStatus;
   auth: TokenStatus;
@@ -452,6 +461,7 @@ interface CallableTokenStatus {
  * @param {CallableContext} ctx - Context to be sent to callable function handler.
  * @return {CallableTokenStatus} Status of the token verifications.
  */
+/** @hidden */
 async function checkTokens(
   req: Request,
   ctx: CallableContext
