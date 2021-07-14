@@ -35,6 +35,10 @@ function removeCircular(obj: any, refs: any[] = []): any {
   if (typeof obj !== 'object' || !obj) {
     return obj;
   }
+  // If the object defines its own toJSON, prefer that.
+  if (obj['toJSON']) {
+    return obj.toJSON();
+  }
   if (refs.includes(obj)) {
     return '[Circular]';
   } else {
