@@ -98,6 +98,12 @@ export const MAX_NUMBER_USER_LABELS = 58;
 
 export interface RuntimeOptions {
   /**
+   * Which platform should host the backend. Valid options are "gcfv1"
+   * @hidden
+   */
+  platform?: 'gcfv1';
+
+  /**
    * Failure policy of the function, with boolean `true` being equivalent to
    * providing an empty retry object.
    */
@@ -112,18 +118,12 @@ export interface RuntimeOptions {
   timeoutSeconds?: number;
 
   /**
-   * Min number of actual instances allowed to be running in parallel
-   * Instances will be billed while idle.
+   * Min number of actual instances to be running at a given time.
+   * Instances will be billed for memory allocation and 10% of CPU allocation
+   * while idle.
    * @hidden
    */
   minInstances?: number;
-
-  /**
-   * Which version of the internal contract between the CLI and the SDK are
-   * we using? For internal testing only.
-   * @hidden
-   */
-  apiVersion?: 1 | 2;
 
   /**
    * Max number of actual instances allowed to be running in parallel.
