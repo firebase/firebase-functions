@@ -23,10 +23,6 @@
 import * as https from './providers/https';
 import * as logger from '../logger';
 
-export {
-  https,
-  logger,
-};
+export { https, logger };
 
 export { setGlobalOptions, GlobalOptions } from './options';
-
