@@ -20,4 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export * from './v1';
+/** @internal */
+export interface TriggerAnnotation {
+  availableMemoryMb?: number;
+  eventTrigger?: {
+    eventType: string;
+    resource: string;
+    service: string;
+  };
+  failurePolicy?: { retry: boolean };
+  httpsTrigger?: {};
+  labels?: { [key: string]: string };
+  regions?: string[];
+  timeout?: string;
+  vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
+  serviceAccountEmail?: string;
+  ingressSettings?: string;
+
+  // TODO: schedule
+}
