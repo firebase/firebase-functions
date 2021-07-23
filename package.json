@@ -32,7 +32,8 @@
     "./lib/logger/compat": "./lib/logger/compat.js",
     "./v2": "./lib/v2/index.js",
     "./v2/options": "./lib/v2/options.js",
-    "./v2/https": "./lib/v2/providers/https.js"
+    "./v2/https": "./lib/v2/providers/https.js",
+    "./v2/params": "./lib/v2/params/index.js"
   },
   "typesVersions": {
     "*": {
@@ -50,6 +51,9 @@
       ],
       "v2/https": [
         "lib/v2/providers/https"
+      ],
+      "v2/params": [
+        "lib/v2/params"
       ]
     }
   },
