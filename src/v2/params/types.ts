@@ -36,39 +36,58 @@ export class Param<T = unknown> {
 
   get value(): any {
     const valueType = (this.constructor as typeof Param).valueType;
+    const envVal = process.env[this.name];
     switch (valueType) {
       case 'string':
-        return process.env[this.name] || this.options.default || '';
+        return envVal || this.options.default || '';
       case 'int':
-        return parseInt(
-          process.env[this.name] || this.options.default?.toString() || '0',
+        const intVal = parseInt(
+          envVal || this.options.default?.toString() || '0',
           10
         );
+        if (Number.isNaN(intVal)) {
+          throw new Error(
+            `unable to load param "${this.name}", value ${JSON.stringify(
+              envVal
+            )} could not be parsed as integer`
+          );
+        }
+        return intVal;
       case 'float':
-        return parseFloat(
-          process.env[this.name] || this.options.default?.toString() || '0'
+        const floatVal = parseFloat(
+          envVal || this.options.default?.toString() || '0'
         );
+        if (Number.isNaN(floatVal)) {
+          throw new Error(
+            `unable to load param "${this.name}", value ${JSON.stringify(
+              envVal
+            )} could not be parsed as float`
+          );
+        }
+        return floatVal;
       case 'boolean':
         return ['true', 'y', 'yes', '1'].includes(
-          (
-            process.env[this.name] ||
-            this.options.default?.toString() ||
-            ''
-          ).toLowerCase()
+          (envVal || this.options.default?.toString() || '').toLowerCase()
         );
       case 'list':
-        return typeof process.env[this.name] === 'string'
-          ? process.env[this.name]!.split(/, ?/)
+        return typeof envVal === 'string'
+          ? envVal!.split(/, ?/)
           : this.options.default || [];
       case 'json':
-        if (process.env[this.name]) {
-          return JSON.parse(process.env[this.name]!) as T;
+        if (envVal) {
+          try {
+            return JSON.parse(envVal!) as T;
+          } catch (e) {
+            throw new Error(
+              `unable to load param "${this.name}", value ${envVal} could not be parsed as JSON: ${e.message}`
+            );
+          }
         } else if (this.options?.hasOwnProperty('default')) {
           return this.options.default;
         }
         return null;
       default:
-        throw new Error(`unrecognized param value type '${valueType}'`);
+        throw new Error(`unrecognized param value type "${valueType}"`);
     }
   }
 

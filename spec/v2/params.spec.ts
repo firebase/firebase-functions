@@ -7,11 +7,16 @@ import {
   getList,
   getString,
 } from '../../src/v2/params';
-import { Param, ParamOptions } from '../../src/v2/params/types';
+import {
+  ListParam,
+  Param,
+  ParamOptions,
+  SecretParam,
+} from '../../src/v2/params/types';
 
 const TEST_PARAM = 'TEST_PARAM';
 
-describe.only('declarative params', () => {
+describe('params', () => {
   beforeEach(() => {
     delete process.env[TEST_PARAM];
   });
@@ -22,7 +27,8 @@ describe.only('declarative params', () => {
       title: string;
       env?: string;
       options?: ParamOptions;
-      expect: any;
+      expect?: any;
+      throws?: boolean;
     }[];
   }[] = [
     {
@@ -63,6 +69,11 @@ describe.only('declarative params', () => {
           options: { default: 10 },
           expect: 10,
         },
+        {
+          title: 'should throw when invalid value is passed',
+          env: 'not_a_number',
+          throws: true,
+        },
       ],
     },
     {
@@ -81,6 +92,11 @@ describe.only('declarative params', () => {
           title: 'should return a matching default value',
           options: { default: 10.1 },
           expect: 10.1,
+        },
+        {
+          title: 'should throw when invalid value is passed',
+          env: 'not_a_number',
+          throws: true,
         },
       ],
     },
@@ -189,6 +205,11 @@ describe.only('declarative params', () => {
           options: { default: { test: 123 } },
           expect: { test: 123 },
         },
+        {
+          title: 'should throw with invalid JSON',
+          env: '{"invalid":json',
+          throws: true,
+        },
       ],
     },
   ];
@@ -201,11 +222,53 @@ describe.only('declarative params', () => {
             process.env[TEST_PARAM] = test.env;
           }
 
-          expect(group.method(TEST_PARAM, test.options).value).to.deep.eq(
-            test.expect
-          );
+          if (test.throws) {
+            expect(
+              () => group.method(TEST_PARAM, test.options).value
+            ).to.throw();
+          } else {
+            expect(group.method(TEST_PARAM, test.options).value).to.deep.eq(
+              test.expect
+            );
+          }
         });
       }
     });
   }
+
+  describe('Param', () => {
+    describe('#toSpec()', () => {
+      it('should cast non-string defaults to strings', () => {
+        expect(new Param(TEST_PARAM, { default: 123 }).toSpec().default).to.eq(
+          '123'
+        );
+      });
+
+      it('should default to "env" as the source', () => {
+        expect(new Param(TEST_PARAM).toSpec().source).to.eq('env');
+      });
+
+      it('should passthrough supplied options', () => {
+        expect(
+          new Param(TEST_PARAM, { description: 'hello expect' }).toSpec()
+            .description
+        ).to.eq('hello expect');
+      });
+
+      it('SecretParam should have source type "secret" and passthrough "secret" option', () => {
+        const spec = new SecretParam(TEST_PARAM, {
+          secret: 'foo/bar',
+        }).toSpec();
+        expect(spec.source).to.eq('secret');
+        expect(spec.secret).to.eq('foo/bar');
+      });
+
+      it('ListParam should properly stringify its default', () => {
+        const spec = new ListParam(TEST_PARAM, {
+          default: ['a', 'b', 'c'],
+        }).toSpec();
+        expect(spec.default).to.eq('a,b,c');
+      });
+    });
+  });
 });
