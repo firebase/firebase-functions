@@ -27,6 +27,8 @@ import {
 import * as logger from '../logger';
 import { TriggerAnnotation } from './base';
 import { copyIfPresent, convertIfPresent } from '../common/encoding';
+import { ParamSpec } from './params/types';
+import { declaredParams } from './params';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -267,4 +269,17 @@ export function optionsToTriggerAnnotations(
   );
 
   return annotation;
+}
+
+/**
+ * @hidden
+ */
+export function __getSpec(): {
+  globalOptions: GlobalOptions;
+  params: ParamSpec[];
+} {
+  return {
+    globalOptions: getGlobalOptions(),
+    params: declaredParams.map((p) => p.toSpec()),
+  };
 }

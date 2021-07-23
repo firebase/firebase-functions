@@ -13,7 +13,21 @@ import {
 
 export { ParamOptions, SecretParamOptions };
 
-export const declaredParams: { [name: string]: Param } = {};
+export const declaredParams: Param[] = [];
+
+/**
+ * Use a helper to manage the list such that params are uniquely
+ * registered once only but order is preserved.
+ * @internal
+ */
+function registerParam(param: Param) {
+  for (let i = 0; i < declaredParams.length; i++) {
+    if (declaredParams[i].name === param.name) {
+      declaredParams.splice(i, 1);
+    }
+    declaredParams.push(param);
+  }
+}
 
 /**
  * Declare a string param.
@@ -27,7 +41,7 @@ export function getString(
   options: ParamOptions<string> = {}
 ): StringParam {
   const param = new StringParam(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
 
@@ -43,7 +57,7 @@ export function getBoolean(
   options: ParamOptions<boolean> = {}
 ): BooleanParam {
   const param = new BooleanParam(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
 
@@ -59,7 +73,7 @@ export function getInt(
   options: ParamOptions<number> = {}
 ): IntParam {
   const param = new IntParam(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
 
@@ -75,7 +89,7 @@ export function getFloat(
   options: ParamOptions<number> = {}
 ): FloatParam {
   const param = new FloatParam(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
 
@@ -91,7 +105,7 @@ export function getList(
   options: ParamOptions<string[]> = {}
 ): ListParam {
   const param = new ListParam(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
 
@@ -107,7 +121,7 @@ export function getSecret(
   options: SecretParamOptions = {}
 ): SecretParam {
   const param = new SecretParam(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
 
@@ -124,6 +138,6 @@ export function getJSON<T = unknown>(
   options: ParamOptions<T> = {}
 ): JSONParam {
   const param = new JSONParam<T>(name, options);
-  declaredParams[name] = param;
+  registerParam(param);
   return param;
 }
