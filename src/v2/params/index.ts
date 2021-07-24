@@ -109,21 +109,21 @@ export function getList(
   return param;
 }
 
-/**
- * Declare a secret.
- *
- * @param name The name of the environment variable the secret is assigned to.
- * @param options Configuration options for the secret param.
- * @returns A SecretParam with a `string` return type for `.value`.
- */
-export function getSecret(
-  name: string,
-  options: SecretParamOptions = {}
-): SecretParam {
-  const param = new SecretParam(name, options);
-  registerParam(param);
-  return param;
-}
+// /**
+//  * Declare a secret.
+//  *
+//  * @param name The name of the environment variable the secret is assigned to.
+//  * @param options Configuration options for the secret param.
+//  * @returns A SecretParam with a `string` return type for `.value`.
+//  */
+// export function getSecret(
+//   name: string,
+//   options: SecretParamOptions = {}
+// ): SecretParam {
+//   const param = new SecretParam(name, options);
+//   registerParam(param);
+//   return param;
+// }
 
 /**
  * Declare a JSON param. The associated environment variable will be treated
