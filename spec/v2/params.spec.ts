@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import {
+  declaredParams,
   getBoolean,
   getFloat,
   getInt,
@@ -270,5 +271,18 @@ describe('params', () => {
         expect(spec.default).to.eq('a,b,c');
       });
     });
+  });
+
+  it('should add a param to the declared params', () => {
+    const param = getString(TEST_PARAM);
+    expect(declaredParams.find((p) => p === param)).to.eq(param);
+  });
+
+  it('should replace a samed-name param in the declared params', () => {
+    const oldParam = getString(TEST_PARAM);
+    expect(declaredParams.find((p) => p === oldParam)).to.eq(oldParam);
+    const param = getString(TEST_PARAM);
+    expect(declaredParams.find((p) => p === oldParam)).to.be.undefined;
+    expect(declaredParams.find((p) => p === param)).to.eq(param);
   });
 });

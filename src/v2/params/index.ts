@@ -25,8 +25,8 @@ function registerParam(param: Param) {
     if (declaredParams[i].name === param.name) {
       declaredParams.splice(i, 1);
     }
-    declaredParams.push(param);
   }
+  declaredParams.push(param);
 }
 
 /**
