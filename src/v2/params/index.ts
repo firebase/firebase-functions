@@ -6,12 +6,10 @@ import {
   ListParam,
   Param,
   ParamOptions,
-  SecretParam,
-  SecretParamOptions,
   StringParam,
 } from './types';
 
-export { ParamOptions, SecretParamOptions };
+export { ParamOptions };
 
 export const declaredParams: Param[] = [];
 
