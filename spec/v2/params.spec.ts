@@ -157,6 +157,11 @@ describe('params', () => {
           options: { default: true },
           expect: true,
         },
+        {
+          title: 'should error with non-true/false value',
+          env: 'foo',
+          throws: true,
+        },
       ],
     },
     {

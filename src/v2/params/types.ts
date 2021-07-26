@@ -66,9 +66,21 @@ export class Param<T = unknown> {
         }
         return floatVal;
       case 'boolean':
-        return ['true', 'y', 'yes', '1'].includes(
-          (envVal || this.options.default?.toString() || '').toLowerCase()
-        );
+        const lowerVal = (
+          envVal ||
+          this.options.default?.toString() ||
+          'false'
+        ).toLowerCase();
+        if (
+          !['true', 'y', 'yes', '1', 'false', 'n', 'no', '0'].includes(lowerVal)
+        ) {
+          throw new Error(
+            `unable to load param "${this.name}", value ${JSON.stringify(
+              envVal
+            )} could not be parsed as boolean`
+          );
+        }
+        return ['true', 'y', 'yes', '1'].includes(lowerVal);
       case 'list':
         return typeof envVal === 'string'
           ? envVal!.split(/, ?/)
