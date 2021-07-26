@@ -101,7 +101,7 @@ export const MAX_NUMBER_USER_LABELS = 58;
 /**
  * Invoker access control type for https functions.
  */
-export type Invoker = "public" | "private" | string;
+export type Invoker = 'public' | 'private' | string;
 
 export interface RuntimeOptions {
   /**
