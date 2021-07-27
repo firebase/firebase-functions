@@ -44,6 +44,10 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
+function validServiceAccount(serviceAccount: string): boolean {
+  return true;
+}
+
 /**
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
@@ -192,6 +196,28 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       );
     }
   }
+
+  if (runtimeOptions.invoker) {
+    if (
+      typeof runtimeOptions.invoker === 'string' &&
+      runtimeOptions.invoker !== 'public' &&
+      runtimeOptions.invoker !== 'private' &&
+      !validServiceAccount(runtimeOptions.invoker)
+    ) {
+      throw new Error(
+        `Invalid invoker service account, must be of the form '{serviceAccountName}@'`
+      );
+    } else if (Array.isArray(runtimeOptions.invoker)) {
+      for (const serviceAccount of runtimeOptions.invoker) {
+        if (!validServiceAccount(serviceAccount)) {
+          throw new Error(
+            `Invalid invoker service account, must be of the form '{serviceAccountName}@'`
+          );
+        }
+      }
+    }
+  }
+
   return true;
 }
 
