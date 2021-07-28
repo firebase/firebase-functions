@@ -212,10 +212,11 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       );
     }
     for (const serviceAccount of runtimeOptions.invoker) {
-      if (serviceAccount.length == 0)
+      if (serviceAccount.length == 0) {
         throw new Error(
           'Invalid invoker array, a service account must be a non-empty string'
         );
+      }
     }
   }
 

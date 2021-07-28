@@ -27,8 +27,8 @@ import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   FailurePolicy,
-  Schedule,
   Invoker,
+  Schedule,
 } from './function-configuration';
 export { Request, Response };
 import {
@@ -500,7 +500,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'vpcConnectorEgressSettings',
     'vpcConnector',
     'labels',
-    'invoker',
+    'invoker'
   );
   convertIfPresent(
     trigger,
