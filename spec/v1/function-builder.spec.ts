@@ -439,4 +439,28 @@ describe('FunctionBuilder', () => {
       })
     ).to.throw();
   });
+
+  it('should throw an error if invoker is an empty string', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: '',
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if invoker is an empty array', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: [''],
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if invoker has an empty string', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ['service-account1', '', 'service-account2'],
+      })
+    ).to.throw();
+  });
 });

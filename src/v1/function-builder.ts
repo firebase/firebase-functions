@@ -44,10 +44,6 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
-function validServiceAccount(serviceAccount: string): boolean {
-  return true;
-}
-
 /**
  * Assert that the runtime options passed in are valid.
  * @param runtimeOptions object containing memory and timeout information.
@@ -197,24 +193,29 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     }
   }
 
-  if (runtimeOptions.invoker) {
-    if (
-      typeof runtimeOptions.invoker === 'string' &&
-      runtimeOptions.invoker !== 'public' &&
-      runtimeOptions.invoker !== 'private' &&
-      !validServiceAccount(runtimeOptions.invoker)
-    ) {
+  if (
+    runtimeOptions.invoker !== undefined &&
+    typeof runtimeOptions.invoker === 'string' &&
+    runtimeOptions.invoker.length == 0
+  ) {
+    throw new Error(
+      'Invalid service account for function invoker, must be a non-empty string'
+    );
+  }
+  if (
+    runtimeOptions.invoker !== undefined &&
+    Array.isArray(runtimeOptions.invoker)
+  ) {
+    if (runtimeOptions.invoker.length == 0) {
       throw new Error(
-        `Invalid invoker service account, must be of the form '{serviceAccountName}@'`
+        'Invalid invoker array, must contain at least 1 service account entry'
       );
-    } else if (Array.isArray(runtimeOptions.invoker)) {
-      for (const serviceAccount of runtimeOptions.invoker) {
-        if (!validServiceAccount(serviceAccount)) {
-          throw new Error(
-            `Invalid invoker service account, must be of the form '{serviceAccountName}@'`
-          );
-        }
-      }
+    }
+    for (const serviceAccount of runtimeOptions.invoker) {
+      if (serviceAccount.length == 0)
+        throw new Error(
+          'Invalid invoker array, a service account must be a non-empty string'
+        );
     }
   }
 
