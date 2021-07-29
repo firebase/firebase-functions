@@ -24,23 +24,38 @@ const yaml = require('js-yaml');
 const repoPath = path.resolve(`${__dirname}/..`);
 
 // Command-line options.
-const { source: sourceFile } = yargs
-  .option('source', {
-    default: `${repoPath}/src/{v1,logger}`,
+const { api: apiVersion } = yargs
+  .option('api', {
+    default: 'v1',
     describe: 'Typescript source file(s)',
     type: 'string',
   })
   .version(false)
   .help().argv;
 
+let sourceFile;
+switch (apiVersion) {
+  case 'v1':
+    sourceFile = `${repoPath}/src/{v1,logger}`;
+    break;
+  case 'v2':
+    sourceFile = `${repoPath}/src/{v2,logger}`;
+    break;
+  default:
+    throw new Error(
+      `Unrecognized version ${apiVersion}, must be one of v1 or v2`
+    );
+}
+
 const docPath = path.resolve(`${__dirname}/html`);
-const contentPath = path.resolve(`${__dirname}/content-sources`);
+const contentPath = path.resolve(`${__dirname}/content-sources/${apiVersion}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
 const devsitePath = `/docs/reference/functions/`;
 
 const { JSDOM } = require('jsdom');
 
 const typeMap = require('./type-aliases.json');
+const { existsSync } = require('fs');
 
 /**
  * Strips path prefix and returns only filename.
@@ -72,8 +87,10 @@ function runTypedoc() {
  * @param {string} subdir Subdir to move files out of.
  */
 async function moveFilesToRoot(subdir) {
-  await exec(`mv ${docPath}/${subdir}/* ${docPath}`);
-  await exec(`rmdir ${docPath}/${subdir}`);
+  if (existsSync(`${docPath}/${subdir}`)) {
+    await exec(`mv ${docPath}/${subdir}/* ${docPath}`);
+    await exec(`rmdir ${docPath}/${subdir}`);
+  }
 }
 
 /**
