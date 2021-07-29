@@ -24,9 +24,9 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from '../common/encoding';
+import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';
 import { TriggerAnnotation } from './base';
-import { copyIfPresent, convertIfPresent } from '../common/encoding';
 
 /**
  * List of all regions supported by Cloud Functions v2
