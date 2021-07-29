@@ -22,6 +22,8 @@
 
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
+
+import * as logger from '../../logger';
 import { posix } from 'path';
 import { apps } from '../apps';
 import {
@@ -155,9 +157,15 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
     event.context.resource.name,
     'value'
   );
-  const timeString =
+  let timeString =
     _.get(event, 'data.value.readTime') ??
     _.get(event, 'data.value.updateTime');
+
+  if (!timeString) {
+    logger.warn("Snapshot has no readTime. Using now()");
+    timeString = (new Date()).toISOString();
+  }
+
   const readTime = dateToTimestampProto(timeString);
   return firestoreInstance.snapshot_(valueProto, readTime, 'json');
 }
