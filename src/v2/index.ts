@@ -20,4 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export * from './v1';
+import * as https from './providers/https';
+import * as logger from '../logger';
+
+export { https, logger };
+
+export { setGlobalOptions, GlobalOptions } from './options';

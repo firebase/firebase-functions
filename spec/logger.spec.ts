@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+
 import * as logger from '../src/logger';
 
 const SUPPORTS_STRUCTURED_LOGS =
@@ -7,8 +8,8 @@ const SUPPORTS_STRUCTURED_LOGS =
 describe(`logger (${
   SUPPORTS_STRUCTURED_LOGS ? 'structured' : 'unstructured'
 })`, () => {
-  let stdoutWrite = process.stdout.write.bind(process.stdout);
-  let stderrWrite = process.stderr.write.bind(process.stderr);
+  const stdoutWrite = process.stdout.write.bind(process.stdout);
+  const stderrWrite = process.stderr.write.bind(process.stderr);
   let lastOut: string;
   let lastErr: string;
 
@@ -109,6 +110,22 @@ describe(`logger (${
           });
         });
 
+        it('should not break on objects that override toJSON', () => {
+          const obj: any = { a: new Date('August 26, 1994 12:24:00Z') };
+
+          const entry: logger.LogEntry = {
+            severity: 'ERROR',
+            message: 'testing toJSON',
+            obj,
+          };
+          logger.write(entry);
+          expectStderr({
+            severity: 'ERROR',
+            message: 'testing toJSON',
+            obj: { a: '1994-08-26T12:24:00.000Z' },
+          });
+        });
+
         it('should not alter parameters that are logged', () => {
           const circ: any = { b: 'foo' };
           circ.array = [circ];
@@ -127,7 +144,7 @@ describe(`logger (${
 
         for (const severity of ['DEBUG', 'INFO', 'NOTICE']) {
           it(`should output ${severity} severity to stdout`, () => {
-            let entry: logger.LogEntry = {
+            const entry: logger.LogEntry = {
               severity: severity as logger.LogSeverity,
               message: 'test',
             };
@@ -144,7 +161,7 @@ describe(`logger (${
           'EMERGENCY',
         ]) {
           it(`should output ${severity} severity to stderr`, () => {
-            let entry: logger.LogEntry = {
+            const entry: logger.LogEntry = {
               severity: severity as logger.LogSeverity,
               message: 'test',
             };

@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 Firebase
+// Copyright (c) 2017 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,4 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export * from './v1';
+import { expect } from 'chai';
+import { setup } from '../../src/v1/setup';
+
+describe('setup()', () => {
+  afterEach(() => {
+    delete process.env.FIREBASE_CONFIG;
+    delete process.env.GCLOUD_PROJECT;
+  });
+
+  it('sets GCLOUD_PROJECT from FIREBASE_CONFIG', () => {
+    const testProject = 'test-project';
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: testProject,
+    });
+    setup();
+    expect(process.env.GCLOUD_PROJECT).to.equal(testProject);
+  });
+
+  it('does not set GCLOUD_PROJECT if already defined', () => {
+    const existingProject = 'test-project';
+    process.env.GCLOUD_PROJECT = existingProject;
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: 'new-project',
+    });
+    setup();
+    expect(process.env.GCLOUD_PROJECT).to.equal(existingProject);
+  });
+});

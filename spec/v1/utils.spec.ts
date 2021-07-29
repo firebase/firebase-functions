@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 Firebase
+// Copyright (c) 2017 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,4 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export * from './v1';
+import { expect } from 'chai';
+import { applyChange } from '../../src/v1/utils';
+
+describe('utils', () => {
+  describe('.applyChange(from: any, to: any): any', () => {
+    it('should return the to value for non-object values of from and to', () => {
+      expect(applyChange({ a: 'b' }, null)).to.eq(null);
+      expect(applyChange(null, { a: 'b' })).to.deep.equal({ a: 'b' });
+      expect(applyChange(23, null)).to.be.null;
+    });
+
+    it('should return the merged value of two objects', () => {
+      const from = { a: { b: 'foo', c: 23, d: 444 }, d: { e: 42 } };
+      const to: any = { a: { b: 'bar', c: null }, d: null, e: { f: 'g' } };
+      const result = { a: { b: 'bar', d: 444 }, e: { f: 'g' } };
+      expect(applyChange(from, to)).to.deep.equal(result);
+    });
+  });
+});
