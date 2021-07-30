@@ -463,4 +463,20 @@ describe('FunctionBuilder', () => {
       })
     ).to.throw();
   });
+
+  it('should throw an error if public identifier is in the invoker array', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ['service-account1', 'public', 'service-account2'],
+      })
+    ).to.throw();
+  });
+
+  it('', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ['service-account1', 'private', 'service-account2'],
+      })
+    ).to.throw();
+  });
 });
