@@ -27,72 +27,7 @@ export class Param<T = unknown> {
   }
 
   get value(): any {
-    const valueType = (this.constructor as typeof Param).valueType;
-    const envVal = process.env[this.name];
-    switch (valueType) {
-      case 'string':
-        return envVal || this.options.default || '';
-      case 'int':
-        const intVal = parseInt(
-          envVal || this.options.default?.toString() || '0',
-          10
-        );
-        if (Number.isNaN(intVal)) {
-          throw new Error(
-            `unable to load param "${this.name}", value ${JSON.stringify(
-              envVal
-            )} could not be parsed as integer`
-          );
-        }
-        return intVal;
-      case 'float':
-        const floatVal = parseFloat(
-          envVal || this.options.default?.toString() || '0'
-        );
-        if (Number.isNaN(floatVal)) {
-          throw new Error(
-            `unable to load param "${this.name}", value ${JSON.stringify(
-              envVal
-            )} could not be parsed as float`
-          );
-        }
-        return floatVal;
-      case 'boolean':
-        const lowerVal = (
-          envVal ||
-          this.options.default?.toString() ||
-          'false'
-        ).toLowerCase();
-        if (
-          !['true', 'y', 'yes', '1', 'false', 'n', 'no', '0'].includes(lowerVal)
-        ) {
-          throw new Error(
-            `unable to load param "${this.name}", value ${JSON.stringify(
-              envVal
-            )} could not be parsed as boolean`
-          );
-        }
-        return ['true', 'y', 'yes', '1'].includes(lowerVal);
-      case 'list':
-        return typeof envVal === 'string'
-          ? envVal!.split(/, ?/)
-          : this.options.default || [];
-      case 'json':
-        if (envVal) {
-          try {
-            return JSON.parse(envVal!) as T;
-          } catch (e) {
-            throw new Error(
-              `unable to load param "${this.name}", value ${envVal} could not be parsed as JSON: ${e.message}`
-            );
-          }
-        } else if (this.options?.hasOwnProperty('default')) {
-          return this.options.default;
-        }
-        return null;
-      default:
-        throw new Error(`unrecognized param value type "${valueType}"`);
-    }
+    return this.rawValue || this.options.default || '';
   }
 
   toString() {
@@ -124,18 +59,71 @@ export class StringParam extends Param<string> {
 
 export class IntParam extends Param<number> {
   static valueType: ParamValueType = 'int';
+
+  get value(): number {
+    const intVal = parseInt(
+      this.rawValue || this.options.default?.toString() || '0',
+      10
+    );
+    if (Number.isNaN(intVal)) {
+      throw new Error(
+        `unable to load param "${this.name}", value ${JSON.stringify(
+          this.rawValue
+        )} could not be parsed as integer`
+      );
+    }
+    return intVal;
+  }
 }
 
 export class FloatParam extends Param<number> {
   static valueType: ParamValueType = 'float';
+
+  get value(): number {
+    const floatVal = parseFloat(
+      this.rawValue || this.options.default?.toString() || '0'
+    );
+    if (Number.isNaN(floatVal)) {
+      throw new Error(
+        `unable to load param "${this.name}", value ${JSON.stringify(
+          this.rawValue
+        )} could not be parsed as float`
+      );
+    }
+    return floatVal;
+  }
 }
 
 export class BooleanParam extends Param {
   static valueType: ParamValueType = 'boolean';
+
+  get value(): boolean {
+    const lowerVal = (
+      this.rawValue ||
+      this.options.default?.toString() ||
+      'false'
+    ).toLowerCase();
+    if (
+      !['true', 'y', 'yes', '1', 'false', 'n', 'no', '0'].includes(lowerVal)
+    ) {
+      throw new Error(
+        `unable to load param "${this.name}", value ${JSON.stringify(
+          this.rawValue
+        )} could not be parsed as boolean`
+      );
+    }
+    return ['true', 'y', 'yes', '1'].includes(lowerVal);
+  }
 }
 
 export class ListParam extends Param<string[]> {
   static valueType: ParamValueType = 'list';
+
+  get value(): string[] {
+    return typeof this.rawValue === 'string'
+      ? this.rawValue.split(/, ?/)
+      : this.options.default || [];
+  }
 
   toSpec(): ParamSpec<string> {
     const out: ParamSpec = {
@@ -150,6 +138,21 @@ export class ListParam extends Param<string[]> {
   }
 }
 
-export class JSONParam<T = any> extends Param<T> {
+export class JSONParam<T = unknown> extends Param<T> {
   static valueType: ParamValueType = 'json';
+
+  get value(): T {
+    if (this.rawValue) {
+      try {
+        return JSON.parse(this.rawValue!) as T;
+      } catch (e) {
+        throw new Error(
+          `unable to load param "${this.name}", value ${this.rawValue} could not be parsed as JSON: ${e.message}`
+        );
+      }
+    } else if (this.options?.hasOwnProperty('default')) {
+      return this.options.default;
+    }
+    return null;
+  }
 }
