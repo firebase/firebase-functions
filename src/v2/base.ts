@@ -22,6 +22,9 @@
 
 /** @internal */
 export interface TriggerAnnotation {
+  concurrency?: number;
+  minInstances?: number;
+  maxInstances?: number;
   availableMemoryMb?: number;
   eventTrigger?: {
     eventType: string;
@@ -39,4 +42,37 @@ export interface TriggerAnnotation {
   ingressSettings?: string;
 
   // TODO: schedule
+}
+
+/**
+ * A CloudEvent is a cross-platform format for encoding a serverless event.
+ * More information can be found in https://github.com/cloudevents/spec
+ */
+export interface CloudEvent<T> {
+  /** Version of the CloudEvents spec for this event. */
+  readonly specversion: '1.0';
+
+  /** A globally unique ID for this event. */
+  id: string;
+
+  /** The resource which published this event. */
+  source: string;
+
+  /** The type of event that this represents. */
+  type: string;
+
+  /** When this event occurred. */
+  time: string;
+
+  /** Information about this specific event. */
+  data: T;
+}
+
+/** A handler for CloudEvents. */
+export interface CloudFunction<T> {
+  (raw: CloudEvent<unknown>): any | Promise<any>;
+
+  __trigger: unknown;
+
+  run(event: CloudEvent<T>): any | Promise<any>;
 }

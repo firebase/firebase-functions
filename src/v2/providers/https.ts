@@ -26,7 +26,7 @@ import * as express from 'express';
 import * as common from '../../common/providers/https';
 import * as options from '../options';
 
-type Request = common.Request;
+export type Request = common.Request;
 
 export type CallableContext = common.CallableContext;
 export type FunctionsErrorCode = common.FunctionsErrorCode;
@@ -44,12 +44,16 @@ export type HttpsHandler = (
   request: Request,
   response: express.Response
 ) => void | Promise<void>;
-export type CallableHandler = (
-  data: any,
+export type CallableHandler<T> = (
+  data: T,
   context: CallableContext
 ) => any | Promise<any>;
 
 export type HttpsFunction = HttpsHandler & { __trigger: unknown };
+export interface CallableFunction<T> extends HttpsHandler {
+  __trigger: unknown;
+  run(data: T, context: CallableContext): any | Promise<any>;
+}
 
 export function onRequest(
   opts: HttpsOptions,
@@ -106,25 +110,27 @@ export function onRequest(
   return handler as HttpsFunction;
 }
 
-export function onCall(
+export function onCall<T = unknown>(
   opts: HttpsOptions,
-  handler: CallableHandler
-): HttpsFunction;
-export function onCall(handler: CallableHandler): HttpsFunction;
-export function onCall(
-  optsOrHandler: HttpsOptions | CallableHandler,
-  handler?: CallableHandler
-): HttpsFunction {
+  handler: CallableHandler<T>
+): CallableFunction<T>;
+export function onCall<T = unknown>(
+  handler: CallableHandler<T>
+): CallableFunction<T>;
+export function onCall<T = unknown>(
+  optsOrHandler: HttpsOptions | CallableHandler<T>,
+  handler?: CallableHandler<T>
+): CallableFunction<T> {
   let opts: HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
-    handler = optsOrHandler as CallableHandler;
+    handler = optsOrHandler as CallableHandler<T>;
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
-  const func = common.onCallHandler({ origin, methods: 'POST' }, handler);
+  const func: any = common.onCallHandler({ origin, methods: 'POST' }, handler);
 
   Object.defineProperty(func, '__trigger', {
     get: () => {
@@ -154,5 +160,7 @@ export function onCall(
       };
     },
   });
-  return func as HttpsFunction;
+
+  func.run = handler;
+  return func;
 }

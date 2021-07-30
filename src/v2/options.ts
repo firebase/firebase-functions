@@ -222,6 +222,9 @@ export function optionsToTriggerAnnotations(
   copyIfPresent(
     annotation,
     opts,
+    'concurrency',
+    'minInstances',
+    'maxInstances',
     'ingressSettings',
     'labels',
     'vpcConnector',
@@ -237,7 +240,7 @@ export function optionsToTriggerAnnotations(
     }
   );
   convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
-    if (typeof 'region' === 'string') {
+    if (typeof region === 'string') {
       return [region];
     }
     return region;

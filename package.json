@@ -31,13 +31,18 @@
     "./lib/logger": "./lib/logger/index.js",
     "./lib/logger/compat": "./lib/logger/compat.js",
     "./v2": "./lib/v2/index.js",
+    "./v2/base": "./lib/v2/base.js",
     "./v2/options": "./lib/v2/options.js",
-    "./v2/https": "./lib/v2/providers/https.js"
+    "./v2/https": "./lib/v2/providers/https.js",
+    "./v2/pubsub": "./lib/v2/providers/pubsub.js"
   },
   "typesVersions": {
     "*": {
-      "logger/*": [
-        "lib/logger/*"
+      "logger": [
+        "lib/logger"
+      ],
+      "logger/compat": [
+        "lib/logger/compat"
       ],
       "v1": [
         "lib/v1"
@@ -45,11 +50,17 @@
       "v2": [
         "lib/v2"
       ],
+      "v2/base": [
+        "lib/v2/base"
+      ],
       "v2/options": [
         "lib/v2/options"
       ],
       "v2/https": [
         "lib/v2/providers/https"
+      ],
+      "v2/pubsub": [
+        "lib/v2/providers/pubsub"
       ]
     }
   },
