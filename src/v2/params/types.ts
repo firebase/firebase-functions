@@ -1,8 +1,6 @@
 type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json';
 
 export interface ParamSpec<T = unknown> {
-  source: 'env' | 'secret';
-  secret?: string;
   required?: boolean;
   default?: T;
   label?: string;
@@ -10,14 +8,8 @@ export interface ParamSpec<T = unknown> {
   valueType?: ParamValueType;
 }
 
-export type ParamOptions<T = unknown> = Omit<
-  ParamSpec<T>,
-  'valueType' | 'source' | 'secretRef'
->;
-export type SecretParamOptions = Omit<
-  ParamSpec<string>,
-  'valueType' | 'source'
->;
+export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'valueType'>;
+export type SecretParamOptions = Omit<ParamSpec<string>, 'valueType'>;
 
 export class Param<T = unknown> {
   name: string;
@@ -115,7 +107,6 @@ export class Param<T = unknown> {
     const out: ParamSpec = {
       ...this.options,
       valueType: (this.constructor as typeof Param).valueType,
-      source: this.options.secret ? 'secret' : 'env',
     };
     if (this.options.default && typeof this.options.default !== 'string') {
       out.default = (this.options.default as
@@ -148,7 +139,6 @@ export class ListParam extends Param<string[]> {
 
   toSpec(): ParamSpec<string> {
     const out: ParamSpec = {
-      source: 'env',
       valueType: 'list',
       ...this.options,
     };
@@ -162,10 +152,4 @@ export class ListParam extends Param<string[]> {
 
 export class JSONParam<T = any> extends Param<T> {
   static valueType: ParamValueType = 'json';
-}
-
-export class SecretParam extends StringParam {
-  toSpec(): ParamSpec<string> {
-    return { ...super.toSpec(), source: 'secret' };
-  }
 }
