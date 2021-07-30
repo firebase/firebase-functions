@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as https from './providers/https';
 import * as logger from '../logger';
+import * as https from './providers/https';
 
 export { https, logger };
 
