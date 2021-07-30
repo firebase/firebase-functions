@@ -7,6 +7,7 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
+import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -84,46 +85,22 @@ describe('onRequest', () => {
     });
   });
 
-  it('should create a complex trigger with appropraite values', () => {
+  it('should create a complex trigger with appropriate values', () => {
     const result = https.onRequest(
       {
+        ...FULL_OPTIONS,
         region: ['us-west1', 'us-central1'],
-        memory: '512MB',
-        timeoutSeconds: 60,
-        minInstances: 1,
-        maxInstances: 3,
-        concurrency: 20,
-        vpcConnector: 'aConnector',
-        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-        serviceAccount: 'root@',
-        ingressSettings: 'ALLOW_ALL',
-        labels: {
-          hello: 'world',
-        },
       },
       (req, res) => {
         res.send(200);
       }
     );
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
-      platform: 'gcfv2',
+      ...FULL_TRIGGER,
       httpsTrigger: {
         allowInsecure: false,
       },
       regions: ['us-west1', 'us-central1'],
-      availableMemoryMb: 512,
-      timeout: '60s',
-      minInstances: 1,
-      maxInstances: 3,
-      concurrency: 20,
-      vpcConnector: 'aConnector',
-      vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-      serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
-      ingressSettings: 'ALLOW_ALL',
-      labels: {
-        hello: 'world',
-      },
     });
   });
 
@@ -230,43 +207,15 @@ describe('onCall', () => {
     });
   });
 
-  it('should create a complex trigger with appropraite values', () => {
-    const result = https.onCall(
-      {
-        region: 'us-west1',
-        memory: '512MB',
-        timeoutSeconds: 60,
-        minInstances: 1,
-        maxInstances: 3,
-        concurrency: 20,
-        vpcConnector: 'aConnector',
-        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-        serviceAccount: 'root@',
-        ingressSettings: 'ALLOW_ALL',
-        labels: {
-          hello: 'world',
-        },
-      },
-      (data, context) => 42
-    );
+  it('should create a complex trigger with appropriate values', () => {
+    const result = https.onCall(FULL_OPTIONS, (data, context) => 42);
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
-      platform: 'gcfv2',
+      ...FULL_TRIGGER,
       httpsTrigger: {
         allowInsecure: false,
       },
-      regions: ['us-west1'],
-      availableMemoryMb: 512,
-      timeout: '60s',
-      minInstances: 1,
-      maxInstances: 3,
-      concurrency: 20,
-      vpcConnector: 'aConnector',
-      vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-      serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
-      ingressSettings: 'ALLOW_ALL',
       labels: {
-        hello: 'world',
+        ...FULL_TRIGGER.labels,
         'deployment-callable': 'true',
       },
     });

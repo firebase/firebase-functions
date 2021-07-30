@@ -44,15 +44,15 @@ export type HttpsHandler = (
   request: Request,
   response: express.Response
 ) => void | Promise<void>;
-export type CallableHandler<T> = (
+export type CallableHandler<T, Ret> = (
   data: T,
   context: CallableContext
-) => any | Promise<any>;
+) => Ret;
 
 export type HttpsFunction = HttpsHandler & { __trigger: unknown };
-export interface CallableFunction<T> extends HttpsHandler {
+export interface CallableFunction<T, Ret> extends HttpsHandler {
   __trigger: unknown;
-  run(data: T, context: CallableContext): any | Promise<any>;
+  run(data: T, context: CallableContext): Ret;
 }
 
 export function onRequest(
@@ -110,21 +110,21 @@ export function onRequest(
   return handler as HttpsFunction;
 }
 
-export function onCall<T = unknown>(
+export function onCall<T = unknown, Ret = any | Promise<any>>(
   opts: HttpsOptions,
-  handler: CallableHandler<T>
-): CallableFunction<T>;
-export function onCall<T = unknown>(
-  handler: CallableHandler<T>
-): CallableFunction<T>;
-export function onCall<T = unknown>(
-  optsOrHandler: HttpsOptions | CallableHandler<T>,
-  handler?: CallableHandler<T>
-): CallableFunction<T> {
+  handler: CallableHandler<T, Ret>
+): CallableFunction<T, Ret>;
+export function onCall<T = unknown, Ret = any | Promise<any>>(
+  handler: CallableHandler<T, Ret>
+): CallableFunction<T, Ret>;
+export function onCall<T = unknown, Ret = any | Promise<any>>(
+  optsOrHandler: HttpsOptions | CallableHandler<T, Ret>,
+  handler?: CallableHandler<T, Ret>
+): CallableFunction<T, Ret> {
   let opts: HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
-    handler = optsOrHandler as CallableHandler<T>;
+    handler = optsOrHandler as CallableHandler<T, Ret>;
   } else {
     opts = optsOrHandler as HttpsOptions;
   }

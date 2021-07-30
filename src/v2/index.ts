@@ -28,4 +28,4 @@ export { https, pubsub, logger };
 
 export { setGlobalOptions, GlobalOptions } from './options';
 
-export { CloudFunction, CloudEvent } from './base';
+export { CloudFunction, CloudEvent } from './core';

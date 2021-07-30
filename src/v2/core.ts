@@ -58,6 +58,9 @@ export interface CloudEvent<T> {
   /** The resource which published this event. */
   source: string;
 
+  /** The resource, provided by source, that this event relates to */
+  subject?: string;
+
   /** The type of event that this represents. */
   type: string;
 
@@ -66,6 +69,20 @@ export interface CloudEvent<T> {
 
   /** Information about this specific event. */
   data: T;
+
+  /**
+   * A map of template parameter name to value for subject strings.
+   *
+   * This map is only available on some event types that allow templates
+   * in the subject string, such as Firestore. When listening to a document
+   * template "/users/{uid}", an event with subject "/documents/users/1234"
+   * would have a params of {"uid": "1234"}.
+   *
+   * Params are generated inside the firebase-functions SDK and are not
+   * part of the CloudEvents spec nor the payload that a Cloud Function
+   * actually receives.
+   */
+  params?: Record<string, string>;
 }
 
 /** A handler for CloudEvents. */

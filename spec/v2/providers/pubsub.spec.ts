@@ -1,8 +1,9 @@
 import { expect } from 'chai';
 
-import { CloudEvent } from '../../../src/v2/base';
+import { CloudEvent } from '../../../src/v2/core';
 import * as options from '../../../src/v2/options';
 import * as pubsub from '../../../src/v2/providers/pubsub';
+import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
 
 const EVENT_TRIGGER = {
   eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
@@ -29,43 +30,14 @@ describe('onMessagePublished', () => {
     });
   });
 
-  it('should create a complex trigger with appropraite values', () => {
+  it('should create a complex trigger with appropriate values', () => {
     const result = pubsub.onMessagePublished(
-      {
-        topic: 'topic',
-        region: 'us-west1',
-        memory: '512MB',
-        timeoutSeconds: 60,
-        minInstances: 1,
-        maxInstances: 3,
-        concurrency: 20,
-        vpcConnector: 'aConnector',
-        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-        serviceAccount: 'root@',
-        ingressSettings: 'ALLOW_ALL',
-        labels: {
-          hello: 'world',
-        },
-      },
+      { ...FULL_OPTIONS, topic: 'topic' },
       () => 42
     );
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
-      platform: 'gcfv2',
+      ...FULL_TRIGGER,
       eventTrigger: EVENT_TRIGGER,
-      regions: ['us-west1'],
-      availableMemoryMb: 512,
-      timeout: '60s',
-      minInstances: 1,
-      maxInstances: 3,
-      concurrency: 20,
-      vpcConnector: 'aConnector',
-      vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-      serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
-      ingressSettings: 'ALLOW_ALL',
-      labels: {
-        hello: 'world',
-      },
     });
   });
 
@@ -113,11 +85,11 @@ describe('onMessagePublished', () => {
       orderingKey: 'orderingKey',
       publishTime: new Date(Date.now()).toISOString(),
     };
-    const publishData: pubsub.MessagePublishedData = {
+    const publishData: pubsub.MessagePublishedData<any> = {
       message: messageJSON as any,
       subscription: 'projects/aProject/subscriptions/aSubscription',
     };
-    const event: CloudEvent<pubsub.MessagePublishedData> = {
+    const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
       specversion: '1.0',
       source: '//pubsub.googleapis.com/projects/aProject/topics/topic',
       id: 'uuid',
