@@ -8,12 +8,7 @@ import {
   getList,
   getString,
 } from '../../src/v2/params';
-import {
-  ListParam,
-  Param,
-  ParamOptions,
-  SecretParam,
-} from '../../src/v2/params/types';
+import { ListParam, Param, ParamOptions } from '../../src/v2/params/types';
 
 const TEST_PARAM = 'TEST_PARAM';
 
@@ -250,23 +245,11 @@ describe('params', () => {
         );
       });
 
-      it('should default to "env" as the source', () => {
-        expect(new Param(TEST_PARAM).toSpec().source).to.eq('env');
-      });
-
       it('should passthrough supplied options', () => {
         expect(
           new Param(TEST_PARAM, { description: 'hello expect' }).toSpec()
             .description
         ).to.eq('hello expect');
-      });
-
-      it('SecretParam should have source type "secret" and passthrough "secret" option', () => {
-        const spec = new SecretParam(TEST_PARAM, {
-          secret: 'foo/bar',
-        }).toSpec();
-        expect(spec.source).to.eq('secret');
-        expect(spec.secret).to.eq('foo/bar');
       });
 
       it('ListParam should properly stringify its default', () => {
