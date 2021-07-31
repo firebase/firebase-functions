@@ -471,7 +471,16 @@ export class DataSnapshot {
    * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
    */
   exists(): boolean {
-    return !_.isNull(this.val());
+    const val = this.val();
+    if (_.isNull(val)) {
+      // Null value
+      return false;
+    }
+    if ((_.isObjectLike(val) || _.isArray(val)) && _.isEmpty(val)) {
+      // Empty object/array
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -512,7 +521,7 @@ export class DataSnapshot {
    */
   forEach(action: (a: DataSnapshot) => boolean | void): boolean {
     const val = this.val();
-    if (_.isPlainObject(val)) {
+    if (_.isObjectLike(val) || _.isArray(val)) {
       return _.some(
         val,
         (value, key: string) => action(this.child(key)) === true
@@ -546,7 +555,7 @@ export class DataSnapshot {
    */
   hasChildren(): boolean {
     const val = this.val();
-    return _.isPlainObject(val) && _.keys(val).length > 0;
+    return (_.isObjectLike(val) || _.isArray(val)) && !_.isEmpty(val);
   }
 
   /**
@@ -556,7 +565,7 @@ export class DataSnapshot {
    */
   numChildren(): number {
     const val = this.val();
-    return _.isPlainObject(val) ? Object.keys(val).length : 0;
+    return _.isObjectLike(val) || _.isArray(val) ? _.keys(val).length : 0;
   }
 
   /**
@@ -588,7 +597,12 @@ export class DataSnapshot {
         continue;
       }
       const childNode = node[key];
-      obj[key] = this._checkAndConvertToArray(childNode);
+      const v = this._checkAndConvertToArray(childNode);
+      if (v === null) {
+        // Empty child node
+        continue;
+      }
+      obj[key] = v;
       numKeys++;
       const integerRegExp = /^(0|[1-9]\d*)$/;
       if (allIntegerKeys && integerRegExp.test(key)) {
@@ -596,6 +610,11 @@ export class DataSnapshot {
       } else {
         allIntegerKeys = false;
       }
+    }
+
+    if (numKeys === 0) {
+      // Empty node
+      return null;
     }
 
     if (allIntegerKeys && maxKey < 2 * numKeys) {
