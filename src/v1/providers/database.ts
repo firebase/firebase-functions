@@ -476,7 +476,7 @@ export class DataSnapshot {
       // Null value
       return false;
     }
-    if ((_.isObjectLike(val) || _.isArray(val)) && _.isEmpty(val)) {
+    if (_.isObjectLike(val) && _.isEmpty(val)) {
       // Empty object/array
       return false;
     }
@@ -521,7 +521,7 @@ export class DataSnapshot {
    */
   forEach(action: (a: DataSnapshot) => boolean | void): boolean {
     const val = this.val();
-    if (_.isObjectLike(val) || _.isArray(val)) {
+    if (_.isObjectLike(val)) {
       return _.some(
         val,
         (value, key: string) => action(this.child(key)) === true
@@ -555,7 +555,7 @@ export class DataSnapshot {
    */
   hasChildren(): boolean {
     const val = this.val();
-    return (_.isObjectLike(val) || _.isArray(val)) && !_.isEmpty(val);
+    return _.isObjectLike(val) && !_.isEmpty(val);
   }
 
   /**
@@ -565,7 +565,7 @@ export class DataSnapshot {
    */
   numChildren(): number {
     const val = this.val();
-    return _.isObjectLike(val) || _.isArray(val) ? _.keys(val).length : 0;
+    return _.isObjectLike(val) ? _.keys(val).length : 0;
   }
 
   /**
