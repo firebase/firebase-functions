@@ -22,7 +22,10 @@
 
 import * as logger from '../logger';
 import * as https from './providers/https';
+import * as pubsub from './providers/pubsub';
 
-export { https, logger };
+export { https, pubsub, logger };
 
 export { setGlobalOptions, GlobalOptions } from './options';
+
+export { CloudFunction, CloudEvent } from './core';
