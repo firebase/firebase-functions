@@ -9,18 +9,11 @@ export interface ParamSpec<T = unknown> {
 }
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'valueType'>;
-export type SecretParamOptions = Omit<ParamSpec<string>, 'valueType'>;
 
 export class Param<T = unknown> {
-  name: string;
-  options: ParamOptions<T>;
-
   static valueType: ParamValueType = 'string';
 
-  constructor(name: string, options: ParamOptions<T> = {}) {
-    this.name = name;
-    this.options = options;
-  }
+  constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {}
 
   get rawValue(): string | undefined {
     return process.env[this.name];
@@ -153,6 +146,6 @@ export class JSONParam<T = unknown> extends Param<T> {
     } else if (this.options?.hasOwnProperty('default')) {
       return this.options.default;
     }
-    return null;
+    return {} as T;
   }
 }

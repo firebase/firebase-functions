@@ -188,8 +188,8 @@ describe('params', () => {
       method: getJSON,
       tests: [
         {
-          title: 'should return null zero value',
-          expect: null,
+          title: 'should return {} zero value',
+          expect: {},
         },
         {
           title: 'should coerce objects from JSON',
