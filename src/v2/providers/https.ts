@@ -28,7 +28,7 @@ import * as options from '../options';
 
 export type Request = common.Request;
 
-export type CallableContext = common.CallableContext;
+export type CallableRequest<T> = common.CallableRequest<T>;
 export type FunctionsErrorCode = common.FunctionsErrorCode;
 export type HttpsError = common.HttpsError;
 
@@ -44,15 +44,12 @@ export type HttpsHandler = (
   request: Request,
   response: express.Response
 ) => void | Promise<void>;
-export type CallableHandler<T, Ret> = (
-  data: T,
-  context: CallableContext
-) => Ret;
+export type CallableHandler<T, Return> = (request: CallableRequest<T>) => Return;
 
 export type HttpsFunction = HttpsHandler & { __trigger: unknown };
-export interface CallableFunction<T, Ret> extends HttpsHandler {
+export interface CallableFunction<T, Return> extends HttpsHandler {
   __trigger: unknown;
-  run(data: T, context: CallableContext): Ret;
+  run(data: CallableRequest<T>): Return;
 }
 
 export function onRequest(
@@ -110,21 +107,21 @@ export function onRequest(
   return handler as HttpsFunction;
 }
 
-export function onCall<T = unknown, Ret = any | Promise<any>>(
+export function onCall<T = any, Return = any | Promise<any>>(
   opts: HttpsOptions,
-  handler: CallableHandler<T, Ret>
-): CallableFunction<T, Ret>;
-export function onCall<T = unknown, Ret = any | Promise<any>>(
-  handler: CallableHandler<T, Ret>
-): CallableFunction<T, Ret>;
-export function onCall<T = unknown, Ret = any | Promise<any>>(
-  optsOrHandler: HttpsOptions | CallableHandler<T, Ret>,
-  handler?: CallableHandler<T, Ret>
-): CallableFunction<T, Ret> {
+  handler: CallableHandler<T, Return>
+): CallableFunction<T, Return>;
+export function onCall<T = any, Return = any | Promise<any>>(
+  handler: CallableHandler<T, Return>
+): CallableFunction<T, Return>;
+export function onCall<T = any, Return = any | Promise<any>>(
+  optsOrHandler: HttpsOptions | CallableHandler<T, Return>,
+  handler?: CallableHandler<T, Return>
+): CallableFunction<T, Return> {
   let opts: HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
-    handler = optsOrHandler as CallableHandler<T, Ret>;
+    handler = optsOrHandler as CallableHandler<T, Return>;
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
