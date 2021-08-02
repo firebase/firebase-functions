@@ -115,7 +115,7 @@ export function getList(
  * @param options Configuration options for the param.
  * @returns A Param with a specifiable return type for `.value`.
  */
-export function getJSON<T = unknown>(
+export function getJSON<T = any>(
   name: string,
   options: ParamOptions<T> = {}
 ): JSONParam {

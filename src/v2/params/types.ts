@@ -131,7 +131,7 @@ export class ListParam extends Param<string[]> {
   }
 }
 
-export class JSONParam<T = unknown> extends Param<T> {
+export class JSONParam<T = any> extends Param<T> {
   static valueType: ParamValueType = 'json';
 
   get value(): T {
