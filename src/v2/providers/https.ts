@@ -44,7 +44,9 @@ export type HttpsHandler = (
   request: Request,
   response: express.Response
 ) => void | Promise<void>;
-export type CallableHandler<T, Return> = (request: CallableRequest<T>) => Return;
+export type CallableHandler<T, Return> = (
+  request: CallableRequest<T>
+) => Return;
 
 export type HttpsFunction = HttpsHandler & { __trigger: unknown };
 export interface CallableFunction<T, Return> extends HttpsHandler {

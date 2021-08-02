@@ -233,7 +233,7 @@ describe('onCall', () => {
         region: ['us-west1', 'us-central1'],
         minInstances: 3,
       },
-      (data, context) => 42
+      (request) => 42
     );
 
     expect(result.__trigger).to.deep.equal({
@@ -252,19 +252,19 @@ describe('onCall', () => {
   });
 
   it('has a .run method', () => {
-    const cf = https.onCall((d, c) => {
-      return { data: d, context: c };
+    const cf = https.onCall((request) => {
+      return request;
     });
 
-    const data = 'data';
-    const context: any = {
+    const request: any = {
+      data: 'data',
       instanceIdToken: 'token',
       auth: {
         uid: 'abc',
         token: 'token',
       },
     };
-    expect(cf.run(data, context)).to.deep.equal({ data, context });
+    expect(cf.run(request)).to.deep.equal(request);
   });
 
   it('should be an express handler', async () => {
