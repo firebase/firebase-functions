@@ -439,4 +439,44 @@ describe('FunctionBuilder', () => {
       })
     ).to.throw();
   });
+
+  it('should throw an error if invoker is an empty string', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: '',
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if invoker is an empty array', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: [''],
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if invoker has an empty string', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ['service-account1', '', 'service-account2'],
+      })
+    ).to.throw();
+  });
+
+  it('should throw an error if public identifier is in the invoker array', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ['service-account1', 'public', 'service-account2'],
+      })
+    ).to.throw();
+  });
+
+  it('', () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ['service-account1', 'private', 'service-account2'],
+      })
+    ).to.throw();
+  });
 });

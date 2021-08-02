@@ -27,6 +27,7 @@ import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   FailurePolicy,
+  Invoker,
   Schedule,
 } from './function-configuration';
 export { Request, Response };
@@ -278,6 +279,7 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
+    invoker?: Invoker | Invoker[];
   };
 }
 
@@ -497,7 +499,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
+    'labels',
+    'invoker'
   );
   convertIfPresent(
     trigger,

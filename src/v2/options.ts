@@ -25,10 +25,10 @@ import {
   serviceAccountFromShorthand,
 } from '../common/encoding';
 import * as logger from '../logger';
-import { TriggerAnnotation } from './base';
 import { copyIfPresent, convertIfPresent } from '../common/encoding';
 import { ParamSpec } from './params/types';
 import { declaredParams } from './params';
+import { TriggerAnnotation } from './core';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -224,6 +224,9 @@ export function optionsToTriggerAnnotations(
   copyIfPresent(
     annotation,
     opts,
+    'concurrency',
+    'minInstances',
+    'maxInstances',
     'ingressSettings',
     'labels',
     'vpcConnector',
@@ -239,7 +242,7 @@ export function optionsToTriggerAnnotations(
     }
   );
   convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
-    if (typeof 'region' === 'string') {
+    if (typeof region === 'string') {
       return [region];
     }
     return region;

@@ -192,6 +192,43 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       );
     }
   }
+
+  if (
+    typeof runtimeOptions.invoker === 'string' &&
+    runtimeOptions.invoker.length === 0
+  ) {
+    throw new Error(
+      'Invalid service account for function invoker, must be a non-empty string'
+    );
+  }
+  if (
+    runtimeOptions.invoker !== undefined &&
+    Array.isArray(runtimeOptions.invoker)
+  ) {
+    if (runtimeOptions.invoker.length === 0) {
+      throw new Error(
+        'Invalid invoker array, must contain at least 1 service account entry'
+      );
+    }
+    for (const serviceAccount of runtimeOptions.invoker) {
+      if (serviceAccount.length === 0) {
+        throw new Error(
+          'Invalid invoker array, a service account must be a non-empty string'
+        );
+      }
+      if (serviceAccount === 'public') {
+        throw new Error(
+          "Invalid invoker array, a service account cannot be set to the 'public' identifier"
+        );
+      }
+      if (serviceAccount === 'private') {
+        throw new Error(
+          "Invalid invoker array, a service account cannot be set to the 'private' identifier"
+        );
+      }
+    }
+  }
+
   return true;
 }
 
