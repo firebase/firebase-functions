@@ -1,7 +1,6 @@
 type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json';
 
 export interface ParamSpec<T = unknown> {
-  required?: boolean;
   default?: T;
   label?: string;
   description?: string;
