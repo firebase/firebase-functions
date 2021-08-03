@@ -26,6 +26,14 @@ import * as path from 'path';
 import * as firebase from 'firebase-admin';
 
 export function config(): config.Config {
+  // K_CONFIGURATION is only set in GCFv2
+  if (process.env.K_CONFIGURATION) {
+    throw new Error(
+      'RuntimeConfig is no longer available in Google Cloud Functions v2. ' +
+        'Please see the latest documentation for information on how to ' +
+        'transition to using environment variables'
+    );
+  }
   if (typeof config.singleton === 'undefined') {
     init();
   }

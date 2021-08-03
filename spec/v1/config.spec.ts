@@ -47,6 +47,23 @@ describe('config()', () => {
     (config as any).firebaseConfigCache = null;
     delete process.env.FIREBASE_CONFIG;
     delete process.env.CLOUD_RUNTIME_CONFIG;
+    delete process.env.K_CONFIGURATION;
+  });
+
+  it('Will never load in GCFv2', () => {
+    const json = JSON.stringify({
+      foo: 'bar',
+      firebase: {},
+    });
+    readFileSync
+      .withArgs('/srv/.runtimeconfig.json')
+      .returns(Buffer.from(json));
+
+    process.env.K_CONFIGURATION = 'my-service';
+    expect(() => config.config()).to.throw(
+      Error,
+      /transition to using environment variables/
+    );
   });
 
   it('loads config values from .runtimeconfig.json', () => {
