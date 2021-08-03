@@ -34,7 +34,7 @@ function registerParam(param: Param) {
  * @param options Configuration options for the param.
  * @returns A Param with a `string` return type for `.value`.
  */
-export function getString(
+export function defineString(
   name: string,
   options: ParamOptions<string> = {}
 ): StringParam {
@@ -50,7 +50,7 @@ export function getString(
  * @param options Configuration options for the param.
  * @returns A Param with a `boolean` return type for `.value`.
  */
-export function getBoolean(
+export function defineBoolean(
   name: string,
   options: ParamOptions<boolean> = {}
 ): BooleanParam {
@@ -66,7 +66,7 @@ export function getBoolean(
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
  */
-export function getInt(
+export function defineInt(
   name: string,
   options: ParamOptions<number> = {}
 ): IntParam {
@@ -82,7 +82,7 @@ export function getInt(
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
  */
-export function getFloat(
+export function defineFloat(
   name: string,
   options: ParamOptions<number> = {}
 ): FloatParam {
@@ -98,7 +98,7 @@ export function getFloat(
  * @param options Configuration options for the param.
  * @returns A Param with a `string[]` return type for `.value`.
  */
-export function getList(
+export function defineList(
   name: string,
   options: ParamOptions<string[]> = {}
 ): ListParam {
@@ -115,7 +115,7 @@ export function getList(
  * @param options Configuration options for the param.
  * @returns A Param with a specifiable return type for `.value`.
  */
-export function getJSON<T = any>(
+export function defineJSON<T = any>(
   name: string,
   options: ParamOptions<T> = {}
 ): JSONParam {

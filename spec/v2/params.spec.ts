@@ -1,12 +1,12 @@
 import { expect } from 'chai';
 import {
   declaredParams,
-  getBoolean,
-  getFloat,
-  getInt,
-  getJSON,
-  getList,
-  getString,
+  defineBoolean,
+  defineFloat,
+  defineInt,
+  defineJSON,
+  defineList,
+  defineString,
 } from '../../src/v2/params';
 import { ListParam, Param, ParamOptions } from '../../src/v2/params/types';
 
@@ -28,7 +28,7 @@ describe('params', () => {
     }[];
   }[] = [
     {
-      method: getString,
+      method: defineString,
       tests: [
         {
           title: "should return a '' zero value when no value and no undefined",
@@ -49,7 +49,7 @@ describe('params', () => {
       ],
     },
     {
-      method: getInt,
+      method: defineInt,
       tests: [
         {
           title: 'should return 0 zero value',
@@ -73,7 +73,7 @@ describe('params', () => {
       ],
     },
     {
-      method: getFloat,
+      method: defineFloat,
       tests: [
         {
           title: 'should return 0 zero value',
@@ -97,7 +97,7 @@ describe('params', () => {
       ],
     },
     {
-      method: getBoolean,
+      method: defineBoolean,
       tests: [
         {
           title: 'should return false zero value',
@@ -160,7 +160,7 @@ describe('params', () => {
       ],
     },
     {
-      method: getList,
+      method: defineList,
       tests: [
         {
           title: 'should return [] zero value',
@@ -185,7 +185,7 @@ describe('params', () => {
       ],
     },
     {
-      method: getJSON,
+      method: defineJSON,
       tests: [
         {
           title: 'should return {} zero value',
@@ -262,14 +262,14 @@ describe('params', () => {
   });
 
   it('should add a param to the declared params', () => {
-    const param = getString(TEST_PARAM);
+    const param = defineString(TEST_PARAM);
     expect(declaredParams.find((p) => p === param)).to.eq(param);
   });
 
   it('should replace a samed-name param in the declared params', () => {
-    const oldParam = getString(TEST_PARAM);
+    const oldParam = defineString(TEST_PARAM);
     expect(declaredParams.find((p) => p === oldParam)).to.eq(oldParam);
-    const param = getString(TEST_PARAM);
+    const param = defineString(TEST_PARAM);
     expect(declaredParams.find((p) => p === oldParam)).to.be.undefined;
     expect(declaredParams.find((p) => p === param)).to.eq(param);
   });
