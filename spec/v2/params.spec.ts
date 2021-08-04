@@ -17,16 +17,16 @@ describe('params', () => {
     delete process.env[TEST_PARAM];
   });
 
-  const VALUE_TESTS: {
+  const VALUE_TESTS: Array<{
     method: (name: string, options: ParamOptions<any>) => Param;
-    tests: {
+    tests: Array<{
       title: string;
       env?: string;
       options?: ParamOptions;
       expect?: any;
       throws?: boolean;
-    }[];
-  }[] = [
+    }>;
+  }> = [
     {
       method: defineString,
       tests: [

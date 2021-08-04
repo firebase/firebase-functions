@@ -24,11 +24,11 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from '../common/encoding';
+import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';
-import { copyIfPresent, convertIfPresent } from '../common/encoding';
-import { ParamSpec } from './params/types';
-import { declaredParams } from './params';
 import { TriggerAnnotation } from './core';
+import { declaredParams } from './params';
+import { ParamSpec } from './params/types';
 
 /**
  * List of all regions supported by Cloud Functions v2

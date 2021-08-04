@@ -40,24 +40,43 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   cors?: string | boolean;
 }
 
-export type HttpsFunction = (req: Request, res: express.Response) => void | Promise<void> & { __trigger: unknown };
+export type HttpsFunction = ((
+  req: Request,
+  res: express.Response
+) => void | Promise<void>) & { __trigger: unknown };
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
 
 export function onRequest(
   opts: HttpsOptions,
-  handler: (request: Request, response: express.Response) => void | Promise<void>
+  handler: (
+    request: Request,
+    response: express.Response
+  ) => void | Promise<void>
 ): HttpsFunction;
-export function onRequest(handler: (request: Request, response: express.Response) => void | Promise<void>): HttpsFunction;
 export function onRequest(
-  optsOrHandler: HttpsOptions | ((request: Request, response: express.Response) => void | Promise<void>),
-  handler?: (request: Request, response: express.Response) => void | Promise<void>
+  handler: (
+    request: Request,
+    response: express.Response
+  ) => void | Promise<void>
+): HttpsFunction;
+export function onRequest(
+  optsOrHandler:
+    | HttpsOptions
+    | ((request: Request, response: express.Response) => void | Promise<void>),
+  handler?: (
+    request: Request,
+    response: express.Response
+  ) => void | Promise<void>
 ): HttpsFunction {
   let opts: HttpsOptions;
   if (arguments.length === 1) {
     opts = {};
-    handler = optsOrHandler as (request: Request, response: express.Response) => void | Promise<void>;
+    handler = optsOrHandler as (
+      request: Request,
+      response: express.Response
+    ) => void | Promise<void>;
   } else {
     opts = optsOrHandler as HttpsOptions;
   }

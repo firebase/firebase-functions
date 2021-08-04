@@ -334,11 +334,19 @@ describe('onCall', () => {
   });
 
   // These tests pass if the code transpiles
-  it("allows desirable syntax", () => {
-    https.onCall<string, string>((request: https.CallableRequest<string>) => `hello, ${request.data}!`);
-    https.onCall<string>((request: https.CallableRequest<string>) => `hello, ${request.data}!`);
-    https.onCall<string>((request: https.CallableRequest) => `hello, ${request.data}!`);
-    https.onCall((request: https.CallableRequest<string>) => `Hello, ${request.data}`);
+  it('allows desirable syntax', () => {
+    https.onCall<string, string>(
+      (request: https.CallableRequest<string>) => `hello, ${request.data}!`
+    );
+    https.onCall<string>(
+      (request: https.CallableRequest<string>) => `hello, ${request.data}!`
+    );
+    https.onCall<string>(
+      (request: https.CallableRequest) => `hello, ${request.data}!`
+    );
+    https.onCall(
+      (request: https.CallableRequest<string>) => `Hello, ${request.data}`
+    );
     https.onCall((request: https.CallableRequest) => `Hello, ${request.data}`);
   });
 });
