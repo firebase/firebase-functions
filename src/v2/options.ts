@@ -24,8 +24,10 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from '../common/encoding';
-import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';
+import { copyIfPresent, convertIfPresent } from '../common/encoding';
+import { ParamSpec } from './params/types';
+import { declaredParams } from './params';
 import { TriggerAnnotation } from './core';
 
 /**
@@ -270,4 +272,17 @@ export function optionsToTriggerAnnotations(
   );
 
   return annotation;
+}
+
+/**
+ * @hidden
+ */
+export function __getSpec(): {
+  globalOptions: GlobalOptions;
+  params: ParamSpec[];
+} {
+  return {
+    globalOptions: getGlobalOptions(),
+    params: declaredParams.map((p) => p.toSpec()),
+  };
 }

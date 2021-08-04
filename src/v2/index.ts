@@ -23,8 +23,9 @@
 import * as logger from '../logger';
 import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
+import * as params from './params';
 
-export { https, pubsub, logger };
+export { https, pubsub, logger, params };
 
 export { setGlobalOptions, GlobalOptions } from './options';
 

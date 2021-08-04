@@ -36,77 +36,123 @@ export interface Request extends express.Request {
 }
 
 /**
+ * The interface for AppCheck tokens verified in Callable functions
+ */
+export interface AppCheckData {
+  appId: string;
+
+  // This is actually a firebase.appCheck.DecodedAppCheckToken, but
+  // that type may not be available in some supported SDK versions.
+  // Declare as an inline type, which DecodedAppCheckToken will be
+  // able to merge with.
+  // TODO: Replace with the real type once we bump the min-version of
+  // the admin SDK
+  token: {
+    /**
+     * The issuer identifier for the issuer of the response.
+     *
+     * This value is a URL with the format
+     * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
+     * same project number specified in the [`aud`](#aud) property.
+     */
+    iss: string;
+
+    /**
+     * The Firebase App ID corresponding to the app the token belonged to.
+     *
+     * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
+     */
+    sub: string;
+
+    /**
+     * The audience for which this token is intended.
+     *
+     * This value is a JSON array of two strings, the first is the project number of your
+     * Firebase project, and the second is the project ID of the same project.
+     */
+    aud: string[];
+
+    /**
+     * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
+     * time at which this App Check token expires and should no longer be considered valid.
+     */
+    exp: number;
+
+    /**
+     * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
+     * time at which this App Check token was issued and should start to be considered
+     * valid.
+     */
+    iat: number;
+
+    /**
+     * The App ID corresponding to the App the App Check token belonged to.
+     *
+     * This value is not actually one of the JWT token claims. It is added as a
+     * convenience, and is set as the value of the [`sub`](#sub) property.
+     */
+    app_id: string;
+    [key: string]: any;
+  };
+}
+
+/**
+ * The interface for Auth tokens verified in Callable functions
+ */
+export interface AuthData {
+  uid: string;
+  token: firebase.auth.DecodedIdToken;
+}
+
+// This type is the direct v1 callable interface and is also an interface
+// that the v2 API can conform to. This allows us to pass the v2 CallableRequest
+// directly to the same helper methods.
+/**
  * The interface for metadata for the API as passed to the handler.
  */
 export interface CallableContext {
   /**
    * The result of decoding and verifying a Firebase AppCheck token.
    */
-  app?: {
-    appId: string;
-
-    // This is actually a firebase.appCheck.DecodedAppCheckToken, but
-    // that type may not be available in some supported SDK versions.
-    // Declare as an inline type, which DecodedAppCheckToken will be
-    // able to merge with.
-    // TODO: Replace with the real type once we bump the min-version of
-    // the admin SDK
-    token: {
-      /**
-       * The issuer identifier for the issuer of the response.
-       *
-       * This value is a URL with the format
-       * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
-       * same project number specified in the [`aud`](#aud) property.
-       */
-      iss: string;
-
-      /**
-       * The Firebase App ID corresponding to the app the token belonged to.
-       *
-       * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
-       */
-      sub: string;
-
-      /**
-       * The audience for which this token is intended.
-       *
-       * This value is a JSON array of two strings, the first is the project number of your
-       * Firebase project, and the second is the project ID of the same project.
-       */
-      aud: string[];
-
-      /**
-       * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
-       * time at which this App Check token expires and should no longer be considered valid.
-       */
-      exp: number;
-
-      /**
-       * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
-       * time at which this App Check token was issued and should start to be considered
-       * valid.
-       */
-      iat: number;
-
-      /**
-       * The App ID corresponding to the App the App Check token belonged to.
-       *
-       * This value is not actually one of the JWT token claims. It is added as a
-       * convenience, and is set as the value of the [`sub`](#sub) property.
-       */
-      app_id: string;
-      [key: string]: any;
-    };
-  };
+  app?: AppCheckData;
 
   /**
    * The result of decoding and verifying a Firebase Auth ID token.
    */
-  auth?: {
-    uid: string;
-    token: firebase.auth.DecodedIdToken;
-  };
+  auth?: AuthData;
+
+  /**
+   * An unverified token for a Firebase Instance ID.
+   */
+  instanceIdToken?: string;
+
+  /**
+   * The raw request handled by the callable.
+   */
+  rawRequest: Request;
+}
+
+// This could be a simple extension of CallableContext, but we're
+// avoiding that to avoid muddying the docs and making a v2 type depend
+// on a v1 type.
+/**
+ * The request used to call a callable function.
+ */
+export interface CallableRequest<T> {
+  /**
+   * The parameters used by a client when calling this function.
+   */
+  data: T;
+
+  /**
+   * The result of decoding and verifying a Firebase AppCheck token.
+   */
+  app?: AppCheckData;
+
+  /**
+   * The result of decoding and verifying a Firebase Auth ID token.
+   */
+  auth?: AuthData;
 
   /**
    * An unverified token for a Firebase Instance ID.
@@ -543,10 +589,13 @@ async function checkTokens(
   return verifications;
 }
 
+type v1Handler = (data: any, context: CallableContext) => any | Promise<any>;
+type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
+
 /** @hidden */
-export function onCallHandler(
+export function onCallHandler<Req = any, Res = any>(
   options: cors.CorsOptions,
-  handler: (data: any, context: CallableContext) => any | Promise<any>
+  handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   const wrapped = wrapOnCallHandler(handler);
   return async (req: Request, res: express.Response) => {
@@ -557,49 +606,62 @@ export function onCallHandler(
 }
 
 /** @internal */
-const wrapOnCallHandler = (
-  handler: (data: any, context: CallableContext) => any | Promise<any>
-) => async (req: Request, res: express.Response) => {
-  try {
-    if (!isValidRequest(req)) {
-      logger.error('Invalid request, unable to process.');
-      throw new HttpsError('invalid-argument', 'Bad Request');
+function wrapOnCallHandler<Req = any, Res = any>(
+  handler: v1Handler | v2Handler<Req, Res>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response): Promise<void> => {
+    try {
+      if (!isValidRequest(req)) {
+        logger.error('Invalid request, unable to process.');
+        throw new HttpsError('invalid-argument', 'Bad Request');
+      }
+
+      const context: CallableContext = { rawRequest: req };
+      const tokenStatus = await checkTokens(req, context);
+      if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
+      }
+
+      const instanceId = req.header('Firebase-Instance-ID-Token');
+      if (instanceId) {
+        // Validating the token requires an http request, so we don't do it.
+        // If the user wants to use it for something, it will be validated then.
+        // Currently, the only real use case for this token is for sending
+        // pushes with FCM. In that case, the FCM APIs will validate the token.
+        context.instanceIdToken = req.header('Firebase-Instance-ID-Token');
+      }
+
+      const data: Req = decode(req.body.data);
+      let result: Res;
+      if (handler.length === 2) {
+        result = await handler(data, context);
+      } else {
+        const arg: CallableRequest<Req> = {
+          ...context,
+          data,
+        };
+        // For some reason the type system isn't picking up that the handler
+        // is a one argument function.
+        result = await (handler as any)(arg);
+      }
+
+      // Encode the result as JSON to preserve types like Dates.
+      result = encode(result);
+
+      // If there was some result, encode it in the body.
+      const responseBody: HttpResponseBody = { result };
+      res.status(200).send(responseBody);
+    } catch (err) {
+      if (!(err instanceof HttpsError)) {
+        // This doesn't count as an 'explicit' error.
+        logger.error('Unhandled error', err);
+        err = new HttpsError('internal', 'INTERNAL');
+      }
+
+      const { status } = err.httpErrorCode;
+      const body = { error: err.toJSON() };
+
+      res.status(status).send(body);
     }
-
-    const context: CallableContext = { rawRequest: req };
-    const tokenStatus = await checkTokens(req, context);
-    if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
-      throw new HttpsError('unauthenticated', 'Unauthenticated');
-    }
-
-    const instanceId = req.header('Firebase-Instance-ID-Token');
-    if (instanceId) {
-      // Validating the token requires an http request, so we don't do it.
-      // If the user wants to use it for something, it will be validated then.
-      // Currently, the only real use case for this token is for sending
-      // pushes with FCM. In that case, the FCM APIs will validate the token.
-      context.instanceIdToken = req.header('Firebase-Instance-ID-Token');
-    }
-
-    const data = decode(req.body.data);
-    let result: any = await handler(data, context);
-
-    // Encode the result as JSON to preserve types like Dates.
-    result = encode(result);
-
-    // If there was some result, encode it in the body.
-    const responseBody: HttpResponseBody = { result };
-    res.status(200).send(responseBody);
-  } catch (err) {
-    if (!(err instanceof HttpsError)) {
-      // This doesn't count as an 'explicit' error.
-      logger.error('Unhandled error', err);
-      err = new HttpsError('internal', 'INTERNAL');
-    }
-
-    const { status } = err.httpErrorCode;
-    const body = { error: err.toJSON() };
-
-    res.status(status).send(body);
-  }
-};
+  };
+}
