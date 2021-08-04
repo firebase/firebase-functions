@@ -38,6 +38,8 @@ interface CallTest {
   // The function to execute with the request.
   callableFunction: (data: any, context: https.CallableContext) => any;
 
+  callableFunction2: (request: https.CallableRequest<any>) => any;
+
   // The expected shape of the http response returned to the callable SDK.
   expectedHttpResponse: RunHandlerResult;
 }
@@ -92,16 +94,27 @@ function runHandler(
 // Runs a CallTest test.
 async function runTest(test: CallTest): Promise<any> {
   const opts = { origin: true, methods: 'POST' };
-  const callableFunction = https.onCallHandler(opts, (data, context) => {
+  const callableFunctionV1 = https.onCallHandler(opts, (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     return test.callableFunction(data, context);
   });
 
-  const response = await runHandler(callableFunction, test.httpRequest);
+  const responseV1 = await runHandler(callableFunctionV1, test.httpRequest);
 
-  expect(response.body).to.deep.equal(test.expectedHttpResponse.body);
-  expect(response.headers).to.deep.equal(test.expectedHttpResponse.headers);
-  expect(response.status).to.equal(test.expectedHttpResponse.status);
+  expect(responseV1.body).to.deep.equal(test.expectedHttpResponse.body);
+  expect(responseV1.headers).to.deep.equal(test.expectedHttpResponse.headers);
+  expect(responseV1.status).to.equal(test.expectedHttpResponse.status);
+
+  const callableFunctionV2 = https.onCallHandler(opts, (request) => {
+    expect(request.data).to.deep.equal(test.expectedData);
+    return test.callableFunction2(request);
+  });
+
+  const responseV2 = await runHandler(callableFunctionV2, test.httpRequest);
+
+  expect(responseV2.body).to.deep.equal(test.expectedHttpResponse.body);
+  expect(responseV2.headers).to.deep.equal(test.expectedHttpResponse.headers);
+  expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
 }
 
 describe('onCallHandler', () => {
@@ -138,6 +151,7 @@ describe('onCallHandler', () => {
       httpRequest: mockRequest({ foo: 'bar' }),
       expectedData: { foo: 'bar' },
       callableFunction: (data, context) => ({ baz: 'qux' }),
+      callableFunction2: (request) => ({ baz: 'qux' }),
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -151,6 +165,7 @@ describe('onCallHandler', () => {
       httpRequest: mockRequest(null),
       expectedData: null,
       callableFunction: (data, context) => null,
+      callableFunction2: (request) => null,
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -164,6 +179,9 @@ describe('onCallHandler', () => {
       httpRequest: mockRequest(null),
       expectedData: null,
       callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
         return;
       },
       expectedHttpResponse: {
@@ -183,6 +201,9 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => {
         return;
       },
+      callableFunction2: (request) => {
+        return;
+      },
       expectedHttpResponse: {
         status: 400,
         headers: expectedResponseHeaders,
@@ -200,6 +221,9 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => {
         return;
       },
+      callableFunction2: (request) => {
+        return;
+      },
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -213,6 +237,9 @@ describe('onCallHandler', () => {
       httpRequest: mockRequest(null, 'text/plain'),
       expectedData: null,
       callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
         return;
       },
       expectedHttpResponse: {
@@ -234,6 +261,9 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => {
         return;
       },
+      callableFunction2: (request) => {
+        return;
+      },
       expectedHttpResponse: {
         status: 400,
         headers: expectedResponseHeaders,
@@ -251,6 +281,9 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => {
         throw new Error(`ceci n'est pas une error`);
       },
+      callableFunction2: (request) => {
+        throw new Error(`cece n'est pas une error`);
+      },
       expectedHttpResponse: {
         status: 500,
         headers: expectedResponseHeaders,
@@ -266,6 +299,9 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => {
         throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
       },
+      callableFunction2: (request) => {
+        throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
+      },
       expectedHttpResponse: {
         status: 500,
         headers: expectedResponseHeaders,
@@ -279,6 +315,9 @@ describe('onCallHandler', () => {
       httpRequest: mockRequest(null),
       expectedData: null,
       callableFunction: (data, context) => {
+        throw new https.HttpsError('not-found', 'i am error');
+      },
+      callableFunction2: (request) => {
         throw new https.HttpsError('not-found', 'i am error');
       },
       expectedHttpResponse: {
@@ -308,6 +347,16 @@ describe('onCallHandler', () => {
         expect(context.instanceIdToken).to.be.undefined;
         return null;
       },
+      callableFunction2: (request) => {
+        expect(request.auth).to.not.be.undefined;
+        expect(request.auth).to.not.be.null;
+        expect(request.auth.uid).to.equal(mocks.user_id);
+        expect(request.auth.token.uid).to.equal(mocks.user_id);
+        expect(request.auth.token.sub).to.equal(mocks.user_id);
+        expect(request.auth.token.aud).to.equal(projectId);
+        expect(request.instanceIdToken).to.be.undefined;
+        return null;
+      },
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -324,6 +373,9 @@ describe('onCallHandler', () => {
       }),
       expectedData: null,
       callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
         return;
       },
       expectedHttpResponse: {
@@ -360,6 +412,19 @@ describe('onCallHandler', () => {
         expect(context.instanceIdToken).to.be.undefined;
         return null;
       },
+      callableFunction2: (request) => {
+        expect(request.app).to.not.be.undefined;
+        expect(request.app).to.not.be.null;
+        expect(request.app.appId).to.equal(appId);
+        expect(request.app.token.app_id).to.be.equal(appId);
+        expect(request.app.token.sub).to.be.equal(appId);
+        expect(request.app.token.aud).to.be.deep.equal([
+          `projects/${projectId}`,
+        ]);
+        expect(request.auth).to.be.undefined;
+        expect(request.instanceIdToken).to.be.undefined;
+        return null;
+      },
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -376,6 +441,9 @@ describe('onCallHandler', () => {
       }),
       expectedData: null,
       callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
         return;
       },
       expectedHttpResponse: {
@@ -402,6 +470,11 @@ describe('onCallHandler', () => {
         expect(context.instanceIdToken).to.equal('iid-token');
         return null;
       },
+      callableFunction2: (request) => {
+        expect(request.auth).to.be.undefined;
+        expect(request.instanceIdToken).to.equal('iid-token');
+        return null;
+      },
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -418,6 +491,11 @@ describe('onCallHandler', () => {
       callableFunction: (data, context) => {
         expect(context.rawRequest).to.not.be.undefined;
         expect(context.rawRequest).to.equal(mockReq);
+        return null;
+      },
+      callableFunction2: (request) => {
+        expect(request.rawRequest).to.not.be.undefined;
+        expect(request.rawRequest).to.equal(mockReq);
         return null;
       },
       expectedHttpResponse: {
@@ -477,7 +555,6 @@ describe('encoding/decoding', () => {
   it('encodes double', () => {
     expect(https.encode(1.2)).to.equal(1.2);
   });
-
   it('decodes double', () => {
     expect(https.decode(1.2)).to.equal(1.2);
   });

@@ -194,7 +194,7 @@ describe('onCall', () => {
   });
 
   it('should return a minimal trigger with appropriate values', () => {
-    const result = https.onCall((data, context) => 42);
+    const result = https.onCall((request) => 42);
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -208,7 +208,7 @@ describe('onCall', () => {
   });
 
   it('should create a complex trigger with appropriate values', () => {
-    const result = https.onCall(FULL_OPTIONS, (data, context) => 42);
+    const result = https.onCall(FULL_OPTIONS, (request) => 42);
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       httpsTrigger: {
@@ -233,7 +233,7 @@ describe('onCall', () => {
         region: ['us-west1', 'us-central1'],
         minInstances: 3,
       },
-      (data, context) => 42
+      (request) => 42
     );
 
     expect(result.__trigger).to.deep.equal({
@@ -252,23 +252,23 @@ describe('onCall', () => {
   });
 
   it('has a .run method', () => {
-    const cf = https.onCall((d, c) => {
-      return { data: d, context: c };
+    const cf = https.onCall((request) => {
+      return request;
     });
 
-    const data = 'data';
-    const context: any = {
+    const request: any = {
+      data: 'data',
       instanceIdToken: 'token',
       auth: {
         uid: 'abc',
         token: 'token',
       },
     };
-    expect(cf.run(data, context)).to.deep.equal({ data, context });
+    expect(cf.run(request)).to.deep.equal(request);
   });
 
   it('should be an express handler', async () => {
-    const func = https.onCall((data, context) => 42);
+    const func = https.onCall((request) => 42);
 
     const req = new MockRequest(
       {
@@ -286,7 +286,7 @@ describe('onCall', () => {
   });
 
   it('should enforce CORS options', async () => {
-    const func = https.onCall({ cors: 'example.com' }, (req, res) => {
+    const func = https.onCall({ cors: 'example.com' }, (request) => {
       throw new Error('Should not reach here for OPTIONS preflight');
     });
 
@@ -314,7 +314,7 @@ describe('onCall', () => {
   });
 
   it('adds CORS headers', async () => {
-    const func = https.onCall((data, context) => 42);
+    const func = https.onCall((request) => 42);
     const req = new MockRequest(
       {
         data: {},
