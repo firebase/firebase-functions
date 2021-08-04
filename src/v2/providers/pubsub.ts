@@ -85,7 +85,7 @@ export class Message<T> {
 }
 
 /** The interface published in a Pub/Sub publish subscription. */
-export interface MessagePublishedData<T> {
+export interface MessagePublishedData<T = any> {
   readonly message: Message<T>;
   readonly subscription: string;
 }
@@ -96,18 +96,18 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 }
 
 /** Handle a message being published to a Pub/Sub topic. */
-export function onMessagePublished<T = unknown>(
+export function onMessagePublished<T = any>(
   topic: string,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<MessagePublishedData<T>>;
 
 /** Handle a message being published to a Pub/Sub topic. */
-export function onMessagePublished<T = unknown>(
+export function onMessagePublished<T = any>(
   options: PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<MessagePublishedData<T>>;
 
-export function onMessagePublished<T = unknown>(
+export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<MessagePublishedData<T>> {

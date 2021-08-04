@@ -111,4 +111,24 @@ describe('onMessagePublished', () => {
 
     expect(json).to.deep.equal({ hello: 'world' });
   });
+
+  // These tests pass if the transpiler works
+  it('allows desirable syntax', () => {
+    pubsub.onMessagePublished<string>(
+      'topic',
+      (event: CloudEvent<pubsub.MessagePublishedData<string>>) => {}
+    );
+    pubsub.onMessagePublished<string>(
+      'topic',
+      (event: CloudEvent<pubsub.MessagePublishedData>) => {}
+    );
+    pubsub.onMessagePublished(
+      'topic',
+      (event: CloudEvent<pubsub.MessagePublishedData<string>>) => {}
+    );
+    pubsub.onMessagePublished(
+      'topic',
+      (event: CloudEvent<pubsub.MessagePublishedData>) => {}
+    );
+  });
 });
