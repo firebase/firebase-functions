@@ -50,7 +50,7 @@ describe('config()', () => {
     delete process.env.K_CONFIGURATION;
   });
 
-  it('Will never load in GCFv2', () => {
+  it('will never load in GCFv2', () => {
     const json = JSON.stringify({
       foo: 'bar',
       firebase: {},
