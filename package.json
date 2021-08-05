@@ -25,6 +25,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": "./lib/index.js",
+    "./lib/providers/https": "./lib/v1/providers/https.js",
     "./v1": "./lib/v1/index.js",
     "./logger": "./lib/logger/index.js",
     "./logger/compat": "./lib/logger/compat.js",
