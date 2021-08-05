@@ -206,7 +206,9 @@ export class Message {
    */
   get json(): any {
     if (typeof this._json === 'undefined') {
-      this._json = JSON.parse(new Buffer(this.data, 'base64').toString('utf8'));
+      this._json = JSON.parse(
+        Buffer.from(this.data, 'base64').toString('utf8')
+      );
     }
 
     return this._json;

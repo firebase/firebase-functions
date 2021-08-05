@@ -26,9 +26,9 @@ import * as express from 'express';
 import * as common from '../../common/providers/https';
 import * as options from '../options';
 
-type Request = common.Request;
+export type Request = common.Request;
 
-export type CallableContext = common.CallableContext;
+export type CallableRequest<T = any> = common.CallableRequest<T>;
 export type FunctionsErrorCode = common.FunctionsErrorCode;
 export type HttpsError = common.HttpsError;
 
@@ -40,30 +40,43 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   cors?: string | boolean;
 }
 
-export type HttpsHandler = (
-  request: Request,
-  response: express.Response
-) => void | Promise<void>;
-export type CallableHandler = (
-  data: any,
-  context: CallableContext
-) => any | Promise<any>;
-
-export type HttpsFunction = HttpsHandler & { __trigger: unknown };
+export type HttpsFunction = ((
+  req: Request,
+  res: express.Response
+) => void | Promise<void>) & { __trigger: unknown };
+export interface CallableFunction<T, Return> extends HttpsFunction {
+  run(data: CallableRequest<T>): Return;
+}
 
 export function onRequest(
   opts: HttpsOptions,
-  handler: HttpsHandler
+  handler: (
+    request: Request,
+    response: express.Response
+  ) => void | Promise<void>
 ): HttpsFunction;
-export function onRequest(handler: HttpsHandler): HttpsFunction;
 export function onRequest(
-  optsOrHandler: HttpsOptions | HttpsHandler,
-  handler?: HttpsHandler
+  handler: (
+    request: Request,
+    response: express.Response
+  ) => void | Promise<void>
+): HttpsFunction;
+export function onRequest(
+  optsOrHandler:
+    | HttpsOptions
+    | ((request: Request, response: express.Response) => void | Promise<void>),
+  handler?: (
+    request: Request,
+    response: express.Response
+  ) => void | Promise<void>
 ): HttpsFunction {
   let opts: HttpsOptions;
   if (arguments.length === 1) {
     opts = {};
-    handler = optsOrHandler as HttpsHandler;
+    handler = optsOrHandler as (
+      request: Request,
+      response: express.Response
+    ) => void | Promise<void>;
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
@@ -106,25 +119,27 @@ export function onRequest(
   return handler as HttpsFunction;
 }
 
-export function onCall(
+export function onCall<T = any, Return = any | Promise<any>>(
   opts: HttpsOptions,
-  handler: CallableHandler
-): HttpsFunction;
-export function onCall(handler: CallableHandler): HttpsFunction;
-export function onCall(
-  optsOrHandler: HttpsOptions | CallableHandler,
-  handler?: CallableHandler
-): HttpsFunction {
+  handler: (request: CallableRequest<T>) => Return
+): CallableFunction<T, Return>;
+export function onCall<T = any, Return = any | Promise<any>>(
+  handler: (request: CallableRequest<T>) => Return
+): CallableFunction<T, Return>;
+export function onCall<T = any, Return = any | Promise<any>>(
+  optsOrHandler: HttpsOptions | ((request: CallableRequest<T>) => Return),
+  handler?: (request: CallableRequest<T>) => Return
+): CallableFunction<T, Return> {
   let opts: HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
-    handler = optsOrHandler as CallableHandler;
+    handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
-  const func = common.onCallHandler({ origin, methods: 'POST' }, handler);
+  const func: any = common.onCallHandler({ origin, methods: 'POST' }, handler);
 
   Object.defineProperty(func, '__trigger', {
     get: () => {
@@ -154,5 +169,7 @@ export function onCall(
       };
     },
   });
-  return func as HttpsFunction;
+
+  func.run = handler;
+  return func;
 }

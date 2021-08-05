@@ -20,9 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as https from './providers/https';
 import * as logger from '../logger';
+import * as params from './params';
+import * as https from './providers/https';
+import * as pubsub from './providers/pubsub';
 
-export { https, logger };
+export { https, pubsub, logger, params };
 
 export { setGlobalOptions, GlobalOptions } from './options';
+
+export { CloudFunction, CloudEvent } from './core';

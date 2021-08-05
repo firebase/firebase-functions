@@ -30,8 +30,6 @@ import {
   MockRequest,
 } from '../../fixtures/mockrequest';
 
-// TODO(inlined) dedup this between v1, common, etc.
-
 /**
  * RunHandlerResult contains the data from an express.Response.
  */
