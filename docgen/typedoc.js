@@ -16,12 +16,12 @@
  */
 
 const options = {
-  // includeDeclarations: true,
+  tsconfig: '../tsconfig.release.json',
   excludeExternals: true,
-  ignoreCompilerErrors: true,
+  exclude: ['../spec/**/*.ts', '../integration_test/**/*.ts'],
   name: 'Firebase Functions SDK',
-  mode: 'modules',
-  hideGenerator: true
+  hideGenerator: true,
+  // showConfig: true,
 };
 
 module.exports = options;
