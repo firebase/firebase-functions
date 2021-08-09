@@ -25,8 +25,6 @@ toc:
         path: /docs/functions/alpha/v2_options_.globaloptions.html
       - title: functions.options.EventHandlerOptions
         path: /docs/functions/alpha/v2_options_.eventhandleroptions.html
-  - title: functions.params
-    path: /docs/functions/alpha/v2_params_index_.html
   - title: 'functions.pubsub'
     path: /docs/functions/providers_pubsub_.html
     section:
@@ -36,3 +34,4 @@ toc:
         path: /docs/functions/alpha/v2_providers_pubsub_.messagepublishddata.html
       - title: 'ScheduleBuilder'
         path: /docs/functions/alpha/v2_providers_pubsub_.pubsuboptions.html
+

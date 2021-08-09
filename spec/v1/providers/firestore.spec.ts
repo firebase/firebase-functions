@@ -559,7 +559,7 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          binaryVal: new Buffer('foobar'),
+          binaryVal: Buffer.from('foobar'),
         });
       });
     });
