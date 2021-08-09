@@ -21,7 +21,6 @@ const options = {
   exclude: ['../spec/**/*.ts', '../integration_test/**/*.ts'],
   name: 'Firebase Functions SDK',
   hideGenerator: true,
-  // showConfig: true,
 };
 
 module.exports = options;
