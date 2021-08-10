@@ -1,27 +1,23 @@
 toc:
   - title: globals.html
-    path: /docs/reference/functions/globals.html
+    path: /docs/reference/functions/modules.html
   - title: index.html
     path: /docs/reference/functions/index.html
-  - title: logger_common_.html
-    path: /docs/reference/functions/logger_common_.html
-  - title: logger_compat_.html
-    path: /docs/reference/functions/logger_compat_.html
-  - title: logger_index_.html
-    path: /docs/reference/functions/logger_index_.html
-  - title: logger_index_.logentry.html
-    path: /docs/reference/functions/logger_index_.logentry.html
-  - title: v2_base_.html
-    path: /docs/reference/functions/v2_base_.html
-  - title: v2_index_.html
-    path: /docs/reference/functions/v2_index_.html
-  - title: v2_options_.eventhandleroptions.html
-    path: /docs/reference/functions/v2_options_.eventhandleroptions.html
-  - title: v2_options_.globaloptions.html
-    path: /docs/reference/functions/v2_options_.globaloptions.html
-  - title: v2_options_.html
-    path: /docs/reference/functions/v2_options_.html
-  - title: v2_providers_https_.html
-    path: /docs/reference/functions/v2_providers_https_.html
-  - title: v2_providers_https_.httpsoptions.html
-    path: /docs/reference/functions/v2_providers_https_.httpsoptions.html
+  - title: logger_common.html
+    path: /docs/reference/functions/logger_common.html
+  - title: logger.LogEntry.html
+    path: /docs/reference/functions/logger.LogEntry.html
+  - title: v2_core.html
+    path: /docs/reference/functions/v2_core.html
+  - title: v2.html
+    path: /docs/reference/functions/v2.html
+  - title: v2_options.eventhandleroptions.html
+    path: /docs/reference/functions/v2_options.eventhandleroptions.html
+  - title: v2_options.globaloptions.html
+    path: /docs/reference/functions/v2_options.globaloptions.html
+  - title: v2_options.html
+    path: /docs/reference/functions/v2_options.html
+  - title: v2_providers_https.html
+    path: /docs/reference/functions/v2_providers_https.html
+  - title: v2_providers_https.httpsoptions.html
+    path: /docs/reference/functions/v2_providers_https.httpsoptions.html

@@ -138,7 +138,7 @@ export interface CallableContext {
 /**
  * The request used to call a callable function.
  */
-export interface CallableRequest<T> {
+export interface CallableRequest<T = any> {
   /**
    * The parameters used by a client when calling this function.
    */
