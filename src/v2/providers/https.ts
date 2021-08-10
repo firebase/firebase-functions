@@ -35,7 +35,7 @@ export type HttpsError = common.HttpsError;
 /**
  * Invoker access control type for https functions.
  */
- export type Invoker = 'public' | 'private' | string;
+export type Invoker = 'public' | 'private' | string;
 
 export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   region?:
