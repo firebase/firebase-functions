@@ -82,6 +82,7 @@ describe('onRequest', () => {
         allowInsecure: false,
       },
       labels: {},
+      invoker: 'public',
     });
   });
 
@@ -90,6 +91,7 @@ describe('onRequest', () => {
       {
         ...FULL_OPTIONS,
         region: ['us-west1', 'us-central1'],
+        invoker: ['service-account1', 'service-account2'],
       },
       (req, res) => {
         res.send(200);
@@ -101,6 +103,7 @@ describe('onRequest', () => {
         allowInsecure: false,
       },
       regions: ['us-west1', 'us-central1'],
+      invoker: ['service-account1', 'service-account2'],
     });
   });
 
@@ -115,6 +118,7 @@ describe('onRequest', () => {
       {
         region: ['us-west1', 'us-central1'],
         minInstances: 3,
+        invoker: 'private',
       },
       (req, res) => {
         res.send(200);
@@ -131,6 +135,7 @@ describe('onRequest', () => {
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
       labels: {},
+      invoker: 'private',
     });
   });
 
