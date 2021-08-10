@@ -198,7 +198,10 @@ async function checkForMissingFilesAndFixFilenameCase(tocText) {
   const filenames = tocText
     .split('\n')
     .filter((line) => line.includes('path:'))
-    .map((line) => line.split(devsitePath)[1].replace(/#.*$/, ''));
+    .map((line) => {
+      parts = line.split('/');
+      return parts[parts.length - 1].replace(/#.*$/, '');
+    });
   // Logs warning to console if a file from TOC is not found.
   const fileCheckPromises = filenames.map(async (filename) => {
     // Warns if file does not exist, fixes filename case if it does.
