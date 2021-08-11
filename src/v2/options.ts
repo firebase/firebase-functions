@@ -112,11 +112,6 @@ export const SUPPORTED_INGRESS_SETTINGS = [
 export type IngressSetting = typeof SUPPORTED_INGRESS_SETTINGS[number];
 
 /**
- * Invoker access control type for https functions.
- */
-export type Invoker = 'public' | 'private' | string;
-
-/**
  * GlobalOptions are options that can be set across an entire project.
  * These options are common to HTTPS and Event handling functions.
  */
@@ -192,7 +187,7 @@ export interface GlobalOptions {
   /**
    * Invoker to set access control on https functions.
    */
-  invoker?: Invoker | Invoker[];
+  invoker?: 'public' | 'private' | string | string[];
 }
 
 let globalOptions: GlobalOptions | undefined;
