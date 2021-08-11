@@ -101,6 +101,7 @@ describe('onRequest', () => {
       {
         ...FULL_OPTIONS,
         region: ['us-west1', 'us-central1'],
+        invoker: ['service-account1@', 'service-account2@'],
       },
       (req, res) => {
         res.send(200);
@@ -112,6 +113,7 @@ describe('onRequest', () => {
         allowInsecure: false,
       },
       regions: ['us-west1', 'us-central1'],
+      invoker: ['service-account1@', 'service-account2@'],
     });
   });
 
@@ -120,12 +122,14 @@ describe('onRequest', () => {
       concurrency: 20,
       region: 'europe-west1',
       minInstances: 1,
+      invoker: 'public',
     });
 
     const result = https.onRequest(
       {
         region: ['us-west1', 'us-central1'],
         minInstances: 3,
+        invoker: 'private',
       },
       (req, res) => {
         res.send(200);
@@ -142,6 +146,7 @@ describe('onRequest', () => {
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
       labels: {},
+      invoker: ['private'],
     });
   });
 
