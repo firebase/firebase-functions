@@ -598,9 +598,12 @@ export function onCallHandler<Req = any, Res = any>(
   handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   const wrapped = wrapOnCallHandler(handler);
-  return async (req: Request, res: express.Response) => {
-    cors(options)(req, res, () => {
-      return wrapped(req, res);
+  return (req: Request, res: express.Response) => {
+    return new Promise((resolve) => {
+      res.on('finish', resolve);
+      cors(options)(req, res, () => {
+        resolve(wrapped(req, res));
+      });
     });
   };
 }

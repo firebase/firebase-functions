@@ -58,6 +58,7 @@ function runHandler(
     class MockResponse {
       private statusCode = 0;
       private headers: { [name: string]: string } = {};
+      private callback: Function;
 
       public status(code: number) {
         this.statusCode = code;
@@ -79,10 +80,20 @@ function runHandler(
           headers: this.headers,
           body,
         });
+        if (this.callback) {
+          this.callback();
+        }
       }
 
       public end() {
         this.send(undefined);
+      }
+
+      public on(event: string, callback: Function) {
+        if (event !== 'finish') {
+          throw new Error('MockResponse only implements the finish event');
+        }
+        this.callback = callback;
       }
     }
 
