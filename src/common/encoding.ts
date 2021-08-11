@@ -64,3 +64,20 @@ export function serviceAccountFromShorthand(
     );
   }
 }
+
+export function convertInvoker(invoker: string | string[]): string[] {
+  if (typeof invoker === 'string') {
+    invoker = [invoker];
+  }
+
+  if (
+    invoker.length > 1 &&
+    invoker.find((inv) => inv === 'public' || inv === 'private')
+  ) {
+    throw new Error(
+      "Invalid option for invoker. Cannot have 'public' or 'private' in an array of service accounts"
+    );
+  }
+
+  return invoker;
+}

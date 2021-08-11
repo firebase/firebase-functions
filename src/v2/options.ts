@@ -23,6 +23,7 @@
 import {
   durationFromSeconds,
   serviceAccountFromShorthand,
+  convertInvoker,
 } from '../common/encoding';
 import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';
@@ -182,6 +183,11 @@ export interface GlobalOptions {
    * User labels to set on the function.
    */
   labels?: Record<string, string>;
+
+  /**
+   * Invoker to set access control on https functions.
+   */
+  invoker?: 'public' | 'private' | string | string[];
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -270,6 +276,7 @@ export function optionsToTriggerAnnotations(
       return retry ? { retry: true } : null;
     }
   );
+  convertIfPresent(annotation, opts, 'invoker', 'invoker', convertInvoker);
 
   return annotation;
 }
