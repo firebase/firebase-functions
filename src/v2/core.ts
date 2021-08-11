@@ -40,7 +40,7 @@ export interface TriggerAnnotation {
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;
   ingressSettings?: string;
-  invoker?: string | string[];
+  invoker?: string[];
 
   // TODO: schedule
 }

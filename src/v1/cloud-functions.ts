@@ -37,6 +37,7 @@ import {
   Duration,
   durationFromSeconds,
   serviceAccountFromShorthand,
+  convertInvoker,
 } from '../common/encoding';
 
 /** @hidden */
@@ -279,7 +280,7 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
-    invoker?: Invoker | Invoker[];
+    invoker?: Invoker[];
   };
 }
 
@@ -499,8 +500,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels',
-    'invoker'
+    'labels'
   );
   convertIfPresent(
     trigger,
@@ -543,6 +543,7 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'serviceAccount',
     serviceAccountFromShorthand
   );
+  convertIfPresent(trigger, options, 'invoker', 'invoker', convertInvoker);
 
   return trigger;
 }
