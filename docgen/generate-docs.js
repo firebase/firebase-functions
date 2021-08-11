@@ -33,13 +33,15 @@ const { api: apiVersion } = yargs
   .version(false)
   .help().argv;
 
-let sourceFile;
+let sourceFile, devsitePath;
 switch (apiVersion) {
   case 'v1':
     sourceFile = `${repoPath}/src/{v1,logger}`;
+    devsitePath = '/docs/reference/functions/';
     break;
   case 'v2':
     sourceFile = `${repoPath}/src/{v2,logger}`;
+    devsitePath = '/docs/functions/alpha/';
     break;
   default:
     throw new Error(
@@ -50,7 +52,6 @@ switch (apiVersion) {
 const docPath = path.resolve(`${__dirname}/html`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiVersion}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
-const devsitePath = `/docs/reference/functions/`;
 
 const { JSDOM } = require('jsdom');
 
