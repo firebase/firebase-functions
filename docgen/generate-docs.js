@@ -33,13 +33,15 @@ const { api: apiVersion } = yargs
   .version(false)
   .help().argv;
 
-let sourceFile;
+let sourceFile, devsitePath;
 switch (apiVersion) {
   case 'v1':
     sourceFile = `${repoPath}/src/{v1,logger}`;
+    devsitePath = '/docs/reference/functions/';
     break;
   case 'v2':
     sourceFile = `${repoPath}/src/{v2,logger}`;
+    devsitePath = '/docs/functions/alpha/';
     break;
   default:
     throw new Error(
@@ -50,7 +52,6 @@ switch (apiVersion) {
 const docPath = path.resolve(`${__dirname}/html`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiVersion}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
-const devsitePath = `/docs/reference/functions/`;
 
 const { JSDOM } = require('jsdom');
 
@@ -198,7 +199,10 @@ async function checkForMissingFilesAndFixFilenameCase(tocText) {
   const filenames = tocText
     .split('\n')
     .filter((line) => line.includes('path:'))
-    .map((line) => line.split(devsitePath)[1].replace(/#.*$/, ''));
+    .map((line) => {
+      parts = line.split('/');
+      return parts[parts.length - 1].replace(/#.*$/, '');
+    });
   // Logs warning to console if a file from TOC is not found.
   const fileCheckPromises = filenames.map(async (filename) => {
     // Warns if file does not exist, fixes filename case if it does.
