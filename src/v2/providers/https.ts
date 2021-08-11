@@ -32,18 +32,12 @@ export type CallableRequest<T = any> = common.CallableRequest<T>;
 export type FunctionsErrorCode = common.FunctionsErrorCode;
 export type HttpsError = common.HttpsError;
 
-/**
- * Invoker access control type for https functions.
- */
-export type Invoker = 'public' | 'private' | string;
-
 export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   region?:
     | options.SupportedRegion
     | string
     | Array<options.SupportedRegion | string>;
   cors?: string | boolean;
-  invoker?: Invoker | Invoker[];
 }
 
 export type HttpsFunction = ((
@@ -87,7 +81,6 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  const invoker = 'invoker' in opts ? opts.invoker : 'public';
   if ('cors' in opts) {
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response) => {
@@ -120,7 +113,6 @@ export function onRequest(
         httpsTrigger: {
           allowInsecure: false,
         },
-        invoker,
       };
     },
   });
