@@ -1,7 +1,0 @@
-- Adds options to set access control on HTTP triggered functions.
-- Adds new regions to support list (asia-east1, asia-southeast1).
-- Adds support for setting user labels on functions via `runWith()`.
-- Adds support for FIREBASE_CONFIG env as the name of a JSON file
-- Fixes an issue where objects that define `toJSON` could not be logged successfully (#907).
-- Formalize module exports. Loggers can now be accessed at 'firebase-functions/logger' and 'firebase-functions/logger/compat'
-- Fixes an issue where Remote Config could not be emulated in Windows machines on the classic Command Prompt.

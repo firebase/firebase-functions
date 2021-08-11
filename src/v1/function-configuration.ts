@@ -98,11 +98,6 @@ export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
 
 export const MAX_NUMBER_USER_LABELS = 58;
 
-/**
- * Invoker access control type for https functions.
- */
-export type Invoker = 'public' | 'private' | string;
-
 export interface RuntimeOptions {
   /**
    * Which platform should host the backend. Valid options are "gcfv1"
@@ -165,7 +160,7 @@ export interface RuntimeOptions {
   /**
    * Invoker to set access control on https functions.
    */
-  invoker?: Invoker | Invoker[];
+  invoker?: 'public' | 'private' | string | string[];
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
