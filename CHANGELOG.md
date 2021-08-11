@@ -1,0 +1,1 @@
+- Fix bug that broke the functions emulator
