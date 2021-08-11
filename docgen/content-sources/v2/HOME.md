@@ -1,8 +1,8 @@
 # Firebase Functions v2 SDK Reference
 
-The `firebase-functions` package provides an SDK for defining Cloud Functions for Firebase.
+This package provides an SDK for defining Cloud Functions for Firebase v2.
 
-To get started using Cloud Functions, see
-[Get started: write, test, and deploy your first functions](/docs/functions/get-started).
+To get started using Cloud Functions v2, see
+the early access guide you were provided when you joined the EAP program.
 
-For source code, see the [Cloud Functions for Firebase GitHub repo](https://github.com/firebase/firebase-functions).
+**Important:** This API reference is confidential. Do not share or discuss until authorized to do so.
