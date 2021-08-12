@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 
+import { apps as appsNamespace } from '../../../src/apps';
 import * as https from '../../../src/common/providers/https';
-import { apps as appsNamespace } from '../../../src/v1/apps';
 import * as mocks from '../../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,

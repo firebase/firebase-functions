@@ -22,8 +22,8 @@
 
 import * as express from 'express';
 
-import * as common from '../../common/providers/https';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import * as common from '../common/providers/https';
 import { DeploymentOptions } from '../function-configuration';
 
 export type Request = common.Request;

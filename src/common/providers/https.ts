@@ -28,7 +28,7 @@ import * as logger from '../../logger';
 
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
-import { apps } from '../../v1/apps';
+import { apps } from '../../apps';
 
 /** @hidden */
 export interface Request extends express.Request {

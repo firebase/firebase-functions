@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 
-import * as functions from '../../src/v1';
+import * as functions from '../../src';
 
 describe('FunctionBuilder', () => {
   before(() => {
