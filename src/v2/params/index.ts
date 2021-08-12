@@ -1,3 +1,4 @@
+/** @hidden */
 import {
   BooleanParam,
   FloatParam,
