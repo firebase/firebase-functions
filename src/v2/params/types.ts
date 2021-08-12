@@ -1,3 +1,4 @@
+/** @hidden */
 type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json';
 
 export interface ParamSpec<T = unknown> {

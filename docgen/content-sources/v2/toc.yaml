@@ -1,34 +1,36 @@
 toc:
-  - title: functions
-    path: /docs/functions/alpha/v2.html
-  - title: functions.core
+  - title: 'functions'
+    path: /docs/functions/alpha/index.html
+  - title: 'functions.core'
     path: /docs/functions/alpha/v2_core.html
     section:
-      - title: functions.CloudEvent
-        path: /docs/functions/alpha/v2_core.cloudevent.html
-      - title: functions.CloudFunction
-        path: /docs/functions/alpha/v2_core.cloudfunction.html
-  - title: functions.https
+      - title: 'Functions v2'
+        path: /docs/functions/alpha/v2.html
+      - title: 'functions.CloudEvent'
+        path: /docs/functions/alpha/v2_core.CloudEvent.html
+      - title: 'functions.CloudFunction'
+        path: /docs/functions/alpha/v2_core.CloudFunction.html
+  - title: 'functions.https'
     path: /docs/functions/alpha/v2_providers_https.html
     section:
-      - title: functions.https.options
-        path: /docs/functions/alpha/v2_providers_https.httpsoptions.html
+      - title: 'functions.https.CallableFunction'
+        path: /docs/functions/alpha/v2_providers_https.CallableFunction.html
+      - title: 'functions.https.options'
+        path: /docs/functions/alpha/v2_providers_https.HttpsOptions.html
   - title: 'functions.logger'
     path: /docs/functions/alpha/logger.html
     section:
       - title: 'LogEntry'
         path: /docs/functions/alpha/logger.LogEntry.html
-  - title: functions.options
+  - title: 'functions.options'
     path: /docs/functions/alpha/v2_options.html
     section:
-      - title: functions.options.GlobalOptions
-        path: /docs/functions/alpha/v2_options.globaloptions.html
-      - title: functions.options.EventHandlerOptions
-        path: /docs/functions/alpha/v2_options.eventhandleroptions.html
-  - title: functions.params
-    path: /docs/functions/alpha/v2_params.html
+      - title: 'functions.options.GlobalOptions'
+        path: /docs/functions/alpha/v2_options.GlobalOptions.html
+      - title: 'functions.options.EventHandlerOptions'
+        path: /docs/functions/alpha/v2_options.EventHandlerOptions.html
   - title: 'functions.pubsub'
-    path: /docs/functions/v2_providers_pubsub.html
+    path: /docs/functions/alpha/v2_providers_pubsub.html
     section:
       - title: 'Message'
         path: /docs/functions/alpha/v2_providers_pubsub.Message.html
