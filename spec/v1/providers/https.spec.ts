@@ -24,7 +24,7 @@ import { expect } from 'chai';
 import * as express from 'express';
 import * as _ from 'lodash';
 import * as functions from '../../../src/index';
-import * as https from '../../../src/v1/providers/https';
+import * as https from '../../../src/providers/https';
 import {
   expectedResponseHeaders,
   MockRequest,

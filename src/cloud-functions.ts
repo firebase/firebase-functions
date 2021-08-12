@@ -22,22 +22,22 @@
 
 import { Request, Response } from 'express';
 import * as _ from 'lodash';
-import { warn } from '../logger';
 import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   FailurePolicy,
   Schedule,
 } from './function-configuration';
+import { warn } from './logger';
 export { Request, Response };
 import {
   convertIfPresent,
+  convertInvoker,
   copyIfPresent,
   Duration,
   durationFromSeconds,
   serviceAccountFromShorthand,
-  convertInvoker,
-} from '../common/encoding';
+} from './common/encoding';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');

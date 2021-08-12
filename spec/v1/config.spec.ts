@@ -25,7 +25,7 @@ import * as fs from 'fs';
 import * as process from 'process';
 import Sinon = require('sinon');
 
-import * as config from '../../src/v1/config';
+import * as config from '../../src/config';
 
 describe('config()', () => {
   let readFileSync: Sinon.SinonStub;

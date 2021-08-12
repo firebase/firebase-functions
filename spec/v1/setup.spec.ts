@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { setup } from '../../src/v1/setup';
+import { setup } from '../../src/setup';
 
 describe('setup()', () => {
   afterEach(() => {

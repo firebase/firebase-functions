@@ -21,11 +21,11 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { apps as appsNamespace } from '../../../src/v1/apps';
-import * as config from '../../../src/v1/config';
-import * as functions from '../../../src/v1/index';
-import * as database from '../../../src/v1/providers/database';
-import { applyChange } from '../../../src/v1/utils';
+import { apps as appsNamespace } from '../../../src/apps';
+import * as config from '../../../src/config';
+import * as functions from '../../../src/index';
+import * as database from '../../../src/providers/database';
+import { applyChange } from '../../../src/utils';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
