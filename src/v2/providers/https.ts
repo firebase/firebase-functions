@@ -83,9 +83,12 @@ export function onRequest(
 
   if ('cors' in opts) {
     const userProvidedHandler = handler;
-    handler = (req: Request, res: express.Response) => {
-      cors({ origin: opts.cors })(req, res, () => {
-        userProvidedHandler(req, res);
+    handler = (req: Request, res: express.Response): void | Promise<void> => {
+      return new Promise((resolve) => {
+        res.on('finish', resolve);
+        cors({ origin: opts.cors })(req, res, () => {
+          resolve(userProvidedHandler(req, res));
+        });
       });
     };
   }

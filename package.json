@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.15.0",
+  "version": "3.15.1",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -25,6 +25,7 @@
   "types": "lib/index.d.ts",
   "exports": {
     ".": "./lib/index.js",
+    "./lib/providers/https": "./lib/v1/providers/https.js",
     "./v1": "./lib/v1/index.js",
     "./logger": "./lib/logger/index.js",
     "./logger/compat": "./lib/logger/compat.js",
@@ -84,6 +85,7 @@
     "test": "mocha"
   },
   "dependencies": {
+    "@types/cors": "^2.8.5",
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
@@ -92,7 +94,6 @@
   "devDependencies": {
     "@types/chai": "^4.1.7",
     "@types/chai-as-promised": "^7.1.0",
-    "@types/cors": "^2.8.5",
     "@types/jsonwebtoken": "^8.3.2",
     "@types/lodash": "^4.14.135",
     "@types/mocha": "^5.2.7",
