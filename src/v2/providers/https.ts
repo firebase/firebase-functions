@@ -23,10 +23,16 @@
 import * as cors from 'cors';
 import * as express from 'express';
 
-import { Request, CallableRequest, FunctionsErrorCode, HttpsError, onCallHandler } from '../../common/providers/https';
+import {
+  CallableRequest,
+  FunctionsErrorCode,
+  HttpsError,
+  onCallHandler,
+  Request,
+} from '../../common/providers/https';
 import * as options from '../options';
 
-export { Request, CallableRequest, FunctionsErrorCode, HttpsError }
+export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   region?:
