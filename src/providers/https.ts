@@ -23,13 +23,16 @@
 import * as express from 'express';
 
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
-import * as common from '../common/providers/https';
+import {
+  CallableContext,
+  FunctionsErrorCode,
+  HttpsError,
+  onCallHandler,
+  Request,
+} from '../common/providers/https';
 import { DeploymentOptions } from '../function-configuration';
 
-export type Request = common.Request;
-export type CallableContext = common.CallableContext;
-export type FunctionsErrorCode = common.FunctionsErrorCode;
-export type HttpsError = common.HttpsError;
+export { Request, CallableContext, FunctionsErrorCode, HttpsError };
 
 /**
  * Handle HTTP requests.
@@ -74,10 +77,7 @@ export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  const func: any = common.onCallHandler(
-    { origin: true, methods: 'POST' },
-    handler
-  );
+  const func: any = onCallHandler({ origin: true, methods: 'POST' }, handler);
 
   func.__trigger = {
     labels: {},

@@ -1,1 +1,0 @@
-- Fix an error that broke `firebase emulators:start` on older CLIs
