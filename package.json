@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.15.2",
+  "version": "3.15.3",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -27,10 +27,8 @@
     ".": "./lib/index.js",
     "./logger/compat": "./lib/logger/compat.js",
     "./lib/logger/compat": "./lib/logger/compat.js",
-
     "./logger": "./lib/logger/index.js",
     "./lib/logger": "./lib/logger/index.js",
-
     "./lib/providers/auth": "./lib/providers/auth.js",
     "./lib/providers/analytics": "./lib/providers/analytics.js",
     "./lib/providers/database": "./lib/providers/database.js",
@@ -40,7 +38,6 @@
     "./lib/providers/remoteConfig": "./lib/providers/remoteConfig.js",
     "./lib/providers/storage": "./lib/providers/storage.js",
     "./lib/providers/testLab": "./lib/providers/testLab.js",
-
     "./v1": "./lib/index.js",
     "./v1/analytics": "./lib/providers/analytics.js",
     "./v1/auth": "./lib/providers/auth.js",
@@ -51,7 +48,6 @@
     "./v1/remoteConfig": "./lib/providers/remoteConfig.js",
     "./v1/storage": "./lib/providers/storage.js",
     "./v1/testLab": "./lib/providers/testLab.js",
-
     "./v2": "./lib/v2/index.js",
     "./v2/core": "./lib/v2/core.js",
     "./v2/options": "./lib/v2/options.js",
