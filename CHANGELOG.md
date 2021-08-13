@@ -1,0 +1,2 @@
+- (temporarly) adds the previously accessible "lib/providers" files as exports. These will be yanked in the next major release.
+- Fixes a bug where functions.https.HttpsError could not be constructed
