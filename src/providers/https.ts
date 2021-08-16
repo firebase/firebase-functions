@@ -80,7 +80,8 @@ export function _onCallWithOptions(
   // onCallHandler sniffs the function length of the passed-in callback
   // and the user could have only tried to listen to data. Wrap their handler
   // in another handler to avoid accidentally triggering the v2 API
-  const fixedLen = (data: any, context: CallableContext) => handler(data, context);
+  const fixedLen = (data: any, context: CallableContext) =>
+    handler(data, context);
   const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
 
   func.__trigger = {

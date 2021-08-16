@@ -179,20 +179,23 @@ describe('#onCall', () => {
   // Regression test for firebase-functions#947
   it('should lock to the v1 API even with function.length == 1', async () => {
     let gotData: Record<string, any>;
-    const func = https.onCall(data => {
+    const func = https.onCall((data) => {
       gotData = data;
     });
 
-    const req = new MockRequest({
-      data: {"foo": "bar"},
-    }, {
-      "content-type": "application/json",
-    });
-    req.method = "POST";
+    const req = new MockRequest(
+      {
+        data: { foo: 'bar' },
+      },
+      {
+        'content-type': 'application/json',
+      }
+    );
+    req.method = 'POST';
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(200);
-    expect(gotData).to.deep.equal({"foo": "bar"});
+    expect(gotData).to.deep.equal({ foo: 'bar' });
   });
 });
 
