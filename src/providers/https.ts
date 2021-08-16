@@ -77,7 +77,12 @@ export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  const func: any = onCallHandler({ origin: true, methods: 'POST' }, handler);
+  // onCallHandler sniffs the function length of the passed-in callback
+  // and the user could have only tried to listen to data. Wrap their handler
+  // in another handler to avoid accidentally triggering the v2 API
+  const fixedLen = (data: any, context: CallableContext) =>
+    handler(data, context);
+  const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
 
   func.__trigger = {
     labels: {},
