@@ -23,14 +23,16 @@
 import * as cors from 'cors';
 import * as express from 'express';
 
-import * as common from '../../common/providers/https';
+import {
+  CallableRequest,
+  FunctionsErrorCode,
+  HttpsError,
+  onCallHandler,
+  Request,
+} from '../../common/providers/https';
 import * as options from '../options';
 
-export type Request = common.Request;
-
-export type CallableRequest<T = any> = common.CallableRequest<T>;
-export type FunctionsErrorCode = common.FunctionsErrorCode;
-export type HttpsError = common.HttpsError;
+export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   region?:
@@ -142,7 +144,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
-  const func: any = common.onCallHandler({ origin, methods: 'POST' }, handler);
+
+  // onCallHandler sniffs the function length to determine which API to present.
+  // fix the length to prevent api versions from being mismatched.
+  const fixedLen = (req: CallableRequest<T>) => handler(req);
+  const func: any = onCallHandler({ origin, methods: 'POST' }, fixedLen);
 
   Object.defineProperty(func, '__trigger', {
     get: () => {

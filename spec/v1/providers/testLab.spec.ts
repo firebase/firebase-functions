@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 
-import * as testLab from '../../../src/v1/providers/testLab';
+import * as testLab from '../../../src/providers/testLab';
 
 describe('Test Lab Functions', () => {
   describe('#onComplete', () => {

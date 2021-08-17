@@ -23,13 +23,13 @@
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
 
-import * as functions from '../../../src/index';
 import {
   CloudFunction,
   Event,
   EventContext,
-} from '../../../src/v1/cloud-functions';
-import * as auth from '../../../src/v1/providers/auth';
+} from '../../../src/cloud-functions';
+import * as functions from '../../../src/index';
+import * as auth from '../../../src/providers/auth';
 
 describe('Auth Functions', () => {
   const event: Event = {

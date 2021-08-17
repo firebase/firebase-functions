@@ -22,14 +22,17 @@
 
 import * as express from 'express';
 
-import * as common from '../../common/providers/https';
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import {
+  CallableContext,
+  FunctionsErrorCode,
+  HttpsError,
+  onCallHandler,
+  Request,
+} from '../common/providers/https';
 import { DeploymentOptions } from '../function-configuration';
 
-export type Request = common.Request;
-export type CallableContext = common.CallableContext;
-export type FunctionsErrorCode = common.FunctionsErrorCode;
-export type HttpsError = common.HttpsError;
+export { Request, CallableContext, FunctionsErrorCode, HttpsError };
 
 /**
  * Handle HTTP requests.
@@ -74,10 +77,12 @@ export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  const func: any = common.onCallHandler(
-    { origin: true, methods: 'POST' },
-    handler
-  );
+  // onCallHandler sniffs the function length of the passed-in callback
+  // and the user could have only tried to listen to data. Wrap their handler
+  // in another handler to avoid accidentally triggering the v2 API
+  const fixedLen = (data: any, context: CallableContext) =>
+    handler(data, context);
+  const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
 
   func.__trigger = {
     labels: {},

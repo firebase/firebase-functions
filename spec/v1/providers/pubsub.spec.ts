@@ -23,7 +23,7 @@
 import { expect } from 'chai';
 import { Event } from '../../../src/index';
 import * as functions from '../../../src/index';
-import * as pubsub from '../../../src/v1/providers/pubsub';
+import * as pubsub from '../../../src/providers/pubsub';
 
 describe('Pubsub Functions', () => {
   describe('pubsub.Message', () => {

@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import {
+  convertInvoker,
   durationFromSeconds,
   serviceAccountFromShorthand,
-  convertInvoker,
 } from '../common/encoding';
 import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';

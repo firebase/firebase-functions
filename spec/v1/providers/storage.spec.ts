@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { Event, EventContext } from '../../../src/v1';
-import * as functions from '../../../src/v1';
-import * as config from '../../../src/v1/config';
-import * as storage from '../../../src/v1/providers/storage';
+import { Event, EventContext } from '../../../src';
+import * as functions from '../../../src';
+import * as config from '../../../src/config';
+import * as storage from '../../../src/providers/storage';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {

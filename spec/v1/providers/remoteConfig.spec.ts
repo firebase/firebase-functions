@@ -22,14 +22,14 @@
 import { expect } from 'chai';
 import * as _ from 'lodash';
 
-import * as functions from '../../../src/index';
 import {
   CloudFunction,
   Event,
   EventContext,
   TriggerAnnotated,
-} from '../../../src/v1/cloud-functions';
-import * as remoteConfig from '../../../src/v1/providers/remoteConfig';
+} from '../../../src/cloud-functions';
+import * as functions from '../../../src/index';
+import * as remoteConfig from '../../../src/providers/remoteConfig';
 
 describe('RemoteConfig Functions', () => {
   function constructVersion() {

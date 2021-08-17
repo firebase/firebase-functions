@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 /* tslint:disable:max-line-length */
-import { AnalyticsEvent } from '../../../src/v1/providers/analytics';
+import { AnalyticsEvent } from '../../../src/providers/analytics';
 
 // A payload, as it might arrive over the wire. Every possible field is filled out at least once.
 export const fullPayload = JSON.parse(`{

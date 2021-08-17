@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2017 Firebase
+// Copyright (c) 2021 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,43 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Providers:
-import * as analytics from './providers/analytics';
-import * as auth from './providers/auth';
-import * as database from './providers/database';
-import * as firestore from './providers/firestore';
-import * as https from './providers/https';
-import * as pubsub from './providers/pubsub';
-import * as remoteConfig from './providers/remoteConfig';
-import * as storage from './providers/storage';
-import * as testLab from './providers/testLab';
-
-import * as logger from '../logger';
-import * as apps from './apps';
-import { handler } from './handler-builder';
-import { setup } from './setup';
-
-const app = apps.apps();
-
-export {
-  analytics,
-  app,
-  auth,
-  database,
-  firestore,
-  handler,
-  https,
-  pubsub,
-  remoteConfig,
-  storage,
-  testLab,
-  logger,
-};
-
-// Exported root types:
-export * from './cloud-functions';
-export * from './config';
-export * from './function-builder';
-export * from './function-configuration';
-
-setup();
+// This file is not part of the firebase-functions SDK. It is used to silence the
+// imports eslint plugin until it can understand import paths defined by node
+// package exports.
+// For more information, see github.com/import-js/eslint-plugin-import/issues/1810
