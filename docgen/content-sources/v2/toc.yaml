@@ -15,6 +15,10 @@ toc:
     section:
       - title: 'functions.https.CallableFunction'
         path: /docs/functions/alpha/v2_providers_https.CallableFunction.html
+      - title: 'functions.https.CallableRequest'
+        path: /docs/functions/alpha/v2_providers_https.CallableRequest.html
+      - title: 'functions.https.error'
+        path: /docs/functions/alpha/v2_providers_https.HttpsError.html
       - title: 'functions.https.options'
         path: /docs/functions/alpha/v2_providers_https.HttpsOptions.html
   - title: 'functions.logger'
@@ -34,7 +38,7 @@ toc:
     section:
       - title: 'Message'
         path: /docs/functions/alpha/v2_providers_pubsub.Message.html
-      - title: 'TopicBuilder'
+      - title: 'MessagePublishedData'
         path: /docs/functions/alpha/v2_providers_pubsub.MessagePublishedData.html
       - title: 'PubSubOptions'
         path: /docs/functions/alpha/v2_providers_pubsub.PubSubOptions.html
