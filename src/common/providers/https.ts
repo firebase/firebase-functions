@@ -32,7 +32,7 @@ import { apps } from '../../apps';
 
 /** @hidden */
 export interface Request extends express.Request {
-  rawBody: Buffer;
+  rawBody?: Buffer;
 }
 
 /**
