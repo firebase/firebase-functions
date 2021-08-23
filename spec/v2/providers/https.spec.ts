@@ -111,9 +111,9 @@ describe('onRequest', () => {
       ...FULL_TRIGGER,
       httpsTrigger: {
         allowInsecure: false,
+        invoker: ['service-account1@', 'service-account2@'],
       },
       regions: ['us-west1', 'us-central1'],
-      invoker: ['service-account1@', 'service-account2@'],
     });
   });
 
@@ -141,12 +141,12 @@ describe('onRequest', () => {
       platform: 'gcfv2',
       httpsTrigger: {
         allowInsecure: false,
+        invoker: ['private'],
       },
       concurrency: 20,
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
       labels: {},
-      invoker: ['private'],
     });
   });
 
