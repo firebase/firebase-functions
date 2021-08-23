@@ -107,12 +107,14 @@ describe('CloudHttpsBuilder', () => {
         .runWith({
           timeoutSeconds: 90,
           memory: '256MB',
+          invoker: 'private',
         })
         .https.onRequest(() => null);
 
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
     });
   });
 });
