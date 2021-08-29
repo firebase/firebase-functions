@@ -31,6 +31,7 @@
     "./lib/logger": "./lib/logger/index.js",
     "./lib/providers/auth": "./lib/providers/auth.js",
     "./lib/providers/analytics": "./lib/providers/analytics.js",
+    "./lib/function-configuration": "./lib/function-configuration.js",
     "./lib/providers/database": "./lib/providers/database.js",
     "./lib/providers/firestore": "./lib/providers/firestore.js",
     "./lib/providers/https": "./lib/providers/https.js",
