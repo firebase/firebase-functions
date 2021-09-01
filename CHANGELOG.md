@@ -1,1 +1,0 @@
-- Make the minInstances feature public.
