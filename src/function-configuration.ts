@@ -123,7 +123,6 @@ export interface RuntimeOptions {
    * Min number of actual instances to be running at a given time.
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * @hidden
    */
   minInstances?: number;
 
