@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import {
-  convertInvoker,
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from '../common/encoding';
@@ -276,7 +275,6 @@ export function optionsToTriggerAnnotations(
       return retry ? { retry: true } : null;
     }
   );
-  convertIfPresent(annotation, opts, 'invoker', 'invoker', convertInvoker);
 
   return annotation;
 }

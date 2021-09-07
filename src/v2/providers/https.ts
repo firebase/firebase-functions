@@ -22,6 +22,7 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
+import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
 import {
   CallableRequest,
@@ -104,7 +105,7 @@ export function onRequest(
       const specificOpts = options.optionsToTriggerAnnotations(
         opts as options.GlobalOptions
       );
-      return {
+      const trigger: any = {
         // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
         // has migrated to "platform".
         apiVersion: 2,
@@ -119,6 +120,14 @@ export function onRequest(
           allowInsecure: false,
         },
       };
+      convertIfPresent(
+        trigger.httpsTrigger,
+        opts,
+        'invoker',
+        'invoker',
+        convertInvoker
+      );
+      return trigger;
     },
   });
   return handler as HttpsFunction;
@@ -144,7 +153,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
-  const func: any = onCallHandler({ origin, methods: 'POST' }, handler);
+
+  // onCallHandler sniffs the function length to determine which API to present.
+  // fix the length to prevent api versions from being mismatched.
+  const fixedLen = (req: CallableRequest<T>) => handler(req);
+  const func: any = onCallHandler({ origin, methods: 'POST' }, fixedLen);
 
   Object.defineProperty(func, '__trigger', {
     get: () => {

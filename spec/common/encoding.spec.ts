@@ -2,6 +2,18 @@ import { expect } from 'chai';
 import { convertInvoker } from '../../src/common/encoding';
 
 describe('convertInvoker', () => {
+  it('should raise an error on empty array', () => {
+    expect(() => convertInvoker([])).to.throw;
+  });
+
+  it('should raise an error on empty string', () => {
+    expect(() => convertInvoker('')).to.throw;
+  });
+
+  it('should raise an error on empty string with service accounts', () => {
+    expect(() => convertInvoker(['service-account@', ''])).to.throw;
+  });
+
   it('should raise an error on mixing public and service accounts', () => {
     expect(() => convertInvoker(['public', 'service-account@'])).to.throw;
   });

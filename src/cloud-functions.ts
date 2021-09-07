@@ -32,7 +32,6 @@ import { warn } from './logger';
 export { Request, Response };
 import {
   convertIfPresent,
-  convertInvoker,
   copyIfPresent,
   Duration,
   durationFromSeconds,
@@ -270,7 +269,9 @@ export interface TriggerAnnotated {
       service: string;
     };
     failurePolicy?: FailurePolicy;
-    httpsTrigger?: {};
+    httpsTrigger?: {
+      invoker?: string[];
+    };
     labels?: { [key: string]: string };
     regions?: string[];
     schedule?: Schedule;
@@ -279,7 +280,6 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
-    invoker?: string[];
   };
 }
 
@@ -542,7 +542,6 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'serviceAccount',
     serviceAccountFromShorthand
   );
-  convertIfPresent(trigger, options, 'invoker', 'invoker', convertInvoker);
 
   return trigger;
 }
