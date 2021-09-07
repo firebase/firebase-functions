@@ -32,7 +32,9 @@ export interface TriggerAnnotation {
     service: string;
   };
   failurePolicy?: { retry: boolean };
-  httpsTrigger?: {};
+  httpsTrigger?: {
+    invoker?: string[];
+  };
   labels?: { [key: string]: string };
   regions?: string[];
   timeout?: string;
@@ -40,7 +42,6 @@ export interface TriggerAnnotation {
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;
   ingressSettings?: string;
-  invoker?: string[];
 
   // TODO: schedule
 }
