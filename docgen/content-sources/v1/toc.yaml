@@ -1,148 +1,148 @@
 toc:
   - title: 'functions'
-    path: /docs/reference/functions/v1_cloud_functions_.html
+    path: /docs/reference/functions/cloud_functions.html
     section:
       - title: 'CloudFunction'
-        path: /docs/reference/functions/v1_cloud_functions_.html#cloudfunction
+        path: /docs/reference/functions/cloud_functions.html#cloudfunction
       - title: 'HttpsFunction'
-        path: /docs/reference/functions/v1_cloud_functions_.html#httpsfunction
+        path: /docs/reference/functions/cloud_functions.html#httpsfunction
       - title: 'EventContext'
-        path: /docs/reference/functions/v1_cloud_functions_.eventcontext.html
+        path: /docs/reference/functions/cloud_functions.EventContext.html
       - title: 'FunctionBuilder'
-        path: /docs/reference/functions/v1_function_builder_.functionbuilder.html
+        path: /docs/reference/functions/function_builder.FunctionBuilder.html
       - title: 'Change'
-        path: /docs/reference/functions/v1_cloud_functions_.change.html
+        path: /docs/reference/functions/cloud_functions.Change.html
       - title: 'ChangeJson'
-        path: /docs/reference/functions/v1_cloud_functions_.changejson.html
+        path: /docs/reference/functions/cloud_functions.ChangeJson.html
 
   - title: 'functions.config'
-    path: /docs/reference/functions/v1_config_.html
+    path: /docs/reference/functions/config.html
     section:
       - title: 'Config'
-        path: /docs/reference/functions/v1_config_.config.html
+        path: /docs/reference/functions/config.html
       - title: 'config.Config'
-        path: /docs/reference/functions/v1_config_.config.config.html
+        path: /docs/reference/functions/config.config-1.Config.html
 
   - title: 'functions.function-configuration'
-    path: /docs/reference/functions/v1_function_configuration_.html
+    path: /docs/reference/functions/function_configuration.html
     section:
       - title: 'config.DeploymentOptions'
-        path: /docs/reference/functions/v1_function_configuration_.deploymentoptions.html
+        path: /docs/reference/functions/function_configuration.deploymentoptions.html
       - title: 'config.FailurePolicy'
-        path: /docs/reference/functions/v1_function_configuration_.failurepolicy.html
+        path: /docs/reference/functions/function_configuration.failurepolicy.html
       - title: 'config.RuntimeOptions'
-        path: /docs/reference/functions/v1_function_configuration_.runtimeoptions.html
+        path: /docs/reference/functions/function_configuration.runtimeoptions.html
       - title: 'config.Schedule'
-        path: /docs/reference/functions/v1_function_configuration_.schedule.html
+        path: /docs/reference/functions/function_configuration.schedule.html
       - title: 'config.ScheduleRetryConfig'
-        path: /docs/reference/functions/v1_function_configuration_.scheduleretryconfig.html
+        path: /docs/reference/functions/function_configuration.scheduleretryconfig.html
 
   - title: 'functions.analytics'
-    path: /docs/reference/functions/v1_providers_analytics_.html
+    path: /docs/reference/functions/providers_analytics.html
     section:
       - title: 'AnalyticsEvent'
-        path: /docs/reference/functions/v1_providers_analytics_.analyticsevent.html
+        path: /docs/reference/functions/providers_analytics.analyticsevent.html
       - title: 'AnalyticsEventBuilder'
-        path: /docs/reference/functions/v1_providers_analytics_.analyticseventbuilder.html
+        path: /docs/reference/functions/providers_analytics.analyticseventbuilder.html
       - title: 'AppInfo'
-        path: /docs/reference/functions/v1_providers_analytics_.appinfo.html
+        path: /docs/reference/functions/providers_analytics.appinfo.html
       - title: 'DeviceInfo'
-        path: /docs/reference/functions/v1_providers_analytics_.deviceinfo.html
+        path: /docs/reference/functions/providers_analytics.deviceinfo.html
       - title: 'ExportBundleInfo'
-        path: /docs/reference/functions/v1_providers_analytics_.exportbundleinfo.html
+        path: /docs/reference/functions/providers_analytics.exportbundleinfo.html
       - title: 'GeoInfo'
-        path: /docs/reference/functions/v1_providers_analytics_.geoinfo.html
+        path: /docs/reference/functions/providers_analytics.geoinfo.html
       - title: 'UserDimensions'
-        path: /docs/reference/functions/v1_providers_analytics_.userdimensions.html
+        path: /docs/reference/functions/providers_analytics.userdimensions.html
       - title: 'UserPropertyValue'
-        path: /docs/reference/functions/v1_providers_analytics_.userpropertyvalue.html
+        path: /docs/reference/functions/providers_analytics.userpropertyvalue.html
 
   - title: 'functions.auth'
-    path: /docs/reference/functions/v1_providers_auth_.html
+    path: /docs/reference/functions/providers_auth.html
     section:
       - title: 'UserBuilder'
-        path: /docs/reference/functions/v1_providers_auth_.userbuilder.html
+        path: /docs/reference/functions/providers_auth.userbuilder.html
       - title: 'UserInfo'
-        path: /docs/reference/functions/v1_providers_auth_.html#userinfo
+        path: /docs/reference/functions/providers_auth.html#userinfo
       - title: 'UserRecordMetadata'
-        path: /docs/reference/functions/v1_providers_auth_.userrecordmetadata.html
+        path: /docs/reference/functions/providers_auth.userrecordmetadata.html
       - title: 'UserRecord'
-        path: /docs/reference/functions/v1_providers_auth_.html#userrecord
+        path: /docs/reference/functions/providers_auth.html#userrecord
 
   - title: 'functions.firestore'
-    path: /docs/reference/functions/v1_providers_firestore_.html
+    path: /docs/reference/functions/providers_firestore.html
     section:
       - title: 'DocumentBuilder'
-        path: /docs/reference/functions/v1_providers_firestore_.documentbuilder.html
+        path: /docs/reference/functions/providers_firestore.documentbuilder.html
       - title: 'DocumentSnapshot'
-        path: /docs/reference/functions/v1_providers_firestore_.html#documentsnapshot
+        path: /docs/reference/functions/providers_firestore.html#documentsnapshot
 
   - title: 'functions.database'
-    path: /docs/reference/functions/v1_providers_database_.html
+    path: /docs/reference/functions/providers_database.html
     section:
       - title: 'DataSnapshot'
-        path: /docs/reference/functions/v1_providers_database_.datasnapshot.html
+        path: /docs/reference/functions/providers_database.datasnapshot.html
       - title: 'RefBuilder'
-        path: /docs/reference/functions/v1_providers_database_.refbuilder.html
+        path: /docs/reference/functions/providers_database.refbuilder.html
       - title: 'InstanceBuilder'
-        path: /docs/reference/functions/v1_providers_database_.instancebuilder.html
+        path: /docs/reference/functions/providers_database.instancebuilder.html
 
   - title: 'functions.https'
-    path: /docs/reference/functions/v1_providers_https_.html
+    path: /docs/reference/functions/providers_https.html
     section:
       - title: 'HttpsError'
-        path: /docs/reference/functions/v1_providers_https_.httpserror.html
+        path: /docs/reference/functions/providers_https.httpserror.html
       - title: 'CallableContext'
-        path: /docs/reference/functions/v1_providers_https_.callablecontext.html
+        path: /docs/reference/functions/providers_https.callablecontext.html
 
   - title: 'functions.logger'
-    path: /docs/reference/functions/logger_index_.html
+    path: /docs/reference/functions/logger.html
     section:
       - title: 'LogEntry'
-        path: /docs/reference/functions/logger_index_.logentry.html
+        path: /docs/reference/functions/logger.LogEntry.html
 
   - title: 'functions.pubsub'
-    path: /docs/reference/functions/v1_providers_pubsub_.html
+    path: /docs/reference/functions/providers_pubsub.html
     section:
       - title: 'Message'
-        path: /docs/reference/functions/v1_providers_pubsub_.message.html
+        path: /docs/reference/functions/providers_pubsub.message.html
       - title: 'TopicBuilder'
-        path: /docs/reference/functions/v1_providers_pubsub_.topicbuilder.html
+        path: /docs/reference/functions/providers_pubsub.topicbuilder.html
       - title: 'ScheduleBuilder'
-        path: /docs/reference/functions/v1_providers_pubsub_.schedulebuilder.html
+        path: /docs/reference/functions/providers_pubsub.schedulebuilder.html
 
   - title: 'functions.remoteconfig'
-    path: /docs/reference/functions/v1_providers_remoteconfig_.html
+    path: /docs/reference/functions/providers_remoteconfig.html
     section:
       - title: 'RemoteConfigUser'
-        path: /docs/reference/functions/v1_providers_remoteconfig_.remoteconfiguser.html
+        path: /docs/reference/functions/providers_remoteconfig.remoteconfiguser.html
       - title: 'TemplateVersion'
-        path: /docs/reference/functions/v1_providers_remoteconfig_.templateversion.html
+        path: /docs/reference/functions/providers_remoteconfig.templateversion.html
 
   - title: 'functions.storage'
-    path: /docs/reference/functions/v1_providers_storage_.html
+    path: /docs/reference/functions/providers_storage.html
     section:
       - title: 'BucketBuilder'
-        path: /docs/reference/functions/v1_providers_storage_.bucketbuilder.html
+        path: /docs/reference/functions/providers_storage.bucketbuilder.html
       - title: 'ObjectBuilder'
-        path: /docs/reference/functions/v1_providers_storage_.objectbuilder.html
+        path: /docs/reference/functions/providers_storage.objectbuilder.html
       - title: 'ObjectMetadata'
-        path: /docs/reference/functions/v1_providers_storage_.objectmetadata.html
+        path: /docs/reference/functions/providers_storage.objectmetadata.html
 
   - title: 'functions.testLab'
-    path: /docs/reference/functions/v1_providers_testlab_.html
+    path: /docs/reference/functions/providers_testlab.html
     section:
       - title: 'testLab.clientInfo'
-        path: /docs/reference/functions/v1_providers_testlab_.clientinfo.html
+        path: /docs/reference/functions/providers_testlab.clientinfo.html
       - title: 'testLab.resultStorage'
-        path: /docs/reference/functions/v1_providers_testlab_.resultstorage.html
+        path: /docs/reference/functions/providers_testlab.resultstorage.html
       - title: 'testLab.testMatrix'
-        path: /docs/reference/functions/v1_providers_testlab_.testmatrix.html
+        path: /docs/reference/functions/providers_testlab.testmatrix.html
       - title: 'testLab.testMatrixBuilder'
-        path: /docs/reference/functions/v1_providers_testlab_.testmatrixbuilder.html
+        path: /docs/reference/functions/providers_testlab.testmatrixbuilder.html
 
   - title: 'functions.handler'
-    path: /docs/reference/functions/v1_handler_builder_.html
+    path: /docs/reference/functions/handler_builder.html
     section:
       - title: 'HandlerBuilder'
-        path: /docs/reference/functions/v1_handler_builder_.handlerbuilder.html
+        path: /docs/reference/functions/handler_builder.handlerbuilder.html
