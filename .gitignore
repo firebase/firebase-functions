@@ -4,6 +4,8 @@
 .vscode/
 coverage
 docgen/html
+docgen/*/temp
+docgen/*/markdown
 firebase-functions-*.tgz
 integration_test/.firebaserc
 integration_test/*.log
