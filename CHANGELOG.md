@@ -1,0 +1,1 @@
+- Enhance CORS config options
