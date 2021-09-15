@@ -1,1 +1,1 @@
-- Enhance CORS config options
+- Add missing type annotations
