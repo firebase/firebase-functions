@@ -22,6 +22,7 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
+import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
 import {
   CallableRequest,
@@ -39,7 +40,7 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
     | options.SupportedRegion
     | string
     | Array<options.SupportedRegion | string>;
-  cors?: string | boolean;
+  cors?: string | boolean | RegExp | (string | RegExp)[];
 }
 
 export type HttpsFunction = ((
@@ -104,7 +105,7 @@ export function onRequest(
       const specificOpts = options.optionsToTriggerAnnotations(
         opts as options.GlobalOptions
       );
-      return {
+      const trigger: any = {
         // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
         // has migrated to "platform".
         apiVersion: 2,
@@ -119,6 +120,14 @@ export function onRequest(
           allowInsecure: false,
         },
       };
+      convertIfPresent(
+        trigger.httpsTrigger,
+        opts,
+        'invoker',
+        'invoker',
+        convertInvoker
+      );
+      return trigger;
     },
   });
   return handler as HttpsFunction;

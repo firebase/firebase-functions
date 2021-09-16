@@ -23,6 +23,7 @@
 import * as express from 'express';
 
 import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import { convertIfPresent, convertInvoker } from '../common/encoding';
 import {
   CallableContext,
   FunctionsErrorCode,
@@ -68,6 +69,13 @@ export function _onRequestWithOptions(
     ...optionsToTrigger(options),
     httpsTrigger: {},
   };
+  convertIfPresent(
+    cloudFunction.__trigger.httpsTrigger,
+    options,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
   // TODO parse the options
   return cloudFunction;
 }
