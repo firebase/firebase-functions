@@ -229,11 +229,9 @@ export function _onOperation(
           ...specificOpts?.labels,
         },
         eventTrigger: {
-          resource: bucket,
           eventType: provider + '.' + eventType,
+          resource: bucket, // TODO(colerogers): replace with bucket: 'my-bucket' when container contract is finished
           service,
-          // eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
-          // resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
         },
       };
     },
@@ -270,7 +268,7 @@ export function _getOptsAndBucket(
     throw new Error(`Invalid bucket name ${bucket}`);
   }
 
-  return [opts, `projects/_/buckets/${bucket}`];
+  return [opts, bucket];
 }
 
 /**
