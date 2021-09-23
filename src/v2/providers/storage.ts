@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { firebaseConfig } from '../../config';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
-import { firebaseConfig } from '../../config';
 
 /** @hidden */
-export const provider = 'google.cloud.storage'; //'google.storage';
+export const provider = 'google.cloud.storage';
 /** @hidden */
 export const service = 'storage.googleapis.com';
 /** @hidden */
@@ -199,7 +199,6 @@ export function _onOperation(
   const [opts, bucket] = _getOptsAndBucket(bucketOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    // const storageObjectData = raw.data as StorageObjectData;
     return handler(raw as CloudEvent<StorageObjectData>);
   };
 
@@ -261,7 +260,7 @@ export function _getOptsAndBucket(
   if (!bucket) {
     throw new Error(
       'Missing bucket name. If you are unit testing, please provide a bucket name' +
-        ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.'
+        ' through set process.env.FIREBASE_CONFIG.'
     );
   }
   if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
