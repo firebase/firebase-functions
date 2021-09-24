@@ -5,21 +5,35 @@ import * as options from '../../../src/v2/options';
 import * as storage from '../../../src/v2/providers/storage';
 import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
 
+const EVENT_TRIGGER = {
+  eventType: 'event-type',
+  resource: 'some-bucket',
+  service: storage.service,
+};
+
 describe('v2/storage', () => {
   describe('_getOptsAndBucket', () => {
-    it('should return throw error without a bucket', () => {
-      expect(() => storage._getOptsAndBucket()).to.throw();
-    });
-
-    it('should return the default bucket on no params', () => {
+    it('should return the default bucket with empty opts', () => {
       const configStub = sinon
         .stub(config, 'firebaseConfig')
         .returns({ storageBucket: 'default-bucket' });
 
-      const [opts, bucket] = storage._getOptsAndBucket();
+      const [opts, bucket] = storage._getOptsAndBucket({});
 
       configStub.restore();
       expect(opts).to.deep.equal({});
+      expect(bucket).to.eq('default-bucket');
+    });
+
+    it('should return the default bucket with opts param', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const [opts, bucket] = storage._getOptsAndBucket({ region: 'us-west1' });
+
+      configStub.restore();
+      expect(opts).to.deep.equal({ region: 'us-west1' });
       expect(bucket).to.eq('default-bucket');
     });
 
@@ -42,12 +56,6 @@ describe('v2/storage', () => {
   });
 
   describe('_onOperation', () => {
-    const EVENT_TRIGGER = {
-      eventType: 'google.cloud.storage.event-type',
-      resource: 'my-bucket',
-      service: 'storage.googleapis.com',
-    };
-
     beforeEach(() => {
       options.setGlobalOptions({});
       process.env.GCLOUD_PROJECT = 'aProject';
@@ -58,8 +66,70 @@ describe('v2/storage', () => {
       delete process.env.GCLOUD_PROJECT;
     });
 
-    it('should create a minimal trigger', () => {
-      const result = storage._onOperation(() => 42, 'event-type', 'my-bucket');
+    it('should create a minimal trigger default bucket', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const result = storage._onOperation('event-type', () => 42);
+
+      configStub.restore();
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...EVENT_TRIGGER,
+          resource: 'default-bucket',
+        },
+      });
+    });
+
+    it('should create a minimal trigger with bucket', () => {
+      const result = storage._onOperation(
+        'event-type',
+        'some-bucket',
+        () => 42
+      );
+
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: EVENT_TRIGGER,
+      });
+    });
+
+    it('should create a minimal trigger with opts', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const result = storage._onOperation(
+        'event-type',
+        { region: 'us-west1' },
+        () => 42
+      );
+
+      configStub.restore();
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...EVENT_TRIGGER,
+          resource: 'default-bucket',
+        },
+        regions: ['us-west1'],
+      });
+    });
+
+    it('should create a minimal trigger with bucket with opts and bucket', () => {
+      const result = storage._onOperation(
+        'event-type',
+        { bucket: 'some-bucket' },
+        () => 42
+      );
 
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
@@ -70,10 +140,14 @@ describe('v2/storage', () => {
     });
 
     it('should create a complex trigger with appropriate values', () => {
-      const result = storage._onOperation(() => 42, 'event-type', {
-        ...FULL_OPTIONS,
-        bucket: 'my-bucket',
-      });
+      const result = storage._onOperation(
+        'event-type',
+        {
+          ...FULL_OPTIONS,
+          bucket: 'some-bucket',
+        },
+        () => 42
+      );
 
       expect(result.__trigger).to.deep.equal({
         ...FULL_TRIGGER,
@@ -88,11 +162,15 @@ describe('v2/storage', () => {
         minInstances: 1,
       });
 
-      const result = storage._onOperation(() => 42, 'event-type', {
-        bucket: 'my-bucket',
-        region: 'us-west1',
-        minInstances: 3,
-      });
+      const result = storage._onOperation(
+        'event-type',
+        {
+          bucket: 'some-bucket',
+          region: 'us-west1',
+          minInstances: 3,
+        },
+        () => 42
+      );
 
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
@@ -107,6 +185,11 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectArchived', () => {
+    const ARCHIVED_TRIGGER = {
+      ...EVENT_TRIGGER,
+      eventType: storage.archivedEvent,
+    };
+
     it('should accept only handler', () => {
       const configStub = sinon
         .stub(config, 'firebaseConfig')
@@ -120,9 +203,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.archived',
+          ...ARCHIVED_TRIGGER,
           resource: 'default-bucket',
-          service: 'storage.googleapis.com',
         },
       });
     });
@@ -135,9 +217,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.archived',
+          ...ARCHIVED_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
         },
       });
     });
@@ -153,9 +234,28 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.archived',
+          ...ARCHIVED_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
+        },
+        regions: ['us-west1'],
+      });
+    });
+
+    it('should accept opts and handler, default bucket', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const result = storage.onObjectArchived({ region: 'us-west1' }, () => 42);
+
+      configStub.restore();
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...ARCHIVED_TRIGGER,
+          resource: 'default-bucket',
         },
         regions: ['us-west1'],
       });
@@ -163,6 +263,11 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectFinalized', () => {
+    const FINALIZED_TRIGGER = {
+      ...EVENT_TRIGGER,
+      eventType: storage.finalizedEvent,
+    };
+
     it('should accept only handler', () => {
       const configStub = sinon
         .stub(config, 'firebaseConfig')
@@ -176,9 +281,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.finalized',
+          ...FINALIZED_TRIGGER,
           resource: 'default-bucket',
-          service: 'storage.googleapis.com',
         },
       });
     });
@@ -191,9 +295,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.finalized',
+          ...FINALIZED_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
         },
       });
     });
@@ -209,9 +312,31 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.finalized',
+          ...FINALIZED_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
+        },
+        regions: ['us-west1'],
+      });
+    });
+
+    it('should accept opts and handler, default bucket', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const result = storage.onObjectFinalized(
+        { region: 'us-west1' },
+        () => 42
+      );
+
+      configStub.restore();
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...FINALIZED_TRIGGER,
+          resource: 'default-bucket',
         },
         regions: ['us-west1'],
       });
@@ -219,6 +344,11 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectDeleted', () => {
+    const DELETED_TRIGGER = {
+      ...EVENT_TRIGGER,
+      eventType: storage.deletedEvent,
+    };
+
     it('should accept only handler', () => {
       const configStub = sinon
         .stub(config, 'firebaseConfig')
@@ -232,9 +362,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.deleted',
+          ...DELETED_TRIGGER,
           resource: 'default-bucket',
-          service: 'storage.googleapis.com',
         },
       });
 
@@ -249,9 +378,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.deleted',
+          ...DELETED_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
         },
       });
     });
@@ -267,9 +395,28 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.deleted',
+          ...DELETED_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
+        },
+        regions: ['us-west1'],
+      });
+    });
+
+    it('should accept opts and handler, default bucket', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const result = storage.onObjectDeleted({ region: 'us-west1' }, () => 42);
+
+      configStub.restore();
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...DELETED_TRIGGER,
+          resource: 'default-bucket',
         },
         regions: ['us-west1'],
       });
@@ -277,6 +424,11 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectMetadataUpdated', () => {
+    const METADATA_TRIGGER = {
+      ...EVENT_TRIGGER,
+      eventType: storage.metadataUpdatedEvent,
+    };
+
     it('should accept only handler', () => {
       const configStub = sinon
         .stub(config, 'firebaseConfig')
@@ -290,9 +442,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.metadataUpdated',
+          ...METADATA_TRIGGER,
           resource: 'default-bucket',
-          service: 'storage.googleapis.com',
         },
       });
 
@@ -307,9 +458,8 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.metadataUpdated',
+          ...METADATA_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
         },
       });
     });
@@ -325,9 +475,31 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
-          eventType: 'google.cloud.storage.object.v1.metadataUpdated',
+          ...METADATA_TRIGGER,
           resource: 'my-bucket',
-          service: 'storage.googleapis.com',
+        },
+        regions: ['us-west1'],
+      });
+    });
+
+    it('should accept opts and handler, default bucket', () => {
+      const configStub = sinon
+        .stub(config, 'firebaseConfig')
+        .returns({ storageBucket: 'default-bucket' });
+
+      const result = storage.onObjectMetadataUpdated(
+        { region: 'us-west1' },
+        () => 42
+      );
+
+      configStub.restore();
+      expect(result.__trigger).to.deep.equal({
+        apiVersion: 2,
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...METADATA_TRIGGER,
+          resource: 'default-bucket',
         },
         regions: ['us-west1'],
       });
