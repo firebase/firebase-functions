@@ -56,32 +56,18 @@ describe('v2/storage', () => {
   });
 
   describe('_onOperation', () => {
+    let configStub: sinon.SinonStub;
+
     beforeEach(() => {
       process.env.GCLOUD_PROJECT = 'aProject';
+      configStub = sinon.stub(config, 'firebaseConfig');
+        
     });
 
     afterEach(() => {
       options.setGlobalOptions({});
       delete process.env.GCLOUD_PROJECT;
-    });
-
-    it('should create a minimal trigger default bucket', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
-
-      const result = storage._onOperation('event-type', () => 42);
-
       configStub.restore();
-      expect(result.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          resource: 'default-bucket',
-        },
-      });
     });
 
     it('should create a minimal trigger with bucket', () => {
@@ -100,9 +86,7 @@ describe('v2/storage', () => {
     });
 
     it('should create a minimal trigger with opts', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage._onOperation(
         'event-type',
@@ -110,7 +94,7 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      configStub.restore();
+      
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -188,15 +172,21 @@ describe('v2/storage', () => {
       ...EVENT_TRIGGER,
       eventType: storage.archivedEvent,
     };
+    let configStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      configStub = sinon.stub(config, 'firebaseConfig')
+    });
+
+    afterEach(() => {
+      configStub.restore();
+    });
 
     it('should accept only handler', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectArchived(() => 42);
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -241,13 +231,10 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectArchived({ region: 'us-west1' }, () => 42);
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -266,15 +253,21 @@ describe('v2/storage', () => {
       ...EVENT_TRIGGER,
       eventType: storage.finalizedEvent,
     };
+    let configStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      configStub = sinon.stub(config, 'firebaseConfig')
+    });
+
+    afterEach(() => {
+      configStub.restore();
+    });
 
     it('should accept only handler', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectFinalized(() => 42);
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -319,16 +312,13 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectFinalized(
         { region: 'us-west1' },
         () => 42
       );
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -347,15 +337,21 @@ describe('v2/storage', () => {
       ...EVENT_TRIGGER,
       eventType: storage.deletedEvent,
     };
+    let configStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      configStub = sinon.stub(config, 'firebaseConfig')
+    });
+
+    afterEach(() => {
+      configStub.restore();
+    });
 
     it('should accept only handler', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectDeleted(() => 42);
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -402,13 +398,10 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectDeleted({ region: 'us-west1' }, () => 42);
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -427,15 +420,21 @@ describe('v2/storage', () => {
       ...EVENT_TRIGGER,
       eventType: storage.metadataUpdatedEvent,
     };
+    let configStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      configStub = sinon.stub(config, 'firebaseConfig')
+    });
+
+    afterEach(() => {
+      configStub.restore();
+    });
 
     it('should accept only handler', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectMetadataUpdated(() => 42);
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -482,16 +481,13 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      configStub.returns({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectMetadataUpdated(
         { region: 'us-west1' },
         () => 42
       );
 
-      configStub.restore();
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
