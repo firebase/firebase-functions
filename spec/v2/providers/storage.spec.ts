@@ -57,7 +57,6 @@ describe('v2/storage', () => {
 
   describe('_onOperation', () => {
     beforeEach(() => {
-      options.setGlobalOptions({});
       process.env.GCLOUD_PROJECT = 'aProject';
     });
 
