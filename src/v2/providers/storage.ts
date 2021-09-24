@@ -350,7 +350,7 @@ export function _onOperation(
         },
         eventTrigger: {
           eventType: eventType,
-          resource: bucket, // TODO(colerogers): replace with `bucket: 'my-bucket'` eventually
+          resource: bucket, // TODO(colerogers): replace with bucket eventually
           service: 'storage.googleapis.com',
         },
       };
