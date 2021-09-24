@@ -61,7 +61,6 @@ describe('v2/storage', () => {
     beforeEach(() => {
       process.env.GCLOUD_PROJECT = 'aProject';
       configStub = sinon.stub(config, 'firebaseConfig');
-        
     });
 
     afterEach(() => {
@@ -94,7 +93,6 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      
       expect(result.__trigger).to.deep.equal({
         apiVersion: 2,
         platform: 'gcfv2',
@@ -175,7 +173,7 @@ describe('v2/storage', () => {
     let configStub: sinon.SinonStub;
 
     beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig')
+      configStub = sinon.stub(config, 'firebaseConfig');
     });
 
     afterEach(() => {
@@ -256,7 +254,7 @@ describe('v2/storage', () => {
     let configStub: sinon.SinonStub;
 
     beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig')
+      configStub = sinon.stub(config, 'firebaseConfig');
     });
 
     afterEach(() => {
@@ -340,7 +338,7 @@ describe('v2/storage', () => {
     let configStub: sinon.SinonStub;
 
     beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig')
+      configStub = sinon.stub(config, 'firebaseConfig');
     });
 
     afterEach(() => {
@@ -423,7 +421,7 @@ describe('v2/storage', () => {
     let configStub: sinon.SinonStub;
 
     beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig')
+      configStub = sinon.stub(config, 'firebaseConfig');
     });
 
     afterEach(() => {

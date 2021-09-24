@@ -298,13 +298,13 @@ export function _onOperation(
     | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
   handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
-  if (typeof bucketOrOptsOrHandler === "function") {
+  if (typeof bucketOrOptsOrHandler === 'function') {
     handler = bucketOrOptsOrHandler as (
       event: CloudEvent<StorageObjectData>
     ) => any | Promise<any>;
     bucketOrOptsOrHandler = {};
   }
-  
+
   const [opts, bucket] = _getOptsAndBucket(
     bucketOrOptsOrHandler as string | StorageOptions
   );
