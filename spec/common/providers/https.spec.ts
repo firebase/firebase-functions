@@ -13,7 +13,7 @@ import {
   mockFetchPublicKeys,
   mockRequest,
 } from '../../fixtures/mockrequest';
-import { decodeIdToken } from '../../../lib/common/providers/https';
+import { decodeIdToken } from '../../../src/common/providers/https';
 
 /**
  * RunHandlerResult contains the data from an express.Response.
