@@ -69,11 +69,7 @@ describe('v2/storage', () => {
     });
 
     it('should create a minimal trigger with bucket', () => {
-      const result = storage.onOperation(
-        'event-type',
-        'some-bucket',
-        () => 42
-      );
+      const result = storage.onOperation('event-type', 'some-bucket', () => 42);
 
       expect(result.__trigger).to.deep.equal({
         platform: 'gcfv2',
