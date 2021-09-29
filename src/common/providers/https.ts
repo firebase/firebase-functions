@@ -552,7 +552,7 @@ export function decodeAppCheckToken(token: string): DecodedAppCheckToken {
   return decoded;
 }
 
-function skipTokenCheck(req: Request): boolean {
+function isEmulatorRequest(req: Request): boolean {
   return !!process.env.FUNCTIONS_EMULATOR && req.hostname === 'localhost';
 }
 
@@ -574,6 +574,8 @@ async function checkTokens(
     auth: 'MISSING',
   };
 
+  const skipTokenCheck = isEmulatorRequest(req);
+
   const appCheck = req.header('X-Firebase-AppCheck');
   if (appCheck) {
     verifications.app = 'INVALID';
@@ -584,7 +586,7 @@ async function checkTokens(
         );
       }
       let appCheckData;
-      if (skipTokenCheck(req)) {
+      if (skipTokenCheck) {
         const decodedToken = decodeAppCheckToken(appCheck);
         appCheckData = { appId: decodedToken.app_id, token: decodedToken };
       } else {
@@ -610,7 +612,7 @@ async function checkTokens(
       const idToken = match[1];
       try {
         let authToken: firebase.auth.DecodedIdToken;
-        if (skipTokenCheck(req)) {
+        if (skipTokenCheck) {
           authToken = decodeIdToken(idToken);
         } else {
           authToken = await apps()
