@@ -528,11 +528,7 @@ function decodeToken(token: string): unknown {
 /** @hidden */
 export function decodeIdToken(token: string): firebase.auth.DecodedIdToken {
   const decoded = decodeToken(token) as firebase.auth.DecodedIdToken;
-  if (typeof decoded === 'object') {
-    if (!!decoded.sub) {
-      decoded.uid = decoded.sub;
-    }
-  }
+  decoded.uid = decoded.sub;
   return decoded;
 }
 
@@ -544,11 +540,7 @@ export function decodeIdToken(token: string): firebase.auth.DecodedIdToken {
 /** @hidden */
 export function decodeAppCheckToken(token: string): DecodedAppCheckToken {
   const decoded = decodeToken(token) as DecodedAppCheckToken;
-  if (typeof decoded === 'object') {
-    if (!!decoded.sub) {
-      decoded.app_id = decoded.sub;
-    }
-  }
+  decoded.app_id = decoded.sub;
   return decoded;
 }
 
