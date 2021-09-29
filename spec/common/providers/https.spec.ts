@@ -16,6 +16,8 @@ import {
   mockRequest,
 } from '../../fixtures/mockrequest';
 import {
+  CallableContext,
+  CallableRequest,
   decodeAppCheckToken,
   decodeIdToken,
 } from '../../../src/common/providers/https';
@@ -137,6 +139,56 @@ async function runTest(test: CallTest): Promise<any> {
   expect(responseV2.body).to.deep.equal(test.expectedHttpResponse.body);
   expect(responseV2.headers).to.deep.equal(test.expectedHttpResponse.headers);
   expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
+}
+
+function checkAuthContext(context: CallableContext, projectId: string) {
+  expect(context.auth).to.not.be.undefined;
+  expect(context.auth).to.not.be.null;
+  expect(context.auth.uid).to.equal(mocks.user_id);
+  expect(context.auth.token.uid).to.equal(mocks.user_id);
+  expect(context.auth.token.sub).to.equal(mocks.user_id);
+  expect(context.auth.token.aud).to.equal(projectId);
+  expect(context.instanceIdToken).to.be.undefined;
+}
+
+function checkAppCheckContext(
+  context: CallableContext,
+  projectId: string,
+  appId: string
+) {
+  expect(context.app).to.not.be.undefined;
+  expect(context.app).to.not.be.null;
+  expect(context.app.appId).to.equal(appId);
+  expect(context.app.token.app_id).to.be.equal(appId);
+  expect(context.app.token.sub).to.be.equal(appId);
+  expect(context.app.token.aud).to.be.deep.equal([`projects/${projectId}`]);
+  expect(context.auth).to.be.undefined;
+  expect(context.instanceIdToken).to.be.undefined;
+}
+
+function checkAuthRequest(request: CallableRequest, projectId: string) {
+  expect(request.auth).to.not.be.undefined;
+  expect(request.auth).to.not.be.null;
+  expect(request.auth.uid).to.equal(mocks.user_id);
+  expect(request.auth.token.uid).to.equal(mocks.user_id);
+  expect(request.auth.token.sub).to.equal(mocks.user_id);
+  expect(request.auth.token.aud).to.equal(projectId);
+  expect(request.instanceIdToken).to.be.undefined;
+}
+
+function checkAppCheckRequest(
+  request: CallableRequest,
+  projectId: string,
+  appId: string
+) {
+  expect(request.app).to.not.be.undefined;
+  expect(request.app).to.not.be.null;
+  expect(request.app.appId).to.equal(appId);
+  expect(request.app.token.app_id).to.be.equal(appId);
+  expect(request.app.token.sub).to.be.equal(appId);
+  expect(request.app.token.aud).to.be.deep.equal([`projects/${projectId}`]);
+  expect(request.auth).to.be.undefined;
+  expect(request.instanceIdToken).to.be.undefined;
 }
 
 describe('onCallHandler', () => {
@@ -360,23 +412,11 @@ describe('onCallHandler', () => {
       }),
       expectedData: null,
       callableFunction: (data, context) => {
-        expect(context.auth).to.not.be.undefined;
-        expect(context.auth).to.not.be.null;
-        expect(context.auth.uid).to.equal(mocks.user_id);
-        expect(context.auth.token.uid).to.equal(mocks.user_id);
-        expect(context.auth.token.sub).to.equal(mocks.user_id);
-        expect(context.auth.token.aud).to.equal(projectId);
-        expect(context.instanceIdToken).to.be.undefined;
+        checkAuthContext(context, projectId);
         return null;
       },
       callableFunction2: (request) => {
-        expect(request.auth).to.not.be.undefined;
-        expect(request.auth).to.not.be.null;
-        expect(request.auth.uid).to.equal(mocks.user_id);
-        expect(request.auth.token.uid).to.equal(mocks.user_id);
-        expect(request.auth.token.sub).to.equal(mocks.user_id);
-        expect(request.auth.token.aud).to.equal(projectId);
-        expect(request.instanceIdToken).to.be.undefined;
+        checkAuthRequest(request, projectId);
         return null;
       },
       expectedHttpResponse: {
@@ -424,29 +464,11 @@ describe('onCallHandler', () => {
       httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
       expectedData: null,
       callableFunction: (data, context) => {
-        expect(context.app).to.not.be.undefined;
-        expect(context.app).to.not.be.null;
-        expect(context.app.appId).to.equal(appId);
-        expect(context.app.token.app_id).to.be.equal(appId);
-        expect(context.app.token.sub).to.be.equal(appId);
-        expect(context.app.token.aud).to.be.deep.equal([
-          `projects/${projectId}`,
-        ]);
-        expect(context.auth).to.be.undefined;
-        expect(context.instanceIdToken).to.be.undefined;
+        checkAppCheckContext(context, projectId, appId);
         return null;
       },
       callableFunction2: (request) => {
-        expect(request.app).to.not.be.undefined;
-        expect(request.app).to.not.be.null;
-        expect(request.app.appId).to.equal(appId);
-        expect(request.app.token.app_id).to.be.equal(appId);
-        expect(request.app.token.sub).to.be.equal(appId);
-        expect(request.app.token.aud).to.be.deep.equal([
-          `projects/${projectId}`,
-        ]);
-        expect(request.auth).to.be.undefined;
-        expect(request.instanceIdToken).to.be.undefined;
+        checkAppCheckRequest(request, projectId, appId);
         return null;
       },
       expectedHttpResponse: {
@@ -578,23 +600,12 @@ describe('onCallHandler', () => {
         ),
         expectedData: null,
         callableFunction: (data, context) => {
-          expect(context.auth).to.not.be.undefined;
-          expect(context.auth).to.not.be.null;
-          expect(context.auth.uid).to.equal(mocks.user_id);
-          expect(context.auth.token.uid).to.equal(mocks.user_id);
-          expect(context.auth.token.sub).to.equal(mocks.user_id);
-          expect(context.auth.token.aud).to.equal(projectId);
-          expect(context.instanceIdToken).to.be.undefined;
+          checkAuthContext(context, projectId);
           return null;
         },
         callableFunction2: (request) => {
-          expect(request.auth).to.not.be.undefined;
-          expect(request.auth).to.not.be.null;
-          expect(request.auth.uid).to.equal(mocks.user_id);
-          expect(request.auth.token.uid).to.equal(mocks.user_id);
-          expect(request.auth.token.sub).to.equal(mocks.user_id);
-          expect(request.auth.token.aud).to.equal(projectId);
-          expect(request.instanceIdToken).to.be.undefined;
+          checkAuthRequest(request, projectId);
+          return null;
         },
         expectedHttpResponse: {
           status: 200,
@@ -617,29 +628,11 @@ describe('onCallHandler', () => {
         ),
         expectedData: null,
         callableFunction: (data, context) => {
-          expect(context.app).to.not.be.undefined;
-          expect(context.app).to.not.be.null;
-          expect(context.app.appId).to.equal(appId);
-          expect(context.app.token.app_id).to.be.equal(appId);
-          expect(context.app.token.sub).to.be.equal(appId);
-          expect(context.app.token.aud).to.be.deep.equal([
-            `projects/${projectId}`,
-          ]);
-          expect(context.auth).to.be.undefined;
-          expect(context.instanceIdToken).to.be.undefined;
+          checkAppCheckContext(context, projectId, appId);
           return null;
         },
         callableFunction2: (request) => {
-          expect(request.app).to.not.be.undefined;
-          expect(request.app).to.not.be.null;
-          expect(request.app.appId).to.equal(appId);
-          expect(request.app.token.app_id).to.be.equal(appId);
-          expect(request.app.token.sub).to.be.equal(appId);
-          expect(request.app.token.aud).to.be.deep.equal([
-            `projects/${projectId}`,
-          ]);
-          expect(request.auth).to.be.undefined;
-          expect(request.instanceIdToken).to.be.undefined;
+          checkAppCheckRequest(request, projectId, appId);
           return null;
         },
         expectedHttpResponse: {
