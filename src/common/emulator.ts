@@ -24,5 +24,5 @@
  * Returns true if the process is running in an emulated environment.
  */
 export function isEmulator(): boolean {
-    return !!process.env.FUNCTIONS_EMULATOR;
+  return !!process.env.FUNCTIONS_EMULATOR;
 }

@@ -579,10 +579,10 @@ async function checkTokens(
     if (match) {
       const idToken = match[1];
       try {
-        const verify = isEmulator ?
-            (tok) => JSON.parse(decodeURIComponent(tok)) :
+        const process = isEmulator ?
+            decodeIdToken :
             apps().admin.auth().verifyIdToken;
-        const authToken = await verify(idToken);
+        const authToken = await process(idToken);
         verifications.auth = 'VALID';
         ctx.auth = {
           uid: authToken.uid,
@@ -659,11 +659,8 @@ function wrapOnCallHandler<Req = any, Res = any>(
       }
 
       const context: CallableContext = { rawRequest: req };
-      const tokenStatus = await checkTokens(req, context);
-      if (tokenStatus.auth === 'INVALID') {
-        throw new HttpsError('unauthenticated', 'Unauthenticated');
-      }
-      if (tokenStatus.app === 'INVALID' && !options.allowInvalidAppCheckToken) {
+      const tokenStatus = await checkTokens(req, context, isEmulator() &&  req.hostname === 'localhost');
+      if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 
