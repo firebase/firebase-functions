@@ -172,15 +172,13 @@ export interface CustomerEncryption {
   keySha256?: string;
 }
 
-/** @hidden */
-export const service = 'storage.googleapis.com';
-/** @hidden */
+/** @internal */
 export const archivedEvent = 'google.cloud.storage.object.v1.archived';
-/** @hidden */
+/** @internal */
 export const finalizedEvent = 'google.cloud.storage.object.v1.finalized';
-/** @hidden */
+/** @internal */
 export const deletedEvent = 'google.cloud.storage.object.v1.deleted';
-/** @hidden */
+/** @internal */
 export const metadataUpdatedEvent =
   'google.cloud.storage.object.v1.metadataUpdated';
 
@@ -211,7 +209,7 @@ export function onObjectArchived(
     | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
   handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
-  return _onOperation(archivedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(archivedEvent, buketOrOptsOrHandler, handler);
 }
 
 /** Handle a storage object finalized */
@@ -236,7 +234,7 @@ export function onObjectFinalized(
     | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
   handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
-  return _onOperation(finalizedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(finalizedEvent, buketOrOptsOrHandler, handler);
 }
 
 /** Handle a storage object deleted */
@@ -261,7 +259,7 @@ export function onObjectDeleted(
     | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
   handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
-  return _onOperation(deletedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(deletedEvent, buketOrOptsOrHandler, handler);
 }
 
 /** Handle a storage object metadata updated */
@@ -286,11 +284,11 @@ export function onObjectMetadataUpdated(
     | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
   handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
-  return _onOperation(metadataUpdatedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(metadataUpdatedEvent, buketOrOptsOrHandler, handler);
 }
 
-/** @hidden */
-export function _onOperation(
+/** @internal */
+export function onOperation(
   eventType: string,
   bucketOrOptsOrHandler:
     | string
@@ -305,7 +303,7 @@ export function _onOperation(
     bucketOrOptsOrHandler = {};
   }
 
-  const [opts, bucket] = _getOptsAndBucket(
+  const [opts, bucket] = getOptsAndBucket(
     bucketOrOptsOrHandler as string | StorageOptions
   );
 
@@ -328,9 +326,6 @@ export function _onOperation(
       const specificOpts = options.optionsToTriggerAnnotations(opts);
 
       return {
-        // TODO(colerogers): Remove "apiVersion" once the CLI has migrated to
-        // "platform"
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
@@ -340,8 +335,7 @@ export function _onOperation(
         },
         eventTrigger: {
           eventType: eventType,
-          resource: bucket, // TODO(colerogers): replace with bucket eventually
-          service: 'storage.googleapis.com',
+          resource: bucket, // TODO(colerogers): replace with 'bucket,' eventually
         },
       };
     },
@@ -350,8 +344,8 @@ export function _onOperation(
   return func;
 }
 
-/** @hidden */
-export function _getOptsAndBucket(
+/** @internal */
+export function getOptsAndBucket(
   bucketOrOpts: string | StorageOptions
 ): [options.EventHandlerOptions, string] {
   let bucket: string;
