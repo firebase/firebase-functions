@@ -553,7 +553,8 @@ export function decodeAppCheckToken(token: string): DecodedAppCheckToken {
 }
 
 function isEmulatorRequest(req: Request): boolean {
-  return !!process.env.FUNCTIONS_EMULATOR && req.hostname === 'localhost';
+  const host = req.hostname ?? req.headers.host ?? '';
+  return !!process.env.FUNCTIONS_EMULATOR && host.startsWith('localhost');
 }
 
 /**

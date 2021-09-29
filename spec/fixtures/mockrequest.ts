@@ -1,3 +1,4 @@
+import * as jws from 'jws';
 import * as jwt from 'jsonwebtoken';
 import * as jwkToPem from 'jwk-to-pem';
 import * as _ from 'lodash';
@@ -29,14 +30,15 @@ export function mockRequest(
     authorization?: string;
     instanceIdToken?: string;
     appCheckToken?: string;
-  } = {}
+  } = {},
+  headers: Record<string, string> = {}
 ) {
   const body: any = {};
   if (!_.isUndefined(data)) {
     body.data = data;
   }
 
-  const headers = {
+  const baseHeaders = {
     'content-type': contentType,
     authorization: context.authorization,
     'firebase-instance-id-token': context.instanceIdToken,
@@ -44,7 +46,7 @@ export function mockRequest(
     origin: 'example.com',
   };
 
-  return new MockRequest(body, headers);
+  return new MockRequest(body, { ...baseHeaders, ...headers });
 }
 
 export const expectedResponseHeaders = {
@@ -86,6 +88,24 @@ export function generateIdToken(projectId: string): string {
 }
 
 /**
+ * Generates a mocked, unsigned Firebase ID token.
+ */
+export function generateUnsignedIdToken(projectId: string): string {
+  const options: jws.SignOptions = {
+    payload: {
+      aud: projectId,
+      sub: mockKey.user_id,
+    },
+    header: {
+      alg: 'HS256',
+      typ: 'JWT',
+    },
+    secret: Buffer.from(''),
+  };
+  return jws.sign(options);
+}
+
+/**
  * Mocks out the http request used by the firebase-admin SDK to get the jwks for
  * verifying an AppCheck token.
  */
@@ -120,4 +140,25 @@ export function generateAppCheckToken(
     },
   };
   return jwt.sign(claims, jwkToPem(mockJWK, { private: true }), options);
+}
+
+/**
+ * Generates a mocked, unsigned AppCheck token.
+ */
+export function generateUnsignedAppCheckToken(
+  projectId: string,
+  appId: string
+): string {
+  const options: jws.SignOptions = {
+    payload: {
+      sub: appId,
+      aud: [`projects/${projectId}`],
+    },
+    header: {
+      alg: 'HS256',
+      typ: 'JWT',
+    },
+    secret: Buffer.from(''),
+  };
+  return jws.sign(options);
 }

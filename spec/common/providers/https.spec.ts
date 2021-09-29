@@ -9,6 +9,8 @@ import {
   expectedResponseHeaders,
   generateAppCheckToken,
   generateIdToken,
+  generateUnsignedAppCheckToken,
+  generateUnsignedIdToken,
   mockFetchAppCheckPublicJwks,
   mockFetchPublicKeys,
   mockRequest,
@@ -387,9 +389,11 @@ describe('onCallHandler', () => {
   });
 
   it('should reject bad auth', async () => {
+    const projectId = appsNamespace().admin.options.projectId;
+    const idToken = generateUnsignedIdToken(projectId);
     await runTest({
       httpRequest: mockRequest(null, 'application/json', {
-        authorization: 'Bearer FAKE',
+        authorization: 'Bearer ' + idToken,
       }),
       expectedData: null,
       callableFunction: (data, context) => {
@@ -455,10 +459,11 @@ describe('onCallHandler', () => {
   });
 
   it('should reject bad AppCheck token', async () => {
+    const projectId = appsNamespace().admin.options.projectId;
+    const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+    const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
     await runTest({
-      httpRequest: mockRequest(null, 'application/json', {
-        appCheckToken: 'FAKE',
-      }),
+      httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
       expectedData: null,
       callableFunction: (data, context) => {
         return;
@@ -547,6 +552,102 @@ describe('onCallHandler', () => {
         headers: expectedResponseHeaders,
         body: { result: null },
       },
+    });
+  });
+
+  describe('emulator support', () => {
+    before(() => {
+      process.env.FUNCTIONS_EMULATOR = 'true';
+    });
+
+    after(() => {
+      delete process.env.FUNCTIONS_EMULATOR;
+    });
+
+    it('should skip auth token check in emulator mode', async () => {
+      const projectId = appsNamespace().admin.options.projectId;
+      const idToken = generateUnsignedIdToken(projectId);
+      await runTest({
+        httpRequest: mockRequest(
+          null,
+          'application/json',
+          {
+            authorization: 'Bearer ' + idToken,
+          },
+          { host: 'localhost' }
+        ),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.auth).to.not.be.undefined;
+          expect(context.auth).to.not.be.null;
+          expect(context.auth.uid).to.equal(mocks.user_id);
+          expect(context.auth.token.uid).to.equal(mocks.user_id);
+          expect(context.auth.token.sub).to.equal(mocks.user_id);
+          expect(context.auth.token.aud).to.equal(projectId);
+          expect(context.instanceIdToken).to.be.undefined;
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.auth).to.not.be.undefined;
+          expect(request.auth).to.not.be.null;
+          expect(request.auth.uid).to.equal(mocks.user_id);
+          expect(request.auth.token.uid).to.equal(mocks.user_id);
+          expect(request.auth.token.sub).to.equal(mocks.user_id);
+          expect(request.auth.token.aud).to.equal(projectId);
+          expect(request.instanceIdToken).to.be.undefined;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it('should skip app check token check in emulator mode', async () => {
+      const projectId = appsNamespace().admin.options.projectId;
+      const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+      const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
+      await runTest({
+        httpRequest: mockRequest(
+          null,
+          'application/json',
+          { appCheckToken },
+          { host: 'localhost' }
+        ),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.app).to.not.be.undefined;
+          expect(context.app).to.not.be.null;
+          expect(context.app.appId).to.equal(appId);
+          expect(context.app.token.app_id).to.be.equal(appId);
+          expect(context.app.token.sub).to.be.equal(appId);
+          expect(context.app.token.aud).to.be.deep.equal([
+            `projects/${projectId}`,
+          ]);
+          expect(context.auth).to.be.undefined;
+          expect(context.instanceIdToken).to.be.undefined;
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.app).to.not.be.undefined;
+          expect(request.app).to.not.be.null;
+          expect(request.app.appId).to.equal(appId);
+          expect(request.app.token.app_id).to.be.equal(appId);
+          expect(request.app.token.sub).to.be.equal(appId);
+          expect(request.app.token.aud).to.be.deep.equal([
+            `projects/${projectId}`,
+          ]);
+          expect(request.auth).to.be.undefined;
+          expect(request.instanceIdToken).to.be.undefined;
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
     });
   });
 });
