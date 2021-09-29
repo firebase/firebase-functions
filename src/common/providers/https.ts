@@ -508,7 +508,9 @@ interface CallableTokenStatus {
  * This is exposed only for testing.
  */
 /** @hidden */
-export function decodeIdToken(token: string): Promise<firebase.auth.DecodedIdToken> {
+export function decodeIdToken(
+  token: string
+): Promise<firebase.auth.DecodedIdToken> {
   const decoded = jwsDecode(token);
   if (!decoded) {
     return Promise.resolve({} as firebase.auth.DecodedIdToken);
@@ -519,11 +521,11 @@ export function decodeIdToken(token: string): Promise<firebase.auth.DecodedIdTok
     try {
       const obj = JSON.parse(decoded.payload);
       if (typeof obj === 'object') {
-        payload = obj
+        payload = obj;
       }
-    } catch (e) { }
+    } catch (e) {}
   }
-  if (typeof payload === "object") {
+  if (typeof payload === 'object') {
     if (!!payload.sub) {
       payload.uid = payload.sub;
     }
@@ -543,7 +545,7 @@ export function decodeIdToken(token: string): Promise<firebase.auth.DecodedIdTok
 async function checkTokens(
   req: Request,
   ctx: CallableContext,
-  isEmulator: boolean,
+  isEmulator: boolean
 ): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
     app: 'MISSING',
@@ -579,9 +581,9 @@ async function checkTokens(
     if (match) {
       const idToken = match[1];
       try {
-        const process = isEmulator ?
-            decodeIdToken :
-            apps().admin.auth().verifyIdToken;
+        const process = isEmulator
+          ? decodeIdToken
+          : apps().admin.auth().verifyIdToken;
         const authToken = await process(idToken);
         verifications.auth = 'VALID';
         ctx.auth = {
@@ -624,12 +626,6 @@ async function checkTokens(
 type v1Handler = (data: any, context: CallableContext) => any | Promise<any>;
 type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
 
-/** @hidden **/
-export interface CallableOptions {
-  cors: cors.CorsOptions;
-  allowInvalidAppCheckToken?: boolean;
-}
-
 /** @hidden */
 export function onCallHandler<Req = any, Res = any>(
   options: cors.CorsOptions,
@@ -648,7 +644,6 @@ export function onCallHandler<Req = any, Res = any>(
 
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
   handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
@@ -659,7 +654,11 @@ function wrapOnCallHandler<Req = any, Res = any>(
       }
 
       const context: CallableContext = { rawRequest: req };
-      const tokenStatus = await checkTokens(req, context, isEmulator() &&  req.hostname === 'localhost');
+      const tokenStatus = await checkTokens(
+        req,
+        context,
+        isEmulator() && req.hostname === 'localhost'
+      );
       if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }

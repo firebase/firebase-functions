@@ -13,7 +13,10 @@ import {
   mockFetchPublicKeys,
   mockRequest,
 } from '../../fixtures/mockrequest';
-import { decodeIdToken } from '../../../src/common/providers/https';
+import {
+  decodeAppCheckToken,
+  decodeIdToken,
+} from '../../../src/common/providers/https';
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -668,10 +671,16 @@ describe('encoding/decoding', () => {
   });
 });
 
-describe('decodeUnsignedAuthId', () => {
-  it('decodes valid Auth ID Token', async () => {
-    const idToken = await decodeIdToken(generateIdToken('aProject'));
+describe('decode tokens', () => {
+  it('decodes valid Auth ID Token', () => {
+    const idToken = decodeIdToken(generateIdToken('aProject'));
     expect(idToken.uid).to.equal(mocks.user_id);
+    expect(idToken.sub).to.equal(mocks.user_id);
+  });
+
+  it('decodes valid App Check Token', () => {
+    const idToken = decodeAppCheckToken(generateIdToken('aProject'));
+    expect(idToken.app_id).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });
 });
