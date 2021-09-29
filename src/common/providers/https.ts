@@ -23,12 +23,14 @@
 import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
+import { decode as jwsDecode } from 'jws';
 
 import * as logger from '../../logger';
 
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
 import { apps } from '../../apps';
+import { isEmulator } from '../emulator';
 
 /** @hidden */
 export interface Request extends express.Request {
@@ -501,6 +503,35 @@ interface CallableTokenStatus {
 }
 
 /**
+ * Decodes Auth ID token.
+ *
+ * This is exposed only for testing.
+ */
+/** @hidden */
+export function decodeIdToken(token: string): Promise<firebase.auth.DecodedIdToken> {
+  const decoded = jwsDecode(token);
+  if (!decoded) {
+    return Promise.resolve({} as firebase.auth.DecodedIdToken);
+  }
+
+  let payload = decoded.payload;
+  if (typeof payload === 'string') {
+    try {
+      const obj = JSON.parse(decoded.payload);
+      if (typeof obj === 'object') {
+        payload = obj
+      }
+    } catch (e) { }
+  }
+  if (typeof payload === "object") {
+    if (!!payload.sub) {
+      payload.uid = payload.sub;
+    }
+  }
+  return Promise.resolve(payload as firebase.auth.DecodedIdToken);
+}
+
+/**
  * Check and verify tokens included in the requests. Once verified, tokens
  * are injected into the callable context.
  *
@@ -511,7 +542,8 @@ interface CallableTokenStatus {
 /** @hidden */
 async function checkTokens(
   req: Request,
-  ctx: CallableContext
+  ctx: CallableContext,
+  isEmulator: boolean,
 ): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
     app: 'MISSING',
@@ -547,10 +579,10 @@ async function checkTokens(
     if (match) {
       const idToken = match[1];
       try {
-        const authToken = await apps()
-          .admin.auth()
-          .verifyIdToken(idToken);
-
+        const verify = isEmulator ?
+            (tok) => JSON.parse(decodeURIComponent(tok)) :
+            apps().admin.auth().verifyIdToken;
+        const authToken = await verify(idToken);
         verifications.auth = 'VALID';
         ctx.auth = {
           uid: authToken.uid,
@@ -600,14 +632,14 @@ export interface CallableOptions {
 
 /** @hidden */
 export function onCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
+  options: cors.CorsOptions,
   handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
-  const wrapped = wrapOnCallHandler(options, handler);
+  const wrapped = wrapOnCallHandler(handler);
   return (req: Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on('finish', resolve);
-      cors(options.cors)(req, res, () => {
+      cors(options)(req, res, () => {
         resolve(wrapped(req, res));
       });
     });

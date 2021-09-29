@@ -137,6 +137,7 @@
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "jws": "^3.0.0",
     "lodash": "^4.17.14"
   },
   "devDependencies": {
