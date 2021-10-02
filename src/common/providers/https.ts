@@ -507,7 +507,9 @@ function decodeToken(token: string): unknown {
   if (!JWT_REGEX.test(token)) {
     return {};
   }
-  const components = token.split(".").map(s => Buffer.from(s, "base64").toString("utf8"))
+  const components = token
+    .split('.')
+    .map((s) => Buffer.from(s, 'base64').toString('utf8'));
   let payload = components[1];
   if (typeof payload === 'string') {
     try {
