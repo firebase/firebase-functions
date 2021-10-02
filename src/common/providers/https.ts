@@ -23,13 +23,14 @@
 import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import { decode as jwsDecode } from 'jws';
 
 import * as logger from '../../logger';
 
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
 import { apps } from '../../apps';
+
+const JWT_REGEX = /^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/;
 
 /** @hidden */
 export interface Request extends express.Request {
@@ -503,15 +504,14 @@ interface CallableTokenStatus {
 }
 
 function decodeToken(token: string): unknown {
-  const decoded = jwsDecode(token);
-  if (!decoded) {
+  if (!JWT_REGEX.test(token)) {
     return {};
   }
-
-  let payload = decoded.payload;
+  const components = token.split(".").map(s => Buffer.from(s, "base64").toString("utf8"))
+  let payload = components[1];
   if (typeof payload === 'string') {
     try {
-      const obj = JSON.parse(decoded.payload);
+      const obj = JSON.parse(payload);
       if (typeof obj === 'object') {
         payload = obj;
       }
