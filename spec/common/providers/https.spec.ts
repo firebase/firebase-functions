@@ -458,7 +458,7 @@ describe('onCallHandler', () => {
   it('should handle AppCheck token', async () => {
     const mock = mockFetchAppCheckPublicJwks();
     const projectId = appsNamespace().admin.options.projectId;
-    const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+    const appId = '123:web:abc';
     const appCheckToken = generateAppCheckToken(projectId, appId);
     await runTest({
       httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
@@ -482,7 +482,7 @@ describe('onCallHandler', () => {
 
   it('should reject bad AppCheck token', async () => {
     const projectId = appsNamespace().admin.options.projectId;
-    const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+    const appId = '123:web:abc';
     const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
     await runTest({
       httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
@@ -617,7 +617,7 @@ describe('onCallHandler', () => {
 
     it('should skip app check token check in emulator mode', async () => {
       const projectId = appsNamespace().admin.options.projectId;
-      const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+      const appId = '123:web:abc';
       const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
       await runTest({
         httpRequest: mockRequest(
