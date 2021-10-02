@@ -509,7 +509,7 @@ function decodeToken(token: string): unknown {
   }
   const components = token
     .split('.')
-    .map((s) => Buffer.from(s, 'base64').toString('utf8'));
+    .map((s) => Buffer.from(s, 'base64').toString());
   let payload = components[1];
   if (typeof payload === 'string') {
     try {
