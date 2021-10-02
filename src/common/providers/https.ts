@@ -527,7 +527,7 @@ function decodeToken(token: string): unknown {
  *
  * This is exposed only for testing.
  */
-/** @hidden */
+/** @internal */
 export function decodeIdToken(token: string): firebase.auth.DecodedIdToken {
   const decoded = decodeToken(token) as firebase.auth.DecodedIdToken;
   decoded.uid = decoded.sub;
@@ -539,7 +539,7 @@ export function decodeIdToken(token: string): firebase.auth.DecodedIdToken {
  *
  * This is exposed only for testing.
  */
-/** @hidden */
+/** @internal */
 export function decodeAppCheckToken(token: string): DecodedAppCheckToken {
   const decoded = decodeToken(token) as DecodedAppCheckToken;
   decoded.app_id = decoded.sub;
