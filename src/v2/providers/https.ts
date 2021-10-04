@@ -40,7 +40,7 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
     | options.SupportedRegion
     | string
     | Array<options.SupportedRegion | string>;
-  cors?: string | boolean;
+  cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
 
 export type HttpsFunction = ((
