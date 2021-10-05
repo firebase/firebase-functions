@@ -230,6 +230,64 @@ describe('callable CORS', () => {
     });
   });
 
+  it('handles OPTIONS preflight with CORS options', async () => {
+    const func = https.onCall({ cors: 'example1.com' }, (data, context) => {
+      throw new Error(
+        `This shouldn't have gotten called for an OPTIONS preflight.`
+      );
+    });
+
+    const req = new MockRequest(
+      {},
+      {
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'origin',
+        Origin: 'example.com',
+      }
+    );
+    req.method = 'OPTIONS';
+
+    const response = await runHandler(func, req as any);
+
+    expect(response.status).to.equal(204);
+    expect(response.body).to.be.undefined;
+    expect(response.headers).to.deep.equal({
+      'Access-Control-Allow-Methods': 'POST',
+      'Access-Control-Allow-Origin': 'example1.com',
+      'Content-Length': '0',
+      Vary: 'Origin, Access-Control-Request-Headers',
+    });
+  });
+
+  it('handles OPTIONS preflight with CORS options', async () => {
+    const func = https.onCall({ cors: ['example1.com', 'example2.com'] }, (data, context) => {
+      throw new Error(
+          `This shouldn't have gotten called for an OPTIONS preflight.`
+      );
+    });
+
+    const req = new MockRequest(
+        {},
+        {
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'origin',
+          Origin: 'example.com',
+        }
+    );
+    req.method = 'OPTIONS';
+
+    const response = await runHandler(func, req as any);
+
+    expect(response.status).to.equal(204);
+    expect(response.body).to.be.undefined;
+    expect(response.headers).to.deep.equal({
+      'Access-Control-Allow-Methods': 'POST',
+      // Missing 'Access-Control-Allow-Origin' b/c example.com is not part of configured origin.
+      'Content-Length': '0',
+      Vary: 'Origin, Access-Control-Request-Headers',
+    });
+  });
+
   it('adds CORS headers', async () => {
     const func = https.onCall((data, context) => 42);
     const req = new MockRequest(
@@ -240,6 +298,26 @@ describe('callable CORS', () => {
         'content-type': 'application/json',
         origin: 'example.com',
       }
+    );
+    req.method = 'POST';
+
+    const response = await runHandler(func, req as any);
+
+    expect(response.status).to.equal(200);
+    expect(response.body).to.be.deep.equal({ result: 42 });
+    expect(response.headers).to.deep.equal(expectedResponseHeaders);
+  });
+
+  it('adds CORS headers with CORS options', async () => {
+    const func = https.onCall({ cors: 'example.com' }, (data, context) => 42);
+    const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          'content-type': 'application/json',
+          origin: 'example1.com',
+        }
     );
     req.method = 'POST';
 
