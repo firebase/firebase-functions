@@ -34,6 +34,7 @@ import {
   VALID_MEMORY_OPTIONS,
   VPC_EGRESS_SETTINGS_OPTIONS,
 } from './function-configuration';
+import { CallableContext, CallableV1Options } from './providers/https';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as database from './providers/database';
@@ -44,7 +45,6 @@ import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
 
-import type { CallableContext, CallableV1Options } from './providers/https';
 
 /**
  * Assert that the runtime options passed in are valid.
