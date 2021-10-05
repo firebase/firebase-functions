@@ -306,7 +306,7 @@ function _onCall<T = any, Return = any | Promise<any>>(
   } else {
     opts = optsOrHandler as CallableV1Options;
   }
-  return https._onCallWithOptions(opts, handler, {});
+  return https._onCallWithOptions(opts, handler, this.options);
 }
 
 export class FunctionBuilder {
@@ -375,7 +375,7 @@ export class FunctionBuilder {
        * @param opts Configuration options for a callable function.
        * @param handler A method that takes a data and context and returns a value.
        */
-      onCall: _onCall,
+      onCall: _onCall.bind(this),
     };
   }
 
