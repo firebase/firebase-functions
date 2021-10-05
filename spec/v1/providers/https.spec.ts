@@ -260,19 +260,22 @@ describe('callable CORS', () => {
   });
 
   it('handles OPTIONS preflight with CORS options', async () => {
-    const func = https.onCall({ cors: ['example1.com', 'example2.com'] }, (data, context) => {
-      throw new Error(
+    const func = https.onCall(
+      { cors: ['example1.com', 'example2.com'] },
+      (data, context) => {
+        throw new Error(
           `This shouldn't have gotten called for an OPTIONS preflight.`
-      );
-    });
+        );
+      }
+    );
 
     const req = new MockRequest(
-        {},
-        {
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'origin',
-          Origin: 'example.com',
-        }
+      {},
+      {
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'origin',
+        Origin: 'example.com',
+      }
     );
     req.method = 'OPTIONS';
 
@@ -311,13 +314,13 @@ describe('callable CORS', () => {
   it('adds CORS headers with CORS options', async () => {
     const func = https.onCall({ cors: 'example.com' }, (data, context) => 42);
     const req = new MockRequest(
-        {
-          data: {},
-        },
-        {
-          'content-type': 'application/json',
-          origin: 'example1.com',
-        }
+      {
+        data: {},
+      },
+      {
+        'content-type': 'application/json',
+        origin: 'example1.com',
+      }
     );
     req.method = 'POST';
 
