@@ -230,7 +230,7 @@ describe('callable CORS', () => {
     });
   });
 
-  it('handles OPTIONS preflight with CORS options', async () => {
+  it('handles OPTIONS preflight with CORS options w/ single origin', async () => {
     const func = https.onCall({ cors: 'example1.com' }, (data, context) => {
       throw new Error(
         `This shouldn't have gotten called for an OPTIONS preflight.`
@@ -259,7 +259,7 @@ describe('callable CORS', () => {
     });
   });
 
-  it('handles OPTIONS preflight with CORS options', async () => {
+  it('handles OPTIONS preflight with CORS options w/ multiple origins', async () => {
     const func = https.onCall(
       { cors: ['example1.com', 'example2.com'] },
       (data, context) => {
@@ -285,7 +285,7 @@ describe('callable CORS', () => {
     expect(response.body).to.be.undefined;
     expect(response.headers).to.deep.equal({
       'Access-Control-Allow-Methods': 'POST',
-      // Missing 'Access-Control-Allow-Origin' b/c example.com is not part of configured origin.
+      // Missing 'Access-Control-Allow-Origin' b/c example.com is not in configured origins.
       'Content-Length': '0',
       Vary: 'Origin, Access-Control-Request-Headers',
     });
