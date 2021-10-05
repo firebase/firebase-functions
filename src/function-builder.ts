@@ -23,7 +23,7 @@
 import * as express from 'express';
 import * as _ from 'lodash';
 
-import { CloudFunction, EventContext } from './cloud-functions';
+import { CloudFunction, EventContext, HttpsFunction, Runnable } from './cloud-functions';
 import {
   DeploymentOptions,
   INGRESS_SETTINGS_OPTIONS,
@@ -43,6 +43,8 @@ import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
+
+import type { CallableContext, CallableV1Options } from './providers/https';
 
 /**
  * Assert that the runtime options passed in are valid.
@@ -284,6 +286,29 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   }
 }
 
+function _onCall<T = any, Return = any | Promise<any>>(
+  opts: CallableV1Options,
+  handler: (data: T, context: CallableContext) => Return
+): HttpsFunction & Runnable<T>;
+function _onCall<T = any, Return = any | Promise<any>>(
+  handler: (data: T, context: CallableContext) => Return
+): HttpsFunction & Runnable<T>;
+function _onCall<T = any, Return = any | Promise<any>>(
+  optsOrHandler:
+    | CallableV1Options
+    | ((data: T, context: CallableContext) => Return),
+  handler?: (data: T, context: CallableContext) => Return
+): HttpsFunction & Runnable<T> {
+  let opts: CallableV1Options;
+  if (arguments.length == 1) {
+    opts = {};
+    handler = optsOrHandler as (data: T, context: CallableContext) => Return;
+  } else {
+    opts = optsOrHandler as CallableV1Options;
+  }
+  return https._onCallWithOptions(opts, handler, {});
+}
+
 export class FunctionBuilder {
   constructor(private options: DeploymentOptions) {}
 
@@ -347,14 +372,10 @@ export class FunctionBuilder {
       ) => https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
+       * @param opts Configuration options for a callable function.
        * @param handler A method that takes a data and context and returns a value.
        */
-      onCall: (
-        handler: (
-          data: any,
-          context: https.CallableContext
-        ) => any | Promise<any>
-      ) => https._onCallWithOptions(handler, this.options),
+      onCall: _onCall,
     };
   }
 

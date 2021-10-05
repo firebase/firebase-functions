@@ -78,7 +78,7 @@ export class HandlerBuilder {
           context: https.CallableContext
         ) => any | Promise<any>
       ): HttpsFunction => {
-        const func = https._onCallWithOptions(handler, {});
+        const func = https._onCallWithOptions({}, handler, {});
         func.__trigger = {};
         return func;
       },

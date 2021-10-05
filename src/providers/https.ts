@@ -46,14 +46,37 @@ export function onRequest(
   return _onRequestWithOptions(handler, {});
 }
 
+export interface CallableV1Options {
+  cors?: string | boolean | RegExp | Array<string | RegExp>;
+  allowInvalidAppCheckToken?: boolean;
+}
+
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
+ * @param opts Configuration options for the callable function.
  * @param handler A method that takes a data and context and returns a value.
  */
-export function onCall(
-  handler: (data: any, context: CallableContext) => any | Promise<any>
-): HttpsFunction & Runnable<any> {
-  return _onCallWithOptions(handler, {});
+export function onCall<T = any, Return = any | Promise<any>>(
+  opts: CallableV1Options,
+  handler: (data: T, context: CallableContext) => Return
+): HttpsFunction & Runnable<T>;
+export function onCall<T = any, Return = any | Promise<any>>(
+  handler: (data: T, context: CallableContext) => Return
+): HttpsFunction & Runnable<T>;
+export function onCall<T = any, Return = any | Promise<any>>(
+  optsOrHandler:
+    | CallableV1Options
+    | ((data: T, context: CallableContext) => Return),
+  handler?: (data: T, context: CallableContext) => Return
+): HttpsFunction & Runnable<T> {
+  let opts: CallableV1Options;
+  if (arguments.length == 1) {
+    opts = {};
+    handler = optsOrHandler as (data: T, context: CallableContext) => Return;
+  } else {
+    opts = optsOrHandler as CallableV1Options;
+  }
+  return _onCallWithOptions(opts, handler, {});
 }
 
 /** @hidden */
@@ -82,19 +105,25 @@ export function _onRequestWithOptions(
 
 /** @hidden */
 export function _onCallWithOptions(
+  opts: CallableV1Options,
   handler: (data: any, context: CallableContext) => any | Promise<any>,
-  options: DeploymentOptions
+  deployOpts: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
+  const origin = 'cors' in opts ? opts.cors : true;
+
   // onCallHandler sniffs the function length of the passed-in callback
   // and the user could have only tried to listen to data. Wrap their handler
   // in another handler to avoid accidentally triggering the v2 API
   const fixedLen = (data: any, context: CallableContext) =>
     handler(data, context);
-  const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
+  const func: any = onCallHandler(
+    { ...opts, cors: { origin: origin, methods: 'POST' } },
+    fixedLen
+  );
 
   func.__trigger = {
     labels: {},
-    ...optionsToTrigger(options),
+    ...optionsToTrigger(deployOpts),
     httpsTrigger: {},
   };
   func.__trigger.labels['deployment-callable'] = 'true';
