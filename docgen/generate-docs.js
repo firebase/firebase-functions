@@ -36,7 +36,7 @@ const { api: apiVersion } = yargs
 let sourceFile, devsitePath;
 switch (apiVersion) {
   case 'v1':
-    sourceFile = `${repoPath}/src/{v1,logger}`;
+    sourceFile = `${repoPath}/src/index.ts`;
     devsitePath = '/docs/reference/functions/';
     break;
   case 'v2':
