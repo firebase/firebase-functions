@@ -594,7 +594,7 @@ type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
 
 interface CallableOptions {
   cors: cors.CorsOptions;
-  allowInvalidAppCheckToken?: boolean,
+  allowInvalidAppCheckToken?: boolean;
 }
 
 /** @hidden */

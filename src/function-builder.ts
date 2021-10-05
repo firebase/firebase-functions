@@ -23,7 +23,12 @@
 import * as express from 'express';
 import * as _ from 'lodash';
 
-import { CloudFunction, EventContext, HttpsFunction, Runnable } from './cloud-functions';
+import {
+  CloudFunction,
+  EventContext,
+  HttpsFunction,
+  Runnable,
+} from './cloud-functions';
 import {
   DeploymentOptions,
   INGRESS_SETTINGS_OPTIONS,
@@ -44,7 +49,6 @@ import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
 import * as testLab from './providers/testLab';
-
 
 /**
  * Assert that the runtime options passed in are valid.

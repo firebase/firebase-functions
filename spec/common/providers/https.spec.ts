@@ -104,7 +104,7 @@ function runHandler(
 
 // Runs a CallTest test.
 async function runTest(test: CallTest): Promise<any> {
-  const opts = { cors: { origin: true, methods: 'POST' }};
+  const opts = { cors: { origin: true, methods: 'POST' } };
   const callableFunctionV1 = https.onCallHandler(opts, (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     return test.callableFunction(data, context);
