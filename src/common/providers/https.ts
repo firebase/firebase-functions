@@ -615,7 +615,7 @@ export function onCallHandler<Req = any, Res = any>(
 
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
+  opts: CallableOptions,
   handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
@@ -630,7 +630,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
       if (tokenStatus.auth === 'INVALID') {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
-      if (tokenStatus.app === 'INVALID' && !options.allowInvalidAppCheckToken) {
+      if (tokenStatus.app === 'INVALID' && !opts.allowInvalidAppCheckToken) {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 
