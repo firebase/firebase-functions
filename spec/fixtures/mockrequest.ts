@@ -1,4 +1,3 @@
-import * as jws from 'jws';
 import * as jwt from 'jsonwebtoken';
 import * as jwkToPem from 'jwk-to-pem';
 import * as _ from 'lodash';
@@ -91,18 +90,14 @@ export function generateIdToken(projectId: string): string {
  * Generates a mocked, unsigned Firebase ID token.
  */
 export function generateUnsignedIdToken(projectId: string): string {
-  const options: jws.SignOptions = {
-    payload: {
-      aud: projectId,
-      sub: mockKey.user_id,
-    },
-    header: {
-      alg: 'HS256',
-      typ: 'JWT',
-    },
-    secret: Buffer.from(''),
-  };
-  return jws.sign(options);
+  return [
+    { alg: 'RS256', typ: 'JWT' },
+    { aud: projectId, sub: mockKey.user_id },
+    'Invalid signature',
+  ]
+    .map((str) => JSON.stringify(str))
+    .map((str) => Buffer.from(str).toString('base64'))
+    .join('.');
 }
 
 /**
@@ -149,16 +144,12 @@ export function generateUnsignedAppCheckToken(
   projectId: string,
   appId: string
 ): string {
-  const options: jws.SignOptions = {
-    payload: {
-      sub: appId,
-      aud: [`projects/${projectId}`],
-    },
-    header: {
-      alg: 'HS256',
-      typ: 'JWT',
-    },
-    secret: Buffer.from(''),
-  };
-  return jws.sign(options);
+  return [
+    { alg: 'RS256', typ: 'JWT' },
+    { aud: [`projects/${projectId}`], sub: appId },
+    'Invalid signature',
+  ]
+    .map((component) => JSON.stringify(component))
+    .map((str) => Buffer.from(str).toString('base64'))
+    .join('.');
 }

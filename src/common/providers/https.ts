@@ -30,7 +30,7 @@ import * as logger from '../../logger';
 // different strategy
 import { apps } from '../../apps';
 
-const JWT_REGEX = /^[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)?$/;
+const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
 /** @hidden */
 export interface Request extends express.Request {
