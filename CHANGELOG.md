@@ -1,1 +1,2 @@
 - GCS Enhancement
+- Enable configuring callable functions with optional option object passed as an argument of https.onCall().
