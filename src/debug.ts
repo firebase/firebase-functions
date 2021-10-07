@@ -20,14 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Debug features must only be used in non-production environment.
-// DO NOT turn on a debug feature in prod.
-const debugMode = process.env.FIREBASE_FUNCTIONS_DEBUG_MODE === 'true';
-const camelToSnake = str => str.replace(/[A-Z]/g, c => `_${c}`).toUpperCase();
-
+// Do NOT turn on a debug feature in production. Debug features must only be used in non-prod environment.
 const supportedDebugFeatures = ['callableSkipTokenVerification'] as const;
 type DebugFeature = typeof supportedDebugFeatures[number];
 
+const camelToSnake = str => str.replace(/[A-Z]/g, c => `_${c}`).toUpperCase();
 const debugFeatureValues: Record<
   DebugFeature,
   string
@@ -38,6 +35,8 @@ const debugFeatureValues: Record<
   }),
   {} as Record<DebugFeature, string>
 );
+
+const debugMode = process.env.FIREBASE_FUNCTIONS_DEBUG_MODE === 'true';
 
 /* @internal */
 export const isDebugFeatureEnabled = (feat: DebugFeature): boolean => {
