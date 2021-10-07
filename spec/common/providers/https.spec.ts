@@ -40,6 +40,8 @@ interface CallTest {
 
   callableFunction2: (request: https.CallableRequest<any>) => any;
 
+  callableOption?: https.CallableOptions;
+
   // The expected shape of the http response returned to the callable SDK.
   expectedHttpResponse: RunHandlerResult;
 }
@@ -104,7 +106,10 @@ function runHandler(
 
 // Runs a CallTest test.
 async function runTest(test: CallTest): Promise<any> {
-  const opts = { cors: { origin: true, methods: 'POST' } };
+  const opts = {
+    cors: { origin: true, methods: 'POST' },
+    ...test.callableOption,
+  };
   const callableFunctionV1 = https.onCallHandler(opts, (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     return test.callableFunction(data, context);
@@ -466,6 +471,30 @@ describe('onCallHandler', () => {
             message: 'Unauthenticated',
           },
         },
+      },
+    });
+  });
+
+  it('should handle bad AppCheck token with callable option', async () => {
+    await runTest({
+      httpRequest: mockRequest(null, 'application/json', {
+        appCheckToken: 'FAKE',
+      }),
+      expectedData: null,
+      callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
+        return;
+      },
+      callableOption: {
+        cors: { origin: true, methods: 'POST' },
+        allowInvalidAppCheckToken: true,
+      },
+      expectedHttpResponse: {
+        status: 200,
+        headers: expectedResponseHeaders,
+        body: { result: null },
       },
     });
   });

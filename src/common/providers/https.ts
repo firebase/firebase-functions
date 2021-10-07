@@ -592,7 +592,8 @@ async function checkTokens(
 type v1Handler = (data: any, context: CallableContext) => any | Promise<any>;
 type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
 
-interface CallableOptions {
+/** @hidden **/
+export interface CallableOptions {
   cors: cors.CorsOptions;
   allowInvalidAppCheckToken?: boolean;
 }
