@@ -21,9 +21,10 @@
 // SOFTWARE.
 
 // Do NOT turn on a debug feature in production. Debug features must only be used in non-prod environment.
+const debugMode = process.env.FIREBASE_FUNCTIONS_DEBUG_MODE === 'true';
 const supportedDebugFeatures = ['callableSkipTokenVerification'] as const;
-type DebugFeature = typeof supportedDebugFeatures[number];
 
+type DebugFeature = typeof supportedDebugFeatures[number];
 const camelToSnake = str => str.replace(/[A-Z]/g, c => `_${c}`).toUpperCase();
 const debugFeatureValues: Record<
   DebugFeature,
@@ -35,8 +36,6 @@ const debugFeatureValues: Record<
   }),
   {} as Record<DebugFeature, string>
 );
-
-const debugMode = process.env.FIREBASE_FUNCTIONS_DEBUG_MODE === 'true';
 
 /* @internal */
 export const isDebugFeatureEnabled = (feat: DebugFeature): boolean => {
