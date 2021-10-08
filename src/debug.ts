@@ -25,7 +25,8 @@ const debugMode = process.env.FIREBASE_FUNCTIONS_DEBUG_MODE === 'true';
 const supportedDebugFeatures = ['callableSkipTokenVerification'] as const;
 
 type DebugFeature = typeof supportedDebugFeatures[number];
-const camelToSnake = str => str.replace(/[A-Z]/g, c => `_${c}`).toUpperCase();
+const camelToSnake = (str) =>
+  str.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase();
 const debugFeatureValues: Record<
   DebugFeature,
   string
@@ -44,6 +45,6 @@ export const isDebugFeatureEnabled = (feat: DebugFeature): boolean => {
 
 /* @internal */
 export const debugFeatureValue = (feat: DebugFeature): string | undefined => {
-    if (!debugMode) return;
-    return debugFeatureValues[feat];
+  if (!debugMode) return;
+  return debugFeatureValues[feat];
 };
