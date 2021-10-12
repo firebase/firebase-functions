@@ -90,7 +90,10 @@ export function _onCallWithOptions(
   // in another handler to avoid accidentally triggering the v2 API
   const fixedLen = (data: any, context: CallableContext) =>
     handler(data, context);
-  const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
+  const func: any = onCallHandler(
+    { cors: { origin: true, methods: 'POST' } },
+    fixedLen
+  );
 
   func.__trigger = {
     labels: {},
