@@ -20,31 +20,33 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Do NOT turn on a debug feature in production. Debug features must only be used in non-prod environment.
-const debugMode = process.env.FIREBASE_FUNCTIONS_DEBUG_MODE === 'true';
-const supportedDebugFeatures = ['callableSkipTokenVerification'] as const;
+// Do NOT turn on a debug feature in production. Debug features should only be used in non-prod environment.
+const debugMode = process.env.FIREBASE_DEBUG_MODE === 'true';
 
-type DebugFeature = typeof supportedDebugFeatures[number];
-const camelToSnake = (str) =>
-  str.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase();
-const debugFeatureValues: Record<
-  DebugFeature,
-  string
-> = supportedDebugFeatures.reduce(
-  (prev, cur) => ({
-    ...prev,
-    [cur]: process.env[`FIREBASE_FUNCTIONS_DEBUG_${camelToSnake(cur)}`],
-  }),
-  {} as Record<DebugFeature, string>
-);
+interface DebugFeatures {
+  skipCallableTokenVerification?: boolean;
+}
+
+const debugFeatureValues: DebugFeatures = (() => {
+  if (!debugMode) return {};
+  try {
+    const obj = JSON.parse(process.env.FIREBASE_DEBUG_FEATURES);
+    if (typeof obj !== 'object') {
+      return {};
+    }
+    return obj as DebugFeatures;
+  } catch (e) {
+    return {};
+  }
+})();
 
 /* @internal */
-export const isDebugFeatureEnabled = (feat: DebugFeature): boolean => {
+export function isDebugFeatureEnabled(feat: keyof DebugFeatures): boolean {
   return debugMode && !!debugFeatureValues[feat];
-};
+}
 
 /* @internal */
-export const debugFeatureValue = (feat: DebugFeature): string | undefined => {
+export function debugFeatureValue(feat: keyof DebugFeatures): unknown {
   if (!debugMode) return;
   return debugFeatureValues[feat];
-};
+}
