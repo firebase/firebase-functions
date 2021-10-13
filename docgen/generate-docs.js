@@ -33,15 +33,17 @@ const { api: apiVersion } = yargs
   .version(false)
   .help().argv;
 
-let sourceFile, devsitePath;
+let sourceFile, devsitePath, exclude;
 switch (apiVersion) {
   case 'v1':
-    sourceFile = `${repoPath}/src/{v1,logger}`;
+    sourceFile = `${repoPath}/src`;
     devsitePath = '/docs/reference/functions/';
+    exclude = '"**/v2/**/*.ts"';
     break;
   case 'v2':
     sourceFile = `${repoPath}/src/{v2,logger}`;
     devsitePath = '/docs/functions/alpha/';
+    exclude = '';
     break;
   default:
     throw new Error(
@@ -75,6 +77,7 @@ function stripPath(path) {
 function runTypedoc() {
   const command = `${repoPath}/node_modules/.bin/typedoc ${sourceFile} \
   --out ${docPath} \
+  --exclude ${exclude} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
   --theme ${__dirname}/theme`;
