@@ -29,6 +29,7 @@ import * as logger from '../../logger';
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
 import { apps } from '../../apps';
+import { isDebugFeatureEnabled } from '../../debug';
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
@@ -546,11 +547,6 @@ export function decodeAppCheckToken(token: string): DecodedAppCheckToken {
   return decoded;
 }
 
-function isEmulatorRequest(req: Request): boolean {
-  const host = req.hostname ?? req.headers.host ?? '';
-  return !!process.env.FUNCTIONS_EMULATOR && host.startsWith('localhost');
-}
-
 /**
  * Check and verify tokens included in the requests. Once verified, tokens
  * are injected into the callable context.
@@ -569,7 +565,7 @@ async function checkTokens(
     auth: 'MISSING',
   };
 
-  const skipTokenCheck = isEmulatorRequest(req);
+  const skipTokenCheck = isDebugFeatureEnabled('skipCallableTokenVerification');
 
   const appCheck = req.header('X-Firebase-AppCheck');
   if (appCheck) {

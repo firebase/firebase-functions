@@ -1,9 +1,11 @@
 import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
+import * as sinon from 'sinon';
 
 import { apps as appsNamespace } from '../../../src/apps';
 import * as https from '../../../src/common/providers/https';
+import * as debug from '../../../src/debug';
 import * as mocks from '../../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,
@@ -579,11 +581,11 @@ describe('onCallHandler', () => {
 
   describe('emulator support', () => {
     before(() => {
-      process.env.FUNCTIONS_EMULATOR = 'true';
+      sinon.stub(debug, 'isDebugFeatureEnabled').returns(true);
     });
 
     after(() => {
-      delete process.env.FUNCTIONS_EMULATOR;
+      sinon.verifyAndRestore();
     });
 
     it('should skip auth token check in emulator mode', async () => {
