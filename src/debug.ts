@@ -27,7 +27,7 @@ interface DebugFeatures {
   skipCallableTokenVerification?: boolean;
 }
 
-const debugFeatureValues: DebugFeatures = (() => {
+function loadDebugFeatures(): DebugFeatures {
   if (!debugMode) return {};
   try {
     const obj = JSON.parse(process.env.FIREBASE_DEBUG_FEATURES);
@@ -38,15 +38,15 @@ const debugFeatureValues: DebugFeatures = (() => {
   } catch (e) {
     return {};
   }
-})();
-
-/* @internal */
-export function isDebugFeatureEnabled(feat: keyof DebugFeatures): boolean {
-  return debugMode && !!debugFeatureValues[feat];
 }
 
 /* @internal */
 export function debugFeatureValue(feat: keyof DebugFeatures): unknown {
   if (!debugMode) return;
-  return debugFeatureValues[feat];
+  return loadDebugFeatures()[feat];
+}
+
+/* @internal */
+export function isDebugFeatureEnabled(feat: keyof DebugFeatures): boolean {
+  return debugMode && !!debugFeatureValue(feat);
 }
