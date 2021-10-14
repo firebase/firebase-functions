@@ -91,7 +91,10 @@ export function _onCallWithOptions(
   const fixedLen = (data: any, context: CallableContext) =>
     handler(data, context);
   const func: any = onCallHandler(
-    { cors: { origin: true, methods: 'POST' } },
+    {
+      allowInvalidAppCheckToken: options.allowInvalidAppCheckToken,
+      cors: { origin: true, methods: 'POST' },
+    },
     fixedLen
   );
 
