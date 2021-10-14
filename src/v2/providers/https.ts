@@ -43,10 +43,6 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
 
-export interface CallableOptions extends HttpsOptions {
-  allowInvalidAppCheckToken?: boolean;
-}
-
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
@@ -138,22 +134,22 @@ export function onRequest(
 }
 
 export function onCall<T = any, Return = any | Promise<any>>(
-  opts: CallableOptions,
+  opts: HttpsOptions,
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
+  optsOrHandler: HttpsOptions | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
-  let opts: CallableOptions;
+  let opts: HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
     handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
-    opts = optsOrHandler as CallableOptions;
+    opts = optsOrHandler as HttpsOptions;
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
@@ -162,7 +158,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
   const func: any = onCallHandler(
-    { ...opts, cors: { origin, methods: 'POST' } },
+    { cors: { origin, methods: 'POST' } },
     fixedLen
   );
 
