@@ -592,14 +592,9 @@ describe('onCallHandler', () => {
       const projectId = appsNamespace().admin.options.projectId;
       const idToken = generateUnsignedIdToken(projectId);
       await runTest({
-        httpRequest: mockRequest(
-          null,
-          'application/json',
-          {
-            authorization: 'Bearer ' + idToken,
-          },
-          { host: 'localhost' }
-        ),
+        httpRequest: mockRequest(null, 'application/json', {
+          authorization: 'Bearer ' + idToken,
+        }),
         expectedData: null,
         callableFunction: (data, context) => {
           checkAuthContext(context, projectId);
@@ -622,12 +617,7 @@ describe('onCallHandler', () => {
       const appId = '123:web:abc';
       const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
       await runTest({
-        httpRequest: mockRequest(
-          null,
-          'application/json',
-          { appCheckToken },
-          { host: 'localhost' }
-        ),
+        httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
         expectedData: null,
         callableFunction: (data, context) => {
           checkAppCheckContext(context, projectId, appId);

@@ -29,15 +29,14 @@ export function mockRequest(
     authorization?: string;
     instanceIdToken?: string;
     appCheckToken?: string;
-  } = {},
-  headers: Record<string, string> = {}
+  } = {}
 ) {
   const body: any = {};
   if (!_.isUndefined(data)) {
     body.data = data;
   }
 
-  const baseHeaders = {
+  const headers = {
     'content-type': contentType,
     authorization: context.authorization,
     'firebase-instance-id-token': context.instanceIdToken,
@@ -45,7 +44,7 @@ export function mockRequest(
     origin: 'example.com',
   };
 
-  return new MockRequest(body, { ...baseHeaders, ...headers });
+  return new MockRequest(body, headers);
 }
 
 export const expectedResponseHeaders = {
