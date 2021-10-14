@@ -524,24 +524,28 @@ function decodeToken(token: string): unknown {
 }
 
 /**
- * Decodes Auth ID token.
+ * Decode, but not verify, a Auth ID token.
+ *
+ * Do not use in production. Token should always be verified using the Admin SDK.
  *
  * This is exposed only for testing.
  */
 /** @internal */
-export function decodeIdToken(token: string): firebase.auth.DecodedIdToken {
+export function unsafeDecodeIdToken(token: string): firebase.auth.DecodedIdToken {
   const decoded = decodeToken(token) as firebase.auth.DecodedIdToken;
   decoded.uid = decoded.sub;
   return decoded;
 }
 
 /**
- * Decodes App Check token.
+ * Decode, but not verify, an App Check token.
+ *
+ * Do not use in production. Token should always be verified using the Admin SDK.
  *
  * This is exposed only for testing.
  */
 /** @internal */
-export function decodeAppCheckToken(token: string): DecodedAppCheckToken {
+export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
   const decoded = decodeToken(token) as DecodedAppCheckToken;
   decoded.app_id = decoded.sub;
   return decoded;
@@ -578,7 +582,7 @@ async function checkTokens(
       }
       let appCheckData;
       if (skipTokenCheck) {
-        const decodedToken = decodeAppCheckToken(appCheck);
+        const decodedToken = unsafeDecodeAppCheckToken(appCheck);
         appCheckData = { appId: decodedToken.app_id, token: decodedToken };
       } else {
         appCheckData = await apps()
@@ -604,7 +608,7 @@ async function checkTokens(
       try {
         let authToken: firebase.auth.DecodedIdToken;
         if (skipTokenCheck) {
-          authToken = decodeIdToken(idToken);
+          authToken = unsafeDecodeIdToken(idToken);
         } else {
           authToken = await apps()
             .admin.auth()
