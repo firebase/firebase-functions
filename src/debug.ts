@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Do NOT turn on a debug feature in production. Debug features should only be used in non-prod environment.
+// Do NOT turn on a debug feature in production.
 const debugMode = process.env.FIREBASE_DEBUG_MODE === 'true';
 
 interface DebugFeatures {
