@@ -50,9 +50,9 @@ export function onRequest(
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler A method that takes a data and context and returns a value.
  */
-export function onCall(
-  handler: (data: any, context: CallableContext) => any | Promise<any>
-): HttpsFunction & Runnable<any> {
+export function onCall<Data, Return>(
+  handler: (data: Data, context: CallableContext) => Return | Promise<Return>
+): HttpsFunction & Runnable<Data, Return> {
   return _onCallWithOptions(handler, {});
 }
 
@@ -81,10 +81,10 @@ export function _onRequestWithOptions(
 }
 
 /** @hidden */
-export function _onCallWithOptions(
-  handler: (data: any, context: CallableContext) => any | Promise<any>,
+export function _onCallWithOptions<Data, Return>(
+  handler: (data: Data, context: CallableContext) => Return | Promise<Return>,
   options: DeploymentOptions
-): HttpsFunction & Runnable<any> {
+): HttpsFunction & Runnable<Data, Return> {
   // onCallHandler sniffs the function length of the passed-in callback
   // and the user could have only tried to listen to data. Wrap their handler
   // in another handler to avoid accidentally triggering the v2 API
