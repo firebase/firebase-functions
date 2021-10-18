@@ -77,7 +77,7 @@ function stripPath(path) {
 function runTypedoc() {
   const command = `${repoPath}/node_modules/.bin/typedoc ${sourceFile} \
   --out ${docPath} \
-  --exclude ${exclude} \
+  ${exclude.map(ex => "--exclude " + ex).join(" ")} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
   --theme ${__dirname}/theme`;
