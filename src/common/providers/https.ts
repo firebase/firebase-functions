@@ -571,7 +571,7 @@ async function checkTokens(
     auth: 'MISSING',
   };
 
-  const skipTokenCheck = isDebugFeatureEnabled('skipCallableTokenVerification');
+  const skipTokenVerify = isDebugFeatureEnabled('skipCallableTokenVerification');
 
   const appCheck = req.header('X-Firebase-AppCheck');
   if (appCheck) {
@@ -583,7 +583,7 @@ async function checkTokens(
         );
       }
       let appCheckData;
-      if (skipTokenCheck) {
+      if (skipTokenVerify) {
         const decodedToken = unsafeDecodeAppCheckToken(appCheck);
         appCheckData = { appId: decodedToken.app_id, token: decodedToken };
       } else {
@@ -609,7 +609,7 @@ async function checkTokens(
       const idToken = match[1];
       try {
         let authToken: firebase.auth.DecodedIdToken;
-        if (skipTokenCheck) {
+        if (skipTokenVerify) {
           authToken = unsafeDecodeIdToken(idToken);
         } else {
           authToken = await apps()
