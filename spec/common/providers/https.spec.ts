@@ -5,7 +5,7 @@ import * as sinon from 'sinon';
 
 import { apps as appsNamespace } from '../../../src/apps';
 import * as https from '../../../src/common/providers/https';
-import * as debug from '../../../src/debug';
+import * as debug from '../../../src/common/debug';
 import * as mocks from '../../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,

@@ -29,7 +29,7 @@ import * as logger from '../../logger';
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
 import { apps } from '../../apps';
-import { isDebugFeatureEnabled } from '../../debug';
+import { isDebugFeatureEnabled } from '../../common/debug';
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
