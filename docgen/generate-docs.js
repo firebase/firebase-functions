@@ -38,7 +38,7 @@ switch (apiVersion) {
   case 'v1':
     sourceFile = `${repoPath}/src`;
     devsitePath = '/docs/reference/functions/';
-    exclude = ['"**/v2/**/*.ts"', '"**/*+(index).ts"'];
+    exclude = ['"**/v2/**/*.ts"', '"src/index.ts"'];
     break;
   case 'v2':
     sourceFile = `${repoPath}/src/{v2,logger}`;
