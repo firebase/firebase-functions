@@ -531,7 +531,9 @@ function decodeToken(token: string): unknown {
  * This is exposed only for testing.
  */
 /** @internal */
-export function unsafeDecodeIdToken(token: string): firebase.auth.DecodedIdToken {
+export function unsafeDecodeIdToken(
+  token: string
+): firebase.auth.DecodedIdToken {
   const decoded = decodeToken(token) as firebase.auth.DecodedIdToken;
   decoded.uid = decoded.sub;
   return decoded;
@@ -655,16 +657,22 @@ async function checkTokens(
 type v1Handler = (data: any, context: CallableContext) => any | Promise<any>;
 type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
 
+/** @hidden **/
+export interface CallableOptions {
+  cors: cors.CorsOptions;
+  allowInvalidAppCheckToken?: boolean;
+}
+
 /** @hidden */
 export function onCallHandler<Req = any, Res = any>(
-  options: cors.CorsOptions,
+  options: CallableOptions,
   handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
-  const wrapped = wrapOnCallHandler(handler);
+  const wrapped = wrapOnCallHandler(options, handler);
   return (req: Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on('finish', resolve);
-      cors(options)(req, res, () => {
+      cors(options.cors)(req, res, () => {
         resolve(wrapped(req, res));
       });
     });
@@ -673,6 +681,7 @@ export function onCallHandler<Req = any, Res = any>(
 
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
+  options: CallableOptions,
   handler: v1Handler | v2Handler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
@@ -684,7 +693,10 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       const context: CallableContext = { rawRequest: req };
       const tokenStatus = await checkTokens(req, context);
-      if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
+      if (tokenStatus.auth === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
+      }
+      if (tokenStatus.app === 'INVALID' && !options.allowInvalidAppCheckToken) {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 

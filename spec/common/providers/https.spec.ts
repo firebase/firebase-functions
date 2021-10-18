@@ -579,16 +579,19 @@ describe('onCallHandler', () => {
     });
   });
 
-  describe('emulator support', () => {
+  describe('skip token verification debug mode support', () => {
     before(() => {
-      sinon.stub(debug, 'isDebugFeatureEnabled').returns(true);
+      sinon
+        .stub(debug, 'isDebugFeatureEnabled')
+        .withArgs('skipCallableTokenVerification')
+        .returns(true);
     });
 
     after(() => {
       sinon.verifyAndRestore();
     });
 
-    it('should skip auth token check in emulator mode', async () => {
+    it('should skip auth token verification', async () => {
       const projectId = appsNamespace().admin.options.projectId;
       const idToken = generateUnsignedIdToken(projectId);
       await runTest({
@@ -612,7 +615,7 @@ describe('onCallHandler', () => {
       });
     });
 
-    it('should skip app check token check in emulator mode', async () => {
+    it('should skip app check token verification', async () => {
       const projectId = appsNamespace().admin.options.projectId;
       const appId = '123:web:abc';
       const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
