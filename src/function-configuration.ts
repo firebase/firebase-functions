@@ -160,6 +160,11 @@ export interface RuntimeOptions {
    * Invoker to set access control on https functions.
    */
   invoker?: 'public' | 'private' | string | string[];
+
+  /*
+   * Allow requests with invalid App Check tokens on callable functions.
+   */
+  allowInvalidAppCheckToken?: boolean;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {

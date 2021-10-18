@@ -1,1 +1,2 @@
 - GCS Enhancement
+- Add option to allow callable functions to ignore invalid App Check tokens.
