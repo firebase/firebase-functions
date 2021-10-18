@@ -92,8 +92,14 @@ toc:
     section:
       - title: 'HttpsError'
         path: /docs/reference/functions/common_providers_https.httpserror.html
+      - title: 'CallableRequest'
+        path: /docs/reference/functions/common_providers_https.callablerequest.html
       - title: 'CallableContext'
         path: /docs/reference/functions/common_providers_https.callablecontext.html
+      - title: 'AuthData'
+        path: /docs/reference/functions/common_providers_https.authdata.html
+      - title: 'AppCheckData'
+        path: /docs/reference/functions/common_providers_https.appcheckdata.html
 
   - title: 'functions.logger'
     path: /docs/reference/functions/logger.html
