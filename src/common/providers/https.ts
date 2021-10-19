@@ -504,7 +504,7 @@ interface CallableTokenStatus {
   auth: TokenStatus;
 }
 
-function decodeToken(token: string): unknown {
+function unsafeDecodeToken(token: string): unknown {
   if (!JWT_REGEX.test(token)) {
     return {};
   }
@@ -534,7 +534,7 @@ function decodeToken(token: string): unknown {
 export function unsafeDecodeIdToken(
   token: string
 ): firebase.auth.DecodedIdToken {
-  const decoded = decodeToken(token) as firebase.auth.DecodedIdToken;
+  const decoded = unsafeDecodeToken(token) as firebase.auth.DecodedIdToken;
   decoded.uid = decoded.sub;
   return decoded;
 }
@@ -548,7 +548,7 @@ export function unsafeDecodeIdToken(
  */
 /** @internal */
 export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
-  const decoded = decodeToken(token) as DecodedAppCheckToken;
+  const decoded = unsafeDecodeToken(token) as DecodedAppCheckToken;
   decoded.app_id = decoded.sub;
   return decoded;
 }
@@ -593,10 +593,7 @@ async function checkTokens(
           .admin.appCheck()
           .verifyToken(appCheck);
       }
-      ctx.app = {
-        appId: appCheckData.appId,
-        token: appCheckData.token,
-      };
+      ctx.app = appCheckData;
       verifications.app = 'VALID';
     } catch (err) {
       logger.warn('Failed to validate AppCheck token.', err);
