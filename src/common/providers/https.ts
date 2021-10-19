@@ -572,7 +572,7 @@ async function checkTokens(
   };
 
   const skipTokenVerify = isDebugFeatureEnabled(
-    'skipCallableTokenVerification'
+    'skipTokenVerification'
   );
 
   const appCheck = req.header('X-Firebase-AppCheck');
