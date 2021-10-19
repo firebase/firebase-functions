@@ -143,7 +143,11 @@ async function runTest(test: CallTest): Promise<any> {
   expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
 }
 
-function checkAuthContext(context: CallableContext, projectId: string, userId: string) {
+function checkAuthContext(
+  context: CallableContext,
+  projectId: string,
+  userId: string
+) {
   expect(context.auth).to.not.be.undefined;
   expect(context.auth).to.not.be.null;
   expect(context.auth.uid).to.equal(userId);
@@ -168,7 +172,11 @@ function checkAppCheckContext(
   expect(context.instanceIdToken).to.be.undefined;
 }
 
-function checkAuthRequest(request: CallableRequest, projectId: string, userId: string) {
+function checkAuthRequest(
+  request: CallableRequest,
+  projectId: string,
+  userId: string
+) {
   expect(request.auth).to.not.be.undefined;
   expect(request.auth).to.not.be.null;
   expect(request.auth.uid).to.equal(userId);
@@ -761,15 +769,30 @@ describe('encoding/decoding', () => {
 });
 
 describe('decode tokens', () => {
+  const projectId = 'myproject'
+  const appId = '123:web:abc';
+
   it('decodes valid Auth ID Token', () => {
-    const idToken = unsafeDecodeIdToken(generateIdToken('aProject'));
+    const idToken = unsafeDecodeIdToken(generateIdToken(projectId));
+    expect(idToken.uid).to.equal(mocks.user_id);
+    expect(idToken.sub).to.equal(mocks.user_id);
+  });
+
+  it('decodes invalid Auth ID Token', () => {
+    const idToken = unsafeDecodeIdToken(generateUnsignedIdToken(projectId));
     expect(idToken.uid).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });
 
   it('decodes valid App Check Token', () => {
-    const idToken = unsafeDecodeAppCheckToken(generateIdToken('aProject'));
-    expect(idToken.app_id).to.equal(mocks.user_id);
-    expect(idToken.sub).to.equal(mocks.user_id);
+    const idToken = unsafeDecodeAppCheckToken(generateAppCheckToken(projectId, appId));
+    expect(idToken.app_id).to.equal(appId);
+    expect(idToken.sub).to.equal(appId);
+  });
+
+  it('decodes invalid App Check Token', () => {
+    const idToken = unsafeDecodeAppCheckToken(generateUnsignedAppCheckToken(projectId, appId));
+    expect(idToken.app_id).to.equal(appId);
+    expect(idToken.sub).to.equal(appId);
   });
 });
