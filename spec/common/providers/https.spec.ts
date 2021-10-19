@@ -143,12 +143,12 @@ async function runTest(test: CallTest): Promise<any> {
   expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
 }
 
-function checkAuthContext(context: CallableContext, projectId: string) {
+function checkAuthContext(context: CallableContext, projectId: string, userId: string) {
   expect(context.auth).to.not.be.undefined;
   expect(context.auth).to.not.be.null;
-  expect(context.auth.uid).to.equal(mocks.user_id);
-  expect(context.auth.token.uid).to.equal(mocks.user_id);
-  expect(context.auth.token.sub).to.equal(mocks.user_id);
+  expect(context.auth.uid).to.equal(userId);
+  expect(context.auth.token.uid).to.equal(userId);
+  expect(context.auth.token.sub).to.equal(userId);
   expect(context.auth.token.aud).to.equal(projectId);
   expect(context.instanceIdToken).to.be.undefined;
 }
@@ -168,12 +168,12 @@ function checkAppCheckContext(
   expect(context.instanceIdToken).to.be.undefined;
 }
 
-function checkAuthRequest(request: CallableRequest, projectId: string) {
+function checkAuthRequest(request: CallableRequest, projectId: string, userId: string) {
   expect(request.auth).to.not.be.undefined;
   expect(request.auth).to.not.be.null;
-  expect(request.auth.uid).to.equal(mocks.user_id);
-  expect(request.auth.token.uid).to.equal(mocks.user_id);
-  expect(request.auth.token.sub).to.equal(mocks.user_id);
+  expect(request.auth.uid).to.equal(userId);
+  expect(request.auth.token.uid).to.equal(userId);
+  expect(request.auth.token.sub).to.equal(userId);
   expect(request.auth.token.aud).to.equal(projectId);
   expect(request.instanceIdToken).to.be.undefined;
 }
@@ -414,11 +414,11 @@ describe('onCallHandler', () => {
       }),
       expectedData: null,
       callableFunction: (data, context) => {
-        checkAuthContext(context, projectId);
+        checkAuthContext(context, projectId, mocks.user_id);
         return null;
       },
       callableFunction2: (request) => {
-        checkAuthRequest(request, projectId);
+        checkAuthRequest(request, projectId, mocks.user_id);
         return null;
       },
       expectedHttpResponse: {
@@ -583,7 +583,7 @@ describe('onCallHandler', () => {
     before(() => {
       sinon
         .stub(debug, 'isDebugFeatureEnabled')
-        .withArgs('skipCallableTokenVerification')
+        .withArgs('skipTokenVerification')
         .returns(true);
     });
 
@@ -600,11 +600,11 @@ describe('onCallHandler', () => {
         }),
         expectedData: null,
         callableFunction: (data, context) => {
-          checkAuthContext(context, projectId);
+          checkAuthContext(context, projectId, mocks.user_id);
           return null;
         },
         callableFunction2: (request) => {
-          checkAuthRequest(request, projectId);
+          checkAuthRequest(request, projectId, mocks.user_id);
           return null;
         },
         expectedHttpResponse: {
