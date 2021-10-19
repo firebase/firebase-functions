@@ -769,7 +769,7 @@ describe('encoding/decoding', () => {
 });
 
 describe('decode tokens', () => {
-  const projectId = 'myproject'
+  const projectId = 'myproject';
   const appId = '123:web:abc';
 
   it('decodes valid Auth ID Token', () => {
@@ -785,13 +785,17 @@ describe('decode tokens', () => {
   });
 
   it('decodes valid App Check Token', () => {
-    const idToken = unsafeDecodeAppCheckToken(generateAppCheckToken(projectId, appId));
+    const idToken = unsafeDecodeAppCheckToken(
+      generateAppCheckToken(projectId, appId)
+    );
     expect(idToken.app_id).to.equal(appId);
     expect(idToken.sub).to.equal(appId);
   });
 
   it('decodes invalid App Check Token', () => {
-    const idToken = unsafeDecodeAppCheckToken(generateUnsignedAppCheckToken(projectId, appId));
+    const idToken = unsafeDecodeAppCheckToken(
+      generateUnsignedAppCheckToken(projectId, appId)
+    );
     expect(idToken.app_id).to.equal(appId);
     expect(idToken.sub).to.equal(appId);
   });
