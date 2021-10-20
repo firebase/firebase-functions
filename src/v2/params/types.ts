@@ -2,13 +2,14 @@
 type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json';
 
 export interface ParamSpec<T = unknown> {
+  name: string;
   default?: T;
   label?: string;
   description?: string;
   valueType?: ParamValueType;
 }
 
-export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'valueType'>;
+export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'valueType'>;
 
 export class Param<T = unknown> {
   static valueType: ParamValueType = 'string';
@@ -33,6 +34,7 @@ export class Param<T = unknown> {
 
   toSpec(): ParamSpec<string> {
     const out: ParamSpec = {
+      name: this.name,
       ...this.options,
       valueType: (this.constructor as typeof Param).valueType,
     };
@@ -120,6 +122,7 @@ export class ListParam extends Param<string[]> {
 
   toSpec(): ParamSpec<string> {
     const out: ParamSpec = {
+      name: this.name,
       valueType: 'list',
       ...this.options,
     };
