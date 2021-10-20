@@ -9,7 +9,10 @@ export interface ParamSpec<T = unknown> {
   valueType?: ParamValueType;
 }
 
-export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'valueType'>;
+export type ParamOptions<T = unknown> = Omit<
+  ParamSpec<T>,
+  'name' | 'valueType'
+>;
 
 export class Param<T = unknown> {
   static valueType: ParamValueType = 'string';
