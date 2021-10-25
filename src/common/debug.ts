@@ -28,7 +28,9 @@ interface DebugFeatures {
 }
 
 function loadDebugFeatures(): DebugFeatures {
-  if (!debugMode) return {};
+  if (!debugMode) {
+    return {};
+  }
   try {
     const obj = JSON.parse(process.env.FIREBASE_DEBUG_FEATURES);
     if (typeof obj !== 'object') {
@@ -42,7 +44,9 @@ function loadDebugFeatures(): DebugFeatures {
 
 /* @internal */
 export function debugFeatureValue(feat: keyof DebugFeatures): unknown {
-  if (!debugMode) return;
+  if (!debugMode) {
+    return;
+  }
   return loadDebugFeatures()[feat];
 }
 
