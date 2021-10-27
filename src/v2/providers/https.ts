@@ -231,7 +231,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
         options.getGlobalOptions()
       );
       // global options calls region a scalar and https allows it to be an array,
-      // but optionsToTriggerAnnotations handles both cases.
+      // but optionsToManifestEndpoint handles both cases.
       const specificOpts = options.optionsToManifestEndpoint(
         opts as options.GlobalOptions
       );

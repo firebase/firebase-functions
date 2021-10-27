@@ -284,7 +284,11 @@ export interface TriggerAnnotated {
   };
 }
 
-export interface TriggerEndpoint {
+/**
+ * @hidden
+ * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
+ */
+export interface EndpointAnnotated {
   __endpoint: ManifestEndpoint;
 }
 
@@ -306,7 +310,7 @@ export interface Runnable<T> {
  * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
-  TriggerEndpoint &
+  EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
 
 /**
@@ -318,7 +322,7 @@ export type HttpsFunction = TriggerAnnotated &
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
-  TriggerEndpoint &
+  EndpointAnnotated &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
 /** @hidden */
@@ -329,7 +333,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   dataConstructor?: (raw: Event) => EventData;
   eventType: string;
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
-  labels?: { [key: string]: any };
+  labels?: Record<string, string>;
   legacyEventType?: string;
   options?: DeploymentOptions;
   /*
@@ -442,7 +446,7 @@ export function makeCloudFunction<EventData>({
   Object.defineProperty(cloudFunction, '__endpoint', {
     get: () => {
       if (triggerResource() == null) {
-        return {};
+        return undefined;
       }
 
       const endpoint: ManifestEndpoint = {

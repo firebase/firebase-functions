@@ -70,7 +70,7 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should have legacy event type in __trigger if provided', () => {
+  it('should have legacy event type in __trigger/__endpoint if provided', () => {
     const cf = makeCloudFunction(cloudFunctionArgs);
 
     expect(cf.__trigger).to.deep.equal({

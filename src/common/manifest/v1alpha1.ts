@@ -19,6 +19,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+/**
+ * @internal
+ * An definition of a function as appears in the Manifest.
+ */
 export interface ManifestEndpoint {
   region?: string[];
   platform?: string;
@@ -57,7 +61,10 @@ export interface ManifestEndpoint {
   };
 }
 
-/** An definition of a function deployment as appears in the Manifest. **/
+/**
+ * @internal
+ * An definition of a function deployment as appears in the Manifest.
+**/
 export interface ManifestBackend {
   specVersion: 'v1alpha1';
   requiredAPIs: Record<string, string>;

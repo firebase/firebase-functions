@@ -130,7 +130,7 @@ describe('CloudHttpsBuilder', () => {
 
 describe('handler namespace', () => {
   describe('#onRequest', () => {
-    it('should return empty trigger and endpoint', () => {
+    it('should return an empty trigger and endpoint', () => {
       const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
@@ -140,7 +140,7 @@ describe('handler namespace', () => {
   });
 
   describe('#onCall', () => {
-    it('should return empty trigger and endpoint', () => {
+    it('should return an empty trigger and endpoint', () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
       expect(result.__endpoint).to.deep.equal({});
@@ -153,10 +153,12 @@ describe('#onCall', () => {
     const result = https.onCall((data) => {
       return 'response';
     });
+
     expect(result.__trigger).to.deep.equal({
       httpsTrigger: {},
       labels: { 'deployment-callable': 'true' },
     });
+
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv1',
       httpsTrigger: {},
