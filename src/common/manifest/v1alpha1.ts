@@ -59,7 +59,7 @@ export interface ManifestEndpoint {
 
 /** An definition of a function deployment as appears in the Manifest. **/
 export interface ManifestBackend {
-    specVersion: "v1alpha";
+    specVersion: "v1alpha1";
     requiredAPIs: Record<string, string>;
     endpoints: Record<string, ManifestEndpoint>;
 }
