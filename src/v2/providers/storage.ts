@@ -337,7 +337,7 @@ export function onOperation(
           ...specificOpts?.labels,
         },
         eventTrigger: {
-          eventType: eventType,
+          eventType,
           resource: bucket, // TODO(colerogers): replace with 'bucket,' eventually
         },
       };
