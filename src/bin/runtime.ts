@@ -2,25 +2,25 @@
 
 import * as express from 'express';
 
-import { ManifestBackend, ManifestEndpoint } from "../common/manifest/v1alpha/backend";
-import { loadModule } from "../common/loader";
+import { ManifestBackend, ManifestEndpoint } from '../common/manifest/v1alpha';
+import { loadModule } from '../common/loader';
 
 function extractEndpoints(
-    mod,
-    endpoints: Record<string, ManifestEndpoint>,
-    prefix?: string
+  mod,
+  endpoints: Record<string, ManifestEndpoint>,
+  prefix?: string
 ) {
   prefix = prefix || '';
   for (const funcName of Object.keys(mod)) {
     const child = mod[funcName];
     if (
-        typeof child === 'function' &&
-        child.__endpoint &&
-        typeof child.__endpoint === 'object'
+      typeof child === 'function' &&
+      child.__endpoint &&
+      typeof child.__endpoint === 'object'
     ) {
       if (funcName.indexOf('-') >= 0) {
         throw new Error(
-            'Function name "' +
+          'Function name "' +
             funcName +
             '" is invalid. Function names cannot contain dashes.'
         );
@@ -36,16 +36,19 @@ function extractEndpoints(
   }
 }
 
-
 async function describeBackend(functionsDir: string): Promise<ManifestBackend> {
   const endpoints: Record<string, ManifestEndpoint> = {};
   const mod = await loadModule(functionsDir);
   extractEndpoints(mod, endpoints);
 
-  const backend: ManifestBackend = { endpoints, specVersion: "v1alpha", requiredAPIs: {} };
-  if (Object.values(endpoints).find(ep => ep.scheduleTrigger)) {
-    backend.requiredAPIs["pubsub"] = "pubsub.googleapis.com";
-    backend.requiredAPIs["scheduler"] = "cloudscheduler.googleapis.com";
+  const backend: ManifestBackend = {
+    endpoints,
+    specVersion: 'v1alpha1',
+    requiredAPIs: {},
+  };
+  if (Object.values(endpoints).find((ep) => ep.scheduleTrigger)) {
+    backend.requiredAPIs['pubsub'] = 'pubsub.googleapis.com';
+    backend.requiredAPIs['scheduler'] = 'cloudscheduler.googleapis.com';
   }
   return backend;
 }
@@ -68,6 +71,7 @@ if (args.length != 1) {
 }
 const functionsDir = args[0];
 
+let server;
 const app = express();
 app.get('/backend.yaml', async (req, res) => {
   const backend = await describeBackend(functionsDir);
@@ -75,9 +79,14 @@ app.get('/backend.yaml', async (req, res) => {
   res.send(JSON.stringify(backend));
 });
 
+app.get('/quitquitquit', async (req, res) => {
+  res.send('ok');
+  server.close(() => console.log("shutdown requested via /quitquitquit"));
+});
+
 let port = 8080;
 if (process.env.ADMIN_PORT) {
   port = Number.parseInt(process.env.ADMIN_PORT);
 }
 console.error('Serving at port', port);
-app.listen(port);
+server = app.listen(port);
