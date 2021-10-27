@@ -23,7 +23,7 @@
   ],
   "main": "lib/index.js",
   "bin": {
-    "firebase-funtions": "./lib/bin/runtime.js"
+    "firebase-functions": "./lib/bin/runtime.js"
   },
   "types": "lib/index.d.ts",
   "exports": {
