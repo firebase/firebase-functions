@@ -7,7 +7,7 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './helpers';
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -82,7 +82,7 @@ describe('onRequest', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = https.onRequest((req, res) => {
       res.send(200);
     });
@@ -94,9 +94,14 @@ describe('onRequest', () => {
       },
       labels: {},
     });
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {},
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = https.onRequest(
       {
         ...FULL_OPTIONS,
@@ -114,6 +119,13 @@ describe('onRequest', () => {
         invoker: ['service-account1@', 'service-account2@'],
       },
       regions: ['us-west1', 'us-central1'],
+    });
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      httpsTrigger: {
+        invoker: ['service-account1@', 'service-account2@'],
+      },
+      region: ['us-west1', 'us-central1'],
     });
   });
 
@@ -146,6 +158,17 @@ describe('onRequest', () => {
       concurrency: 20,
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
+      labels: {},
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {
+        invoker: ['private'],
+      },
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1', 'us-central1'],
       labels: {},
     });
   });
@@ -209,7 +232,7 @@ describe('onCall', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = https.onCall((request) => 42);
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
@@ -221,9 +244,16 @@ describe('onCall', () => {
         'deployment-callable': 'true',
       },
     });
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {},
+      labels: {
+        'deployment-callable': 'true',
+      },
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = https.onCall(FULL_OPTIONS, (request) => 42);
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
@@ -232,6 +262,14 @@ describe('onCall', () => {
       },
       labels: {
         ...FULL_TRIGGER.labels,
+        'deployment-callable': 'true',
+      },
+    });
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      httpsTrigger: {},
+      labels: {
+        ...FULL_ENDPOINT.labels,
         'deployment-callable': 'true',
       },
     });
@@ -261,6 +299,17 @@ describe('onCall', () => {
       concurrency: 20,
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
+      labels: {
+        'deployment-callable': 'true',
+      },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1', 'us-central1'],
       labels: {
         'deployment-callable': 'true',
       },

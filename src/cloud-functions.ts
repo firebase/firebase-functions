@@ -37,6 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
+import { ManifestEndpoint } from './common/manifest/v1alpha';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -283,6 +284,10 @@ export interface TriggerAnnotated {
   };
 }
 
+export interface TriggerEndpoint {
+  __endpoint: ManifestEndpoint;
+}
+
 /**
  * A Runnable has a `run` method which directly invokes the user-defined
  * function - useful for unit testing.
@@ -301,6 +306,7 @@ export interface Runnable<T> {
  * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
+  TriggerEndpoint &
   ((req: Request, resp: Response) => void | Promise<void>);
 
 /**
@@ -312,6 +318,7 @@ export type HttpsFunction = TriggerAnnotated &
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
+  TriggerEndpoint &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
 /** @hidden */
@@ -324,7 +331,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
   labels?: { [key: string]: any };
   legacyEventType?: string;
-  options?: { [key: string]: any };
+  options?: DeploymentOptions;
   /*
    * TODO: should remove `provider` and require a fully qualified `eventType`
    * once all providers have migrated to new format.
@@ -429,6 +436,37 @@ export function makeCloudFunction<EventData>({
         trigger.labels = { ...trigger.labels, ...labels };
       }
       return trigger;
+    },
+  });
+
+  Object.defineProperty(cloudFunction, '__endpoint', {
+    get: () => {
+      if (triggerResource() == null) {
+        return {};
+      }
+
+      const endpoint: ManifestEndpoint = {
+        platform: 'gcfv1',
+        ...optionsToEndpoint(options),
+      };
+
+      if (options.schedule) {
+        endpoint.scheduleTrigger = options.schedule;
+      } else {
+        endpoint.eventTrigger = {
+          eventType: legacyEventType || provider + '.' + eventType,
+          eventFilters: {
+            resource: triggerResource(),
+          },
+          retry: !!options.failurePolicy,
+        };
+      }
+
+      if (Object.keys(labels).length > 0) {
+        endpoint.labels = { ...endpoint.labels, ...labels };
+      }
+
+      return endpoint;
     },
   });
 
@@ -544,4 +582,46 @@ export function optionsToTrigger(options: DeploymentOptions) {
   );
 
   return trigger;
+}
+
+export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
+  copyIfPresent(
+    endpoint,
+    options,
+    'minInstances',
+    'maxInstances',
+    'ingressSettings',
+    'vpcConnectorEgressSettings',
+    'vpcConnector',
+    'labels'
+  );
+  convertIfPresent(
+    endpoint,
+    options,
+    'timeout',
+    'timeoutSeconds',
+    durationFromSeconds
+  );
+  convertIfPresent(endpoint, options, 'region', 'regions', (r) => r);
+  convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
+    const memoryLookup = {
+      '128MB': 128,
+      '256MB': 256,
+      '512MB': 512,
+      '1GB': 1024,
+      '2GB': 2048,
+      '4GB': 4096,
+      '8GB': 8192,
+    };
+    return memoryLookup[mem];
+  });
+  convertIfPresent(
+    endpoint,
+    options,
+    'serviceAccountEmail',
+    'serviceAccount',
+    serviceAccountFromShorthand
+  );
+  return endpoint;
 }

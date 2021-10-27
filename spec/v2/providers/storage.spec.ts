@@ -10,6 +10,14 @@ const EVENT_TRIGGER = {
   resource: 'some-bucket',
 };
 
+const ENDPOINT_EVENT_TRIGGER = {
+  eventType: 'event-type',
+  eventFilters: {
+    bucket: 'some-bucket',
+  },
+  retry: false,
+};
+
 describe('v2/storage', () => {
   describe('getOptsAndBucket', () => {
     it('should return the default bucket with empty opts', () => {
@@ -76,6 +84,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: EVENT_TRIGGER,
       });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: ENDPOINT_EVENT_TRIGGER,
+      });
     });
 
     it('should create a minimal trigger with opts', () => {
@@ -96,6 +110,18 @@ describe('v2/storage', () => {
         },
         regions: ['us-west1'],
       });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...ENDPOINT_EVENT_TRIGGER,
+          eventFilters: {
+            bucket: 'default-bucket',
+          },
+        },
+        region: ['us-west1'],
+      });
     });
 
     it('should create a minimal trigger with bucket with opts and bucket', () => {
@@ -109,6 +135,12 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         labels: {},
         eventTrigger: EVENT_TRIGGER,
+      });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: ENDPOINT_EVENT_TRIGGER,
       });
     });
 
@@ -139,6 +171,24 @@ describe('v2/storage', () => {
         },
         eventTrigger: EVENT_TRIGGER,
       });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        region: ['us-west1'],
+        availableMemoryMb: 512,
+        timeout: '60s',
+        minInstances: 1,
+        maxInstances: 3,
+        concurrency: 20,
+        vpcConnector: 'aConnector',
+        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
+        serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
+        ingressSettings: 'ALLOW_ALL',
+        labels: {
+          hello: 'world',
+        },
+        eventTrigger: ENDPOINT_EVENT_TRIGGER,
+      });
     });
 
     it('should merge options and globalOptions', () => {
@@ -166,12 +216,25 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: EVENT_TRIGGER,
       });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        concurrency: 20,
+        minInstances: 3,
+        region: ['us-west1'],
+        labels: {},
+        eventTrigger: ENDPOINT_EVENT_TRIGGER,
+      });
     });
   });
 
   describe('onObjectArchived', () => {
     const ARCHIVED_TRIGGER = {
       ...EVENT_TRIGGER,
+      eventType: storage.archivedEvent,
+    };
+    const ENDPOINT_ARCHIVED_TRIGGER = {
+      ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.archivedEvent,
     };
     let configStub: sinon.SinonStub;
@@ -197,6 +260,17 @@ describe('v2/storage', () => {
           resource: 'default-bucket',
         },
       });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...ENDPOINT_ARCHIVED_TRIGGER,
+          eventFilters: {
+            bucket: 'default-bucket',
+          },
+        },
+      });
     });
 
     it('should accept bucket and handler', () => {
@@ -208,6 +282,17 @@ describe('v2/storage', () => {
         eventTrigger: {
           ...ARCHIVED_TRIGGER,
           resource: 'my-bucket',
+        },
+      });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...ENDPOINT_ARCHIVED_TRIGGER,
+          eventFilters: {
+            bucket: 'my-bucket',
+          },
         },
       });
     });
@@ -227,6 +312,18 @@ describe('v2/storage', () => {
         },
         regions: ['us-west1'],
       });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...ENDPOINT_ARCHIVED_TRIGGER,
+          eventFilters: {
+            bucket: 'my-bucket',
+          },
+        },
+        region: ['us-west1'],
+      });
     });
 
     it('should accept opts and handler, default bucket', () => {
@@ -242,6 +339,18 @@ describe('v2/storage', () => {
           resource: 'default-bucket',
         },
         regions: ['us-west1'],
+      });
+
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          ...ENDPOINT_ARCHIVED_TRIGGER,
+          eventFilters: {
+            bucket: 'default-bucket',
+          },
+        },
+        region: ['us-west1'],
       });
     });
   });

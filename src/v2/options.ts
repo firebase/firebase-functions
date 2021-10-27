@@ -29,6 +29,7 @@ import * as logger from '../logger';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
+import { ManifestEndpoint } from '../common/manifest/v1alpha';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -277,6 +278,75 @@ export function optionsToTriggerAnnotations(
   );
 
   return annotation;
+}
+
+/**
+ * Apply GlobalOptions to endpoint manifest.
+ * @internal
+ */
+export function optionsToManifestEndpoint(
+  opts: GlobalOptions | EventHandlerOptions
+): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
+  copyIfPresent(
+    endpoint,
+    opts,
+    'concurrency',
+    'minInstances',
+    'maxInstances',
+    'ingressSettings',
+    'vpcConnectorEgressSettings',
+    'vpcConnector',
+    'labels'
+  );
+  convertIfPresent(
+    endpoint,
+    opts,
+    'timeout',
+    'timeoutSeconds',
+    durationFromSeconds
+  );
+  convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
+    const memoryLookup = {
+      '128MB': 128,
+      '256MB': 256,
+      '512MB': 512,
+      '1GB': 1024,
+      '2GB': 2048,
+      '4GB': 4096,
+      '8GB': 8192,
+    };
+    return memoryLookup[mem];
+  });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'serviceAccountEmail',
+    'serviceAccount',
+    serviceAccountFromShorthand
+  );
+  convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
+    if (typeof region === 'string') {
+      return [region];
+    }
+    return region;
+  });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'serviceAccountEmail',
+    'serviceAccount',
+    serviceAccountFromShorthand
+  );
+  convertIfPresent(
+    endpoint,
+    opts,
+    'timeout',
+    'timeoutSeconds',
+    durationFromSeconds
+  );
+
+  return endpoint;
 }
 
 /**

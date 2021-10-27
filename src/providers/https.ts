@@ -22,7 +22,12 @@
 
 import * as express from 'express';
 
-import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import {
+  HttpsFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+  Runnable,
+} from '../cloud-functions';
 import { convertIfPresent, convertInvoker } from '../common/encoding';
 import {
   CallableContext,
@@ -77,6 +82,19 @@ export function _onRequestWithOptions(
     convertInvoker
   );
   // TODO parse the options
+
+  cloudFunction.__endpoint = {
+    platform: 'gcfv1',
+    ...optionsToEndpoint(options),
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    cloudFunction.__endpoint.httpsTrigger,
+    options,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
   return cloudFunction;
 }
 
@@ -104,6 +122,14 @@ export function _onCallWithOptions(
     httpsTrigger: {},
   };
   func.__trigger.labels['deployment-callable'] = 'true';
+
+  func.__endpoint = {
+    platform: 'gcfv1',
+    labels: {},
+    ...optionsToEndpoint(options),
+    httpsTrigger: {},
+  };
+  func.__endpoint.labels['deployment-callable'] = 'true';
 
   func.run = handler;
 

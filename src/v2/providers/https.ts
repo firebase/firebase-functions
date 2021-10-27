@@ -32,6 +32,7 @@ import {
   Request,
 } from '../../common/providers/https';
 import * as options from '../options';
+import {ManifestEndpoint} from "../../common/manifest/v1alpha";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -46,7 +47,7 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
-) => void | Promise<void>) & { __trigger: unknown };
+) => void | Promise<void>) & { __trigger: unknown } & { __endpoint: unknown };
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
@@ -95,6 +96,7 @@ export function onRequest(
       });
     };
   }
+
   Object.defineProperty(handler, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -130,6 +132,38 @@ export function onRequest(
       return trigger;
     },
   });
+
+  Object.defineProperty(handler, '__endpoint', {
+    get: () => {
+      const baseOpts = options.optionsToManifestEndpoint(
+          options.getGlobalOptions()
+      );
+      // global options calls region a scalar and https allows it to be an array,
+      // but optionsToTriggerAnnotations handles both cases.
+      const specificOpts = options.optionsToManifestEndpoint(
+          opts as options.GlobalOptions
+      );
+      const endpoint: ManifestEndpoint = {
+        platform: 'gcfv2',
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        httpsTrigger: {},
+      };
+      convertIfPresent(
+          endpoint.httpsTrigger,
+          opts,
+          'invoker',
+          'invoker',
+          convertInvoker
+      );
+      return endpoint;
+    },
+  });
+
   return handler as HttpsFunction;
 }
 
@@ -187,6 +221,30 @@ export function onCall<T = any, Return = any | Promise<any>>(
         httpsTrigger: {
           allowInsecure: false,
         },
+      };
+    },
+  });
+
+  Object.defineProperty(func, '__endpoint', {
+    get: () => {
+      const baseOpts = options.optionsToManifestEndpoint(
+          options.getGlobalOptions()
+      );
+      // global options calls region a scalar and https allows it to be an array,
+      // but optionsToTriggerAnnotations handles both cases.
+      const specificOpts = options.optionsToManifestEndpoint(
+          opts as options.GlobalOptions
+      );
+      return {
+        platform: 'gcfv2',
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+          'deployment-callable': 'true',
+        },
+        httpsTrigger: {},
       };
     },
   });

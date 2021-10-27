@@ -23,6 +23,8 @@
 import { firebaseConfig } from '../../config';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
+import { copyIfPresent } from '../../common/encoding';
+import { ManifestEndpoint } from '../../common/manifest/v1alpha';
 
 /**
  * An object within Google Cloud Storage.
@@ -314,9 +316,10 @@ export function onOperation(
   func.run = handler;
 
   // TypeScript doesn't recongize defineProperty as adding a property and complains
-  // that __trigger doesn't exist. We can either cast to any and lose all type safety
+  // that __trigger/__endpoint doesn't exist. We can either cast to any and lose all type safety
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
+  func.__endpoint = 'silence the transpiler';
 
   Object.defineProperty(func, '__trigger', {
     get: () => {
@@ -338,6 +341,34 @@ export function onOperation(
           resource: bucket, // TODO(colerogers): replace with 'bucket,' eventually
         },
       };
+    },
+  });
+
+  Object.defineProperty(func, '__endpoint', {
+    get: () => {
+      const baseOpts = options.optionsToManifestEndpoint(
+        options.getGlobalOptions()
+      );
+      const specificOpts = options.optionsToManifestEndpoint(opts);
+
+      const endpoint: ManifestEndpoint = {
+        platform: 'gcfv2',
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        eventTrigger: {
+          eventType: eventType,
+          eventFilters: {
+            bucket,
+          },
+          retry: false,
+        },
+      };
+      copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+      return endpoint;
     },
   });
 
