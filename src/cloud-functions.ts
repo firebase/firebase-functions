@@ -37,7 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
-import { ManifestEndpoint } from './common/manifest/v1alpha';
+import { ManifestEndpoint } from './common/manifest/v1alpha1';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -584,7 +584,9 @@ export function optionsToTrigger(options: DeploymentOptions) {
   return trigger;
 }
 
-export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
+export function optionsToEndpoint(
+  options: DeploymentOptions
+): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,

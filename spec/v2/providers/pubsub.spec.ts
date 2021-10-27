@@ -30,12 +30,14 @@ describe('onMessagePublished', () => {
 
   it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = pubsub.onMessagePublished('topic', () => 42);
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
       eventTrigger: EVENT_TRIGGER,
       labels: {},
     });
+
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
       eventTrigger: ENDPOINT_EVENT_TRIGGER,
@@ -48,10 +50,12 @@ describe('onMessagePublished', () => {
       { ...FULL_OPTIONS, topic: 'topic' },
       () => 42
     );
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       eventTrigger: EVENT_TRIGGER,
     });
+
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
       eventTrigger: ENDPOINT_EVENT_TRIGGER,

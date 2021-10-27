@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 import * as express from 'express';
-import * as _ from 'lodash';
+
 import * as functions from '../../../src/index';
 import * as https from '../../../src/providers/https';
 import {
@@ -94,7 +94,7 @@ function runHandler(
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
-    it('should return a Trigger with appropriate values', () => {
+    it('should return a trigger/endpoint with appropriate values', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
@@ -149,7 +149,7 @@ describe('handler namespace', () => {
 });
 
 describe('#onCall', () => {
-  it('should return a Trigger and Endpoint with appropriate values', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
     const result = https.onCall((data) => {
       return 'response';
     });
@@ -158,7 +158,7 @@ describe('#onCall', () => {
       labels: { 'deployment-callable': 'true' },
     });
     expect(result.__endpoint).to.deep.equal({
-        platform: "gcfv1",
+      platform: 'gcfv1',
       httpsTrigger: {},
       labels: { 'deployment-callable': 'true' },
     });

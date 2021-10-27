@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as options from '../options';
 import { firebaseConfig } from '../../config';
 import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
 import { copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../common/manifest/v1alpha';
+import { ManifestEndpoint } from '../../common/manifest/v1alpha1';
 
 /**
  * An object within Google Cloud Storage.

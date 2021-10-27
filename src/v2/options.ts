@@ -29,7 +29,7 @@ import * as logger from '../logger';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
-import { ManifestEndpoint } from '../common/manifest/v1alpha';
+import { ManifestEndpoint } from '../common/manifest/v1alpha1';
 
 /**
  * List of all regions supported by Cloud Functions v2

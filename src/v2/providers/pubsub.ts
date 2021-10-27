@@ -1,7 +1,7 @@
-import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
-import {copyIfPresent} from "../../common/encoding";
-import {ManifestEndpoint} from "../../common/manifest/v1alpha";
+import { CloudEvent, CloudFunction } from '../core';
+import { copyIfPresent } from '../../common/encoding';
+import { ManifestEndpoint } from '../../common/manifest/v1alpha1';
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
@@ -170,7 +170,7 @@ export function onMessagePublished<T = any>(
   Object.defineProperty(func, '__endpoint', {
     get: () => {
       const baseOpts = options.optionsToManifestEndpoint(
-          options.getGlobalOptions()
+        options.getGlobalOptions()
       );
       const specificOpts = options.optionsToManifestEndpoint(opts);
 
@@ -188,9 +188,9 @@ export function onMessagePublished<T = any>(
             resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
           },
           retry: false,
-        }
+        },
       };
-      copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
+      copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
 
       return endpoint;
     },

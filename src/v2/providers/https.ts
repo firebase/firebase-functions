@@ -24,6 +24,7 @@ import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
+import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -31,8 +32,7 @@ import {
   onCallHandler,
   Request,
 } from '../../common/providers/https';
-import * as options from '../options';
-import {ManifestEndpoint} from "../../common/manifest/v1alpha";
+import { ManifestEndpoint } from '../../common/manifest/v1alpha1';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -136,12 +136,12 @@ export function onRequest(
   Object.defineProperty(handler, '__endpoint', {
     get: () => {
       const baseOpts = options.optionsToManifestEndpoint(
-          options.getGlobalOptions()
+        options.getGlobalOptions()
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
       const specificOpts = options.optionsToManifestEndpoint(
-          opts as options.GlobalOptions
+        opts as options.GlobalOptions
       );
       const endpoint: ManifestEndpoint = {
         platform: 'gcfv2',
@@ -154,11 +154,11 @@ export function onRequest(
         httpsTrigger: {},
       };
       convertIfPresent(
-          endpoint.httpsTrigger,
-          opts,
-          'invoker',
-          'invoker',
-          convertInvoker
+        endpoint.httpsTrigger,
+        opts,
+        'invoker',
+        'invoker',
+        convertInvoker
       );
       return endpoint;
     },
@@ -228,12 +228,12 @@ export function onCall<T = any, Return = any | Promise<any>>(
   Object.defineProperty(func, '__endpoint', {
     get: () => {
       const baseOpts = options.optionsToManifestEndpoint(
-          options.getGlobalOptions()
+        options.getGlobalOptions()
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
       const specificOpts = options.optionsToManifestEndpoint(
-          opts as options.GlobalOptions
+        opts as options.GlobalOptions
       );
       return {
         platform: 'gcfv2',
