@@ -20,46 +20,46 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 export interface ManifestEndpoint {
-    region?: string[];
-    platform?: string;
-    entryPoint?: string;
-    availableMemoryMb?: number;
-    maxInstances?: number;
-    minInstances?: number;
-    concurrency?: number;
+  region?: string[];
+  platform?: string;
+  entryPoint?: string;
+  availableMemoryMb?: number;
+  maxInstances?: number;
+  minInstances?: number;
+  concurrency?: number;
+  serviceAccountEmail?: string;
+  timeout?: string;
+  vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
+  labels?: Record<string, string>;
+  ingressSettings?: string;
+  environmentVariables?: Record<string, string>;
+  httpsTrigger?: {
+    invoker?: string[];
+  };
+  eventTrigger?: {
+    eventFilters: Record<string, string>;
+    eventType: string;
+    retry: boolean;
+    region?: string;
     serviceAccountEmail?: string;
-    timeout?: string;
-    vpcConnector?: string;
-    vpcConnectorEgressSettings?: string;
-    labels?: Record<string, string>;
-    ingressSettings?: string;
-    environmentVariables?: Record<string, string>;
-    httpsTrigger?: {
-        invoker?: string[];
+  };
+  scheduleTrigger?: {
+    schedule?: string;
+    timezone?: string;
+    retryConfig?: {
+      retryCount?: number;
+      maxRetryDuration?: string;
+      minBackoffDuration?: string;
+      maxBackoffDuration?: string;
+      maxDoublings?: number;
     };
-    eventTrigger?: {
-        eventFilters: Record<string, string>;
-        eventType: string;
-        retry: boolean;
-        region?: string;
-        serviceAccountEmail?: string;
-    };
-    scheduleTrigger?: {
-        schedule?: string;
-        timezone?: string;
-        retryConfig?: {
-            retryCount?: number;
-            maxRetryDuration?: string;
-            minBackoffDuration?: string;
-            maxBackoffDuration?: string;
-            maxDoublings?: number;
-        };
-    };
+  };
 }
 
 /** An definition of a function deployment as appears in the Manifest. **/
 export interface ManifestBackend {
-    specVersion: "v1alpha1";
-    requiredAPIs: Record<string, string>;
-    endpoints: Record<string, ManifestEndpoint>;
+  specVersion: 'v1alpha1';
+  requiredAPIs: Record<string, string>;
+  endpoints: Record<string, ManifestEndpoint>;
 }
