@@ -430,7 +430,7 @@ export function encode(data: any): any {
   if (Array.isArray(data)) {
     return data.map(encode);
   }
-  if (typeof data === 'object') {
+  if (typeof data === 'object' || typeof data === 'function') {
     // Sadly we don't have Object.fromEntries in Node 10, so we can't use a single
     // list comprehension
     const obj: Record<string, any> = {};

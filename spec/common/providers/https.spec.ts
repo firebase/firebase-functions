@@ -766,6 +766,10 @@ describe('encoding/decoding', () => {
       baz: [1, 2, 1099511627776],
     });
   });
+
+  it('encodes function as an empty object', () => {
+    expect(https.encode(() => 'foo')).to.deep.equal({});
+  });
 });
 
 describe('decode tokens', () => {
