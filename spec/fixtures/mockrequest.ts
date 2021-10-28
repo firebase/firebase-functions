@@ -86,6 +86,20 @@ export function generateIdToken(projectId: string): string {
 }
 
 /**
+ * Generates a mocked, unsigned Firebase ID token.
+ */
+export function generateUnsignedIdToken(projectId: string): string {
+  return [
+    { alg: 'RS256', typ: 'JWT' },
+    { aud: projectId, sub: mockKey.user_id },
+    'Invalid signature',
+  ]
+    .map((str) => JSON.stringify(str))
+    .map((str) => Buffer.from(str).toString('base64'))
+    .join('.');
+}
+
+/**
  * Mocks out the http request used by the firebase-admin SDK to get the jwks for
  * verifying an AppCheck token.
  */
@@ -120,4 +134,21 @@ export function generateAppCheckToken(
     },
   };
   return jwt.sign(claims, jwkToPem(mockJWK, { private: true }), options);
+}
+
+/**
+ * Generates a mocked, unsigned AppCheck token.
+ */
+export function generateUnsignedAppCheckToken(
+  projectId: string,
+  appId: string
+): string {
+  return [
+    { alg: 'RS256', typ: 'JWT' },
+    { aud: [`projects/${projectId}`], sub: appId },
+    'Invalid signature',
+  ]
+    .map((component) => JSON.stringify(component))
+    .map((str) => Buffer.from(str).toString('base64'))
+    .join('.');
 }

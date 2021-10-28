@@ -1,18 +1,28 @@
 import { expect } from 'chai';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
+import * as sinon from 'sinon';
 
 import { apps as appsNamespace } from '../../../src/apps';
 import * as https from '../../../src/common/providers/https';
+import * as debug from '../../../src/common/debug';
 import * as mocks from '../../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,
   generateAppCheckToken,
   generateIdToken,
+  generateUnsignedAppCheckToken,
+  generateUnsignedIdToken,
   mockFetchAppCheckPublicJwks,
   mockFetchPublicKeys,
   mockRequest,
 } from '../../fixtures/mockrequest';
+import {
+  CallableContext,
+  CallableRequest,
+  unsafeDecodeAppCheckToken,
+  unsafeDecodeIdToken,
+} from '../../../src/common/providers/https';
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -131,6 +141,64 @@ async function runTest(test: CallTest): Promise<any> {
   expect(responseV2.body).to.deep.equal(test.expectedHttpResponse.body);
   expect(responseV2.headers).to.deep.equal(test.expectedHttpResponse.headers);
   expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
+}
+
+function checkAuthContext(
+  context: CallableContext,
+  projectId: string,
+  userId: string
+) {
+  expect(context.auth).to.not.be.undefined;
+  expect(context.auth).to.not.be.null;
+  expect(context.auth.uid).to.equal(userId);
+  expect(context.auth.token.uid).to.equal(userId);
+  expect(context.auth.token.sub).to.equal(userId);
+  expect(context.auth.token.aud).to.equal(projectId);
+  expect(context.instanceIdToken).to.be.undefined;
+}
+
+function checkAppCheckContext(
+  context: CallableContext,
+  projectId: string,
+  appId: string
+) {
+  expect(context.app).to.not.be.undefined;
+  expect(context.app).to.not.be.null;
+  expect(context.app.appId).to.equal(appId);
+  expect(context.app.token.app_id).to.be.equal(appId);
+  expect(context.app.token.sub).to.be.equal(appId);
+  expect(context.app.token.aud).to.be.deep.equal([`projects/${projectId}`]);
+  expect(context.auth).to.be.undefined;
+  expect(context.instanceIdToken).to.be.undefined;
+}
+
+function checkAuthRequest(
+  request: CallableRequest,
+  projectId: string,
+  userId: string
+) {
+  expect(request.auth).to.not.be.undefined;
+  expect(request.auth).to.not.be.null;
+  expect(request.auth.uid).to.equal(userId);
+  expect(request.auth.token.uid).to.equal(userId);
+  expect(request.auth.token.sub).to.equal(userId);
+  expect(request.auth.token.aud).to.equal(projectId);
+  expect(request.instanceIdToken).to.be.undefined;
+}
+
+function checkAppCheckRequest(
+  request: CallableRequest,
+  projectId: string,
+  appId: string
+) {
+  expect(request.app).to.not.be.undefined;
+  expect(request.app).to.not.be.null;
+  expect(request.app.appId).to.equal(appId);
+  expect(request.app.token.app_id).to.be.equal(appId);
+  expect(request.app.token.sub).to.be.equal(appId);
+  expect(request.app.token.aud).to.be.deep.equal([`projects/${projectId}`]);
+  expect(request.auth).to.be.undefined;
+  expect(request.instanceIdToken).to.be.undefined;
 }
 
 describe('onCallHandler', () => {
@@ -354,23 +422,11 @@ describe('onCallHandler', () => {
       }),
       expectedData: null,
       callableFunction: (data, context) => {
-        expect(context.auth).to.not.be.undefined;
-        expect(context.auth).to.not.be.null;
-        expect(context.auth.uid).to.equal(mocks.user_id);
-        expect(context.auth.token.uid).to.equal(mocks.user_id);
-        expect(context.auth.token.sub).to.equal(mocks.user_id);
-        expect(context.auth.token.aud).to.equal(projectId);
-        expect(context.instanceIdToken).to.be.undefined;
+        checkAuthContext(context, projectId, mocks.user_id);
         return null;
       },
       callableFunction2: (request) => {
-        expect(request.auth).to.not.be.undefined;
-        expect(request.auth).to.not.be.null;
-        expect(request.auth.uid).to.equal(mocks.user_id);
-        expect(request.auth.token.uid).to.equal(mocks.user_id);
-        expect(request.auth.token.sub).to.equal(mocks.user_id);
-        expect(request.auth.token.aud).to.equal(projectId);
-        expect(request.instanceIdToken).to.be.undefined;
+        checkAuthRequest(request, projectId, mocks.user_id);
         return null;
       },
       expectedHttpResponse: {
@@ -383,9 +439,11 @@ describe('onCallHandler', () => {
   });
 
   it('should reject bad auth', async () => {
+    const projectId = appsNamespace().admin.options.projectId;
+    const idToken = generateUnsignedIdToken(projectId);
     await runTest({
       httpRequest: mockRequest(null, 'application/json', {
-        authorization: 'Bearer FAKE',
+        authorization: 'Bearer ' + idToken,
       }),
       expectedData: null,
       callableFunction: (data, context) => {
@@ -410,35 +468,17 @@ describe('onCallHandler', () => {
   it('should handle AppCheck token', async () => {
     const mock = mockFetchAppCheckPublicJwks();
     const projectId = appsNamespace().admin.options.projectId;
-    const appId = '1:65211879909:web:3ae38ef1cdcb2e01fe5f0c';
+    const appId = '123:web:abc';
     const appCheckToken = generateAppCheckToken(projectId, appId);
     await runTest({
       httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
       expectedData: null,
       callableFunction: (data, context) => {
-        expect(context.app).to.not.be.undefined;
-        expect(context.app).to.not.be.null;
-        expect(context.app.appId).to.equal(appId);
-        expect(context.app.token.app_id).to.be.equal(appId);
-        expect(context.app.token.sub).to.be.equal(appId);
-        expect(context.app.token.aud).to.be.deep.equal([
-          `projects/${projectId}`,
-        ]);
-        expect(context.auth).to.be.undefined;
-        expect(context.instanceIdToken).to.be.undefined;
+        checkAppCheckContext(context, projectId, appId);
         return null;
       },
       callableFunction2: (request) => {
-        expect(request.app).to.not.be.undefined;
-        expect(request.app).to.not.be.null;
-        expect(request.app.appId).to.equal(appId);
-        expect(request.app.token.app_id).to.be.equal(appId);
-        expect(request.app.token.sub).to.be.equal(appId);
-        expect(request.app.token.aud).to.be.deep.equal([
-          `projects/${projectId}`,
-        ]);
-        expect(request.auth).to.be.undefined;
-        expect(request.instanceIdToken).to.be.undefined;
+        checkAppCheckRequest(request, projectId, appId);
         return null;
       },
       expectedHttpResponse: {
@@ -451,10 +491,11 @@ describe('onCallHandler', () => {
   });
 
   it('should reject bad AppCheck token', async () => {
+    const projectId = appsNamespace().admin.options.projectId;
+    const appId = '123:web:abc';
+    const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
     await runTest({
-      httpRequest: mockRequest(null, 'application/json', {
-        appCheckToken: 'FAKE',
-      }),
+      httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
       expectedData: null,
       callableFunction: (data, context) => {
         return;
@@ -543,6 +584,66 @@ describe('onCallHandler', () => {
         headers: expectedResponseHeaders,
         body: { result: null },
       },
+    });
+  });
+
+  describe('skip token verification debug mode support', () => {
+    before(() => {
+      sinon
+        .stub(debug, 'isDebugFeatureEnabled')
+        .withArgs('skipTokenVerification')
+        .returns(true);
+    });
+
+    after(() => {
+      sinon.verifyAndRestore();
+    });
+
+    it('should skip auth token verification', async () => {
+      const projectId = appsNamespace().admin.options.projectId;
+      const idToken = generateUnsignedIdToken(projectId);
+      await runTest({
+        httpRequest: mockRequest(null, 'application/json', {
+          authorization: 'Bearer ' + idToken,
+        }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          checkAuthContext(context, projectId, mocks.user_id);
+          return null;
+        },
+        callableFunction2: (request) => {
+          checkAuthRequest(request, projectId, mocks.user_id);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it('should skip app check token verification', async () => {
+      const projectId = appsNamespace().admin.options.projectId;
+      const appId = '123:web:abc';
+      const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
+      await runTest({
+        httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          checkAppCheckContext(context, projectId, appId);
+          return null;
+        },
+        callableFunction2: (request) => {
+          checkAppCheckRequest(request, projectId, appId);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
     });
   });
 });
@@ -668,5 +769,38 @@ describe('encoding/decoding', () => {
 
   it('encodes function as an empty object', () => {
     expect(https.encode(() => 'foo')).to.deep.equal({});
+  });
+});
+
+describe('decode tokens', () => {
+  const projectId = 'myproject';
+  const appId = '123:web:abc';
+
+  it('decodes valid Auth ID Token', () => {
+    const idToken = unsafeDecodeIdToken(generateIdToken(projectId));
+    expect(idToken.uid).to.equal(mocks.user_id);
+    expect(idToken.sub).to.equal(mocks.user_id);
+  });
+
+  it('decodes invalid Auth ID Token', () => {
+    const idToken = unsafeDecodeIdToken(generateUnsignedIdToken(projectId));
+    expect(idToken.uid).to.equal(mocks.user_id);
+    expect(idToken.sub).to.equal(mocks.user_id);
+  });
+
+  it('decodes valid App Check Token', () => {
+    const idToken = unsafeDecodeAppCheckToken(
+      generateAppCheckToken(projectId, appId)
+    );
+    expect(idToken.app_id).to.equal(appId);
+    expect(idToken.sub).to.equal(appId);
+  });
+
+  it('decodes invalid App Check Token', () => {
+    const idToken = unsafeDecodeAppCheckToken(
+      generateUnsignedAppCheckToken(projectId, appId)
+    );
+    expect(idToken.app_id).to.equal(appId);
+    expect(idToken.sub).to.equal(appId);
   });
 });
