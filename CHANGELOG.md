@@ -1,4 +1,0 @@
-- GCS Enhancement
-- Add option to allow callable functions to ignore invalid App Check tokens
-- Add firebase-admin v10 as an allowed peer dependency
-- Fix bug where onCall handler failed to encode returned value with functions
