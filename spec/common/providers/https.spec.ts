@@ -667,8 +667,6 @@ describe('encoding/decoding', () => {
   });
 
   it('encodes functions as an empty object', () => {
-    expect(
-        https.encode(() => 'foo')
-    ).to.deep.equal({});
-  })
+    expect(https.encode(() => 'foo')).to.deep.equal({});
+  });
 });
