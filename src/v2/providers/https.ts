@@ -32,7 +32,7 @@ import {
   onCallHandler,
   Request,
 } from '../../common/providers/https';
-import { ManifestEndpoint } from '../../common/manifest/v1alpha1';
+import { ManifestEndpoint } from '../../common/manifest';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
