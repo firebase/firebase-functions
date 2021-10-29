@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import * as url from "url";
+import * as url from 'url';
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -29,19 +29,21 @@ import * as url from "url";
  */
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function(
-    'modulePath',
-    'return import(modulePath)'
+  'modulePath',
+  'return import(modulePath)'
 ) as (modulePath: string) => Promise<any>;
 
 function getFunctionModulePath(codeLocation: string): string | undefined {
-    let path;
-    try {
-        console.log(process.cwd());
-        path = require.resolve(codeLocation);
-    } catch (e) {
-        console.error(`Failed to resolve module at location ${codeLocation}: ${e.message}`)
-    }
-    return path;
+  let path;
+  try {
+    console.log(process.cwd());
+    path = require.resolve(codeLocation);
+  } catch (e) {
+    console.error(
+      `Failed to resolve module at location ${codeLocation}: ${e.message}`
+    );
+  }
+  return path;
 }
 
 /**
@@ -49,21 +51,20 @@ function getFunctionModulePath(codeLocation: string): string | undefined {
  * @param functionsDir
  */
 export async function loadModule(functionsDir: string) {
-    const functionModulePath = getFunctionModulePath(functionsDir);
-    if (functionModulePath == undefined) {
-        throw new Error('Provided code is not a loadable module.');
-        return;
+  const functionModulePath = getFunctionModulePath(functionsDir);
+  if (functionModulePath == undefined) {
+    throw new Error('Provided code is not a loadable module.');
+    return;
+  }
+  try {
+    return require(functionModulePath);
+  } catch (e) {
+    if (e.code === 'ERR_REQUIRE_ESM') {
+      const modulePath = require.resolve(functionModulePath);
+      // Resolve module path to file:// URL. Required for windows support.
+      const moduleURL = url.pathToFileURL(modulePath).href;
+      return await dynamicImport(moduleURL);
     }
-
-    try {
-        return require(functionModulePath);
-    } catch (e) {
-        if (e.code === 'ERR_REQUIRE_ESM') {
-            const modulePath = require.resolve(functionModulePath);
-            // Resolve module path to file:// URL. Required for windows support.
-            const moduleURL = url.pathToFileURL(modulePath).href;
-            return await dynamicImport(moduleURL);
-        }
-        throw e;
-    }
+    throw e;
+  }
 }

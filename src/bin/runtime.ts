@@ -2,7 +2,7 @@
 
 import * as express from 'express';
 
-import { ManifestBackend, ManifestEndpoint } from '../common/manifest/v1alpha';
+import { ManifestBackend, ManifestEndpoint } from '../common/manifest';
 import { loadModule } from '../common/loader';
 
 function extractEndpoints(
@@ -81,12 +81,12 @@ app.get('/backend.yaml', async (req, res) => {
 
 app.get('/quitquitquit', async (req, res) => {
   res.send('ok');
-  server.close(() => console.log("shutdown requested via /quitquitquit"));
+  server.close(() => console.log('shutdown requested via /quitquitquit'));
 });
 
 let port = 8080;
 if (process.env.ADMIN_PORT) {
   port = Number.parseInt(process.env.ADMIN_PORT);
 }
-console.error('Serving at port', port);
+console.log('Serving at port', port);
 server = app.listen(port);
