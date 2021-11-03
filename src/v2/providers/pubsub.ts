@@ -184,9 +184,7 @@ export function onMessagePublished<T = any>(
         },
         eventTrigger: {
           eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
-          eventFilters: {
-            resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
-          },
+          eventFilters: { topic },
           retry: false,
         },
       };
