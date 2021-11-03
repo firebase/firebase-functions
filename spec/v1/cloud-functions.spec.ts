@@ -110,7 +110,7 @@ describe('makeCloudFunction', () => {
 
     expect(cf.__endpoint).to.deep.equal({
       platform: 'gcfv1',
-      timeout: '10s',
+      timeoutSeconds: 10,
       region: ['us-central1'],
       availableMemoryMb: 128,
       serviceAccountEmail: 'foo@google.com',

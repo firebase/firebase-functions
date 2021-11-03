@@ -600,14 +600,8 @@ export function optionsToEndpoint(
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
-  );
-  convertIfPresent(
-    endpoint,
-    options,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
+    'labels',
+    'timeoutSeconds'
   );
   convertIfPresent(endpoint, options, 'region', 'regions', (r) => r);
   convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {

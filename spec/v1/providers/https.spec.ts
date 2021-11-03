@@ -122,7 +122,7 @@ describe('CloudHttpsBuilder', () => {
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__endpoint.timeout).to.deep.equal('90s');
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal('90s');
       expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(['private']);
     });
   });
@@ -181,7 +181,7 @@ describe('#onCall', () => {
 
     expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
-    expect(fn.__endpoint.timeout).to.deep.equal('90s');
+    expect(fn.__endpoint.timeoutSeconds).to.deep.equal('90s');
   });
 
   it('has a .run method', () => {

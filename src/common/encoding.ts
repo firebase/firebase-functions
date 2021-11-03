@@ -6,11 +6,6 @@
  */
 export type Duration = string;
 
-/** Get a google.protobuf.Duration for a number of seconds. */
-export function durationFromSeconds(s: number): Duration {
-  return `${s}s`;
-}
-
 /**
  * Utility function to help copy fields from type A to B.
  * As a safety net, catches typos or fields that aren't named the same

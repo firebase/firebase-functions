@@ -24,23 +24,30 @@
  * An definition of a function as appears in the Manifest.
  */
 export interface ManifestEndpoint {
+  id: string;
   region?: string[];
-  platform?: string;
+  platform?: 'gcfv1' | 'gcfv2';
   entryPoint?: string;
   availableMemoryMb?: number;
   maxInstances?: number;
   minInstances?: number;
   concurrency?: number;
   serviceAccountEmail?: string;
-  timeout?: string;
-  vpcConnector?: string;
-  vpcConnectorEgressSettings?: string;
+  timeoutSeconds?: number;
+  vpcConnector: {
+    id: string;
+    egressSettings: string;
+  };
   labels?: Record<string, string>;
   ingressSettings?: string;
   environmentVariables?: Record<string, string>;
+
   httpsTrigger?: {
     invoker?: string[];
   };
+
+  callableTrigger?: {};
+
   eventTrigger?: {
     eventFilters: Record<string, string>;
     eventType: string;
@@ -48,6 +55,7 @@ export interface ManifestEndpoint {
     region?: string;
     serviceAccountEmail?: string;
   };
+
   scheduleTrigger?: {
     schedule?: string;
     timezone?: string;

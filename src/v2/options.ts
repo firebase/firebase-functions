@@ -21,10 +21,11 @@
 // SOFTWARE.
 
 import {
+  convertIfPresent,
+  copyIfPresent,
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from '../common/encoding';
-import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
@@ -297,14 +298,8 @@ export function optionsToManifestEndpoint(
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
-  );
-  convertIfPresent(
-    endpoint,
-    opts,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
+    'labels',
+    'timeoutSeconds'
   );
   convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
@@ -331,20 +326,6 @@ export function optionsToManifestEndpoint(
     }
     return region;
   });
-  convertIfPresent(
-    endpoint,
-    opts,
-    'serviceAccountEmail',
-    'serviceAccount',
-    serviceAccountFromShorthand
-  );
-  convertIfPresent(
-    endpoint,
-    opts,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
-  );
 
   return endpoint;
 }
