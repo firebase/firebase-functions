@@ -6,6 +6,11 @@
  */
 export type Duration = string;
 
+/** Get a google.protobuf.Duration for a number of seconds. */
+export function durationFromSeconds(s: number): Duration {
+  return `${s}s`;
+}
+
 /**
  * Utility function to help copy fields from type A to B.
  * As a safety net, catches typos or fields that aren't named the same
@@ -29,14 +34,14 @@ export function convertIfPresent<Src, Dest>(
   src: Src,
   destField: keyof Dest,
   srcField: keyof Src,
-  converter: (from: any) => any = (from: any) => {
+  converter: (from: any, to?: any) => any = (from: any) => {
     return from;
   }
 ) {
   if (!Object.prototype.hasOwnProperty.call(src, srcField)) {
     return;
   }
-  dest[destField] = converter(src[srcField]);
+  dest[destField] = converter(src[srcField], dest[destField]);
 }
 
 export function serviceAccountFromShorthand(
