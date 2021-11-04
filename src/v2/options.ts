@@ -287,8 +287,8 @@ export function optionsToTriggerAnnotations(
  */
 export function optionsToManifestEndpoint(
   opts: GlobalOptions | EventHandlerOptions
-): ManifestEndpoint {
-  const endpoint: ManifestEndpoint = {};
+): Partial<ManifestEndpoint> {
+  const endpoint: Partial<ManifestEndpoint> = {};
   copyIfPresent(
     endpoint,
     opts,
@@ -296,11 +296,15 @@ export function optionsToManifestEndpoint(
     'minInstances',
     'maxInstances',
     'ingressSettings',
-    'vpcConnectorEgressSettings',
-    'vpcConnector',
     'labels',
     'timeoutSeconds'
   );
+  convertIfPresent(endpoint, opts, 'vpc', 'vpcConnector', (connector) => {
+    return { connector };
+  });
+  convertIfPresent(endpoint, opts, 'vpc', 'vpcConnectorEgressSettings', (egressSettings, vpc) => {
+    return { ...vpc, egressSettings };
+  });
   convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
       '128MB': 128,

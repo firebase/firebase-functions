@@ -25,17 +25,17 @@
  */
 export interface ManifestEndpoint {
   id: string;
+  entryPoint: string;
   region?: string[];
   platform?: 'gcfv1' | 'gcfv2';
-  entryPoint?: string;
   availableMemoryMb?: number;
   maxInstances?: number;
   minInstances?: number;
   concurrency?: number;
   serviceAccountEmail?: string;
   timeoutSeconds?: number;
-  vpcConnector: {
-    id: string;
+  vpc: {
+    connector: string;
     egressSettings: string;
   };
   labels?: Record<string, string>;
