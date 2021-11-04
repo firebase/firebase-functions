@@ -449,7 +449,7 @@ export function makeCloudFunction<EventData>({
         return undefined;
       }
 
-      const endpoint: Partial<ManifestEndpoint> = {
+      const endpoint: ManifestEndpoint = {
         platform: 'gcfv1',
         ...optionsToEndpoint(options),
       };
@@ -590,8 +590,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
 
 export function optionsToEndpoint(
   options: DeploymentOptions
-): Partial<ManifestEndpoint> {
-  const endpoint: Partial<ManifestEndpoint> = {};
+): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
     options,
@@ -605,9 +605,15 @@ export function optionsToEndpoint(
   convertIfPresent(endpoint, options, 'vpc', 'vpcConnector', (connector) => {
     return { connector };
   });
-  convertIfPresent(endpoint, options, 'vpc', 'vpcConnectorEgressSettings', (egressSettings, vpc) => {
-    return { ...vpc, egressSettings };
-  });
+  convertIfPresent(
+    endpoint,
+    options,
+    'vpc',
+    'vpcConnectorEgressSettings',
+    (egressSettings, vpc) => {
+      return { ...vpc, egressSettings };
+    }
+  );
   convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
       '128MB': 128,

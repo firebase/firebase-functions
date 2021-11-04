@@ -143,7 +143,7 @@ export function onRequest(
       const specificOpts = options.optionsToManifestEndpoint(
         opts as options.GlobalOptions
       );
-      const endpoint: ManifestEndpoint = {
+      const endpoint: Partial<ManifestEndpoint> = {
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,

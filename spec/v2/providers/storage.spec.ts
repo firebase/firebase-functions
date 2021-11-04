@@ -176,12 +176,14 @@ describe('v2/storage', () => {
         platform: 'gcfv2',
         region: ['us-west1'],
         availableMemoryMb: 512,
-        timeout: '60s',
+        timeoutSeconds: 60,
         minInstances: 1,
         maxInstances: 3,
         concurrency: 20,
-        vpcConnector: 'aConnector',
-        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
+        vpc: {
+          connector: 'aConnector',
+          egressSettings: 'ALL_TRAFFIC',
+        },
         serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
         ingressSettings: 'ALLOW_ALL',
         labels: {
