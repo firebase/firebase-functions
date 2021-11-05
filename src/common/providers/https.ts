@@ -196,6 +196,7 @@ export interface TaskRateLimits {
   maxDispatchesPerSecond?: number;
 }
 
+/** Metadata about a call to a Task Queue function. */
 export interface TaskContext {
   /**
    * The result of decoding and verifying an ODIC token.
@@ -610,13 +611,14 @@ export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
  * @param {CallableContext} ctx - Context to be sent to callable function handler.
  * @return {CallableTokenStatus} Status of the token verifications.
  */
+/** @internal */
 async function checkTokens(
   req: Request,
   ctx: CallableContext
 ): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
-    auth: 'INVALID',
     app: 'INVALID',
+    auth: 'INVALID',
   };
 
   await Promise.all([
@@ -655,7 +657,7 @@ async function checkTokens(
   return verifications;
 }
 
-/** @hidden */
+/** @interanl */
 async function checkAuthToken(
   req: Request,
   ctx: CallableContext | TaskContext
@@ -688,7 +690,7 @@ async function checkAuthToken(
   }
 }
 
-/** @hidden */
+/** @internal */
 async function checkAppCheckToken(
   req: Request,
   ctx: CallableContext
@@ -728,13 +730,13 @@ type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
 type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
 type v2TaskHandler<Req> = (request: TaskRequest<Req>) => void | Promise<void>;
 
-/** @hidden **/
+/** @internal **/
 export interface CallableOptions {
   cors: cors.CorsOptions;
   allowInvalidAppCheckToken?: boolean;
 }
 
-/** @hidden */
+/** @internal */
 export function onCallHandler<Req = any, Res = any>(
   options: CallableOptions,
   handler: v1CallableHandler | v2CallableHandler<Req, Res>
