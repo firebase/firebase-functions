@@ -127,9 +127,8 @@ export function _onCallWithOptions(
     platform: 'gcfv1',
     labels: {},
     ...optionsToEndpoint(options),
-    httpsTrigger: {},
+    callableTrigger: {},
   };
-  func.__endpoint.labels['deployment-callable'] = 'true';
 
   func.run = handler;
 

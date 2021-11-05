@@ -161,8 +161,8 @@ describe('#onCall', () => {
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv1',
-      httpsTrigger: {},
-      labels: { 'deployment-callable': 'true' },
+      callableTrigger: {},
+      labels: {},
     });
   });
 

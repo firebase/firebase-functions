@@ -242,9 +242,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
         labels: {
           ...baseOpts?.labels,
           ...specificOpts?.labels,
-          'deployment-callable': 'true',
         },
-        httpsTrigger: {},
+        callableTrigger: {},
       };
     },
   });

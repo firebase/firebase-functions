@@ -46,7 +46,7 @@ export const FULL_ENDPOINT = {
     connector: 'aConnector',
     egressSettings: 'ALL_TRAFFIC',
   },
-  serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
+  serviceAccountEmail: 'root@',
   ingressSettings: 'ALLOW_ALL',
   labels: {
     hello: 'world',

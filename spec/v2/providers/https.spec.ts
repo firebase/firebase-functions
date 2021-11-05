@@ -252,10 +252,8 @@ describe('onCall', () => {
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
-      httpsTrigger: {},
-      labels: {
-        'deployment-callable': 'true',
-      },
+      labels: {},
+      callableTrigger: {},
     });
   });
 
@@ -275,10 +273,9 @@ describe('onCall', () => {
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
-      httpsTrigger: {},
+      callableTrigger: {},
       labels: {
         ...FULL_ENDPOINT.labels,
-        'deployment-callable': 'true',
       },
     });
   });
@@ -314,13 +311,11 @@ describe('onCall', () => {
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
-      httpsTrigger: {},
+      callableTrigger: {},
       concurrency: 20,
       minInstances: 3,
       region: ['us-west1', 'us-central1'],
-      labels: {
-        'deployment-callable': 'true',
-      },
+      labels: {},
     });
   });
 
