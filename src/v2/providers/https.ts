@@ -135,12 +135,12 @@ export function onRequest(
 
   Object.defineProperty(handler, '__endpoint', {
     get: () => {
-      const baseOpts = options.optionsToManifestEndpoint(
+      const baseOpts = options.optionsToEndpoint(
         options.getGlobalOptions()
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToManifestEndpoint(
+      const specificOpts = options.optionsToEndpoint(
         opts as options.GlobalOptions
       );
       const endpoint: Partial<ManifestEndpoint> = {
@@ -227,12 +227,12 @@ export function onCall<T = any, Return = any | Promise<any>>(
 
   Object.defineProperty(func, '__endpoint', {
     get: () => {
-      const baseOpts = options.optionsToManifestEndpoint(
+      const baseOpts = options.optionsToEndpoint(
         options.getGlobalOptions()
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToManifestEndpoint handles both cases.
-      const specificOpts = options.optionsToManifestEndpoint(
+      const specificOpts = options.optionsToEndpoint(
         opts as options.GlobalOptions
       );
       return {

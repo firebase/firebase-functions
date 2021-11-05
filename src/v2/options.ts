@@ -285,7 +285,7 @@ export function optionsToTriggerAnnotations(
  * Apply GlobalOptions to endpoint manifest.
  * @internal
  */
-export function optionsToManifestEndpoint(
+export function optionsToEndpoint(
   opts: GlobalOptions | EventHandlerOptions
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
@@ -299,6 +299,7 @@ export function optionsToManifestEndpoint(
     'labels',
     'timeoutSeconds'
   );
+  convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount", (sa) => sa);
   convertIfPresent(endpoint, opts, 'vpc', 'vpcConnector', (connector) => {
     return { connector };
   });
@@ -323,13 +324,6 @@ export function optionsToManifestEndpoint(
     };
     return memoryLookup[mem];
   });
-  convertIfPresent(
-    endpoint,
-    opts,
-    'serviceAccountEmail',
-    'serviceAccount',
-    serviceAccountFromShorthand
-  );
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {
       return [region];

@@ -346,10 +346,10 @@ export function onOperation(
 
   Object.defineProperty(func, '__endpoint', {
     get: () => {
-      const baseOpts = options.optionsToManifestEndpoint(
+      const baseOpts = options.optionsToEndpoint(
         options.getGlobalOptions()
       );
-      const specificOpts = options.optionsToManifestEndpoint(opts);
+      const specificOpts = options.optionsToEndpoint(opts);
 
       const endpoint: ManifestEndpoint = {
         platform: 'gcfv2',

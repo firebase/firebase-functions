@@ -602,6 +602,7 @@ export function optionsToEndpoint(
     'timeoutSeconds'
   );
   convertIfPresent(endpoint, options, 'region', 'regions', (r) => r);
+  convertIfPresent(endpoint, options, 'serviceAccountEmail', 'serviceAccount', (sa) => sa);
   convertIfPresent(endpoint, options, 'vpc', 'vpcConnector', (connector) => {
     return { connector };
   });
@@ -626,12 +627,5 @@ export function optionsToEndpoint(
     };
     return memoryLookup[mem];
   });
-  convertIfPresent(
-    endpoint,
-    options,
-    'serviceAccountEmail',
-    'serviceAccount',
-    serviceAccountFromShorthand
-  );
   return endpoint;
 }
