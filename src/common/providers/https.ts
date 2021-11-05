@@ -169,6 +169,55 @@ export interface CallableRequest<T = any> {
   rawRequest: Request;
 }
 
+/** How a task should be retried in the event of a non-2xx return. */
+export interface TaskRetryConfig {
+  // If left unspecified, will default to 5
+  maxAttempts?: number;
+
+  // If left unspecified will default to 1hr
+  maxBackoffSeconds?: number;
+
+  // If left unspecified will default to 16
+  maxDoublings?: number;
+
+  // If left unspecified will default to 100ms
+  minBackoffSeconds?: number;
+}
+
+/** How congestion control should be applied to the function. */
+export interface TaskRateLimits {
+  // If left unspecified, will default to 100
+  maxBurstSize?: number;
+
+  // If left unspecified, wild default to 1000
+  maxConcurrentDispatches?: number;
+
+  // If left unspecified, will default to 500
+  maxDispatchesPerSecond?: number;
+}
+
+export interface TaskContext {
+  /**
+   * The result of decoding and verifying an ODIC token.
+   */
+  auth?: AuthData;
+}
+
+/**
+ * The request used to call a Task Queue function.
+ */
+export interface TaskRequest<T = any> {
+  /**
+   * The parameters used by a client when calling this function.
+   */
+  data: T;
+
+  /**
+   * The result of decoding and verifying an ODIC token.
+   */
+  auth?: AuthData;
+}
+
 /**
  * The set of Firebase Functions status codes. The codes are the same at the
  * ones exposed by gRPC here:
@@ -561,68 +610,23 @@ export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
  * @param {CallableContext} ctx - Context to be sent to callable function handler.
  * @return {CallableTokenStatus} Status of the token verifications.
  */
-/** @hidden */
 async function checkTokens(
   req: Request,
   ctx: CallableContext
 ): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
-    app: 'MISSING',
-    auth: 'MISSING',
+    auth: 'INVALID',
+    app: 'INVALID',
   };
 
-  const skipTokenVerify = isDebugFeatureEnabled('skipTokenVerification');
-
-  const appCheck = req.header('X-Firebase-AppCheck');
-  if (appCheck) {
-    verifications.app = 'INVALID';
-    try {
-      if (!apps().admin.appCheck) {
-        throw new Error(
-          'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
-        );
-      }
-      let appCheckData;
-      if (skipTokenVerify) {
-        const decodedToken = unsafeDecodeAppCheckToken(appCheck);
-        appCheckData = { appId: decodedToken.app_id, token: decodedToken };
-      } else {
-        appCheckData = await apps()
-          .admin.appCheck()
-          .verifyToken(appCheck);
-      }
-      ctx.app = appCheckData;
-      verifications.app = 'VALID';
-    } catch (err) {
-      logger.warn('Failed to validate AppCheck token.', err);
-    }
-  }
-
-  const authorization = req.header('Authorization');
-  if (authorization) {
-    verifications.auth = 'INVALID';
-    const match = authorization.match(/^Bearer (.*)$/);
-    if (match) {
-      const idToken = match[1];
-      try {
-        let authToken: firebase.auth.DecodedIdToken;
-        if (skipTokenVerify) {
-          authToken = unsafeDecodeIdToken(idToken);
-        } else {
-          authToken = await apps()
-            .admin.auth()
-            .verifyIdToken(idToken);
-        }
-        verifications.auth = 'VALID';
-        ctx.auth = {
-          uid: authToken.uid,
-          token: authToken,
-        };
-      } catch (err) {
-        logger.warn('Failed to validate auth token.', err);
-      }
-    }
-  }
+  await Promise.all([
+    Promise.resolve().then(async () => {
+      verifications.auth = await checkAuthToken(req, ctx);
+    }),
+    Promise.resolve().then(async () => {
+      verifications.app = await checkAppCheckToken(req, ctx);
+    }),
+  ]);
 
   const logPayload = {
     verifications,
@@ -651,8 +655,78 @@ async function checkTokens(
   return verifications;
 }
 
-type v1Handler = (data: any, context: CallableContext) => any | Promise<any>;
-type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
+/** @hidden */
+async function checkAuthToken(
+  req: Request,
+  ctx: CallableContext | TaskContext
+): Promise<TokenStatus> {
+  const authorization = req.header('Authorization');
+  if (!authorization) {
+    return 'MISSING';
+  }
+  const match = authorization.match(/^Bearer (.*)$/);
+  if (match) {
+    const idToken = match[1];
+    try {
+      let authToken: firebase.auth.DecodedIdToken;
+      if (isDebugFeatureEnabled('skipTokenVerification')) {
+        authToken = unsafeDecodeIdToken(idToken);
+      } else {
+        authToken = await apps()
+          .admin.auth()
+          .verifyIdToken(idToken);
+      }
+      ctx.auth = {
+        uid: authToken.uid,
+        token: authToken,
+      };
+      return 'VALID';
+    } catch (err) {
+      logger.warn('Failed to validate auth token.', err);
+      return 'INVALID';
+    }
+  }
+}
+
+/** @hidden */
+async function checkAppCheckToken(
+  req: Request,
+  ctx: CallableContext
+): Promise<TokenStatus> {
+  const appCheck = req.header('X-Firebase-AppCheck');
+  if (!appCheck) {
+    return 'MISSING';
+  }
+  try {
+    if (!apps().admin.appCheck) {
+      throw new Error(
+        'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
+      );
+    }
+    let appCheckData;
+    if (isDebugFeatureEnabled('skipTokenVerification')) {
+      const decodedToken = unsafeDecodeAppCheckToken(appCheck);
+      appCheckData = { appId: decodedToken.app_id, token: decodedToken };
+    } else {
+      appCheckData = await apps()
+        .admin.appCheck()
+        .verifyToken(appCheck);
+    }
+    ctx.app = appCheckData;
+    return 'VALID';
+  } catch (err) {
+    logger.warn('Failed to validate AppCheck token.', err);
+    return 'INVALID';
+  }
+}
+
+type v1CallableHandler = (
+  data: any,
+  context: CallableContext
+) => any | Promise<any>;
+type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
+type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
+type v2TaskHandler<Req> = (request: TaskRequest<Req>) => void | Promise<void>;
 
 /** @hidden **/
 export interface CallableOptions {
@@ -663,7 +737,7 @@ export interface CallableOptions {
 /** @hidden */
 export function onCallHandler<Req = any, Res = any>(
   options: CallableOptions,
-  handler: v1Handler | v2Handler<Req, Res>
+  handler: v1CallableHandler | v2CallableHandler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   const wrapped = wrapOnCallHandler(options, handler);
   return (req: Request, res: express.Response) => {
@@ -679,7 +753,7 @@ export function onCallHandler<Req = any, Res = any>(
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
   options: CallableOptions,
-  handler: v1Handler | v2Handler<Req, Res>
+  handler: v1CallableHandler | v2CallableHandler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
     try {
@@ -726,6 +800,54 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
       res.status(200).send(responseBody);
+    } catch (err) {
+      if (!(err instanceof HttpsError)) {
+        // This doesn't count as an 'explicit' error.
+        logger.error('Unhandled error', err);
+        err = new HttpsError('internal', 'INTERNAL');
+      }
+
+      const { status } = err.httpErrorCode;
+      const body = { error: err.toJSON() };
+
+      res.status(status).send(body);
+    }
+  };
+}
+
+/** @internal */
+export function onEnqueueHandler<Req = any>(
+  handler: v1TaskHandler | v2TaskHandler<Req>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response): Promise<void> => {
+    try {
+      if (!isValidRequest(req)) {
+        logger.error('Invalid request, unable to process.');
+        throw new HttpsError('invalid-argument', 'Bad Request');
+      }
+
+      const context: TaskContext = {};
+      const status = await checkAuthToken(req, context);
+      // Note: this should never happen since task queue functions are guarded by IAM.
+      if (status === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
+      }
+
+      const data: Req = decode(req.body.data);
+      if (handler.length === 2) {
+        await handler(data, context);
+      } else {
+        const arg: TaskRequest<Req> = {
+          ...context,
+          data,
+        };
+        // For some reason the type system isn't picking up that the handler
+        // is a one argument function.
+        await (handler as any)(arg);
+      }
+
+      // If there was some result, encode it in the body.
+      res.status(204).end();
     } catch (err) {
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.

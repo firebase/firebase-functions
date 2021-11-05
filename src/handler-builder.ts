@@ -82,6 +82,22 @@ export class HandlerBuilder {
         func.__trigger = {};
         return func;
       },
+      /** @hidden */
+      get taskQueue() {
+        return {
+          onEnqueue(
+            handler: (
+              data: any,
+              context: https.TaskContext
+            ) => void | Promise<void>
+          ) {
+            const builder = new https.TaskQueueBuilder();
+            const func = builder.onEnqueue(handler);
+            func.__trigger = {};
+            return func;
+          },
+        };
+      },
     };
   }
 
