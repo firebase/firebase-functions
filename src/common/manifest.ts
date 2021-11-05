@@ -55,10 +55,8 @@ export interface ManifestEndpoint {
     };
     eventType: string;
     retry: boolean;
-    trigger?: {
-      region?: string;
-      serviceAccountEmail?: string;
-    };
+    region?: string;
+    serviceAccountEmail?: string;
   };
 
   scheduleTrigger?: {
