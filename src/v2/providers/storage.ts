@@ -346,9 +346,7 @@ export function onOperation(
 
   Object.defineProperty(func, '__endpoint', {
     get: () => {
-      const baseOpts = options.optionsToEndpoint(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
       const specificOpts = options.optionsToEndpoint(opts);
 
       const endpoint: ManifestEndpoint = {

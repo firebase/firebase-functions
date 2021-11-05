@@ -299,7 +299,13 @@ export function optionsToEndpoint(
     'labels',
     'timeoutSeconds'
   );
-  convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount", (sa) => sa);
+  convertIfPresent(
+    endpoint,
+    opts,
+    'serviceAccountEmail',
+    'serviceAccount',
+    (sa) => sa
+  );
   convertIfPresent(endpoint, opts, 'vpc', 'vpcConnector', (connector) => {
     return { connector };
   });

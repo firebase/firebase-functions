@@ -166,9 +166,7 @@ export function onMessagePublished<T = any>(
     },
   });
 
-  const baseOpts = options.optionsToEndpoint(
-      options.getGlobalOptions()
-  );
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
 
   const endpoint: ManifestEndpoint = {

@@ -47,7 +47,10 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
-) => void | Promise<void>) & { __trigger?: unknown , __endpoint: ManifestEndpoint };
+) => void | Promise<void>) & {
+  __trigger?: unknown;
+  __endpoint: ManifestEndpoint;
+};
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
@@ -133,14 +136,10 @@ export function onRequest(
     },
   });
 
-  const baseOpts = options.optionsToEndpoint(
-      options.getGlobalOptions()
-  );
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
-  const specificOpts = options.optionsToEndpoint(
-      opts as options.GlobalOptions
-  );
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
   const endpoint: Partial<ManifestEndpoint> = {
     platform: 'gcfv2',
     ...baseOpts,
@@ -152,11 +151,11 @@ export function onRequest(
     httpsTrigger: {},
   };
   convertIfPresent(
-      endpoint.httpsTrigger,
-      opts,
-      'invoker',
-      'invoker',
-      convertInvoker
+    endpoint.httpsTrigger,
+    opts,
+    'invoker',
+    'invoker',
+    convertInvoker
   );
   (handler as HttpsFunction).__endpoint = endpoint;
 
@@ -223,9 +222,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
 
   Object.defineProperty(func, '__endpoint', {
     get: () => {
-      const baseOpts = options.optionsToEndpoint(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToManifestEndpoint handles both cases.
       const specificOpts = options.optionsToEndpoint(
