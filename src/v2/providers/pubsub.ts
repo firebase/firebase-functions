@@ -139,7 +139,6 @@ export function onMessagePublished<T = any>(
   // that __trigger/__endpoint doesn't exist. We can either cast to any and lose all
   // type safety or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
-  func.__endpoint = 'silence the transpiler';
 
   Object.defineProperty(func, '__trigger', {
     get: () => {
@@ -167,32 +166,27 @@ export function onMessagePublished<T = any>(
     },
   });
 
-  Object.defineProperty(func, '__endpoint', {
-    get: () => {
-      const baseOpts = options.optionsToEndpoint(
-        options.getGlobalOptions()
-      );
-      const specificOpts = options.optionsToEndpoint(opts);
+  const baseOpts = options.optionsToEndpoint(
+      options.getGlobalOptions()
+  );
+  const specificOpts = options.optionsToEndpoint(opts);
 
-      const endpoint: ManifestEndpoint = {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        eventTrigger: {
-          eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
-          eventFilters: { topic },
-          retry: false,
-        },
-      };
-      copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
-
-      return endpoint;
+  const endpoint: ManifestEndpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
     },
-  });
+    eventTrigger: {
+      eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
+      eventFilters: { topic },
+      retry: false,
+    },
+  };
+  copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+  func.__endpoint = endpoint;
 
   return func;
 }

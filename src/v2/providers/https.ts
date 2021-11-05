@@ -47,7 +47,7 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
-) => void | Promise<void>) & { __trigger: unknown } & { __endpoint: unknown };
+) => void | Promise<void>) & { __trigger?: unknown , __endpoint: ManifestEndpoint };
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
@@ -133,36 +133,32 @@ export function onRequest(
     },
   });
 
-  Object.defineProperty(handler, '__endpoint', {
-    get: () => {
-      const baseOpts = options.optionsToEndpoint(
-        options.getGlobalOptions()
-      );
-      // global options calls region a scalar and https allows it to be an array,
-      // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToEndpoint(
-        opts as options.GlobalOptions
-      );
-      const endpoint: Partial<ManifestEndpoint> = {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        httpsTrigger: {},
-      };
-      convertIfPresent(
-        endpoint.httpsTrigger,
-        opts,
-        'invoker',
-        'invoker',
-        convertInvoker
-      );
-      return endpoint;
+  const baseOpts = options.optionsToEndpoint(
+      options.getGlobalOptions()
+  );
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToTriggerAnnotations handles both cases.
+  const specificOpts = options.optionsToEndpoint(
+      opts as options.GlobalOptions
+  );
+  const endpoint: Partial<ManifestEndpoint> = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
     },
-  });
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+      endpoint.httpsTrigger,
+      opts,
+      'invoker',
+      'invoker',
+      convertInvoker
+  );
+  (handler as HttpsFunction).__endpoint = endpoint;
 
   return handler as HttpsFunction;
 }
