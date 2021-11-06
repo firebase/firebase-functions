@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { ManifestEndpoint } from '../common/manifest';
+
 /** @internal */
 export interface TriggerAnnotation {
   concurrency?: number;
@@ -92,7 +94,7 @@ export interface CloudFunction<T> {
   (raw: CloudEvent<unknown>): any | Promise<any>;
 
   __trigger: unknown;
-  __endpoint: unknown;
+  __endpoint: ManifestEndpoint;
 
   run(event: CloudEvent<T>): any | Promise<any>;
 }
