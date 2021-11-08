@@ -93,7 +93,7 @@ export interface CloudEvent<T> {
 export interface CloudFunction<T> {
   (raw: CloudEvent<unknown>): any | Promise<any>;
 
-  __trigger: unknown;
+  __trigger?: unknown;
   __endpoint: ManifestEndpoint;
 
   run(event: CloudEvent<T>): any | Promise<any>;

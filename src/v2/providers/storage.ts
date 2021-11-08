@@ -315,11 +315,11 @@ export function onOperation(
 
   func.run = handler;
 
-  // TypeScript doesn't recongize defineProperty as adding a property and complains
-  // that __trigger/__endpoint doesn't exist. We can either cast to any and lose all type safety
+  // TypeScript doesn't recognize defineProperty as adding a property and complains
+  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
-  func.__endpoint = 'silence the transpiler';
+  func.__endpoint = ({} as ManifestEndpoint);
 
   Object.defineProperty(func, '__trigger', {
     get: () => {
