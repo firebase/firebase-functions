@@ -220,26 +220,20 @@ export function onCall<T = any, Return = any | Promise<any>>(
     },
   });
 
-  Object.defineProperty(func, '__endpoint', {
-    get: () => {
-      const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-      // global options calls region a scalar and https allows it to be an array,
-      // but optionsToManifestEndpoint handles both cases.
-      const specificOpts = options.optionsToEndpoint(
-        opts as options.GlobalOptions
-      );
-      return {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        callableTrigger: {},
-      };
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToManifestEndpoint handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  func.__endpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
     },
-  });
+    callableTrigger: {},
+  };
 
   func.run = handler;
   return func;

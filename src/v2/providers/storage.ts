@@ -344,6 +344,8 @@ export function onOperation(
     },
   });
 
+  // SDK may attempt to read FIREBASE_CONFIG env var to fetch the default bucket name.
+  // To prevent runtime errors when FIREBASE_CONFIG env var is missing, we use getters.
   Object.defineProperty(func, '__endpoint', {
     get: () => {
       const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
