@@ -20,6 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import * as url from 'url';
+import * as path from 'path';
+
+import { ManifestBackend, ManifestEndpoint } from './manifest';
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -27,44 +30,69 @@ import * as url from 'url';
  *
  * See https://github.com/microsoft/TypeScript/issues/43329.
  */
-// eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function(
   'modulePath',
   'return import(modulePath)'
 ) as (modulePath: string) => Promise<any>;
 
-function getFunctionModulePath(codeLocation: string): string | undefined {
-  let path;
+async function loadModule(functionsDir: string) {
+  const absolutePath = path.resolve(functionsDir);
   try {
-    console.log(process.cwd());
-    path = require.resolve(codeLocation);
-  } catch (e) {
-    console.error(
-      `Failed to resolve module at location ${codeLocation}: ${e.message}`
-    );
-  }
-  return path;
-}
-
-/**
- * TODO
- * @param functionsDir
- */
-export async function loadModule(functionsDir: string) {
-  const functionModulePath = getFunctionModulePath(functionsDir);
-  if (functionModulePath == undefined) {
-    throw new Error('Provided code is not a loadable module.');
-    return;
-  }
-  try {
-    return require(functionModulePath);
+    return require(path.resolve(absolutePath));
   } catch (e) {
     if (e.code === 'ERR_REQUIRE_ESM') {
-      const modulePath = require.resolve(functionModulePath);
+      // This is an ESM package!
+      const modulePath = require.resolve(absolutePath);
       // Resolve module path to file:// URL. Required for windows support.
+      // @ts-ignore pathToFileURL exists for Node.js v10 and up. Since ESM support exists for Node.js v13 and up, we
+      // can be sure that this function exists here.
       const moduleURL = url.pathToFileURL(modulePath).href;
       return await dynamicImport(moduleURL);
     }
     throw e;
   }
+}
+
+/* @internal */
+export function extractEndpoints(
+  module,
+  endpoints: Record<string, ManifestEndpoint>,
+  prefix = ''
+) {
+  for (const [name, val] of Object.entries(module)) {
+    if (
+      typeof val === 'function' &&
+      val['__endpoint'] &&
+      typeof val['__endpoint'] === 'object'
+    ) {
+      const funcName = prefix + name;
+      endpoints[funcName] = {
+        ...val['__endpoint'],
+        entryPoint: funcName.replace(/-/g, '.'),
+      };
+    } else if (typeof val === 'object' && val !== null) {
+      extractEndpoints(val, endpoints, prefix + name + '-');
+    }
+  }
+}
+
+/* @internal */
+export async function loadBackend(
+  functionsDir: string
+): Promise<ManifestBackend> {
+  const endpoints: Record<string, ManifestEndpoint> = {};
+  const mod = await loadModule(functionsDir);
+
+  extractEndpoints(mod, endpoints);
+
+  const backend: ManifestBackend = {
+    endpoints,
+    specVersion: 'v1alpha1',
+    requiredAPIs: {},
+  };
+  if (Object.values(endpoints).find((ep) => ep.scheduleTrigger)) {
+    backend.requiredAPIs['pubsub'] = 'pubsub.googleapis.com';
+    backend.requiredAPIs['scheduler'] = 'cloudscheduler.googleapis.com';
+  }
+  return backend;
 }

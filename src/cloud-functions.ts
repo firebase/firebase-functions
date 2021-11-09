@@ -37,7 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
-import { ManifestEndpoint } from './common/manifest';
+import { ManifestEndpoint } from './runtime/manifest';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');

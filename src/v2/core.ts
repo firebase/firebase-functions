@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from '../common/manifest';
+import { ManifestEndpoint } from '../runtime/manifest';
 
 /** @internal */
 export interface TriggerAnnotation {

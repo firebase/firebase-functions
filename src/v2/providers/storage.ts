@@ -24,7 +24,7 @@ import * as options from '../options';
 import { firebaseConfig } from '../../config';
 import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../common/manifest';
+import { ManifestEndpoint } from '../../runtime/manifest';
 
 /**
  * An object within Google Cloud Storage.

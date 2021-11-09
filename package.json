@@ -23,7 +23,7 @@
   ],
   "main": "lib/index.js",
   "bin": {
-    "firebase-functions": "./lib/bin/runtime.js"
+    "firebase-functions": "./lib/bin/firebase-functions.js"
   },
   "types": "lib/index.d.ts",
   "exports": {
@@ -165,6 +165,7 @@
     "mz": "^2.7.0",
     "nock": "^10.0.6",
     "prettier": "^1.18.2",
+    "semver": "^7.3.5",
     "sinon": "^7.3.2",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",
