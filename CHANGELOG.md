@@ -1,3 +1,0 @@
-- GCS Enhancement
-- Add option to allow callable functions to ignore invalid App Check tokens.
-- Add firebase-admin v10 as an allowed peer dependency

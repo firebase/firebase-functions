@@ -24,7 +24,7 @@
 const debugMode = process.env.FIREBASE_DEBUG_MODE === 'true';
 
 interface DebugFeatures {
-  skipCallableTokenVerification?: boolean;
+  skipTokenVerification?: boolean;
 }
 
 function loadDebugFeatures(): DebugFeatures {
