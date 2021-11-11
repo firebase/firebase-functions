@@ -92,12 +92,14 @@ export interface TaskQueueOptions {
   invoker?: 'private' | string | string[];
 }
 
+/** @hidden */
 export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
   __trigger: unknown;
   run(data: any, context: TaskContext): void | Promise<void>;
 }
 
+/** @hidden */
 export class TaskQueueBuilder {
   /** @internal */
   constructor(
@@ -108,7 +110,7 @@ export class TaskQueueBuilder {
   onEnqueue(
     handler: (data: any, context: TaskContext) => void | Promise<void>
   ): TaskQueueFunction {
-    // onCallHandler sniffs the function length of the passed-in callback
+    // onEnqueueHandler sniffs the function length of the passed-in callback
     // and the user could have only tried to listen to data. Wrap their handler
     // in another handler to avoid accidentally triggering the v2 API
     const fixedLen = (data: any, context: TaskContext) =>

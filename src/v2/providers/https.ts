@@ -62,6 +62,12 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
 export interface TaskQueueOptions extends options.GlobalOptions {
   retryConfig?: TaskRetryConfig;
   rateLimits?: TaskRateLimits;
+  /**
+   * Who can enqueue tasks for this function.
+   * If left unspecified, only service accounts which have
+   * roles/cloudtasks.enqueuer and roles/cloudfunctions.invoker
+   * will have permissions.
+   */
   invoker?: 'private' | string | string[];
 }
 
@@ -247,7 +253,7 @@ export function onTaskEnqueue<Args = any>(
     opts = optsOrHandler as TaskQueueOptions;
   }
 
-  // wrapTaskHandler sniffs the function length to determine which API to present.
+  // onEnqueueHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: TaskRequest<Args>) => handler(req);
   const func: any = onEnqueueHandler(fixedLen);

@@ -171,7 +171,7 @@ export interface CallableRequest<T = any> {
 
 /** How a task should be retried in the event of a non-2xx return. */
 export interface TaskRetryConfig {
-  // If left unspecified, will default to 5
+  // If left unspecified, will default to 3
   maxAttempts?: number;
 
   // If left unspecified will default to 1hr
@@ -848,7 +848,6 @@ export function onEnqueueHandler<Req = any>(
         await (handler as any)(arg);
       }
 
-      // If there was some result, encode it in the body.
       res.status(204).end();
     } catch (err) {
       if (!(err instanceof HttpsError)) {
