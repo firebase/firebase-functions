@@ -355,6 +355,15 @@ export class FunctionBuilder {
           context: https.CallableContext
         ) => any | Promise<any>
       ) => https._onCallWithOptions(handler, this.options),
+
+      /**
+       * Declares a task queue function for clients to call using a Firebase Admin SDK.
+       * @param handler A method that takes a data and context and returns void or Promise<void>.
+       */
+      /** @hidden */
+      taskQueue: (options?: https.TaskQueueOptions) => {
+        return new https.TaskQueueBuilder(options, this.options);
+      },
     };
   }
 

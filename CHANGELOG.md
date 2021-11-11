@@ -1,0 +1,1 @@
+- Parallelizes network calls that occur when validating authorization for onCall handlers.
