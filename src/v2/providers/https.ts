@@ -33,7 +33,7 @@ import {
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  onEnqueueHandler,
+  onDispatchHandler,
   Request,
   TaskRateLimits,
   TaskRequest,
@@ -227,17 +227,17 @@ export function onCall<T = any, Return = any | Promise<any>>(
 }
 
 /** Handle a request sent to a Cloud Tasks queue. */
-export function onTaskEnqueue<Args = any>(
+export function onTaskDispatched<Args = any>(
   handler: (request: TaskRequest<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 
 /** Handle a request sent to a Cloud Tasks queue. */
-export function onTaskEnqueue<Args = any>(
+export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
   handler: (request: TaskRequest<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 
-export function onTaskEnqueue<Args = any>(
+export function onTaskDispatched<Args = any>(
   optsOrHandler:
     | TaskQueueOptions
     | ((request: TaskRequest<Args>) => void | Promise<void>),
@@ -256,7 +256,7 @@ export function onTaskEnqueue<Args = any>(
   // onEnqueueHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: TaskRequest<Args>) => handler(req);
-  const func: any = onEnqueueHandler(fixedLen);
+  const func: any = onDispatchHandler(fixedLen);
 
   Object.defineProperty(func, '__trigger', {
     get: () => {

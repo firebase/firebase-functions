@@ -171,16 +171,28 @@ export interface CallableRequest<T = any> {
 
 /** How a task should be retried in the event of a non-2xx return. */
 export interface TaskRetryConfig {
-  // If left unspecified, will default to 3
+  /**
+   * Maximum number of times a request should be attempted
+   * If left unspecified, will default to 3.
+   */
   maxAttempts?: number;
 
-  // If left unspecified will default to 1hr
+  /**
+   * The maximum amount of time to wait between attempts.
+   * If left unspecified will default to 1hr.
+   */
   maxBackoffSeconds?: number;
 
-  // If left unspecified will default to 16
+  /**
+   * The maximum number of times to double the backoff between
+   * retries. If left unspecified will default to 16.
+   */
   maxDoublings?: number;
 
-  // If left unspecified will default to 100ms
+  /**
+   * The minimum time to wait between attempts. If left unspecified
+   * will default to 100ms.
+   */
   minBackoffSeconds?: number;
 }
 
@@ -818,7 +830,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
 }
 
 /** @internal */
-export function onEnqueueHandler<Req = any>(
+export function onDispatchHandler<Req = any>(
   handler: v1TaskHandler | v2TaskHandler<Req>
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {

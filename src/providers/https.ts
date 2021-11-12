@@ -33,7 +33,7 @@ import {
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  onEnqueueHandler,
+  onDispatchHandler,
   Request,
   TaskContext,
   TaskRateLimits,
@@ -107,7 +107,7 @@ export class TaskQueueBuilder {
     private readonly depOpts?: DeploymentOptions
   ) {}
 
-  onEnqueue(
+  onDispatch(
     handler: (data: any, context: TaskContext) => void | Promise<void>
   ): TaskQueueFunction {
     // onEnqueueHandler sniffs the function length of the passed-in callback
@@ -115,7 +115,7 @@ export class TaskQueueBuilder {
     // in another handler to avoid accidentally triggering the v2 API
     const fixedLen = (data: any, context: TaskContext) =>
       handler(data, context);
-    const func: any = onEnqueueHandler(fixedLen);
+    const func: any = onDispatchHandler(fixedLen);
 
     func.__trigger = {
       ...optionsToTrigger(this.depOpts || {}),
