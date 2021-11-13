@@ -34,14 +34,14 @@ export function convertIfPresent<Src, Dest>(
   src: Src,
   destField: keyof Dest,
   srcField: keyof Src,
-  converter: (from: any, to?: any) => any = (from: any) => {
+  converter: (from: any) => any = (from: any) => {
     return from;
   }
 ) {
   if (!Object.prototype.hasOwnProperty.call(src, srcField)) {
     return;
   }
-  dest[destField] = converter(src[srcField], dest[destField]);
+  dest[destField] = converter(src[srcField]);
 }
 
 export function serviceAccountFromShorthand(

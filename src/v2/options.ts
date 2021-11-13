@@ -299,24 +299,12 @@ export function optionsToEndpoint(
     'labels',
     'timeoutSeconds'
   );
-  convertIfPresent(
-    endpoint,
-    opts,
-    'serviceAccountEmail',
-    'serviceAccount',
-  );
-  convertIfPresent(endpoint, opts, 'vpc', 'vpcConnector', (connector) => {
-    return { connector };
-  });
-  convertIfPresent(
-    endpoint,
-    opts,
-    'vpc',
-    'vpcConnectorEgressSettings',
-    (egressSettings, vpc) => {
-      return { ...vpc, egressSettings };
-    }
-  );
+  convertIfPresent(endpoint, opts, 'serviceAccountEmail', 'serviceAccount');
+  if (opts.vpcConnector) {
+    const vpc: ManifestEndpoint['vpc'] = { connector: opts.vpcConnector };
+    convertIfPresent(vpc, opts, 'egressSettings', 'vpcConnectorEgressSettings');
+    endpoint.vpc = vpc;
+  }
   convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
       '128MB': 128,

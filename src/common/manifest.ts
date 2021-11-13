@@ -35,7 +35,7 @@ export interface ManifestEndpoint {
   timeoutSeconds?: number;
   vpc?: {
     connector: string;
-    egressSettings: string;
+    egressSettings?: string;
   };
   labels?: Record<string, string>;
   ingressSettings?: string;
@@ -48,11 +48,7 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: {
-      resource?: string;
-      topic?: string;
-      bucket?: string;
-    };
+    eventFilters: Record<string, string>;
     eventType: string;
     retry: boolean;
     region?: string;

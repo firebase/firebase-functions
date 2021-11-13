@@ -609,18 +609,16 @@ export function optionsToEndpoint(
     'serviceAccount',
     (sa) => sa
   );
-  convertIfPresent(endpoint, options, 'vpc', 'vpcConnector', (connector) => {
-    return { connector };
-  });
-  convertIfPresent(
-    endpoint,
-    options,
-    'vpc',
-    'vpcConnectorEgressSettings',
-    (egressSettings, vpc) => {
-      return { ...vpc, egressSettings };
-    }
-  );
+  if (options.vpcConnector) {
+    const vpc: ManifestEndpoint['vpc'] = { connector: options.vpcConnector };
+    convertIfPresent(
+      vpc,
+      options,
+      'egressSettings',
+      'vpcConnectorEgressSettings'
+    );
+    endpoint.vpc = vpc;
+  }
   convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
       '128MB': 128,
