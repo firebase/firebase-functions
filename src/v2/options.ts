@@ -304,7 +304,6 @@ export function optionsToEndpoint(
     opts,
     'serviceAccountEmail',
     'serviceAccount',
-    (sa) => sa
   );
   convertIfPresent(endpoint, opts, 'vpc', 'vpcConnector', (connector) => {
     return { connector };

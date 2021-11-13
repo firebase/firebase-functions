@@ -601,7 +601,7 @@ export function optionsToEndpoint(
     'labels',
     'timeoutSeconds'
   );
-  convertIfPresent(endpoint, options, 'region', 'regions', (r) => r);
+  convertIfPresent(endpoint, options, 'region', 'regions');
   convertIfPresent(
     endpoint,
     options,
