@@ -358,7 +358,7 @@ export class FunctionBuilder {
 
       /**
        * Declares a task queue function for clients to call using a Firebase Admin SDK.
-       * @param options Configuratins for the task queue function.
+       * @param options Configurations for the task queue function.
        */
       /** @hidden */
       taskQueue: (options?: https.TaskQueueOptions) => {
