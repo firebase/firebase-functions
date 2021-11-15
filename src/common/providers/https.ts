@@ -172,7 +172,7 @@ export interface CallableRequest<T = any> {
 /** How a task should be retried in the event of a non-2xx return. */
 export interface TaskRetryConfig {
   /**
-   * Maximum number of times a request should be attempted
+   * Maximum number of times a request should be attempted.
    * If left unspecified, will default to 3.
    */
   maxAttempts?: number;
