@@ -166,7 +166,7 @@ interface TaskTest {
 
 // Runs a TaskTest test.
 async function runTaskTest(test: TaskTest): Promise<any> {
-  const taskQueueFunctionV1 = https.onEnqueueHandler((data, context) => {
+  const taskQueueFunctionV1 = https.onDispatchHandler((data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     if (test.taskFunction) {
       test.taskFunction(data, context);
@@ -176,7 +176,7 @@ async function runTaskTest(test: TaskTest): Promise<any> {
   const responseV1 = await runHandler(taskQueueFunctionV1, test.httpRequest);
   expect(responseV1.status).to.equal(test.expectedStatus);
 
-  const taskQueueFunctionV2 = https.onEnqueueHandler((request) => {
+  const taskQueueFunctionV2 = https.onDispatchHandler((request) => {
     expect(request.data).to.deep.equal(test.expectedData);
     if (test.taskFunction2) {
       test.taskFunction2(request);

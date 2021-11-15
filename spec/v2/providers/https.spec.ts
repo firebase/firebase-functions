@@ -378,7 +378,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should return a minimal trigger with appropriate values', () => {
-    const result = https.onTaskEnqueue(() => {});
+    const result = https.onTaskDispatched(() => {});
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -388,7 +388,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should create a complex trigger with appropriate values', () => {
-    const result = https.onTaskEnqueue(
+    const result = https.onTaskDispatched(
       {
         ...FULL_OPTIONS,
         retryConfig: {
@@ -432,7 +432,7 @@ describe('onTaskEnqueue', () => {
       minInstances: 1,
     });
 
-    const result = https.onTaskEnqueue(
+    const result = https.onTaskDispatched(
       {
         region: 'us-west1',
         minInstances: 3,
@@ -459,7 +459,7 @@ describe('onTaskEnqueue', () => {
         token: 'token',
       },
     };
-    const cf = https.onTaskEnqueue((r) => {
+    const cf = https.onTaskDispatched((r) => {
       expect(r.data).to.deep.equal(request.data);
       expect(r.auth).to.deep.equal(request.auth);
     });
@@ -468,7 +468,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should be an express handler', async () => {
-    const func = https.onTaskEnqueue((request) => {});
+    const func = https.onTaskDispatched((request) => {});
 
     const req = new MockRequest(
       {
@@ -487,17 +487,17 @@ describe('onTaskEnqueue', () => {
 
   // These tests pass if the code transpiles
   it('allows desirable syntax', () => {
-    https.onTaskEnqueue<string>((request: https.TaskRequest<string>) => {
+    https.onTaskDispatched<string>((request: https.TaskRequest<string>) => {
       // There should be no lint warnings that data is not a string.
       console.log(`hello, ${request.data}`);
     });
-    https.onTaskEnqueue((request: https.TaskRequest<string>) => {
+    https.onTaskDispatched((request: https.TaskRequest<string>) => {
       console.log(`hello, ${request.data}`);
     });
-    https.onTaskEnqueue<string>((request: https.TaskRequest) => {
+    https.onTaskDispatched<string>((request: https.TaskRequest) => {
       console.log(`hello, ${request.data}`);
     });
-    https.onTaskEnqueue((request: https.TaskRequest) => {
+    https.onTaskDispatched((request: https.TaskRequest) => {
       console.log(`Hello, ${request.data}`);
     });
   });

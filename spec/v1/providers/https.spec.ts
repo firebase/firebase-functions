@@ -225,7 +225,7 @@ describe('#onEnqueue', () => {
         },
         invoker: 'private',
       })
-      .onEnqueue(() => {});
+      .onDispatch(() => {});
     expect(result.__trigger).to.deep.equal({
       taskQueueTrigger: {
         rateLimits: {
@@ -252,7 +252,7 @@ describe('#onEnqueue', () => {
         memory: '256MB',
       })
       .https.taskQueue({ retryConfig: { maxAttempts: 5 } })
-      .onEnqueue(() => null);
+      .onDispatch(() => null);
 
     expect(fn.__trigger).to.deep.equal({
       regions: ['us-east1'],
@@ -275,7 +275,7 @@ describe('#onEnqueue', () => {
       },
     };
     let done = false;
-    const cf = https.taskQueue().onEnqueue((d, c) => {
+    const cf = https.taskQueue().onDispatch((d, c) => {
       expect(d).to.equal(data);
       expect(c).to.deep.equal(context);
       done = true;
@@ -288,7 +288,7 @@ describe('#onEnqueue', () => {
   // Regression test for firebase-functions#947
   it('should lock to the v1 API even with function.length == 1', async () => {
     let gotData: Record<string, any>;
-    const func = https.taskQueue().onEnqueue((data) => {
+    const func = https.taskQueue().onDispatch((data) => {
       gotData = data;
     });
 

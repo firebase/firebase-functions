@@ -92,7 +92,7 @@ export class HandlerBuilder {
             ) => void | Promise<void>
           ) {
             const builder = new https.TaskQueueBuilder();
-            const func = builder.onEnqueue(handler);
+            const func = builder.onDispatch(handler);
             func.__trigger = {};
             return func;
           },
