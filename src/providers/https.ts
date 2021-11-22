@@ -28,7 +28,7 @@ import {
   optionsToTrigger,
   Runnable,
 } from '../cloud-functions';
-import { convertIfPresent, convertInvoker } from '../common/encoding';
+import {convertIfPresent, convertInvoker, copyIfPresent} from '../common/encoding';
 import {
   CallableContext,
   FunctionsErrorCode,
