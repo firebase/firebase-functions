@@ -37,6 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
+import { ManifestEndpoint } from './common/manifest';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -284,6 +285,14 @@ export interface TriggerAnnotated {
 }
 
 /**
+ * @hidden
+ * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
+ */
+export interface EndpointAnnotated {
+  __endpoint: ManifestEndpoint;
+}
+
+/**
  * A Runnable has a `run` method which directly invokes the user-defined
  * function - useful for unit testing.
  */
@@ -301,6 +310,7 @@ export interface Runnable<T> {
  * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
+  EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
 
 /**
@@ -312,6 +322,7 @@ export type HttpsFunction = TriggerAnnotated &
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
+  EndpointAnnotated &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
 /** @hidden */
@@ -322,9 +333,9 @@ export interface MakeCloudFunctionArgs<EventData> {
   dataConstructor?: (raw: Event) => EventData;
   eventType: string;
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
-  labels?: { [key: string]: any };
+  labels?: Record<string, string>;
   legacyEventType?: string;
-  options?: { [key: string]: any };
+  options?: DeploymentOptions;
   /*
    * TODO: should remove `provider` and require a fully qualified `eventType`
    * once all providers have migrated to new format.
@@ -429,6 +440,37 @@ export function makeCloudFunction<EventData>({
         trigger.labels = { ...trigger.labels, ...labels };
       }
       return trigger;
+    },
+  });
+
+  Object.defineProperty(cloudFunction, '__endpoint', {
+    get: () => {
+      if (triggerResource() == null) {
+        return undefined;
+      }
+
+      const endpoint: ManifestEndpoint = {
+        platform: 'gcfv1',
+        ...optionsToEndpoint(options),
+      };
+
+      if (options.schedule) {
+        endpoint.scheduleTrigger = options.schedule;
+      } else {
+        endpoint.eventTrigger = {
+          eventType: legacyEventType || provider + '.' + eventType,
+          eventFilters: {
+            resource: triggerResource(),
+          },
+          retry: !!options.failurePolicy,
+        };
+      }
+
+      if (Object.keys(labels).length > 0) {
+        endpoint.labels = { ...endpoint.labels, ...labels };
+      }
+
+      return endpoint;
     },
   });
 
@@ -544,4 +586,50 @@ export function optionsToTrigger(options: DeploymentOptions) {
   );
 
   return trigger;
+}
+
+export function optionsToEndpoint(
+  options: DeploymentOptions
+): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
+  copyIfPresent(
+    endpoint,
+    options,
+    'minInstances',
+    'maxInstances',
+    'ingressSettings',
+    'labels',
+    'timeoutSeconds'
+  );
+  convertIfPresent(endpoint, options, 'region', 'regions');
+  convertIfPresent(
+    endpoint,
+    options,
+    'serviceAccountEmail',
+    'serviceAccount',
+    (sa) => sa
+  );
+  if (options.vpcConnector) {
+    const vpc: ManifestEndpoint['vpc'] = { connector: options.vpcConnector };
+    convertIfPresent(
+      vpc,
+      options,
+      'egressSettings',
+      'vpcConnectorEgressSettings'
+    );
+    endpoint.vpc = vpc;
+  }
+  convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
+    const memoryLookup = {
+      '128MB': 128,
+      '256MB': 256,
+      '512MB': 512,
+      '1GB': 1024,
+      '2GB': 2048,
+      '4GB': 4096,
+      '8GB': 8192,
+    };
+    return memoryLookup[mem];
+  });
+  return endpoint;
 }

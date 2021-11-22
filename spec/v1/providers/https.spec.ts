@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 import * as express from 'express';
-import * as _ from 'lodash';
+
 import * as functions from '../../../src/index';
 import * as https from '../../../src/providers/https';
 import {
@@ -94,11 +94,15 @@ function runHandler(
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
-    it('should return a Trigger with appropriate values', () => {
+    it('should return a trigger/endpoint with appropriate values', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
       expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv1',
+        httpsTrigger: {},
+      });
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -115,24 +119,31 @@ describe('CloudHttpsBuilder', () => {
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
       expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
+      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(['private']);
     });
   });
 });
 
 describe('handler namespace', () => {
   describe('#onRequest', () => {
-    it('should return an empty trigger', () => {
+    it('should return an empty trigger and endpoint', () => {
       const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.deep.equal({});
     });
   });
 
   describe('#onCall', () => {
-    it('should return an empty trigger', () => {
+    it('should return an empty trigger and endpoint', () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.deep.equal({});
     });
   });
 
@@ -145,13 +156,20 @@ describe('handler namespace', () => {
 });
 
 describe('#onCall', () => {
-  it('should return a Trigger with appropriate values', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
     const result = https.onCall((data) => {
       return 'response';
     });
+
     expect(result.__trigger).to.deep.equal({
       httpsTrigger: {},
       labels: { 'deployment-callable': 'true' },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      callableTrigger: {},
+      labels: {},
     });
   });
 
@@ -167,6 +185,10 @@ describe('#onCall', () => {
     expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+    expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+    expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
   it('has a .run method', () => {
