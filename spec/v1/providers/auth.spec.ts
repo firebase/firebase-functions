@@ -51,12 +51,37 @@ describe('Auth Functions', () => {
   };
 
   describe('AuthBuilder', () => {
+    function expectedTrigger(project: string, eventType: string) {
+      return {
+        eventTrigger: {
+          resource: `projects/${project}`,
+          eventType: `providers/firebase.auth/eventTypes/${eventType}`,
+          service: 'firebaseauth.googleapis.com',
+        },
+      };
+    }
+
+    function expectedEndpoint(project: string, eventType: string) {
+      return {
+        platform: 'gcfv1',
+        eventTrigger: {
+          eventFilters: {
+            resource: `projects/${project}`,
+          },
+          eventType: `providers/firebase.auth/eventTypes/${eventType}`,
+          retry: false,
+        },
+      };
+    }
+
     const handler = (user: firebase.auth.UserRecord) => {
       return Promise.resolve();
     };
 
+    const project = 'project1';
+
     before(() => {
-      process.env.GCLOUD_PROJECT = 'project1';
+      process.env.GCLOUD_PROJECT = project;
     });
 
     after(() => {
@@ -86,24 +111,13 @@ describe('Auth Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onCreate(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.create',
-            resource: 'projects/project1',
-            service: 'firebaseauth.googleapis.com',
-          },
-        });
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(project, 'user.create')
+        );
 
-        expect(cloudFunction.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/project1',
-            },
-            eventType: 'providers/firebase.auth/eventTypes/user.create',
-            retry: false,
-          },
-        });
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(project, 'user.create')
+        );
       });
     });
 
@@ -111,24 +125,13 @@ describe('Auth Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onDelete(handler);
 
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.delete',
-            resource: 'projects/project1',
-            service: 'firebaseauth.googleapis.com',
-          },
-        });
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(project, 'user.delete')
+        );
 
-        expect(cloudFunction.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/project1',
-            },
-            eventType: 'providers/firebase.auth/eventTypes/user.delete',
-            retry: false,
-          },
-        });
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(project, 'user.delete')
+        );
       });
     });
 
@@ -269,6 +272,10 @@ describe('Auth Functions', () => {
 
     it('should throw when trigger is accessed', () => {
       expect(() => auth.user().onCreate(() => null).__trigger).to.throw(Error);
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(() => auth.user().onCreate(() => null).__endpoint).to.throw(Error);
     });
 
     it('should not throw when #run is called', () => {

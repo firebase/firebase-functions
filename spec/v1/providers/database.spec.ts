@@ -31,6 +31,29 @@ describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
     // TODO add tests for building a data or change based on the type of operation
 
+    function expectedTrigger(resource: string, eventType: string) {
+      return {
+        eventTrigger: {
+          resource,
+          eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
+          service: 'firebaseio.com',
+        },
+      };
+    }
+
+    function expectedEndpoint(resource: string, eventType: string) {
+      return {
+        platform: 'gcfv1',
+        eventTrigger: {
+          eventFilters: {
+            resource,
+          },
+          eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
+          retry: false,
+        },
+      };
+    }
+
     before(() => {
       (config as any).firebaseConfigCache = {
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
@@ -66,24 +89,19 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onWrite(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-            resource: 'projects/_/instances/subdomain/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.write'
+          )
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/subdomain/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.write'
+          )
+        );
       });
 
       it('should let developers choose a database instance', () => {
@@ -92,24 +110,13 @@ describe('Database Functions', () => {
           .ref('foo')
           .onWrite(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-            resource: 'projects/_/instances/custom/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.write')
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/custom/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.write',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.write')
+        );
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -140,24 +147,19 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onCreate(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-            resource: 'projects/_/instances/subdomain/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.create'
+          )
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/subdomain/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.create'
+          )
+        );
       });
 
       it('should let developers choose a database instance', () => {
@@ -166,24 +168,13 @@ describe('Database Functions', () => {
           .ref('foo')
           .onCreate(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-            resource: 'projects/_/instances/custom/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.create')
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/custom/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.create',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.create')
+        );
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -215,24 +206,19 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onUpdate(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-            resource: 'projects/_/instances/subdomain/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.update'
+          )
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/subdomain/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.update'
+          )
+        );
       });
 
       it('should let developers choose a database instance', () => {
@@ -241,24 +227,13 @@ describe('Database Functions', () => {
           .ref('foo')
           .onUpdate(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-            resource: 'projects/_/instances/custom/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.update')
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/custom/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.update',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.update')
+        );
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -290,25 +265,20 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onDelete(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-            resource: 'projects/_/instances/subdomain/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.delete'
+          )
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/subdomain/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-            retry: false,
-          },
-        });
-      })
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint(
+            'projects/_/instances/subdomain/refs/foo',
+            'ref.delete'
+          )
+        );
+      });
 
       it('should let developers choose a database instance', () => {
         const func = database
@@ -316,24 +286,13 @@ describe('Database Functions', () => {
           .ref('foo')
           .onDelete(() => null);
 
-        expect(func.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-            resource: 'projects/_/instances/custom/refs/foo',
-            service: 'firebaseio.com',
-          },
-        });
+        expect(func.__trigger).to.deep.equal(
+          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.delete')
+        );
 
-        expect(func.__endpoint).to.deep.equal({
-          platform: "gcfv1",
-          eventTrigger: {
-            eventFilters: {
-              resource: 'projects/_/instances/custom/refs/foo',
-            },
-            eventType: 'providers/google.firebase.database/eventTypes/ref.delete',
-            retry: false,
-          },
-        });
+        expect(func.__endpoint).to.deep.equal(
+          expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.delete')
+        );
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -493,7 +452,7 @@ describe('Database Functions', () => {
           () => null
         );
         expect(func.__trigger).to.deep.equal({});
-        expect(func.__trigger).to.deep.equal({});
+        expect(func.__endpoint).to.deep.equal({});
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -532,6 +491,12 @@ describe('Database Functions', () => {
     it('should throw when trigger is accessed', () => {
       expect(
         () => database.ref('/path').onWrite(() => null).__trigger
+      ).to.throw(Error);
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(
+        () => database.ref('/path').onWrite(() => null).__endpoint
       ).to.throw(Error);
     });
 
