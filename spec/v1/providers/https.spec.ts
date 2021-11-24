@@ -94,7 +94,7 @@ function runHandler(
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
-    it('should return a trigger/endpoint with appropriate values', () => {
+    it('should return a trigger with appropriate values', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
@@ -130,7 +130,7 @@ describe('CloudHttpsBuilder', () => {
 
 describe('handler namespace', () => {
   describe('#onRequest', () => {
-    it('should return an empty trigger and endpoint', () => {
+    it('should return an empty trigger', () => {
       const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
@@ -140,7 +140,7 @@ describe('handler namespace', () => {
   });
 
   describe('#onCall', () => {
-    it('should return an empty trigger and endpoint', () => {
+    it('should return an empty trigger', () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
       expect(result.__endpoint).to.deep.equal({});
@@ -151,6 +151,7 @@ describe('handler namespace', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.taskQueue.onEnqueue(() => null);
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.deep.equal({});
     });
   });
 });
@@ -231,7 +232,7 @@ describe('#onCall', () => {
 });
 
 describe('#onEnqueue', () => {
-  it('should return a Trigger with appropriate values', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
     const result = https
       .taskQueue({
         rateLimits: {
@@ -248,7 +249,26 @@ describe('#onEnqueue', () => {
         invoker: 'private',
       })
       .onDispatch(() => {});
+
     expect(result.__trigger).to.deep.equal({
+      taskQueueTrigger: {
+        rateLimits: {
+          maxBurstSize: 20,
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ['private'],
+      },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
       taskQueueTrigger: {
         rateLimits: {
           maxBurstSize: 20,
@@ -280,6 +300,18 @@ describe('#onEnqueue', () => {
       regions: ['us-east1'],
       availableMemoryMb: 256,
       timeout: '90s',
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
+
+    expect(fn.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      region: ['us-east1'],
+      availableMemoryMb: 256,
+      timeoutSeconds: 90,
       taskQueueTrigger: {
         retryConfig: {
           maxAttempts: 5,

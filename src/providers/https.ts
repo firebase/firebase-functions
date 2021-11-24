@@ -28,7 +28,12 @@ import {
   optionsToTrigger,
   Runnable,
 } from '../cloud-functions';
-import {convertIfPresent, convertInvoker, copyIfPresent} from '../common/encoding';
+import {
+  convertIfPresent,
+  convertInvoker,
+  copyIfPresent,
+} from '../common/encoding';
+import { ManifestEndpoint } from '../common/manifest';
 import {
   CallableContext,
   FunctionsErrorCode,
@@ -97,6 +102,7 @@ export interface TaskQueueOptions {
 export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
   __trigger: unknown;
+  __endpoint: ManifestEndpoint;
   run(data: any, context: TaskContext): void | Promise<void>;
 }
 
@@ -131,6 +137,28 @@ export class TaskQueueBuilder {
       'invoker',
       convertInvoker
     );
+
+    func.__endpoint = {
+      platform: 'gcfv1',
+      ...optionsToEndpoint(this.depOpts),
+      taskQueueTrigger: {},
+    };
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'retryConfig');
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'rateLimits');
+    convertIfPresent(
+      func.__endpoint.taskQueueTrigger,
+      this.tqOpts,
+      'invoker',
+      'invoker',
+      convertInvoker
+    );
+
+    func.__requiredAPIs = [
+      {
+        api: 'cloudtasks.googleapis.com',
+        reason: 'Needed for v1 task queue functions',
+      },
+    ];
 
     func.run = handler;
 

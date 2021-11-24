@@ -70,7 +70,6 @@ export class HandlerBuilder {
       ): HttpsFunction => {
         const func = https._onRequestWithOptions(handler, {});
         func.__trigger = {};
-        func.__endpoint = {};
         return func;
       },
       onCall: (
@@ -81,7 +80,6 @@ export class HandlerBuilder {
       ): HttpsFunction => {
         const func = https._onCallWithOptions(handler, {});
         func.__trigger = {};
-        func.__endpoint = {};
         return func;
       },
       /** @hidden */
