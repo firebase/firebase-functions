@@ -446,7 +446,7 @@ export function makeCloudFunction<EventData>({
   Object.defineProperty(cloudFunction, '__endpoint', {
     get: () => {
       if (triggerResource() == null) {
-        return undefined;
+        return {};
       }
 
       const endpoint: ManifestEndpoint = {
@@ -473,6 +473,19 @@ export function makeCloudFunction<EventData>({
       return endpoint;
     },
   });
+
+  if (options.schedule) {
+    cloudFunction.__requiredAPIs = [
+      {
+        api: 'pubsub.googleapis.com',
+        reason: 'Needed for v1 scheduled functions.',
+      },
+      {
+        api: 'cloudscheduler.googleapis.com',
+        reason: 'Needed for v1 scheduled functions.',
+      },
+    ];
+  }
 
   cloudFunction.run = handler || contextOnlyHandler;
   return cloudFunction;
@@ -609,15 +622,14 @@ export function optionsToEndpoint(
     'serviceAccount',
     (sa) => sa
   );
-  if (options.vpcConnector) {
-    const vpc: ManifestEndpoint['vpc'] = { connector: options.vpcConnector };
+  if (options?.vpcConnector) {
+    endpoint.vpc = { connector: options.vpcConnector };
     convertIfPresent(
-      vpc,
+      endpoint.vpc,
       options,
       'egressSettings',
       'vpcConnectorEgressSettings'
     );
-    endpoint.vpc = vpc;
   }
   convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {
