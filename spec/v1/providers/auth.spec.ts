@@ -76,11 +76,16 @@ describe('Auth Functions', () => {
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
     describe('#onCreate', () => {
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onCreate(() => null);
+
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'providers/firebase.auth/eventTypes/user.create',
@@ -88,17 +93,40 @@ describe('Auth Functions', () => {
             service: 'firebaseauth.googleapis.com',
           },
         });
+
+        expect(cloudFunction.__endpoint).to.deep.equal({
+          platform: 'gcfv1',
+          eventTrigger: {
+            eventFilters: {
+              resource: 'projects/project1',
+            },
+            eventType: 'providers/firebase.auth/eventTypes/user.create',
+            retry: false,
+          },
+        });
       });
     });
 
     describe('#onDelete', () => {
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onDelete(handler);
+
         expect(cloudFunction.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'providers/firebase.auth/eventTypes/user.delete',
             resource: 'projects/project1',
             service: 'firebaseauth.googleapis.com',
+          },
+        });
+
+        expect(cloudFunction.__endpoint).to.deep.equal({
+          platform: 'gcfv1',
+          eventTrigger: {
+            eventFilters: {
+              resource: 'projects/project1',
+            },
+            eventType: 'providers/firebase.auth/eventTypes/user.delete',
+            retry: false,
           },
         });
       });
@@ -198,6 +226,11 @@ describe('Auth Functions', () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
+
+      it('should return an empty endpoint', () => {
+        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
+        expect(cloudFunction.__endpoint).to.deep.equal({});
+      });
     });
 
     describe('#onDelete', () => {
@@ -205,12 +238,13 @@ describe('Auth Functions', () => {
         (data: firebase.auth.UserRecord) => data
       );
 
-      it('should return an empty trigger', () => {
+      it('should return an empty trigger/endpoint', () => {
         const handler = (user: firebase.auth.UserRecord) => {
           return Promise.resolve();
         };
         const cloudFunction = functions.handler.auth.user.onDelete(handler);
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.deep.equal({});
       });
 
       it('should handle wire format as of v5.0.0 of firebase-admin', () => {
