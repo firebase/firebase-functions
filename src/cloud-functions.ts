@@ -477,14 +477,14 @@ export function makeCloudFunction<EventData>({
   if (options.schedule) {
     cloudFunction.__requiredAPIs = [
       {
-        api: 'pubsub.googleapis.com',
-        reason: 'Needed for v1 scheduled functions.',
+        api: "pubsub.googleapis.com",
+        reason: "Needed for v1 scheduled functions."
       },
       {
-        api: 'cloudscheduler.googleapis.com',
-        reason: 'Needed for v1 scheduled functions.',
+        api: "cloudscheduler.googleapis.com",
+        reason: "Needed for v1 scheduled functions."
       },
-    ];
+    ]
   }
 
   cloudFunction.run = handler || contextOnlyHandler;
