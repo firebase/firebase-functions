@@ -105,7 +105,7 @@ describe('Firestore Functions', () => {
 
     function expectedEndpoint(resource: string, eventType: string) {
       return {
-        platform: "gcfv1",
+        platform: 'gcfv1',
         eventTrigger: {
           eventFilters: {
             resource,
