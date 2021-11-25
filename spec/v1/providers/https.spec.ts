@@ -94,7 +94,7 @@ function runHandler(
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
-    it('should return a trigger/endpoint with appropriate values', () => {
+    it('should return a trigger with appropriate values', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
@@ -130,7 +130,7 @@ describe('CloudHttpsBuilder', () => {
 
 describe('handler namespace', () => {
   describe('#onRequest', () => {
-    it('should return an empty trigger and endpoint', () => {
+    it('should return an empty trigger', () => {
       const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
@@ -140,8 +140,16 @@ describe('handler namespace', () => {
   });
 
   describe('#onCall', () => {
-    it('should return an empty trigger and endpoint', () => {
+    it('should return an empty trigger', () => {
       const result = functions.handler.https.onCall(() => null);
+      expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.deep.equal({});
+    });
+  });
+
+  describe('#onEnqueue', () => {
+    it('should return an empty trigger', () => {
+      const result = functions.handler.https.taskQueue.onEnqueue(() => null);
       expect(result.__trigger).to.deep.equal({});
       expect(result.__endpoint).to.deep.equal({});
     });
@@ -219,6 +227,137 @@ describe('#onCall', () => {
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(200);
+    expect(gotData).to.deep.equal({ foo: 'bar' });
+  });
+});
+
+describe('#onEnqueue', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
+    const result = https
+      .taskQueue({
+        rateLimits: {
+          maxBurstSize: 20,
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: 'private',
+      })
+      .onDispatch(() => {});
+
+    expect(result.__trigger).to.deep.equal({
+      taskQueueTrigger: {
+        rateLimits: {
+          maxBurstSize: 20,
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ['private'],
+      },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      taskQueueTrigger: {
+        rateLimits: {
+          maxBurstSize: 20,
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ['private'],
+      },
+    });
+  });
+
+  it('should allow both region and runtime options to be set', () => {
+    const fn = functions
+      .region('us-east1')
+      .runWith({
+        timeoutSeconds: 90,
+        memory: '256MB',
+      })
+      .https.taskQueue({ retryConfig: { maxAttempts: 5 } })
+      .onDispatch(() => null);
+
+    expect(fn.__trigger).to.deep.equal({
+      regions: ['us-east1'],
+      availableMemoryMb: 256,
+      timeout: '90s',
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
+
+    expect(fn.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      region: ['us-east1'],
+      availableMemoryMb: 256,
+      timeoutSeconds: 90,
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
+  });
+
+  it('has a .run method', async () => {
+    const data = 'data';
+    const context = {
+      auth: {
+        uid: 'abc',
+        token: 'token' as any,
+      },
+    };
+    let done = false;
+    const cf = https.taskQueue().onDispatch((d, c) => {
+      expect(d).to.equal(data);
+      expect(c).to.deep.equal(context);
+      done = true;
+    });
+
+    await cf.run(data, context);
+    expect(done).to.be.true;
+  });
+
+  // Regression test for firebase-functions#947
+  it('should lock to the v1 API even with function.length == 1', async () => {
+    let gotData: Record<string, any>;
+    const func = https.taskQueue().onDispatch((data) => {
+      gotData = data;
+    });
+
+    const req = new MockRequest(
+      {
+        data: { foo: 'bar' },
+      },
+      {
+        'content-type': 'application/json',
+      }
+    );
+    req.method = 'POST';
+
+    const response = await runHandler(func, req as any);
+    expect(response.status).to.equal(204);
     expect(gotData).to.deep.equal({ foo: 'bar' });
   });
 });

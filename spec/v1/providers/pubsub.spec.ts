@@ -85,17 +85,33 @@ describe('Pubsub Functions', () => {
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
     describe('#onPublish', () => {
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         // Pick up project from process.env.GCLOUD_PROJECT
         const result = pubsub.topic('toppy').onPublish(() => null);
+
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
             eventType: 'google.pubsub.topic.publish',
             resource: 'projects/project1/topics/toppy',
             service: 'pubsub.googleapis.com',
+          },
+        });
+
+        expect(result.__endpoint).to.deep.equal({
+          platform: 'gcfv1',
+          eventTrigger: {
+            eventType: 'google.pubsub.topic.publish',
+            eventFilters: {
+              resource: 'projects/project1/topics/toppy',
+            },
+            retry: false,
           },
         });
       });
@@ -143,27 +159,38 @@ describe('Pubsub Functions', () => {
     });
 
     describe('#schedule', () => {
-      it('should return a trigger with schedule', () => {
+      it('should return a trigger/endpoint with schedule', () => {
         const result = pubsub
           .schedule('every 5 minutes')
           .onRun((context) => null);
+
         expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+        });
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           schedule: 'every 5 minutes',
         });
       });
 
-      it('should return a trigger with schedule and timeZone when one is chosen', () => {
+      it('should return a trigger/endpoint with schedule and timeZone when one is chosen', () => {
         const result = pubsub
           .schedule('every 5 minutes')
           .timeZone('America/New_York')
           .onRun((context) => null);
+
         expect(result.__trigger.schedule).to.deep.equal({
+          schedule: 'every 5 minutes',
+          timeZone: 'America/New_York',
+        });
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           schedule: 'every 5 minutes',
           timeZone: 'America/New_York',
         });
       });
 
-      it('should return a trigger with schedule and retry config when called with retryConfig', () => {
+      it('should return a trigger/endpoint with schedule and retry config when called with retryConfig', () => {
         const retryConfig = {
           retryCount: 3,
           maxRetryDuration: '10 minutes',
@@ -175,6 +202,7 @@ describe('Pubsub Functions', () => {
           .schedule('every 5 minutes')
           .retryConfig(retryConfig)
           .onRun(() => null);
+
         expect(result.__trigger.schedule).to.deep.equal({
           schedule: 'every 5 minutes',
           retryConfig,
@@ -182,10 +210,18 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.labels).to.deep.equal({
           'deployment-scheduled': 'true',
         });
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          schedule: 'every 5 minutes',
+          retryConfig,
+        });
+        expect(result.__endpoint.labels).to.deep.equal({
+          'deployment-scheduled': 'true',
+        });
       });
 
       it(
-        'should return a trigger with schedule, timeZone and retry config' +
+        'should return a trigger/endpoint with schedule, timeZone and retry config' +
           'when called with retryConfig and timeout',
         () => {
           const retryConfig = {
@@ -200,6 +236,7 @@ describe('Pubsub Functions', () => {
             .timeZone('America/New_York')
             .retryConfig(retryConfig)
             .onRun(() => null);
+
           expect(result.__trigger.schedule).to.deep.equal({
             schedule: 'every 5 minutes',
             retryConfig,
@@ -208,10 +245,19 @@ describe('Pubsub Functions', () => {
           expect(result.__trigger.labels).to.deep.equal({
             'deployment-scheduled': 'true',
           });
+
+          expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+            schedule: 'every 5 minutes',
+            retryConfig,
+            timeZone: 'America/New_York',
+          });
+          expect(result.__endpoint.labels).to.deep.equal({
+            'deployment-scheduled': 'true',
+          });
         }
       );
 
-      it('should return an appropriate trigger when called with region and options', () => {
+      it('should return an appropriate trigger/endpoint when called with region and options', () => {
         const result = functions
           .region('us-east1')
           .runWith({
@@ -226,9 +272,16 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.regions).to.deep.equal(['us-east1']);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          schedule: 'every 5 minutes',
+        });
+        expect(result.__endpoint.region).to.deep.equal(['us-east1']);
+        expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
+        expect(result.__endpoint.timeoutSeconds).to.deep.equal(90);
       });
 
-      it('should return an appropriate trigger when called with region, timeZone, and options', () => {
+      it('should return an appropriate trigger/endpoint when called with region, timeZone, and options', () => {
         const result = functions
           .region('us-east1')
           .runWith({
@@ -245,9 +298,17 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.regions).to.deep.equal(['us-east1']);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          schedule: 'every 5 minutes',
+          timeZone: 'America/New_York',
+        });
+        expect(result.__endpoint.region).to.deep.equal(['us-east1']);
+        expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
+        expect(result.__endpoint.timeoutSeconds).to.deep.equal(90);
       });
 
-      it('should return an appropriate trigger when called with region, options and retryConfig', () => {
+      it('should return an appropriate trigger/endpoint when called with region, options and retryConfig', () => {
         const retryConfig = {
           retryCount: 3,
           maxRetryDuration: '10 minutes',
@@ -274,9 +335,17 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.regions).to.deep.equal(['us-east1']);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          schedule: 'every 5 minutes',
+          retryConfig,
+        });
+        expect(result.__endpoint.region).to.deep.equal(['us-east1']);
+        expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
+        expect(result.__endpoint.timeoutSeconds).to.deep.equal(90);
       });
 
-      it('should return an appropriate trigger when called with region, options, retryConfig, and timeZone', () => {
+      it('should return an appropriate trigger/endpoint when called with region, options, retryConfig, and timeZone', () => {
         const retryConfig = {
           retryCount: 3,
           maxRetryDuration: '10 minutes',
@@ -305,6 +374,15 @@ describe('Pubsub Functions', () => {
         expect(result.__trigger.regions).to.deep.equal(['us-east1']);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
         expect(result.__trigger.timeout).to.deep.equal('90s');
+
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          schedule: 'every 5 minutes',
+          timeZone: 'America/New_York',
+          retryConfig,
+        });
+        expect(result.__endpoint.region).to.deep.equal(['us-east1']);
+        expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
+        expect(result.__endpoint.timeoutSeconds).to.deep.equal(90);
       });
     });
   });
@@ -315,6 +393,7 @@ describe('Pubsub Functions', () => {
         it('should return an empty trigger', () => {
           const result = functions.handler.pubsub.topic.onPublish(() => null);
           expect(result.__trigger).to.deep.equal({});
+          expect(result.__endpoint).to.deep.equal({});
         });
 
         it('should properly handle a new-style event', () => {
@@ -403,6 +482,12 @@ describe('Pubsub Functions', () => {
     it('should throw when trigger is accessed', () => {
       expect(
         () => pubsub.topic('toppy').onPublish(() => null).__trigger
+      ).to.throw(Error);
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(
+        () => pubsub.topic('toppy').onPublish(() => null).__endpoint
       ).to.throw(Error);
     });
 

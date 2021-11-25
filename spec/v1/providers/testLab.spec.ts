@@ -35,13 +35,25 @@ describe('Test Lab Functions', () => {
         delete process.env.GCLOUD_PROJECT;
       });
 
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         const func = testLab.testMatrix().onComplete(() => null);
+
         expect(func.__trigger).to.deep.equal({
           eventTrigger: {
             service: 'testing.googleapis.com',
             eventType: 'google.testing.testMatrix.complete',
             resource: 'projects/project1/testMatrices/{matrix}',
+          },
+        });
+
+        expect(func.__endpoint).to.deep.equal({
+          platform: 'gcfv1',
+          eventTrigger: {
+            eventType: 'google.testing.testMatrix.complete',
+            eventFilters: {
+              resource: 'projects/project1/testMatrices/{matrix}',
+            },
+            retry: false,
           },
         });
       });
@@ -153,6 +165,12 @@ describe('Test Lab Functions', () => {
       it('should throw when trigger is accessed', () => {
         expect(
           () => testLab.testMatrix().onComplete(() => null).__trigger
+        ).to.throw(Error);
+      });
+
+      it('should throw when endpoint is accessed', () => {
+        expect(
+          () => testLab.testMatrix().onComplete(() => null).__endpoint
         ).to.throw(Error);
       });
     });

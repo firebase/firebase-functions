@@ -418,3 +418,139 @@ describe('onCall', () => {
     https.onCall((request: https.CallableRequest) => `Hello, ${request.data}`);
   });
 });
+
+describe('onTaskEnqueue', () => {
+  beforeEach(() => {
+    options.setGlobalOptions({});
+    process.env.GCLOUD_PROJECT = 'aProject';
+  });
+
+  afterEach(() => {
+    delete process.env.GCLOUD_PROJECT;
+  });
+
+  it('should return a minimal trigger with appropriate values', () => {
+    const result = https.onTaskDispatched(() => {});
+    expect(result.__trigger).to.deep.equal({
+      apiVersion: 2,
+      platform: 'gcfv2',
+      taskQueueTrigger: {},
+      labels: {},
+    });
+  });
+
+  it('should create a complex trigger with appropriate values', () => {
+    const result = https.onTaskDispatched(
+      {
+        ...FULL_OPTIONS,
+        retryConfig: {
+          maxAttempts: 4,
+          maxDoublings: 3,
+          minBackoffSeconds: 1,
+          maxBackoffSeconds: 2,
+        },
+        rateLimits: {
+          maxBurstSize: 10,
+          maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: 'private',
+      },
+      () => {}
+    );
+    expect(result.__trigger).to.deep.equal({
+      ...FULL_TRIGGER,
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxDoublings: 3,
+          minBackoffSeconds: 1,
+          maxBackoffSeconds: 2,
+        },
+        rateLimits: {
+          maxBurstSize: 10,
+          maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ['private'],
+      },
+    });
+  });
+
+  it('should merge options and globalOptions', () => {
+    options.setGlobalOptions({
+      concurrency: 20,
+      region: 'europe-west1',
+      minInstances: 1,
+    });
+
+    const result = https.onTaskDispatched(
+      {
+        region: 'us-west1',
+        minInstances: 3,
+      },
+      (request) => {}
+    );
+
+    expect(result.__trigger).to.deep.equal({
+      apiVersion: 2,
+      platform: 'gcfv2',
+      taskQueueTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      regions: ['us-west1'],
+      labels: {},
+    });
+  });
+
+  it('has a .run method', async () => {
+    const request: any = {
+      data: 'data',
+      auth: {
+        uid: 'abc',
+        token: 'token',
+      },
+    };
+    const cf = https.onTaskDispatched((r) => {
+      expect(r.data).to.deep.equal(request.data);
+      expect(r.auth).to.deep.equal(request.auth);
+    });
+
+    await cf.run(request);
+  });
+
+  it('should be an express handler', async () => {
+    const func = https.onTaskDispatched((request) => {});
+
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        'content-type': 'application/json',
+        origin: 'example.com',
+      }
+    );
+    req.method = 'POST';
+
+    const resp = await runHandler(func, req as any);
+    expect(resp.status).to.equal(204);
+  });
+
+  // These tests pass if the code transpiles
+  it('allows desirable syntax', () => {
+    https.onTaskDispatched<string>((request: https.TaskRequest<string>) => {
+      // There should be no lint warnings that data is not a string.
+      console.log(`hello, ${request.data}`);
+    });
+    https.onTaskDispatched((request: https.TaskRequest<string>) => {
+      console.log(`hello, ${request.data}`);
+    });
+    https.onTaskDispatched<string>((request: https.TaskRequest) => {
+      console.log(`hello, ${request.data}`);
+    });
+    https.onTaskDispatched((request: https.TaskRequest) => {
+      console.log(`Hello, ${request.data}`);
+    });
+  });
+});

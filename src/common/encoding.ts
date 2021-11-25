@@ -21,6 +21,9 @@ export function copyIfPresent<Src, Dest>(
   src: Src,
   ...fields: Array<keyof Src & keyof Dest>
 ) {
+  if (!src) {
+    return;
+  }
   for (const field of fields) {
     if (!Object.prototype.hasOwnProperty.call(src, field)) {
       continue;
@@ -38,6 +41,9 @@ export function convertIfPresent<Src, Dest>(
     return from;
   }
 ) {
+  if (!src) {
+    return;
+  }
   if (!Object.prototype.hasOwnProperty.call(src, srcField)) {
     return;
   }

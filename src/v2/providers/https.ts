@@ -22,7 +22,11 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
-import { convertIfPresent, convertInvoker } from '../../common/encoding';
+import {
+  convertIfPresent,
+  convertInvoker,
+  copyIfPresent,
+} from '../../common/encoding';
 
 import * as options from '../options';
 import {
@@ -30,11 +34,23 @@ import {
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
+  onDispatchHandler,
   Request,
+  TaskRateLimits,
+  TaskRequest,
+  TaskRetryConfig,
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
 
-export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
+export {
+  Request,
+  CallableRequest,
+  FunctionsErrorCode,
+  HttpsError,
+  TaskRateLimits,
+  TaskRequest,
+  TaskRetryConfig as TaskRetryPolicy,
+};
 
 export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   region?:
@@ -42,6 +58,18 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
     | string
     | Array<options.SupportedRegion | string>;
   cors?: string | boolean | RegExp | Array<string | RegExp>;
+}
+
+export interface TaskQueueOptions extends options.GlobalOptions {
+  retryConfig?: TaskRetryConfig;
+  rateLimits?: TaskRateLimits;
+  /**
+   * Who can enqueue tasks for this function.
+   * If left unspecified, only service accounts which have
+   * roles/cloudtasks.enqueuer and roles/cloudfunctions.invoker
+   * will have permissions.
+   */
+  invoker?: 'private' | string | string[];
 }
 
 export type HttpsFunction = ((
@@ -53,6 +81,9 @@ export type HttpsFunction = ((
 };
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
+}
+export interface TaskQueueFunction<T = any> extends HttpsFunction {
+  run(data: TaskRequest<T>): void | Promise<void>;
 }
 
 export function onRequest(
@@ -234,6 +265,75 @@ export function onCall<T = any, Return = any | Promise<any>>(
     },
     callableTrigger: {},
   };
+
+  func.run = handler;
+  return func;
+}
+
+/** Handle a request sent to a Cloud Tasks queue. */
+export function onTaskDispatched<Args = any>(
+  handler: (request: TaskRequest<Args>) => void | Promise<void>
+): TaskQueueFunction<Args>;
+
+/** Handle a request sent to a Cloud Tasks queue. */
+export function onTaskDispatched<Args = any>(
+  options: TaskQueueOptions,
+  handler: (request: TaskRequest<Args>) => void | Promise<void>
+): TaskQueueFunction<Args>;
+
+export function onTaskDispatched<Args = any>(
+  optsOrHandler:
+    | TaskQueueOptions
+    | ((request: TaskRequest<Args>) => void | Promise<void>),
+  handler?: (request: TaskRequest<Args>) => void | Promise<void>
+): TaskQueueFunction<Args> {
+  let opts: TaskQueueOptions;
+  if (arguments.length == 1) {
+    opts = {};
+    handler = optsOrHandler as (
+      request: TaskRequest<Args>
+    ) => void | Promise<void>;
+  } else {
+    opts = optsOrHandler as TaskQueueOptions;
+  }
+
+  // onEnqueueHandler sniffs the function length to determine which API to present.
+  // fix the length to prevent api versions from being mismatched.
+  const fixedLen = (req: TaskRequest<Args>) => handler(req);
+  const func: any = onDispatchHandler(fixedLen);
+
+  Object.defineProperty(func, '__trigger', {
+    get: () => {
+      const baseOpts = options.optionsToTriggerAnnotations(
+        options.getGlobalOptions()
+      );
+      // global options calls region a scalar and https allows it to be an array,
+      // but optionsToTriggerAnnotations handles both cases.
+      const specificOpts = options.optionsToTriggerAnnotations(
+        opts as options.GlobalOptions
+      );
+      const taskQueueTrigger: Record<string, unknown> = {};
+      copyIfPresent(taskQueueTrigger, opts, 'retryConfig', 'rateLimits');
+      convertIfPresent(
+        taskQueueTrigger,
+        opts,
+        'invoker',
+        'invoker',
+        convertInvoker
+      );
+      return {
+        apiVersion: 2,
+        platform: 'gcfv2',
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        taskQueueTrigger,
+      };
+    },
+  });
 
   func.run = handler;
   return func;
