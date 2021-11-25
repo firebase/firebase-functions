@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as express from 'express';
-import { loadBackend } from '../runtime/loader';
+import { loadStack } from '../runtime/loader';
 
 function printUsage() {
   console.error(
@@ -24,9 +24,9 @@ const functionsDir = args[0];
 let server;
 const app = express();
 
-app.get('/backend.yaml', async (req, res) => {
+app.get('/stack.yaml', async (req, res) => {
   try {
-    const backend = await loadBackend(functionsDir);
+    const backend = await loadStack(functionsDir);
     res.setHeader('content-type', 'text/yaml');
     res.send(JSON.stringify(backend));
   } catch (e) {
@@ -36,14 +36,14 @@ app.get('/backend.yaml', async (req, res) => {
   }
 });
 
-app.get('/quitquitquit', async (req, res) => {
+app.get('/__/quitquitquit', async (req, res) => {
   res.send('ok');
   server.close(() => console.log('shutdown requested via /quitquitquit'));
 });
 
 let port = 8080;
-if (process.env.ADMIN_PORT) {
-  port = Number.parseInt(process.env.ADMIN_PORT);
+if (process.env.STACK_CONTROL_API_PORT) {
+  port = Number.parseInt(process.env.STACK_CONTROL_API_PORT);
 }
 
 console.log('Serving at port', port);

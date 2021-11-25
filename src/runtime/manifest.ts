@@ -68,12 +68,18 @@ export interface ManifestEndpoint {
   };
 }
 
+/* @internal */
+export interface ManifestRequiredAPI {
+  api: string;
+  reason: string;
+}
+
 /**
  * @internal
  * An definition of a function deployment as appears in the Manifest.
  **/
-export interface ManifestBackend {
+export interface ManifestStack {
   specVersion: 'v1alpha1';
-  requiredAPIs: Record<string, string>;
+  requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
 }

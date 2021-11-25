@@ -22,7 +22,11 @@
 import * as url from 'url';
 import * as path from 'path';
 
-import { ManifestBackend, ManifestEndpoint } from './manifest';
+import {
+  ManifestStack,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from './manifest';
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -54,9 +58,10 @@ async function loadModule(functionsDir: string) {
 }
 
 /* @internal */
-export function extractEndpoints(
+export function extractStack(
   module,
   endpoints: Record<string, ManifestEndpoint>,
+  requiredAPIs: Record<string, ManifestRequiredAPI>,
   prefix = ''
 ) {
   for (const [name, val] of Object.entries(module)) {
@@ -70,29 +75,35 @@ export function extractEndpoints(
         ...val['__endpoint'],
         entryPoint: funcName.replace(/-/g, '.'),
       };
+      if (val['__requiredAPIs'] && Array.isArray(val['__requiredAPIs'])) {
+        for (const { api, reason } of val['__requiredAPIs']) {
+          const reasons = [reason];
+          if (requiredAPIs[api]?.reason) {
+            reasons.push(requiredAPIs[api].reason);
+          }
+          requiredAPIs[api] = { api, reason: reasons.join(' ') };
+        }
+      }
     } else if (typeof val === 'object' && val !== null) {
-      extractEndpoints(val, endpoints, prefix + name + '-');
+      extractStack(val, endpoints, requiredAPIs, prefix + name + '-');
     }
   }
 }
 
 /* @internal */
-export async function loadBackend(
+export async function loadStack(
   functionsDir: string
-): Promise<ManifestBackend> {
+): Promise<ManifestStack> {
   const endpoints: Record<string, ManifestEndpoint> = {};
+  const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
   const mod = await loadModule(functionsDir);
 
-  extractEndpoints(mod, endpoints);
+  extractStack(mod, endpoints, requiredAPIs);
 
-  const backend: ManifestBackend = {
+  const stack: ManifestStack = {
     endpoints,
     specVersion: 'v1alpha1',
-    requiredAPIs: {},
+    requiredAPIs: Object.values(requiredAPIs),
   };
-  if (Object.values(endpoints).find((ep) => ep.scheduleTrigger)) {
-    backend.requiredAPIs['pubsub'] = 'pubsub.googleapis.com';
-    backend.requiredAPIs['scheduler'] = 'cloudscheduler.googleapis.com';
-  }
-  return backend;
+  return stack;
 }

@@ -3,7 +3,11 @@ import * as path from 'path';
 import * as semver from 'semver';
 
 import * as loader from '../../src/runtime/loader';
-import { ManifestBackend, ManifestEndpoint } from '../../src/runtime/manifest';
+import {
+  ManifestStack,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from '../../src/runtime/manifest';
 
 function annotatedFn(
   endpoint: ManifestEndpoint
@@ -27,15 +31,16 @@ const EVENT_ENDPOINT = {
   },
 };
 
-describe('extractEndpoints', () => {
-  it('extracts endpoints from a simple module', () => {
+describe('extractStack', () => {
+  it('extracts stack from a simple module', () => {
     const module = {
       fn1: annotatedFn(HTTP_ENDPOINT),
       fn2: annotatedFn(EVENT_ENDPOINT),
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    loader.extractEndpoints(module, endpoints);
+    const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+    loader.extractStack(module, endpoints, requiredAPIs);
     expect(endpoints).to.be.deep.equal({
       fn1: {
         entryPoint: 'fn1',
@@ -48,7 +53,7 @@ describe('extractEndpoints', () => {
     });
   });
 
-  it('extracts endpoints from a module with group functions', () => {
+  it('extracts stack from a module with group functions', () => {
     const module = {
       fn1: annotatedFn(HTTP_ENDPOINT),
       g1: {
@@ -57,7 +62,8 @@ describe('extractEndpoints', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    loader.extractEndpoints(module, endpoints);
+    const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+    loader.extractStack(module, endpoints, requiredAPIs);
     expect(endpoints).to.be.deep.equal({
       fn1: {
         entryPoint: 'fn1',
@@ -71,8 +77,8 @@ describe('extractEndpoints', () => {
   });
 });
 
-describe('loadBackend', () => {
-  const expected: ManifestBackend = {
+describe('loadStack', () => {
+  const expected: ManifestStack = {
     endpoints: {
       v1http: {
         platform: 'gcfv1',
@@ -86,31 +92,32 @@ describe('loadBackend', () => {
         callableTrigger: {},
       },
     },
-    requiredAPIs: {},
+    requiredAPIs: [],
     specVersion: 'v1alpha1',
   };
 
   type Testcase = {
     name: string;
     modulePath: string;
-    expected: ManifestBackend;
+    expected: ManifestStack;
   };
 
   function runTests(tc: Testcase) {
     it('loads backend given relative path', async () => {
-      await expect(loader.loadBackend(tc.modulePath)).to.eventually.deep.equal(
+      await expect(loader.loadStack(tc.modulePath)).to.eventually.deep.equal(
         tc.expected
       );
     });
 
     it('loads backend given absolute path', async () => {
       await expect(
-        loader.loadBackend(path.join(process.cwd(), tc.modulePath))
+        loader.loadStack(path.join(process.cwd(), tc.modulePath))
       ).to.eventually.deep.equal(tc.expected);
     });
   }
 
   let prev;
+
   beforeEach(() => {
     // TODO: When __trigger annotation is removed and GCLOUD_PROJECT is not required at runtime, remove this.
     prev = process.env.GCLOUD_PROJECT;
@@ -150,7 +157,7 @@ describe('loadBackend', () => {
               callableTrigger: {},
             },
           },
-          requiredAPIs: {},
+          requiredAPIs: [],
           specVersion: 'v1alpha1',
         },
       },
@@ -170,10 +177,16 @@ describe('loadBackend', () => {
               },
             },
           },
-          requiredAPIs: {
-            pubsub: 'pubsub.googleapis.com',
-            scheduler: 'cloudscheduler.googleapis.com',
-          },
+          requiredAPIs: [
+            {
+              api: 'pubsub.googleapis.com',
+              reason: 'Needed for v1 scheduled functions.',
+            },
+            {
+              api: 'cloudscheduler.googleapis.com',
+              reason: 'Needed for v1 scheduled functions.',
+            },
+          ],
           specVersion: 'v1alpha1',
         },
       },
