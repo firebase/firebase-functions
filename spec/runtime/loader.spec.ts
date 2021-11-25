@@ -91,6 +91,18 @@ describe('loadStack', () => {
         labels: {},
         callableTrigger: {},
       },
+      v2http: {
+        platform: 'gcfv2',
+        entryPoint: 'v2http',
+        labels: {},
+        httpsTrigger: {},
+      },
+      v2callable: {
+        platform: 'gcfv2',
+        entryPoint: 'v2callable',
+        labels: {},
+        callableTrigger: {},
+      },
     },
     requiredAPIs: [],
     specVersion: 'v1alpha1',
@@ -144,50 +156,21 @@ describe('loadStack', () => {
         name: 'grouped',
         modulePath: './spec/fixtures/sources/commonjs-grouped',
         expected: {
+          ...expected,
           endpoints: {
-            v1http: {
+            ...expected.endpoints,
+            'g1-groupedhttp': {
               platform: 'gcfv1',
-              entryPoint: 'v1http',
+              entryPoint: 'g1.groupedhttp',
               httpsTrigger: {},
             },
-            'g1-v1callable': {
+            'g1-groupedcallable': {
               platform: 'gcfv1',
-              entryPoint: 'g1.v1callable',
+              entryPoint: 'g1.groupedcallable',
               labels: {},
               callableTrigger: {},
             },
-          },
-          requiredAPIs: [],
-          specVersion: 'v1alpha1',
-        },
-      },
-      {
-        name: 'scheduled',
-        modulePath: './spec/fixtures/sources/commonjs-scheduled',
-        expected: {
-          endpoints: {
-            scheduled: {
-              platform: 'gcfv1',
-              entryPoint: 'scheduled',
-              labels: {
-                'deployment-scheduled': 'true',
-              },
-              scheduleTrigger: {
-                schedule: 'every 5 minutes',
-              },
-            },
-          },
-          requiredAPIs: [
-            {
-              api: 'pubsub.googleapis.com',
-              reason: 'Needed for v1 scheduled functions.',
-            },
-            {
-              api: 'cloudscheduler.googleapis.com',
-              reason: 'Needed for v1 scheduled functions.',
-            },
-          ],
-          specVersion: 'v1alpha1',
+          }
         },
       },
     ];
