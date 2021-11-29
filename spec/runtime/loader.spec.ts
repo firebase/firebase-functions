@@ -3,52 +3,65 @@ import * as path from 'path';
 import * as semver from 'semver';
 
 import * as loader from '../../src/runtime/loader';
+import * as functions from '../../src/index';
+
 import {
   ManifestStack,
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from '../../src/runtime/manifest';
 
-function annotatedFn(
-  endpoint: ManifestEndpoint
-): Function & { __endpoint: ManifestEndpoint } {
-  const noop = () => {};
-  noop.__endpoint = endpoint;
-  return noop;
-}
-
-const HTTP_ENDPOINT = {
-  platform: 'gcfv1',
-  httpsTrigger: {},
-};
-
-const EVENT_ENDPOINT = {
-  platform: 'gcfv2',
-  eventTrigger: {
-    eventType: 'google.cloud.storage.object.v1.archived',
-    eventFilters: { bucket: 'my-bucket' },
-    retry: false,
-  },
-};
-
 describe('extractStack', () => {
+  const httpFn = functions.https.onRequest(() => {});
+  const httpEndpoint =  {
+    platform: 'gcfv1',
+    httpsTrigger: {},
+  };
+
   it('extracts stack from a simple module', () => {
     const module = {
-      fn1: annotatedFn(HTTP_ENDPOINT),
-      fn2: annotatedFn(EVENT_ENDPOINT),
+      http: httpFn,
+      callable: functions.https.onCall(() => {}),
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
     loader.extractStack(module, endpoints, requiredAPIs);
+
     expect(endpoints).to.be.deep.equal({
-      fn1: {
-        entryPoint: 'fn1',
-        ...HTTP_ENDPOINT,
+      http: { entryPoint: 'http', ...httpEndpoint },
+      callable: {
+        entryPoint: 'callable',
+        platform: 'gcfv1',
+        labels: {}, // TODO: empty labels?
+        callableTrigger: {},
       },
-      fn2: {
-        entryPoint: 'fn2',
-        ...EVENT_ENDPOINT,
+    });
+
+    expect(requiredAPIs).to.be.empty;
+  });
+
+  it('extracts stack with required APIs', () => {
+    const module = {
+      taskq: functions.https.taskQueue().onDispatch(() => {}),
+    };
+
+    const endpoints: Record<string, ManifestEndpoint> = {};
+    const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+    loader.extractStack(module, endpoints, requiredAPIs);
+
+    expect(endpoints).to.be.deep.equal({
+      taskq: {
+        entryPoint: 'taskq',
+        platform: 'gcfv1',
+        taskQueueTrigger: {},
+      },
+    });
+
+    expect(requiredAPIs).to.be.deep.equal({
+      'cloudtasks.googleapis.com': {
+        api: 'cloudtasks.googleapis.com',
+        reason: 'Needed for v1 task queue functions',
       },
     });
   });
@@ -73,6 +86,75 @@ describe('extractStack', () => {
         entryPoint: 'g1.fn2',
         ...EVENT_ENDPOINT,
       },
+    });
+  });
+
+  describe('with GCLOUD_PROJECT env var', () => {
+    const project = 'my-project';
+    let prev;
+
+    beforeEach(() => {
+      prev = process.env.GCLOUD_PROJECT;
+      process.env.GCLOUD_PROJECT = project;
+    });
+
+    afterEach(() => {
+      process.env.GCLOUD_PROJECT = prev;
+    });
+
+    it('extracts stack from a simple module', () => {
+      const module = {
+        fn: functions.pubsub.topic('my-topic').onPublish(() => {}),
+      };
+
+      const endpoints: Record<string, ManifestEndpoint> = {};
+      const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+      loader.extractStack(module, endpoints, requiredAPIs);
+
+      expect(endpoints).to.be.deep.equal({
+        http: {
+          entryPoint: 'fn',
+          platform: 'gcfv1',
+          eventTrigger: {
+            eventType: 'google.pubsub.topic.publish',
+            eventFilters: { resource: 'projects/my-project/topics/my-topic' },
+            retry: false,
+          },
+        },
+      });
+    });
+
+    it('extracts stack with required APIs', () => {
+      const module = {
+        scheduled: functions.pubsub.schedule('every 5 minutes').onRun(() => {}),
+      };
+
+      const endpoints: Record<string, ManifestEndpoint> = {};
+      const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+      loader.extractStack(module, endpoints, requiredAPIs);
+
+      expect(endpoints).to.be.deep.equal({
+        scheduled: {
+          entryPoint: 'scheduled',
+          platform: 'gcfv1',
+          // TODO: This label should not exist?
+          labels: {
+            'deployment-scheduled': 'true',
+          },
+          scheduleTrigger: { schedule: 'every 5 minutes' },
+        },
+      });
+
+      expect(requiredAPIs).to.be.deep.equal({
+        'cloudscheduler.googleapis.com': {
+          api: 'cloudscheduler.googleapis.com',
+          reason: 'Needed for v1 scheduled functions.',
+        },
+        'pubsub.googleapis.com': {
+          api: 'pubsub.googleapis.com',
+          reason: 'Needed for v1 scheduled functions.',
+        },
+      });
     });
   });
 });
@@ -170,7 +252,7 @@ describe('loadStack', () => {
               labels: {},
               callableTrigger: {},
             },
-          }
+          },
         },
       },
     ];
