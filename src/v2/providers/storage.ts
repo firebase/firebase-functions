@@ -313,7 +313,7 @@ export function onOperation(
 
   func.run = handler;
 
-  // TypeScript doesn't recongize defineProperty as adding a property and complains
+  // TypeScript doesn't recognize defineProperty as adding a property and complains
   // that __trigger doesn't exist. We can either cast to any and lose all type safety
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
