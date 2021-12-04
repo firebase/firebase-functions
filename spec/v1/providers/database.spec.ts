@@ -83,7 +83,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -131,7 +131,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -180,7 +180,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -229,7 +229,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: { foo: 'bar' },
             delta: null,
@@ -269,7 +269,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -307,7 +307,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -344,7 +344,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: null,
             delta: { foo: 'bar' },
@@ -381,7 +381,7 @@ describe('Database Functions', () => {
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
-        const event = {
+        const event: any = {
           data: {
             data: { foo: 'bar' },
             delta: null,

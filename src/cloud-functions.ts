@@ -287,8 +287,8 @@ export interface TriggerAnnotated {
  * A Runnable has a `run` method which directly invokes the user-defined
  * function - useful for unit testing.
  */
-export interface Runnable<T> {
-  run: (data: T, context: any) => PromiseLike<any> | any;
+export interface Runnable<Data, Return = any> {
+  run: (data: Data, context: any) => PromiseLike<Return> | Return;
 }
 
 /**
@@ -310,9 +310,9 @@ export type HttpsFunction = TriggerAnnotated &
  * This type is a special JavaScript function which takes a templated
  * `Event` object as its only argument.
  */
-export type CloudFunction<T> = Runnable<T> &
+export type CloudFunction<Data, Return = any> = Runnable<Data, Return> &
   TriggerAnnotated &
-  ((input: any, context?: any) => PromiseLike<any> | any);
+  ((input: Data, context?: any) => PromiseLike<Return> | Return);
 
 /** @hidden */
 export interface MakeCloudFunctionArgs<EventData> {
