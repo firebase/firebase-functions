@@ -18,10 +18,17 @@ describe('extractStack', () => {
     httpsTrigger: {},
   };
 
+  const callableFn = functions.https.onCall(() => {});
+  const callableEndpoint =  {
+    platform: 'gcfv1',
+    labels: {}, // TODO: empty labels?
+    callableTrigger: {},
+  };
+
   it('extracts stack from a simple module', () => {
     const module = {
       http: httpFn,
-      callable: functions.https.onCall(() => {}),
+      callable: callableFn,
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
@@ -29,13 +36,8 @@ describe('extractStack', () => {
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
-      http: { entryPoint: 'http', ...httpEndpoint },
-      callable: {
-        entryPoint: 'callable',
-        platform: 'gcfv1',
-        labels: {}, // TODO: empty labels?
-        callableTrigger: {},
-      },
+      http: {entryPoint: 'http', ...httpEndpoint},
+      callable: {entryPoint: 'callable', ...callableEndpoint},
     });
 
     expect(requiredAPIs).to.be.empty;
@@ -68,9 +70,9 @@ describe('extractStack', () => {
 
   it('extracts stack from a module with group functions', () => {
     const module = {
-      fn1: annotatedFn(HTTP_ENDPOINT),
+      fn1: httpFn,
       g1: {
-        fn2: annotatedFn(EVENT_ENDPOINT),
+        fn2: httpFn,
       },
     };
 
@@ -80,11 +82,11 @@ describe('extractStack', () => {
     expect(endpoints).to.be.deep.equal({
       fn1: {
         entryPoint: 'fn1',
-        ...HTTP_ENDPOINT,
+        ...httpEndpoint,
       },
       'g1-fn2': {
         entryPoint: 'g1.fn2',
-        ...EVENT_ENDPOINT,
+        ...httpEndpoint,
       },
     });
   });
@@ -112,7 +114,7 @@ describe('extractStack', () => {
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
-        http: {
+        fn: {
           entryPoint: 'fn',
           platform: 'gcfv1',
           eventTrigger: {
