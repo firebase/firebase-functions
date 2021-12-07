@@ -61,7 +61,7 @@ async function loadModule(functionsDir: string) {
 export function extractStack(
   module,
   endpoints: Record<string, ManifestEndpoint>,
-  requiredAPIs: Record<string, ManifestRequiredAPI>,
+  requiredAPIs: ManifestRequiredAPI[],
   prefix = ''
 ) {
   for (const [name, val] of Object.entries(module)) {
@@ -76,13 +76,7 @@ export function extractStack(
         entryPoint: funcName.replace(/-/g, '.'),
       };
       if (val['__requiredAPIs'] && Array.isArray(val['__requiredAPIs'])) {
-        for (const { api, reason } of val['__requiredAPIs']) {
-          const reasons = [reason];
-          if (requiredAPIs[api]?.reason) {
-            reasons.push(requiredAPIs[api].reason);
-          }
-          requiredAPIs[api] = { api, reason: reasons.join(' ') };
-        }
+        requiredAPIs.push(...val['__requiredAPIs']);
       }
     } else if (typeof val === 'object' && val !== null) {
       extractStack(val, endpoints, requiredAPIs, prefix + name + '-');
@@ -90,12 +84,26 @@ export function extractStack(
   }
 }
 
+function mergeRequiredAPIs(
+  requiredAPIs: ManifestRequiredAPI[]
+): ManifestRequiredAPI[] {
+  const apiToReasons: Record<string, Set<string>> = {};
+  for (const { api, reason } of requiredAPIs) {
+    const reasons = apiToReasons[api] || new Set();
+    reasons.add(reason);
+  }
+
+  const merged: ManifestRequiredAPI[] = [];
+  for (const [api, reasons] of Object.entries(apiToReasons)) {
+    merged.push({ api, reason: Array.from(reasons).join(' ') });
+  }
+  return merged;
+}
+
 /* @internal */
-export async function loadStack(
-  functionsDir: string
-): Promise<ManifestStack> {
+export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   const endpoints: Record<string, ManifestEndpoint> = {};
-  const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+  const requiredAPIs: ManifestRequiredAPI[] = [];
   const mod = await loadModule(functionsDir);
 
   extractStack(mod, endpoints, requiredAPIs);
@@ -103,7 +111,7 @@ export async function loadStack(
   const stack: ManifestStack = {
     endpoints,
     specVersion: 'v1alpha1',
-    requiredAPIs: Object.values(requiredAPIs),
+    requiredAPIs: mergeRequiredAPIs(requiredAPIs),
   };
   return stack;
 }

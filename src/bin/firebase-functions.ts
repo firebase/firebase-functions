@@ -38,7 +38,7 @@ app.get('/stack.yaml', async (req, res) => {
 
 app.get('/__/quitquitquit', async (req, res) => {
   res.send('ok');
-  server.close(() => console.log('shutdown requested via /quitquitquit'));
+  server.close(() => console.log('shutdown requested via /__/quitquitquit'));
 });
 
 let port = 8080;

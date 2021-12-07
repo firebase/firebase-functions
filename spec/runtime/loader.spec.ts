@@ -32,7 +32,7 @@ describe('extractStack', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+    const requiredAPIs: ManifestRequiredAPI[] = []
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
@@ -49,7 +49,7 @@ describe('extractStack', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+    const requiredAPIs: ManifestRequiredAPI[] = []
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
@@ -77,7 +77,7 @@ describe('extractStack', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+    const requiredAPIs: ManifestRequiredAPI[] = []
     loader.extractStack(module, endpoints, requiredAPIs);
     expect(endpoints).to.be.deep.equal({
       fn1: {
@@ -110,7 +110,7 @@ describe('extractStack', () => {
       };
 
       const endpoints: Record<string, ManifestEndpoint> = {};
-      const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+      const requiredAPIs: ManifestRequiredAPI[] = []
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
@@ -132,7 +132,7 @@ describe('extractStack', () => {
       };
 
       const endpoints: Record<string, ManifestEndpoint> = {};
-      const requiredAPIs: Record<string, ManifestRequiredAPI> = {};
+      const requiredAPIs: ManifestRequiredAPI[] = []
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
@@ -197,8 +197,8 @@ describe('loadStack', () => {
     modulePath: string;
     expected: ManifestStack;
   };
-
   function runTests(tc: Testcase) {
+
     it('loads backend given relative path', async () => {
       await expect(loader.loadStack(tc.modulePath)).to.eventually.deep.equal(
         tc.expected
