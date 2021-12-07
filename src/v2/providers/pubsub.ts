@@ -135,11 +135,6 @@ export function onMessagePublished<T = any>(
 
   func.run = handler;
 
-  // TypeScript doesn't recognize defineProperty as adding a property and complains
-  // that __trigger doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-
   Object.defineProperty(func, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(

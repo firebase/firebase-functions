@@ -315,12 +315,6 @@ export function onOperation(
 
   func.run = handler;
 
-  // TypeScript doesn't recognize defineProperty as adding a property and complains
-  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-  func.__endpoint = {} as ManifestEndpoint;
-
   Object.defineProperty(func, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -343,6 +337,11 @@ export function onOperation(
       };
     },
   });
+
+  // TypeScript doesn't recognize defineProperty as adding a property and complains
+  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
+  // or we can just assign a meaningless value before calling defineProperty.
+  func.__endpoint = {} as ManifestEndpoint;
 
   // SDK may attempt to read FIREBASE_CONFIG env var to fetch the default bucket name.
   // To prevent runtime errors when FIREBASE_CONFIG env var is missing, we use getters.
