@@ -15,7 +15,7 @@ Arguments:
   process.exit(1);
 }
 
-let functionsDir = ".";
+let functionsDir = '.';
 
 const args = process.argv.slice(2);
 if (args.length > 1) {
