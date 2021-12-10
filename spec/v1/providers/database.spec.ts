@@ -51,6 +51,7 @@ describe('Database Functions', () => {
           eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
           retry: false,
         },
+        labels: {},
       };
     }
 
@@ -326,7 +327,7 @@ describe('Database Functions', () => {
       it('correctly sets trigger to {}', () => {
         const cf = functions.handler.database.ref.onWrite(() => null);
         expect(cf.__trigger).to.deep.equal({});
-        expect(cf.__endpoint).to.deep.equal({});
+        expect(cf.__endpoint).to.be.undefined;
       });
 
       it('should be able to use the instance entry point', () => {
@@ -334,7 +335,7 @@ describe('Database Functions', () => {
           () => null
         );
         expect(func.__trigger).to.deep.equal({});
-        expect(func.__endpoint).to.deep.equal({});
+        expect(func.__endpoint).to.be.undefined;
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -366,7 +367,7 @@ describe('Database Functions', () => {
       it('correctly sets trigger to {}', () => {
         const cf = functions.handler.database.ref.onCreate(() => null);
         expect(cf.__trigger).to.deep.equal({});
-        expect(cf.__endpoint).to.deep.equal({});
+        expect(cf.__endpoint).to.be.undefined;
       });
 
       it('should be able to use the instance entry point', () => {
@@ -374,7 +375,7 @@ describe('Database Functions', () => {
           () => null
         );
         expect(func.__trigger).to.deep.equal({});
-        expect(func.__endpoint).to.deep.equal({});
+        expect(func.__endpoint).to.be.undefined;
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -405,7 +406,7 @@ describe('Database Functions', () => {
       it('correctly sets trigger to {}', () => {
         const cf = functions.handler.database.ref.onUpdate(() => null);
         expect(cf.__trigger).to.deep.equal({});
-        expect(cf.__endpoint).to.deep.equal({});
+        expect(cf.__endpoint).to.be.undefined;
       });
 
       it('should be able to use the instance entry point', () => {
@@ -413,7 +414,7 @@ describe('Database Functions', () => {
           () => null
         );
         expect(func.__trigger).to.deep.equal({});
-        expect(func.__endpoint).to.deep.equal({});
+        expect(func.__endpoint).to.be.undefined;
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {
@@ -444,7 +445,7 @@ describe('Database Functions', () => {
       it('correctly sets trigger to {}', () => {
         const cf = functions.handler.database.ref.onDelete(() => null);
         expect(cf.__trigger).to.deep.equal({});
-        expect(cf.__endpoint).to.deep.equal({});
+        expect(cf.__endpoint).to.be.undefined;
       });
 
       it('should be able to use the instance entry point', () => {
@@ -452,7 +453,7 @@ describe('Database Functions', () => {
           () => null
         );
         expect(func.__trigger).to.deep.equal({});
-        expect(func.__endpoint).to.deep.equal({});
+        expect(func.__endpoint).to.be.undefined;
       });
 
       it('should return a handler that emits events with a proper DataSnapshot', () => {

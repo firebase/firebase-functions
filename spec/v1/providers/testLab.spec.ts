@@ -55,6 +55,7 @@ describe('Test Lab Functions', () => {
             },
             retry: false,
           },
+          labels: {},
         });
       });
 

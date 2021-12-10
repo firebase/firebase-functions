@@ -37,7 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
-import { ManifestEndpoint } from './common/manifest';
+import { ManifestEndpoint, ManifestRequiredAPI } from './common/manifest';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -290,6 +290,7 @@ export interface TriggerAnnotated {
  */
 export interface EndpointAnnotated {
   __endpoint: ManifestEndpoint;
+  __requiredAPIs?: ManifestRequiredAPI[];
 }
 
 /**
@@ -446,7 +447,7 @@ export function makeCloudFunction<EventData>({
   Object.defineProperty(cloudFunction, '__endpoint', {
     get: () => {
       if (triggerResource() == null) {
-        return {};
+        return undefined;
       }
 
       const endpoint: ManifestEndpoint = {
@@ -466,9 +467,10 @@ export function makeCloudFunction<EventData>({
         };
       }
 
-      if (Object.keys(labels).length > 0) {
-        endpoint.labels = { ...endpoint.labels, ...labels };
-      }
+      // Note: We intentionally don't make use of labels args here.
+      // labels is used to pass SDK-defined labels to the trigger, which isn't
+      // something we will do in the container contract world.
+      endpoint.labels = { ...endpoint.labels };
 
       return endpoint;
     },
@@ -477,12 +479,8 @@ export function makeCloudFunction<EventData>({
   if (options.schedule) {
     cloudFunction.__requiredAPIs = [
       {
-        api: 'pubsub.googleapis.com',
-        reason: 'Needed for v1 scheduled functions.',
-      },
-      {
         api: 'cloudscheduler.googleapis.com',
-        reason: 'Needed for v1 scheduled functions.',
+        reason: 'Needed for scheduled functions.',
       },
     ];
   }

@@ -113,6 +113,7 @@ describe('Pubsub Functions', () => {
             },
             retry: false,
           },
+          labels: {},
         });
       });
 
@@ -215,9 +216,7 @@ describe('Pubsub Functions', () => {
           schedule: 'every 5 minutes',
           retryConfig,
         });
-        expect(result.__endpoint.labels).to.deep.equal({
-          'deployment-scheduled': 'true',
-        });
+        expect(result.__endpoint.labels).to.be.empty;
       });
 
       it(
@@ -251,9 +250,7 @@ describe('Pubsub Functions', () => {
             retryConfig,
             timeZone: 'America/New_York',
           });
-          expect(result.__endpoint.labels).to.deep.equal({
-            'deployment-scheduled': 'true',
-          });
+          expect(result.__endpoint.labels).to.be.empty;
         }
       );
 
@@ -393,7 +390,7 @@ describe('Pubsub Functions', () => {
         it('should return an empty trigger', () => {
           const result = functions.handler.pubsub.topic.onPublish(() => null);
           expect(result.__trigger).to.deep.equal({});
-          expect(result.__endpoint).to.deep.equal({});
+          expect(result.__endpoint).to.be.undefined;
         });
 
         it('should properly handle a new-style event', () => {

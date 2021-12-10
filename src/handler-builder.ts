@@ -70,7 +70,8 @@ export class HandlerBuilder {
       ): HttpsFunction => {
         const func = https._onRequestWithOptions(handler, {});
         func.__trigger = {};
-        func.__endpoint = {};
+        func.__endpoint = undefined;
+        func.__requiredAPIs = undefined;
         return func;
       },
       onCall: (
@@ -81,7 +82,8 @@ export class HandlerBuilder {
       ): HttpsFunction => {
         const func = https._onCallWithOptions(handler, {});
         func.__trigger = {};
-        func.__endpoint = {};
+        func.__endpoint = undefined;
+        func.__requiredAPIs = undefined;
         return func;
       },
       /** @hidden */
@@ -96,7 +98,8 @@ export class HandlerBuilder {
             const builder = new https.TaskQueueBuilder();
             const func = builder.onDispatch(handler);
             func.__trigger = {};
-            func.__endpoint = {};
+            func.__endpoint = undefined;
+            func.__requiredAPIs = undefined;
             return func;
           },
         };

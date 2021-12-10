@@ -33,7 +33,7 @@ import {
   convertInvoker,
   copyIfPresent,
 } from '../common/encoding';
-import { ManifestEndpoint } from '../common/manifest';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../common/manifest';
 import {
   CallableContext,
   FunctionsErrorCode,
@@ -103,6 +103,7 @@ export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
   __trigger: unknown;
   __endpoint: ManifestEndpoint;
+  __requiredAPIs?: ManifestRequiredAPI[];
   run(data: any, context: TaskContext): void | Promise<void>;
 }
 

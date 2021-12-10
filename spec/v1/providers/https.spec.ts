@@ -135,7 +135,7 @@ describe('handler namespace', () => {
         res.send(200);
       });
       expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 
@@ -143,7 +143,7 @@ describe('handler namespace', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 
@@ -151,7 +151,7 @@ describe('handler namespace', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.taskQueue.onEnqueue(() => null);
       expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 });
