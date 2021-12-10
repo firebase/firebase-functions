@@ -10,8 +10,6 @@ import {
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from '../../src/runtime/manifest';
-import { describe } from 'mocha';
-import { mergeRequiredAPIs } from '../../src/runtime/loader';
 
 describe('extractStack', () => {
   const httpFn = functions.https.onRequest(() => {});
@@ -161,7 +159,7 @@ describe('extractStack', () => {
 describe('mergedRequiredAPIs', () => {
   it('leaves required APIs unchanged if nothing to merge', () => {
     expect(
-      mergeRequiredAPIs([
+      loader.mergeRequiredAPIs([
         { api: 'example1.com', reason: 'example1' },
         { api: 'example2.com', reason: 'example2' },
       ])
@@ -173,7 +171,7 @@ describe('mergedRequiredAPIs', () => {
 
   it('merges reasons given overlapping required api', () => {
     expect(
-      mergeRequiredAPIs([
+      loader.mergeRequiredAPIs([
         { api: 'example1.com', reason: 'example1a' },
         { api: 'example1.com', reason: 'example1b' },
         { api: 'example2.com', reason: 'example2' },
@@ -186,7 +184,7 @@ describe('mergedRequiredAPIs', () => {
 
   it('merges reasons given overlapping required api', () => {
     expect(
-      mergeRequiredAPIs([
+      loader.mergeRequiredAPIs([
         { api: 'example1.com', reason: 'example1a' },
         { api: 'example1.com', reason: 'example1b' },
         { api: 'example2.com', reason: 'example2' },
@@ -199,7 +197,7 @@ describe('mergedRequiredAPIs', () => {
 
   it('does not repeat the same reason', () => {
     expect(
-      mergeRequiredAPIs([
+      loader.mergeRequiredAPIs([
         { api: 'example1.com', reason: 'example1a' },
         { api: 'example1.com', reason: 'example1a' },
         { api: 'example2.com', reason: 'example2' },
