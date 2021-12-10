@@ -13,13 +13,13 @@ import {
 
 describe('extractStack', () => {
   const httpFn = functions.https.onRequest(() => {});
-  const httpEndpoint =  {
+  const httpEndpoint = {
     platform: 'gcfv1',
     httpsTrigger: {},
   };
 
   const callableFn = functions.https.onCall(() => {});
-  const callableEndpoint =  {
+  const callableEndpoint = {
     platform: 'gcfv1',
     labels: {}, // TODO: empty labels?
     callableTrigger: {},
@@ -32,12 +32,12 @@ describe('extractStack', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    const requiredAPIs: ManifestRequiredAPI[] = []
+    const requiredAPIs: ManifestRequiredAPI[] = [];
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
-      http: {entryPoint: 'http', ...httpEndpoint},
-      callable: {entryPoint: 'callable', ...callableEndpoint},
+      http: { entryPoint: 'http', ...httpEndpoint },
+      callable: { entryPoint: 'callable', ...callableEndpoint },
     });
 
     expect(requiredAPIs).to.be.empty;
@@ -49,7 +49,7 @@ describe('extractStack', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    const requiredAPIs: ManifestRequiredAPI[] = []
+    const requiredAPIs: ManifestRequiredAPI[] = [];
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
@@ -77,7 +77,7 @@ describe('extractStack', () => {
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
-    const requiredAPIs: ManifestRequiredAPI[] = []
+    const requiredAPIs: ManifestRequiredAPI[] = [];
     loader.extractStack(module, endpoints, requiredAPIs);
     expect(endpoints).to.be.deep.equal({
       fn1: {
@@ -110,7 +110,7 @@ describe('extractStack', () => {
       };
 
       const endpoints: Record<string, ManifestEndpoint> = {};
-      const requiredAPIs: ManifestRequiredAPI[] = []
+      const requiredAPIs: ManifestRequiredAPI[] = [];
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
@@ -132,7 +132,7 @@ describe('extractStack', () => {
       };
 
       const endpoints: Record<string, ManifestEndpoint> = {};
-      const requiredAPIs: ManifestRequiredAPI[] = []
+      const requiredAPIs: ManifestRequiredAPI[] = [];
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
@@ -198,7 +198,6 @@ describe('loadStack', () => {
     expected: ManifestStack;
   };
   function runTests(tc: Testcase) {
-
     it('loads backend given relative path', async () => {
       await expect(loader.loadStack(tc.modulePath)).to.eventually.deep.equal(
         tc.expected
