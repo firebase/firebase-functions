@@ -3,10 +3,10 @@
 import * as express from 'express';
 import { loadStack } from '../runtime/loader';
 
-function printUsage() {
+function printUsageAndExit() {
   console.error(
     `
-Usage: firebase-functions <functionsDir>
+Usage: firebase-functions [functionsDir]
 
 Arguments:
   - functionsDir: Directory containing source code for Firebase Functions.
@@ -15,11 +15,15 @@ Arguments:
   process.exit(1);
 }
 
+let functionsDir = ".";
+
 const args = process.argv.slice(2);
-if (args.length != 1) {
-  printUsage();
+if (args.length > 1) {
+  if (args[0] === '-h' || args[0] === '--help') {
+    printUsageAndExit();
+  }
+  functionsDir = args[0];
 }
-const functionsDir = args[0];
 
 let server;
 const app = express();
