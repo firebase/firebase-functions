@@ -1,10 +1,9 @@
-import { expect } from 'chai';
 import * as path from 'path';
 import * as semver from 'semver';
+import { expect } from 'chai';
 
 import * as loader from '../../src/runtime/loader';
 import * as functions from '../../src/index';
-
 import {
   ManifestStack,
   ManifestEndpoint,
@@ -33,6 +32,7 @@ describe('extractStack', () => {
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: ManifestRequiredAPI[] = [];
+
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
@@ -50,6 +50,7 @@ describe('extractStack', () => {
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: ManifestRequiredAPI[] = [];
+
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
@@ -78,7 +79,9 @@ describe('extractStack', () => {
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: ManifestRequiredAPI[] = [];
+
     loader.extractStack(module, endpoints, requiredAPIs);
+
     expect(endpoints).to.be.deep.equal({
       fn1: {
         entryPoint: 'fn1',
@@ -111,6 +114,7 @@ describe('extractStack', () => {
 
       const endpoints: Record<string, ManifestEndpoint> = {};
       const requiredAPIs: ManifestRequiredAPI[] = [];
+
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
@@ -134,6 +138,7 @@ describe('extractStack', () => {
 
       const endpoints: Record<string, ManifestEndpoint> = {};
       const requiredAPIs: ManifestRequiredAPI[] = [];
+
       loader.extractStack(module, endpoints, requiredAPIs);
 
       expect(endpoints).to.be.deep.equal({
