@@ -10,6 +10,8 @@ import {
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from '../../src/runtime/manifest';
+import { describe } from 'mocha';
+import { mergeRequiredAPIs } from '../../src/runtime/loader';
 
 describe('extractStack', () => {
   const httpFn = functions.https.onRequest(() => {});
@@ -60,12 +62,12 @@ describe('extractStack', () => {
       },
     });
 
-    expect(requiredAPIs).to.be.deep.equal({
-      'cloudtasks.googleapis.com': {
+    expect(requiredAPIs).to.be.deep.equal([
+      {
         api: 'cloudtasks.googleapis.com',
         reason: 'Needed for v1 task queue functions',
       },
-    });
+    ]);
   });
 
   it('extracts stack from a module with group functions', () => {
@@ -122,6 +124,7 @@ describe('extractStack', () => {
             eventFilters: { resource: 'projects/my-project/topics/my-topic' },
             retry: false,
           },
+          labels: {},
         },
       });
     });
@@ -140,24 +143,71 @@ describe('extractStack', () => {
           entryPoint: 'scheduled',
           platform: 'gcfv1',
           // TODO: This label should not exist?
-          labels: {
-            'deployment-scheduled': 'true',
-          },
+          labels: {},
           scheduleTrigger: { schedule: 'every 5 minutes' },
         },
       });
 
-      expect(requiredAPIs).to.be.deep.equal({
-        'cloudscheduler.googleapis.com': {
+      expect(requiredAPIs).to.be.deep.equal([
+        {
           api: 'cloudscheduler.googleapis.com',
-          reason: 'Needed for v1 scheduled functions.',
+          reason: 'Needed for scheduled functions.',
         },
-        'pubsub.googleapis.com': {
-          api: 'pubsub.googleapis.com',
-          reason: 'Needed for v1 scheduled functions.',
-        },
-      });
+      ]);
     });
+  });
+});
+
+describe('mergedRequiredAPIs', () => {
+  it('leaves required APIs unchanged if nothing to merge', () => {
+    expect(
+      mergeRequiredAPIs([
+        { api: 'example1.com', reason: 'example1' },
+        { api: 'example2.com', reason: 'example2' },
+      ])
+    ).to.be.deep.equal([
+      { api: 'example1.com', reason: 'example1' },
+      { api: 'example2.com', reason: 'example2' },
+    ]);
+  });
+
+  it('merges reasons given overlapping required api', () => {
+    expect(
+      mergeRequiredAPIs([
+        { api: 'example1.com', reason: 'example1a' },
+        { api: 'example1.com', reason: 'example1b' },
+        { api: 'example2.com', reason: 'example2' },
+      ])
+    ).to.be.deep.equal([
+      { api: 'example1.com', reason: 'example1a example1b' },
+      { api: 'example2.com', reason: 'example2' },
+    ]);
+  });
+
+  it('merges reasons given overlapping required api', () => {
+    expect(
+      mergeRequiredAPIs([
+        { api: 'example1.com', reason: 'example1a' },
+        { api: 'example1.com', reason: 'example1b' },
+        { api: 'example2.com', reason: 'example2' },
+      ])
+    ).to.be.deep.equal([
+      { api: 'example1.com', reason: 'example1a example1b' },
+      { api: 'example2.com', reason: 'example2' },
+    ]);
+  });
+
+  it('does not repeat the same reason', () => {
+    expect(
+      mergeRequiredAPIs([
+        { api: 'example1.com', reason: 'example1a' },
+        { api: 'example1.com', reason: 'example1a' },
+        { api: 'example2.com', reason: 'example2' },
+      ])
+    ).to.be.deep.equal([
+      { api: 'example1.com', reason: 'example1a' },
+      { api: 'example2.com', reason: 'example2' },
+    ]);
   });
 });
 

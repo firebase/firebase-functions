@@ -84,13 +84,15 @@ export function extractStack(
   }
 }
 
-function mergeRequiredAPIs(
+/* @internal */
+export function mergeRequiredAPIs(
   requiredAPIs: ManifestRequiredAPI[]
 ): ManifestRequiredAPI[] {
   const apiToReasons: Record<string, Set<string>> = {};
   for (const { api, reason } of requiredAPIs) {
     const reasons = apiToReasons[api] || new Set();
     reasons.add(reason);
+    apiToReasons[api] = reasons;
   }
 
   const merged: ManifestRequiredAPI[] = [];
