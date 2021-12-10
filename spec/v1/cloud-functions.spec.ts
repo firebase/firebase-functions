@@ -67,6 +67,7 @@ describe('makeCloudFunction', () => {
         },
         retry: false,
       },
+      labels: {},
     });
   });
 
@@ -90,6 +91,7 @@ describe('makeCloudFunction', () => {
         },
         retry: false,
       },
+      labels: {},
     });
   });
 
@@ -121,6 +123,7 @@ describe('makeCloudFunction', () => {
         },
         retry: false,
       },
+      labels: {},
     });
   });
 
@@ -143,6 +146,7 @@ describe('makeCloudFunction', () => {
         },
         retry: true,
       },
+      labels: {},
     });
   });
 
@@ -165,6 +169,7 @@ describe('makeCloudFunction', () => {
     expect(cf.__endpoint).to.deep.equal({
       platform: 'gcfv1',
       scheduleTrigger: schedule,
+      labels: {},
     });
   });
 

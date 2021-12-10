@@ -37,7 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
-import { ManifestEndpoint } from './common/manifest';
+import { ManifestEndpoint, ManifestRequiredAPI } from './common/manifest';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -290,6 +290,7 @@ export interface TriggerAnnotated {
  */
 export interface EndpointAnnotated {
   __endpoint: ManifestEndpoint;
+  __requiredAPIs?: ManifestRequiredAPI[];
 }
 
 /**
@@ -466,13 +467,23 @@ export function makeCloudFunction<EventData>({
         };
       }
 
-      if (Object.keys(labels).length > 0) {
-        endpoint.labels = { ...endpoint.labels, ...labels };
-      }
+      // Note: We intentionally don't make use of labels args here.
+      // labels is used to pass SDK-defined labels to the trigger, which isn't
+      // something we will do in the container contract world.
+      endpoint.labels = { ...endpoint.labels };
 
       return endpoint;
     },
   });
+
+  if (options.schedule) {
+    cloudFunction.__requiredAPIs = [
+      {
+        api: 'cloudscheduler.googleapis.com',
+        reason: 'Needed for scheduled functions.',
+      },
+    ];
+  }
 
   cloudFunction.run = handler || contextOnlyHandler;
   return cloudFunction;
@@ -609,15 +620,14 @@ export function optionsToEndpoint(
     'serviceAccount',
     (sa) => sa
   );
-  if (options.vpcConnector) {
-    const vpc: ManifestEndpoint['vpc'] = { connector: options.vpcConnector };
+  if (options?.vpcConnector) {
+    endpoint.vpc = { connector: options.vpcConnector };
     convertIfPresent(
-      vpc,
+      endpoint.vpc,
       options,
       'egressSettings',
       'vpcConnectorEgressSettings'
     );
-    endpoint.vpc = vpc;
   }
   convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
     const memoryLookup = {

@@ -252,8 +252,8 @@ describe('onCall', () => {
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
-      labels: {},
       callableTrigger: {},
+      labels: {},
     });
   });
 
@@ -274,9 +274,6 @@ describe('onCall', () => {
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
       callableTrigger: {},
-      labels: {
-        ...FULL_ENDPOINT.labels,
-      },
     });
   });
 

@@ -20,13 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import { expect } from 'chai';
-import * as _ from 'lodash';
 
 import {
   CloudFunction,
   Event,
   EventContext,
-  TriggerAnnotated,
 } from '../../../src/cloud-functions';
 import * as functions from '../../../src/index';
 import * as remoteConfig from '../../../src/providers/remoteConfig';
@@ -47,18 +45,6 @@ describe('RemoteConfig Functions', () => {
   }
 
   describe('#onUpdate', () => {
-    function expectedTrigger(): TriggerAnnotated {
-      return {
-        __trigger: {
-          eventTrigger: {
-            resource: 'projects/project1',
-            eventType: 'google.firebase.remoteconfig.update',
-            service: 'firebaseremoteconfig.googleapis.com',
-          },
-        },
-      };
-    }
-
     before(() => {
       process.env.GCLOUD_PROJECT = 'project1';
     });
@@ -69,9 +55,26 @@ describe('RemoteConfig Functions', () => {
 
     it('should have the correct trigger', () => {
       const cloudFunction = remoteConfig.onUpdate(() => null);
-      expect(cloudFunction.__trigger).to.deep.equal(
-        expectedTrigger().__trigger
-      );
+
+      expect(cloudFunction.__trigger).to.deep.equal({
+        eventTrigger: {
+          resource: 'projects/project1',
+          eventType: 'google.firebase.remoteconfig.update',
+          service: 'firebaseremoteconfig.googleapis.com',
+        },
+      });
+
+      expect(cloudFunction.__endpoint).to.deep.equal({
+        platform: 'gcfv1',
+        eventTrigger: {
+          eventType: 'google.firebase.remoteconfig.update',
+          eventFilters: {
+            resource: 'projects/project1',
+          },
+          retry: false,
+        },
+        labels: {},
+      });
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -86,6 +89,10 @@ describe('RemoteConfig Functions', () => {
       expect(cloudFunction.__trigger.regions).to.deep.equal(['us-east1']);
       expect(cloudFunction.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(cloudFunction.__trigger.timeout).to.deep.equal('90s');
+
+      expect(cloudFunction.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(cloudFunction.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(cloudFunction.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
   });
 
@@ -135,7 +142,9 @@ describe('RemoteConfig Functions', () => {
         const cloudFunction = functions.handler.remoteConfig.onUpdate(
           () => null
         );
+
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should correctly unwrap the event', () => {
