@@ -71,6 +71,7 @@ describe('Auth Functions', () => {
           eventType: `providers/firebase.auth/eventTypes/${eventType}`,
           retry: false,
         },
+        labels: {},
       };
     }
 
@@ -232,7 +233,7 @@ describe('Auth Functions', () => {
 
       it('should return an empty endpoint', () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
     });
 
@@ -241,13 +242,14 @@ describe('Auth Functions', () => {
         (data: firebase.auth.UserRecord) => data
       );
 
-      it('should return an empty trigger/endpoint', () => {
-        const handler = (user: firebase.auth.UserRecord) => {
-          return Promise.resolve();
-        };
-        const cloudFunction = functions.handler.auth.user.onDelete(handler);
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+      });
+
+      it('should return an empty endpoint', () => {
+        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should handle wire format as of v5.0.0 of firebase-admin', () => {

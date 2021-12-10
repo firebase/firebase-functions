@@ -48,6 +48,7 @@ describe('Storage Functions', () => {
           eventType: `google.storage.object.${eventType}`,
           retry: false,
         },
+        labels: {},
       };
     }
 
@@ -443,7 +444,7 @@ describe('Storage Functions', () => {
         );
 
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -484,7 +485,7 @@ describe('Storage Functions', () => {
         );
 
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -525,7 +526,7 @@ describe('Storage Functions', () => {
         );
 
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -566,7 +567,7 @@ describe('Storage Functions', () => {
         );
 
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {

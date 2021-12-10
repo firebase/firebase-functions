@@ -113,6 +113,7 @@ describe('Firestore Functions', () => {
           eventType: `providers/cloud.firestore/eventTypes/${eventType}`,
           retry: false,
         },
+        labels: {},
       };
     }
 

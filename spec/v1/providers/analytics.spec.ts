@@ -79,6 +79,7 @@ describe('Analytics Functions', () => {
               'providers/google.firebase.analytics/eventTypes/event.log',
             retry: false,
           },
+          labels: {},
         });
       });
     });
@@ -326,7 +327,7 @@ describe('Analytics Functions', () => {
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.undefined;
       });
 
       it('should handle an event with the appropriate fields', () => {

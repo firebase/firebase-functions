@@ -73,6 +73,7 @@ describe('RemoteConfig Functions', () => {
           },
           retry: false,
         },
+        labels: {},
       });
     });
 
@@ -143,7 +144,7 @@ describe('RemoteConfig Functions', () => {
         );
 
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should correctly unwrap the event', () => {
