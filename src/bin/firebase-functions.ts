@@ -26,9 +26,9 @@ const app = express();
 
 app.get('/stack.yaml', async (req, res) => {
   try {
-    const backend = await loadStack(functionsDir);
+    const stack = await loadStack(functionsDir);
     res.setHeader('content-type', 'text/yaml');
-    res.send(JSON.stringify(backend));
+    res.send(JSON.stringify(stack));
   } catch (e) {
     res
       .status(400)
