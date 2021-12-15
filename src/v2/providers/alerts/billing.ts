@@ -1,5 +1,5 @@
 import * as options from '../../options';
-import { FirebaseAlertData, defineTriggerAndEndpoint } from '.';
+import { FirebaseAlertData, defineEndpoint } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 
 /** Data */
@@ -23,7 +23,7 @@ export const automatedPlanUpdateAlert = 'billing.automatedPlanUpdate';
 
 /** Cloud Event Type */
 interface WithAlertType {
-  alertType: string; // required in the payload
+  alertType: string;
 }
 export type BillingEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertType>;
 
@@ -98,9 +98,7 @@ export function onOperation<T>(
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
   func.__endpoint = {};
-  defineTriggerAndEndpoint(func, optsOrHandler, alertType, undefined);
+  defineEndpoint(func, optsOrHandler, alertType, undefined);
 
   return func;
 }
-
-/** @internal */

@@ -11,9 +11,9 @@ export interface FirebaseAlertData<T = any> {
 export type AlertType =
   | 'crashlytics.newFatalIssue'
   | 'crashlytics.newNonfatalIssue'
-  | 'crashlytics.regressionAlert'
+  | 'crashlytics.regression'
   | 'crashlytics.stabilityDigest'
-  | 'crashlytics.velocityAlert'
+  | 'crashlytics.velocity'
   | 'crashlytics.newAnrIssue'
   | 'billing.planUpdate'
   | 'billing.automatedPlanUpdate'
@@ -26,11 +26,12 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   appId?: string; // optional
 }
 
-// CloudEvent with two custom attributes
-export interface WithAlertTypeAndApp {
+
+interface WithAlertTypeAndApp {
   alertType: string;
   appId?: string; // optional in the payload
 }
+export type AlertEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertTypeAndApp>;
 
 /** @internal */
 export const eventType = 'firebase.firebasealerts.alerts.v1.published';
@@ -39,7 +40,7 @@ export const eventType = 'firebase.firebasealerts.alerts.v1.published';
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
   handler: (
-    event: CloudEvent<FirebaseAlertData<T>, WithAlertTypeAndApp>
+    event: AlertEvent<T>
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<T>> {
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
@@ -57,18 +58,18 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
   func.__endpoint = {};
-  defineTriggerAndEndpoint(func, opts, alertType, appId);
+  defineEndpoint(func, opts, alertType, appId);
 
   return func;
 }
 
 /** @internal */
-export function defineTriggerAndEndpoint(
-  func: any,
+export function defineEndpoint(
+  func: CloudFunction<FirebaseAlertData<any>>,
   opts: options.EventHandlerOptions,
   alertType: string,
   appId?: string
-): any {
+): CloudFunction<FirebaseAlertData<any>> {
   Object.defineProperty(func, '__endpoint', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -93,11 +94,7 @@ export function defineTriggerAndEndpoint(
         },
       };
       if (appId) {
-        Object.defineProperty(
-          endpoint.eventTrigger.eventFilters,
-          'appId',
-          appId
-        );
+        endpoint.eventTrigger.eventFilters["appId"] = appId;
       }
       return endpoint;
     },

@@ -50,7 +50,7 @@ export interface TriggerAnnotation {
  * A CloudEvent is a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
  */
-interface CloudEventBase<T> {
+export interface CloudEventBase<T> {
   /** Version of the CloudEvents spec for this event. */
   readonly specversion: '1.0';
 
@@ -90,15 +90,13 @@ interface CloudEventBase<T> {
 /**
  *
  */
-export type CloudEvent<T = any, Ext = {}> = CloudEventBase<T> &
-  Ext &
-  Record<string, string>;
-
+export type CloudEvent<T = any, Ext = {}> = CloudEventBase<T> & Ext;
 /** A handler for CloudEvents. */
 export interface CloudFunction<T> {
   (raw: CloudEvent<unknown>): any | Promise<any>;
 
   __trigger: unknown;
+  __endpoint?: unknown;
 
   run(event: CloudEvent<T>): any | Promise<any>;
 }

@@ -1,5 +1,5 @@
 import * as options from '../../options';
-import { FirebaseAlertData, defineTriggerAndEndpoint } from '.';
+import { FirebaseAlertData, defineEndpoint } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 
 /** Data */
@@ -19,7 +19,7 @@ export interface NewNonfatalIssuePayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewNonfatalIssuePayload';
   issue: Issue;
 }
-// crashlytics.regressionAlert
+// crashlytics.regression
 export interface RegressionAlertPayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsRegressionAlertPayload';
   type: string;
@@ -38,7 +38,7 @@ export interface StabilityDigestPayload {
   digestDate: string;
   trendingIssues: Array<TrendingIssueDetails>;
 }
-// crashlytics.velocityAlert
+// crashlytics.velocity
 export interface VelocityAlertPayload {
   ['@type']: 'com.google.firebase.firebasealerts.VelocityAlertPayload';
   issue: Issue;
@@ -59,11 +59,11 @@ export const newFatalIssueAlert = 'crashlytics.newFatalIssue';
 /** @internal */
 export const newNonfatalIssueAlert = 'crashlytics.newNonfatalIssue';
 /** @internal */
-export const regressionAlertAlert = 'crashlytics.regressionAlert';
+export const regressionAlert = 'crashlytics.regression';
 /** @internal */
 export const stabilityDigestAlert = 'crashlytics.stabilityDigest';
 /** @internal */
-export const velocityAlertAlert = 'crashlytics.velocityAlert';
+export const velocityAlert = 'crashlytics.velocity';
 /** @internal */
 export const newAnrIssueAlert = 'crashlytics.newAnrIssue';
 
@@ -173,7 +173,7 @@ export function onRegressionAlertPublished(
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<RegressionAlertPayload>> {
   return onOperation<RegressionAlertPayload>(
-    regressionAlertAlert,
+    regressionAlert,
     appIdOrOptsOrHandler,
     handler
   );
@@ -233,7 +233,7 @@ export function onVelocityAlertPublished(
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<VelocityAlertPayload>> {
   return onOperation<VelocityAlertPayload>(
-    velocityAlertAlert,
+    velocityAlert,
     appIdOrOptsOrHandler,
     handler
   );
@@ -295,7 +295,7 @@ export function onOperation<T>(
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
   func.__endpoint = {};
-  defineTriggerAndEndpoint(func, opts, alertType, appId);
+  defineEndpoint(func, opts, alertType, appId);
 
   return func;
 }

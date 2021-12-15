@@ -1,5 +1,5 @@
 import * as options from '../../options';
-import { FirebaseAlertData, defineTriggerAndEndpoint } from '.';
+import { FirebaseAlertData, defineEndpoint } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 
 /** Data */
@@ -25,7 +25,6 @@ interface WithAlertTypeAndApp {
   alertType: string; // required in the payload
   appId: string; // required in the payload
 }
-
 export type AppDistributionEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
   WithAlertTypeAndApp
@@ -80,7 +79,7 @@ export function onNewTesterIosDevicePublished(
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
   func.__endpoint = {};
-  defineTriggerAndEndpoint(func, opts, newTesterIosDeviceAlert, appId);
+  defineEndpoint(func, opts, newTesterIosDeviceAlert, appId);
 
   return func;
 }
