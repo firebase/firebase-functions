@@ -26,12 +26,14 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   appId?: string; // optional
 }
 
-
 interface WithAlertTypeAndApp {
   alertType: string;
   appId?: string; // optional in the payload
 }
-export type AlertEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertTypeAndApp>;
+export type AlertEvent<T> = CloudEvent<
+  FirebaseAlertData<T>,
+  WithAlertTypeAndApp
+>;
 
 /** @internal */
 export const eventType = 'firebase.firebasealerts.alerts.v1.published';
@@ -39,9 +41,7 @@ export const eventType = 'firebase.firebasealerts.alerts.v1.published';
 /** Handlers */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
-  handler: (
-    event: AlertEvent<T>
-  ) => any | Promise<any>
+  handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<T>> {
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
@@ -94,7 +94,7 @@ export function defineEndpoint(
         },
       };
       if (appId) {
-        endpoint.eventTrigger.eventFilters["appId"] = appId;
+        endpoint.eventTrigger.eventFilters['appId'] = appId;
       }
       return endpoint;
     },
