@@ -499,7 +499,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
+    'labels',
+    'secrets'
   );
   convertIfPresent(
     trigger,
