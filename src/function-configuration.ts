@@ -167,7 +167,7 @@ export interface RuntimeOptions {
   allowInvalidAppCheckToken?: boolean;
 
   /*
-   * Bind secrets in Secret Manager as environment variables.
+   * Secrets to bind to a function instance.
    */
   secrets?: string[];
 }
