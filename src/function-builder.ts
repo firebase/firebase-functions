@@ -229,6 +229,33 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     }
   }
 
+  if (runtimeOptions.secrets !== undefined) {
+    // Secrets can be configured in few ways:
+    //   1. Shortform notation (with or without version)
+    //     e.g. MY_API_KEY[@VERSION]
+    //   2. Full resource name (with or without version)
+    //     e.g projects/my-project/secrets/MY_API_KEY[/versions/3]
+    const SECRET_SHORT_REGEX = /^[A-Za-z\d\-_]+(?:@[latest|\d]+)?$/
+    const SECRET_FULL_REGEX = new RegExp(
+      "^" +
+      "projects\\/" +
+      "((?:[0-9]+)|(?:[A-Za-z]+[A-Za-z\\d-]*[A-Za-z\\d]?))\\/" +
+      "secrets\\/" +
+      "([A-Za-z\\d\\-_]+)" +
+      "(?:\\/versions\\/" + "(latest|[0-9]+))?" +
+      "$"
+    );
+    const invalidSecrets = runtimeOptions.secrets.filter(s => !SECRET_SHORT_REGEX.test(s) && !SECRET_FULL_REGEX.test(s))
+    if (invalidSecrets.length > 0) {
+      throw new Error(
+        `Invalid secrets: ${invalidSecrets.join(',')}. ` +
+        "Secret must be configured using the short form (e.g. API_KEY@1) " +
+        "or with full resource name (e.g. projects/my-project/secrets/API_KEY)."
+      );
+    }
+  }
+
+
   return true;
 }
 

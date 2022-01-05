@@ -280,6 +280,7 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
+    secrets?: string[];
   };
 }
 

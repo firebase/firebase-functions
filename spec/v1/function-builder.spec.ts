@@ -472,10 +472,58 @@ describe('FunctionBuilder', () => {
     ).to.throw();
   });
 
-  it('', () => {
+  it('should throw an error if private identifier is in the invoker array', () => {
     expect(() =>
       functions.runWith({
         invoker: ['service-account1', 'private', 'service-account2'],
+      })
+    ).to.throw();
+  });
+
+  it('should allow valid secret config expressed using short form', () => {
+    const secrets = ['API_KEY', 'API_KEY@3', 'API_KEY@latest'];
+    const fn = functions
+      .runWith({ secrets })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.secrets).to.deep.equal(secrets);
+  });
+
+  it('should allow valid secret config expressed with full resource name', () => {
+    const secrets = [
+      'projects/my-project/secrets/API_KEY',
+      'projects/my-project/secrets/API_KEY/versions/3',
+      'projects/my-project/secrets/API_KEY/versions/latest',
+    ];
+    const fn = functions
+      .runWith({ secrets })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__trigger.secrets).to.deep.equal(secrets);
+  });
+
+  it('should throw error given invalid secret config', () => {
+    expect(() =>
+      functions.runWith({
+        secrets: ['ABC!@#$'],
+      })
+    ).to.throw();
+  });
+
+  it('should throw error given invalid secret version on short form', () => {
+    expect(() =>
+      functions.runWith({
+        secrets: ['ABC@live'],
+      })
+    ).to.throw();
+  });
+
+  it('should throw error given invalid secret version on long form', () => {
+    expect(() =>
+      functions.runWith({
+        secrets: ['projects/my-project/secrets/API_KEY/versions/live'],
       })
     ).to.throw();
   });
