@@ -272,6 +272,9 @@ export interface TriggerAnnotated {
     httpsTrigger?: {
       invoker?: string[];
     };
+    blockingTrigger?: {
+      eventType: string;
+    }
     labels?: { [key: string]: string };
     regions?: string[];
     schedule?: Schedule;
@@ -302,6 +305,9 @@ export interface Runnable<T> {
  */
 export type HttpsFunction = TriggerAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
+
+
+export type BlockingFunction = HttpsFunction;
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported

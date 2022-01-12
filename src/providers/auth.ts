@@ -23,11 +23,13 @@
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import {
+  BlockingFunction,
   CloudFunction,
   Event,
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
+import { AuthEventContext, BeforeCreateResponse, BeforeSignInResponse } from '../common/providers/identity';
 import { DeploymentOptions } from '../function-configuration';
 
 /** @hidden */
@@ -90,6 +92,24 @@ export class UserBuilder {
     return this.onOperation(handler, 'user.delete');
   }
 
+  beforeCreate(
+    handler: (
+      user: UserRecord,
+      context: AuthEventContext
+    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  ): BlockingFunction {
+    return this.beforeOperation(handler, "beforeCreate");
+  }
+
+  beforeSignIn(
+    handler: (
+      user: UserRecord,
+      context: AuthEventContext
+    ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  ): BlockingFunction {
+    return this.beforeOperation(handler, "beforeSignIn");
+  }
+
   private onOperation(
     handler: (
       user: UserRecord,
@@ -107,6 +127,19 @@ export class UserBuilder {
       legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
       options: this.options,
     });
+  }
+
+  private beforeOperation(
+    handler: (
+      user: UserRecord,
+      context: AuthEventContext
+    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | BeforeSignInResponse | Promise<BeforeSignInResponse>  | void | Promise<void>,
+    eventType: string
+  ): BlockingFunction {
+    const func = {};
+    Object.defineProperties(func, )
+    func.__trigger = {}
+
   }
 }
 

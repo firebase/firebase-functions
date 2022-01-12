@@ -345,7 +345,7 @@ const errorCodeMap: { [name in FunctionsErrorCode]: HttpErrorCode } = {
 };
 
 /** @hidden */
-interface HttpErrorWireFormat {
+export interface HttpErrorWireFormat {
   details?: unknown;
   message: string;
   status: CanonicalErrorCodeName;
