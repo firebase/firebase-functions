@@ -481,7 +481,7 @@ describe('FunctionBuilder', () => {
   });
 
   it('should allow valid secret config expressed using short form', () => {
-    const secrets = ['API_KEY', 'API_KEY@3', 'API_KEY@latest'];
+    const secrets = ['API_KEY'];
     const fn = functions
       .runWith({ secrets })
       .auth.user()
@@ -490,40 +490,26 @@ describe('FunctionBuilder', () => {
     expect(fn.__trigger.secrets).to.deep.equal(secrets);
   });
 
-  it('should allow valid secret config expressed with full resource name', () => {
-    const secrets = [
-      'projects/my-project/secrets/API_KEY',
-      'projects/my-project/secrets/API_KEY/versions/3',
-      'projects/my-project/secrets/API_KEY/versions/latest',
-    ];
-    const fn = functions
-      .runWith({ secrets })
-      .auth.user()
-      .onCreate((user) => user);
-
-    expect(fn.__trigger.secrets).to.deep.equal(secrets);
+  it('should throw error given secrets expressed with full resource name', () => {
+    expect(() =>
+      functions.runWith({
+        secrets: ['projects/my-project/secrets/API_KEY'],
+      })
+    ).to.throw();
   });
 
   it('should throw error given invalid secret config', () => {
     expect(() =>
       functions.runWith({
-        secrets: ['ABC!@#$'],
+        secrets: ['ABC/efg'],
       })
     ).to.throw();
   });
 
-  it('should throw error given invalid secret version on short form', () => {
+  it('should throw error given invalid secret with versions', () => {
     expect(() =>
       functions.runWith({
-        secrets: ['ABC@live'],
-      })
-    ).to.throw();
-  });
-
-  it('should throw error given invalid secret version on long form', () => {
-    expect(() =>
-      functions.runWith({
-        secrets: ['projects/my-project/secrets/API_KEY/versions/live'],
+        secrets: ['ABC@3'],
       })
     ).to.throw();
   });
