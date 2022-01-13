@@ -135,11 +135,8 @@ export class UserBuilder {
       context: AuthEventContext
     ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | BeforeSignInResponse | Promise<BeforeSignInResponse>  | void | Promise<void>,
     eventType: string
-  ): BlockingFunction {
-    const func = {};
-    Object.defineProperties(func, )
-    func.__trigger = {}
-
+  ): any/*BlockingFunction*/ {
+    // TODO
   }
 }
 

@@ -24,7 +24,7 @@
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as jwt from "jsonwebtoken";
-import { Client } from "../api";
+import * as api from "../api";
 import { HttpsError, encode } from "./https";
 import { EventContext } from "../../cloud-functions";
 import { logger } from '../..';
@@ -43,15 +43,7 @@ const EVENT_MAPPING: Record<string, string> = {
   beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
 }
 
-
-// export class AuthError extends HttpsError {
-//   constructor(code: FunctionsErrorCode, message: string, details?: unknown) {
-//     super(code, message, details);
-//   }
-//   public toJSON() {
-//     return super.toJSON();
-//   }
-// };
+export type AuthError = HttpsError;
 
 // copied from src/providers/auth.ts
 export type UserRecord = firebase.auth.UserRecord;
@@ -91,7 +83,6 @@ export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
 
-
 /** Defines HTTP event JWT. */
 /** @internal */
 interface DecodedJwt {
@@ -121,10 +112,9 @@ interface DecodedJwt {
 }
 
 /** @internal */
-async function fetchPublicKeys(client: Client): Promise<Record<string, string>> {
+async function fetchPublicKeys(): Promise<Record<string, string>> {
   try {
-    const publicKeys = await client.get<Record<string,string>>(JWT_CLIENT_CERT_PATH);
-    return publicKeys.body;
+    return await api.get<Record<string,string>>(`${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`);
   } catch (err) {
     logger.error(`Failed to obtain public keys for JWT verification: ${err.message}`);
     throw new HttpsError('internal', 'Failed to obtain public keys');
@@ -267,10 +257,7 @@ function wrapHandler(
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      const client = new Client({
-        urlPrefix: JWT_CLIENT_CERT_URL,
-      });
-      const publicKeys = fetchPublicKeys(client);
+      const publicKeys = fetchPublicKeys();
       validRequest(req);
       const decodedJWT = verifyAndDecodeJWT(req.body.data.jwt, eventType, await publicKeys);
       const userRecord = parseUserRecord(decodedJWT.user_record);
@@ -299,5 +286,4 @@ function wrapHandler(
   }
   
 }
-
 
