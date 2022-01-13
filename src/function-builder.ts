@@ -230,7 +230,9 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   if (runtimeOptions.secrets !== undefined) {
-    const invalidSecrets = runtimeOptions.secrets.filter((s) => !/^[A-Za-z\d\-_]+$/.test(s));
+    const invalidSecrets = runtimeOptions.secrets.filter(
+      (s) => !/^[A-Za-z\d\-_]+$/.test(s)
+    );
     if (invalidSecrets.length > 0) {
       throw new Error(
         `Invalid secrets: ${invalidSecrets.join(',')}. ` +
