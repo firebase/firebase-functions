@@ -35,7 +35,12 @@ import { ManifestEndpoint } from '../common/manifest';
 /**
  * List of all regions supported by Cloud Functions v2
  */
-export const SUPPORTED_REGIONS = ['us-west1', 'europe-west4'] as const;
+export const SUPPORTED_REGIONS = [
+  'us-west1',
+  'us-central1',
+  'europe-west4',
+  'asia-northeast1',
+] as const;
 
 /**
  * A region known to be supported by CloudFunctions v2
