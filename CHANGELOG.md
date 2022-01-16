@@ -1,3 +1,3 @@
 - Parallelizes network calls that occur when validating authorization for onCall handlers.
 - Adds new regions to V2 API
-- Bug Fix - Check for missing options / databaseURL on emulator start
+- Fixes bug where the emulator crashed when given app without an `options` property.
