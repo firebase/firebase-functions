@@ -28,6 +28,7 @@ import {
   copyIfPresent,
 } from '../../common/encoding';
 
+import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -39,7 +40,7 @@ import {
   TaskRequest,
   TaskRetryConfig,
 } from '../../common/providers/https';
-import * as options from '../options';
+import { ManifestEndpoint } from '../../common/manifest';
 
 export {
   Request,
@@ -74,7 +75,10 @@ export interface TaskQueueOptions extends options.GlobalOptions {
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
-) => void | Promise<void>) & { __trigger: unknown };
+) => void | Promise<void>) & {
+  __trigger?: unknown;
+  __endpoint: ManifestEndpoint;
+};
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
@@ -126,6 +130,7 @@ export function onRequest(
       });
     };
   }
+
   Object.defineProperty(handler, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -161,6 +166,30 @@ export function onRequest(
       return trigger;
     },
   });
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToTriggerAnnotations handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const endpoint: Partial<ManifestEndpoint> = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    endpoint.httpsTrigger,
+    opts,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
+  (handler as HttpsFunction).__endpoint = endpoint;
+
   return handler as HttpsFunction;
 }
 
@@ -221,6 +250,21 @@ export function onCall<T = any, Return = any | Promise<any>>(
       };
     },
   });
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToManifestEndpoint handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  func.__endpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    callableTrigger: {},
+  };
 
   func.run = handler;
   return func;

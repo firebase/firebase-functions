@@ -1,5 +1,7 @@
-import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
+import { CloudEvent, CloudFunction } from '../core';
+import { copyIfPresent } from '../../common/encoding';
+import { ManifestEndpoint } from '../../common/manifest';
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
@@ -133,11 +135,6 @@ export function onMessagePublished<T = any>(
 
   func.run = handler;
 
-  // TypeScript doesn't recongize defineProperty as adding a property and complains
-  // that __trigger doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-
   Object.defineProperty(func, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -163,6 +160,26 @@ export function onMessagePublished<T = any>(
       };
     },
   });
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOpts = options.optionsToEndpoint(opts);
+
+  const endpoint: ManifestEndpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    eventTrigger: {
+      eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
+      eventFilters: { topic },
+      retry: false,
+    },
+  };
+  copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+  func.__endpoint = endpoint;
 
   return func;
 }
