@@ -54,7 +54,11 @@
     "./v2/https": "./lib/v2/providers/https.js",
     "./v2/params": "./lib/v2/params/index.js",
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
-    "./v2/storage": "./lib/v2/providers/storage.js"
+    "./v2/storage": "./lib/v2/providers/storage.js",
+    "./v2/alerts": "./lib/v2/providers/alerts/index.js",
+    "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
+    "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
+    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
   },
   "typesVersions": {
     "*": {
@@ -114,6 +118,18 @@
       ],
       "v2/storage": [
         "lib/v2/providers/storage"
+      ],
+      "v2/alerts": [
+        "lib/v2/providers/alerts"
+      ],
+      "v2/alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
       ]
     }
   },

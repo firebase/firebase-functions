@@ -1,15 +1,16 @@
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as appDistribution from '../../../../src/v2/providers/alerts/appDistribution';
 import { expect } from 'chai';
+import { BASIC_OPTIONS, BASIC_ENDPOINT } from '../helpers';
 
-const myAppId = '123456789';
+const APPID = '123456789';
 const myHandler = () => 42;
 
 describe('appDistribution', () => {
   describe('onNewTesterIosDevicePublished', () => {
     it('should create a function with alertType & appId', () => {
       const func = appDistribution.onNewTesterIosDevicePublished(
-        myAppId,
+        APPID,
         myHandler
       );
 
@@ -20,7 +21,7 @@ describe('appDistribution', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: appDistribution.newTesterIosDeviceAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -29,14 +30,12 @@ describe('appDistribution', () => {
 
     it('should create a function with base opts', () => {
       const func = appDistribution.onNewTesterIosDevicePublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -49,19 +48,17 @@ describe('appDistribution', () => {
 
     it('should create a function with appid in opts', () => {
       const func = appDistribution.onNewTesterIosDevicePublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: appDistribution.newTesterIosDeviceAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -86,7 +83,7 @@ describe('appDistribution', () => {
 
     it('should create a function with a run method', () => {
       const func = appDistribution.onNewTesterIosDevicePublished(
-        myAppId,
+        APPID,
         (event) => event
       );
 
@@ -98,10 +95,10 @@ describe('appDistribution', () => {
 
   describe('getOptsAndApp', () => {
     it('should parse a string', () => {
-      const [opts, appId] = appDistribution.getOptsAndApp(myAppId);
+      const [opts, appId] = appDistribution.getOptsAndApp(APPID);
 
       expect(opts).to.deep.equal({});
-      expect(appId).to.equal(myAppId);
+      expect(appId).to.equal(APPID);
     });
 
     it('should parse an options object without appId', () => {
@@ -117,14 +114,14 @@ describe('appDistribution', () => {
 
     it('should parse an options object with appId', () => {
       const myOpts: appDistribution.AppDistributionOptions = {
-        appId: myAppId,
+        appId: APPID,
         region: 'us-west1',
       };
 
       const [opts, appId] = appDistribution.getOptsAndApp(myOpts);
 
       expect(opts).to.deep.equal({ region: 'us-west1' });
-      expect(appId).to.equal(myAppId);
+      expect(appId).to.equal(APPID);
     });
   });
 });

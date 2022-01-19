@@ -1,11 +1,10 @@
-import { expect } from 'chai';
-// import { CloudEvent } from '../../../../src/v2/core';
-// import * as options from '../../../../src/v2/options';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as crashlytics from '../../../../src/v2/providers/alerts/crashlytics';
+import { expect } from 'chai';
+import { BASIC_OPTIONS, BASIC_ENDPOINT } from '../helpers';
 
-const myAlertType = 'my-alert-type';
-const myAppId = '123456789';
+const ALERT_TYPE = 'new-alert-type';
+const APPID = '123456789';
 const myHandler = () => 42;
 
 describe('crashlytics', () => {
@@ -27,7 +26,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with appId', () => {
-      const func = crashlytics.onNewFatalIssuePublished(myAppId, myHandler);
+      const func = crashlytics.onNewFatalIssuePublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -36,7 +35,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.newFatalIssueAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -45,14 +44,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onNewFatalIssuePublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -65,19 +62,17 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onNewFatalIssuePublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.newFatalIssueAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -103,7 +98,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with appId', () => {
-      const func = crashlytics.onNewNonfatalIssuePublished(myAppId, myHandler);
+      const func = crashlytics.onNewNonfatalIssuePublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -112,7 +107,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.newNonfatalIssueAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -121,14 +116,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onNewNonfatalIssuePublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -141,19 +134,17 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onNewNonfatalIssuePublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.newNonfatalIssueAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -179,7 +170,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with appId', () => {
-      const func = crashlytics.onRegressionAlertPublished(myAppId, myHandler);
+      const func = crashlytics.onRegressionAlertPublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -188,7 +179,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.regressionAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -197,14 +188,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onRegressionAlertPublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -217,19 +206,17 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onRegressionAlertPublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.regressionAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -255,7 +242,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with appId', () => {
-      const func = crashlytics.onStabilityDigestPublished(myAppId, myHandler);
+      const func = crashlytics.onStabilityDigestPublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -264,7 +251,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.stabilityDigestAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -273,14 +260,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onStabilityDigestPublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS, },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -293,19 +278,17 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onStabilityDigestPublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.stabilityDigestAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -331,7 +314,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with appId', () => {
-      const func = crashlytics.onVelocityAlertPublished(myAppId, myHandler);
+      const func = crashlytics.onVelocityAlertPublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -340,7 +323,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.velocityAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -349,14 +332,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onVelocityAlertPublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -369,19 +350,17 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onVelocityAlertPublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.velocityAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -407,7 +386,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with appId', () => {
-      const func = crashlytics.onNewAnrIssuePublished(myAppId, myHandler);
+      const func = crashlytics.onNewAnrIssuePublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -416,7 +395,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.newAnrIssueAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -425,14 +404,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onNewAnrIssuePublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -445,19 +422,17 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onNewAnrIssuePublished(
-        { region: 'us-west1', appId: myAppId },
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
             alertType: crashlytics.newAnrIssueAlert,
-            appId: myAppId,
+            appId: APPID,
           },
           retry: false,
         },
@@ -467,7 +442,7 @@ describe('crashlytics', () => {
 
   describe('onOperation', () => {
     it('should create a function with alertType only', () => {
-      const func = crashlytics.onOperation(myAlertType, myHandler, undefined);
+      const func = crashlytics.onOperation(ALERT_TYPE, myHandler, undefined);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -475,7 +450,7 @@ describe('crashlytics', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: myAlertType,
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -483,7 +458,7 @@ describe('crashlytics', () => {
     });
 
     it('should create a function with alertType & appId', () => {
-      const func = crashlytics.onOperation(myAlertType, myAppId, myHandler);
+      const func = crashlytics.onOperation(ALERT_TYPE, APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -491,8 +466,8 @@ describe('crashlytics', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: myAlertType,
-            appId: myAppId,
+            alertType: ALERT_TYPE,
+            appId: APPID,
           },
           retry: false,
         },
@@ -501,19 +476,17 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onOperation(
-        myAlertType,
-        { region: 'us-west1' },
+        ALERT_TYPE,
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: myAlertType,
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -522,20 +495,18 @@ describe('crashlytics', () => {
 
     it('should create a function with appid in opts', () => {
       const func = crashlytics.onOperation(
-        myAlertType,
-        { region: 'us-west1', appId: myAppId },
+        ALERT_TYPE,
+        { ...BASIC_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: myAlertType,
-            appId: myAppId,
+            alertType: ALERT_TYPE,
+            appId: APPID,
           },
           retry: false,
         },
@@ -544,7 +515,7 @@ describe('crashlytics', () => {
 
     it('should create a function with a run method', () => {
       const func = crashlytics.onOperation(
-        myAlertType,
+        ALERT_TYPE,
         (event) => event,
         undefined
       );
@@ -557,12 +528,12 @@ describe('crashlytics', () => {
 
   describe('getOptsAndApp', () => {
     it('should parse a string', () => {
-      const myAppId = '123456789';
+      const APPID = '123456789';
 
-      const [opts, appId] = crashlytics.getOptsAndApp(myAppId);
+      const [opts, appId] = crashlytics.getOptsAndApp(APPID);
 
       expect(opts).to.deep.equal({});
-      expect(appId).to.equal(myAppId);
+      expect(appId).to.equal(APPID);
     });
 
     it('should parse an options object without appId', () => {

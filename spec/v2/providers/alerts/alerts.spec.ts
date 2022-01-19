@@ -4,22 +4,10 @@ import * as options from '../../../../src/v2/options';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import { expect } from 'chai';
 import { CloudEvent, CloudFunction } from '../../../../src/v2/core';
-// import { FULL_OPTIONS, FULL_TRIGGER } from '../helpers';
+import { BASIC_OPTIONS, BASIC_ENDPOINT, FULL_OPTIONS, FULL_ENDPOINT } from '../helpers';
 
-const BASIC_OPTS: options.EventHandlerOptions = {
-  labels: {
-    key: 'value',
-  },
-  region: 'us-west1',
-};
-
-const BASIC_ENDPOINT = {
-  platform: 'gcfv2',
-  regions: ['us-west1'],
-  labels: {
-    key: 'value',
-  },
-};
+const ALERT_TYPE = 'new-alert-type';
+const APPID = '123456789';
 
 function getMockFunction(): CloudFunction<alerts.FirebaseAlertData<String>> {
   const func = (raw: CloudEvent<unknown>) => 42;
@@ -32,7 +20,7 @@ function getMockFunction(): CloudFunction<alerts.FirebaseAlertData<String>> {
 describe('alerts', () => {
   describe('onAlertPublished', () => {
     it('should create the function without opts', () => {
-      const result = alerts.onAlertPublished('my-alert-type', () => 42);
+      const result = alerts.onAlertPublished(ALERT_TYPE, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -40,7 +28,7 @@ describe('alerts', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: 'my-alert-type',
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -50,9 +38,9 @@ describe('alerts', () => {
     it('should create the function with opts', () => {
       const result = alerts.onAlertPublished(
         {
-          ...BASIC_OPTS,
-          alertType: 'my-alert-type',
-          appId: '123456789',
+          ...BASIC_OPTIONS,
+          alertType: ALERT_TYPE,
+          appId: APPID,
         },
         () => 42
       );
@@ -62,8 +50,8 @@ describe('alerts', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: 'my-alert-type',
-            appId: '123456789',
+            alertType: ALERT_TYPE,
+            appId: APPID,
           },
           retry: false,
         },
@@ -71,7 +59,7 @@ describe('alerts', () => {
     });
 
     it('should have a .run method', () => {
-      const func = alerts.onAlertPublished('my-alert-type', (event) => event);
+      const func = alerts.onAlertPublished(ALERT_TYPE, (event) => event);
 
       const res = func.run('input' as any);
 
@@ -96,7 +84,7 @@ describe('alerts', () => {
     it('should define the endpoint without appId and opts', () => {
       const func = getMockFunction();
 
-      alerts.defineEndpoint(func, {}, 'new-alert-type');
+      alerts.defineEndpoint(func, {}, ALERT_TYPE);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -104,7 +92,7 @@ describe('alerts', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: 'new-alert-type',
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -114,14 +102,14 @@ describe('alerts', () => {
     it('should define the endpoint without appId, with opts', () => {
       const func = getMockFunction();
 
-      alerts.defineEndpoint(func, BASIC_OPTS, 'new-alert-type');
+      alerts.defineEndpoint(func, { ...BASIC_OPTIONS }, ALERT_TYPE);
 
       expect(func.__endpoint).to.deep.equal({
         ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: 'new-alert-type',
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -131,33 +119,28 @@ describe('alerts', () => {
     it('should define the endpoint with appId', () => {
       const func = getMockFunction();
 
-      alerts.defineEndpoint(func, BASIC_OPTS, 'new-alert-type', '123456789');
+      alerts.defineEndpoint(func, { ...BASIC_OPTIONS }, ALERT_TYPE, APPID);
 
       expect(func.__endpoint).to.deep.equal({
         ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: 'new-alert-type',
-            appId: '123456789',
+            alertType: ALERT_TYPE,
+            appId: APPID,
           },
           retry: false,
         },
       });
     });
 
-    /* TODO(colerogers): add when we merge container contract branch
     it("should define a complex endpoint", () => {
       const func = getMockFunction();
 
       alerts.defineEndpoint(func, { ...FULL_OPTIONS }, "new-alert-type", "123456789");
 
       expect(func.__endpoint).to.deep.equal({
-        ...FULL_TRIGGER,
-        platform: 'gcfv2',
-        region: [
-          "us-west1"
-        ]
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -168,7 +151,6 @@ describe('alerts', () => {
         },
       })
     });
-    */
 
     it('should merge global & specific opts', () => {
       options.setGlobalOptions({
@@ -182,19 +164,19 @@ describe('alerts', () => {
       };
       const func = getMockFunction();
 
-      alerts.defineEndpoint(func, specificOpts, 'new-alert-type', '123456789');
+      alerts.defineEndpoint(func, specificOpts, ALERT_TYPE, APPID);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
         concurrency: 20,
-        regions: ['us-west1'],
+        region: ['us-west1'],
         minInstances: 3,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: 'new-alert-type',
-            appId: '123456789',
+            alertType: ALERT_TYPE,
+            appId: APPID,
           },
           retry: false,
         },
@@ -204,20 +186,18 @@ describe('alerts', () => {
 
   describe('getOptsAndAlertTypeAndApp', () => {
     it('should parse a string', () => {
-      const myAlertType = 'myalerttype';
-
       const [opts, alertType, appId] = alerts.getOptsAndAlertTypeAndApp(
-        myAlertType
+        ALERT_TYPE
       );
 
       expect(opts).to.deep.equal({});
-      expect(alertType).to.equal(myAlertType);
+      expect(alertType).to.equal(ALERT_TYPE);
       expect(appId).to.be.undefined;
     });
 
     it('should parse an options object without appId', () => {
       const myOpts: alerts.FirebaseAlertOptions = {
-        alertType: 'myalerttype',
+        alertType: ALERT_TYPE,
         region: 'us-west1',
       };
 
@@ -230,8 +210,8 @@ describe('alerts', () => {
 
     it('should parse an options object with appId', () => {
       const myOpts: alerts.FirebaseAlertOptions = {
-        alertType: 'myalerttype',
-        appId: '123456789',
+        alertType: ALERT_TYPE,
+        appId: APPID,
         region: 'us-west1',
       };
 

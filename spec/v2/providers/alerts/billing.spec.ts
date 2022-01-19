@@ -1,8 +1,9 @@
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as billing from '../../../../src/v2/providers/alerts/billing';
 import { expect } from 'chai';
+import { BASIC_OPTIONS, BASIC_ENDPOINT } from '../helpers';
 
-const myAlertType = 'my-alert-type';
+const ALERT_TYPE = 'new-alert-type';
 const myHandler = () => 42;
 
 describe('billing', () => {
@@ -25,14 +26,12 @@ describe('billing', () => {
 
     it('should create a function with opts & handler', () => {
       const func = billing.onPlanUpdatePublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -63,14 +62,12 @@ describe('billing', () => {
 
     it('should create a function with opts & handler', () => {
       const func = billing.onAutomatedPlanUpdatePublished(
-        { region: 'us-west1' },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -84,7 +81,7 @@ describe('billing', () => {
 
   describe('onOperation', () => {
     it('should create a function with alertType only', () => {
-      const func = billing.onOperation(myAlertType, myHandler, undefined);
+      const func = billing.onOperation(ALERT_TYPE, myHandler, undefined);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -92,7 +89,7 @@ describe('billing', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: myAlertType,
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -101,19 +98,17 @@ describe('billing', () => {
 
     it('should create a function with opts', () => {
       const func = billing.onOperation(
-        myAlertType,
-        { region: 'us-west1' },
+        ALERT_TYPE,
+        { ...BASIC_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        regions: ['us-west1'],
+        ...BASIC_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: myAlertType,
+            alertType: ALERT_TYPE,
           },
           retry: false,
         },
@@ -122,7 +117,7 @@ describe('billing', () => {
 
     it('should create a function with a run method', () => {
       const func = billing.onOperation(
-        myAlertType,
+        ALERT_TYPE,
         (event) => event,
         undefined
       );

@@ -1,6 +1,7 @@
 import * as options from '../../options';
 import { FirebaseAlertData, defineEndpoint } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
+import { ManifestEndpoint } from '../../../common/manifest';
 
 /** Data */
 interface Issue {
@@ -294,7 +295,7 @@ export function onOperation<T>(
   // that __endpoint doesn't exist. We can either cast to any and lose all type safety
   // or we can just assign a meaningless value before calling defineProperty.
   func.__trigger = 'silence the transpiler';
-  func.__endpoint = {};
+  func.__endpoint = {} as ManifestEndpoint;
   defineEndpoint(func, opts, alertType, appId);
 
   return func;
