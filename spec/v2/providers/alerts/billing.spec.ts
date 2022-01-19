@@ -1,7 +1,7 @@
+import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as billing from '../../../../src/v2/providers/alerts/billing';
-import { expect } from 'chai';
-import { BASIC_OPTIONS, BASIC_ENDPOINT } from '../helpers';
+import { BASIC_ENDPOINT, BASIC_OPTIONS } from '../helpers';
 
 const ALERT_TYPE = 'new-alert-type';
 const myHandler = () => 42;
@@ -116,11 +116,7 @@ describe('billing', () => {
     });
 
     it('should create a function with a run method', () => {
-      const func = billing.onOperation(
-        ALERT_TYPE,
-        (event) => event,
-        undefined
-      );
+      const func = billing.onOperation(ALERT_TYPE, (event) => event, undefined);
 
       const res = func.run('input' as any);
 

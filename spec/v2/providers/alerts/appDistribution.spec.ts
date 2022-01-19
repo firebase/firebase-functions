@@ -1,7 +1,7 @@
+import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as appDistribution from '../../../../src/v2/providers/alerts/appDistribution';
-import { expect } from 'chai';
-import { BASIC_OPTIONS, BASIC_ENDPOINT } from '../helpers';
+import { BASIC_ENDPOINT, BASIC_OPTIONS } from '../helpers';
 
 const APPID = '123456789';
 const myHandler = () => 42;

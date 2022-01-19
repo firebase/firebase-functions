@@ -1,6 +1,6 @@
-import * as options from '../../options';
-import { CloudEvent, CloudFunction } from '../../core';
 import { ManifestEndpoint } from '../../../common/manifest';
+import { CloudEvent, CloudFunction } from '../../core';
+import * as options from '../../options';
 
 // data of the CloudEvent
 export interface FirebaseAlertData<T = any> {
@@ -93,7 +93,7 @@ export function defineEndpoint(
         },
       };
       if (appId) {
-        endpoint.eventTrigger.eventFilters['appId'] = appId;
+        endpoint.eventTrigger.eventFilters.appId = appId;
       }
       return endpoint;
     },

@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as options from '../options';
-import { firebaseConfig } from '../../config';
-import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../common/manifest';
+import { firebaseConfig } from '../../config';
+import { CloudEvent, CloudFunction } from '../core';
+import * as options from '../options';
 
 /**
  * An object within Google Cloud Storage.
@@ -359,7 +359,7 @@ export function onOperation(
           ...specificOpts?.labels,
         },
         eventTrigger: {
-          eventType: eventType,
+          eventType,
           eventFilters: {
             bucket,
           },

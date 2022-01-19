@@ -1,7 +1,7 @@
-import * as options from '../../options';
-import { FirebaseAlertData, defineEndpoint } from '.';
-import { CloudEvent, CloudFunction } from '../../core';
+import { defineEndpoint, FirebaseAlertData } from '.';
 import { ManifestEndpoint } from '../../../common/manifest';
+import { CloudEvent, CloudFunction } from '../../core';
+import * as options from '../../options';
 
 /** Data */
 interface Issue {
@@ -37,7 +37,7 @@ interface TrendingIssueDetails {
 export interface StabilityDigestPayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsStabilityDigestPayload';
   digestDate: string;
-  trendingIssues: Array<TrendingIssueDetails>;
+  trendingIssues: TrendingIssueDetails[];
 }
 // crashlytics.velocity
 export interface VelocityAlertPayload {

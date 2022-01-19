@@ -1,7 +1,7 @@
+import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as crashlytics from '../../../../src/v2/providers/alerts/crashlytics';
-import { expect } from 'chai';
-import { BASIC_OPTIONS, BASIC_ENDPOINT } from '../helpers';
+import { BASIC_ENDPOINT, BASIC_OPTIONS } from '../helpers';
 
 const ALERT_TYPE = 'new-alert-type';
 const APPID = '123456789';
@@ -260,7 +260,7 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onStabilityDigestPublished(
-        { ...BASIC_OPTIONS, },
+        { ...BASIC_OPTIONS },
         myHandler
       );
 

@@ -1,10 +1,15 @@
+import { expect } from 'chai';
 import * as sinon from 'sinon';
 import * as config from '../../../../src/config';
+import { CloudEvent, CloudFunction } from '../../../../src/v2/core';
 import * as options from '../../../../src/v2/options';
 import * as alerts from '../../../../src/v2/providers/alerts';
-import { expect } from 'chai';
-import { CloudEvent, CloudFunction } from '../../../../src/v2/core';
-import { BASIC_OPTIONS, BASIC_ENDPOINT, FULL_OPTIONS, FULL_ENDPOINT } from '../helpers';
+import {
+  BASIC_ENDPOINT,
+  BASIC_OPTIONS,
+  FULL_ENDPOINT,
+  FULL_OPTIONS,
+} from '../helpers';
 
 const ALERT_TYPE = 'new-alert-type';
 const APPID = '123456789';
@@ -134,22 +139,27 @@ describe('alerts', () => {
       });
     });
 
-    it("should define a complex endpoint", () => {
+    it('should define a complex endpoint', () => {
       const func = getMockFunction();
 
-      alerts.defineEndpoint(func, { ...FULL_OPTIONS }, "new-alert-type", "123456789");
+      alerts.defineEndpoint(
+        func,
+        { ...FULL_OPTIONS },
+        'new-alert-type',
+        '123456789'
+      );
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: "new-alert-type",
-            appId: "123456789",
+            alertType: 'new-alert-type',
+            appId: '123456789',
           },
-          retry: false
+          retry: false,
         },
-      })
+      });
     });
 
     it('should merge global & specific opts', () => {
