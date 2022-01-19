@@ -33,3 +33,22 @@ export const FULL_TRIGGER = {
     hello: 'world',
   },
 };
+
+export const FULL_ENDPOINT = {
+  platform: 'gcfv2',
+  region: ['us-west1'],
+  availableMemoryMb: 512,
+  timeoutSeconds: 60,
+  minInstances: 1,
+  maxInstances: 3,
+  concurrency: 20,
+  vpc: {
+    connector: 'aConnector',
+    egressSettings: 'ALL_TRAFFIC',
+  },
+  serviceAccountEmail: 'root@',
+  ingressSettings: 'ALLOW_ALL',
+  labels: {
+    hello: 'world',
+  },
+};
