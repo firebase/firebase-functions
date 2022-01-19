@@ -49,7 +49,7 @@ export interface TriggerAnnotation {
 }
 
 /**
- * A CloudEvent is a cross-platform format for encoding a serverless event.
+ * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
  */
 export interface CloudEventBase<T> {
@@ -90,7 +90,7 @@ export interface CloudEventBase<T> {
 }
 
 /**
- *
+ * A CloudEvent with custom extension attributes
  */
 export type CloudEvent<T = any, Ext = {}> = CloudEventBase<T> & Ext;
 /** A handler for CloudEvents. */

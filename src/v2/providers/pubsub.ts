@@ -1,7 +1,7 @@
+import * as options from '../options';
+import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../common/manifest';
-import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.

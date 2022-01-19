@@ -28,7 +28,7 @@ import {
   copyIfPresent,
 } from '../../common/encoding';
 
-import { ManifestEndpoint } from '../../common/manifest';
+import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -40,7 +40,7 @@ import {
   TaskRequest,
   TaskRetryConfig,
 } from '../../common/providers/https';
-import * as options from '../options';
+import { ManifestEndpoint } from '../../common/manifest';
 
 export {
   Request,
