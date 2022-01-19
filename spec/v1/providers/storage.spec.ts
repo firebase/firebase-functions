@@ -28,9 +28,35 @@ import * as storage from '../../../src/providers/storage';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
+    function expectedTrigger(bucket: string, eventType: string) {
+      return {
+        eventTrigger: {
+          resource: `projects/_/buckets/${bucket}`,
+          eventType: `google.storage.object.${eventType}`,
+          service: 'storage.googleapis.com',
+        },
+      };
+    }
+
+    function expectedEndpoint(bucket: string, eventType: string) {
+      return {
+        platform: 'gcfv1',
+        eventTrigger: {
+          eventFilters: {
+            resource: `projects/_/buckets/${bucket}`,
+          },
+          eventType: `google.storage.object.${eventType}`,
+          retry: false,
+        },
+        labels: {},
+      };
+    }
+
+    const defaultBucket = 'bucket';
+
     before(() => {
       (config as any).firebaseConfigCache = {
-        storageBucket: 'bucket',
+        storageBucket: defaultBucket,
       };
     });
 
@@ -51,6 +77,10 @@ describe('Storage Functions', () => {
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
     describe('#onArchive', () => {
@@ -59,24 +89,26 @@ describe('Storage Functions', () => {
           .bucket('bucky')
           .object()
           .onArchive(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.archive',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'archive')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'archive')
+        );
       });
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onArchive(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.archive',
-            resource: 'projects/_/buckets/bucket',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'archive')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'archive')
+        );
       });
 
       it('should allow fully qualified bucket names', () => {
@@ -85,13 +117,14 @@ describe('Storage Functions', () => {
           {}
         );
         const result = subjectQualified.onArchive(() => null);
-        expect(result.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.archive',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'archive')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'archive')
+        );
       });
 
       it('should throw with improperly formatted buckets', () => {
@@ -101,6 +134,14 @@ describe('Storage Functions', () => {
               .bucket('bad/bucket/format')
               .object()
               .onArchive(() => null).__trigger
+        ).to.throw(Error);
+
+        expect(
+          () =>
+            storage
+              .bucket('bad/bucket/format')
+              .object()
+              .onArchive(() => null).__endpoint
         ).to.throw(Error);
       });
 
@@ -139,24 +180,26 @@ describe('Storage Functions', () => {
           .bucket('bucky')
           .object()
           .onDelete(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.delete',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'delete')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'delete')
+        );
       });
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onDelete(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.delete',
-            resource: 'projects/_/buckets/bucket',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'delete')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'delete')
+        );
       });
 
       it('should allow fully qualified bucket names', () => {
@@ -165,23 +208,25 @@ describe('Storage Functions', () => {
           {}
         );
         const result = subjectQualified.onDelete(() => null);
-        expect(result.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.delete',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'delete')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'delete')
+        );
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(
-          () =>
-            storage
-              .bucket('bad/bucket/format')
-              .object()
-              .onDelete(() => null).__trigger
-        ).to.throw(Error);
+        const fn = storage
+          .bucket('bad/bucket/format')
+          .object()
+          .onDelete(() => null);
+
+        expect(() => fn.__trigger).to.throw(Error);
+
+        expect(() => fn.__endpoint).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -219,24 +264,26 @@ describe('Storage Functions', () => {
           .bucket('bucky')
           .object()
           .onFinalize(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.finalize',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'finalize')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'finalize')
+        );
       });
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onFinalize(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.finalize',
-            resource: 'projects/_/buckets/bucket',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'finalize')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'finalize')
+        );
       });
 
       it('should allow fully qualified bucket names', () => {
@@ -245,23 +292,25 @@ describe('Storage Functions', () => {
           {}
         );
         const result = subjectQualified.onFinalize(() => null);
-        expect(result.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.finalize',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'finalize')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'finalize')
+        );
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(
-          () =>
-            storage
-              .bucket('bad/bucket/format')
-              .object()
-              .onFinalize(() => null).__trigger
-        ).to.throw(Error);
+        const fn = storage
+          .bucket('bad/bucket/format')
+          .object()
+          .onFinalize(() => null);
+
+        expect(() => fn.__trigger).to.throw(Error);
+
+        expect(() => fn.__endpoint).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -299,24 +348,26 @@ describe('Storage Functions', () => {
           .bucket('bucky')
           .object()
           .onMetadataUpdate(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.metadataUpdate',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'metadataUpdate')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'metadataUpdate')
+        );
       });
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onMetadataUpdate(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.metadataUpdate',
-            resource: 'projects/_/buckets/bucket',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'metadataUpdate')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'metadataUpdate')
+        );
       });
 
       it('should allow fully qualified bucket names', () => {
@@ -325,23 +376,24 @@ describe('Storage Functions', () => {
           {}
         );
         const result = subjectQualified.onMetadataUpdate(() => null);
-        expect(result.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'google.storage.object.metadataUpdate',
-            resource: 'projects/_/buckets/bucky',
-            service: 'storage.googleapis.com',
-          },
-        });
+
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'metadataUpdate')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'metadataUpdate')
+        );
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(
-          () =>
-            storage
-              .bucket('bad/bucket/format')
-              .object()
-              .onMetadataUpdate(() => null).__trigger
-        ).to.throw(Error);
+        const fn = storage
+          .bucket('bad/bucket/format')
+          .object()
+          .onMetadataUpdate(() => null);
+
+        expect(() => fn.__trigger).to.throw(Error);
+        expect(() => fn.__endpoint).to.throw(Error);
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -390,7 +442,9 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.bucket.onArchive(
           () => null
         );
+
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -429,7 +483,9 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.bucket.onDelete(
           () => null
         );
+
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -468,7 +524,9 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.bucket.onFinalize(
           () => null
         );
+
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -507,7 +565,9 @@ describe('Storage Functions', () => {
         const cloudFunction = functions.handler.storage.bucket.onMetadataUpdate(
           () => null
         );
+
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should not mess with media links using non-literal slashes', () => {
@@ -554,6 +614,12 @@ describe('Storage Functions', () => {
 
     it('should throw when trigger is accessed', () => {
       expect(() => storage.object().onArchive(() => null).__trigger).to.throw(
+        Error
+      );
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(() => storage.object().onArchive(() => null).__endpoint).to.throw(
         Error
       );
     });

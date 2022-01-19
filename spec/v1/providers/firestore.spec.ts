@@ -103,6 +103,20 @@ describe('Firestore Functions', () => {
       };
     }
 
+    function expectedEndpoint(resource: string, eventType: string) {
+      return {
+        platform: 'gcfv1',
+        eventTrigger: {
+          eventFilters: {
+            resource,
+          },
+          eventType: `providers/cloud.firestore/eventTypes/${eventType}`,
+          retry: false,
+        },
+        labels: {},
+      };
+    }
+
     before(() => {
       process.env.GCLOUD_PROJECT = 'project1';
     });
@@ -117,8 +131,13 @@ describe('Firestore Functions', () => {
       const cloudFunction = firestore
         .document('users/{uid}')
         .onWrite(() => null);
+
       expect(cloudFunction.__trigger).to.deep.equal(
         expectedTrigger(resource, 'document.write')
+      );
+
+      expect(cloudFunction.__endpoint).to.deep.equal(
+        expectedEndpoint(resource, 'document.write')
       );
     });
 
@@ -129,8 +148,13 @@ describe('Firestore Functions', () => {
         .namespace('v2')
         .document('users/{uid}')
         .onWrite(() => null);
+
       expect(cloudFunction.__trigger).to.deep.equal(
         expectedTrigger(resource, 'document.write')
+      );
+
+      expect(cloudFunction.__endpoint).to.deep.equal(
+        expectedEndpoint(resource, 'document.write')
       );
     });
 
@@ -140,8 +164,13 @@ describe('Firestore Functions', () => {
         .database('myDB')
         .document('users/{uid}')
         .onWrite(() => null);
+
       expect(cloudFunction.__trigger).to.deep.equal(
         expectedTrigger(resource, 'document.write')
+      );
+
+      expect(cloudFunction.__endpoint).to.deep.equal(
+        expectedEndpoint(resource, 'document.write')
       );
     });
 
@@ -153,8 +182,13 @@ describe('Firestore Functions', () => {
         .namespace('v2')
         .document('users/{uid}')
         .onWrite(() => null);
+
       expect(cloudFunction.__trigger).to.deep.equal(
         expectedTrigger(resource, 'document.write')
+      );
+
+      expect(cloudFunction.__endpoint).to.deep.equal(
+        expectedEndpoint(resource, 'document.write')
       );
     });
 
@@ -171,36 +205,10 @@ describe('Firestore Functions', () => {
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
-    });
 
-    it('onCreate should have the "document.create" eventType', () => {
-      const resource =
-        'projects/project1/databases/(default)/documents/users/{uid}';
-      const eventType = firestore.document('users/{uid}').onCreate(() => null)
-        .__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq(
-        expectedTrigger(resource, 'document.create').eventTrigger.eventType
-      );
-    });
-
-    it('onUpdate should have the "document.update" eventType', () => {
-      const resource =
-        'projects/project1/databases/(default)/documents/users/{uid}';
-      const eventType = firestore.document('users/{uid}').onUpdate(() => null)
-        .__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq(
-        expectedTrigger(resource, 'document.update').eventTrigger.eventType
-      );
-    });
-
-    it('onDelete should have the "document.delete" eventType', () => {
-      const resource =
-        'projects/project1/databases/(default)/documents/users/{uid}';
-      const eventType = firestore.document('users/{uid}').onDelete(() => null)
-        .__trigger.eventTrigger.eventType;
-      expect(eventType).to.eq(
-        expectedTrigger(resource, 'document.delete').eventTrigger.eventType
-      );
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
   });
 
@@ -214,6 +222,12 @@ describe('Firestore Functions', () => {
     it('should throw when trigger is accessed', () => {
       expect(
         () => firestore.document('input').onCreate(() => null).__trigger
+      ).to.throw(Error);
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(
+        () => firestore.document('input').onCreate(() => null).__endpoint
       ).to.throw(Error);
     });
 
