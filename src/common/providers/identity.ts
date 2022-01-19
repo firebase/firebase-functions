@@ -20,14 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// import * as cors from 'cors';
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
+import * as _ from 'lodash';
 import * as jwt from "jsonwebtoken";
-import * as api from "../api";
+import fetch from "node-fetch";
 import { HttpsError, encode } from "./https";
 import { EventContext } from "../../cloud-functions";
 import { logger } from '../..';
+import { user } from '../../providers/auth';
+import { type } from 'os';
 
 export { HttpsError };
 
@@ -47,6 +49,8 @@ export type AuthError = HttpsError;
 
 // copied from src/providers/auth.ts
 export type UserRecord = firebase.auth.UserRecord;
+
+type UserInfo = firebase.auth.UserInfo;
 
 /** Defines the Auth event context. */
 export interface AuthEventContext extends EventContext {
@@ -83,6 +87,59 @@ export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
 
+
+
+
+/** @internal */
+interface DecodedJwtMetadata {
+  creation_time?: number;
+  last_sign_in_time?: number;
+}
+
+/** @internal */
+interface DecodedJwtProviderUserInfo {
+  uid: string;
+  display_name?: string;
+  email?: string;
+  photo_url?: string;
+  phone_number?: string;
+  provider_id: string;
+}
+
+/** @internal */
+interface DecodedJwtMfaInfo {
+  uid: string;
+  display_name?: string;
+  phone_number?: string;
+  enrollment_time?: string;
+  factor_id?: string;
+}
+
+/** @internal */
+interface DecodedJwtEnrolledFactors {
+  enrolled_factors?: DecodedJwtMfaInfo[];
+}
+
+/** @internal */
+interface DecodedJwtUserRecord {
+  uid: string;
+  email?: string;
+  email_verified?: boolean;
+  phone_number?: string;
+  display_name?: string;
+  photo_url?: string;
+  disabled?: boolean;
+  metadata?: DecodedJwtMetadata;
+  password_hash?: string;
+  password_salt?: string;
+  provider_data?: DecodedJwtProviderUserInfo[];
+  multi_factor?: DecodedJwtEnrolledFactors;
+  custom_claims?: any;
+  tokens_valid_after_time?: number;
+  tenant_id?: string;
+  [key: string]: any;
+}
+
 /** Defines HTTP event JWT. */
 /** @internal */
 interface DecodedJwt {
@@ -97,7 +154,7 @@ interface DecodedJwt {
   user_agent?: string;
   locale?: string;
   sign_in_method?: string;
-  // user_record?: DecodedJwtUserRecord;
+  user_record?: DecodedJwtUserRecord;
   tenant_id?: string;
   raw_user_info?: string;
   sign_in_attributes?: {
@@ -113,8 +170,11 @@ interface DecodedJwt {
 
 /** @internal */
 async function fetchPublicKeys(): Promise<Record<string, string>> {
+  const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
   try {
-    return await api.get<Record<string,string>>(`${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`);
+    const response = await fetch(url);
+    const data = await response.json();
+    return data as Record<string, string>;
   } catch (err) {
     logger.error(`Failed to obtain public keys for JWT verification: ${err.message}`);
     throw new HttpsError('internal', 'Failed to obtain public keys');
@@ -204,17 +264,121 @@ function verifyAndDecodeJWT(token: string, eventType: string, publicKeys: Record
 
 
 /** @internal */
-function parseUserRecord(user)/*: UserRecord*/ {
+function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord {
+  if (!decodedJWTUserRecord.uid) {
+    throw new HttpsError('internal', 'INTERNAL ASSERT FAILED: Invalid user response');
+  }
+  const modifiedJWT = snakeCase2CamelCase(
+    decodedJWTUserRecord,
+    // photo_url maps to photoURL.
+    {photo_url: 'photoURL'},
+    {
+      // customClaims content should not be modified as these are set by
+      // external developer.
+      custom_claims: 'customClaims',
+      // Exclude provider_data which will be processed in UserInfo.
+      // provider_data: 'providerData',
+      // Exclude multi_factor which will be processed in MultiFactorInfo.
+      multi_factor: 'multiFactor',
+      // Exclude metadata which will be processed in UserMetadata.
+      metadata: 'metadata',
+    }
+  );
+
+  if (modifiedJWT.metadata.creationTime) {
+    modifiedJWT.metadata.creationTime = (modifiedJWT.metadata.creationTime as number) * 1000;
+  }
+  if (modifiedJWT.metadata.lastSignInTime) {
+    modifiedJWT.metadata.lastSignInTime = (modifiedJWT.metadata.lastSignInTime as number) * 1000;
+  }
+  if (modifiedJWT.tokensValidAfterTime) {
+    modifiedJWT.tokensValidAfterTime = modifiedJWT.tokensValidAfterTime * 1000;
+    try {
+      const date = new Date(parseInt(modifiedJWT.tokensValidAfterTime, 10));
+      if (!isNaN(date.getTime())) {
+        modifiedJWT.tokensValidAfterTime = date.toUTCString();
+      }
+    } catch {
+      modifiedJWT.tokensValidAfterTime = null;
+    }
+  }
+  if (modifiedJWT.multiFactor) {
+    const modifiedMultiFactor = snakeCase2CamelCase(
+      modifiedJWT.multiFactor,
+      undefined,
+      {enrolled_factors: 'enrolledFactors'}/*) as {enrolledFactors?: DecodedJwtMfaInfo[]}*/
+    );
+    const parsedEnrolledFactors = [];
+    for (const factor of (modifiedMultiFactor.enrolledFactors || [])) {
+      const multiFactorInfo = 
+    }
+
+
+
+    if (modifiedMultiFactor.enrolledFactors.length > 0) {
+      modifiedJWT.multiFactor = modifiedMultiFactor;
+    } else {
+      delete (modifiedJWT as any).multiFactor;
+      modifiedJWT.multiFactor = null;
+    }
+  }
+
+
+  const userRecord = userRecordConstructor(modifiedJWT);
+  return userRecord;
+
+
+
+
+  const modifiedUserRecord: DecodedJwtUserRecordModified = {
+    uid: string;
+    email?: string;
+    emailVerified?: boolean;
+    phoneNumber?: string;
+    displayName?: string;
+    photoURL?: string;
+    disabled?: boolean;
+    metadata?: any;
+    passwordHash?: string;
+    passwordSalt?: string;
+    providerData?: any;
+    multiFactor?: any;
+    customClaims?: any;
+    tokensValidAfterTime?: number;
+    tenantId?: string;
+  };
+
+
+
+
+  const metadata = parseMetadata(decodedJWTUserRecord.metadata || {});
+  const providerData = parseProviderData(decodedJWTUserRecord.provider_data || []);
+  const tokensValidAfterTime = parseValidAfterTime(decodedJWTUserRecord.tokens_valid_after_time); // * 1000
+  const multiFactor = parseMultifactor(decodedJWTUserRecord.multi_factor);
+
+
+
+
+
+
   // stub
-  return {
-    disabled: false,
-    emailVerified: false,
-    metadata: {
-      creationTime: '',
-      lastSignInTime: '',
-    },
-    uid: '',
-    providerData: [],
+  const userRecordStub = {
+    uid: decodedJWTUserRecord.uid,
+    email: decodedJWTUserRecord.email,
+    emailVerified: !!decodedJWTUserRecord.email_verified,
+    displayName: decodedJWTUserRecord.display_name,
+    photoURL: decodedJWTUserRecord.photo_url,
+    phoneNumber: decodedJWTUserRecord.phone_number,
+    disabled: decodedJWTUserRecord.disabled || false,
+    metadata,
+    providerData,
+    passwordHash: decodedJWTUserRecord.password_hash,
+    passwordSalt: decodedJWTUserRecord.password_salt,
+    customClaims: decodedJWTUserRecord.custom_claims,
+    tokensValidAfterTime,
+    tenantId: decodedJWTUserRecord.tenant_id,
+    multiFactor,
+    toJSON(): () => object
   };
 }
 
@@ -287,3 +451,148 @@ function wrapHandler(
   
 }
 
+
+
+
+
+
+
+/**
+ * Converts a snake case object to camel case.
+ *
+ * @param obj The snake case object.
+ * @param filter The optional filter to replace a specific key with another key.
+ * @param exclude The map of keys of the branches to exclude and their corresponding
+ *     mapped key.
+ * @return The camel case representation of this object.
+ */
+export function snakeCase2CamelCase(
+  snakeCase: any, filter?: {[key: string]: string} | null,
+  exclude?: {[key: string]: string} | null): any {
+let camelCase: any = {};
+filter = filter || {};
+exclude = exclude || {};
+if (Array.isArray(snakeCase)) {
+  camelCase = [];
+  snakeCase.forEach((value, index) => {
+    camelCase[index] = snakeCase2CamelCase(value, filter, exclude);
+  });
+} else if (typeof snakeCase === 'object' && snakeCase !== null) {
+  for (const key in snakeCase) {
+    if (snakeCase.hasOwnProperty(key)) {
+      if (typeof exclude[key] !== 'undefined') {
+        camelCase[exclude[key]] = snakeCase[key];
+        continue;
+      }
+      const modifiedKey = typeof filter[key] !== 'undefined' ? filter[key] : snakeCase2CamelCaseString(key);
+      if (snakeCase.hasOwnProperty(key)) {
+        camelCase[modifiedKey] = snakeCase2CamelCase(snakeCase[key], filter, exclude);
+      }
+    }
+  }
+} else {
+  camelCase = snakeCase;
+}
+return camelCase;
+}
+
+/**
+ * Returns the camel case representation of the snake case string.
+ *
+ * @param key The snake case string.
+ * @return The camel case equivalent.
+ */
+export function snakeCase2CamelCaseString(snakeCase: string): string {
+  const modifiedKey = [];
+  let i = 0;
+  while (i < snakeCase.length) {
+    if (snakeCase.charAt(i) === '_' &&
+        i + 1 < snakeCase.length &&
+        i !== 0 &&
+        snakeCase.charAt(i - 1) !== '_' &&
+        snakeCase.charAt(i + 1) !== '_') {
+      modifiedKey.push(snakeCase.charAt(i + 1).toUpperCase());
+      i++;
+    } else {
+      modifiedKey.push(snakeCase.charAt(i));
+    }
+    i++;
+  }
+  return modifiedKey.join('');
+}
+
+
+
+
+
+/** MOVED FROM src/providers/auth */
+export class UserRecordMetadata implements firebase.auth.UserMetadata {
+  constructor(public creationTime: string, public lastSignInTime: string) {}
+
+  /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
+  toJSON() {
+    return {
+      creationTime: this.creationTime,
+      lastSignInTime: this.lastSignInTime,
+    };
+  }
+}
+
+export function userRecordConstructor(
+  wireData: Object
+): firebase.auth.UserRecord {
+  // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
+  const falseyValues: any = {
+    email: null,
+    emailVerified: false,
+    displayName: null,
+    photoURL: null,
+    phoneNumber: null,
+    disabled: false,
+    providerData: [],
+    customClaims: {},
+    passwordSalt: null,
+    passwordHash: null,
+    tokensValidAfterTime: null,
+    tenantId: null,
+  };
+  const record = _.assign({}, falseyValues, wireData);
+
+  const meta = _.get(record, 'metadata');
+  if (meta) {
+    _.set(
+      record,
+      'metadata',
+      new UserRecordMetadata(
+        meta.createdAt || meta.creationTime,
+        meta.lastSignedInAt || meta.lastSignInTime
+      )
+    );
+  } else {
+    _.set(record, 'metadata', new UserRecordMetadata(null, null));
+  }
+  _.forEach(record.providerData, (entry) => {
+    _.set(entry, 'toJSON', () => {
+      return entry;
+    });
+  });
+  _.set(record, 'toJSON', () => {
+    const json: any = _.pick(record, [
+      'uid',
+      'email',
+      'emailVerified',
+      'displayName',
+      'photoURL',
+      'phoneNumber',
+      'disabled',
+      'passwordHash',
+      'passwordSalt',
+      'tokensValidAfterTime',
+    ]);
+    json.metadata = _.get(record, 'metadata').toJSON();
+    json.customClaims = _.cloneDeep(record.customClaims);
+    json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
+    return json;
+  });
+  return record as firebase.auth.UserRecord;
+}
