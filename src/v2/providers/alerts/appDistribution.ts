@@ -12,19 +12,18 @@ export interface NewTesterDevicePayload {
   testerDeviceIdentifier: string;
 }
 
-/** Events */
 /** @internal */
 export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
 
 /** Options */
 export interface AppDistributionOptions extends options.EventHandlerOptions {
-  appId?: string; // optional
+  appId?: string;
 }
 
 /** Cloud Event Type */
 interface WithAlertTypeAndApp {
-  alertType: string; // required in the payload
-  appId: string; // required in the payload
+  alertType: string;
+  appId: string;
 }
 export type AppDistributionEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
