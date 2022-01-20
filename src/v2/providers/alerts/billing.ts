@@ -4,19 +4,16 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /** Data */
-// billing.planUpdate
 export interface PlanUpdatePayload {
   ['@type']: 'com.google.firebase.firebasealerts.PlanUpdatePayload';
   billingPlan: string;
   principalEmail: string;
 }
-// billing.automatedPlanUpdate
 export interface PlanAutomatedUpdatePayload {
   ['@type']: 'com.google.firebase.firebasealerts.PlanAutomatedUpdatePayload';
   billingPlan: string;
 }
 
-/** Events */
 /** @internal */
 export const planUpdateAlert = 'billing.planUpdate';
 /** @internal */
