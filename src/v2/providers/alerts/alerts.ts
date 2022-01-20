@@ -64,7 +64,7 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
   return func;
 }
 
-/** 
+/**
  * @internal
  * Helper function for defining alerting endpoints
  */
