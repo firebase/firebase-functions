@@ -41,7 +41,7 @@ describe('makeCloudFunction', () => {
     legacyEventType: 'providers/provider/eventTypes/event',
   };
 
-  it('should put a __trigger on the returned CloudFunction', () => {
+  it('should put a __trigger/__endpoint on the returned CloudFunction', () => {
     const cf = makeCloudFunction({
       provider: 'mock.provider',
       eventType: 'mock.event',
@@ -49,6 +49,7 @@ describe('makeCloudFunction', () => {
       triggerResource: () => 'resource',
       handler: () => null,
     });
+
     expect(cf.__trigger).to.deep.equal({
       eventTrigger: {
         eventType: 'mock.provider.mock.event',
@@ -56,16 +57,119 @@ describe('makeCloudFunction', () => {
         service: 'service',
       },
     });
+
+    expect(cf.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      eventTrigger: {
+        eventType: 'mock.provider.mock.event',
+        eventFilters: {
+          resource: 'resource',
+        },
+        retry: false,
+      },
+      labels: {},
+    });
   });
 
-  it('should have legacy event type in __trigger if provided', () => {
+  it('should have legacy event type in __trigger/__endpoint if provided', () => {
     const cf = makeCloudFunction(cloudFunctionArgs);
+
     expect(cf.__trigger).to.deep.equal({
       eventTrigger: {
         eventType: 'providers/provider/eventTypes/event',
         resource: 'resource',
         service: 'service',
       },
+    });
+
+    expect(cf.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      eventTrigger: {
+        eventType: 'providers/provider/eventTypes/event',
+        eventFilters: {
+          resource: 'resource',
+        },
+        retry: false,
+      },
+      labels: {},
+    });
+  });
+
+  it('should include converted options in __endpoint', () => {
+    const cf = makeCloudFunction({
+      provider: 'mock.provider',
+      eventType: 'mock.event',
+      service: 'service',
+      triggerResource: () => 'resource',
+      handler: () => null,
+      options: {
+        timeoutSeconds: 10,
+        regions: ['us-central1'],
+        memory: '128MB',
+        serviceAccount: 'foo@google.com',
+      },
+    });
+
+    expect(cf.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      timeoutSeconds: 10,
+      region: ['us-central1'],
+      availableMemoryMb: 128,
+      serviceAccountEmail: 'foo@google.com',
+      eventTrigger: {
+        eventType: 'mock.provider.mock.event',
+        eventFilters: {
+          resource: 'resource',
+        },
+        retry: false,
+      },
+      labels: {},
+    });
+  });
+
+  it('should set retry given failure policy in __endpoint', () => {
+    const cf = makeCloudFunction({
+      provider: 'mock.provider',
+      eventType: 'mock.event',
+      service: 'service',
+      triggerResource: () => 'resource',
+      handler: () => null,
+      options: { failurePolicy: { retry: {} } },
+    });
+
+    expect(cf.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      eventTrigger: {
+        eventType: 'mock.provider.mock.event',
+        eventFilters: {
+          resource: 'resource',
+        },
+        retry: true,
+      },
+      labels: {},
+    });
+  });
+
+  it('should setup a scheduleTrigger in __endpoint given a schedule', () => {
+    const schedule = {
+      schedule: 'every 5 minutes',
+      retryConfig: { retryCount: 3 },
+      timeZone: 'America/New_York',
+    };
+    const cf = makeCloudFunction({
+      provider: 'mock.provider',
+      eventType: 'mock.event',
+      service: 'service',
+      triggerResource: () => 'resource',
+      handler: () => null,
+      options: {
+        schedule,
+      },
+    });
+    expect(cf.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      scheduleTrigger: schedule,
+      labels: {},
     });
   });
 
