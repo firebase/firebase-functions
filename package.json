@@ -55,7 +55,8 @@
     "./v2/params": "./lib/v2/params/index.js",
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
     "./v2/storage": "./lib/v2/providers/storage.js",
-    "./v2/alerts": "./lib/v2/providers/alerts/index.js"
+    "./v2/alerts": "./lib/v2/providers/alerts/index.js",
+    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
   },
   "typesVersions": {
     "*": {
@@ -118,6 +119,9 @@
       ],
       "v2/alerts": [
         "lib/v2/providers/alerts"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
       ]
     }
   },

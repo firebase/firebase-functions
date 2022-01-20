@@ -4,42 +4,44 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /** Data */
+/** Generic issue interface */
 interface Issue {
   id: string;
   title: string;
   subtitle: string;
   appVersion: string;
 }
-// crashlytics.newFatalIssue
+/** Payload for a new fatal issue */
 export interface NewFatalIssuePayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewFatalIssuePayload';
   issue: Issue;
 }
-// crashlytics.newNonfatalIssue
+/** Payload for a new non-fatal issue */
 export interface NewNonfatalIssuePayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewNonfatalIssuePayload';
   issue: Issue;
 }
-// crashlytics.regression
+/** Payload for a regression alert */
 export interface RegressionAlertPayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsRegressionAlertPayload';
   type: string;
   issue: Issue;
   resolveTime: string;
 }
-// crashlytics.stabilityDigest
+/** Generic trending issue interface */
 interface TrendingIssueDetails {
   type: string;
   issue: Issue;
   eventCount: number;
   userCount: number;
 }
+/** Payload for a stability digest */
 export interface StabilityDigestPayload {
   ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsStabilityDigestPayload';
   digestDate: string;
   trendingIssues: TrendingIssueDetails[];
 }
-// crashlytics.velocity
+/** Payload for a velocity alert */
 export interface VelocityAlertPayload {
   ['@type']: 'com.google.firebase.firebasealerts.VelocityAlertPayload';
   issue: Issue;
@@ -48,13 +50,12 @@ export interface VelocityAlertPayload {
   crashPercentage: number;
   firstVersion: string;
 }
-// crashlytics.newAnrIssue
+/** Payload for a new ANR issue */
 export interface NewAnrIssuePayload {
   ['@type']: 'com.google.firebase.firebasealerts.NewAnrIssuePayload';
   issue: Issue;
 }
 
-/** Events */
 /** @internal */
 export const newFatalIssueAlert = 'crashlytics.newFatalIssue';
 /** @internal */
@@ -74,10 +75,9 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
 }
 
 /** Cloud Event Type */
-// appId will always be defined in Crashlytics events
 interface WithAlertTypeAndApp {
-  alertType: string; // required in the payload
-  appId: string; // required in the payload
+  alertType: string;
+  appId: string;
 }
 export type CrashlyticsEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
@@ -85,6 +85,7 @@ export type CrashlyticsEvent<T> = CloudEvent<
 >;
 
 /** Handlers */
+/** Handle a new fatal issue published */
 export function onNewFatalIssuePublished(
   handler: (event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<NewFatalIssuePayload>>;
@@ -112,6 +113,7 @@ export function onNewFatalIssuePublished(
   );
 }
 
+/** Handle a new non-fatal issue published */
 export function onNewNonfatalIssuePublished(
   handler: (
     event: CrashlyticsEvent<NewNonfatalIssuePayload>
@@ -147,6 +149,7 @@ export function onNewNonfatalIssuePublished(
   );
 }
 
+/** Handle a regression alert published */
 export function onRegressionAlertPublished(
   handler: (
     event: CrashlyticsEvent<RegressionAlertPayload>
@@ -180,6 +183,7 @@ export function onRegressionAlertPublished(
   );
 }
 
+/** Handle a stability digest published */
 export function onStabilityDigestPublished(
   handler: (
     event: CrashlyticsEvent<StabilityDigestPayload>
@@ -213,6 +217,7 @@ export function onStabilityDigestPublished(
   );
 }
 
+/** Handle a velocity alert published */
 export function onVelocityAlertPublished(
   handler: (event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<VelocityAlertPayload>>;
@@ -240,6 +245,7 @@ export function onVelocityAlertPublished(
   );
 }
 
+/** Handle a new ANR issue published */
 export function onNewAnrIssuePublished(
   handler: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<NewAnrIssuePayload>>;
