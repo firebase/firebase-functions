@@ -4,11 +4,13 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /** Data */
+/** Payload for plan update */
 export interface PlanUpdatePayload {
   ['@type']: 'com.google.firebase.firebasealerts.PlanUpdatePayload';
   billingPlan: string;
   principalEmail: string;
 }
+/** Payload for plan automated update */
 export interface PlanAutomatedUpdatePayload {
   ['@type']: 'com.google.firebase.firebasealerts.PlanAutomatedUpdatePayload';
   billingPlan: string;
@@ -26,6 +28,7 @@ interface WithAlertType {
 export type BillingEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertType>;
 
 /** Handlers */
+/** Handle a plan update published */
 export function onPlanUpdatePublished(
   handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>>;
@@ -46,6 +49,7 @@ export function onPlanUpdatePublished(
   );
 }
 
+/** Handle an automated plan update published */
 export function onAutomatedPlanUpdatePublished(
   handler: (
     event: BillingEvent<PlanAutomatedUpdatePayload>
