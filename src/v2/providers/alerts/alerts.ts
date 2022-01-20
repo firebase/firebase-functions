@@ -9,6 +9,10 @@ export interface FirebaseAlertData<T = any> {
   payload: T;
 }
 
+/** @internal */
+export const eventType = 'firebase.firebasealerts.alerts.v1.published';
+
+/** The underlying alert type of the Firebase Alerts provider */
 export type AlertType =
   | 'crashlytics.newFatalIssue'
   | 'crashlytics.newNonfatalIssue'
@@ -27,6 +31,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   appId?: string;
 }
 
+/** Cloud Event Type */
 interface WithAlertTypeAndApp {
   alertType: string;
   appId?: string;
@@ -36,10 +41,8 @@ export type AlertEvent<T> = CloudEvent<
   WithAlertTypeAndApp
 >;
 
-/** @internal */
-export const eventType = 'firebase.firebasealerts.alerts.v1.published';
-
 /** Handlers */
+/** Handle an alert published */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
@@ -66,7 +69,7 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
 
 /**
  * @internal
- * Helper function for defining alerting endpoints
+ * Helper function for defining an endpoint for alert handling functions
  */
 export function defineEndpoint(
   func: CloudFunction<FirebaseAlertData<any>>,
