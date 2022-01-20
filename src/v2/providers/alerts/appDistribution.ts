@@ -4,6 +4,7 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /** Data */
+/** Payload for a new tester device */
 export interface NewTesterDevicePayload {
   ['@type']: 'com.google.firebase.firebasealerts.NewTesterDevicePayload';
   testerName: string;
@@ -31,6 +32,7 @@ export type AppDistributionEvent<T> = CloudEvent<
 >;
 
 /** Handlers */
+/** Handle a new tester IOS device published */
 export function onNewTesterIosDevicePublished(
   handler: (
     event: AppDistributionEvent<NewTesterDevicePayload>
