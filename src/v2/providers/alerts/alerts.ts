@@ -2,7 +2,7 @@ import { ManifestEndpoint } from '../../../common/manifest';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
-// data of the CloudEvent
+/** Data */
 export interface FirebaseAlertData<T = any> {
   createTime: string;
   endTime: string;
@@ -19,17 +19,17 @@ export type AlertType =
   | 'billing.planUpdate'
   | 'billing.automatedPlanUpdate'
   | 'appDistribution.newTesterIosDevice'
-  | string; // for forward and backward compatibility
+  | string;
 
 /** Options */
 export interface FirebaseAlertOptions extends options.EventHandlerOptions {
-  alertType: AlertType; // required
-  appId?: string; // optional
+  alertType: AlertType;
+  appId?: string;
 }
 
 interface WithAlertTypeAndApp {
   alertType: string;
-  appId?: string; // optional in the payload
+  appId?: string;
 }
 export type AlertEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
@@ -64,7 +64,10 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
   return func;
 }
 
-/** @internal */
+/** 
+ * @internal
+ * Helper function for defining alerting endpoints
+ */
 export function defineEndpoint(
   func: CloudFunction<FirebaseAlertData<any>>,
   opts: options.EventHandlerOptions,
