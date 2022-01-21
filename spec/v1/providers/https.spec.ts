@@ -22,7 +22,7 @@
 
 import { expect } from 'chai';
 import * as express from 'express';
-import * as _ from 'lodash';
+
 import * as functions from '../../../src/index';
 import * as https from '../../../src/providers/https';
 import {
@@ -94,11 +94,15 @@ function runHandler(
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
-    it('should return a Trigger with appropriate values', () => {
+    it('should return a trigger with appropriate values', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
       expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv1',
+        httpsTrigger: {},
+      });
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -115,6 +119,11 @@ describe('CloudHttpsBuilder', () => {
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
       expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
+      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(['private']);
     });
   });
 });
@@ -126,6 +135,7 @@ describe('handler namespace', () => {
         res.send(200);
       });
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 
@@ -133,6 +143,7 @@ describe('handler namespace', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 
@@ -140,18 +151,26 @@ describe('handler namespace', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.taskQueue.onEnqueue(() => null);
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 });
 
 describe('#onCall', () => {
-  it('should return a Trigger with appropriate values', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
     const result = https.onCall((data) => {
       return 'response';
     });
+
     expect(result.__trigger).to.deep.equal({
       httpsTrigger: {},
       labels: { 'deployment-callable': 'true' },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      callableTrigger: {},
+      labels: {},
     });
   });
 
@@ -167,6 +186,10 @@ describe('#onCall', () => {
     expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+    expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+    expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
   it('has a .run method', () => {
@@ -209,7 +232,7 @@ describe('#onCall', () => {
 });
 
 describe('#onEnqueue', () => {
-  it('should return a Trigger with appropriate values', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
     const result = https
       .taskQueue({
         rateLimits: {
@@ -226,7 +249,26 @@ describe('#onEnqueue', () => {
         invoker: 'private',
       })
       .onDispatch(() => {});
+
     expect(result.__trigger).to.deep.equal({
+      taskQueueTrigger: {
+        rateLimits: {
+          maxBurstSize: 20,
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ['private'],
+      },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
       taskQueueTrigger: {
         rateLimits: {
           maxBurstSize: 20,
@@ -258,6 +300,18 @@ describe('#onEnqueue', () => {
       regions: ['us-east1'],
       availableMemoryMb: 256,
       timeout: '90s',
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
+
+    expect(fn.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      region: ['us-east1'],
+      availableMemoryMb: 256,
+      timeoutSeconds: 90,
       taskQueueTrigger: {
         retryConfig: {
           maxAttempts: 5,

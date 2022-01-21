@@ -22,12 +22,18 @@
 
 import * as express from 'express';
 
-import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import {
+  HttpsFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+  Runnable,
+} from '../cloud-functions';
 import {
   convertIfPresent,
   convertInvoker,
   copyIfPresent,
 } from '../common/encoding';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../common/manifest';
 import {
   CallableContext,
   FunctionsErrorCode,
@@ -96,6 +102,8 @@ export interface TaskQueueOptions {
 export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
   __trigger: unknown;
+  __endpoint: ManifestEndpoint;
+  __requiredAPIs?: ManifestRequiredAPI[];
   run(data: any, context: TaskContext): void | Promise<void>;
 }
 
@@ -130,6 +138,28 @@ export class TaskQueueBuilder {
       'invoker',
       convertInvoker
     );
+
+    func.__endpoint = {
+      platform: 'gcfv1',
+      ...optionsToEndpoint(this.depOpts),
+      taskQueueTrigger: {},
+    };
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'retryConfig');
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'rateLimits');
+    convertIfPresent(
+      func.__endpoint.taskQueueTrigger,
+      this.tqOpts,
+      'invoker',
+      'invoker',
+      convertInvoker
+    );
+
+    func.__requiredAPIs = [
+      {
+        api: 'cloudtasks.googleapis.com',
+        reason: 'Needed for v1 task queue functions',
+      },
+    ];
 
     func.run = handler;
 
@@ -167,6 +197,19 @@ export function _onRequestWithOptions(
     convertInvoker
   );
   // TODO parse the options
+
+  cloudFunction.__endpoint = {
+    platform: 'gcfv1',
+    ...optionsToEndpoint(options),
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    cloudFunction.__endpoint.httpsTrigger,
+    options,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
   return cloudFunction;
 }
 
@@ -194,6 +237,13 @@ export function _onCallWithOptions(
     httpsTrigger: {},
   };
   func.__trigger.labels['deployment-callable'] = 'true';
+
+  func.__endpoint = {
+    platform: 'gcfv1',
+    labels: {},
+    ...optionsToEndpoint(options),
+    callableTrigger: {},
+  };
 
   func.run = handler;
 
