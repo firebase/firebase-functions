@@ -28,8 +28,8 @@ import fetch from "node-fetch";
 import { HttpsError, encode } from "./https";
 import { EventContext } from "../../cloud-functions";
 import { logger } from '../..';
-import { user } from '../../providers/auth';
-import { type } from 'os';
+// import { user } from '../../providers/auth';
+// import { type } from 'os';
 
 export { HttpsError };
 
@@ -265,121 +265,157 @@ function verifyAndDecodeJWT(token: string, eventType: string, publicKeys: Record
 
 /** @internal */
 function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord {
+  const parseMetadata = function(metadata: DecodedJwtMetadata) {
+    const creationTime = metadata?.creation_time ? ((decodedJWTUserRecord.metadata.creation_time as number) * 1000).toString() : null;
+    const lastSignInTime = metadata?.last_sign_in_time ? ((decodedJWTUserRecord.metadata.last_sign_in_time as number) * 1000).toString() : null;
+    return {
+      creationTime: creationTime,
+      lastSignInTime: lastSignInTime,
+      toJSON(): () => object {
+        const json: any = {
+          creationTime: creationTime,
+          lastSignInTime: lastSignInTime,
+        };
+        return json;
+      }
+    };
+  }
+
+  const parseProviderData = function (providerData: DecodedJwtProviderUserInfo[]): UserInfo[] {
+    const providers: UserInfo[] = [];
+    for (const provider of providerData) {
+      const info: UserInfo = {
+        uid: provider.uid,
+        displayName: provider.display_name,
+        email: provider.email,
+        photoURL: provider.photo_url,
+        providerId: provider.provider_id,
+        phoneNumber: provider.phone_number,
+        toJSON(): () => object {
+          const json: any = {
+            uid: provider.uid,
+            displayName: provider.display_name,
+            email: provider.email,
+            photoURL: provider.photo_url,
+            providerId: provider.provider_id,
+            phoneNumber: provider.phone_number,
+          };
+          return json;
+        }
+      };
+      providers.push(info);
+    }
+    return providers;
+  }
+
+  const parseDate = function (tokensValidAfterTime: number) {
+    if (!tokensValidAfterTime) {
+      return null;
+    }
+    tokensValidAfterTime = tokensValidAfterTime * 1000;
+    try {
+      const date = new Date(parseInt(tokensValidAfterTime.toString(), 10));
+      if (!isNaN(date.getTime())) {
+       return date.toUTCString();
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  };
+
+  const parseMultifactor = function (multiFactor: DecodedJwtEnrolledFactors) {
+    if (!multiFactor) {
+      return null;
+    }
+    const parsedEnrolledFactors = [];
+    for (const factor of (multiFactor.enrolled_factors || [])) {
+      if (factor.factor_id && factor.uid) {
+        const enrollmentTime = factor.enrollment_time ? new Date(factor.enrollment_time).toUTCString() : null;
+        const multiFactorInfo = {
+          uid: factor.uid,
+          factorId: factor.factor_id,
+          displayName: factor.display_name,
+          enrollmentTime: enrollmentTime,
+          phoneNumber: factor.phone_number,
+          toJSON: function (): object {
+            const json: any = {
+              uid: factor.uid,
+              factorId: factor.factor_id,
+              displayName: factor.display_name,
+              enrollmentTime: enrollmentTime,
+              phoneNumber: factor.phone_number,
+            };
+            return json;
+          }
+        };
+        parsedEnrolledFactors.push(multiFactorInfo);
+      } else {
+        throw new HttpsError('internal', 'INTERNAL ASSERT FAILED: Invalid multi-factor info response');
+      }
+    }
+    
+
+    if (parsedEnrolledFactors.length > 0) {
+      const multiFactor = {
+        enrolledFactors: parsedEnrolledFactors,
+        toJSON: function (): object {
+          const json: any = {
+            enrolledFactors: parsedEnrolledFactors,
+          }
+          return json;
+        }
+      }
+      return multiFactor;
+    }
+    return null;
+  }
+
   if (!decodedJWTUserRecord.uid) {
     throw new HttpsError('internal', 'INTERNAL ASSERT FAILED: Invalid user response');
   }
-  const modifiedJWT = snakeCase2CamelCase(
-    decodedJWTUserRecord,
-    // photo_url maps to photoURL.
-    {photo_url: 'photoURL'},
-    {
-      // customClaims content should not be modified as these are set by
-      // external developer.
-      custom_claims: 'customClaims',
-      // Exclude provider_data which will be processed in UserInfo.
-      // provider_data: 'providerData',
-      // Exclude multi_factor which will be processed in MultiFactorInfo.
-      multi_factor: 'multiFactor',
-      // Exclude metadata which will be processed in UserMetadata.
-      metadata: 'metadata',
-    }
-  );
 
-  if (modifiedJWT.metadata.creationTime) {
-    modifiedJWT.metadata.creationTime = (modifiedJWT.metadata.creationTime as number) * 1000;
-  }
-  if (modifiedJWT.metadata.lastSignInTime) {
-    modifiedJWT.metadata.lastSignInTime = (modifiedJWT.metadata.lastSignInTime as number) * 1000;
-  }
-  if (modifiedJWT.tokensValidAfterTime) {
-    modifiedJWT.tokensValidAfterTime = modifiedJWT.tokensValidAfterTime * 1000;
-    try {
-      const date = new Date(parseInt(modifiedJWT.tokensValidAfterTime, 10));
-      if (!isNaN(date.getTime())) {
-        modifiedJWT.tokensValidAfterTime = date.toUTCString();
-      }
-    } catch {
-      modifiedJWT.tokensValidAfterTime = null;
-    }
-  }
-  if (modifiedJWT.multiFactor) {
-    const modifiedMultiFactor = snakeCase2CamelCase(
-      modifiedJWT.multiFactor,
-      undefined,
-      {enrolled_factors: 'enrolledFactors'}/*) as {enrolledFactors?: DecodedJwtMfaInfo[]}*/
-    );
-    const parsedEnrolledFactors = [];
-    for (const factor of (modifiedMultiFactor.enrolledFactors || [])) {
-      const multiFactorInfo = 
-    }
+  const disabled = decodedJWTUserRecord.disabled || false;
 
-
-
-    if (modifiedMultiFactor.enrolledFactors.length > 0) {
-      modifiedJWT.multiFactor = modifiedMultiFactor;
-    } else {
-      delete (modifiedJWT as any).multiFactor;
-      modifiedJWT.multiFactor = null;
-    }
-  }
-
-
-  const userRecord = userRecordConstructor(modifiedJWT);
-  return userRecord;
-
-
-
-
-  const modifiedUserRecord: DecodedJwtUserRecordModified = {
-    uid: string;
-    email?: string;
-    emailVerified?: boolean;
-    phoneNumber?: string;
-    displayName?: string;
-    photoURL?: string;
-    disabled?: boolean;
-    metadata?: any;
-    passwordHash?: string;
-    passwordSalt?: string;
-    providerData?: any;
-    multiFactor?: any;
-    customClaims?: any;
-    tokensValidAfterTime?: number;
-    tenantId?: string;
-  };
-
-
-
-
-  const metadata = parseMetadata(decodedJWTUserRecord.metadata || {});
-  const providerData = parseProviderData(decodedJWTUserRecord.provider_data || []);
-  const tokensValidAfterTime = parseValidAfterTime(decodedJWTUserRecord.tokens_valid_after_time); // * 1000
-  const multiFactor = parseMultifactor(decodedJWTUserRecord.multi_factor);
-
-
-
-
-
-
-  // stub
-  const userRecordStub = {
+  const userRecord: UserRecord = {
     uid: decodedJWTUserRecord.uid,
     email: decodedJWTUserRecord.email,
-    emailVerified: !!decodedJWTUserRecord.email_verified,
+    emailVerified: decodedJWTUserRecord.email_verified,
     displayName: decodedJWTUserRecord.display_name,
     photoURL: decodedJWTUserRecord.photo_url,
     phoneNumber: decodedJWTUserRecord.phone_number,
-    disabled: decodedJWTUserRecord.disabled || false,
-    metadata,
-    providerData,
+    disabled: disabled,
+    metadata: parseMetadata(decodedJWTUserRecord.metadata),
+    providerData: parseProviderData(decodedJWTUserRecord.provider_data),
     passwordHash: decodedJWTUserRecord.password_hash,
     passwordSalt: decodedJWTUserRecord.password_salt,
     customClaims: decodedJWTUserRecord.custom_claims,
-    tokensValidAfterTime,
     tenantId: decodedJWTUserRecord.tenant_id,
-    multiFactor,
-    toJSON(): () => object
+    tokensValidAfterTime: parseDate(decodedJWTUserRecord.tokens_valid_after_time),
+    multiFactor: parseMultifactor(decodedJWTUserRecord.multi_factor),
+    toJSON: function (): object {
+      const json: any = {
+        uid: decodedJWTUserRecord.uid,
+        email: decodedJWTUserRecord.email,
+        emailVerified: decodedJWTUserRecord.email_verified,
+        displayName: decodedJWTUserRecord.display_name,
+        photoURL: decodedJWTUserRecord.photo_url,
+        phoneNumber: decodedJWTUserRecord.phone_number,
+        disabled: disabled,
+        metadata: parseMetadata(decodedJWTUserRecord.metadata),
+        providerData: parseProviderData(decodedJWTUserRecord.provider_data),
+        passwordHash: decodedJWTUserRecord.password_hash,
+        passwordSalt: decodedJWTUserRecord.password_salt,
+        customClaims: decodedJWTUserRecord.custom_claims,
+        tenantId: decodedJWTUserRecord.tenant_id,
+        tokensValidAfterTime: parseDate(decodedJWTUserRecord.tokens_valid_after_time),
+        multiFactor: parseMultifactor(decodedJWTUserRecord.multi_factor),
+      };
+      return json;
+    }
   };
+
+  return userRecordConstructor(userRecord);
 }
 
 /** @internal */
