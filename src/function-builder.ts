@@ -236,8 +236,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     if (invalidSecrets.length > 0) {
       throw new Error(
         `Invalid secrets: ${invalidSecrets.join(',')}. ` +
-          'Secret must be configured using the short form (e.g. API_KEY@1) ' +
-          'or with full resource name (e.g. projects/my-project/secrets/API_KEY).'
+          'Secret must be configured using the resource id (e.g. API_KEY)'
       );
     }
   }
