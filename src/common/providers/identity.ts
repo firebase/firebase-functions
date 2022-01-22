@@ -23,27 +23,26 @@
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import * as jwt from "jsonwebtoken";
-import fetch from "node-fetch";
-import { HttpsError, encode } from "./https";
-import { EventContext } from "../../cloud-functions";
+import * as jwt from 'jsonwebtoken';
+import fetch from 'node-fetch';
+import { HttpsError, encode } from './https';
+import { EventContext } from '../../cloud-functions';
 import { logger } from '../..';
-// import { user } from '../../providers/auth';
-// import { type } from 'os';
 
 export { HttpsError };
 
 /* API Constants */
-const JWT_CLIENT_CERT_URL = "https://www.googleapis.com";
-const JWT_CLIENT_CERT_PATH = "robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
-const JWT_ALG = "RS256";
+const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
+const JWT_CLIENT_CERT_PATH =
+  'robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
+const JWT_ALG = 'RS256';
 const JWT_ISSUER = 'https://securetoken.google.com/';
 
 /** @internal */
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
   beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
-}
+};
 
 export type AuthError = HttpsError;
 
@@ -63,8 +62,8 @@ export interface AuthEventContext extends EventContext {
     username?: string;
     isNewUser: boolean;
   };
-  credential?:{
-    claims?: {[key: string]: any};
+  credential?: {
+    claims?: { [key: string]: any };
     idToken?: string;
     accessToken?: string;
     refreshToken?: string;
@@ -86,9 +85,6 @@ export interface BeforeCreateResponse {
 export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
-
-
-
 
 /** @internal */
 interface DecodedJwtMetadata {
@@ -176,20 +172,28 @@ async function fetchPublicKeys(): Promise<Record<string, string>> {
     const data = await response.json();
     return data as Record<string, string>;
   } catch (err) {
-    logger.error(`Failed to obtain public keys for JWT verification: ${err.message}`);
+    logger.error(
+      `Failed to obtain public keys for JWT verification: ${err.message}`
+    );
     throw new HttpsError('internal', 'Failed to obtain public keys');
   }
 }
 
 /** @internal */
 function validRequest(req): void {
-  if (req.method !== "POST") {
-    throw new HttpsError('invalid-argument', `Request has invalid method "${req.method}".`);
+  if (req.method !== 'POST') {
+    throw new HttpsError(
+      'invalid-argument',
+      `Request has invalid method "${req.method}".`
+    );
   }
 
   const contentType: string = (req.header('Content-Type') || '').toLowerCase();
-  if (contentType.includes("application/json")) {
-    throw new HttpsError('invalid-argument', `Request has invalid header Content-Type.`);
+  if (contentType.includes('application/json')) {
+    throw new HttpsError(
+      'invalid-argument',
+      `Request has invalid header Content-Type.`
+    );
   }
 
   if (!req.body || !req.body.data || !req.body.data.jwt) {
@@ -200,30 +204,49 @@ function validRequest(req): void {
 /** @internal */
 function getPublicKey(header: Record<string, any>, publicKeys): string {
   if (header.alg !== JWT_ALG) {
-    throw new HttpsError('invalid-argument', `Provided JWT has incorrect algorithm. Expected ${JWT_ALG} but got ${header.alg}.`);
+    throw new HttpsError(
+      'invalid-argument',
+      `Provided JWT has incorrect algorithm. Expected ${JWT_ALG} but got ${header.alg}.`
+    );
   }
   if (typeof header.kid === 'undefined') {
     throw new HttpsError('invalid-argument', 'JWT has no "kid" claim.');
   }
   if (!publicKeys.hasOwnProperty(header.kid)) {
-    throw new HttpsError('invalid-argument', 'Provided JWT has "kid" claim which does not correspond to a known public key. Most likely the JWT is expired.');
+    throw new HttpsError(
+      'invalid-argument',
+      'Provided JWT has "kid" claim which does not correspond to a known public key. Most likely the JWT is expired.'
+    );
   }
 
   return publicKeys[header.kid];
 }
 
 /** @internal */
-function isAuthorizedCloudFunctionURL(cloudFunctionUrl: string, projectId: string): boolean {
+function isAuthorizedCloudFunctionURL(
+  cloudFunctionUrl: string,
+  projectId: string
+): boolean {
   // Region can be:
   // us-central1, us-east1, asia-northeast1, europe-west1, asia-east1.
   // Sample: https://europe-west1-fb-sa-upgraded.cloudfunctions.net/function-1
   const gcf_directions = [
-    'central', 'east', 'west', 'south', 'southeast', 'northeast',
+    'central',
+    'east',
+    'west',
+    'south',
+    'southeast',
+    'northeast',
     // Other possible directions that could be added.
-    'north', 'southwest', 'northwest',
+    'north',
+    'southwest',
+    'northwest',
   ];
   const re = new RegExp(
-      `^https://[^-]+-(${gcf_directions.join('|')})[0-9]+-${projectId}\.cloudfunctions\.net/`);
+    `^https://[^-]+-(${gcf_directions.join(
+      '|'
+    )})[0-9]+-${projectId}\.cloudfunctions\.net/`
+  );
   const res = re.exec(cloudFunctionUrl) || [];
   return res.length > 0;
 }
@@ -231,28 +254,45 @@ function isAuthorizedCloudFunctionURL(cloudFunctionUrl: string, projectId: strin
 /** @internal */
 function checkDecodedToken(decodedJWT: DecodedJwt, projectId: string): void {
   if (!isAuthorizedCloudFunctionURL(decodedJWT.aud, projectId)) {
-    throw new HttpsError('invalid-argument', 'Provided JWT has incorrect "aud" (audience) claim.');
+    throw new HttpsError(
+      'invalid-argument',
+      'Provided JWT has incorrect "aud" (audience) claim.'
+    );
   }
   if (decodedJWT.iss !== `${JWT_ISSUER}${projectId}`) {
-    throw new HttpsError('invalid-argument', 
+    throw new HttpsError(
+      'invalid-argument',
       `Provided JWT has incorrect "iss" (issuer) claim. Expected ` +
-      `"${JWT_ISSUER}${projectId}" but got "${decodedJWT.iss}".`
+        `"${JWT_ISSUER}${projectId}" but got "${decodedJWT.iss}".`
     );
   }
   if (typeof decodedJWT.sub !== 'string' || decodedJWT.sub === '') {
-    throw new HttpsError('invalid-argument', 'Provided JWT has no "sub" (subject) claim.')
+    throw new HttpsError(
+      'invalid-argument',
+      'Provided JWT has no "sub" (subject) claim.'
+    );
   }
   if (decodedJWT.sub.length > 128) {
-    throw new HttpsError('invalid-argument', 'Provided JWT has "sub" (subject) claim longer than 128 characters.');
+    throw new HttpsError(
+      'invalid-argument',
+      'Provided JWT has "sub" (subject) claim longer than 128 characters.'
+    );
   }
 }
 
 /** @internal */
-function verifyAndDecodeJWT(token: string, eventType: string, publicKeys: Record<string, string>) {
+function verifyAndDecodeJWT(
+  token: string,
+  eventType: string,
+  publicKeys: Record<string, string>
+) {
   // jwt decode & verify - https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
-  const header = (jwt.decode(token, { complete: true }) as Record<string, any>).header || {};
+  const header =
+    (jwt.decode(token, { complete: true }) as Record<string, any>).header || {};
   const publicKey = getPublicKey(header, publicKeys);
-  const decoded = jwt.verify(token, publicKey, { algorithms: [this.algorithm] }) as DecodedJwt;
+  const decoded = jwt.verify(token, publicKey, {
+    algorithms: [this.algorithm],
+  }) as DecodedJwt;
   decoded.uid = decoded.sub;
   checkDecodedToken(decoded, process.env.GCLOUD_PROJECT);
 
@@ -262,12 +302,21 @@ function verifyAndDecodeJWT(token: string, eventType: string, publicKeys: Record
   return decoded;
 }
 
-
 /** @internal */
-function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord {
+function parseUserRecord(
+  decodedJWTUserRecord: DecodedJwtUserRecord
+): UserRecord {
   const parseMetadata = function(metadata: DecodedJwtMetadata) {
-    const creationTime = metadata?.creation_time ? ((decodedJWTUserRecord.metadata.creation_time as number) * 1000).toString() : null;
-    const lastSignInTime = metadata?.last_sign_in_time ? ((decodedJWTUserRecord.metadata.last_sign_in_time as number) * 1000).toString() : null;
+    const creationTime = metadata?.creation_time
+      ? (
+          (decodedJWTUserRecord.metadata.creation_time as number) * 1000
+        ).toString()
+      : null;
+    const lastSignInTime = metadata?.last_sign_in_time
+      ? (
+          (decodedJWTUserRecord.metadata.last_sign_in_time as number) * 1000
+        ).toString()
+      : null;
     return {
       creationTime: creationTime,
       lastSignInTime: lastSignInTime,
@@ -277,11 +326,13 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
           lastSignInTime: lastSignInTime,
         };
         return json;
-      }
+      },
     };
-  }
+  };
 
-  const parseProviderData = function (providerData: DecodedJwtProviderUserInfo[]): UserInfo[] {
+  const parseProviderData = function(
+    providerData: DecodedJwtProviderUserInfo[]
+  ): UserInfo[] {
     const providers: UserInfo[] = [];
     for (const provider of providerData) {
       const info: UserInfo = {
@@ -301,14 +352,14 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
             phoneNumber: provider.phone_number,
           };
           return json;
-        }
+        },
       };
       providers.push(info);
     }
     return providers;
-  }
+  };
 
-  const parseDate = function (tokensValidAfterTime: number) {
+  const parseDate = function(tokensValidAfterTime: number) {
     if (!tokensValidAfterTime) {
       return null;
     }
@@ -316,7 +367,7 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
     try {
       const date = new Date(parseInt(tokensValidAfterTime.toString(), 10));
       if (!isNaN(date.getTime())) {
-       return date.toUTCString();
+        return date.toUTCString();
       }
     } catch {
       return null;
@@ -324,21 +375,23 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
     return null;
   };
 
-  const parseMultifactor = function (multiFactor: DecodedJwtEnrolledFactors) {
+  const parseMultifactor = function(multiFactor: DecodedJwtEnrolledFactors) {
     if (!multiFactor) {
       return null;
     }
     const parsedEnrolledFactors = [];
-    for (const factor of (multiFactor.enrolled_factors || [])) {
+    for (const factor of multiFactor.enrolled_factors || []) {
       if (factor.factor_id && factor.uid) {
-        const enrollmentTime = factor.enrollment_time ? new Date(factor.enrollment_time).toUTCString() : null;
+        const enrollmentTime = factor.enrollment_time
+          ? new Date(factor.enrollment_time).toUTCString()
+          : null;
         const multiFactorInfo = {
           uid: factor.uid,
           factorId: factor.factor_id,
           displayName: factor.display_name,
           enrollmentTime: enrollmentTime,
           phoneNumber: factor.phone_number,
-          toJSON: function (): object {
+          toJSON: function(): object {
             const json: any = {
               uid: factor.uid,
               factorId: factor.factor_id,
@@ -347,32 +400,37 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
               phoneNumber: factor.phone_number,
             };
             return json;
-          }
+          },
         };
         parsedEnrolledFactors.push(multiFactorInfo);
       } else {
-        throw new HttpsError('internal', 'INTERNAL ASSERT FAILED: Invalid multi-factor info response');
+        throw new HttpsError(
+          'internal',
+          'INTERNAL ASSERT FAILED: Invalid multi-factor info response'
+        );
       }
     }
-    
 
     if (parsedEnrolledFactors.length > 0) {
       const multiFactor = {
         enrolledFactors: parsedEnrolledFactors,
-        toJSON: function (): object {
+        toJSON: function(): object {
           const json: any = {
             enrolledFactors: parsedEnrolledFactors,
-          }
+          };
           return json;
-        }
-      }
+        },
+      };
       return multiFactor;
     }
     return null;
-  }
+  };
 
   if (!decodedJWTUserRecord.uid) {
-    throw new HttpsError('internal', 'INTERNAL ASSERT FAILED: Invalid user response');
+    throw new HttpsError(
+      'internal',
+      'INTERNAL ASSERT FAILED: Invalid user response'
+    );
   }
 
   const disabled = decodedJWTUserRecord.disabled || false;
@@ -391,9 +449,11 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
     passwordSalt: decodedJWTUserRecord.password_salt,
     customClaims: decodedJWTUserRecord.custom_claims,
     tenantId: decodedJWTUserRecord.tenant_id,
-    tokensValidAfterTime: parseDate(decodedJWTUserRecord.tokens_valid_after_time),
+    tokensValidAfterTime: parseDate(
+      decodedJWTUserRecord.tokens_valid_after_time
+    ),
     multiFactor: parseMultifactor(decodedJWTUserRecord.multi_factor),
-    toJSON: function (): object {
+    toJSON: function(): object {
       const json: any = {
         uid: decodedJWTUserRecord.uid,
         email: decodedJWTUserRecord.email,
@@ -408,11 +468,13 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
         passwordSalt: decodedJWTUserRecord.password_salt,
         customClaims: decodedJWTUserRecord.custom_claims,
         tenantId: decodedJWTUserRecord.tenant_id,
-        tokensValidAfterTime: parseDate(decodedJWTUserRecord.tokens_valid_after_time),
+        tokensValidAfterTime: parseDate(
+          decodedJWTUserRecord.tokens_valid_after_time
+        ),
         multiFactor: parseMultifactor(decodedJWTUserRecord.multi_factor),
       };
       return json;
-    }
+    },
   };
 
   return userRecordConstructor(userRecord);
@@ -420,19 +482,80 @@ function parseUserRecord(decodedJWTUserRecord: DecodedJwtUserRecord): UserRecord
 
 /** @internal */
 function parseAuthEventContext(decodedJWT: DecodedJwt): AuthEventContext {
-  // stub
-  return {
-    ipAddress: '',
-    userAgent: '',
-    eventId: '',
-    eventType: '',
-    params: {},
+  if (
+    !decodedJWT.sign_in_attributes &&
+    !decodedJWT.oauth_id_token &&
+    !decodedJWT.oauth_access_token &&
+    !decodedJWT.oauth_refresh_token
+  ) {
+    throw new HttpsError(
+      'internal',
+      `Not enough info in JWT for parsing auth credential.`
+    );
+  }
+  const eventType =
+    EVENT_MAPPING[decodedJWT.event_type] || decodedJWT.event_type;
+  let profile, username;
+  if (decodedJWT.raw_user_info)
+    try {
+      profile = JSON.parse(decodedJWT.raw_user_info);
+    } catch (err) {
+      logger.debug(`Parse Error: ${err.message}`);
+    }
+  if (profile) {
+    if (decodedJWT.sign_in_method === 'github.com') {
+      username = profile.login;
+    }
+    if (decodedJWT.sign_in_method === 'twitter.com') {
+      username = profile.screen_name;
+    }
+  }
+
+  const authEventContext: AuthEventContext = {
+    locale: decodedJWT.locale,
+    ipAddress: decodedJWT.ip_address,
+    userAgent: decodedJWT.user_agent,
+    eventId: decodedJWT.event_id,
+    eventType:
+      eventType +
+      (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : ''),
+    authType: !!decodedJWT.user_record ? 'USER' : 'UNAUTHENTICATED',
     resource: {
-      service: '',
-      name: '',
+      service: '', // TODO(colerogers): figure out the service
+      name: !!decodedJWT.tenant_id
+        ? `projects/${this.projectId}/tenants/${decodedJWT.tenant_id}`
+        : `projects/${this.projectId}`,
     },
-    timestamp: '',
+    timestamp: new Date(decodedJWT.iat * 1000).toUTCString(),
+    additionalUserInfo: {
+      providerId:
+        decodedJWT.sign_in_method === 'emailLink'
+          ? 'password'
+          : decodedJWT.sign_in_method,
+      profile,
+      username,
+      isNewUser: decodedJWT.event_type === 'beforeCreate' ? true : false,
+    },
+    credential: {
+      claims: decodedJWT.sign_in_attributes,
+      idToken: decodedJWT.oauth_id_token,
+      accessToken: decodedJWT.oauth_access_token,
+      refreshToken: decodedJWT.oauth_refresh_token,
+      expirationTime: decodedJWT.oauth_expires_in
+        ? new Date(
+            new Date().getTime() + decodedJWT.oauth_expires_in * 1000
+          ).toUTCString()
+        : undefined,
+      secret: decodedJWT.oauth_token_secret,
+      providerId:
+        decodedJWT.sign_in_method === 'emailLink'
+          ? 'password'
+          : decodedJWT.sign_in_method,
+      signInMethod: decodedJWT.sign_in_method,
+    },
+    params: {},
   };
+  return authEventContext;
 }
 
 /** @internal */
@@ -446,9 +569,8 @@ export function createHandler(
       res.on('finish', resolve);
       resolve(wrappedHandler(req, res));
     });
-  }
+  };
 }
-
 
 /** @internal */
 function wrapHandler(
@@ -459,14 +581,16 @@ function wrapHandler(
     try {
       const publicKeys = fetchPublicKeys();
       validRequest(req);
-      const decodedJWT = verifyAndDecodeJWT(req.body.data.jwt, eventType, await publicKeys);
+      const decodedJWT = verifyAndDecodeJWT(
+        req.body.data.jwt,
+        eventType,
+        await publicKeys
+      );
       const userRecord = parseUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT);
 
-      const authRequest = await handler(userRecord as UserRecord, authEventContext); // TODO: remove `as UserRecord`
+      const authRequest = await handler(userRecord, authEventContext); // TODO: remove `as UserRecord`
       const result = encode(authRequest);
-
-      // do some data manipulation??
 
       res.status(200);
       res.setHeader('Content-Type', 'application/json');
@@ -483,15 +607,8 @@ function wrapHandler(
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify(err.toJSON()));
     }
-  }
-  
+  };
 }
-
-
-
-
-
-
 
 /**
  * Converts a snake case object to camel case.
@@ -503,33 +620,42 @@ function wrapHandler(
  * @return The camel case representation of this object.
  */
 export function snakeCase2CamelCase(
-  snakeCase: any, filter?: {[key: string]: string} | null,
-  exclude?: {[key: string]: string} | null): any {
-let camelCase: any = {};
-filter = filter || {};
-exclude = exclude || {};
-if (Array.isArray(snakeCase)) {
-  camelCase = [];
-  snakeCase.forEach((value, index) => {
-    camelCase[index] = snakeCase2CamelCase(value, filter, exclude);
-  });
-} else if (typeof snakeCase === 'object' && snakeCase !== null) {
-  for (const key in snakeCase) {
-    if (snakeCase.hasOwnProperty(key)) {
-      if (typeof exclude[key] !== 'undefined') {
-        camelCase[exclude[key]] = snakeCase[key];
-        continue;
-      }
-      const modifiedKey = typeof filter[key] !== 'undefined' ? filter[key] : snakeCase2CamelCaseString(key);
+  snakeCase: any,
+  filter?: { [key: string]: string } | null,
+  exclude?: { [key: string]: string } | null
+): any {
+  let camelCase: any = {};
+  filter = filter || {};
+  exclude = exclude || {};
+  if (Array.isArray(snakeCase)) {
+    camelCase = [];
+    snakeCase.forEach((value, index) => {
+      camelCase[index] = snakeCase2CamelCase(value, filter, exclude);
+    });
+  } else if (typeof snakeCase === 'object' && snakeCase !== null) {
+    for (const key in snakeCase) {
       if (snakeCase.hasOwnProperty(key)) {
-        camelCase[modifiedKey] = snakeCase2CamelCase(snakeCase[key], filter, exclude);
+        if (typeof exclude[key] !== 'undefined') {
+          camelCase[exclude[key]] = snakeCase[key];
+          continue;
+        }
+        const modifiedKey =
+          typeof filter[key] !== 'undefined'
+            ? filter[key]
+            : snakeCase2CamelCaseString(key);
+        if (snakeCase.hasOwnProperty(key)) {
+          camelCase[modifiedKey] = snakeCase2CamelCase(
+            snakeCase[key],
+            filter,
+            exclude
+          );
+        }
       }
     }
+  } else {
+    camelCase = snakeCase;
   }
-} else {
-  camelCase = snakeCase;
-}
-return camelCase;
+  return camelCase;
 }
 
 /**
@@ -542,11 +668,13 @@ export function snakeCase2CamelCaseString(snakeCase: string): string {
   const modifiedKey = [];
   let i = 0;
   while (i < snakeCase.length) {
-    if (snakeCase.charAt(i) === '_' &&
-        i + 1 < snakeCase.length &&
-        i !== 0 &&
-        snakeCase.charAt(i - 1) !== '_' &&
-        snakeCase.charAt(i + 1) !== '_') {
+    if (
+      snakeCase.charAt(i) === '_' &&
+      i + 1 < snakeCase.length &&
+      i !== 0 &&
+      snakeCase.charAt(i - 1) !== '_' &&
+      snakeCase.charAt(i + 1) !== '_'
+    ) {
       modifiedKey.push(snakeCase.charAt(i + 1).toUpperCase());
       i++;
     } else {
@@ -556,10 +684,6 @@ export function snakeCase2CamelCaseString(snakeCase: string): string {
   }
   return modifiedKey.join('');
 }
-
-
-
-
 
 /** MOVED FROM src/providers/auth */
 export class UserRecordMetadata implements firebase.auth.UserMetadata {

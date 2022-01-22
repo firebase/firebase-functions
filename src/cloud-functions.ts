@@ -275,7 +275,7 @@ export interface TriggerAnnotated {
     };
     blockingTrigger?: {
       eventType: string;
-    }
+    };
     labels?: { [key: string]: string };
     regions?: string[];
     schedule?: Schedule;
@@ -316,7 +316,6 @@ export interface Runnable<T> {
 export type HttpsFunction = TriggerAnnotated &
   EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
-
 
 export type BlockingFunction = HttpsFunction;
 

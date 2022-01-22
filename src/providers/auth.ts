@@ -29,7 +29,11 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import { AuthEventContext, BeforeCreateResponse, BeforeSignInResponse } from '../common/providers/identity';
+import {
+  AuthEventContext,
+  BeforeCreateResponse,
+  BeforeSignInResponse,
+} from '../common/providers/identity';
 import { DeploymentOptions } from '../function-configuration';
 
 /** @hidden */
@@ -96,18 +100,26 @@ export class UserBuilder {
     handler: (
       user: UserRecord,
       context: AuthEventContext
-    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+    ) =>
+      | BeforeCreateResponse
+      | Promise<BeforeCreateResponse>
+      | void
+      | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(handler, "beforeCreate");
+    return this.beforeOperation(handler, 'beforeCreate');
   }
 
   beforeSignIn(
     handler: (
       user: UserRecord,
       context: AuthEventContext
-    ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+    ) =>
+      | BeforeSignInResponse
+      | Promise<BeforeSignInResponse>
+      | void
+      | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(handler, "beforeSignIn");
+    return this.beforeOperation(handler, 'beforeSignIn');
   }
 
   private onOperation(
@@ -133,9 +145,15 @@ export class UserBuilder {
     handler: (
       user: UserRecord,
       context: AuthEventContext
-    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | BeforeSignInResponse | Promise<BeforeSignInResponse>  | void | Promise<void>,
+    ) =>
+      | BeforeCreateResponse
+      | Promise<BeforeCreateResponse>
+      | BeforeSignInResponse
+      | Promise<BeforeSignInResponse>
+      | void
+      | Promise<void>,
     eventType: string
-  ): any/*BlockingFunction*/ {
+  ): any /*BlockingFunction*/ {
     // TODO
   }
 }
