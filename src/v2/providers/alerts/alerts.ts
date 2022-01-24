@@ -2,12 +2,26 @@ import { ManifestEndpoint } from '../../../common/manifest';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
-/** Data */
+/**
+ * The data object that is emitted from Firebase Alerts inside the CloudEvent
+ */
 export interface FirebaseAlertData<T = any> {
   createTime: string;
   endTime: string;
   payload: T;
 }
+
+interface WithAlertTypeAndApp {
+  alertType: string;
+  appId?: string;
+}
+/**
+ * A custom CloudEvent for Firebase Alerts with custom extension attributes defined
+ */
+export type AlertEvent<T> = CloudEvent<
+  FirebaseAlertData<T>,
+  WithAlertTypeAndApp
+>;
 
 /** @internal */
 export const eventType = 'firebase.firebasealerts.alerts.v1.published';
@@ -25,24 +39,18 @@ export type AlertType =
   | 'appDistribution.newTesterIosDevice'
   | string;
 
-/** Options */
+/**
+ * Configuration for Firebase Alert functions
+ */
 export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   alertType: AlertType;
   appId?: string;
 }
 
-/** Cloud Event Type */
-interface WithAlertTypeAndApp {
-  alertType: string;
-  appId?: string;
-}
-export type AlertEvent<T> = CloudEvent<
-  FirebaseAlertData<T>,
-  WithAlertTypeAndApp
->;
-
-/** Handlers */
-/** Handle an alert published */
+/**
+ * Declares a function that can handle Firebase Alerts from CloudEvents
+ * @param alertTypeOrOpts the alert type or Firebase Alert function configuration
+ */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
@@ -56,57 +64,48 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
   };
 
   func.run = handler;
-
-  // TypeScript doesn't recognize defineProperty as adding a property and complains
-  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-  func.__endpoint = {} as ManifestEndpoint;
-  defineEndpoint(func, opts, alertType, appId);
+  func.__endpoint = getEndpointAnnotation(opts, alertType, appId);
 
   return func;
 }
 
 /**
  * @internal
- * Helper function for defining an endpoint for alert handling functions
+ * Helper function for getting the endpoint annotation used in alert handling functions
  */
-export function defineEndpoint(
-  func: CloudFunction<FirebaseAlertData<any>>,
+export function getEndpointAnnotation(
   opts: options.EventHandlerOptions,
   alertType: string,
   appId?: string
-): void {
-  Object.defineProperty(func, '__endpoint', {
-    get: () => {
-      const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-      const specificOpts = options.optionsToEndpoint(opts);
-
-      const endpoint: ManifestEndpoint = {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        eventTrigger: {
-          eventType,
-          eventFilters: {
-            alertType,
-          },
-          retry: false,
-        },
-      };
-      if (appId) {
-        endpoint.eventTrigger.eventFilters.appId = appId;
-      }
-      return endpoint;
+): ManifestEndpoint {
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOpts = options.optionsToEndpoint(opts);
+  const endpoint: ManifestEndpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
     },
-  });
+    eventTrigger: {
+      eventType,
+      eventFilters: {
+        alertType,
+      },
+      retry: false,
+    },
+  };
+  if (appId) {
+    endpoint.eventTrigger.eventFilters.appId = appId;
+  }
+  return endpoint;
 }
 
-/** @internal */
+/**
+ * @internal
+ * Helper function to parse the function opts, alert type, and appId
+ */
 export function getOptsAndAlertTypeAndApp(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions
 ): [options.EventHandlerOptions, string, string | undefined] {
