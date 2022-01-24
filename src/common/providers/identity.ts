@@ -180,7 +180,7 @@ async function fetchPublicKeys(): Promise<Record<string, string>> {
 }
 
 /** @internal */
-function validRequest(req: express.Request): void {
+export function validRequest(req: express.Request): void {
   if (req.method !== 'POST') {
     throw new HttpsError(
       'invalid-argument',
