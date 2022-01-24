@@ -1,20 +1,5 @@
 import * as options from '../../../src/v2/options';
 
-export const BASIC_OPTIONS: options.EventHandlerOptions = {
-  labels: {
-    someKey: 'someValue',
-  },
-  region: 'us-east1',
-};
-
-export const BASIC_ENDPOINT = {
-  platform: 'gcfv2',
-  region: ['us-east1'],
-  labels: {
-    someKey: 'someValue',
-  },
-};
-
 export const FULL_OPTIONS: options.GlobalOptions = {
   region: 'us-west1',
   memory: '512MB',
