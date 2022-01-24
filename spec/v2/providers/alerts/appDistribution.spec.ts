@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as appDistribution from '../../../../src/v2/providers/alerts/appDistribution';
-import { BASIC_ENDPOINT, BASIC_OPTIONS } from '../helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
 
 const APPID = '123456789';
 const myHandler = () => 42;
@@ -28,14 +28,14 @@ describe('appDistribution', () => {
       });
     });
 
-    it('should create a function with base opts', () => {
+    it('should create a function with opts', () => {
       const func = appDistribution.onNewTesterIosDevicePublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -48,12 +48,12 @@ describe('appDistribution', () => {
 
     it('should create a function with appid in opts', () => {
       const func = appDistribution.onNewTesterIosDevicePublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {

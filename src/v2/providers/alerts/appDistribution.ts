@@ -1,10 +1,10 @@
-import { defineEndpoint, FirebaseAlertData } from '.';
-import { ManifestEndpoint } from '../../../common/manifest';
+import { getEndpointAnnotation, FirebaseAlertData } from './alerts';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
-/** Data */
-/** Payload for a new tester device */
+/**
+ * The internal payload object that is wrapped inside a FirebaseAlertData object
+ */
 export interface NewTesterDevicePayload {
   ['@type']: 'com.google.firebase.firebasealerts.NewTesterDevicePayload';
   testerName: string;
@@ -13,26 +13,31 @@ export interface NewTesterDevicePayload {
   testerDeviceIdentifier: string;
 }
 
-/** @internal */
-export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
-
-/** Options */
-export interface AppDistributionOptions extends options.EventHandlerOptions {
-  appId?: string;
-}
-
-/** Cloud Event Type */
 interface WithAlertTypeAndApp {
   alertType: string;
   appId: string;
 }
+/**
+ * A custom CloudEvent for Firebase Alerts with custom extension attributes defined
+ */
 export type AppDistributionEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
   WithAlertTypeAndApp
 >;
 
-/** Handlers */
-/** Handle a new tester IOS device published */
+/** @internal */
+export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
+
+/**
+ * Configuration for app distribution functions
+ */
+export interface AppDistributionOptions extends options.EventHandlerOptions {
+  appId?: string;
+}
+
+/**
+ * Declares a function that can handle adding a new tester iOS device
+ */
 export function onNewTesterIosDevicePublished(
   handler: (
     event: AppDistributionEvent<NewTesterDevicePayload>
@@ -75,18 +80,15 @@ export function onNewTesterIosDevicePublished(
   };
 
   func.run = handler;
-
-  // TypeScript doesn't recognize defineProperty as adding a property and complains
-  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-  func.__endpoint = {} as ManifestEndpoint;
-  defineEndpoint(func, opts, newTesterIosDeviceAlert, appId);
+  func.__endpoint = getEndpointAnnotation(opts, newTesterIosDeviceAlert, appId);
 
   return func;
 }
 
-/** @internal */
+/**
+ * @internal
+ * Helper function to parse the function opts and appId
+ */
 export function getOptsAndApp(
   appIdOrOpts: string | AppDistributionOptions
 ): [options.EventHandlerOptions, string | undefined] {
