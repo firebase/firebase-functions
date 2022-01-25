@@ -86,13 +86,11 @@ export function onAutomatedPlanUpdatePublished(
 /** @internal */
 export function onOperation<T>(
   alertType: string,
-  optsOrHandler:
-    | options.EventHandlerOptions
-    | ((event: BillingEvent<T>) => any | Promise<any>),
-  handler: (event: BillingEvent<T>) => any | Promise<any>
+  optsOrHandler: options.EventHandlerOptions | BillingEventHandler<T>,
+  handler: BillingEventHandler<T>
 ): CloudFunction<FirebaseAlertData<T>> {
   if (typeof optsOrHandler === 'function') {
-    handler = optsOrHandler as (event: BillingEvent<T>) => any | Promise<any>;
+    handler = optsOrHandler as BillingEventHandler<T>;
     optsOrHandler = {};
   }
 
