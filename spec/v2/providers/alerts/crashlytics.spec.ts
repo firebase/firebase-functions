@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as crashlytics from '../../../../src/v2/providers/alerts/crashlytics';
-import { BASIC_ENDPOINT, BASIC_OPTIONS } from '../helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
 
 const ALERT_TYPE = 'new-alert-type';
 const APPID = '123456789';
@@ -44,12 +44,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onNewFatalIssuePublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -62,12 +62,12 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onNewFatalIssuePublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -116,12 +116,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onNewNonfatalIssuePublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -134,12 +134,12 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onNewNonfatalIssuePublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -188,12 +188,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onRegressionAlertPublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -206,12 +206,12 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onRegressionAlertPublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -260,12 +260,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onStabilityDigestPublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -278,12 +278,12 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onStabilityDigestPublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -332,12 +332,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onVelocityAlertPublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -350,12 +350,12 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onVelocityAlertPublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -404,12 +404,12 @@ describe('crashlytics', () => {
 
     it('should create a function with base opts', () => {
       const func = crashlytics.onNewAnrIssuePublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -422,12 +422,12 @@ describe('crashlytics', () => {
 
     it('should create a function with opts', () => {
       const func = crashlytics.onNewAnrIssuePublished(
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -477,12 +477,12 @@ describe('crashlytics', () => {
     it('should create a function with base opts', () => {
       const func = crashlytics.onOperation(
         ALERT_TYPE,
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -496,12 +496,12 @@ describe('crashlytics', () => {
     it('should create a function with appid in opts', () => {
       const func = crashlytics.onOperation(
         ALERT_TYPE,
-        { ...BASIC_OPTIONS, appId: APPID },
+        { ...FULL_OPTIONS, appId: APPID },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
