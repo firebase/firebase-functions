@@ -1,46 +1,56 @@
-import { defineEndpoint, FirebaseAlertData } from '.';
-import { ManifestEndpoint } from '../../../common/manifest';
+import { getEndpointAnnotation, FirebaseAlertData } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
-/** Data */
-/** Payload for plan update */
+/**
+ * The internal payload object for billing plan updates.
+ * Payload is wrapped inside a FirebaseAlertData object.
+ */
 export interface PlanUpdatePayload {
   ['@type']: 'com.google.firebase.firebasealerts.PlanUpdatePayload';
   billingPlan: string;
   principalEmail: string;
 }
-/** Payload for plan automated update */
+
+/**
+ * The internal payload object for billing plan automated updates.
+ * Payload is wrapped inside a FirebaseAlertData object.
+ */
 export interface PlanAutomatedUpdatePayload {
   ['@type']: 'com.google.firebase.firebasealerts.PlanAutomatedUpdatePayload';
   billingPlan: string;
 }
+
+interface WithAlertType {
+  alertType: string;
+}
+/**
+ * A custom CloudEvent for billing Firebase Alerts (with custom extension attributes).
+ */
+export type BillingEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertType>;
 
 /** @internal */
 export const planUpdateAlert = 'billing.planUpdate';
 /** @internal */
 export const automatedPlanUpdateAlert = 'billing.automatedPlanUpdate';
 
-/** Cloud Event Type */
-interface WithAlertType {
-  alertType: string;
-}
-export type BillingEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertType>;
+/** @internal */
+type BillingEventHandler<T> = (event: BillingEvent<T>) => any | Promise<any>;
 
 /** Handlers */
 /** Handle a plan update published */
 export function onPlanUpdatePublished(
-  handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
+  handler: BillingEventHandler<PlanUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>>;
 export function onPlanUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
+  handler: BillingEventHandler<PlanUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>>;
 export function onPlanUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
-    | ((event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>),
-  handler?: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
+    | BillingEventHandler<PlanUpdatePayload>,
+  handler?: BillingEventHandler<PlanUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>> {
   return onOperation<PlanUpdatePayload>(
     planUpdateAlert,
@@ -51,23 +61,17 @@ export function onPlanUpdatePublished(
 
 /** Handle an automated plan update published */
 export function onAutomatedPlanUpdatePublished(
-  handler: (
-    event: BillingEvent<PlanAutomatedUpdatePayload>
-  ) => any | Promise<any>
+  handler: BillingEventHandler<PlanAutomatedUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
 export function onAutomatedPlanUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: (
-    event: BillingEvent<PlanAutomatedUpdatePayload>
-  ) => any | Promise<any>
+  handler: BillingEventHandler<PlanAutomatedUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
 export function onAutomatedPlanUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
-    | ((event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>),
-  handler?: (
-    event: BillingEvent<PlanAutomatedUpdatePayload>
-  ) => any | Promise<any>
+    | BillingEventHandler<PlanAutomatedUpdatePayload>,
+  handler?: BillingEventHandler<PlanAutomatedUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>> {
   return onOperation<PlanAutomatedUpdatePayload>(
     automatedPlanUpdateAlert,
@@ -94,13 +98,7 @@ export function onOperation<T>(
   };
 
   func.run = handler;
-
-  // TypeScript doesn't recognize defineProperty as adding a property and complains
-  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-  func.__endpoint = {} as ManifestEndpoint;
-  defineEndpoint(func, optsOrHandler, alertType, undefined);
+  func.__endpoint = getEndpointAnnotation(optsOrHandler, alertType);
 
   return func;
 }

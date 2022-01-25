@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as billing from '../../../../src/v2/providers/alerts/billing';
-import { BASIC_ENDPOINT, BASIC_OPTIONS } from '../helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
 
 const ALERT_TYPE = 'new-alert-type';
 const myHandler = () => 42;
@@ -26,12 +26,12 @@ describe('billing', () => {
 
     it('should create a function with opts & handler', () => {
       const func = billing.onPlanUpdatePublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -62,12 +62,12 @@ describe('billing', () => {
 
     it('should create a function with opts & handler', () => {
       const func = billing.onAutomatedPlanUpdatePublished(
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -99,12 +99,12 @@ describe('billing', () => {
     it('should create a function with opts', () => {
       const func = billing.onOperation(
         ALERT_TYPE,
-        { ...BASIC_OPTIONS },
+        { ...FULL_OPTIONS },
         myHandler
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...BASIC_ENDPOINT,
+        ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
