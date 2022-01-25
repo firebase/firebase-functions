@@ -3,7 +3,7 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /**
- * The internal payload object that is wrapped inside a FirebaseAlertData object
+ * The internal payload object that is wrapped inside a FirebaseAlertData object.
  */
 export interface NewTesterDevicePayload {
   ['@type']: 'com.google.firebase.firebasealerts.NewTesterDevicePayload';
@@ -18,7 +18,7 @@ interface WithAlertTypeAndApp {
   appId: string;
 }
 /**
- * A custom CloudEvent for Firebase Alerts with custom extension attributes defined
+ * A custom CloudEvent for Firebase Alerts with custom extension attributes defined.
  */
 export type AppDistributionEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
@@ -29,14 +29,14 @@ export type AppDistributionEvent<T> = CloudEvent<
 export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
 
 /**
- * Configuration for app distribution functions
+ * Configuration for app distribution functions.
  */
 export interface AppDistributionOptions extends options.EventHandlerOptions {
   appId?: string;
 }
 
 /**
- * Declares a function that can handle adding a new tester iOS device
+ * Declares a function that can handle adding a new tester iOS device.
  */
 export function onNewTesterIosDevicePublished(
   handler: (
@@ -87,7 +87,7 @@ export function onNewTesterIosDevicePublished(
 
 /**
  * @internal
- * Helper function to parse the function opts and appId
+ * Helper function to parse the function opts and appId.
  */
 export function getOptsAndApp(
   appIdOrOpts: string | AppDistributionOptions
