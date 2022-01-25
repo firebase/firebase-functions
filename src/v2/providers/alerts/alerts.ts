@@ -3,7 +3,7 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /**
- * The data object that is emitted from Firebase Alerts inside the CloudEvent
+ * The CloudEvent data emitted by Firebase Alerts.
  */
 export interface FirebaseAlertData<T = any> {
   createTime: string;
@@ -16,7 +16,7 @@ interface WithAlertTypeAndApp {
   appId?: string;
 }
 /**
- * A custom CloudEvent for Firebase Alerts with custom extension attributes defined
+ * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
  */
 export type AlertEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
@@ -26,7 +26,7 @@ export type AlertEvent<T> = CloudEvent<
 /** @internal */
 export const eventType = 'firebase.firebasealerts.alerts.v1.published';
 
-/** The underlying alert type of the Firebase Alerts provider */
+/** The underlying alert type of the Firebase Alerts provider. */
 export type AlertType =
   | 'crashlytics.newFatalIssue'
   | 'crashlytics.newNonfatalIssue'
@@ -40,7 +40,7 @@ export type AlertType =
   | string;
 
 /**
- * Configuration for Firebase Alert functions
+ * Configuration for Firebase Alert functions.
  */
 export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   alertType: AlertType;
@@ -48,9 +48,9 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
 }
 
 /**
- * Declares a function that can handle Firebase Alerts from CloudEvents
- * @param alertTypeOrOpts the alert type or Firebase Alert function configuration
- * @param handler a function that can handle the Firebase Alert inside a CloudEvent
+ * Declares a function that can handle Firebase Alerts from CloudEvents.
+ * @param alertTypeOrOpts the alert type or Firebase Alert function configuration.
+ * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
  */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
@@ -72,7 +72,7 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
 
 /**
  * @internal
- * Helper function for getting the endpoint annotation used in alert handling functions
+ * Helper function for getting the endpoint annotation used in alert handling functions.
  */
 export function getEndpointAnnotation(
   opts: options.EventHandlerOptions,
@@ -105,7 +105,7 @@ export function getEndpointAnnotation(
 
 /**
  * @internal
- * Helper function to parse the function opts, alert type, and appId
+ * Helper function to parse the function opts, alert type, and appId.
  */
 export function getOptsAndAlertTypeAndApp(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions

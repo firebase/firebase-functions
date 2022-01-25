@@ -1,18 +1,10 @@
 import { expect } from 'chai';
-import { CloudEvent, CloudFunction } from '../../../../src/v2/core';
 import * as options from '../../../../src/v2/options';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
 
 const ALERT_TYPE = 'new-alert-type';
 const APPID = '123456789';
-
-function getMockFunction(): CloudFunction<alerts.FirebaseAlertData<String>> {
-  const func = (raw: CloudEvent<unknown>) => 42;
-  func.run = (event: CloudEvent<alerts.FirebaseAlertData<String>>) => 42;
-  func.__endpoint = {};
-  return func;
-}
 
 describe('alerts', () => {
   describe('onAlertPublished', () => {
@@ -75,11 +67,7 @@ describe('alerts', () => {
     });
 
     it('should define the endpoint without appId and opts', () => {
-      const func = getMockFunction();
-
-      func.__endpoint = alerts.getEndpointAnnotation({}, ALERT_TYPE);
-
-      expect(func.__endpoint).to.deep.equal({
+      expect(alerts.getEndpointAnnotation({}, ALERT_TYPE)).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
@@ -93,14 +81,9 @@ describe('alerts', () => {
     });
 
     it('should define a complex endpoint without appId', () => {
-      const func = getMockFunction();
-
-      func.__endpoint = alerts.getEndpointAnnotation(
-        { ...FULL_OPTIONS },
-        ALERT_TYPE
-      );
-
-      expect(func.__endpoint).to.deep.equal({
+      expect(
+        alerts.getEndpointAnnotation({ ...FULL_OPTIONS }, ALERT_TYPE)
+      ).to.deep.equal({
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
@@ -113,15 +96,9 @@ describe('alerts', () => {
     });
 
     it('should define a complex endpoint', () => {
-      const func = getMockFunction();
-
-      func.__endpoint = alerts.getEndpointAnnotation(
-        { ...FULL_OPTIONS },
-        ALERT_TYPE,
-        APPID
-      );
-
-      expect(func.__endpoint).to.deep.equal({
+      expect(
+        alerts.getEndpointAnnotation({ ...FULL_OPTIONS }, ALERT_TYPE, APPID)
+      ).to.deep.equal({
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
@@ -144,15 +121,10 @@ describe('alerts', () => {
         region: 'us-west1',
         minInstances: 3,
       };
-      const func = getMockFunction();
 
-      func.__endpoint = alerts.getEndpointAnnotation(
-        specificOpts,
-        ALERT_TYPE,
-        APPID
-      );
-
-      expect(func.__endpoint).to.deep.equal({
+      expect(
+        alerts.getEndpointAnnotation(specificOpts, ALERT_TYPE, APPID)
+      ).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
         concurrency: 20,
