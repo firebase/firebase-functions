@@ -149,8 +149,6 @@ export class UserBuilder {
     // if (!this.publicKeys || needRefreshPublicKeys(this.publicKeys)) {
     //   this.publicKeys = await identity.fetchPublicKeys();
     // }
-
-
     // TODO
   }
 }

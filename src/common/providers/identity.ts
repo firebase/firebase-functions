@@ -52,12 +52,12 @@ const EVENT_MAPPING: Record<string, string> = {
  * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
  * SDK.
  */
- export type UserRecord = firebase.auth.UserRecord;
+export type UserRecord = firebase.auth.UserRecord;
 
 /**
  * UserInfo that is part of the UserRecord
  */
- export type UserInfo = firebase.auth.UserInfo;
+export type UserInfo = firebase.auth.UserInfo;
 
 /** Defines the Auth event context. */
 export interface AuthEventContext extends EventContext {

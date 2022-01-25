@@ -6,7 +6,6 @@ import * as identity from '../../../src/common/providers/identity';
 import { expect } from 'chai';
 // import { MockRequest } from '../../fixtures/mockrequest';
 
-
 describe('identity', () => {
   const project = 'project1';
 
@@ -18,9 +17,7 @@ describe('identity', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  describe('fetchPublicKeys', async () => {
-
-  });
+  describe('fetchPublicKeys', async () => {});
 
   describe('userRecordConstructor', () => {
     it('will provide falsey values for fields that are not in raw wire data', () => {
@@ -86,86 +83,96 @@ describe('identity', () => {
 
   describe('validRequest', () => {
     it('should error on non-post', () => {
-      const req = {
+      const req = ({
         method: 'GET',
         header: {
           'Content-Type': 'application/json',
         },
         body: {
           data: {
-            jwt: '1.2.3'
-          }
-        }
-      } as unknown as express.Request;
+            jwt: '1.2.3',
+          },
+        },
+      } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw('Request has invalid method "GET".');
+      expect(() => identity.validRequest(req)).to.throw(
+        'Request has invalid method "GET".'
+      );
     });
 
     it('should error on bad Content-Type', () => {
-      const req = {
+      const req = ({
         method: 'POST',
         header(val: string) {
           return 'text/css';
         },
         body: {
           data: {
-            jwt: '1.2.3'
-          }
-        }
-      } as unknown as express.Request;
+            jwt: '1.2.3',
+          },
+        },
+      } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw('Request has invalid header Content-Type.');
+      expect(() => identity.validRequest(req)).to.throw(
+        'Request has invalid header Content-Type.'
+      );
     });
 
     it('should error without req body', () => {
-      const req = {
+      const req = ({
         method: 'POST',
         header(val: string) {
           return 'application/json';
         },
-      } as unknown as express.Request;
+      } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw('Request has an invalid body.');
+      expect(() => identity.validRequest(req)).to.throw(
+        'Request has an invalid body.'
+      );
     });
 
     it('should error without req body data', () => {
-      const req = {
+      const req = ({
         method: 'POST',
         header(val: string) {
           return 'application/json';
         },
-        body: {}
-      } as unknown as express.Request;
+        body: {},
+      } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw('Request has an invalid body.');
+      expect(() => identity.validRequest(req)).to.throw(
+        'Request has an invalid body.'
+      );
     });
 
     it('should error without req body', () => {
-      const req = {
+      const req = ({
         method: 'POST',
         header(val: string) {
           return 'application/json';
         },
         body: {
-          data: {}
-        }
-      } as unknown as express.Request;
+          data: {},
+        },
+      } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw('Request has an invalid body.');
+      expect(() => identity.validRequest(req)).to.throw(
+        'Request has an invalid body.'
+      );
     });
 
     it('should not error on valid request', () => {
-      const req = {
+      const req = ({
         method: 'POST',
         header(val: string) {
           return 'application/json';
         },
         body: {
           data: {
-            jwt: '1.2.3'
-          }
-        }
-      } as unknown as express.Request;
+            jwt: '1.2.3',
+          },
+        },
+      } as unknown) as express.Request;
 
       expect(() => identity.validRequest(req)).to.not.throw();
     });
