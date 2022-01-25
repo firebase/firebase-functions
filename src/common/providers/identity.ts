@@ -32,10 +32,14 @@ import { logger } from '../..';
 export { HttpsError };
 
 /* API Constants */
+/** @internal */
 const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
+/** @internal */
 const JWT_CLIENT_CERT_PATH =
   'robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
+/** @internal */
 const JWT_ALG = 'RS256';
+/** @internal */
 const JWT_ISSUER = 'https://securetoken.google.com/';
 
 /** @internal */
@@ -44,12 +48,16 @@ const EVENT_MAPPING: Record<string, string> = {
   beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
 };
 
-export type AuthError = HttpsError;
+/**
+ * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
+ * SDK.
+ */
+ export type UserRecord = firebase.auth.UserRecord;
 
-// copied from src/providers/auth.ts
-export type UserRecord = firebase.auth.UserRecord;
-
-type UserInfo = firebase.auth.UserInfo;
+/**
+ * UserInfo that is part of the UserRecord
+ */
+ export type UserInfo = firebase.auth.UserInfo;
 
 /** Defines the Auth event context. */
 export interface AuthEventContext extends EventContext {
@@ -165,7 +173,7 @@ interface DecodedJwt {
 }
 
 /** @internal */
-async function fetchPublicKeys(): Promise<Record<string, string>> {
+export async function fetchPublicKeys(): Promise<Record<string, string>> {
   const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
   try {
     const response = await fetch(url);
@@ -179,6 +187,77 @@ async function fetchPublicKeys(): Promise<Record<string, string>> {
   }
 }
 
+export class UserRecordMetadata implements firebase.auth.UserMetadata {
+  constructor(public creationTime: string, public lastSignInTime: string) {}
+
+  /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
+  toJSON() {
+    return {
+      creationTime: this.creationTime,
+      lastSignInTime: this.lastSignInTime,
+    };
+  }
+}
+
+export function userRecordConstructor(
+  wireData: Object
+): firebase.auth.UserRecord {
+  // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
+  const falseyValues: any = {
+    email: null,
+    emailVerified: false,
+    displayName: null,
+    photoURL: null,
+    phoneNumber: null,
+    disabled: false,
+    providerData: [],
+    customClaims: {},
+    passwordSalt: null,
+    passwordHash: null,
+    tokensValidAfterTime: null,
+    tenantId: null,
+  };
+  const record = _.assign({}, falseyValues, wireData);
+
+  const meta = _.get(record, 'metadata');
+  if (meta) {
+    _.set(
+      record,
+      'metadata',
+      new UserRecordMetadata(
+        meta.createdAt || meta.creationTime,
+        meta.lastSignedInAt || meta.lastSignInTime
+      )
+    );
+  } else {
+    _.set(record, 'metadata', new UserRecordMetadata(null, null));
+  }
+  _.forEach(record.providerData, (entry) => {
+    _.set(entry, 'toJSON', () => {
+      return entry;
+    });
+  });
+  _.set(record, 'toJSON', () => {
+    const json: any = _.pick(record, [
+      'uid',
+      'email',
+      'emailVerified',
+      'displayName',
+      'photoURL',
+      'phoneNumber',
+      'disabled',
+      'passwordHash',
+      'passwordSalt',
+      'tokensValidAfterTime',
+    ]);
+    json.metadata = _.get(record, 'metadata').toJSON();
+    json.customClaims = _.cloneDeep(record.customClaims);
+    json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
+    return json;
+  });
+  return record as firebase.auth.UserRecord;
+}
+
 /** @internal */
 export function validRequest(req: express.Request): void {
   if (req.method !== 'POST') {
@@ -189,15 +268,15 @@ export function validRequest(req: express.Request): void {
   }
 
   const contentType: string = (req.header('Content-Type') || '').toLowerCase();
-  if (contentType.includes('application/json')) {
+  if (!contentType.includes('application/json')) {
     throw new HttpsError(
       'invalid-argument',
-      `Request has invalid header Content-Type.`
+      'Request has invalid header Content-Type.'
     );
   }
 
   if (!req.body || !req.body.data || !req.body.data.jwt) {
-    throw new HttpsError('invalid-argument', 'Request is missing body.');
+    throw new HttpsError('invalid-argument', 'Request has an invalid body.');
   }
 }
 
@@ -608,151 +687,4 @@ function wrapHandler(
       res.send(JSON.stringify(err.toJSON()));
     }
   };
-}
-
-/**
- * Converts a snake case object to camel case.
- *
- * @param obj The snake case object.
- * @param filter The optional filter to replace a specific key with another key.
- * @param exclude The map of keys of the branches to exclude and their corresponding
- *     mapped key.
- * @return The camel case representation of this object.
- */
-export function snakeCase2CamelCase(
-  snakeCase: any,
-  filter?: { [key: string]: string } | null,
-  exclude?: { [key: string]: string } | null
-): any {
-  let camelCase: any = {};
-  filter = filter || {};
-  exclude = exclude || {};
-  if (Array.isArray(snakeCase)) {
-    camelCase = [];
-    snakeCase.forEach((value, index) => {
-      camelCase[index] = snakeCase2CamelCase(value, filter, exclude);
-    });
-  } else if (typeof snakeCase === 'object' && snakeCase !== null) {
-    for (const key in snakeCase) {
-      if (snakeCase.hasOwnProperty(key)) {
-        if (typeof exclude[key] !== 'undefined') {
-          camelCase[exclude[key]] = snakeCase[key];
-          continue;
-        }
-        const modifiedKey =
-          typeof filter[key] !== 'undefined'
-            ? filter[key]
-            : snakeCase2CamelCaseString(key);
-        if (snakeCase.hasOwnProperty(key)) {
-          camelCase[modifiedKey] = snakeCase2CamelCase(
-            snakeCase[key],
-            filter,
-            exclude
-          );
-        }
-      }
-    }
-  } else {
-    camelCase = snakeCase;
-  }
-  return camelCase;
-}
-
-/**
- * Returns the camel case representation of the snake case string.
- *
- * @param key The snake case string.
- * @return The camel case equivalent.
- */
-export function snakeCase2CamelCaseString(snakeCase: string): string {
-  const modifiedKey = [];
-  let i = 0;
-  while (i < snakeCase.length) {
-    if (
-      snakeCase.charAt(i) === '_' &&
-      i + 1 < snakeCase.length &&
-      i !== 0 &&
-      snakeCase.charAt(i - 1) !== '_' &&
-      snakeCase.charAt(i + 1) !== '_'
-    ) {
-      modifiedKey.push(snakeCase.charAt(i + 1).toUpperCase());
-      i++;
-    } else {
-      modifiedKey.push(snakeCase.charAt(i));
-    }
-    i++;
-  }
-  return modifiedKey.join('');
-}
-
-/** MOVED FROM src/providers/auth */
-export class UserRecordMetadata implements firebase.auth.UserMetadata {
-  constructor(public creationTime: string, public lastSignInTime: string) {}
-
-  /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
-  toJSON() {
-    return {
-      creationTime: this.creationTime,
-      lastSignInTime: this.lastSignInTime,
-    };
-  }
-}
-
-export function userRecordConstructor(
-  wireData: Object
-): firebase.auth.UserRecord {
-  // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
-  const falseyValues: any = {
-    email: null,
-    emailVerified: false,
-    displayName: null,
-    photoURL: null,
-    phoneNumber: null,
-    disabled: false,
-    providerData: [],
-    customClaims: {},
-    passwordSalt: null,
-    passwordHash: null,
-    tokensValidAfterTime: null,
-    tenantId: null,
-  };
-  const record = _.assign({}, falseyValues, wireData);
-
-  const meta = _.get(record, 'metadata');
-  if (meta) {
-    _.set(
-      record,
-      'metadata',
-      new UserRecordMetadata(
-        meta.createdAt || meta.creationTime,
-        meta.lastSignedInAt || meta.lastSignInTime
-      )
-    );
-  } else {
-    _.set(record, 'metadata', new UserRecordMetadata(null, null));
-  }
-  _.forEach(record.providerData, (entry) => {
-    _.set(entry, 'toJSON', () => {
-      return entry;
-    });
-  });
-  _.set(record, 'toJSON', () => {
-    const json: any = _.pick(record, [
-      'uid',
-      'email',
-      'emailVerified',
-      'displayName',
-      'photoURL',
-      'phoneNumber',
-      'disabled',
-      'passwordHash',
-      'passwordSalt',
-      'tokensValidAfterTime',
-    ]);
-    json.metadata = _.get(record, 'metadata').toJSON();
-    json.customClaims = _.cloneDeep(record.customClaims);
-    json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
-    return json;
-  });
-  return record as firebase.auth.UserRecord;
 }
