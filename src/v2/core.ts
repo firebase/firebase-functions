@@ -52,7 +52,7 @@ export interface TriggerAnnotation {
  * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
  */
-export interface CloudEventBase<T> {
+interface CloudEventBase<T> {
   /** Version of the CloudEvents spec for this event. */
   readonly specversion: '1.0';
 
