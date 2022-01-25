@@ -3,7 +3,8 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /**
- * The internal payload object that is wrapped inside a FirebaseAlertData object.
+ * The internal payload object for adding a new tester device to app distribution.
+ * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewTesterDevicePayload {
   ['@type']: 'com.google.firebase.firebasealerts.NewTesterDevicePayload';
@@ -18,7 +19,7 @@ interface WithAlertTypeAndApp {
   appId: string;
 }
 /**
- * A custom CloudEvent for Firebase Alerts with custom extension attributes defined.
+ * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
  */
 export type AppDistributionEvent<T> = CloudEvent<
   FirebaseAlertData<T>,
