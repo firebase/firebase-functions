@@ -37,8 +37,9 @@ export const automatedPlanUpdateAlert = 'billing.automatedPlanUpdate';
 /** @internal */
 type BillingEventHandler<T> = (event: BillingEvent<T>) => any | Promise<any>;
 
-/** Handlers */
-/** Handle a plan update published */
+/**
+ * Declares a function that can handle a billing plan update event.
+ */
 export function onPlanUpdatePublished(
   handler: BillingEventHandler<PlanUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>>;
@@ -59,7 +60,9 @@ export function onPlanUpdatePublished(
   );
 }
 
-/** Handle an automated plan update published */
+/**
+ * Declares a function that can handle an automated billing plan update event.
+ */
 export function onAutomatedPlanUpdatePublished(
   handler: BillingEventHandler<PlanAutomatedUpdatePayload>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
