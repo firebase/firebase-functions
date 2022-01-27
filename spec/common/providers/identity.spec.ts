@@ -6,18 +6,83 @@ import * as identity from '../../../src/common/providers/identity';
 import { expect } from 'chai';
 // import { MockRequest } from '../../fixtures/mockrequest';
 
-describe('identity', () => {
-  const project = 'project1';
+const PROJECT = 'my-project';
+const VALID_URL = `https://us-central1-${PROJECT}.cloudfunctions.net/function-1`;
 
+const now = new Date();
+const DECODED_USER_RECORD = {
+  uid: 'abcdefghijklmnopqrstuvwxyz',
+  email: 'user@gmail.com',
+  email_verified: true,
+  display_name: 'John Doe',
+  phone_number: '+11234567890',
+  provider_data: [
+    {
+      provider_id: 'google.com',
+      display_name: 'John Doe',
+      photo_url: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
+      email: 'user@gmail.com',
+      uid: '1234567890',
+    },
+    {
+      provider_id: 'facebook.com',
+      display_name: 'John Smith',
+      photo_url: 'https://facebook.com/0987654321/photo.jpg',
+      email: 'user@facebook.com',
+      uid: '0987654321',
+    },
+    {
+      provider_id: 'phone',
+      uid: '+11234567890',
+      phone_number: '+11234567890',
+    },
+    {
+      provider_id: 'password',
+      email: 'user@gmail.com',
+      uid: 'user@gmail.com',
+      display_name: 'John Doe',
+    },
+  ],
+  password_hash: 'passwordHash',
+  password_salt: 'passwordSalt',
+  photo_url: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
+  tokens_valid_after_time: 1476136676,
+  metadata: {
+    last_sign_in_time: 1476235905,
+    creation_time: 1476136676,
+  },
+  custom_claims: {
+    admin: true,
+    group_id: 'group123',
+  },
+  tenant_id: 'TENANT_ID',
+  multi_factor: {
+    enrolled_factors: [
+      {
+        uid: 'enrollmentId1',
+        display_name: 'displayName1',
+        enrollment_time: now.toISOString(),
+        phone_number: '+16505551234',
+        factor_id: 'phone',
+      },
+      {
+        uid: 'enrollmentId2',
+        enrollment_time: now.toISOString(),
+        phone_number: '+16505556789',
+        factor_id: 'phone',
+      },
+    ],
+  },
+};
+
+describe('identity', () => {
   before(() => {
-    process.env.GCLOUD_PROJECT = project;
+    process.env.GCLOUD_PROJECT = PROJECT;
   });
 
   after(() => {
     delete process.env.GCLOUD_PROJECT;
   });
-
-  describe('fetchPublicKeys', async () => {});
 
   describe('userRecordConstructor', () => {
     it('will provide falsey values for fields that are not in raw wire data', () => {
@@ -175,6 +240,169 @@ describe('identity', () => {
       } as unknown) as express.Request;
 
       expect(() => identity.validRequest(req)).to.not.throw();
+    });
+  });
+
+  describe('getPublicKey', () => {
+    it('should throw if header.alg is not expected', () => {
+      expect(() => identity.getPublicKey({ alg: 'RS128' }, {})).to.throw(
+        `Provided JWT has incorrect algorithm. Expected ${identity.JWT_ALG} but got RS128.`
+      );
+    });
+
+    it('should throw if header.kid is undefined', () => {
+      expect(() =>
+        identity.getPublicKey({ alg: identity.JWT_ALG }, {})
+      ).to.throw('JWT has no "kid" claim.');
+    });
+
+    it('should throw if the public keys do not have a property that matches header.kid', () => {
+      expect(() =>
+        identity.getPublicKey(
+          {
+            alg: identity.JWT_ALG,
+            kid: '123456',
+          },
+          {}
+        )
+      ).to.throw(
+        'Provided JWT has "kid" claim which does not correspond to a known public key. Most likely the JWT is expired.'
+      );
+    });
+
+    it('should return the correct public key', () => {
+      expect(
+        identity.getPublicKey(
+          {
+            alg: identity.JWT_ALG,
+            kid: '123456',
+          },
+          {
+            '123456': '7890',
+            '2468': '1357',
+          }
+        )
+      ).to.eq('7890');
+    });
+  });
+
+  describe('isAuthorizedCloudFunctionURL', () => {
+    it('should return false on a bad gcf direction', () => {
+      expect(
+        identity.isAuthorizedCloudFunctionURL(
+          `https://us-central1-europe-${PROJECT}.cloudfunctions.net/function-1`,
+          PROJECT
+        )
+      ).to.be.false;
+    });
+
+    it('should return false on a bad project', () => {
+      expect(
+        identity.isAuthorizedCloudFunctionURL(
+          `https://us-central1-${PROJECT}-old.cloudfunctions.net/function-1`,
+          PROJECT
+        )
+      ).to.be.false;
+    });
+
+    it('should return true on a good url', () => {
+      expect(identity.isAuthorizedCloudFunctionURL(VALID_URL, PROJECT)).to.be
+        .true;
+    });
+  });
+
+  describe('checkDecodedToken', () => {
+    it('should throw on unauthorized function url', () => {
+      expect(() =>
+        identity.checkDecodedToken(
+          {
+            aud: `fake-region-${PROJECT}.cloudfunctions.net/fn1`,
+          } as identity.DecodedJwt,
+          PROJECT
+        )
+      ).to.throw('Provided JWT has incorrect "aud" (audience) claim.');
+    });
+
+    it('should throw on a bad iss property', () => {
+      expect(() =>
+        identity.checkDecodedToken(
+          {
+            aud: VALID_URL,
+            iss: `https://someissuer.com/a-project`,
+          } as identity.DecodedJwt,
+          PROJECT
+        )
+      ).to.throw(
+        `Provided JWT has incorrect "iss" (issuer) claim. Expected "${identity.JWT_ISSUER}${PROJECT}" but got "https://someissuer.com/a-project".`
+      );
+    });
+
+    it('should throw if sub is not a string', () => {
+      expect(() =>
+        identity.checkDecodedToken(
+          ({
+            aud: VALID_URL,
+            iss: `${identity.JWT_ISSUER}${PROJECT}`,
+            sub: {
+              key: 'val',
+            },
+          } as unknown) as identity.DecodedJwt,
+          PROJECT
+        )
+      ).to.throw('Provided JWT has no "sub" (subject) claim.');
+    });
+
+    it('should throw if sub is empty', () => {
+      expect(() =>
+        identity.checkDecodedToken(
+          {
+            aud: VALID_URL,
+            iss: `${identity.JWT_ISSUER}${PROJECT}`,
+            sub: '',
+          } as identity.DecodedJwt,
+          PROJECT
+        )
+      ).to.throw('Provided JWT has no "sub" (subject) claim.');
+    });
+
+    it('should throw if sub length is larger than 128 chars', () => {
+      const str = [];
+      for (let i = 0; i < 129; i++) {
+        str.push(i);
+      }
+      expect(() =>
+        identity.checkDecodedToken(
+          {
+            aud: VALID_URL,
+            iss: `${identity.JWT_ISSUER}${PROJECT}`,
+            sub: str.toString(),
+          } as identity.DecodedJwt,
+          PROJECT
+        )
+      ).to.throw(
+        'Provided JWT has "sub" (subject) claim longer than 128 characters.'
+      );
+    });
+
+    it('should not throw an error on correct decoded token', () => {
+      expect(() =>
+        identity.checkDecodedToken(
+          {
+            aud: VALID_URL,
+            iss: `${identity.JWT_ISSUER}${PROJECT}`,
+            sub: '123456',
+          } as identity.DecodedJwt,
+          PROJECT
+        )
+      ).to.not.throw();
+    });
+  });
+
+  describe('parseUserRecord', () => {
+    it('should parse user record', () => {
+      expect(() =>
+        identity.parseUserRecord(DECODED_USER_RECORD)
+      ).to.not.throw();
     });
   });
 });

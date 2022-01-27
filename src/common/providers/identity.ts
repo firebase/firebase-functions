@@ -33,14 +33,14 @@ export { HttpsError };
 
 /* API Constants */
 /** @internal */
-const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
+export const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
 /** @internal */
-const JWT_CLIENT_CERT_PATH =
+export const JWT_CLIENT_CERT_PATH =
   'robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 /** @internal */
-const JWT_ALG = 'RS256';
+export const JWT_ALG = 'RS256';
 /** @internal */
-const JWT_ISSUER = 'https://securetoken.google.com/';
+export const JWT_ISSUER = 'https://securetoken.google.com/';
 
 /** @internal */
 const EVENT_MAPPING: Record<string, string> = {
@@ -146,7 +146,7 @@ interface DecodedJwtUserRecord {
 
 /** Defines HTTP event JWT. */
 /** @internal */
-interface DecodedJwt {
+export interface DecodedJwt {
   aud: string;
   exp: number;
   iat: number;
@@ -281,14 +281,17 @@ export function validRequest(req: express.Request): void {
 }
 
 /** @internal */
-function getPublicKey(header: Record<string, any>, publicKeys): string {
+export function getPublicKey(
+  header: Record<string, any>,
+  publicKeys: Record<string, string>
+): string {
   if (header.alg !== JWT_ALG) {
     throw new HttpsError(
       'invalid-argument',
       `Provided JWT has incorrect algorithm. Expected ${JWT_ALG} but got ${header.alg}.`
     );
   }
-  if (typeof header.kid === 'undefined') {
+  if (!header.kid) {
     throw new HttpsError('invalid-argument', 'JWT has no "kid" claim.');
   }
   if (!publicKeys.hasOwnProperty(header.kid)) {
@@ -302,7 +305,7 @@ function getPublicKey(header: Record<string, any>, publicKeys): string {
 }
 
 /** @internal */
-function isAuthorizedCloudFunctionURL(
+export function isAuthorizedCloudFunctionURL(
   cloudFunctionUrl: string,
   projectId: string
 ): boolean {
@@ -331,7 +334,10 @@ function isAuthorizedCloudFunctionURL(
 }
 
 /** @internal */
-function checkDecodedToken(decodedJWT: DecodedJwt, projectId: string): void {
+export function checkDecodedToken(
+  decodedJWT: DecodedJwt,
+  projectId: string
+): void {
   if (!isAuthorizedCloudFunctionURL(decodedJWT.aud, projectId)) {
     throw new HttpsError(
       'invalid-argument',
@@ -345,7 +351,7 @@ function checkDecodedToken(decodedJWT: DecodedJwt, projectId: string): void {
         `"${JWT_ISSUER}${projectId}" but got "${decodedJWT.iss}".`
     );
   }
-  if (typeof decodedJWT.sub !== 'string' || decodedJWT.sub === '') {
+  if (typeof decodedJWT.sub !== 'string' || decodedJWT.sub.length === 0) {
     throw new HttpsError(
       'invalid-argument',
       'Provided JWT has no "sub" (subject) claim.'
@@ -382,7 +388,7 @@ function verifyAndDecodeJWT(
 }
 
 /** @internal */
-function parseUserRecord(
+export function parseUserRecord(
   decodedJWTUserRecord: DecodedJwtUserRecord
 ): UserRecord {
   const parseMetadata = function(metadata: DecodedJwtMetadata) {
@@ -667,19 +673,17 @@ function wrapHandler(
       );
       const userRecord = parseUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT);
-
-      const authRequest = await handler(userRecord, authEventContext); // TODO: remove `as UserRecord`
+      const authRequest = await handler(userRecord, authEventContext);
       const result = encode(authRequest);
 
       res.status(200);
       res.setHeader('Content-Type', 'application/json');
       res.send(JSON.stringify(result));
     } catch (err) {
-      // check if the error is of type HTTPS error
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
         logger.error('Unhandled error', err);
-        err = new HttpsError('internal', 'INTERNAL');
+        err = new HttpsError('internal', 'An unexpected error occurred.');
       }
 
       res.status(err.code);
