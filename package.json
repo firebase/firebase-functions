@@ -57,6 +57,7 @@
     "./v2/storage": "./lib/v2/providers/storage.js",
     "./v2/alerts": "./lib/v2/providers/alerts/index.js",
     "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
+    "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
     "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
   },
   "typesVersions": {
@@ -123,6 +124,9 @@
       ],
       "v2/alerts/appDistribution": [
         "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
       ],
       "v2/alerts/crashlytics": [
         "lib/v2/providers/alerts/crashlytics"
