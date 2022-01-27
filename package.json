@@ -56,7 +56,8 @@
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
     "./v2/storage": "./lib/v2/providers/storage.js",
     "./v2/alerts": "./lib/v2/providers/alerts/index.js",
-    "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js"
+    "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
+    "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js"
   },
   "typesVersions": {
     "*": {
@@ -122,6 +123,9 @@
       ],
       "v2/alerts/appDistribution": [
         "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
       ]
     }
   },
