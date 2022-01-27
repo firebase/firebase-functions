@@ -34,24 +34,21 @@ export const planUpdateAlert = 'billing.planUpdate';
 /** @internal */
 export const automatedPlanUpdateAlert = 'billing.automatedPlanUpdate';
 
-/** @internal */
-type BillingEventHandler<T> = (event: BillingEvent<T>) => any | Promise<any>;
-
 /**
  * Declares a function that can handle a billing plan update event.
  */
 export function onPlanUpdatePublished(
-  handler: BillingEventHandler<PlanUpdatePayload>
+  handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>>;
 export function onPlanUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: BillingEventHandler<PlanUpdatePayload>
+  handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>>;
 export function onPlanUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
-    | BillingEventHandler<PlanUpdatePayload>,
-  handler?: BillingEventHandler<PlanUpdatePayload>
+    | ((event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>),
+  handler?: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanUpdatePayload>> {
   return onOperation<PlanUpdatePayload>(
     planUpdateAlert,
@@ -64,17 +61,23 @@ export function onPlanUpdatePublished(
  * Declares a function that can handle an automated billing plan update event.
  */
 export function onAutomatedPlanUpdatePublished(
-  handler: BillingEventHandler<PlanAutomatedUpdatePayload>
+  handler: (
+    event: BillingEvent<PlanAutomatedUpdatePayload>
+  ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
 export function onAutomatedPlanUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: BillingEventHandler<PlanAutomatedUpdatePayload>
+  handler: (
+    event: BillingEvent<PlanAutomatedUpdatePayload>
+  ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
 export function onAutomatedPlanUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
-    | BillingEventHandler<PlanAutomatedUpdatePayload>,
-  handler?: BillingEventHandler<PlanAutomatedUpdatePayload>
+    | ((event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>),
+  handler?: (
+    event: BillingEvent<PlanAutomatedUpdatePayload>
+  ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>> {
   return onOperation<PlanAutomatedUpdatePayload>(
     automatedPlanUpdateAlert,
@@ -86,11 +89,13 @@ export function onAutomatedPlanUpdatePublished(
 /** @internal */
 export function onOperation<T>(
   alertType: string,
-  optsOrHandler: options.EventHandlerOptions | BillingEventHandler<T>,
-  handler: BillingEventHandler<T>
+  optsOrHandler:
+    | options.EventHandlerOptions
+    | ((event: BillingEvent<T>) => any | Promise<any>),
+  handler: (event: BillingEvent<T>) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<T>> {
   if (typeof optsOrHandler === 'function') {
-    handler = optsOrHandler as BillingEventHandler<T>;
+    handler = optsOrHandler as (event: BillingEvent<T>) => any | Promise<any>;
     optsOrHandler = {};
   }
 
