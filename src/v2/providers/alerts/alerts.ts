@@ -94,7 +94,7 @@ export function getEndpointAnnotation(
       eventFilters: {
         alertType,
       },
-      retry: false,
+      retry: !!opts.retry,
     },
   };
   if (appId) {
