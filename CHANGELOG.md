@@ -1,2 +1,3 @@
 - Parallelizes network calls that occur when validating authorization for onCall handlers.
 - Adds new regions to V2 API
+- Adds new provider for alerts
