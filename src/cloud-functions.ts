@@ -275,6 +275,10 @@ export interface TriggerAnnotated {
     };
     blockingTrigger?: {
       eventType: string;
+      options: Record<string, any>;
+      // idToken: boolean;
+      // accessToken: boolean;
+      // refreshToken: boolean;
     };
     labels?: { [key: string]: string };
     regions?: string[];
