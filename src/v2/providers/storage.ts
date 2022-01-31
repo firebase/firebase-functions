@@ -359,7 +359,7 @@ export function onOperation(
           ...specificOpts?.labels,
         },
         eventTrigger: {
-          eventType: eventType,
+          eventType,
           eventFilters: {
             bucket,
           },
