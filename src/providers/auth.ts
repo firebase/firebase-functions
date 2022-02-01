@@ -22,6 +22,8 @@
 
 import {
   UserRecord,
+  UserInfo,
+  UserRecordMetadata,
   userRecordConstructor,
 } from '../common/providers/identity';
 import {
@@ -31,6 +33,9 @@ import {
   makeCloudFunction,
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
+
+// TODO: yank in next breaking change release
+export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
 
 /** @hidden */
 export const provider = 'google.firebase.auth';
