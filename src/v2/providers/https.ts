@@ -40,7 +40,7 @@ import {
   TaskRequest,
   TaskRetryConfig,
 } from '../../common/providers/https';
-import { ManifestEndpoint } from '../../common/manifest';
+import { ManifestEndpoint } from '../../runtime/manifest';
 
 export {
   Request,

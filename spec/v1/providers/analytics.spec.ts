@@ -327,7 +327,7 @@ describe('Analytics Functions', () => {
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.undefined;
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should handle an event with the appropriate fields', () => {
