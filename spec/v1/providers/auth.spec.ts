@@ -21,13 +21,12 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as firebase from 'firebase-admin';
-
 import {
   CloudFunction,
   Event,
   EventContext,
 } from '../../../src/cloud-functions';
+import { UserRecord } from '../../../src/common/providers/identity';
 import * as functions from '../../../src/index';
 import * as auth from '../../../src/providers/auth';
 
@@ -75,7 +74,7 @@ describe('Auth Functions', () => {
       };
     }
 
-    const handler = (user: firebase.auth.UserRecord) => {
+    const handler = (user: UserRecord) => {
       return Promise.resolve();
     };
 
@@ -137,14 +136,12 @@ describe('Auth Functions', () => {
     });
 
     describe('#_dataConstructor', () => {
-      let cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord>;
+      let cloudFunctionDelete: CloudFunction<UserRecord>;
 
       before(() => {
         cloudFunctionDelete = auth
           .user()
-          .onDelete(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
-          );
+          .onDelete((data: UserRecord, context: EventContext) => data);
       });
 
       it('should handle wire format as of v5.0.0 of firebase-admin', () => {
@@ -176,8 +173,8 @@ describe('Auth Functions', () => {
     });
 
     describe('#onDelete', () => {
-      const cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord> = functions.handler.auth.user.onDelete(
-        (data: firebase.auth.UserRecord) => data
+      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
+        (data: UserRecord) => data
       );
 
       it('should return an empty trigger', () => {

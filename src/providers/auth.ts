@@ -20,8 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
-import * as _ from 'lodash';
+import {
+  UserRecord,
+  UserInfo,
+  UserRecordMetadata,
+  userRecordConstructor,
+  AuthEventContext,
+  BeforeCreateResponse,
+  BeforeSignInResponse,
+} from '../common/providers/identity';
 import {
   BlockingFunction,
   CloudFunction,
@@ -29,14 +36,10 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import {
-  UserRecord,
-  userRecordConstructor,
-  AuthEventContext,
-  BeforeCreateResponse,
-  BeforeSignInResponse,
-} from '../common/providers/identity';
 import { DeploymentOptions } from '../function-configuration';
+
+// TODO: yank in next breaking change release
+export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
 
 /** @hidden */
 export const provider = 'google.firebase.auth';
@@ -62,9 +65,7 @@ export function _userWithOptions(options: DeploymentOptions) {
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
-  // private publicKeys: Record<string, string> = {};
-
-  private static dataConstructor(raw: Event): firebase.auth.UserRecord {
+  private static dataConstructor(raw: Event): UserRecord {
     return userRecordConstructor(raw.data);
   }
 

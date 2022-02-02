@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 Firebase
+// Copyright (c) 2022 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -189,6 +189,9 @@ export async function fetchPublicKeys(
   }
 }
 
+/**
+ * Helper class to create the user metadata in a UserRecord object
+ */
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
 
@@ -201,9 +204,12 @@ export class UserRecordMetadata implements firebase.auth.UserMetadata {
   }
 }
 
-export function userRecordConstructor(
-  wireData: Object
-): firebase.auth.UserRecord {
+/**
+ * Helper function that creates a UserRecord Class from data sent over the wire.
+ * @param wireData data sent over the wire
+ * @returns an instance of UserRecord with correct toJSON functions
+ */
+export function userRecordConstructor(wireData: Object): UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
   const falseyValues: any = {
     email: null,
@@ -257,7 +263,7 @@ export function userRecordConstructor(
     json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
     return json;
   });
-  return record as firebase.auth.UserRecord;
+  return record as UserRecord;
 }
 
 /** @internal */
