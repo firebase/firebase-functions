@@ -622,6 +622,13 @@ export function optionsToEndpoint(
     'serviceAccount',
     (sa) => sa
   );
+  convertIfPresent(
+    endpoint,
+    options,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ secret }))
+  );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };
     convertIfPresent(
