@@ -369,7 +369,7 @@ export class DataSnapshot {
     private app?: firebase.app.App,
     instance?: string
   ) {
-    if (app && app.options.databaseURL.startsWith('http:')) {
+    if (app?.options?.databaseURL?.startsWith('http:')) {
       // In this case we're dealing with an emulator
       this.instance = app.options.databaseURL;
     } else if (instance) {

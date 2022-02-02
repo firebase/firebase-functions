@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from '../common/manifest';
+import { ManifestEndpoint } from '../runtime/manifest';
 
 /** @internal */
 export interface TriggerAnnotation {
@@ -49,10 +49,10 @@ export interface TriggerAnnotation {
 }
 
 /**
- * A CloudEvent is a cross-platform format for encoding a serverless event.
+ * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
  */
-export interface CloudEvent<T> {
+interface CloudEventBase<T> {
   /** Version of the CloudEvents spec for this event. */
   readonly specversion: '1.0';
 
@@ -89,6 +89,10 @@ export interface CloudEvent<T> {
   params?: Record<string, string>;
 }
 
+/**
+ * A CloudEvent with custom extension attributes
+ */
+export type CloudEvent<T = any, Ext = {}> = CloudEventBase<T> & Ext;
 /** A handler for CloudEvents. */
 export interface CloudFunction<T> {
   (raw: CloudEvent<unknown>): any | Promise<any>;

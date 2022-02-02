@@ -22,6 +22,9 @@
     "lib"
   ],
   "main": "lib/index.js",
+  "bin": {
+    "firebase-functions": "./lib/bin/firebase-functions.js"
+  },
   "types": "lib/index.d.ts",
   "exports": {
     ".": "./lib/index.js",
@@ -54,7 +57,11 @@
     "./v2/https": "./lib/v2/providers/https.js",
     "./v2/params": "./lib/v2/params/index.js",
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
-    "./v2/storage": "./lib/v2/providers/storage.js"
+    "./v2/storage": "./lib/v2/providers/storage.js",
+    "./v2/alerts": "./lib/v2/providers/alerts/index.js",
+    "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
+    "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
+    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
   },
   "typesVersions": {
     "*": {
@@ -114,6 +121,18 @@
       ],
       "v2/storage": [
         "lib/v2/providers/storage"
+      ],
+      "v2/alerts": [
+        "lib/v2/providers/alerts"
+      ],
+      "v2/alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
       ]
     }
   },
@@ -162,6 +181,7 @@
     "mz": "^2.7.0",
     "nock": "^10.0.6",
     "prettier": "^1.18.2",
+    "semver": "^7.3.5",
     "sinon": "^7.3.2",
     "ts-node": "^8.3.0",
     "tslint": "^5.18.0",

@@ -157,7 +157,7 @@ export class TaskQueueBuilder {
     func.__requiredAPIs = [
       {
         api: 'cloudtasks.googleapis.com',
-        reason: 'Needed for v1 task queue functions',
+        reason: 'Needed for task queue functions',
       },
     ];
 
