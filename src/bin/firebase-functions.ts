@@ -28,7 +28,7 @@ if (args.length > 1) {
 let server;
 const app = express();
 
-async function handleQuitquitquit(req: express.Request, res:  express.Response) {
+async function handleQuitquitquit(req: express.Request, res: express.Response) {
   res.send('ok');
   server.close(() => console.log('shutdown requested via /__/quitquitquit'));
 }
@@ -42,8 +42,8 @@ app.get('/__/stack.yaml', async (req, res) => {
     res.send(JSON.stringify(stack));
   } catch (e) {
     res
-        .status(400)
-        .send(`Failed to generate manifest from function source: ${e}`);
+      .status(400)
+      .send(`Failed to generate manifest from function source: ${e}`);
   }
 });
 
