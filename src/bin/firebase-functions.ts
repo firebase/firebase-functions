@@ -28,21 +28,23 @@ if (args.length > 1) {
 let server;
 const app = express();
 
-app.get('/stack.yaml', async (req, res) => {
+async function handleQuitquitquit(req: express.Request, res:  express.Response) {
+  res.send('ok');
+  server.close(() => console.log('shutdown requested via /__/quitquitquit'));
+}
+
+app.get('/__/quitquitquit', handleQuitquitquit);
+app.post('/__/quitquitquit', handleQuitquitquit);
+app.get('/__/stack.yaml', async (req, res) => {
   try {
     const stack = await loadStack(functionsDir);
     res.setHeader('content-type', 'text/yaml');
     res.send(JSON.stringify(stack));
   } catch (e) {
     res
-      .status(400)
-      .send(`Failed to generate manifest from function source: ${e}`);
+        .status(400)
+        .send(`Failed to generate manifest from function source: ${e}`);
   }
-});
-
-app.get('/__/quitquitquit', async (req, res) => {
-  res.send('ok');
-  server.close(() => console.log('shutdown requested via /__/quitquitquit'));
 });
 
 let port = 8080;

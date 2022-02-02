@@ -64,7 +64,7 @@ describe('extractStack', () => {
     expect(requiredAPIs).to.be.deep.equal([
       {
         api: 'cloudtasks.googleapis.com',
-        reason: 'Needed for v1 task queue functions',
+        reason: 'Needed for task queue functions',
       },
     ]);
   });
