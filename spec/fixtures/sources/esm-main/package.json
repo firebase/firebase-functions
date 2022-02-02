@@ -1,0 +1,5 @@
+{
+  "name": "esm-main",
+  "main": "functions.js",
+  "type": "module"
+}
