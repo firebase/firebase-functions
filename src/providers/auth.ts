@@ -35,6 +35,7 @@ import {
   AuthEventContext,
   BeforeCreateResponse,
   BeforeSignInResponse,
+  fetchPublicKeys
 } from '../common/providers/identity';
 import { DeploymentOptions } from '../function-configuration';
 
@@ -62,7 +63,7 @@ export function _userWithOptions(options: DeploymentOptions) {
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
-  // private publicKeys:  Record<string, string>;
+  private publicKeys:  Record<string, string> = {};
 
   private static dataConstructor(raw: Event): firebase.auth.UserRecord {
     return userRecordConstructor(raw.data);
@@ -146,6 +147,8 @@ export class UserBuilder {
       | Promise<void>,
     eventType: string
   ): any /*BlockingFunction*/ {
+    // this.publicKeys = await fetchPublicKeys(this.publicKeys);
+
     // if (!this.publicKeys || needRefreshPublicKeys(this.publicKeys)) {
     //   this.publicKeys = await identity.fetchPublicKeys();
     // }

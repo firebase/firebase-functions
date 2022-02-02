@@ -173,7 +173,8 @@ export interface DecodedJwt {
 }
 
 /** @internal */
-export async function fetchPublicKeys(): Promise<Record<string, string>> {
+export async function fetchPublicKeys(publicKeys: Record<string, string>): Promise<Record<string, string>> {
+
   const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
   try {
     const response = await fetch(url);
@@ -382,7 +383,7 @@ function verifyAndDecodeJWT(
   checkDecodedToken(decoded, process.env.GCLOUD_PROJECT);
 
   if (decoded.event_type !== eventType) {
-    throw new HttpsError('invalid-argument', '');
+    throw new HttpsError('invalid-argument', `Expected "${eventType}" but received "${decoded.event_type}".`);
   }
   return decoded;
 }
@@ -566,7 +567,7 @@ export function parseUserRecord(
 }
 
 /** @internal */
-function parseAuthEventContext(decodedJWT: DecodedJwt): AuthEventContext {
+export function parseAuthEventContext(decodedJWT: DecodedJwt): AuthEventContext {
   if (
     !decodedJWT.sign_in_attributes &&
     !decodedJWT.oauth_id_token &&
@@ -644,6 +645,41 @@ function parseAuthEventContext(decodedJWT: DecodedJwt): AuthEventContext {
 }
 
 /** @internal */
+export function validateAuthRequest(eventType: string, authRequest?: any) {
+  const nonAllowListedClaims = [
+    'acr', 'amr', 'at_hash', 'aud', 'auth_time', 'azp', 'cnf', 'c_hash', 'exp', 'iat', 'iss', 'jti',
+    'nbf', 'nonce', 'firebase',
+  ];
+  const claimsMaxPayloadSize = 1000;
+
+  if (!authRequest) {
+    authRequest = {};
+  }
+  if (authRequest.customClaims) {
+    const invalidClaims = nonAllowListedClaims.filter((claim) => authRequest.customClaims.hasOwnProperty(claim));
+    if (invalidClaims.length > 0) {
+      throw new HttpsError('invalid-argument', `customClaims claims "${invalidClaims.join(",")}" are reserved and cannot be specified.`);
+    }
+  }
+  if (authRequest.sessionClaims) {
+    const invalidClaims = nonAllowListedClaims.filter((claim) => authRequest.sessionClaims.hasOwnProperty(claim));
+    if (invalidClaims.length > 0) {
+      throw new HttpsError('invalid-argument', `customClaims claims "${invalidClaims.join(",")}" are reserved and cannot be specified.`);
+    }
+  }
+  const combinedClaims = {
+    ...authRequest.customClaims,
+    ...authRequest.sessionClaims,
+  };
+  if (JSON.stringify(combinedClaims).length > claimsMaxPayloadSize) {
+    throw new HttpsError(
+      'invalid-argument',
+      `The claims payload should not exceed ${claimsMaxPayloadSize} characters.`,
+    );
+  }
+}
+
+/** @internal */
 export function createHandler(
   handler: (user: UserRecord, context: AuthEventContext) => any,
   eventType: string
@@ -659,22 +695,37 @@ export function createHandler(
 
 /** @internal */
 function wrapHandler(
-  handler: (user: UserRecord, context: AuthEventContext) => any,
+  handler: (user: UserRecord, context: AuthEventContext) =>
+    | BeforeCreateResponse
+    | Promise<BeforeCreateResponse>
+    | BeforeSignInResponse
+    | Promise<BeforeSignInResponse>
+    | void
+    | Promise<void>,
   eventType: string
+  // publicKeys: Record<string, string> = {}
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      const publicKeys = fetchPublicKeys();
+      const publicKeys = await fetchPublicKeys({});
       validRequest(req);
       const decodedJWT = verifyAndDecodeJWT(
         req.body.data.jwt,
         eventType,
-        await publicKeys
+        publicKeys
       );
       const userRecord = parseUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT);
-      const authRequest = await handler(userRecord, authEventContext);
-      const result = encode(authRequest);
+      const authRequest = (await handler(userRecord, authEventContext)) || undefined;
+      validateAuthRequest(eventType, authRequest);
+      const updateMask = generateUpdateMask(authRequest, {customClaims: true, sessionClaims: true})
+      const result = {
+        userRecord: {
+          ...authRequest,
+          updateMask: updateMask.join(','),
+        }
+      };
+      // const result = encode(finalizedRequest);
 
       res.status(200);
       res.setHeader('Content-Type', 'application/json');
@@ -691,4 +742,67 @@ function wrapHandler(
       res.send(JSON.stringify(err.toJSON()));
     }
   };
+}
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * Generates the update mask for the provided object.
+ * Note this will ignore the last key with value undefined.
+ *
+ * @param obj The object to generate the update mask for.
+ * @param maxPaths The optional map of keys for maximum paths to traverse.
+ *      Nested objects beyond that path will be ignored.
+ * @param currentPath The path so far.
+ * @return The computed update mask list.
+ */
+ export function generateUpdateMask(
+  obj: any, maxPaths: {[key: string]: boolean} = {}, currentPath: string = ''
+): string[] {
+  const updateMask: string[] = [];
+  if (!obj) { return updateMask; }
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key) && typeof obj[key] !== 'undefined') {
+      const nextPath = currentPath ?  currentPath + '.' + key : key;
+      // We hit maximum path.
+      if (maxPaths[nextPath]) {
+        // Add key and stop traversing this branch.
+        updateMask.push(key);
+      } else {
+        let maskList: string[] = [];
+        maskList = generateUpdateMask(obj[key], maxPaths, nextPath);
+        if (maskList.length > 0) {
+          maskList.forEach((mask) => {
+            updateMask.push(`${key}.${mask}`);
+          });
+        } else {
+          updateMask.push(key);
+        }
+      }
+    }
+  }
+  return updateMask;
+}
+
+/**
+ * Returns a copy of the object with all key/value pairs having undefined values removed.
+ * @param obj The input object.
+ * @return obj The processed object with all key/value pairs having undefined values removed.
+ */
+ export function removeUndefinedProperties(obj: {[key: string]: any}): {[key: string]: any} {
+  const filteredObj = {};
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key) && typeof obj[key] !== 'undefined') {
+      filteredObj[key] = obj[key];
+    }
+  }
+  return filteredObj;
 }
