@@ -168,7 +168,7 @@ export interface RuntimeOptions {
 
   idToken?: boolean;
   accessToken?: boolean;
-  refreshToken?: boolean
+  refreshToken?: boolean;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {

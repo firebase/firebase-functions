@@ -25,7 +25,7 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
-import { HttpsError, encode } from './https';
+import { HttpsError } from './https';
 import { EventContext } from '../../cloud-functions';
 import { logger } from '../..';
 
@@ -173,8 +173,9 @@ export interface DecodedJwt {
 }
 
 /** @internal */
-export async function fetchPublicKeys(publicKeys: Record<string, string>): Promise<Record<string, string>> {
-
+export async function fetchPublicKeys(
+  publicKeys: Record<string, string>
+): Promise<Record<string, string>> {
   const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
   try {
     const response = await fetch(url);
@@ -383,7 +384,10 @@ function verifyAndDecodeJWT(
   checkDecodedToken(decoded, process.env.GCLOUD_PROJECT);
 
   if (decoded.event_type !== eventType) {
-    throw new HttpsError('invalid-argument', `Expected "${eventType}" but received "${decoded.event_type}".`);
+    throw new HttpsError(
+      'invalid-argument',
+      `Expected "${eventType}" but received "${decoded.event_type}".`
+    );
   }
   return decoded;
 }
@@ -567,7 +571,9 @@ export function parseUserRecord(
 }
 
 /** @internal */
-export function parseAuthEventContext(decodedJWT: DecodedJwt): AuthEventContext {
+export function parseAuthEventContext(
+  decodedJWT: DecodedJwt
+): AuthEventContext {
   if (
     !decodedJWT.sign_in_attributes &&
     !decodedJWT.oauth_id_token &&
@@ -647,8 +653,21 @@ export function parseAuthEventContext(decodedJWT: DecodedJwt): AuthEventContext 
 /** @internal */
 export function validateAuthRequest(eventType: string, authRequest?: any) {
   const nonAllowListedClaims = [
-    'acr', 'amr', 'at_hash', 'aud', 'auth_time', 'azp', 'cnf', 'c_hash', 'exp', 'iat', 'iss', 'jti',
-    'nbf', 'nonce', 'firebase',
+    'acr',
+    'amr',
+    'at_hash',
+    'aud',
+    'auth_time',
+    'azp',
+    'cnf',
+    'c_hash',
+    'exp',
+    'iat',
+    'iss',
+    'jti',
+    'nbf',
+    'nonce',
+    'firebase',
   ];
   const claimsMaxPayloadSize = 1000;
 
@@ -656,15 +675,29 @@ export function validateAuthRequest(eventType: string, authRequest?: any) {
     authRequest = {};
   }
   if (authRequest.customClaims) {
-    const invalidClaims = nonAllowListedClaims.filter((claim) => authRequest.customClaims.hasOwnProperty(claim));
+    const invalidClaims = nonAllowListedClaims.filter((claim) =>
+      authRequest.customClaims.hasOwnProperty(claim)
+    );
     if (invalidClaims.length > 0) {
-      throw new HttpsError('invalid-argument', `customClaims claims "${invalidClaims.join(",")}" are reserved and cannot be specified.`);
+      throw new HttpsError(
+        'invalid-argument',
+        `customClaims claims "${invalidClaims.join(
+          ','
+        )}" are reserved and cannot be specified.`
+      );
     }
   }
   if (authRequest.sessionClaims) {
-    const invalidClaims = nonAllowListedClaims.filter((claim) => authRequest.sessionClaims.hasOwnProperty(claim));
+    const invalidClaims = nonAllowListedClaims.filter((claim) =>
+      authRequest.sessionClaims.hasOwnProperty(claim)
+    );
     if (invalidClaims.length > 0) {
-      throw new HttpsError('invalid-argument', `customClaims claims "${invalidClaims.join(",")}" are reserved and cannot be specified.`);
+      throw new HttpsError(
+        'invalid-argument',
+        `customClaims claims "${invalidClaims.join(
+          ','
+        )}" are reserved and cannot be specified.`
+      );
     }
   }
   const combinedClaims = {
@@ -674,7 +707,7 @@ export function validateAuthRequest(eventType: string, authRequest?: any) {
   if (JSON.stringify(combinedClaims).length > claimsMaxPayloadSize) {
     throw new HttpsError(
       'invalid-argument',
-      `The claims payload should not exceed ${claimsMaxPayloadSize} characters.`,
+      `The claims payload should not exceed ${claimsMaxPayloadSize} characters.`
     );
   }
 }
@@ -695,7 +728,10 @@ export function createHandler(
 
 /** @internal */
 function wrapHandler(
-  handler: (user: UserRecord, context: AuthEventContext) =>
+  handler: (
+    user: UserRecord,
+    context: AuthEventContext
+  ) =>
     | BeforeCreateResponse
     | Promise<BeforeCreateResponse>
     | BeforeSignInResponse
@@ -716,14 +752,18 @@ function wrapHandler(
       );
       const userRecord = parseUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT);
-      const authRequest = (await handler(userRecord, authEventContext)) || undefined;
+      const authRequest =
+        (await handler(userRecord, authEventContext)) || undefined;
       validateAuthRequest(eventType, authRequest);
-      const updateMask = generateUpdateMask(authRequest, {customClaims: true, sessionClaims: true})
+      const updateMask = generateUpdateMask(authRequest, {
+        customClaims: true,
+        sessionClaims: true,
+      });
       const result = {
         userRecord: {
           ...authRequest,
           updateMask: updateMask.join(','),
-        }
+        },
       };
       // const result = encode(finalizedRequest);
 
@@ -744,16 +784,6 @@ function wrapHandler(
   };
 }
 
-
-
-
-
-
-
-
-
-
-
 /**
  * Generates the update mask for the provided object.
  * Note this will ignore the last key with value undefined.
@@ -764,14 +794,18 @@ function wrapHandler(
  * @param currentPath The path so far.
  * @return The computed update mask list.
  */
- export function generateUpdateMask(
-  obj: any, maxPaths: {[key: string]: boolean} = {}, currentPath: string = ''
+export function generateUpdateMask(
+  obj: any,
+  maxPaths: { [key: string]: boolean } = {},
+  currentPath: string = ''
 ): string[] {
   const updateMask: string[] = [];
-  if (!obj) { return updateMask; }
+  if (!obj) {
+    return updateMask;
+  }
   for (const key in obj) {
     if (obj.hasOwnProperty(key) && typeof obj[key] !== 'undefined') {
-      const nextPath = currentPath ?  currentPath + '.' + key : key;
+      const nextPath = currentPath ? currentPath + '.' + key : key;
       // We hit maximum path.
       if (maxPaths[nextPath]) {
         // Add key and stop traversing this branch.
@@ -797,7 +831,9 @@ function wrapHandler(
  * @param obj The input object.
  * @return obj The processed object with all key/value pairs having undefined values removed.
  */
- export function removeUndefinedProperties(obj: {[key: string]: any}): {[key: string]: any} {
+export function removeUndefinedProperties(obj: {
+  [key: string]: any;
+}): { [key: string]: any } {
   const filteredObj = {};
   for (const key in obj) {
     if (obj.hasOwnProperty(key) && typeof obj[key] !== 'undefined') {

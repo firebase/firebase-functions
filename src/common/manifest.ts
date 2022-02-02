@@ -70,7 +70,7 @@ export interface ManifestEndpoint {
   blockingTrigger?: {
     eventType: string;
     options: Record<string, any>;
-  }
+  };
 }
 
 /* @internal */
