@@ -480,7 +480,7 @@ export function makeCloudFunction<EventData>({
     cloudFunction.__requiredAPIs = [
       {
         api: 'cloudscheduler.googleapis.com',
-        reason: 'Needed for v1 scheduled functions.',
+        reason: 'Needed for scheduled functions.',
       },
     ];
   }
