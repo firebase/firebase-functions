@@ -867,9 +867,43 @@ export function validateAuthResponse(
   }
 }
 
+/**
+ * @internal
+ * Helper function to generate the update mask for the identity platform changed values
+ */
+export function getUpdateMask(
+  authResponse?: BeforeCreateResponse | BeforeSignInResponse
+): string {
+  if (!authResponse) {
+    return '';
+  }
+  const updateMask: string[] = [];
+  for (const key in authResponse) {
+    if (key === 'customClaims' || key === 'sessionClaims') {
+      continue;
+    }
+    if (
+      authResponse.hasOwnProperty(key) &&
+      typeof authResponse[key] !== 'undefined'
+    ) {
+      updateMask.push(key);
+    }
+  }
+  return updateMask.join(',');
+}
+
 /** @internal */
 export function createHandler(
-  handler: (user: UserRecord, context: AuthEventContext) => any,
+  handler: (
+    user: UserRecord,
+    context: AuthEventContext
+  ) =>
+    | BeforeCreateResponse
+    | Promise<BeforeCreateResponse>
+    | BeforeSignInResponse
+    | Promise<BeforeSignInResponse>
+    | void
+    | Promise<void>,
   eventType: string
 ): (req: express.Request, resp: express.Response) => Promise<void> {
   const wrappedHandler = wrapHandler(handler, eventType);
@@ -894,7 +928,6 @@ function wrapHandler(
     | void
     | Promise<void>,
   eventType: string
-  // publicKeys: Record<string, string> = {}
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
@@ -913,17 +946,13 @@ function wrapHandler(
       const authResponse =
         (await handler(userRecord, authEventContext)) || undefined;
       validateAuthResponse(eventType, authResponse);
-      const updateMask = generateUpdateMask(authResponse, {
-        customClaims: true,
-        sessionClaims: true,
-      });
+      const updateMask = getUpdateMask(authResponse);
       const result = {
         userRecord: {
           ...authResponse,
-          updateMask: updateMask.join(','),
+          updateMask,
         },
       };
-      // const result = encode(finalizedRequest);
 
       res.status(200);
       res.setHeader('Content-Type', 'application/json');
@@ -940,47 +969,4 @@ function wrapHandler(
       res.send(JSON.stringify(err.toJSON()));
     }
   };
-}
-
-/**
- * @internal
- * Generates the update mask for the provided object.
- * Note this will ignore the last key with value undefined.
- *
- * @param obj The object to generate the update mask for.
- * @param maxPaths The optional map of keys for maximum paths to traverse.
- *      Nested objects beyond that path will be ignored.
- * @param currentPath The path so far.
- * @return The computed update mask list.
- */
-export function generateUpdateMask(
-  obj: any,
-  maxPaths: { [key: string]: boolean } = {},
-  currentPath: string = ''
-): string[] {
-  const updateMask: string[] = [];
-  if (!obj) {
-    return updateMask;
-  }
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key) && typeof obj[key] !== 'undefined') {
-      const nextPath = currentPath ? currentPath + '.' + key : key;
-      // We hit maximum path.
-      if (maxPaths[nextPath]) {
-        // Add key and stop traversing this branch.
-        updateMask.push(key);
-      } else {
-        let maskList: string[] = [];
-        maskList = generateUpdateMask(obj[key], maxPaths, nextPath);
-        if (maskList.length > 0) {
-          maskList.forEach((mask) => {
-            updateMask.push(`${key}.${mask}`);
-          });
-        } else {
-          updateMask.push(key);
-        }
-      }
-    }
-  }
-  return updateMask;
 }

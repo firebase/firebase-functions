@@ -907,4 +907,42 @@ describe('identity', () => {
       );
     });
   });
+
+  describe('getUpdateMask', () => {
+    it('should return empty string on undefined response', () => {
+      expect(identity.getUpdateMask()).to.eq('');
+    });
+
+    it('should return empty on only customClaims and sessionClaims', () => {
+      const response = {
+        customClaims: {
+          claim1: 'abc',
+        },
+        sessionClaims: {
+          claim2: 'def',
+        },
+      };
+
+      expect(identity.getUpdateMask(response)).to.eq('');
+    });
+
+    it('should return the right claims on a response', () => {
+      const response = {
+        displayName: 'john',
+        disabled: false,
+        emailVerified: true,
+        photoURL: 'google.com',
+        customClaims: {
+          claim1: 'abc',
+        },
+        sessionClaims: {
+          claim2: 'def',
+        },
+      };
+
+      expect(identity.getUpdateMask(response)).to.eq(
+        'displayName,disabled,emailVerified,photoURL'
+      );
+    });
+  });
 });
