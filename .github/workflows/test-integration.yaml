@@ -1,4 +1,4 @@
-name: CI Tests
+name: CI Tests - Integration
 
 on:
   - pull_request
@@ -29,6 +29,4 @@ jobs:
           key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
 
       - run: npm install
-      - run: npm run lint
-      - run: npm run format
-      - run: npm run test
+      - run: npm run test:bin
