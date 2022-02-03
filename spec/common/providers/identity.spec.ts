@@ -21,8 +21,6 @@
 // SOFTWARE.
 
 import * as express from 'express';
-// import * as firebase from 'firebase-admin';
-// import * as sinon from 'sinon';
 
 import * as identity from '../../../src/common/providers/identity';
 import { expect } from 'chai';
@@ -33,14 +31,6 @@ const VALID_URL = `https://us-central1-${PROJECT}.cloudfunctions.net/function-1`
 const now = new Date();
 
 describe('identity', () => {
-  // before(() => {
-  //   process.env.GCLOUD_PROJECT = PROJECT;
-  // });
-
-  // after(() => {
-  //   delete process.env.GCLOUD_PROJECT;
-  // });
-
   describe('userRecordConstructor', () => {
     it('will provide falsey values for fields that are not in raw wire data', () => {
       const record = identity.userRecordConstructor({ uid: '123' });
@@ -410,11 +400,15 @@ describe('identity', () => {
     };
 
     it('should parse the user info', () => {
-      expect(identity.parseProviderData([decodedUserInfo])).to.deep.equal([userInfo]);
+      expect(identity.parseProviderData([decodedUserInfo])).to.deep.equal([
+        userInfo,
+      ]);
     });
 
     it('should parse the user info with phone', () => {
-      expect(identity.parseProviderData([decodedUserInfoPhone])).to.deep.equal([userInfoPhone]);
+      expect(identity.parseProviderData([decodedUserInfoPhone])).to.deep.equal([
+        userInfoPhone,
+      ]);
     });
   });
 
@@ -424,7 +418,9 @@ describe('identity', () => {
     });
 
     it('should parse the date', () => {
-      expect(identity.parseDate(1476136676)).to.equal(new Date(1476136676000).toUTCString())
+      expect(identity.parseDate(1476136676)).to.equal(
+        new Date(1476136676000).toUTCString()
+      );
     });
   });
 
@@ -441,7 +437,7 @@ describe('identity', () => {
           uid: 'enrollmentId2',
           enrollment_time: now.toISOString(),
         },
-      ]
+      ],
     };
     const multiFactors = {
       enrolledFactors: [
@@ -471,15 +467,19 @@ describe('identity', () => {
 
     it('should error on an invalid factor', () => {
       const factors = {
-        enrolled_factors: [{} as identity.DecodedJwtMfaInfo]
-      }
+        enrolled_factors: [{} as identity.DecodedJwtMfaInfo],
+      };
 
-      expect(() => identity.parseMultiFactor(factors)).to.throw('INTERNAL ASSERT FAILED: Invalid multi-factor info response');
+      expect(() => identity.parseMultiFactor(factors)).to.throw(
+        'INTERNAL ASSERT FAILED: Invalid multi-factor info response'
+      );
     });
 
     it('should correctly parse factors', () => {
-      expect(identity.parseMultiFactor(decodedMultiFactors)).to.deep.equal(multiFactors);
-    })
+      expect(identity.parseMultiFactor(decodedMultiFactors)).to.deep.equal(
+        multiFactors
+      );
+    });
   });
 
   describe('parseUserRecord', () => {
@@ -623,7 +623,9 @@ describe('identity', () => {
     };
 
     it('should error if decoded does not have uid', () => {
-      expect(() => identity.parseUserRecord({} as identity.DecodedJwtUserRecord)).to.throw('INTERNAL ASSERT FAILED: Invalid user response');
+      expect(() =>
+        identity.parseUserRecord({} as identity.DecodedJwtUserRecord)
+      ).to.throw('INTERNAL ASSERT FAILED: Invalid user response');
     });
 
     it('should parse user record', () => {
@@ -636,7 +638,8 @@ describe('identity', () => {
   describe('parseAuthEventContext', () => {
     const rawUserInfo = {
       name: 'John Doe',
-      granted_scopes: 'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
+      granted_scopes:
+        'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
       id: '123456789',
       verified_email: true,
       given_name: 'John',
@@ -683,7 +686,9 @@ describe('identity', () => {
         params: {},
       };
 
-      expect(identity.parseAuthEventContext(decodedJwt, "project-id")).to.deep.equal(context);
+      expect(
+        identity.parseAuthEventContext(decodedJwt, 'project-id')
+      ).to.deep.equal(context);
     });
 
     it('should parse a beforeSignIn event', () => {
@@ -731,7 +736,7 @@ describe('identity', () => {
           idToken: 'ID_TOKEN',
           accessToken: 'ACCESS_TOKEN',
           refreshToken: 'REFRESH_TOKEN',
-          expirationTime: (new Date(time + 3600 * 1000)).toUTCString(),
+          expirationTime: new Date(time + 3600 * 1000).toUTCString(),
           secret: 'OAUTH_TOKEN_SECRET',
           providerId: 'password',
           signInMethod: 'password',
@@ -739,7 +744,9 @@ describe('identity', () => {
         params: {},
       };
 
-      expect(identity.parseAuthEventContext(decodedJwt, "project-id", time)).to.deep.equal(context);
+      expect(
+        identity.parseAuthEventContext(decodedJwt, 'project-id', time)
+      ).to.deep.equal(context);
     });
 
     it('should parse a beforeCreate event', () => {
@@ -797,7 +804,8 @@ describe('identity', () => {
         ipAddress: '1.2.3.4',
         userAgent: 'USER_AGENT',
         eventId: 'EVENT_ID',
-        eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate:oidc.provider',
+        eventType:
+          'providers/cloud.auth/eventTypes/user.beforeCreate:oidc.provider',
         authType: 'USER',
         resource: {
           service: 'identitytoolkit.googleapis.com',
@@ -813,7 +821,7 @@ describe('identity', () => {
         credential: {
           claims: undefined,
           accessToken: 'ACCESS_TOKEN',
-          expirationTime: (new Date(time + 3600 * 1000)).toUTCString(),
+          expirationTime: new Date(time + 3600 * 1000).toUTCString(),
           idToken: 'ID_TOKEN',
           providerId: 'oidc.provider',
           refreshToken: 'REFRESH_TOKEN',
@@ -823,56 +831,80 @@ describe('identity', () => {
         params: {},
       };
 
-      expect(identity.parseAuthEventContext(decodedJwt, "project-id", time)).to.deep.equal(context);
+      expect(
+        identity.parseAuthEventContext(decodedJwt, 'project-id', time)
+      ).to.deep.equal(context);
     });
   });
 
   describe('validateAuthRequest', () => {
     it('should not throw on undefined request', () => {
-      expect(() => identity.validateAuthRequest("event", undefined)).to.not.throw;
+      expect(() => identity.validateAuthRequest('event', undefined)).to.not
+        .throw;
     });
 
     it('should throw an error if customClaims have a blocked claim', () => {
-      expect(() => identity.validateAuthRequest("beforeCreate", { customClaims: { acr: 'something' }})).to.throw('The customClaims claims "acr" are reserved and cannot be specified.');
+      expect(() =>
+        identity.validateAuthRequest('beforeCreate', {
+          customClaims: { acr: 'something' },
+        })
+      ).to.throw(
+        'The customClaims claims "acr" are reserved and cannot be specified.'
+      );
     });
 
-    it ('should throw an error if customClaims size is too big', () => {
+    it('should throw an error if customClaims size is too big', () => {
       let str = '';
-      for (let i = 0; i < 1000; i++ ) {
-        str += 'x'
+      for (let i = 0; i < 1000; i++) {
+        str += 'x';
       }
 
-      expect(() => identity.validateAuthRequest("beforeCreate", { customClaims: { idk: str }})).to.throw('The customClaims payload should not exceed 1000 characters.');
+      expect(() =>
+        identity.validateAuthRequest('beforeCreate', {
+          customClaims: { idk: str },
+        })
+      ).to.throw('The customClaims payload should not exceed 1000 characters.');
     });
 
     it('should throw an error if sessionClaims have a blocked claim', () => {
-      expect(() => identity.validateAuthRequest("beforeSignIn", { sessionClaims: { acr: 'something' }})).to.throw('The sessionClaims claims "acr" are reserved and cannot be specified.');
+      expect(() =>
+        identity.validateAuthRequest('beforeSignIn', {
+          sessionClaims: { acr: 'something' },
+        })
+      ).to.throw(
+        'The sessionClaims claims "acr" are reserved and cannot be specified.'
+      );
     });
 
-    it ('should throw an error if sessionClaims size is too big', () => {
+    it('should throw an error if sessionClaims size is too big', () => {
       let str = '';
-      for (let i = 0; i < 1000; i++ ) {
-        str += 'x'
+      for (let i = 0; i < 1000; i++) {
+        str += 'x';
       }
 
-      expect(() => identity.validateAuthRequest("beforeSignIn", { sessionClaims: { idk: str }})).to.throw('The sessionClaims payload should not exceed 1000 characters.');
+      expect(() =>
+        identity.validateAuthRequest('beforeSignIn', {
+          sessionClaims: { idk: str },
+        })
+      ).to.throw(
+        'The sessionClaims payload should not exceed 1000 characters.'
+      );
     });
 
-    it ('should throw an error if the combined customClaims & sessionClaims size is too big', () => {
+    it('should throw an error if the combined customClaims & sessionClaims size is too big', () => {
       let str = '';
-      for (let i = 0; i < 501; i++ ) {
-        str += 'x'
+      for (let i = 0; i < 501; i++) {
+        str += 'x';
       }
 
-      expect(() => identity.validateAuthRequest(
-        "beforeSignIn", 
-        { 
+      expect(() =>
+        identity.validateAuthRequest('beforeSignIn', {
           customClaims: { cc: str },
-          sessionClaims: { sc: str }
-        }
-      )).to.throw('The customClaims and sessionClaims payloads should not exceed 1000 characters combined.');
+          sessionClaims: { sc: str },
+        })
+      ).to.throw(
+        'The customClaims and sessionClaims payloads should not exceed 1000 characters combined.'
+      );
     });
-
   });
-
 });

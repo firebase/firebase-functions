@@ -380,9 +380,9 @@ export function userRecordConstructor(wireData: Object): UserRecord {
   return record as UserRecord;
 }
 
-/** 
+/**
  * @internal
- * 
+ *
  */
 export function validRequest(req: express.Request): void {
   if (req.method !== 'POST') {
@@ -516,8 +516,8 @@ function verifyAndDecodeJWT(
   return decoded;
 }
 
-/** 
- * @internal 
+/**
+ * @internal
  * Helper function to parse the decoded metadata object into a UserMetaData object
  */
 export function parseMetadata(metadata: DecodedJwtMetadata): UserMetadata {
@@ -530,8 +530,8 @@ export function parseMetadata(metadata: DecodedJwtMetadata): UserMetadata {
   return new UserRecordMetadata(creationTime, lastSignInTime);
 }
 
-/** 
- * @internal 
+/**
+ * @internal
  * Helper function to parse the decoded user info array into a UserInfo array
  */
 export function parseProviderData(
@@ -592,7 +592,7 @@ export function parseMultiFactor(
       parsedEnrolledFactors.push(
         new UserRecordPhoneMultiFactorInfo(
           factor.uid,
-          factor.factor_id || "phone",
+          factor.factor_id || 'phone',
           factor.phone_number,
           factor.display_name,
           enrollmentTime
@@ -719,9 +719,7 @@ function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
     accessToken: decodedJWT.oauth_access_token,
     refreshToken: decodedJWT.oauth_refresh_token,
     expirationTime: decodedJWT.oauth_expires_in
-      ? (new Date(
-          time + decodedJWT.oauth_expires_in * 1000
-        )).toUTCString()
+      ? new Date(time + decodedJWT.oauth_expires_in * 1000).toUTCString()
       : undefined,
     secret: decodedJWT.oauth_token_secret,
     providerId:
@@ -736,10 +734,11 @@ function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
 export function parseAuthEventContext(
   decodedJWT: DecodedJwt,
   projectId: string,
-  time: number = new Date().getTime(),
+  time: number = new Date().getTime()
 ): AuthEventContext {
-  const eventType = (EVENT_MAPPING[decodedJWT.event_type] || decodedJWT.event_type) +
-  (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : '');
+  const eventType =
+    (EVENT_MAPPING[decodedJWT.event_type] || decodedJWT.event_type) +
+    (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : '');
 
   return {
     locale: decodedJWT.locale,
@@ -755,7 +754,7 @@ export function parseAuthEventContext(
         ? `projects/${projectId}/tenants/${decodedJWT.tenant_id}`
         : `projects/${projectId}`,
     },
-    timestamp: (new Date(decodedJWT.iat * 1000)).toUTCString(),
+    timestamp: new Date(decodedJWT.iat * 1000).toUTCString(),
     additionalUserInfo: parseAdditionalUserInfo(decodedJWT),
     credential: parseAuthCredential(decodedJWT, time),
     params: {},
@@ -763,7 +762,10 @@ export function parseAuthEventContext(
 }
 
 /** @internal */
-export function validateAuthRequest(eventType: string, authRequest?: BeforeCreateResponse | BeforeSignInResponse) {
+export function validateAuthRequest(
+  eventType: string,
+  authRequest?: BeforeCreateResponse | BeforeSignInResponse
+) {
   const nonAllowListedClaims = [
     'acr',
     'amr',
@@ -798,16 +800,21 @@ export function validateAuthRequest(eventType: string, authRequest?: BeforeCreat
         )}" are reserved and cannot be specified.`
       );
     }
-    if (JSON.stringify(authRequest.customClaims).length > claimsMaxPayloadSize) {
+    if (
+      JSON.stringify(authRequest.customClaims).length > claimsMaxPayloadSize
+    ) {
       throw new HttpsError(
         'invalid-argument',
         `The customClaims payload should not exceed ${claimsMaxPayloadSize} characters.`
       );
     }
   }
-  if (eventType === "beforeSignIn" && (authRequest as BeforeSignInResponse).sessionClaims) {
+  if (
+    eventType === 'beforeSignIn' &&
+    (authRequest as BeforeSignInResponse).sessionClaims
+  ) {
     const invalidClaims = nonAllowListedClaims.filter((claim) =>
-    (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
+      (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
@@ -817,7 +824,10 @@ export function validateAuthRequest(eventType: string, authRequest?: BeforeCreat
         )}" are reserved and cannot be specified.`
       );
     }
-    if (JSON.stringify((authRequest as BeforeSignInResponse).sessionClaims).length > claimsMaxPayloadSize) {
+    if (
+      JSON.stringify((authRequest as BeforeSignInResponse).sessionClaims)
+        .length > claimsMaxPayloadSize
+    ) {
       throw new HttpsError(
         'invalid-argument',
         `The sessionClaims payload should not exceed ${claimsMaxPayloadSize} characters.`
@@ -875,7 +885,10 @@ function wrapHandler(
         publicKeys
       );
       const userRecord = parseUserRecord(decodedJWT.user_record);
-      const authEventContext = parseAuthEventContext(decodedJWT, process.env.GCLOUD_PROJECT);
+      const authEventContext = parseAuthEventContext(
+        decodedJWT,
+        process.env.GCLOUD_PROJECT
+      );
       const authRequest =
         (await handler(userRecord, authEventContext)) || undefined;
       validateAuthRequest(eventType, authRequest);
@@ -949,22 +962,4 @@ export function generateUpdateMask(
     }
   }
   return updateMask;
-}
-
-/**
- * @internal
- * Returns a copy of the object with all key/value pairs having undefined values removed.
- * @param obj The input object.
- * @return obj The processed object with all key/value pairs having undefined values removed.
- */
-export function removeUndefinedProperties(obj: {
-  [key: string]: any;
-}): { [key: string]: any } {
-  const filteredObj = {};
-  for (const key in obj) {
-    if (obj.hasOwnProperty(key) && typeof obj[key] !== 'undefined') {
-      filteredObj[key] = obj[key];
-    }
-  }
-  return filteredObj;
 }
