@@ -837,15 +837,15 @@ describe('identity', () => {
     });
   });
 
-  describe('validateAuthRequest', () => {
+  describe('validateAuthResponse', () => {
     it('should not throw on undefined request', () => {
-      expect(() => identity.validateAuthRequest('event', undefined)).to.not
+      expect(() => identity.validateAuthResponse('event', undefined)).to.not
         .throw;
     });
 
     it('should throw an error if customClaims have a blocked claim', () => {
       expect(() =>
-        identity.validateAuthRequest('beforeCreate', {
+        identity.validateAuthResponse('beforeCreate', {
           customClaims: { acr: 'something' },
         })
       ).to.throw(
@@ -860,7 +860,7 @@ describe('identity', () => {
       }
 
       expect(() =>
-        identity.validateAuthRequest('beforeCreate', {
+        identity.validateAuthResponse('beforeCreate', {
           customClaims: { idk: str },
         })
       ).to.throw('The customClaims payload should not exceed 1000 characters.');
@@ -868,7 +868,7 @@ describe('identity', () => {
 
     it('should throw an error if sessionClaims have a blocked claim', () => {
       expect(() =>
-        identity.validateAuthRequest('beforeSignIn', {
+        identity.validateAuthResponse('beforeSignIn', {
           sessionClaims: { acr: 'something' },
         })
       ).to.throw(
@@ -883,7 +883,7 @@ describe('identity', () => {
       }
 
       expect(() =>
-        identity.validateAuthRequest('beforeSignIn', {
+        identity.validateAuthResponse('beforeSignIn', {
           sessionClaims: { idk: str },
         })
       ).to.throw(
@@ -898,7 +898,7 @@ describe('identity', () => {
       }
 
       expect(() =>
-        identity.validateAuthRequest('beforeSignIn', {
+        identity.validateAuthResponse('beforeSignIn', {
           customClaims: { cc: str },
           sessionClaims: { sc: str },
         })

@@ -31,7 +31,6 @@ import { logger } from '../..';
 
 export { HttpsError };
 
-/* API Constants */
 /** @internal */
 export const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
 /** @internal */
@@ -79,7 +78,7 @@ export type MultiFactorInfo = firebase.auth.MultiFactorInfo;
  */
 export type PhoneMultiFactorInfo = firebase.auth.PhoneMultiFactorInfo;
 
-/** @internal */
+/** The additional user info component of the auth event context */
 interface AdditionalUserInfo {
   providerId: string;
   profile?: any;
@@ -87,7 +86,7 @@ interface AdditionalUserInfo {
   isNewUser: boolean;
 }
 
-/** @internal */
+/** The credential component of the auth event context */
 interface Credential {
   claims?: { [key: string]: any };
   idToken?: string;
@@ -99,7 +98,7 @@ interface Credential {
   signInMethod: string;
 }
 
-/** Defines the Auth event context. */
+/** Defines the auth event context for blocking events */
 export interface AuthEventContext extends EventContext {
   locale?: string;
   ipAddress: string;
@@ -108,6 +107,7 @@ export interface AuthEventContext extends EventContext {
   credential?: Credential;
 }
 
+/** The handler response type for beforeCreate blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
   disabled?: boolean;
@@ -116,12 +116,8 @@ export interface BeforeCreateResponse {
   customClaims?: object;
 }
 
-export interface BeforeSignInResponse {
-  displayName?: string;
-  disabled?: boolean;
-  emailVerified?: boolean;
-  photoURL?: string;
-  customClaims?: object;
+/** The handler response type for beforeSignIn blocking events */
+export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
 
@@ -175,7 +171,6 @@ export interface DecodedJwtUserRecord {
   [key: string]: any;
 }
 
-/** Defines HTTP event JWT. */
 /** @internal */
 export interface DecodedJwt {
   aud: string;
@@ -201,23 +196,6 @@ export interface DecodedJwt {
   oauth_token_secret?: string;
   oauth_expires_in?: number;
   [key: string]: any;
-}
-
-/** @internal */
-export async function fetchPublicKeys(
-  publicKeys: Record<string, string>
-): Promise<Record<string, string>> {
-  const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    return data as Record<string, string>;
-  } catch (err) {
-    logger.error(
-      `Failed to obtain public keys for JWT verification: ${err.message}`
-    );
-    throw new HttpsError('internal', 'Failed to obtain public keys');
-  }
 }
 
 /**
@@ -320,6 +298,24 @@ export class UserRecordMultiFactorSettings implements MultiFactorSettings {
 }
 
 /**
+ * @internal
+ * Obtain public keys for use in decoding and verifying the jwt sent from identity platform
+ */
+export async function fetchPublicKeys(): Promise<Record<string, string>> {
+  const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data as Record<string, string>;
+  } catch (err) {
+    logger.error(
+      `Failed to obtain public keys for JWT verification: ${err.message}`
+    );
+    throw new HttpsError('internal', 'Failed to obtain public keys');
+  }
+}
+
+/**
  * Helper function that creates a UserRecord Class from data sent over the wire.
  * @param wireData data sent over the wire
  * @returns an instance of UserRecord with correct toJSON functions
@@ -382,7 +378,7 @@ export function userRecordConstructor(wireData: Object): UserRecord {
 
 /**
  * @internal
- *
+ * Checks for a valid identity platform web request, otherwise throws an HttpsError
  */
 export function validRequest(req: express.Request): void {
   if (req.method !== 'POST') {
@@ -429,7 +425,10 @@ export function getPublicKey(
   return publicKeys[header.kid];
 }
 
-/** @internal */
+/**
+ * @internal
+ * Checks for a well forms cloud functions url
+ */
 export function isAuthorizedCloudFunctionURL(
   cloudFunctionUrl: string,
   projectId: string
@@ -458,7 +457,10 @@ export function isAuthorizedCloudFunctionURL(
   return res.length > 0;
 }
 
-/** @internal */
+/**
+ * @internal
+ * Checks for errors in a decoded jwt
+ */
 export function checkDecodedToken(
   decodedJWT: DecodedJwt,
   projectId: string
@@ -490,7 +492,11 @@ export function checkDecodedToken(
   }
 }
 
-/** @internal */
+/**
+ * @internal
+ * Verifies the jwt using the 'jwt' library and decodes the token with the public keys
+ * Throws an error if the event types do not match
+ */
 function verifyAndDecodeJWT(
   token: string,
   eventType: string,
@@ -553,7 +559,10 @@ export function parseProviderData(
   return providers;
 }
 
-/** @internal */
+/**
+ * @internal
+ * Helper function to parse the date into a UTC string
+ */
 export function parseDate(tokensValidAfterTime?: number): string | null {
   if (!tokensValidAfterTime) {
     return null;
@@ -570,7 +579,10 @@ export function parseDate(tokensValidAfterTime?: number): string | null {
   return null;
 }
 
-/** @internal */
+/**
+ * @internal
+ * Helper function to parse the decoded enrolled factors into a valid MultiFactorSettings
+ */
 export function parseMultiFactor(
   multiFactor?: DecodedJwtEnrolledFactors
 ): MultiFactorSettings {
@@ -616,7 +628,10 @@ export function parseMultiFactor(
   return null;
 }
 
-/** @internal */
+/**
+ * @internal
+ * Parses the decoded user record into a valid UserRecord for use in the handler
+ */
 export function parseUserRecord(
   decodedJWTUserRecord: DecodedJwtUserRecord
 ): UserRecord {
@@ -730,7 +745,10 @@ function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
   };
 }
 
-/** @internal */
+/**
+ * @internal
+ * Parses the decoded jwt into a valid AuthEventContext for use in the handler
+ */
 export function parseAuthEventContext(
   decodedJWT: DecodedJwt,
   projectId: string,
@@ -761,8 +779,11 @@ export function parseAuthEventContext(
   };
 }
 
-/** @internal */
-export function validateAuthRequest(
+/**
+ * @internal
+ * Checks the handler response for invalid customClaims & sessionClaims objects
+ */
+export function validateAuthResponse(
   eventType: string,
   authRequest?: BeforeCreateResponse | BeforeSignInResponse
 ) {
@@ -877,7 +898,7 @@ function wrapHandler(
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      const publicKeys = await fetchPublicKeys({});
+      const publicKeys = await fetchPublicKeys();
       validRequest(req);
       const decodedJWT = verifyAndDecodeJWT(
         req.body.data.jwt,
@@ -889,16 +910,16 @@ function wrapHandler(
         decodedJWT,
         process.env.GCLOUD_PROJECT
       );
-      const authRequest =
+      const authResponse =
         (await handler(userRecord, authEventContext)) || undefined;
-      validateAuthRequest(eventType, authRequest);
-      const updateMask = generateUpdateMask(authRequest, {
+      validateAuthResponse(eventType, authResponse);
+      const updateMask = generateUpdateMask(authResponse, {
         customClaims: true,
         sessionClaims: true,
       });
       const result = {
         userRecord: {
-          ...authRequest,
+          ...authResponse,
           updateMask: updateMask.join(','),
         },
       };
