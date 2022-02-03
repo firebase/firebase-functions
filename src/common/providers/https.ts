@@ -489,6 +489,9 @@ export function encode(data: any): any {
   if (typeof data === 'string') {
     return data;
   }
+  if (data instanceof Date) {
+    return data.toISOString();
+  }
   if (Array.isArray(data)) {
     return data.map(encode);
   }

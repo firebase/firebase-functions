@@ -908,6 +908,11 @@ describe('encoding/decoding', () => {
     expect(https.decode('hello')).to.equal('hello');
   });
 
+  it('encodes Date', () => {
+    const date = new Date(Date.now());
+    expect(https.encode(date)).to.equal(date.toISOString());
+  });
+
   it('encodes array', () => {
     // TODO(klimt): Make this test more interesting once there's some type
     // that needs encoding that can be created from JavaScript.
