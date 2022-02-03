@@ -1,5 +1,4 @@
 import * as path from 'path';
-import * as semver from 'semver';
 import { expect } from 'chai';
 
 import * as loader from '../../src/runtime/loader';
@@ -251,13 +250,13 @@ describe('loadStack', () => {
     expected: ManifestStack;
   };
   function runTests(tc: Testcase) {
-    it('loads backend given relative path', async () => {
+    it('loads stack given relative path', async () => {
       await expect(loader.loadStack(tc.modulePath)).to.eventually.deep.equal(
         tc.expected
       );
     });
 
-    it('loads backend given absolute path', async () => {
+    it('loads stack given absolute path', async () => {
       await expect(
         loader.loadStack(path.join(process.cwd(), tc.modulePath))
       ).to.eventually.deep.equal(tc.expected);
@@ -317,32 +316,4 @@ describe('loadStack', () => {
       });
     }
   });
-
-  if (semver.gt(process.versions.node, '13.2.0')) {
-    describe('esm', () => {
-      const testcases: Testcase[] = [
-        {
-          name: 'basic',
-          modulePath: './spec/fixtures/sources/esm',
-          expected,
-        },
-        {
-          name: 'with main',
-          modulePath: './spec/fixtures/sources/esm-main',
-          expected,
-        },
-        {
-          name: 'with .m extension',
-          modulePath: './spec/fixtures/sources/esm-ext',
-          expected,
-        },
-      ];
-
-      for (const tc of testcases) {
-        describe(tc.name, () => {
-          runTests(tc);
-        });
-      }
-    });
-  }
 });

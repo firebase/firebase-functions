@@ -1,5 +1,5 @@
-import * as functions from '../../../../lib/index.js';
-import * as functionsv2 from "../../../../lib/v2/index.js";
+import * as functions from "firebase-functions";
+import * as functionsv2 from "firebase-functions/v2";
 
 export const v1http = functions.https.onRequest((req, resp) => {
   resp.status(200).send("PASS");
