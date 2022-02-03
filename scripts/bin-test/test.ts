@@ -144,7 +144,7 @@ describe('stack.yaml', () => {
     });
 
     after(async () => {
-      await cleanup();
+      await cleanup?.();
     });
 
     it('stack.yaml returns expected Manifest', async () => {
