@@ -21,13 +21,11 @@
 // SOFTWARE.
 
 import * as express from 'express';
-
 import * as identity from '../../../src/common/providers/identity';
 import { expect } from 'chai';
 
 const PROJECT = 'my-project';
 const VALID_URL = `https://us-central1-${PROJECT}.cloudfunctions.net/function-1`;
-
 const now = new Date();
 
 describe('identity', () => {

@@ -500,7 +500,8 @@ export function checkDecodedToken(
 function verifyAndDecodeJWT(
   token: string,
   eventType: string,
-  publicKeys: Record<string, string>
+  publicKeys: Record<string, string>,
+  projectId: string
 ) {
   // jwt decode & verify
   // https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
@@ -511,7 +512,7 @@ function verifyAndDecodeJWT(
     algorithms: [this.algorithm],
   }) as DecodedJwt;
   decoded.uid = decoded.sub;
-  checkDecodedToken(decoded, process.env.GCLOUD_PROJECT);
+  checkDecodedToken(decoded, projectId);
 
   if (decoded.event_type !== eventType) {
     throw new HttpsError(
@@ -931,18 +932,17 @@ function wrapHandler(
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
+      const projectId = process.env.GCLOUD_PROJECT;
       const publicKeys = await fetchPublicKeys();
       validRequest(req);
       const decodedJWT = verifyAndDecodeJWT(
         req.body.data.jwt,
         eventType,
-        publicKeys
+        publicKeys,
+        projectId
       );
       const userRecord = parseUserRecord(decodedJWT.user_record);
-      const authEventContext = parseAuthEventContext(
-        decodedJWT,
-        process.env.GCLOUD_PROJECT
-      );
+      const authEventContext = parseAuthEventContext(decodedJWT, projectId);
       const authResponse =
         (await handler(userRecord, authEventContext)) || undefined;
       validateAuthResponse(eventType, authResponse);
