@@ -1,9 +1,8 @@
 #!/bin/bash
 set -ex # Immediately exit on failure
 
-# Globally link the locally built Functions SDK for the testing framework.
+# Link the Functions SDK for the testing environment.
 npm run build
-#./scripts/bin-test/npm-link.sh
 npm link
 
 # Link local SDK to all test sources.
