@@ -59,27 +59,53 @@ export type UserRecord = firebase.auth.UserRecord;
  */
 export type UserInfo = firebase.auth.UserInfo;
 
+/**
+ * Additional metadata about the user.
+ */
+export type UserMetadata = firebase.auth.UserMetadata;
+
+/**
+ * The multi-factor related properties for the current user, if available.
+ */
+export type MultiFactorSettings = firebase.auth.MultiFactorSettings;
+
+/**
+ * Interface representing the common properties of a user-enrolled second factor.
+ */
+export type MultiFactorInfo = firebase.auth.MultiFactorInfo;
+
+/**
+ * Interface representing a phone specific user-enrolled second factor.
+ */
+export type PhoneMultiFactorInfo = firebase.auth.PhoneMultiFactorInfo;
+
+/** @internal */
+interface AdditionalUserInfo {
+  providerId: string;
+  profile?: any;
+  username?: string;
+  isNewUser: boolean;
+}
+
+/** @internal */
+interface Credential {
+  claims?: { [key: string]: any };
+  idToken?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expirationTime?: string;
+  secret?: string;
+  providerId: string;
+  signInMethod: string;
+}
+
 /** Defines the Auth event context. */
 export interface AuthEventContext extends EventContext {
   locale?: string;
   ipAddress: string;
   userAgent: string;
-  additionalUserInfo?: {
-    providerId: string;
-    profile?: any;
-    username?: string;
-    isNewUser: boolean;
-  };
-  credential?: {
-    claims?: { [key: string]: any };
-    idToken?: string;
-    accessToken?: string;
-    refreshToken?: string;
-    expirationTime?: string;
-    secret?: string;
-    providerId: string;
-    signInMethod: string;
-  };
+  additionalUserInfo?: AdditionalUserInfo;
+  credential?: Credential;
 }
 
 export interface BeforeCreateResponse {
@@ -90,7 +116,12 @@ export interface BeforeCreateResponse {
   customClaims?: object;
 }
 
-export interface BeforeSignInResponse extends BeforeCreateResponse {
+export interface BeforeSignInResponse {
+  displayName?: string;
+  disabled?: boolean;
+  emailVerified?: boolean;
+  photoURL?: string;
+  customClaims?: object;
   sessionClaims?: object;
 }
 
@@ -101,7 +132,7 @@ interface DecodedJwtMetadata {
 }
 
 /** @internal */
-interface DecodedJwtProviderUserInfo {
+interface DecodedJwtUserInfo {
   uid: string;
   display_name?: string;
   email?: string;
@@ -111,7 +142,7 @@ interface DecodedJwtProviderUserInfo {
 }
 
 /** @internal */
-interface DecodedJwtMfaInfo {
+export interface DecodedJwtMfaInfo {
   uid: string;
   display_name?: string;
   phone_number?: string;
@@ -125,7 +156,7 @@ interface DecodedJwtEnrolledFactors {
 }
 
 /** @internal */
-interface DecodedJwtUserRecord {
+export interface DecodedJwtUserRecord {
   uid: string;
   email?: string;
   email_verified?: boolean;
@@ -136,7 +167,7 @@ interface DecodedJwtUserRecord {
   metadata?: DecodedJwtMetadata;
   password_hash?: string;
   password_salt?: string;
-  provider_data?: DecodedJwtProviderUserInfo[];
+  provider_data?: DecodedJwtUserInfo[];
   multi_factor?: DecodedJwtEnrolledFactors;
   custom_claims?: any;
   tokens_valid_after_time?: number;
@@ -192,14 +223,98 @@ export async function fetchPublicKeys(
 /**
  * Helper class to create the user metadata in a UserRecord object
  */
-export class UserRecordMetadata implements firebase.auth.UserMetadata {
+export class UserRecordMetadata implements UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
-  toJSON() {
+  toJSON(): object {
     return {
       creationTime: this.creationTime,
       lastSignInTime: this.lastSignInTime,
+    };
+  }
+}
+
+/**
+ * Helper class to create the user info in a UserRecord object
+ */
+export class UserRecordInfo implements UserInfo {
+  constructor(
+    public uid: string,
+    public displayName: string,
+    public email: string,
+    public photoURL: string,
+    public providerId: string,
+    public phoneNumber: string
+  ) {}
+
+  toJSON(): object {
+    return {
+      uid: this.uid,
+      displayName: this.displayName,
+      email: this.email,
+      photoURL: this.photoURL,
+      providerId: this.providerId,
+      phoneNumber: this.phoneNumber,
+    };
+  }
+}
+
+/**
+ * Helper class to create the user MultiFactorInfo in a UserRecord object
+ */
+export class UserRecordMultiFactorInfo
+  implements Pick<MultiFactorInfo, keyof MultiFactorInfo> {
+  constructor(
+    public uid: string,
+    public factorId: string,
+    public displayName?: string,
+    public enrollmentTime?: string
+  ) {}
+
+  toJSON(): object {
+    return {
+      uid: this.uid,
+      factorId: this.factorId,
+      displayName: this.displayName || null,
+      enrollmentTime: this.enrollmentTime || null,
+    };
+  }
+}
+
+/**
+ * Helper class to create the user PhoneMultiFactorInfo in a UserRecord object
+ */
+export class UserRecordPhoneMultiFactorInfo
+  implements Pick<PhoneMultiFactorInfo, keyof PhoneMultiFactorInfo> {
+  constructor(
+    public uid: string,
+    public factorId: string,
+    public phoneNumber: string,
+    public displayName?: string,
+    public enrollmentTime?: string
+  ) {}
+
+  toJSON(): object {
+    return {
+      uid: this.uid,
+      factorId: this.factorId,
+      phoneNumber: this.phoneNumber,
+      displayName: this.displayName || null,
+      enrollmentTime: this.enrollmentTime || null,
+    };
+  }
+}
+
+/**
+ * Helper class to create the user MultiFactorSettings in a UserRecord object
+ */
+export class UserRecordMultiFactorSettings implements MultiFactorSettings {
+  constructor(public enrolledFactors: MultiFactorInfo[]) {}
+
+  toJSON(): object {
+    return {
+      enrolledFactors: this.enrolledFactors.map((ef) => ef.toJSON()),
     };
   }
 }
@@ -223,7 +338,6 @@ export function userRecordConstructor(wireData: Object): UserRecord {
     passwordSalt: null,
     passwordHash: null,
     tokensValidAfterTime: null,
-    tenantId: null,
   };
   const record = _.assign({}, falseyValues, wireData);
 
@@ -266,7 +380,10 @@ export function userRecordConstructor(wireData: Object): UserRecord {
   return record as UserRecord;
 }
 
-/** @internal */
+/** 
+ * @internal
+ * 
+ */
 export function validRequest(req: express.Request): void {
   if (req.method !== 'POST') {
     throw new HttpsError(
@@ -379,7 +496,8 @@ function verifyAndDecodeJWT(
   eventType: string,
   publicKeys: Record<string, string>
 ) {
-  // jwt decode & verify - https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+  // jwt decode & verify
+  // https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
   const header =
     (jwt.decode(token, { complete: true }) as Record<string, any>).header || {};
   const publicKey = getPublicKey(header, publicKeys);
@@ -398,130 +516,110 @@ function verifyAndDecodeJWT(
   return decoded;
 }
 
+/** 
+ * @internal 
+ * Helper function to parse the decoded metadata object into a UserMetaData object
+ */
+export function parseMetadata(metadata: DecodedJwtMetadata): UserMetadata {
+  const creationTime = metadata?.creation_time
+    ? new Date((metadata.creation_time as number) * 1000).toUTCString()
+    : null;
+  const lastSignInTime = metadata?.last_sign_in_time
+    ? new Date((metadata.last_sign_in_time as number) * 1000).toUTCString()
+    : null;
+  return new UserRecordMetadata(creationTime, lastSignInTime);
+}
+
+/** 
+ * @internal 
+ * Helper function to parse the decoded user info array into a UserInfo array
+ */
+export function parseProviderData(
+  providerData: DecodedJwtUserInfo[]
+): UserInfo[] {
+  const providers: UserInfo[] = [];
+  for (const provider of providerData) {
+    providers.push(
+      new UserRecordInfo(
+        provider.uid,
+        provider.display_name,
+        provider.email,
+        provider.photo_url,
+        provider.provider_id,
+        provider.phone_number
+      )
+    );
+  }
+  return providers;
+}
+
+/** @internal */
+export function parseDate(tokensValidAfterTime?: number): string | null {
+  if (!tokensValidAfterTime) {
+    return null;
+  }
+  tokensValidAfterTime = tokensValidAfterTime * 1000;
+  try {
+    const date = new Date(tokensValidAfterTime);
+    if (!isNaN(date.getTime())) {
+      return date.toUTCString();
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+/** @internal */
+export function parseMultiFactor(
+  multiFactor?: DecodedJwtEnrolledFactors
+): MultiFactorSettings {
+  if (!multiFactor) {
+    return null;
+  }
+  const parsedEnrolledFactors: MultiFactorInfo[] = [];
+  for (const factor of multiFactor.enrolled_factors || []) {
+    if (!factor.uid) {
+      throw new HttpsError(
+        'internal',
+        'INTERNAL ASSERT FAILED: Invalid multi-factor info response'
+      );
+    }
+    const enrollmentTime = factor.enrollment_time
+      ? new Date(factor.enrollment_time).toUTCString()
+      : null;
+    if (factor.phone_number) {
+      parsedEnrolledFactors.push(
+        new UserRecordPhoneMultiFactorInfo(
+          factor.uid,
+          factor.factor_id || "phone",
+          factor.phone_number,
+          factor.display_name,
+          enrollmentTime
+        ) as PhoneMultiFactorInfo
+      );
+    } else {
+      parsedEnrolledFactors.push(
+        new UserRecordMultiFactorInfo(
+          factor.uid,
+          factor.factor_id,
+          factor.display_name,
+          enrollmentTime
+        ) as MultiFactorInfo
+      );
+    }
+  }
+
+  if (parsedEnrolledFactors.length > 0) {
+    return new UserRecordMultiFactorSettings(parsedEnrolledFactors);
+  }
+  return null;
+}
+
 /** @internal */
 export function parseUserRecord(
   decodedJWTUserRecord: DecodedJwtUserRecord
 ): UserRecord {
-  const parseMetadata = function(metadata: DecodedJwtMetadata) {
-    const creationTime = metadata?.creation_time
-      ? (
-          (decodedJWTUserRecord.metadata.creation_time as number) * 1000
-        ).toString()
-      : null;
-    const lastSignInTime = metadata?.last_sign_in_time
-      ? (
-          (decodedJWTUserRecord.metadata.last_sign_in_time as number) * 1000
-        ).toString()
-      : null;
-    return {
-      creationTime: creationTime,
-      lastSignInTime: lastSignInTime,
-      toJSON(): () => object {
-        const json: any = {
-          creationTime: creationTime,
-          lastSignInTime: lastSignInTime,
-        };
-        return json;
-      },
-    };
-  };
-
-  const parseProviderData = function(
-    providerData: DecodedJwtProviderUserInfo[]
-  ): UserInfo[] {
-    const providers: UserInfo[] = [];
-    for (const provider of providerData) {
-      const info: UserInfo = {
-        uid: provider.uid,
-        displayName: provider.display_name,
-        email: provider.email,
-        photoURL: provider.photo_url,
-        providerId: provider.provider_id,
-        phoneNumber: provider.phone_number,
-        toJSON(): () => object {
-          const json: any = {
-            uid: provider.uid,
-            displayName: provider.display_name,
-            email: provider.email,
-            photoURL: provider.photo_url,
-            providerId: provider.provider_id,
-            phoneNumber: provider.phone_number,
-          };
-          return json;
-        },
-      };
-      providers.push(info);
-    }
-    return providers;
-  };
-
-  const parseDate = function(tokensValidAfterTime: number) {
-    if (!tokensValidAfterTime) {
-      return null;
-    }
-    tokensValidAfterTime = tokensValidAfterTime * 1000;
-    try {
-      const date = new Date(parseInt(tokensValidAfterTime.toString(), 10));
-      if (!isNaN(date.getTime())) {
-        return date.toUTCString();
-      }
-    } catch {
-      return null;
-    }
-    return null;
-  };
-
-  const parseMultifactor = function(multiFactor: DecodedJwtEnrolledFactors) {
-    if (!multiFactor) {
-      return null;
-    }
-    const parsedEnrolledFactors = [];
-    for (const factor of multiFactor.enrolled_factors || []) {
-      if (factor.factor_id && factor.uid) {
-        const enrollmentTime = factor.enrollment_time
-          ? new Date(factor.enrollment_time).toUTCString()
-          : null;
-        const multiFactorInfo = {
-          uid: factor.uid,
-          factorId: factor.factor_id,
-          displayName: factor.display_name,
-          enrollmentTime: enrollmentTime,
-          phoneNumber: factor.phone_number,
-          toJSON: function(): object {
-            const json: any = {
-              uid: factor.uid,
-              factorId: factor.factor_id,
-              displayName: factor.display_name,
-              enrollmentTime: enrollmentTime,
-              phoneNumber: factor.phone_number,
-            };
-            return json;
-          },
-        };
-        parsedEnrolledFactors.push(multiFactorInfo);
-      } else {
-        throw new HttpsError(
-          'internal',
-          'INTERNAL ASSERT FAILED: Invalid multi-factor info response'
-        );
-      }
-    }
-
-    if (parsedEnrolledFactors.length > 0) {
-      const multiFactor = {
-        enrolledFactors: parsedEnrolledFactors,
-        toJSON: function(): object {
-          const json: any = {
-            enrolledFactors: parsedEnrolledFactors,
-          };
-          return json;
-        },
-      };
-      return multiFactor;
-    }
-    return null;
-  };
-
   if (!decodedJWTUserRecord.uid) {
     throw new HttpsError(
       'internal',
@@ -530,25 +628,29 @@ export function parseUserRecord(
   }
 
   const disabled = decodedJWTUserRecord.disabled || false;
+  const metadata = parseMetadata(decodedJWTUserRecord.metadata);
+  const providerData = parseProviderData(decodedJWTUserRecord.provider_data);
+  const tokensValidAfterTime = parseDate(
+    decodedJWTUserRecord.tokens_valid_after_time
+  );
+  const multiFactor = parseMultiFactor(decodedJWTUserRecord.multi_factor);
 
-  const userRecord: UserRecord = {
+  return {
     uid: decodedJWTUserRecord.uid,
     email: decodedJWTUserRecord.email,
     emailVerified: decodedJWTUserRecord.email_verified,
     displayName: decodedJWTUserRecord.display_name,
     photoURL: decodedJWTUserRecord.photo_url,
     phoneNumber: decodedJWTUserRecord.phone_number,
-    disabled: disabled,
-    metadata: parseMetadata(decodedJWTUserRecord.metadata),
-    providerData: parseProviderData(decodedJWTUserRecord.provider_data),
+    disabled,
+    metadata,
+    providerData,
     passwordHash: decodedJWTUserRecord.password_hash,
     passwordSalt: decodedJWTUserRecord.password_salt,
     customClaims: decodedJWTUserRecord.custom_claims,
     tenantId: decodedJWTUserRecord.tenant_id,
-    tokensValidAfterTime: parseDate(
-      decodedJWTUserRecord.tokens_valid_after_time
-    ),
-    multiFactor: parseMultifactor(decodedJWTUserRecord.multi_factor),
+    tokensValidAfterTime,
+    multiFactor,
     toJSON: function(): object {
       const json: any = {
         uid: decodedJWTUserRecord.uid,
@@ -558,41 +660,22 @@ export function parseUserRecord(
         photoURL: decodedJWTUserRecord.photo_url,
         phoneNumber: decodedJWTUserRecord.phone_number,
         disabled: disabled,
-        metadata: parseMetadata(decodedJWTUserRecord.metadata),
-        providerData: parseProviderData(decodedJWTUserRecord.provider_data),
+        metadata: metadata.toJSON(),
+        providerData: providerData.map((pd) => pd.toJSON()),
         passwordHash: decodedJWTUserRecord.password_hash,
         passwordSalt: decodedJWTUserRecord.password_salt,
         customClaims: decodedJWTUserRecord.custom_claims,
         tenantId: decodedJWTUserRecord.tenant_id,
-        tokensValidAfterTime: parseDate(
-          decodedJWTUserRecord.tokens_valid_after_time
-        ),
-        multiFactor: parseMultifactor(decodedJWTUserRecord.multi_factor),
+        tokensValidAfterTime,
+        multiFactor: multiFactor.toJSON(),
       };
       return json;
     },
   };
-
-  return userRecordConstructor(userRecord);
 }
 
 /** @internal */
-export function parseAuthEventContext(
-  decodedJWT: DecodedJwt
-): AuthEventContext {
-  if (
-    !decodedJWT.sign_in_attributes &&
-    !decodedJWT.oauth_id_token &&
-    !decodedJWT.oauth_access_token &&
-    !decodedJWT.oauth_refresh_token
-  ) {
-    throw new HttpsError(
-      'internal',
-      `Not enough info in JWT for parsing auth credential.`
-    );
-  }
-  const eventType =
-    EVENT_MAPPING[decodedJWT.event_type] || decodedJWT.event_type;
+function parseAdditionalUserInfo(decodedJWT: DecodedJwt): AdditionalUserInfo {
   let profile, username;
   if (decodedJWT.raw_user_info)
     try {
@@ -609,55 +692,78 @@ export function parseAuthEventContext(
     }
   }
 
-  const authEventContext: AuthEventContext = {
+  return {
+    providerId:
+      decodedJWT.sign_in_method === 'emailLink'
+        ? 'password'
+        : decodedJWT.sign_in_method,
+    profile,
+    username,
+    isNewUser: decodedJWT.event_type === 'beforeCreate' ? true : false,
+  };
+}
+
+/** @internal */
+function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
+  if (
+    !decodedJWT.sign_in_attributes &&
+    !decodedJWT.oauth_id_token &&
+    !decodedJWT.oauth_access_token &&
+    !decodedJWT.oauth_refresh_token
+  ) {
+    return null;
+  }
+  return {
+    claims: decodedJWT.sign_in_attributes,
+    idToken: decodedJWT.oauth_id_token,
+    accessToken: decodedJWT.oauth_access_token,
+    refreshToken: decodedJWT.oauth_refresh_token,
+    expirationTime: decodedJWT.oauth_expires_in
+      ? (new Date(
+          time + decodedJWT.oauth_expires_in * 1000
+        )).toUTCString()
+      : undefined,
+    secret: decodedJWT.oauth_token_secret,
+    providerId:
+      decodedJWT.sign_in_method === 'emailLink'
+        ? 'password'
+        : decodedJWT.sign_in_method,
+    signInMethod: decodedJWT.sign_in_method,
+  };
+}
+
+/** @internal */
+export function parseAuthEventContext(
+  decodedJWT: DecodedJwt,
+  projectId: string,
+  time: number = new Date().getTime(),
+): AuthEventContext {
+  const eventType = (EVENT_MAPPING[decodedJWT.event_type] || decodedJWT.event_type) +
+  (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : '');
+
+  return {
     locale: decodedJWT.locale,
     ipAddress: decodedJWT.ip_address,
     userAgent: decodedJWT.user_agent,
     eventId: decodedJWT.event_id,
-    eventType:
-      eventType +
-      (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : ''),
+    eventType,
     authType: !!decodedJWT.user_record ? 'USER' : 'UNAUTHENTICATED',
     resource: {
-      service: '', // TODO(colerogers): figure out the service
+      // TODO(colerogers): figure out the correct service
+      service: 'identitytoolkit.googleapis.com',
       name: !!decodedJWT.tenant_id
-        ? `projects/${this.projectId}/tenants/${decodedJWT.tenant_id}`
-        : `projects/${this.projectId}`,
+        ? `projects/${projectId}/tenants/${decodedJWT.tenant_id}`
+        : `projects/${projectId}`,
     },
-    timestamp: new Date(decodedJWT.iat * 1000).toUTCString(),
-    additionalUserInfo: {
-      providerId:
-        decodedJWT.sign_in_method === 'emailLink'
-          ? 'password'
-          : decodedJWT.sign_in_method,
-      profile,
-      username,
-      isNewUser: decodedJWT.event_type === 'beforeCreate' ? true : false,
-    },
-    credential: {
-      claims: decodedJWT.sign_in_attributes,
-      idToken: decodedJWT.oauth_id_token,
-      accessToken: decodedJWT.oauth_access_token,
-      refreshToken: decodedJWT.oauth_refresh_token,
-      expirationTime: decodedJWT.oauth_expires_in
-        ? new Date(
-            new Date().getTime() + decodedJWT.oauth_expires_in * 1000
-          ).toUTCString()
-        : undefined,
-      secret: decodedJWT.oauth_token_secret,
-      providerId:
-        decodedJWT.sign_in_method === 'emailLink'
-          ? 'password'
-          : decodedJWT.sign_in_method,
-      signInMethod: decodedJWT.sign_in_method,
-    },
+    timestamp: (new Date(decodedJWT.iat * 1000)).toUTCString(),
+    additionalUserInfo: parseAdditionalUserInfo(decodedJWT),
+    credential: parseAuthCredential(decodedJWT, time),
     params: {},
   };
-  return authEventContext;
 }
 
 /** @internal */
-export function validateAuthRequest(eventType: string, authRequest?: any) {
+export function validateAuthRequest(eventType: string, authRequest?: BeforeCreateResponse | BeforeSignInResponse) {
   const nonAllowListedClaims = [
     'acr',
     'amr',
@@ -687,34 +793,46 @@ export function validateAuthRequest(eventType: string, authRequest?: any) {
     if (invalidClaims.length > 0) {
       throw new HttpsError(
         'invalid-argument',
-        `customClaims claims "${invalidClaims.join(
+        `The customClaims claims "${invalidClaims.join(
           ','
         )}" are reserved and cannot be specified.`
       );
     }
+    if (JSON.stringify(authRequest.customClaims).length > claimsMaxPayloadSize) {
+      throw new HttpsError(
+        'invalid-argument',
+        `The customClaims payload should not exceed ${claimsMaxPayloadSize} characters.`
+      );
+    }
   }
-  if (authRequest.sessionClaims) {
+  if (eventType === "beforeSignIn" && (authRequest as BeforeSignInResponse).sessionClaims) {
     const invalidClaims = nonAllowListedClaims.filter((claim) =>
-      authRequest.sessionClaims.hasOwnProperty(claim)
+    (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
         'invalid-argument',
-        `customClaims claims "${invalidClaims.join(
+        `The sessionClaims claims "${invalidClaims.join(
           ','
         )}" are reserved and cannot be specified.`
       );
     }
-  }
-  const combinedClaims = {
-    ...authRequest.customClaims,
-    ...authRequest.sessionClaims,
-  };
-  if (JSON.stringify(combinedClaims).length > claimsMaxPayloadSize) {
-    throw new HttpsError(
-      'invalid-argument',
-      `The claims payload should not exceed ${claimsMaxPayloadSize} characters.`
-    );
+    if (JSON.stringify((authRequest as BeforeSignInResponse).sessionClaims).length > claimsMaxPayloadSize) {
+      throw new HttpsError(
+        'invalid-argument',
+        `The sessionClaims payload should not exceed ${claimsMaxPayloadSize} characters.`
+      );
+    }
+    const combinedClaims = {
+      ...authRequest.customClaims,
+      ...(authRequest as BeforeSignInResponse).sessionClaims,
+    };
+    if (JSON.stringify(combinedClaims).length > claimsMaxPayloadSize) {
+      throw new HttpsError(
+        'invalid-argument',
+        `The customClaims and sessionClaims payloads should not exceed ${claimsMaxPayloadSize} characters combined.`
+      );
+    }
   }
 }
 
@@ -757,7 +875,7 @@ function wrapHandler(
         publicKeys
       );
       const userRecord = parseUserRecord(decodedJWT.user_record);
-      const authEventContext = parseAuthEventContext(decodedJWT);
+      const authEventContext = parseAuthEventContext(decodedJWT, process.env.GCLOUD_PROJECT);
       const authRequest =
         (await handler(userRecord, authEventContext)) || undefined;
       validateAuthRequest(eventType, authRequest);
@@ -791,6 +909,7 @@ function wrapHandler(
 }
 
 /**
+ * @internal
  * Generates the update mask for the provided object.
  * Note this will ignore the last key with value undefined.
  *
@@ -833,6 +952,7 @@ export function generateUpdateMask(
 }
 
 /**
+ * @internal
  * Returns a copy of the object with all key/value pairs having undefined values removed.
  * @param obj The input object.
  * @return obj The processed object with all key/value pairs having undefined values removed.
