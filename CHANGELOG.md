@@ -1,0 +1,1 @@
+- Fix issue where TS users couldn' compile their code because of unexported type. (#1032)
