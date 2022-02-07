@@ -80,6 +80,7 @@ echo "Ran npm ci."
 
 echo "Running tests..."
 npm test
+npm run test:bin
 echo "Ran tests."
 
 echo "Running publish build..."

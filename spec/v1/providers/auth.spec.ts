@@ -21,13 +21,12 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as firebase from 'firebase-admin';
-
 import {
   CloudFunction,
   Event,
   EventContext,
 } from '../../../src/cloud-functions';
+import { UserRecord } from '../../../src/common/providers/identity';
 import * as functions from '../../../src/index';
 import * as auth from '../../../src/providers/auth';
 
@@ -75,7 +74,7 @@ describe('Auth Functions', () => {
       };
     }
 
-    const handler = (user: firebase.auth.UserRecord) => {
+    const handler = (user: UserRecord) => {
       return Promise.resolve();
     };
 
@@ -137,14 +136,12 @@ describe('Auth Functions', () => {
     });
 
     describe('#_dataConstructor', () => {
-      let cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord>;
+      let cloudFunctionDelete: CloudFunction<UserRecord>;
 
       before(() => {
         cloudFunctionDelete = auth
           .user()
-          .onDelete(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
-          );
+          .onDelete((data: UserRecord, context: EventContext) => data);
       });
 
       it('should handle wire format as of v5.0.0 of firebase-admin', () => {
@@ -158,68 +155,6 @@ describe('Auth Functions', () => {
             );
           }
         );
-      });
-    });
-  });
-
-  describe('userRecordConstructor', () => {
-    it('will provide falsey values for fields that are not in raw wire data', () => {
-      const record = auth.userRecordConstructor({ uid: '123' });
-      expect(record.toJSON()).to.deep.equal({
-        uid: '123',
-        email: null,
-        emailVerified: false,
-        displayName: null,
-        photoURL: null,
-        phoneNumber: null,
-        disabled: false,
-        providerData: [],
-        customClaims: {},
-        passwordSalt: null,
-        passwordHash: null,
-        tokensValidAfterTime: null,
-        metadata: {
-          creationTime: null,
-          lastSignInTime: null,
-        },
-      });
-    });
-
-    it('will not interfere with fields that are in raw wire data', () => {
-      const raw: any = {
-        uid: '123',
-        email: 'email@gmail.com',
-        emailVerified: true,
-        displayName: 'User',
-        photoURL: 'url',
-        phoneNumber: '1233332222',
-        disabled: true,
-        providerData: [],
-        customClaims: {},
-        passwordSalt: 'abc',
-        passwordHash: 'def',
-        tokensValidAfterTime: '2027-02-02T23:01:19.797Z',
-        metadata: {
-          creationTime: '2017-02-02T23:06:26.124Z',
-          lastSignInTime: '2017-02-02T23:01:19.797Z',
-        },
-      };
-      const record = auth.userRecordConstructor(raw);
-      expect(record.toJSON()).to.deep.equal(raw);
-    });
-
-    it('will convert raw wire fields createdAt and lastSignedInAt to creationTime and lastSignInTime', () => {
-      const raw: any = {
-        uid: '123',
-        metadata: {
-          createdAt: '2017-02-02T23:06:26.124Z',
-          lastSignedInAt: '2017-02-02T23:01:19.797Z',
-        },
-      };
-      const record = auth.userRecordConstructor(raw);
-      expect(record.metadata).to.deep.equal({
-        creationTime: '2017-02-02T23:06:26.124Z',
-        lastSignInTime: '2017-02-02T23:01:19.797Z',
       });
     });
   });
@@ -238,8 +173,8 @@ describe('Auth Functions', () => {
     });
 
     describe('#onDelete', () => {
-      const cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord> = functions.handler.auth.user.onDelete(
-        (data: firebase.auth.UserRecord) => data
+      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
+        (data: UserRecord) => data
       );
 
       it('should return an empty trigger', () => {

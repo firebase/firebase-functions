@@ -16,6 +16,7 @@ jobs:
           - 10.x
           - 12.x
           - 14.x
+          - 16.x
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
@@ -31,4 +32,26 @@ jobs:
       - run: npm install
       - run: npm run lint
       - run: npm run format
-      - run: npm run build && npm run test
+      - run: npm run test
+  integration:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - 12.x
+          - 14.x
+          - 16.x
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Cache npm
+        uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+
+      - run: npm install
+      - run: npm run test:bin

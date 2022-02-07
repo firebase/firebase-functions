@@ -33,7 +33,7 @@ import {
   convertInvoker,
   copyIfPresent,
 } from '../common/encoding';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../common/manifest';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 import {
   CallableContext,
   FunctionsErrorCode,
