@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 /**
- * @internal
  * An definition of a function as appears in the Manifest.
  */
 export interface ManifestEndpoint {
@@ -68,14 +67,12 @@ export interface ManifestEndpoint {
   };
 }
 
-/* @internal */
 export interface ManifestRequiredAPI {
   api: string;
   reason: string;
 }
 
 /**
- * @internal
  * An definition of a function deployment as appears in the Manifest.
  **/
 export interface ManifestStack {

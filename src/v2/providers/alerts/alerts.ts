@@ -1,4 +1,4 @@
-import { ManifestEndpoint } from '../../../common/manifest';
+import { ManifestEndpoint } from '../../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
