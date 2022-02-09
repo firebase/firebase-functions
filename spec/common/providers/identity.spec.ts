@@ -35,33 +35,50 @@ const now = new Date();
 describe('identity', () => {
   describe('invalidPublicKeys', () => {
     it('should return true if publicKeysExpireAt does not exist', () => {
-      expect(identity.invalidPublicKeys({
-        publicKeys: {},
-      })).to.be.true;
+      expect(
+        identity.invalidPublicKeys({
+          publicKeys: {},
+        })
+      ).to.be.true;
     });
 
     it('should return true if publicKeysExpireAt equals Date.now()', () => {
       const time = Date.now();
-      expect(identity.invalidPublicKeys({
-        publicKeys: {},
-        publicKeysExpireAt: time,
-      }, time)).to.be.true;
+      expect(
+        identity.invalidPublicKeys(
+          {
+            publicKeys: {},
+            publicKeysExpireAt: time,
+          },
+          time
+        )
+      ).to.be.true;
     });
 
     it('should return true if publicKeysExpireAt are less than Date.now()', () => {
       const time = Date.now();
-      expect(identity.invalidPublicKeys({
-        publicKeys: {},
-        publicKeysExpireAt: time - 1,
-      }, time)).to.be.true;
+      expect(
+        identity.invalidPublicKeys(
+          {
+            publicKeys: {},
+            publicKeysExpireAt: time - 1,
+          },
+          time
+        )
+      ).to.be.true;
     });
 
     it('should return false if publicKeysExpireAt are greater than Date.now()', () => {
       const time = Date.now();
-      expect(identity.invalidPublicKeys({
-        publicKeys: {},
-        publicKeysExpireAt: time + 100,
-      }, time)).to.be.false;
+      expect(
+        identity.invalidPublicKeys(
+          {
+            publicKeys: {},
+            publicKeysExpireAt: time + 100,
+          },
+          time
+        )
+      ).to.be.false;
     });
   });
 
@@ -308,7 +325,9 @@ describe('identity', () => {
 
   describe('getPublicKeyFromHeader', () => {
     it('should throw if header.alg is not expected', () => {
-      expect(() => identity.getPublicKeyFromHeader({ alg: 'RS128' }, {})).to.throw(
+      expect(() =>
+        identity.getPublicKeyFromHeader({ alg: 'RS128' }, {})
+      ).to.throw(
         `Provided JWT has incorrect algorithm. Expected ${identity.JWT_ALG} but got RS128.`
       );
     });
@@ -376,11 +395,15 @@ describe('identity', () => {
 
   describe('checkDecodedToken', () => {
     it('should throw on mismatching event types', () => {
-      expect(() => identity.checkDecodedToken({
-        event_type: EVENT,
-      } as identity.DecodedJwt,
-      "newEvent",
-      PROJECT)).to.throw(`Expected "newEvent" but received "${EVENT}".`);
+      expect(() =>
+        identity.checkDecodedToken(
+          {
+            event_type: EVENT,
+          } as identity.DecodedJwt,
+          'newEvent',
+          PROJECT
+        )
+      ).to.throw(`Expected "newEvent" but received "${EVENT}".`);
     });
     it('should throw on unauthorized function url', () => {
       expect(() =>
@@ -444,7 +467,7 @@ describe('identity', () => {
     });
 
     it('should throw if sub length is larger than 128 chars', () => {
-      const str = "a".repeat(129);
+      const str = 'a'.repeat(129);
       expect(() =>
         identity.checkDecodedToken(
           {
@@ -470,7 +493,7 @@ describe('identity', () => {
           sub: sub,
           event_type: EVENT,
         } as identity.DecodedJwt;
-        
+
         identity.checkDecodedToken(decoded, EVENT, PROJECT);
 
         expect(decoded.uid).to.equal(sub);
@@ -482,7 +505,9 @@ describe('identity', () => {
     let jwtDecodeStub: sinon.SinonStub;
 
     beforeEach(() => {
-      jwtDecodeStub = sinon.stub(jwt, "decode").throws("Unexpected call to jwt.decode");
+      jwtDecodeStub = sinon
+        .stub(jwt, 'decode')
+        .throws('Unexpected call to jwt.decode');
     });
 
     afterEach(() => {
@@ -492,13 +517,13 @@ describe('identity', () => {
     it('should return empty if jwt decoded is undefined', () => {
       jwtDecodeStub.returns(undefined);
 
-      expect(identity.decodeJWT("123456")).to.deep.equal({});
+      expect(identity.decodeJWT('123456')).to.deep.equal({});
     });
 
     it('should return empty if payload is undefined', () => {
-      jwtDecodeStub.returns({ header: { key: 'val' }, });
+      jwtDecodeStub.returns({ header: { key: 'val' } });
 
-      expect(identity.decodeJWT("123456")).to.deep.equal({});
+      expect(identity.decodeJWT('123456')).to.deep.equal({});
     });
 
     it('should return the payload', () => {
@@ -512,12 +537,12 @@ describe('identity', () => {
       };
       jwtDecodeStub.returns(decoded);
 
-      expect(identity.decodeJWT("123456")).to.deep.equal(decoded.payload);
+      expect(identity.decodeJWT('123456')).to.deep.equal(decoded.payload);
     });
   });
 
   describe('decodeAndVerifyJWT', () => {
-    const time = Date.now()
+    const time = Date.now();
     let jwtDecodeStub: sinon.SinonStub;
     let jwtVerifyStub: sinon.SinonStub;
     const keysCache = {
@@ -529,8 +554,12 @@ describe('identity', () => {
     };
 
     beforeEach(() => {
-      jwtDecodeStub = sinon.stub(jwt, "decode").throws("Unexpected call to jwt.decode");
-      jwtVerifyStub = sinon.stub(jwt, "verify").throws("Unexpected call to jwt.verify");
+      jwtDecodeStub = sinon
+        .stub(jwt, 'decode')
+        .throws('Unexpected call to jwt.decode');
+      jwtVerifyStub = sinon
+        .stub(jwt, 'verify')
+        .throws('Unexpected call to jwt.verify');
     });
 
     afterEach(() => {
@@ -540,13 +569,21 @@ describe('identity', () => {
     it('should error if jwt decode returns undefined', () => {
       jwtDecodeStub.returns(undefined);
 
-      expect(() => identity.decodeAndVerifyJWT("123456", keysCache, time)).to.throw("Provided JWT has incorrect algorithm. Expected RS256 but got undefined.");
+      expect(() =>
+        identity.decodeAndVerifyJWT('123456', keysCache, time)
+      ).to.throw(
+        'Provided JWT has incorrect algorithm. Expected RS256 but got undefined.'
+      );
     });
 
     it('should error if header does not exist', () => {
       jwtDecodeStub.returns({ key: 'val' });
 
-      expect(() => identity.decodeAndVerifyJWT("123456", keysCache, time)).to.throw("Provided JWT has incorrect algorithm. Expected RS256 but got undefined.");
+      expect(() =>
+        identity.decodeAndVerifyJWT('123456', keysCache, time)
+      ).to.throw(
+        'Provided JWT has incorrect algorithm. Expected RS256 but got undefined.'
+      );
     });
 
     it('should return the decoded jwt', () => {
@@ -563,7 +600,9 @@ describe('identity', () => {
       });
       jwtVerifyStub.returns(decoded);
 
-      expect(identity.decodeAndVerifyJWT("123456", keysCache, time)).to.deep.equal(decoded);
+      expect(
+        identity.decodeAndVerifyJWT('123456', keysCache, time)
+      ).to.deep.equal(decoded);
     });
   });
 
@@ -1077,7 +1116,7 @@ describe('identity', () => {
     });
 
     it('should throw an error if customClaims size is too big', () => {
-      const str = "x".repeat(1000);
+      const str = 'x'.repeat(1000);
 
       expect(() =>
         identity.validateAuthResponse('beforeCreate', {
@@ -1097,7 +1136,7 @@ describe('identity', () => {
     });
 
     it('should throw an error if sessionClaims size is too big', () => {
-      const str = "x".repeat(1000);
+      const str = 'x'.repeat(1000);
 
       expect(() =>
         identity.validateAuthResponse('beforeSignIn', {
@@ -1109,7 +1148,7 @@ describe('identity', () => {
     });
 
     it('should throw an error if the combined customClaims & sessionClaims size is too big', () => {
-      const str = "x".repeat(501);
+      const str = 'x'.repeat(501);
 
       expect(() =>
         identity.validateAuthResponse('beforeSignIn', {

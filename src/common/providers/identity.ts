@@ -87,7 +87,7 @@ export type UserInfo = firebase.auth.UserInfo;
 /**
  * Helper class to create the user metadata in a UserRecord object
  */
- export class UserRecordMetadata implements firebase.auth.UserMetadata {
+export class UserRecordMetadata implements firebase.auth.UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
@@ -167,28 +167,28 @@ export interface AuthUserInfo {
   /**
    * The user identifier for the linked provider.
    */
-   uid: string;
+  uid: string;
   /**
-  * The display name for the linked provider.
-  */
-   displayName: string;
+   * The display name for the linked provider.
+   */
+  displayName: string;
   /**
-  * The email for the linked provider.
-  */
-   email: string;
+   * The email for the linked provider.
+   */
+  email: string;
   /**
-  * The photo URL for the linked provider.
-  */
-   photoURL: string;
+   * The photo URL for the linked provider.
+   */
+  photoURL: string;
   /**
-  * The linked provider ID (for example, "google.com" for the Google provider).
-  */
-   providerId: string;
+   * The linked provider ID (for example, "google.com" for the Google provider).
+   */
+  providerId: string;
   /**
-  * The phone number for the linked provider.
-  */
-   phoneNumber: string;
-} 
+   * The phone number for the linked provider.
+   */
+  phoneNumber: string;
+}
 
 /**
  * Additional metadata about the user.
@@ -199,8 +199,8 @@ export interface AuthUserMetadata {
    */
   creationTime: string;
   /**
-  * The date the user last signed in, formatted as a UTC string.
-  */
+   * The date the user last signed in, formatted as a UTC string.
+   */
   lastSignInTime: string;
 }
 
@@ -213,16 +213,16 @@ export interface AuthMultiFactorInfo {
    */
   uid: string;
   /**
-  * The optional display name of the enrolled second factor.
-  */
+   * The optional display name of the enrolled second factor.
+   */
   displayName?: string;
   /**
-  * The type identifier of the second factor. For SMS second factors, this is `phone`.
-  */
+   * The type identifier of the second factor. For SMS second factors, this is `phone`.
+   */
   factorId: string;
   /**
-  * The optional date the second factor was enrolled, formatted as a UTC string.
-  */
+   * The optional date the second factor was enrolled, formatted as a UTC string.
+   */
   enrollmentTime?: string;
   /**
    * The phone number associated with a phone second factor.
@@ -247,64 +247,64 @@ export interface AuthUserRecord {
   /**
    * The user's `uid`.
    */
- uid: string;
+  uid: string;
   /**
-  * The user's primary email, if set.
-  */
- email?: string;
+   * The user's primary email, if set.
+   */
+  email?: string;
   /**
-  * Whether or not the user's primary email is verified.
-  */
- emailVerified: boolean;
+   * Whether or not the user's primary email is verified.
+   */
+  emailVerified: boolean;
   /**
-  * The user's display name.
-  */
- displayName?: string;
+   * The user's display name.
+   */
+  displayName?: string;
   /**
-  * The user's photo URL.
-  */
- photoURL?: string;
+   * The user's photo URL.
+   */
+  photoURL?: string;
   /**
-  * The user's primary phone number, if set.
-  */
- phoneNumber?: string;
+   * The user's primary phone number, if set.
+   */
+  phoneNumber?: string;
   /**
-  * Whether or not the user is disabled: `true` for disabled; `false` for
-  * enabled.
-  */
- disabled: boolean;
+   * Whether or not the user is disabled: `true` for disabled; `false` for
+   * enabled.
+   */
+  disabled: boolean;
   /**
-  * Additional metadata about the user.
-  */
- metadata: AuthUserMetadata;
+   * Additional metadata about the user.
+   */
+  metadata: AuthUserMetadata;
   /**
-  * An array of providers (for example, Google, Facebook) linked to the user.
-  */
- providerData: AuthUserInfo[];
+   * An array of providers (for example, Google, Facebook) linked to the user.
+   */
+  providerData: AuthUserInfo[];
   /**
-  * The user's hashed password (base64-encoded).
-  */
- passwordHash?: string;
+   * The user's hashed password (base64-encoded).
+   */
+  passwordHash?: string;
   /**
-  * The user's password salt (base64-encoded).
-  */
- passwordSalt?: string;
+   * The user's password salt (base64-encoded).
+   */
+  passwordSalt?: string;
   /**
-  * The user's custom claims object if available, typically used to define
-  * user roles and propagated to an authenticated user's ID token.
-  */
- customClaims?: Record<string, any>;
+   * The user's custom claims object if available, typically used to define
+   * user roles and propagated to an authenticated user's ID token.
+   */
+  customClaims?: Record<string, any>;
   /**
-  * The ID of the tenant the user belongs to, if available.
-  */
- tenantId?: string | null;
+   * The ID of the tenant the user belongs to, if available.
+   */
+  tenantId?: string | null;
   /**
-  * The date the user's tokens are valid after, formatted as a UTC string.
-  */
+   * The date the user's tokens are valid after, formatted as a UTC string.
+   */
   tokensValidAfterTime?: string;
   /**
-  * The multi-factor related properties for the current user, if available.
-  */
+   * The multi-factor related properties for the current user, if available.
+   */
   multiFactor?: AuthMultiFactorSettings;
 }
 
@@ -429,11 +429,14 @@ export interface DecodedJwt {
  * @internal
  * Helper to determine if we refresh the public keys
  */
-export function invalidPublicKeys(keys: PublicKeysCache, time: number = Date.now()): boolean {
+export function invalidPublicKeys(
+  keys: PublicKeysCache,
+  time: number = Date.now()
+): boolean {
   if (!keys.publicKeysExpireAt) {
     return true;
   }
-  return (time >= keys.publicKeysExpireAt);
+  return time >= keys.publicKeysExpireAt;
 }
 
 /**
@@ -441,16 +444,21 @@ export function invalidPublicKeys(keys: PublicKeysCache, time: number = Date.now
  * Obtain public keys for use in decoding and verifying the jwt sent from identity platform.
  * Will set the expiration time if available
  */
-export async function fetchPublicKeys(keys: PublicKeysCache, time: number = Date.now()): Promise<void> {
+export async function fetchPublicKeys(
+  keys: PublicKeysCache,
+  time: number = Date.now()
+): Promise<void> {
   const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
   try {
     const response = await fetch(url);
     if (response.headers.has('cache-control')) {
       const ccHeader = response.headers.get('cache-control');
-      const maxAgeEntry = ccHeader.split(', ').find((item) => item.includes('max-age'));
+      const maxAgeEntry = ccHeader
+        .split(', ')
+        .find((item) => item.includes('max-age'));
       if (maxAgeEntry) {
-        const maxAge = +(maxAgeEntry.trim().split('=')[1]);
-        keys.publicKeysExpireAt = time + (maxAge * 1000);
+        const maxAge = +maxAgeEntry.trim().split('=')[1];
+        keys.publicKeysExpireAt = time + maxAge * 1000;
       }
     }
     const data = await response.json();
@@ -536,9 +544,11 @@ export function isAuthorizedCloudFunctionURL(
   //   'southwest',
   //   'northwest',
   // ];
-  
+
   const re = new RegExp(
-    `^https://(${SUPPORTED_REGIONS.join('|')})+-${projectId}\.cloudfunctions\.net/`
+    `^https://(${SUPPORTED_REGIONS.join(
+      '|'
+    )})+-${projectId}\.cloudfunctions\.net/`
   );
   // const re = new RegExp(
   //   `^https://[^-]+-(${gcf_directions.join(
@@ -593,9 +603,9 @@ export function checkDecodedToken(
   decodedJWT.uid = decodedJWT.sub;
 }
 
-/** 
+/**
  * Helper function to determine if we need to do full verification of the jwt
-*/
+ */
 function shouldVerifyJWT() {
   // TODO(colerogers): add emulator support to skip verification
   return true;
@@ -605,11 +615,10 @@ function shouldVerifyJWT() {
  * @internal
  * Helper function to decode the jwt and return it's payload
  */
-export function decodeJWT(
-  token: string,
-): DecodedJwt {
-  const decoded = (jwt.decode(token, { complete: true }) as Record<string, any> || {});
-  
+export function decodeJWT(token: string): DecodedJwt {
+  const decoded =
+    (jwt.decode(token, { complete: true }) as Record<string, any>) || {};
+
   return (decoded.payload || {}) as DecodedJwt;
 }
 
@@ -621,18 +630,19 @@ export function decodeJWT(
 export function decodeAndVerifyJWT(
   token: string,
   keysCache: PublicKeysCache,
-  time: number = Date.now(),
+  time: number = Date.now()
 ) {
   if (invalidPublicKeys(keysCache, time)) {
     fetchPublicKeys(keysCache);
   }
   const header =
-    ((jwt.decode(token, { complete: true }) as Record<string, any> || {}).header || {});
+    ((jwt.decode(token, { complete: true }) as Record<string, any>) || {})
+      .header || {};
   const publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
   const decoded = jwt.verify(token, publicKey, {
     algorithms: [JWT_ALG],
   }) as DecodedJwt;
-  
+
   return decoded;
 }
 
@@ -668,7 +678,7 @@ export function parseProviderData(
       email: provider.email,
       photoURL: provider.photo_url,
       providerId: provider.provider_id,
-      phoneNumber: provider.phone_number
+      phoneNumber: provider.phone_number,
     });
   }
   return providers;
@@ -715,7 +725,9 @@ export function parseMultiFactor(
       : null;
     parsedEnrolledFactors.push({
       uid: factor.uid,
-      factorId: factor.phone_number ? factor.factor_id || 'phone' : factor.factor_id,
+      factorId: factor.phone_number
+        ? factor.factor_id || 'phone'
+        : factor.factor_id,
       displayName: factor.display_name,
       enrollmentTime,
       phoneNumber: factor.phone_number,
@@ -997,10 +1009,9 @@ function wrapHandler(
     try {
       const projectId = process.env.GCLOUD_PROJECT;
       validRequest(req);
-      const decodedJWT = 
-        shouldVerifyJWT() ?
-        decodeAndVerifyJWT(req.body.data.jwt, keysCache) :
-        decodeJWT(req.body.data.jwt);
+      const decodedJWT = shouldVerifyJWT()
+        ? decodeAndVerifyJWT(req.body.data.jwt, keysCache)
+        : decodeJWT(req.body.data.jwt);
       checkDecodedToken(decodedJWT, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT, projectId);
