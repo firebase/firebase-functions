@@ -36,7 +36,7 @@ async function handleQuitquitquit(req: express.Request, res: express.Response) {
 app.get('/__/quitquitquit', handleQuitquitquit);
 app.post('/__/quitquitquit', handleQuitquitquit);
 
-if (process.env.FUNCTIONS_CONTROL_API === "true") {
+if (process.env.FUNCTIONS_CONTROL_API === 'true') {
   app.get('/__/functions.yaml', async (req, res) => {
     try {
       const stack = await loadStack(functionsDir);
@@ -44,8 +44,8 @@ if (process.env.FUNCTIONS_CONTROL_API === "true") {
       res.send(JSON.stringify(stack));
     } catch (e) {
       res
-          .status(400)
-          .send(`Failed to generate manifest from function source: ${e}`);
+        .status(400)
+        .send(`Failed to generate manifest from function source: ${e}`);
     }
   });
 }

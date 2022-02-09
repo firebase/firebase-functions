@@ -86,7 +86,7 @@ async function startBin(
       PATH: process.env.PATH,
       GLCOUD_PROJECT: 'test-project',
       PORT: port,
-      FUNCTIONS_CONTROL_API: "true",
+      FUNCTIONS_CONTROL_API: 'true',
     },
   });
 
