@@ -124,7 +124,7 @@ describe('makeCloudFunction', () => {
         },
         retry: false,
       },
-      secretEnvironmentVariables: [{ secret: 'MY_SECRET' }],
+      secretEnvironmentVariables: [{ secret: 'MY_SECRET', key: 'MY_SECRET' }],
       labels: {},
     });
   });
