@@ -21,14 +21,132 @@
 // SOFTWARE.
 
 import * as express from 'express';
+import * as jwt from 'jsonwebtoken';
+import * as sinon from 'sinon';
 import * as identity from '../../../src/common/providers/identity';
+// import * as fetch from 'node-fetch';
 import { expect } from 'chai';
 
 const PROJECT = 'my-project';
+const EVENT = 'EVENT_TYPE';
 const VALID_URL = `https://us-central1-${PROJECT}.cloudfunctions.net/function-1`;
 const now = new Date();
 
 describe('identity', () => {
+  describe('invalidPublicKeys', () => {
+    it('should return true if publicKeysExpireAt does not exist', () => {
+      expect(identity.invalidPublicKeys({
+        publicKeys: {},
+      })).to.be.true;
+    });
+
+    it('should return true if publicKeysExpireAt equals Date.now()', () => {
+      const time = Date.now();
+      expect(identity.invalidPublicKeys({
+        publicKeys: {},
+        publicKeysExpireAt: time,
+      }, time)).to.be.true;
+    });
+
+    it('should return true if publicKeysExpireAt are less than Date.now()', () => {
+      const time = Date.now();
+      expect(identity.invalidPublicKeys({
+        publicKeys: {},
+        publicKeysExpireAt: time - 1,
+      }, time)).to.be.true;
+    });
+
+    it('should return false if publicKeysExpireAt are greater than Date.now()', () => {
+      const time = Date.now();
+      expect(identity.invalidPublicKeys({
+        publicKeys: {},
+        publicKeysExpireAt: time + 100,
+      }, time)).to.be.false;
+    });
+  });
+
+  /*
+  describe('fetchPublicKeys', () => {
+    // let fetchStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      // fetchStub = sinon.stub(fetch).rejects("Unexpected call to fetch");
+      // fetchStub.rejects("Unexpected call to fetch");
+    });
+
+    afterEach(() => {
+      sinon.verifyAndRestore();
+    });
+
+    it('should set the public keys without cache-control', async () => {
+      const PublicKeysCache = {
+        publicKeys: {},
+        publicKeysExpireAt: undefined,
+      }
+      const publicKeys = {
+        '123456': '7890',
+        '2468': '1357',
+      };
+      // fetchStub.returns({
+      //   json: async () => Promise.resolve(publicKeys),
+      // });
+      sinon.stub(fetch).returns(Promise.resolve({
+        json: async () => Promise.resolve(publicKeys),
+      }));
+
+      await identity.fetchPublicKeys(PublicKeysCache);
+
+      expect(PublicKeysCache.publicKeys).to.deep.equal(publicKeys);
+      expect(PublicKeysCache.publicKeysExpireAt).to.be.undefined;
+    });
+
+    it('should set the public keys with cache-control but without max-age', async () => {
+      const PublicKeysCache = {
+        publicKeys: {},
+        publicKeysExpireAt: undefined,
+      }
+      const publicKeys = {
+        '123456': '7890',
+        '2468': '1357',
+      };
+      // fetchStub.resolves({
+      //   headers: {
+      //     'cache-control': 'item=val, item2=val2, item3=val3',
+      //   },
+      //   json: async () => Promise.resolve(publicKeys),
+      // });
+
+      await identity.fetchPublicKeys(PublicKeysCache);
+
+      expect(PublicKeysCache.publicKeys).to.deep.equal(publicKeys);
+      expect(PublicKeysCache.publicKeysExpireAt).to.be.undefined;
+    });
+
+    it('should set the public keys with cache-control but without max-age', async () => {
+      const time = Date.now();
+      const PublicKeysCache = {
+        publicKeys: {},
+        publicKeysExpireAt: undefined,
+      }
+      const publicKeys = {
+        '123456': '7890',
+        '2468': '1357',
+      };
+      // fetchStub.resolves({
+      //   headers: {
+      //     'cache-control': 'item=val, max-age=50, item2=val2, item3=val3',
+      //   },
+      //   json: async () => Promise.resolve(publicKeys),
+      // });
+
+      await identity.fetchPublicKeys(PublicKeysCache, time);
+
+      expect(PublicKeysCache.publicKeys).to.deep.equal(publicKeys);
+      expect(PublicKeysCache.publicKeysExpireAt).to.equal(time + (50 * 1000));
+    });
+  });
+  */
+
   describe('userRecordConstructor', () => {
     it('will provide falsey values for fields that are not in raw wire data', () => {
       const record = identity.userRecordConstructor({ uid: '123' });
@@ -188,22 +306,22 @@ describe('identity', () => {
     });
   });
 
-  describe('getPublicKey', () => {
+  describe('getPublicKeyFromHeader', () => {
     it('should throw if header.alg is not expected', () => {
-      expect(() => identity.getPublicKey({ alg: 'RS128' }, {})).to.throw(
+      expect(() => identity.getPublicKeyFromHeader({ alg: 'RS128' }, {})).to.throw(
         `Provided JWT has incorrect algorithm. Expected ${identity.JWT_ALG} but got RS128.`
       );
     });
 
     it('should throw if header.kid is undefined', () => {
       expect(() =>
-        identity.getPublicKey({ alg: identity.JWT_ALG }, {})
-      ).to.throw('JWT has no "kid" claim.');
+        identity.getPublicKeyFromHeader({ alg: identity.JWT_ALG }, {})
+      ).to.throw('JWT header missing "kid" claim.');
     });
 
     it('should throw if the public keys do not have a property that matches header.kid', () => {
       expect(() =>
-        identity.getPublicKey(
+        identity.getPublicKeyFromHeader(
           {
             alg: identity.JWT_ALG,
             kid: '123456',
@@ -217,7 +335,7 @@ describe('identity', () => {
 
     it('should return the correct public key', () => {
       expect(
-        identity.getPublicKey(
+        identity.getPublicKeyFromHeader(
           {
             alg: identity.JWT_ALG,
             kid: '123456',
@@ -232,7 +350,7 @@ describe('identity', () => {
   });
 
   describe('isAuthorizedCloudFunctionURL', () => {
-    it('should return false on a bad gcf direction', () => {
+    it('should return false on a bad gcf location', () => {
       expect(
         identity.isAuthorizedCloudFunctionURL(
           `https://us-central1-europe-${PROJECT}.cloudfunctions.net/function-1`,
@@ -257,12 +375,21 @@ describe('identity', () => {
   });
 
   describe('checkDecodedToken', () => {
+    it('should throw on mismatching event types', () => {
+      expect(() => identity.checkDecodedToken({
+        event_type: EVENT,
+      } as identity.DecodedJwt,
+      "newEvent",
+      PROJECT)).to.throw(`Expected "newEvent" but received "${EVENT}".`);
+    });
     it('should throw on unauthorized function url', () => {
       expect(() =>
         identity.checkDecodedToken(
           {
             aud: `fake-region-${PROJECT}.cloudfunctions.net/fn1`,
+            event_type: EVENT,
           } as identity.DecodedJwt,
+          EVENT,
           PROJECT
         )
       ).to.throw('Provided JWT has incorrect "aud" (audience) claim.');
@@ -274,7 +401,9 @@ describe('identity', () => {
           {
             aud: VALID_URL,
             iss: `https://someissuer.com/a-project`,
+            event_type: EVENT,
           } as identity.DecodedJwt,
+          EVENT,
           PROJECT
         )
       ).to.throw(
@@ -291,7 +420,9 @@ describe('identity', () => {
             sub: {
               key: 'val',
             },
+            event_type: EVENT,
           } as unknown) as identity.DecodedJwt,
+          EVENT,
           PROJECT
         )
       ).to.throw('Provided JWT has no "sub" (subject) claim.');
@@ -304,24 +435,25 @@ describe('identity', () => {
             aud: VALID_URL,
             iss: `${identity.JWT_ISSUER}${PROJECT}`,
             sub: '',
+            event_type: EVENT,
           } as identity.DecodedJwt,
+          EVENT,
           PROJECT
         )
       ).to.throw('Provided JWT has no "sub" (subject) claim.');
     });
 
     it('should throw if sub length is larger than 128 chars', () => {
-      const str = [];
-      for (let i = 0; i < 129; i++) {
-        str.push(i);
-      }
+      const str = "a".repeat(129);
       expect(() =>
         identity.checkDecodedToken(
           {
             aud: VALID_URL,
             iss: `${identity.JWT_ISSUER}${PROJECT}`,
             sub: str.toString(),
+            event_type: EVENT,
           } as identity.DecodedJwt,
+          EVENT,
           PROJECT
         )
       ).to.throw(
@@ -329,17 +461,109 @@ describe('identity', () => {
       );
     });
 
-    it('should not throw an error on correct decoded token', () => {
-      expect(() =>
-        identity.checkDecodedToken(
-          {
-            aud: VALID_URL,
-            iss: `${identity.JWT_ISSUER}${PROJECT}`,
-            sub: '123456',
-          } as identity.DecodedJwt,
-          PROJECT
-        )
-      ).to.not.throw();
+    it('should not throw an error and set uid to sub', () => {
+      expect(() => {
+        const sub = '123456';
+        const decoded = {
+          aud: VALID_URL,
+          iss: `${identity.JWT_ISSUER}${PROJECT}`,
+          sub: sub,
+          event_type: EVENT,
+        } as identity.DecodedJwt;
+        
+        identity.checkDecodedToken(decoded, EVENT, PROJECT);
+
+        expect(decoded.uid).to.equal(sub);
+      }).to.not.throw();
+    });
+  });
+
+  describe('decodeJWT', () => {
+    let jwtDecodeStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      jwtDecodeStub = sinon.stub(jwt, "decode").throws("Unexpected call to jwt.decode");
+    });
+
+    afterEach(() => {
+      sinon.verifyAndRestore();
+    });
+
+    it('should return empty if jwt decoded is undefined', () => {
+      jwtDecodeStub.returns(undefined);
+
+      expect(identity.decodeJWT("123456")).to.deep.equal({});
+    });
+
+    it('should return empty if payload is undefined', () => {
+      jwtDecodeStub.returns({ header: { key: 'val' }, });
+
+      expect(identity.decodeJWT("123456")).to.deep.equal({});
+    });
+
+    it('should return the payload', () => {
+      const decoded = {
+        header: { key: 'val' },
+        payload: {
+          aud: VALID_URL,
+          iss: `${identity.JWT_ISSUER}${PROJECT}`,
+          event_type: EVENT,
+        },
+      };
+      jwtDecodeStub.returns(decoded);
+
+      expect(identity.decodeJWT("123456")).to.deep.equal(decoded.payload);
+    });
+  });
+
+  describe('decodeAndVerifyJWT', () => {
+    const time = Date.now()
+    let jwtDecodeStub: sinon.SinonStub;
+    let jwtVerifyStub: sinon.SinonStub;
+    const keysCache = {
+      publicKeys: {
+        '123456': '7890',
+        '2468': '1357',
+      },
+      publicKeysExpireAt: time + 1,
+    };
+
+    beforeEach(() => {
+      jwtDecodeStub = sinon.stub(jwt, "decode").throws("Unexpected call to jwt.decode");
+      jwtVerifyStub = sinon.stub(jwt, "verify").throws("Unexpected call to jwt.verify");
+    });
+
+    afterEach(() => {
+      sinon.verifyAndRestore();
+    });
+
+    it('should error if jwt decode returns undefined', () => {
+      jwtDecodeStub.returns(undefined);
+
+      expect(() => identity.decodeAndVerifyJWT("123456", keysCache, time)).to.throw("Provided JWT has incorrect algorithm. Expected RS256 but got undefined.");
+    });
+
+    it('should error if header does not exist', () => {
+      jwtDecodeStub.returns({ key: 'val' });
+
+      expect(() => identity.decodeAndVerifyJWT("123456", keysCache, time)).to.throw("Provided JWT has incorrect algorithm. Expected RS256 but got undefined.");
+    });
+
+    it('should return the decoded jwt', () => {
+      const decoded = {
+        aud: VALID_URL,
+        iss: `${identity.JWT_ISSUER}${PROJECT}`,
+        event_type: EVENT,
+      };
+      jwtDecodeStub.returns({
+        header: {
+          alg: identity.JWT_ALG,
+          kid: '123456',
+        },
+      });
+      jwtVerifyStub.returns(decoded);
+
+      expect(identity.decodeAndVerifyJWT("123456", keysCache, time)).to.deep.equal(decoded);
     });
   });
 
@@ -363,7 +587,7 @@ describe('identity', () => {
     it('should parse a decoded metadata object', () => {
       const md = identity.parseMetadata(decodedMetadata);
 
-      expect(md.toJSON()).to.deep.equal(metadata);
+      expect(md).to.deep.equal(metadata);
     });
   });
 
@@ -451,6 +675,7 @@ describe('identity', () => {
           displayName: undefined,
           enrollmentTime: now.toUTCString(),
           factorId: undefined,
+          phoneNumber: undefined,
         },
       ],
     };
@@ -611,7 +836,7 @@ describe('identity', () => {
           },
           {
             uid: 'enrollmentId2',
-            displayName: null,
+            displayName: undefined,
             enrollmentTime: now.toUTCString(),
             phoneNumber: '+16505556789',
             factorId: 'phone',
@@ -622,14 +847,14 @@ describe('identity', () => {
 
     it('should error if decoded does not have uid', () => {
       expect(() =>
-        identity.parseUserRecord({} as identity.DecodedJwtUserRecord)
+        identity.parseAuthUserRecord({} as identity.DecodedJwtUserRecord)
       ).to.throw('INTERNAL ASSERT FAILED: Invalid user response');
     });
 
     it('should parse user record', () => {
-      const ur = identity.parseUserRecord(decodedUserRecord);
+      const ur = identity.parseAuthUserRecord(decodedUserRecord);
 
-      expect(ur.toJSON()).to.deep.equal(userRecord);
+      expect(ur).to.deep.equal(userRecord);
     });
   });
 
@@ -656,7 +881,7 @@ describe('identity', () => {
         sub: 'someUid',
         uid: 'someUid',
         event_id: 'EVENT_ID',
-        event_type: 'EVENT_TYPE',
+        event_type: EVENT,
         ip_address: '1.2.3.4',
         user_agent: 'USER_AGENT',
         locale: 'en',
@@ -667,7 +892,7 @@ describe('identity', () => {
         ipAddress: '1.2.3.4',
         userAgent: 'USER_AGENT',
         eventId: 'EVENT_ID',
-        eventType: 'EVENT_TYPE',
+        eventType: EVENT,
         authType: 'UNAUTHENTICATED',
         resource: {
           service: 'identitytoolkit.googleapis.com',
@@ -852,10 +1077,7 @@ describe('identity', () => {
     });
 
     it('should throw an error if customClaims size is too big', () => {
-      let str = '';
-      for (let i = 0; i < 1000; i++) {
-        str += 'x';
-      }
+      const str = "x".repeat(1000);
 
       expect(() =>
         identity.validateAuthResponse('beforeCreate', {
@@ -875,10 +1097,7 @@ describe('identity', () => {
     });
 
     it('should throw an error if sessionClaims size is too big', () => {
-      let str = '';
-      for (let i = 0; i < 1000; i++) {
-        str += 'x';
-      }
+      const str = "x".repeat(1000);
 
       expect(() =>
         identity.validateAuthResponse('beforeSignIn', {
@@ -890,10 +1109,7 @@ describe('identity', () => {
     });
 
     it('should throw an error if the combined customClaims & sessionClaims size is too big', () => {
-      let str = '';
-      for (let i = 0; i < 501; i++) {
-        str += 'x';
-      }
+      const str = "x".repeat(501);
 
       expect(() =>
         identity.validateAuthResponse('beforeSignIn', {

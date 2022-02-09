@@ -27,6 +27,7 @@ import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
 import { HttpsError } from './https';
 import { EventContext } from '../../cloud-functions';
+import { SUPPORTED_REGIONS } from '../../function-configuration';
 import { logger } from '../..';
 
 export { HttpsError };
@@ -42,6 +43,31 @@ export const JWT_ALG = 'RS256';
 export const JWT_ISSUER = 'https://securetoken.google.com/';
 
 /** @internal */
+export interface PublicKeysCache {
+  publicKeys: Record<string, string>;
+  publicKeysExpireAt?: number;
+}
+
+const CLAIMS_NON_ALLOW_LISTED = [
+  'acr',
+  'amr',
+  'at_hash',
+  'aud',
+  'auth_time',
+  'azp',
+  'cnf',
+  'c_hash',
+  'exp',
+  'iat',
+  'iss',
+  'jti',
+  'nbf',
+  'nonce',
+  'firebase',
+];
+
+const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
+
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
   beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
@@ -59,259 +85,17 @@ export type UserRecord = firebase.auth.UserRecord;
 export type UserInfo = firebase.auth.UserInfo;
 
 /**
- * Additional metadata about the user.
- */
-export type UserMetadata = firebase.auth.UserMetadata;
-
-/**
- * The multi-factor related properties for the current user, if available.
- */
-export type MultiFactorSettings = firebase.auth.MultiFactorSettings;
-
-/**
- * Interface representing the common properties of a user-enrolled second factor.
- */
-export type MultiFactorInfo = firebase.auth.MultiFactorInfo;
-
-/**
- * Interface representing a phone specific user-enrolled second factor.
- */
-export type PhoneMultiFactorInfo = firebase.auth.PhoneMultiFactorInfo;
-
-/** The additional user info component of the auth event context */
-interface AdditionalUserInfo {
-  providerId: string;
-  profile?: any;
-  username?: string;
-  isNewUser: boolean;
-}
-
-/** The credential component of the auth event context */
-interface Credential {
-  claims?: { [key: string]: any };
-  idToken?: string;
-  accessToken?: string;
-  refreshToken?: string;
-  expirationTime?: string;
-  secret?: string;
-  providerId: string;
-  signInMethod: string;
-}
-
-/** Defines the auth event context for blocking events */
-export interface AuthEventContext extends EventContext {
-  locale?: string;
-  ipAddress: string;
-  userAgent: string;
-  additionalUserInfo?: AdditionalUserInfo;
-  credential?: Credential;
-}
-
-/** The handler response type for beforeCreate blocking events */
-export interface BeforeCreateResponse {
-  displayName?: string;
-  disabled?: boolean;
-  emailVerified?: boolean;
-  photoURL?: string;
-  customClaims?: object;
-}
-
-/** The handler response type for beforeSignIn blocking events */
-export interface BeforeSignInResponse extends BeforeCreateResponse {
-  sessionClaims?: object;
-}
-
-/** @internal */
-interface DecodedJwtMetadata {
-  creation_time?: number;
-  last_sign_in_time?: number;
-}
-
-/** @internal */
-interface DecodedJwtUserInfo {
-  uid: string;
-  display_name?: string;
-  email?: string;
-  photo_url?: string;
-  phone_number?: string;
-  provider_id: string;
-}
-
-/** @internal */
-export interface DecodedJwtMfaInfo {
-  uid: string;
-  display_name?: string;
-  phone_number?: string;
-  enrollment_time?: string;
-  factor_id?: string;
-}
-
-/** @internal */
-interface DecodedJwtEnrolledFactors {
-  enrolled_factors?: DecodedJwtMfaInfo[];
-}
-
-/** @internal */
-export interface DecodedJwtUserRecord {
-  uid: string;
-  email?: string;
-  email_verified?: boolean;
-  phone_number?: string;
-  display_name?: string;
-  photo_url?: string;
-  disabled?: boolean;
-  metadata?: DecodedJwtMetadata;
-  password_hash?: string;
-  password_salt?: string;
-  provider_data?: DecodedJwtUserInfo[];
-  multi_factor?: DecodedJwtEnrolledFactors;
-  custom_claims?: any;
-  tokens_valid_after_time?: number;
-  tenant_id?: string;
-  [key: string]: any;
-}
-
-/** @internal */
-export interface DecodedJwt {
-  aud: string;
-  exp: number;
-  iat: number;
-  iss: string;
-  sub: string;
-  event_id: string;
-  event_type: string;
-  ip_address: string;
-  user_agent?: string;
-  locale?: string;
-  sign_in_method?: string;
-  user_record?: DecodedJwtUserRecord;
-  tenant_id?: string;
-  raw_user_info?: string;
-  sign_in_attributes?: {
-    [key: string]: any;
-  };
-  oauth_id_token?: string;
-  oauth_access_token?: string;
-  oauth_refresh_token?: string;
-  oauth_token_secret?: string;
-  oauth_expires_in?: number;
-  [key: string]: any;
-}
-
-/**
  * Helper class to create the user metadata in a UserRecord object
  */
-export class UserRecordMetadata implements UserMetadata {
+ export class UserRecordMetadata implements firebase.auth.UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
-  toJSON(): object {
+  toJSON(): AuthUserMetadata {
     return {
       creationTime: this.creationTime,
       lastSignInTime: this.lastSignInTime,
     };
-  }
-}
-
-/**
- * Helper class to create the user info in a UserRecord object
- */
-export class UserRecordInfo implements UserInfo {
-  constructor(
-    public uid: string,
-    public displayName: string,
-    public email: string,
-    public photoURL: string,
-    public providerId: string,
-    public phoneNumber: string
-  ) {}
-
-  toJSON(): object {
-    return {
-      uid: this.uid,
-      displayName: this.displayName,
-      email: this.email,
-      photoURL: this.photoURL,
-      providerId: this.providerId,
-      phoneNumber: this.phoneNumber,
-    };
-  }
-}
-
-/**
- * Helper class to create the user MultiFactorInfo in a UserRecord object
- */
-export class UserRecordMultiFactorInfo
-  implements Pick<MultiFactorInfo, keyof MultiFactorInfo> {
-  constructor(
-    public uid: string,
-    public factorId: string,
-    public displayName?: string,
-    public enrollmentTime?: string
-  ) {}
-
-  toJSON(): object {
-    return {
-      uid: this.uid,
-      factorId: this.factorId,
-      displayName: this.displayName || null,
-      enrollmentTime: this.enrollmentTime || null,
-    };
-  }
-}
-
-/**
- * Helper class to create the user PhoneMultiFactorInfo in a UserRecord object
- */
-export class UserRecordPhoneMultiFactorInfo
-  implements Pick<PhoneMultiFactorInfo, keyof PhoneMultiFactorInfo> {
-  constructor(
-    public uid: string,
-    public factorId: string,
-    public phoneNumber: string,
-    public displayName?: string,
-    public enrollmentTime?: string
-  ) {}
-
-  toJSON(): object {
-    return {
-      uid: this.uid,
-      factorId: this.factorId,
-      phoneNumber: this.phoneNumber,
-      displayName: this.displayName || null,
-      enrollmentTime: this.enrollmentTime || null,
-    };
-  }
-}
-
-/**
- * Helper class to create the user MultiFactorSettings in a UserRecord object
- */
-export class UserRecordMultiFactorSettings implements MultiFactorSettings {
-  constructor(public enrolledFactors: MultiFactorInfo[]) {}
-
-  toJSON(): object {
-    return {
-      enrolledFactors: this.enrolledFactors.map((ef) => ef.toJSON()),
-    };
-  }
-}
-
-/**
- * @internal
- * Obtain public keys for use in decoding and verifying the jwt sent from identity platform
- */
-export async function fetchPublicKeys(): Promise<Record<string, string>> {
-  const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-    return data as Record<string, string>;
-  } catch (err) {
-    logger.error(
-      `Failed to obtain public keys for JWT verification: ${err.message}`
-    );
-    throw new HttpsError('internal', 'Failed to obtain public keys');
   }
 }
 
@@ -377,6 +161,309 @@ export function userRecordConstructor(wireData: Object): UserRecord {
 }
 
 /**
+ * User info that is part of the AuthUserRecord
+ */
+export interface AuthUserInfo {
+  /**
+   * The user identifier for the linked provider.
+   */
+   uid: string;
+  /**
+  * The display name for the linked provider.
+  */
+   displayName: string;
+  /**
+  * The email for the linked provider.
+  */
+   email: string;
+  /**
+  * The photo URL for the linked provider.
+  */
+   photoURL: string;
+  /**
+  * The linked provider ID (for example, "google.com" for the Google provider).
+  */
+   providerId: string;
+  /**
+  * The phone number for the linked provider.
+  */
+   phoneNumber: string;
+} 
+
+/**
+ * Additional metadata about the user.
+ */
+export interface AuthUserMetadata {
+  /**
+   * The date the user was created, formatted as a UTC string.
+   */
+  creationTime: string;
+  /**
+  * The date the user last signed in, formatted as a UTC string.
+  */
+  lastSignInTime: string;
+}
+
+/**
+ * Interface representing the common properties of a user-enrolled second factor.
+ */
+export interface AuthMultiFactorInfo {
+  /**
+   * The ID of the enrolled second factor. This ID is unique to the user.
+   */
+  uid: string;
+  /**
+  * The optional display name of the enrolled second factor.
+  */
+  displayName?: string;
+  /**
+  * The type identifier of the second factor. For SMS second factors, this is `phone`.
+  */
+  factorId: string;
+  /**
+  * The optional date the second factor was enrolled, formatted as a UTC string.
+  */
+  enrollmentTime?: string;
+  /**
+   * The phone number associated with a phone second factor.
+   */
+  phoneNumber?: string;
+}
+
+/**
+ * The multi-factor related properties for the current user, if available.
+ */
+export interface AuthMultiFactorSettings {
+  /**
+   * List of second factors enrolled with the current user.
+   */
+  enrolledFactors: AuthMultiFactorInfo[];
+}
+
+/**
+ * The UserRecord passed to auth blocking Cloud Functions from the identity platform.
+ */
+export interface AuthUserRecord {
+  /**
+   * The user's `uid`.
+   */
+ uid: string;
+  /**
+  * The user's primary email, if set.
+  */
+ email?: string;
+  /**
+  * Whether or not the user's primary email is verified.
+  */
+ emailVerified: boolean;
+  /**
+  * The user's display name.
+  */
+ displayName?: string;
+  /**
+  * The user's photo URL.
+  */
+ photoURL?: string;
+  /**
+  * The user's primary phone number, if set.
+  */
+ phoneNumber?: string;
+  /**
+  * Whether or not the user is disabled: `true` for disabled; `false` for
+  * enabled.
+  */
+ disabled: boolean;
+  /**
+  * Additional metadata about the user.
+  */
+ metadata: AuthUserMetadata;
+  /**
+  * An array of providers (for example, Google, Facebook) linked to the user.
+  */
+ providerData: AuthUserInfo[];
+  /**
+  * The user's hashed password (base64-encoded).
+  */
+ passwordHash?: string;
+  /**
+  * The user's password salt (base64-encoded).
+  */
+ passwordSalt?: string;
+  /**
+  * The user's custom claims object if available, typically used to define
+  * user roles and propagated to an authenticated user's ID token.
+  */
+ customClaims?: Record<string, any>;
+  /**
+  * The ID of the tenant the user belongs to, if available.
+  */
+ tenantId?: string | null;
+  /**
+  * The date the user's tokens are valid after, formatted as a UTC string.
+  */
+  tokensValidAfterTime?: string;
+  /**
+  * The multi-factor related properties for the current user, if available.
+  */
+  multiFactor?: AuthMultiFactorSettings;
+}
+
+/** The additional user info component of the auth event context */
+interface AdditionalUserInfo {
+  providerId: string;
+  profile?: any;
+  username?: string;
+  isNewUser: boolean;
+}
+
+/** The credential component of the auth event context */
+interface Credential {
+  claims?: { [key: string]: any };
+  idToken?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  expirationTime?: string;
+  secret?: string;
+  providerId: string;
+  signInMethod: string;
+}
+
+/** Defines the auth event context for blocking events */
+export interface AuthEventContext extends EventContext {
+  locale?: string;
+  ipAddress: string;
+  userAgent: string;
+  additionalUserInfo?: AdditionalUserInfo;
+  credential?: Credential;
+}
+
+/** The handler response type for beforeCreate blocking events */
+export interface BeforeCreateResponse {
+  displayName?: string;
+  disabled?: boolean;
+  emailVerified?: boolean;
+  photoURL?: string;
+  customClaims?: object;
+}
+
+/** The handler response type for beforeSignIn blocking events */
+export interface BeforeSignInResponse extends BeforeCreateResponse {
+  sessionClaims?: object;
+}
+
+interface DecodedJwtMetadata {
+  creation_time?: number;
+  last_sign_in_time?: number;
+}
+
+interface DecodedJwtUserInfo {
+  uid: string;
+  display_name?: string;
+  email?: string;
+  photo_url?: string;
+  phone_number?: string;
+  provider_id: string;
+}
+
+/** @internal */
+export interface DecodedJwtMfaInfo {
+  uid: string;
+  display_name?: string;
+  phone_number?: string;
+  enrollment_time?: string;
+  factor_id?: string;
+}
+
+interface DecodedJwtEnrolledFactors {
+  enrolled_factors?: DecodedJwtMfaInfo[];
+}
+
+/** @internal */
+export interface DecodedJwtUserRecord {
+  uid: string;
+  email?: string;
+  email_verified?: boolean;
+  phone_number?: string;
+  display_name?: string;
+  photo_url?: string;
+  disabled?: boolean;
+  metadata?: DecodedJwtMetadata;
+  password_hash?: string;
+  password_salt?: string;
+  provider_data?: DecodedJwtUserInfo[];
+  multi_factor?: DecodedJwtEnrolledFactors;
+  custom_claims?: any;
+  tokens_valid_after_time?: number;
+  tenant_id?: string;
+  [key: string]: any;
+}
+
+/** @internal */
+export interface DecodedJwt {
+  aud: string;
+  exp: number;
+  iat: number;
+  iss: string;
+  sub: string;
+  event_id: string;
+  event_type: string;
+  ip_address: string;
+  user_agent?: string;
+  locale?: string;
+  sign_in_method?: string;
+  user_record?: DecodedJwtUserRecord;
+  tenant_id?: string;
+  raw_user_info?: string;
+  sign_in_attributes?: {
+    [key: string]: any;
+  };
+  oauth_id_token?: string;
+  oauth_access_token?: string;
+  oauth_refresh_token?: string;
+  oauth_token_secret?: string;
+  oauth_expires_in?: number;
+  [key: string]: any;
+}
+
+/**
+ * @internal
+ * Helper to determine if we refresh the public keys
+ */
+export function invalidPublicKeys(keys: PublicKeysCache, time: number = Date.now()): boolean {
+  if (!keys.publicKeysExpireAt) {
+    return true;
+  }
+  return (time >= keys.publicKeysExpireAt);
+}
+
+/**
+ * @internal
+ * Obtain public keys for use in decoding and verifying the jwt sent from identity platform.
+ * Will set the expiration time if available
+ */
+export async function fetchPublicKeys(keys: PublicKeysCache, time: number = Date.now()): Promise<void> {
+  const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
+  try {
+    const response = await fetch(url);
+    if (response.headers.has('cache-control')) {
+      const ccHeader = response.headers.get('cache-control');
+      const maxAgeEntry = ccHeader.split(', ').find((item) => item.includes('max-age'));
+      if (maxAgeEntry) {
+        const maxAge = +(maxAgeEntry.trim().split('=')[1]);
+        keys.publicKeysExpireAt = time + (maxAge * 1000);
+      }
+    }
+    const data = await response.json();
+    keys.publicKeys = data as Record<string, string>;
+  } catch (err) {
+    logger.error(
+      `Failed to obtain public keys for JWT verification: ${err.message}`
+    );
+    throw new HttpsError('internal', 'Failed to obtain public keys');
+  }
+}
+
+/**
  * @internal
  * Checks for a valid identity platform web request, otherwise throws an HttpsError
  */
@@ -396,13 +483,13 @@ export function validRequest(req: express.Request): void {
     );
   }
 
-  if (!req.body || !req.body.data || !req.body.data.jwt) {
+  if (!req.body?.data?.jwt) {
     throw new HttpsError('invalid-argument', 'Request has an invalid body.');
   }
 }
 
 /** @internal */
-export function getPublicKey(
+export function getPublicKeyFromHeader(
   header: Record<string, any>,
   publicKeys: Record<string, string>
 ): string {
@@ -413,7 +500,7 @@ export function getPublicKey(
     );
   }
   if (!header.kid) {
-    throw new HttpsError('invalid-argument', 'JWT has no "kid" claim.');
+    throw new HttpsError('invalid-argument', 'JWT header missing "kid" claim.');
   }
   if (!publicKeys.hasOwnProperty(header.kid)) {
     throw new HttpsError(
@@ -436,23 +523,28 @@ export function isAuthorizedCloudFunctionURL(
   // Region can be:
   // us-central1, us-east1, asia-northeast1, europe-west1, asia-east1.
   // Sample: https://europe-west1-fb-sa-upgraded.cloudfunctions.net/function-1
-  const gcf_directions = [
-    'central',
-    'east',
-    'west',
-    'south',
-    'southeast',
-    'northeast',
-    // Other possible directions that could be added.
-    'north',
-    'southwest',
-    'northwest',
-  ];
+
+  // const gcf_directions = [
+  //   'central',
+  //   'east',
+  //   'west',
+  //   'south',
+  //   'southeast',
+  //   'northeast',
+  //   // Other possible directions that could be added.
+  //   'north',
+  //   'southwest',
+  //   'northwest',
+  // ];
+  
   const re = new RegExp(
-    `^https://[^-]+-(${gcf_directions.join(
-      '|'
-    )})[0-9]+-${projectId}\.cloudfunctions\.net/`
+    `^https://(${SUPPORTED_REGIONS.join('|')})+-${projectId}\.cloudfunctions\.net/`
   );
+  // const re = new RegExp(
+  //   `^https://[^-]+-(${gcf_directions.join(
+  //     '|'
+  //   )})[0-9]+-${projectId}\.cloudfunctions\.net/`
+  // );
   const res = re.exec(cloudFunctionUrl) || [];
   return res.length > 0;
 }
@@ -463,8 +555,15 @@ export function isAuthorizedCloudFunctionURL(
  */
 export function checkDecodedToken(
   decodedJWT: DecodedJwt,
+  eventType: string,
   projectId: string
 ): void {
+  if (decodedJWT.event_type !== eventType) {
+    throw new HttpsError(
+      'invalid-argument',
+      `Expected "${eventType}" but received "${decodedJWT.event_type}".`
+    );
+  }
   if (!isAuthorizedCloudFunctionURL(decodedJWT.aud, projectId)) {
     throw new HttpsError(
       'invalid-argument',
@@ -490,6 +589,28 @@ export function checkDecodedToken(
       'Provided JWT has "sub" (subject) claim longer than 128 characters.'
     );
   }
+  // set uid to sub
+  decodedJWT.uid = decodedJWT.sub;
+}
+
+/** 
+ * Helper function to determine if we need to do full verification of the jwt
+*/
+function shouldVerifyJWT() {
+  // TODO(colerogers): add emulator support to skip verification
+  return true;
+}
+
+/**
+ * @internal
+ * Helper function to decode the jwt and return it's payload
+ */
+export function decodeJWT(
+  token: string,
+): DecodedJwt {
+  const decoded = (jwt.decode(token, { complete: true }) as Record<string, any> || {});
+  
+  return (decoded.payload || {}) as DecodedJwt;
 }
 
 /**
@@ -497,29 +618,21 @@ export function checkDecodedToken(
  * Verifies the jwt using the 'jwt' library and decodes the token with the public keys
  * Throws an error if the event types do not match
  */
-function verifyAndDecodeJWT(
+export function decodeAndVerifyJWT(
   token: string,
-  eventType: string,
-  publicKeys: Record<string, string>,
-  projectId: string
+  keysCache: PublicKeysCache,
+  time: number = Date.now(),
 ) {
-  // jwt decode & verify
-  // https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
-  const header =
-    (jwt.decode(token, { complete: true }) as Record<string, any>).header || {};
-  const publicKey = getPublicKey(header, publicKeys);
-  const decoded = jwt.verify(token, publicKey, {
-    algorithms: [this.algorithm],
-  }) as DecodedJwt;
-  decoded.uid = decoded.sub;
-  checkDecodedToken(decoded, projectId);
-
-  if (decoded.event_type !== eventType) {
-    throw new HttpsError(
-      'invalid-argument',
-      `Expected "${eventType}" but received "${decoded.event_type}".`
-    );
+  if (invalidPublicKeys(keysCache, time)) {
+    fetchPublicKeys(keysCache);
   }
+  const header =
+    ((jwt.decode(token, { complete: true }) as Record<string, any> || {}).header || {});
+  const publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
+  const decoded = jwt.verify(token, publicKey, {
+    algorithms: [JWT_ALG],
+  }) as DecodedJwt;
+  
   return decoded;
 }
 
@@ -527,35 +640,36 @@ function verifyAndDecodeJWT(
  * @internal
  * Helper function to parse the decoded metadata object into a UserMetaData object
  */
-export function parseMetadata(metadata: DecodedJwtMetadata): UserMetadata {
+export function parseMetadata(metadata: DecodedJwtMetadata): AuthUserMetadata {
   const creationTime = metadata?.creation_time
     ? new Date((metadata.creation_time as number) * 1000).toUTCString()
     : null;
   const lastSignInTime = metadata?.last_sign_in_time
     ? new Date((metadata.last_sign_in_time as number) * 1000).toUTCString()
     : null;
-  return new UserRecordMetadata(creationTime, lastSignInTime);
+  return {
+    creationTime,
+    lastSignInTime,
+  };
 }
 
 /**
  * @internal
- * Helper function to parse the decoded user info array into a UserInfo array
+ * Helper function to parse the decoded user info array into an AuthUserInfo array
  */
 export function parseProviderData(
   providerData: DecodedJwtUserInfo[]
-): UserInfo[] {
-  const providers: UserInfo[] = [];
+): AuthUserInfo[] {
+  const providers: AuthUserInfo[] = [];
   for (const provider of providerData) {
-    providers.push(
-      new UserRecordInfo(
-        provider.uid,
-        provider.display_name,
-        provider.email,
-        provider.photo_url,
-        provider.provider_id,
-        provider.phone_number
-      )
-    );
+    providers.push({
+      uid: provider.uid,
+      displayName: provider.display_name,
+      email: provider.email,
+      photoURL: provider.photo_url,
+      providerId: provider.provider_id,
+      phoneNumber: provider.phone_number
+    });
   }
   return providers;
 }
@@ -574,9 +688,7 @@ export function parseDate(tokensValidAfterTime?: number): string | null {
     if (!isNaN(date.getTime())) {
       return date.toUTCString();
     }
-  } catch {
-    return null;
-  }
+  } catch {}
   return null;
 }
 
@@ -586,11 +698,11 @@ export function parseDate(tokensValidAfterTime?: number): string | null {
  */
 export function parseMultiFactor(
   multiFactor?: DecodedJwtEnrolledFactors
-): MultiFactorSettings {
+): AuthMultiFactorSettings {
   if (!multiFactor) {
     return null;
   }
-  const parsedEnrolledFactors: MultiFactorInfo[] = [];
+  const parsedEnrolledFactors: AuthMultiFactorInfo[] = [];
   for (const factor of multiFactor.enrolled_factors || []) {
     if (!factor.uid) {
       throw new HttpsError(
@@ -601,30 +713,19 @@ export function parseMultiFactor(
     const enrollmentTime = factor.enrollment_time
       ? new Date(factor.enrollment_time).toUTCString()
       : null;
-    if (factor.phone_number) {
-      parsedEnrolledFactors.push(
-        new UserRecordPhoneMultiFactorInfo(
-          factor.uid,
-          factor.factor_id || 'phone',
-          factor.phone_number,
-          factor.display_name,
-          enrollmentTime
-        ) as PhoneMultiFactorInfo
-      );
-    } else {
-      parsedEnrolledFactors.push(
-        new UserRecordMultiFactorInfo(
-          factor.uid,
-          factor.factor_id,
-          factor.display_name,
-          enrollmentTime
-        ) as MultiFactorInfo
-      );
-    }
+    parsedEnrolledFactors.push({
+      uid: factor.uid,
+      factorId: factor.phone_number ? factor.factor_id || 'phone' : factor.factor_id,
+      displayName: factor.display_name,
+      enrollmentTime,
+      phoneNumber: factor.phone_number,
+    });
   }
 
   if (parsedEnrolledFactors.length > 0) {
-    return new UserRecordMultiFactorSettings(parsedEnrolledFactors);
+    return {
+      enrolledFactors: parsedEnrolledFactors,
+    };
   }
   return null;
 }
@@ -633,9 +734,9 @@ export function parseMultiFactor(
  * @internal
  * Parses the decoded user record into a valid UserRecord for use in the handler
  */
-export function parseUserRecord(
+export function parseAuthUserRecord(
   decodedJWTUserRecord: DecodedJwtUserRecord
-): UserRecord {
+): AuthUserRecord {
   if (!decodedJWTUserRecord.uid) {
     throw new HttpsError(
       'internal',
@@ -667,30 +768,10 @@ export function parseUserRecord(
     tenantId: decodedJWTUserRecord.tenant_id,
     tokensValidAfterTime,
     multiFactor,
-    toJSON: function(): object {
-      const json: any = {
-        uid: decodedJWTUserRecord.uid,
-        email: decodedJWTUserRecord.email,
-        emailVerified: decodedJWTUserRecord.email_verified,
-        displayName: decodedJWTUserRecord.display_name,
-        photoURL: decodedJWTUserRecord.photo_url,
-        phoneNumber: decodedJWTUserRecord.phone_number,
-        disabled: disabled,
-        metadata: metadata.toJSON(),
-        providerData: providerData.map((pd) => pd.toJSON()),
-        passwordHash: decodedJWTUserRecord.password_hash,
-        passwordSalt: decodedJWTUserRecord.password_salt,
-        customClaims: decodedJWTUserRecord.custom_claims,
-        tenantId: decodedJWTUserRecord.tenant_id,
-        tokensValidAfterTime,
-        multiFactor: multiFactor.toJSON(),
-      };
-      return json;
-    },
   };
 }
 
-/** @internal */
+/** Helper to get the AdditionalUserInfo from the decoded jwt */
 function parseAdditionalUserInfo(decodedJWT: DecodedJwt): AdditionalUserInfo {
   let profile, username;
   if (decodedJWT.raw_user_info)
@@ -719,7 +800,7 @@ function parseAdditionalUserInfo(decodedJWT: DecodedJwt): AdditionalUserInfo {
   };
 }
 
-/** @internal */
+/** Helper to get the Credential from the decoded jwt */
 function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
   if (
     !decodedJWT.sign_in_attributes &&
@@ -788,30 +869,11 @@ export function validateAuthResponse(
   eventType: string,
   authRequest?: BeforeCreateResponse | BeforeSignInResponse
 ) {
-  const nonAllowListedClaims = [
-    'acr',
-    'amr',
-    'at_hash',
-    'aud',
-    'auth_time',
-    'azp',
-    'cnf',
-    'c_hash',
-    'exp',
-    'iat',
-    'iss',
-    'jti',
-    'nbf',
-    'nonce',
-    'firebase',
-  ];
-  const claimsMaxPayloadSize = 1000;
-
   if (!authRequest) {
     authRequest = {};
   }
   if (authRequest.customClaims) {
-    const invalidClaims = nonAllowListedClaims.filter((claim) =>
+    const invalidClaims = CLAIMS_NON_ALLOW_LISTED.filter((claim) =>
       authRequest.customClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
@@ -823,11 +885,11 @@ export function validateAuthResponse(
       );
     }
     if (
-      JSON.stringify(authRequest.customClaims).length > claimsMaxPayloadSize
+      JSON.stringify(authRequest.customClaims).length > CLAIMS_MAX_PAYLOAD_SIZE
     ) {
       throw new HttpsError(
         'invalid-argument',
-        `The customClaims payload should not exceed ${claimsMaxPayloadSize} characters.`
+        `The customClaims payload should not exceed ${CLAIMS_MAX_PAYLOAD_SIZE} characters.`
       );
     }
   }
@@ -835,7 +897,7 @@ export function validateAuthResponse(
     eventType === 'beforeSignIn' &&
     (authRequest as BeforeSignInResponse).sessionClaims
   ) {
-    const invalidClaims = nonAllowListedClaims.filter((claim) =>
+    const invalidClaims = CLAIMS_NON_ALLOW_LISTED.filter((claim) =>
       (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
@@ -848,21 +910,21 @@ export function validateAuthResponse(
     }
     if (
       JSON.stringify((authRequest as BeforeSignInResponse).sessionClaims)
-        .length > claimsMaxPayloadSize
+        .length > CLAIMS_MAX_PAYLOAD_SIZE
     ) {
       throw new HttpsError(
         'invalid-argument',
-        `The sessionClaims payload should not exceed ${claimsMaxPayloadSize} characters.`
+        `The sessionClaims payload should not exceed ${CLAIMS_MAX_PAYLOAD_SIZE} characters.`
       );
     }
     const combinedClaims = {
       ...authRequest.customClaims,
       ...(authRequest as BeforeSignInResponse).sessionClaims,
     };
-    if (JSON.stringify(combinedClaims).length > claimsMaxPayloadSize) {
+    if (JSON.stringify(combinedClaims).length > CLAIMS_MAX_PAYLOAD_SIZE) {
       throw new HttpsError(
         'invalid-argument',
-        `The customClaims and sessionClaims payloads should not exceed ${claimsMaxPayloadSize} characters combined.`
+        `The customClaims and sessionClaims payloads should not exceed ${CLAIMS_MAX_PAYLOAD_SIZE} characters combined.`
       );
     }
   }
@@ -896,7 +958,7 @@ export function getUpdateMask(
 /** @internal */
 export function createHandler(
   handler: (
-    user: UserRecord,
+    user: AuthUserRecord,
     context: AuthEventContext
   ) =>
     | BeforeCreateResponse
@@ -905,9 +967,10 @@ export function createHandler(
     | Promise<BeforeSignInResponse>
     | void
     | Promise<void>,
-  eventType: string
+  eventType: string,
+  keysCache: PublicKeysCache
 ): (req: express.Request, resp: express.Response) => Promise<void> {
-  const wrappedHandler = wrapHandler(handler, eventType);
+  const wrappedHandler = wrapHandler(handler, eventType, keysCache);
   return (req: express.Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on('finish', resolve);
@@ -916,10 +979,9 @@ export function createHandler(
   };
 }
 
-/** @internal */
 function wrapHandler(
   handler: (
-    user: UserRecord,
+    user: AuthUserRecord,
     context: AuthEventContext
   ) =>
     | BeforeCreateResponse
@@ -928,23 +990,22 @@ function wrapHandler(
     | Promise<BeforeSignInResponse>
     | void
     | Promise<void>,
-  eventType: string
+  eventType: string,
+  keysCache: PublicKeysCache
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const projectId = process.env.GCLOUD_PROJECT;
-      const publicKeys = await fetchPublicKeys();
       validRequest(req);
-      const decodedJWT = verifyAndDecodeJWT(
-        req.body.data.jwt,
-        eventType,
-        publicKeys,
-        projectId
-      );
-      const userRecord = parseUserRecord(decodedJWT.user_record);
+      const decodedJWT = 
+        shouldVerifyJWT() ?
+        decodeAndVerifyJWT(req.body.data.jwt, keysCache) :
+        decodeJWT(req.body.data.jwt);
+      checkDecodedToken(decodedJWT, eventType, projectId);
+      const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT, projectId);
       const authResponse =
-        (await handler(userRecord, authEventContext)) || undefined;
+        (await handler(authUserRecord, authEventContext)) || undefined;
       validateAuthResponse(eventType, authResponse);
       const updateMask = getUpdateMask(authResponse);
       const result = {
