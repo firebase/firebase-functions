@@ -575,14 +575,6 @@ describe('identity', () => {
       );
     });
 
-    it('should error if jwt verify errors', () => {
-      jwtVerifyStub.throws('Internal failure of jwt verify.');
-
-      expect(() =>
-        identity.verifyJWT('123456', rawDecodedJWT, keysCache, time)
-      ).to.throw('Failed to verify the JWT.');
-    });
-
     it('should return the decoded jwt', () => {
       const decoded = {
         aud: VALID_URL,

@@ -463,7 +463,7 @@ export function setKeyExpirationTime(
 /**
  * Fetch the public keys for use in decoding and verifying the jwt sent from identity platform.
  */
-async function getPublicKeys(
+async function refreshPublicKeys(
   keysCache: PublicKeysCache,
   time: number = Date.now()
 ): Promise<void> {
@@ -643,15 +643,25 @@ export function verifyJWT(
   }
   const header = rawDecodedJWT.header;
   if (invalidPublicKeys(keysCache, time)) {
-    getPublicKeys(keysCache);
+    refreshPublicKeys(keysCache);
   }
-  const publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
+  let publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
   try {
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
     }) as DecodedJWT;
   } catch (err) {
     logger.error('Verifying the JWT failed', err);
+  }
+  // force refresh keys and retry one more time
+  refreshPublicKeys(keysCache);
+  publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
+  try {
+    return jwt.verify(token, publicKey, {
+      algorithms: [JWT_ALG],
+    }) as DecodedJWT;
+  } catch (err) {
+    logger.error('Verifying the JWT failed again', err);
     throw new HttpsError('internal', 'Failed to verify the JWT.');
   }
 }
