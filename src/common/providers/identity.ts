@@ -309,7 +309,7 @@ export interface AuthUserRecord {
 }
 
 /** The additional user info component of the auth event context */
-interface AdditionalUserInfo {
+export interface AdditionalUserInfo {
   providerId: string;
   profile?: any;
   username?: string;
@@ -317,7 +317,7 @@ interface AdditionalUserInfo {
 }
 
 /** The credential component of the auth event context */
-interface Credential {
+export interface Credential {
   claims?: { [key: string]: any };
   idToken?: string;
   accessToken?: string;
@@ -604,22 +604,30 @@ export function checkDecodedToken(
 }
 
 /**
- * Helper function to determine if we need to do full verification of the jwt
+ * @internal
+ * Helper function to decode the jwt, internally uses the 'jsonwebtoken' package.
  */
-function shouldVerifyJWT() {
-  // TODO(colerogers): add emulator support to skip verification
-  return true;
+export function decodeJWT(token: string): Record<string, any> {
+  let decoded: Record<string, any>;
+  try {
+    decoded = jwt.decode(token, { complete: true }) as Record<string, any>;
+  } catch (err) {
+    logger.error('Decoding the JWT failed', err);
+    throw new HttpsError('internal', 'Failed to decode the JWT.');
+  }
+  if (!decoded?.payload) {
+    throw new HttpsError('internal', 'The decoded JWT is not structured correctly.');
+  }
+  return decoded;
 }
 
 /**
  * @internal
- * Helper function to decode the jwt and return it's payload
+ * Helper function to determine if we need to do full verification of the jwt
  */
-export function decodeJWT(token: string): DecodedJwt {
-  const decoded =
-    (jwt.decode(token, { complete: true }) as Record<string, any>) || {};
-
-  return (decoded.payload || {}) as DecodedJwt;
+export function shouldVerifyJWT(): boolean {
+  // TODO(colerogers): add emulator support to skip verification
+  return true;
 }
 
 /**
@@ -627,23 +635,28 @@ export function decodeJWT(token: string): DecodedJwt {
  * Verifies the jwt using the 'jwt' library and decodes the token with the public keys
  * Throws an error if the event types do not match
  */
-export function decodeAndVerifyJWT(
+export function verifyJWT(
   token: string,
+  rawDecodedJWT: Record<string, any>,
   keysCache: PublicKeysCache,
   time: number = Date.now()
-) {
+): DecodedJwt {
+  if (!rawDecodedJWT.header) {
+    throw new HttpsError('internal', 'Unable to verify JWT payload, the decoded JWT does not have a header property.');
+  }
+  const header = rawDecodedJWT.header;
   if (invalidPublicKeys(keysCache, time)) {
     fetchPublicKeys(keysCache);
   }
-  const header =
-    ((jwt.decode(token, { complete: true }) as Record<string, any>) || {})
-      .header || {};
   const publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
-  const decoded = jwt.verify(token, publicKey, {
-    algorithms: [JWT_ALG],
-  }) as DecodedJwt;
-
-  return decoded;
+  try {
+    return jwt.verify(token, publicKey, {
+      algorithms: [JWT_ALG],
+    }) as DecodedJwt;
+  } catch (err) {
+    logger.error('Verifying the JWT failed', err);
+    throw new HttpsError('internal', 'Failed to verify the JWT.');
+  }
 }
 
 /**
@@ -1009,9 +1022,10 @@ function wrapHandler(
     try {
       const projectId = process.env.GCLOUD_PROJECT;
       validRequest(req);
+      const rawDecodedJWT = decodeJWT(req.body.data.jwt);
       const decodedJWT = shouldVerifyJWT()
-        ? decodeAndVerifyJWT(req.body.data.jwt, keysCache)
-        : decodeJWT(req.body.data.jwt);
+        ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
+        : rawDecodedJWT.payload as DecodedJwt;
       checkDecodedToken(decodedJWT, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT, projectId);

@@ -514,19 +514,27 @@ describe('identity', () => {
       sinon.verifyAndRestore();
     });
 
-    it('should return empty if jwt decoded is undefined', () => {
+    it('should throw HttpsError if jwt.decode errors', () => {
+      jwtDecodeStub.throws('An internal decode error occurred.');
+
+      expect(() => identity.decodeJWT("123456")).to.throw('Failed to decode the JWT.');
+    })
+
+    it('should error if jwt decoded returns undefined', () => {
       jwtDecodeStub.returns(undefined);
 
-      expect(identity.decodeJWT('123456')).to.deep.equal({});
+      expect(() => identity.decodeJWT('123456')).to.throw('The decoded JWT is not structured correctly.');
     });
 
-    it('should return empty if payload is undefined', () => {
-      jwtDecodeStub.returns({ header: { key: 'val' } });
+    it('should error if decoded jwt does not have a payload field', () => {
+      jwtDecodeStub.returns({
+        header: { key: 'val' },
+      });
 
-      expect(identity.decodeJWT('123456')).to.deep.equal({});
+      expect(() => identity.decodeJWT("123456")).to.throw('The decoded JWT is not structured correctly.');
     });
 
-    it('should return the payload', () => {
+    it('should return the raw decoded jwt', () => {
       const decoded = {
         header: { key: 'val' },
         payload: {
@@ -537,13 +545,19 @@ describe('identity', () => {
       };
       jwtDecodeStub.returns(decoded);
 
-      expect(identity.decodeJWT('123456')).to.deep.equal(decoded.payload);
+      expect(identity.decodeJWT('123456')).to.deep.equal(decoded);
     });
   });
 
-  describe('decodeAndVerifyJWT', () => {
+  describe('shouldVerifyJWT', () => {
+    /** Stub test that will fail when we eventually change the function */
+    it('should return true', () => {
+      expect(identity.shouldVerifyJWT()).to.be.true;
+    });
+  })
+
+  describe('verifyJWT', () => {
     const time = Date.now();
-    let jwtDecodeStub: sinon.SinonStub;
     let jwtVerifyStub: sinon.SinonStub;
     const keysCache = {
       publicKeys: {
@@ -552,11 +566,19 @@ describe('identity', () => {
       },
       publicKeysExpireAt: time + 1,
     };
+    const rawDecodedJWT = {
+      header: {
+        alg: identity.JWT_ALG,
+        kid: '2468',
+      },
+      payload: {
+        aud: VALID_URL,
+        iss: `${identity.JWT_ISSUER}${PROJECT}`,
+        event_type: EVENT,
+      },
+    };
 
     beforeEach(() => {
-      jwtDecodeStub = sinon
-        .stub(jwt, 'decode')
-        .throws('Unexpected call to jwt.decode');
       jwtVerifyStub = sinon
         .stub(jwt, 'verify')
         .throws('Unexpected call to jwt.verify');
@@ -566,25 +588,21 @@ describe('identity', () => {
       sinon.verifyAndRestore();
     });
 
-    it('should error if jwt decode returns undefined', () => {
-      jwtDecodeStub.returns(undefined);
-
-      expect(() =>
-        identity.decodeAndVerifyJWT('123456', keysCache, time)
-      ).to.throw(
-        'Provided JWT has incorrect algorithm. Expected RS256 but got undefined.'
-      );
-    });
-
     it('should error if header does not exist', () => {
-      jwtDecodeStub.returns({ key: 'val' });
+      const rawDecodedJwt = { payload: 'val' };
 
       expect(() =>
-        identity.decodeAndVerifyJWT('123456', keysCache, time)
+        identity.verifyJWT('123456', rawDecodedJwt, keysCache, time)
       ).to.throw(
-        'Provided JWT has incorrect algorithm. Expected RS256 but got undefined.'
+        'Unable to verify JWT payload, the decoded JWT does not have a header property.'
       );
     });
+
+    it('should error if jwt verify errors', () => {
+      jwtVerifyStub.throws('Internal failure of jwt verify.');
+
+      expect(() => identity.verifyJWT('123456', rawDecodedJWT, keysCache, time)).to.throw('Failed to verify the JWT.');
+    })
 
     it('should return the decoded jwt', () => {
       const decoded = {
@@ -592,16 +610,10 @@ describe('identity', () => {
         iss: `${identity.JWT_ISSUER}${PROJECT}`,
         event_type: EVENT,
       };
-      jwtDecodeStub.returns({
-        header: {
-          alg: identity.JWT_ALG,
-          kid: '123456',
-        },
-      });
       jwtVerifyStub.returns(decoded);
 
       expect(
-        identity.decodeAndVerifyJWT('123456', keysCache, time)
+        identity.verifyJWT('123456', rawDecodedJWT, keysCache, time)
       ).to.deep.equal(decoded);
     });
   });
