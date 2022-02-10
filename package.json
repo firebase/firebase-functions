@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.16.0",
+  "version": "3.17.2",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -149,7 +149,8 @@
     "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
-    "test": "mocha"
+    "test": "mocha --file ./mocha/setup.ts spec/**/*.spec.ts ",
+    "test:bin": "./scripts/bin-test/run.sh"
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
@@ -182,10 +183,12 @@
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
     "nock": "^10.0.6",
+    "node-fetch": "^2.6.7",
+    "portfinder": "^1.0.28",
     "prettier": "^1.18.2",
     "semver": "^7.3.5",
     "sinon": "^7.3.2",
-    "ts-node": "^8.3.0",
+    "ts-node": "^10.4.0",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",

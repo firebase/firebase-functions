@@ -1,4 +1,4 @@
-import { ManifestEndpoint } from '../../../common/manifest';
+import { ManifestEndpoint } from '../../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
@@ -24,7 +24,7 @@ export type AlertEvent<T> = CloudEvent<
 >;
 
 /** @internal */
-export const eventType = 'firebase.firebasealerts.alerts.v1.published';
+export const eventType = 'google.firebase.firebasealerts.alerts.v1.published';
 
 /** The underlying alert type of the Firebase Alerts provider. */
 export type AlertType =

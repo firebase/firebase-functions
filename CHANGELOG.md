@@ -1,4 +1,0 @@
-- Parallelizes network calls that occur when validating authorization for onCall handlers.
-- Adds new regions to V2 API
-- Fixes bug where the emulator crashed when given app without an `options` property.
-- Adds new alerting providers
