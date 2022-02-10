@@ -399,7 +399,7 @@ export interface DecodedJwtUserRecord {
 }
 
 /** @internal */
-export interface DecodedJwt {
+export interface DecodedJWT {
   aud: string;
   exp: number;
   iat: number;
@@ -461,7 +461,6 @@ export function setKeyExpirationTime(
 }
 
 /**
- * @internal
  * Fetch the public keys for use in decoding and verifying the jwt sent from identity platform.
  */
 async function getPublicKeys(
@@ -542,33 +541,11 @@ export function isAuthorizedCloudFunctionURL(
   cloudFunctionUrl: string,
   projectId: string
 ): boolean {
-  // Region can be:
-  // us-central1, us-east1, asia-northeast1, europe-west1, asia-east1.
-  // Sample: https://europe-west1-fb-sa-upgraded.cloudfunctions.net/function-1
-
-  // const gcf_directions = [
-  //   'central',
-  //   'east',
-  //   'west',
-  //   'south',
-  //   'southeast',
-  //   'northeast',
-  //   // Other possible directions that could be added.
-  //   'north',
-  //   'southwest',
-  //   'northwest',
-  // ];
-
   const re = new RegExp(
     `^https://(${SUPPORTED_REGIONS.join(
       '|'
     )})+-${projectId}\.cloudfunctions\.net/`
   );
-  // const re = new RegExp(
-  //   `^https://[^-]+-(${gcf_directions.join(
-  //     '|'
-  //   )})[0-9]+-${projectId}\.cloudfunctions\.net/`
-  // );
   const res = re.exec(cloudFunctionUrl) || [];
   return res.length > 0;
 }
@@ -578,7 +555,7 @@ export function isAuthorizedCloudFunctionURL(
  * Checks for errors in a decoded jwt
  */
 export function checkDecodedToken(
-  decodedJWT: DecodedJwt,
+  decodedJWT: DecodedJWT,
   eventType: string,
   projectId: string
 ): void {
@@ -657,7 +634,7 @@ export function verifyJWT(
   rawDecodedJWT: Record<string, any>,
   keysCache: PublicKeysCache,
   time: number = Date.now()
-): DecodedJwt {
+): DecodedJWT {
   if (!rawDecodedJWT.header) {
     throw new HttpsError(
       'internal',
@@ -672,7 +649,7 @@ export function verifyJWT(
   try {
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
-    }) as DecodedJwt;
+    }) as DecodedJWT;
   } catch (err) {
     logger.error('Verifying the JWT failed', err);
     throw new HttpsError('internal', 'Failed to verify the JWT.');
@@ -817,7 +794,7 @@ export function parseAuthUserRecord(
 }
 
 /** Helper to get the AdditionalUserInfo from the decoded jwt */
-function parseAdditionalUserInfo(decodedJWT: DecodedJwt): AdditionalUserInfo {
+function parseAdditionalUserInfo(decodedJWT: DecodedJWT): AdditionalUserInfo {
   let profile, username;
   if (decodedJWT.raw_user_info)
     try {
@@ -846,7 +823,7 @@ function parseAdditionalUserInfo(decodedJWT: DecodedJwt): AdditionalUserInfo {
 }
 
 /** Helper to get the Credential from the decoded jwt */
-function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
+function parseAuthCredential(decodedJWT: DecodedJWT, time: number): Credential {
   if (
     !decodedJWT.sign_in_attributes &&
     !decodedJWT.oauth_id_token &&
@@ -877,7 +854,7 @@ function parseAuthCredential(decodedJWT: DecodedJwt, time: number): Credential {
  * Parses the decoded jwt into a valid AuthEventContext for use in the handler
  */
 export function parseAuthEventContext(
-  decodedJWT: DecodedJwt,
+  decodedJWT: DecodedJWT,
   projectId: string,
   time: number = new Date().getTime()
 ): AuthEventContext {
@@ -1045,7 +1022,7 @@ function wrapHandler(
       const rawDecodedJWT = decodeJWT(req.body.data.jwt);
       const decodedJWT = shouldVerifyJWT()
         ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
-        : (rawDecodedJWT.payload as DecodedJwt);
+        : (rawDecodedJWT.payload as DecodedJWT);
       checkDecodedToken(decodedJWT, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT, projectId);

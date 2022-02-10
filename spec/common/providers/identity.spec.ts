@@ -370,7 +370,7 @@ describe('identity', () => {
         identity.checkDecodedToken(
           {
             event_type: EVENT,
-          } as identity.DecodedJwt,
+          } as identity.DecodedJWT,
           'newEvent',
           PROJECT
         )
@@ -382,7 +382,7 @@ describe('identity', () => {
           {
             aud: `fake-region-${PROJECT}.cloudfunctions.net/fn1`,
             event_type: EVENT,
-          } as identity.DecodedJwt,
+          } as identity.DecodedJWT,
           EVENT,
           PROJECT
         )
@@ -396,7 +396,7 @@ describe('identity', () => {
             aud: VALID_URL,
             iss: `https://someissuer.com/a-project`,
             event_type: EVENT,
-          } as identity.DecodedJwt,
+          } as identity.DecodedJWT,
           EVENT,
           PROJECT
         )
@@ -415,7 +415,7 @@ describe('identity', () => {
               key: 'val',
             },
             event_type: EVENT,
-          } as unknown) as identity.DecodedJwt,
+          } as unknown) as identity.DecodedJWT,
           EVENT,
           PROJECT
         )
@@ -430,7 +430,7 @@ describe('identity', () => {
             iss: `${identity.JWT_ISSUER}${PROJECT}`,
             sub: '',
             event_type: EVENT,
-          } as identity.DecodedJwt,
+          } as identity.DecodedJWT,
           EVENT,
           PROJECT
         )
@@ -446,7 +446,7 @@ describe('identity', () => {
             iss: `${identity.JWT_ISSUER}${PROJECT}`,
             sub: str.toString(),
             event_type: EVENT,
-          } as identity.DecodedJwt,
+          } as identity.DecodedJWT,
           EVENT,
           PROJECT
         )
@@ -463,7 +463,7 @@ describe('identity', () => {
           iss: `${identity.JWT_ISSUER}${PROJECT}`,
           sub: sub,
           event_type: EVENT,
-        } as identity.DecodedJwt;
+        } as identity.DecodedJWT;
 
         identity.checkDecodedToken(decoded, EVENT, PROJECT);
 
