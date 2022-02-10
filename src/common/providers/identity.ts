@@ -441,33 +441,47 @@ export function invalidPublicKeys(
 
 /**
  * @internal
- * Obtain public keys for use in decoding and verifying the jwt sent from identity platform.
- * Will set the expiration time if available
+ * Helper to parse the response headers to obtain the expiration time.
  */
-export async function fetchPublicKeys(
-  keys: PublicKeysCache,
+export function setKeyExpirationTime(
+  response: any,
+  keysCache: PublicKeysCache,
+  time: number
+): void {
+  if (response.headers.has('cache-control')) {
+    const ccHeader = response.headers.get('cache-control');
+    const maxAgeEntry = ccHeader
+      .split(', ')
+      .find((item) => item.includes('max-age'));
+    if (maxAgeEntry) {
+      const maxAge = +maxAgeEntry.trim().split('=')[1];
+      keysCache.publicKeysExpireAt = time + maxAge * 1000;
+    }
+  }
+}
+
+/**
+ * @internal
+ * Fetch the public keys for use in decoding and verifying the jwt sent from identity platform.
+ */
+async function getPublicKeys(
+  keysCache: PublicKeysCache,
   time: number = Date.now()
 ): Promise<void> {
   const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
   try {
     const response = await fetch(url);
-    if (response.headers.has('cache-control')) {
-      const ccHeader = response.headers.get('cache-control');
-      const maxAgeEntry = ccHeader
-        .split(', ')
-        .find((item) => item.includes('max-age'));
-      if (maxAgeEntry) {
-        const maxAge = +maxAgeEntry.trim().split('=')[1];
-        keys.publicKeysExpireAt = time + maxAge * 1000;
-      }
-    }
+    setKeyExpirationTime(response, keysCache, time);
     const data = await response.json();
-    keys.publicKeys = data as Record<string, string>;
+    keysCache.publicKeys = data as Record<string, string>;
   } catch (err) {
     logger.error(
       `Failed to obtain public keys for JWT verification: ${err.message}`
     );
-    throw new HttpsError('internal', 'Failed to obtain public keys');
+    throw new HttpsError(
+      'internal',
+      'Failed to obtain the public keys for JWT verification.'
+    );
   }
 }
 
@@ -616,7 +630,10 @@ export function decodeJWT(token: string): Record<string, any> {
     throw new HttpsError('internal', 'Failed to decode the JWT.');
   }
   if (!decoded?.payload) {
-    throw new HttpsError('internal', 'The decoded JWT is not structured correctly.');
+    throw new HttpsError(
+      'internal',
+      'The decoded JWT is not structured correctly.'
+    );
   }
   return decoded;
 }
@@ -642,11 +659,14 @@ export function verifyJWT(
   time: number = Date.now()
 ): DecodedJwt {
   if (!rawDecodedJWT.header) {
-    throw new HttpsError('internal', 'Unable to verify JWT payload, the decoded JWT does not have a header property.');
+    throw new HttpsError(
+      'internal',
+      'Unable to verify JWT payload, the decoded JWT does not have a header property.'
+    );
   }
   const header = rawDecodedJWT.header;
   if (invalidPublicKeys(keysCache, time)) {
-    fetchPublicKeys(keysCache);
+    getPublicKeys(keysCache);
   }
   const publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
   try {
@@ -1025,7 +1045,7 @@ function wrapHandler(
       const rawDecodedJWT = decodeJWT(req.body.data.jwt);
       const decodedJWT = shouldVerifyJWT()
         ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
-        : rawDecodedJWT.payload as DecodedJwt;
+        : (rawDecodedJWT.payload as DecodedJwt);
       checkDecodedToken(decodedJWT, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT, projectId);

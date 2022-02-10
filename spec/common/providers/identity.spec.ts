@@ -24,7 +24,6 @@ import * as express from 'express';
 import * as jwt from 'jsonwebtoken';
 import * as sinon from 'sinon';
 import * as identity from '../../../src/common/providers/identity';
-// import * as fetch from 'node-fetch';
 import { expect } from 'chai';
 
 const PROJECT = 'my-project';
@@ -82,87 +81,59 @@ describe('identity', () => {
     });
   });
 
-  /*
-  describe('fetchPublicKeys', () => {
-    // let fetchStub: sinon.SinonStub;
+  describe('setKeyExpirationTime', () => {
+    const time = Date.now();
 
-    beforeEach(() => {
-      // fetchStub = sinon.stub(fetch).rejects("Unexpected call to fetch");
-      // fetchStub.rejects("Unexpected call to fetch");
-    });
-
-    afterEach(() => {
-      sinon.verifyAndRestore();
-    });
-
-    it('should set the public keys without cache-control', async () => {
-      const PublicKeysCache = {
+    it('should do nothing without cache-control', async () => {
+      const publicKeysCache = {
         publicKeys: {},
         publicKeysExpireAt: undefined,
-      }
-      const publicKeys = {
-        '123456': '7890',
-        '2468': '1357',
       };
-      // fetchStub.returns({
-      //   json: async () => Promise.resolve(publicKeys),
-      // });
-      sinon.stub(fetch).returns(Promise.resolve({
-        json: async () => Promise.resolve(publicKeys),
-      }));
+      const response = {
+        headers: {
+          has: (str: string) => false,
+        },
+      };
 
-      await identity.fetchPublicKeys(PublicKeysCache);
+      await identity.setKeyExpirationTime(response, publicKeysCache, time);
 
-      expect(PublicKeysCache.publicKeys).to.deep.equal(publicKeys);
-      expect(PublicKeysCache.publicKeysExpireAt).to.be.undefined;
+      expect(publicKeysCache.publicKeysExpireAt).to.be.undefined;
     });
 
-    it('should set the public keys with cache-control but without max-age', async () => {
-      const PublicKeysCache = {
+    it('should do nothing with cache-control but without max-age', async () => {
+      const publicKeysCache = {
         publicKeys: {},
         publicKeysExpireAt: undefined,
-      }
-      const publicKeys = {
-        '123456': '7890',
-        '2468': '1357',
       };
-      // fetchStub.resolves({
-      //   headers: {
-      //     'cache-control': 'item=val, item2=val2, item3=val3',
-      //   },
-      //   json: async () => Promise.resolve(publicKeys),
-      // });
+      const response = {
+        headers: {
+          has: (str: string) => true,
+          get: (str: string) => 'item=val, item2=val2, item3=val3',
+        },
+      };
 
-      await identity.fetchPublicKeys(PublicKeysCache);
+      await identity.setKeyExpirationTime(response, publicKeysCache, time);
 
-      expect(PublicKeysCache.publicKeys).to.deep.equal(publicKeys);
-      expect(PublicKeysCache.publicKeysExpireAt).to.be.undefined;
+      expect(publicKeysCache.publicKeysExpireAt).to.be.undefined;
     });
 
-    it('should set the public keys with cache-control but without max-age', async () => {
-      const time = Date.now();
-      const PublicKeysCache = {
+    it('should set the correctly set the expiration time', async () => {
+      const publicKeysCache = {
         publicKeys: {},
         publicKeysExpireAt: undefined,
-      }
-      const publicKeys = {
-        '123456': '7890',
-        '2468': '1357',
       };
-      // fetchStub.resolves({
-      //   headers: {
-      //     'cache-control': 'item=val, max-age=50, item2=val2, item3=val3',
-      //   },
-      //   json: async () => Promise.resolve(publicKeys),
-      // });
+      const response = {
+        headers: {
+          has: (str: string) => true,
+          get: (str: string) => 'item=val, max-age=50, item2=val2, item3=val3',
+        },
+      };
 
-      await identity.fetchPublicKeys(PublicKeysCache, time);
+      await identity.setKeyExpirationTime(response, publicKeysCache, time);
 
-      expect(PublicKeysCache.publicKeys).to.deep.equal(publicKeys);
-      expect(PublicKeysCache.publicKeysExpireAt).to.equal(time + (50 * 1000));
+      expect(publicKeysCache.publicKeysExpireAt).to.equal(time + 50 * 1000);
     });
   });
-  */
 
   describe('userRecordConstructor', () => {
     it('will provide falsey values for fields that are not in raw wire data', () => {
@@ -517,13 +488,17 @@ describe('identity', () => {
     it('should throw HttpsError if jwt.decode errors', () => {
       jwtDecodeStub.throws('An internal decode error occurred.');
 
-      expect(() => identity.decodeJWT("123456")).to.throw('Failed to decode the JWT.');
-    })
+      expect(() => identity.decodeJWT('123456')).to.throw(
+        'Failed to decode the JWT.'
+      );
+    });
 
     it('should error if jwt decoded returns undefined', () => {
       jwtDecodeStub.returns(undefined);
 
-      expect(() => identity.decodeJWT('123456')).to.throw('The decoded JWT is not structured correctly.');
+      expect(() => identity.decodeJWT('123456')).to.throw(
+        'The decoded JWT is not structured correctly.'
+      );
     });
 
     it('should error if decoded jwt does not have a payload field', () => {
@@ -531,7 +506,9 @@ describe('identity', () => {
         header: { key: 'val' },
       });
 
-      expect(() => identity.decodeJWT("123456")).to.throw('The decoded JWT is not structured correctly.');
+      expect(() => identity.decodeJWT('123456')).to.throw(
+        'The decoded JWT is not structured correctly.'
+      );
     });
 
     it('should return the raw decoded jwt', () => {
@@ -554,7 +531,7 @@ describe('identity', () => {
     it('should return true', () => {
       expect(identity.shouldVerifyJWT()).to.be.true;
     });
-  })
+  });
 
   describe('verifyJWT', () => {
     const time = Date.now();
@@ -601,8 +578,10 @@ describe('identity', () => {
     it('should error if jwt verify errors', () => {
       jwtVerifyStub.throws('Internal failure of jwt verify.');
 
-      expect(() => identity.verifyJWT('123456', rawDecodedJWT, keysCache, time)).to.throw('Failed to verify the JWT.');
-    })
+      expect(() =>
+        identity.verifyJWT('123456', rawDecodedJWT, keysCache, time)
+      ).to.throw('Failed to verify the JWT.');
+    });
 
     it('should return the decoded jwt', () => {
       const decoded = {
