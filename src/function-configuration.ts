@@ -165,6 +165,11 @@ export interface RuntimeOptions {
    * Allow requests with invalid App Check tokens on callable functions.
    */
   allowInvalidAppCheckToken?: boolean;
+
+  /*
+   * Secrets to bind to a function instance.
+   */
+  secrets?: string[];
 }
 
 export interface DeploymentOptions extends RuntimeOptions {
