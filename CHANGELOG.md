@@ -1,0 +1,1 @@
+- Expose stack YAML via \_\_/functions.yaml endpoint instead (#1036).
