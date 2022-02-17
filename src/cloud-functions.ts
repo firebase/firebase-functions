@@ -281,6 +281,7 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
+    secrets?: string[];
   };
 }
 
@@ -552,7 +553,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
+    'labels',
+    'secrets'
   );
   convertIfPresent(
     trigger,
@@ -619,6 +621,13 @@ export function optionsToEndpoint(
     'serviceAccountEmail',
     'serviceAccount',
     (sa) => sa
+  );
+  convertIfPresent(
+    endpoint,
+    options,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
   );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };

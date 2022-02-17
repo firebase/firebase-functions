@@ -85,7 +85,8 @@ async function startBin(
     env: {
       PATH: process.env.PATH,
       GLCOUD_PROJECT: 'test-project',
-      STACK_CONTROL_API_PORT: port,
+      PORT: port,
+      FUNCTIONS_CONTROL_API: 'true',
     },
   });
 
@@ -95,7 +96,7 @@ async function startBin(
 
   await retryUntil(async () => {
     try {
-      await fetch(`http://localhost:${port}/__/stack.yaml`);
+      await fetch(`http://localhost:${port}/__/functions.yaml`);
     } catch (e) {
       if (e?.code === 'ECONNREFUSED') {
         return false;
@@ -132,7 +133,7 @@ async function startBin(
   };
 }
 
-describe('stack.yaml', () => {
+describe('functions.yaml', () => {
   async function runTests(tc: Testcase) {
     let port: number;
     let cleanup: () => Promise<void>;
@@ -147,14 +148,14 @@ describe('stack.yaml', () => {
       await cleanup?.();
     });
 
-    it('stack.yaml returns expected Manifest', async () => {
-      const res = await fetch(`http://localhost:${port}/__/stack.yaml`);
+    it('functions.yaml returns expected Manifest', async () => {
+      const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
       const text = await res.text();
       let parsed: any;
       try {
         parsed = yaml.load(text);
       } catch (err) {
-        throw new Error('Failed to parse stack.yaml ' + err);
+        throw new Error('Failed to parse functions.yaml ' + err);
       }
       expect(parsed).to.be.deep.equal(tc.expected);
     });

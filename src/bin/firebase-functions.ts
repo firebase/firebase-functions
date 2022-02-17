@@ -35,21 +35,24 @@ async function handleQuitquitquit(req: express.Request, res: express.Response) {
 
 app.get('/__/quitquitquit', handleQuitquitquit);
 app.post('/__/quitquitquit', handleQuitquitquit);
-app.get('/__/stack.yaml', async (req, res) => {
-  try {
-    const stack = await loadStack(functionsDir);
-    res.setHeader('content-type', 'text/yaml');
-    res.send(JSON.stringify(stack));
-  } catch (e) {
-    res
-      .status(400)
-      .send(`Failed to generate manifest from function source: ${e}`);
-  }
-});
+
+if (process.env.FUNCTIONS_CONTROL_API === 'true') {
+  app.get('/__/functions.yaml', async (req, res) => {
+    try {
+      const stack = await loadStack(functionsDir);
+      res.setHeader('content-type', 'text/yaml');
+      res.send(JSON.stringify(stack));
+    } catch (e) {
+      res
+        .status(400)
+        .send(`Failed to generate manifest from function source: ${e}`);
+    }
+  });
+}
 
 let port = 8080;
-if (process.env.STACK_CONTROL_API_PORT) {
-  port = Number.parseInt(process.env.STACK_CONTROL_API_PORT);
+if (process.env.PORT) {
+  port = Number.parseInt(process.env.PORT);
 }
 
 console.log('Serving at port', port);

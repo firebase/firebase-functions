@@ -107,6 +107,7 @@ describe('makeCloudFunction', () => {
         regions: ['us-central1'],
         memory: '128MB',
         serviceAccount: 'foo@google.com',
+        secrets: ['MY_SECRET'],
       },
     });
 
@@ -123,6 +124,7 @@ describe('makeCloudFunction', () => {
         },
         retry: false,
       },
+      secretEnvironmentVariables: [{ secret: 'MY_SECRET', key: 'MY_SECRET' }],
       labels: {},
     });
   });

@@ -39,6 +39,7 @@ export interface ManifestEndpoint {
   labels?: Record<string, string>;
   ingressSettings?: string;
   environmentVariables?: Record<string, string>;
+  secretEnvironmentVariables?: { key: string; secret?: string }[];
 
   httpsTrigger?: {
     invoker?: string[];
