@@ -60,18 +60,18 @@ export function onPlanUpdatePublished(
 /**
  * Declares a function that can handle an automated billing plan update event.
  */
-export function onAutomatedPlanUpdatePublished(
+export function onPlanAutomatedUpdatePublished(
   handler: (
     event: BillingEvent<PlanAutomatedUpdatePayload>
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
-export function onAutomatedPlanUpdatePublished(
+export function onPlanAutomatedUpdatePublished(
   opts: options.EventHandlerOptions,
   handler: (
     event: BillingEvent<PlanAutomatedUpdatePayload>
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
-export function onAutomatedPlanUpdatePublished(
+export function onPlanAutomatedUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
     | ((event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>),

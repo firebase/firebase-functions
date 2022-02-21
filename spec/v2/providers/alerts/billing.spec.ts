@@ -45,7 +45,7 @@ describe('billing', () => {
 
   describe('onAutomatedPlanUpdatePublished', () => {
     it('should create a function with only handler', () => {
-      const func = billing.onAutomatedPlanUpdatePublished(myHandler);
+      const func = billing.onPlanAutomatedUpdatePublished(myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -61,7 +61,7 @@ describe('billing', () => {
     });
 
     it('should create a function with opts & handler', () => {
-      const func = billing.onAutomatedPlanUpdatePublished(
+      const func = billing.onPlanAutomatedUpdatePublished(
         { ...FULL_OPTIONS },
         myHandler
       );
