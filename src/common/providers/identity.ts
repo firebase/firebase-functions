@@ -642,11 +642,12 @@ export function verifyJWT(
     );
   }
   const header = rawDecodedJWT.header;
-  if (invalidPublicKeys(keysCache, time)) {
-    refreshPublicKeys(keysCache);
-  }
-  let publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
+  let publicKey;
   try {
+    if (invalidPublicKeys(keysCache, time)) {
+      refreshPublicKeys(keysCache);
+    }
+    publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
     }) as DecodedJWT;
@@ -654,9 +655,9 @@ export function verifyJWT(
     logger.error('Verifying the JWT failed', err);
   }
   // force refresh keys and retry one more time
-  refreshPublicKeys(keysCache);
-  publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
   try {
+    refreshPublicKeys(keysCache);
+    publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
     }) as DecodedJWT;
