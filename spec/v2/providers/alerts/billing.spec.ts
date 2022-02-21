@@ -43,7 +43,7 @@ describe('billing', () => {
     });
   });
 
-  describe('onAutomatedPlanUpdatePublished', () => {
+  describe('onPlanAutomatedUpdatePublished', () => {
     it('should create a function with only handler', () => {
       const func = billing.onPlanAutomatedUpdatePublished(myHandler);
 
@@ -53,7 +53,7 @@ describe('billing', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: billing.automatedPlanUpdateAlert,
+            alertType: billing.planAutomatedUpdateAlert,
           },
           retry: false,
         },
@@ -71,7 +71,7 @@ describe('billing', () => {
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
-            alertType: billing.automatedPlanUpdateAlert,
+            alertType: billing.planAutomatedUpdateAlert,
           },
           retry: false,
         },

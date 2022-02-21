@@ -32,7 +32,7 @@ export type BillingEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertType>;
 /** @internal */
 export const planUpdateAlert = 'billing.planUpdate';
 /** @internal */
-export const automatedPlanUpdateAlert = 'billing.automatedPlanUpdate';
+export const planAutomatedUpdateAlert = 'billing.automatedPlanUpdate';
 
 /**
  * Declares a function that can handle a billing plan update event.
@@ -80,7 +80,7 @@ export function onPlanAutomatedUpdatePublished(
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>> {
   return onOperation<PlanAutomatedUpdatePayload>(
-    automatedPlanUpdateAlert,
+    planAutomatedUpdateAlert,
     optsOrHandler,
     handler
   );
