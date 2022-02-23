@@ -36,10 +36,13 @@ import { ManifestEndpoint } from '../runtime/manifest';
  * List of all regions supported by Cloud Functions v2
  */
 export const SUPPORTED_REGIONS = [
-  'us-west1',
-  'us-central1',
-  'europe-west4',
   'asia-northeast1',
+  'europe-north1',
+  'europe-west1',
+  'europe-west4',
+  'us-central1',
+  'us-east1',
+  'us-west1',
 ] as const;
 
 /**
@@ -71,21 +74,27 @@ export const MAX_CONCURRENCY = 1_000;
  * List of available memory options supported by Cloud Functions.
  */
 export const SUPPORTED_MEMORY_OPTIONS = [
+  '128MB',
   '256MB',
   '512MB',
   '1GB',
   '2GB',
   '4GB',
   '8GB',
+  '16GB',
+  '32GB',
 ] as const;
 
 const MemoryOptionToMB: Record<MemoryOption, number> = {
+  '128MB': 128,
   '256MB': 256,
   '512MB': 512,
   '1GB': 1024,
   '2GB': 2048,
   '4GB': 4096,
   '8GB': 8192,
+  '16GB': 16384,
+  '32GB': 32768,
 };
 
 /**
