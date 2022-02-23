@@ -12,9 +12,12 @@ const EVENT_TRIGGER = {
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: 'event-type',
-  eventFilters: {
-    bucket: 'some-bucket',
-  },
+  eventFilters: [
+    {
+      attribute: 'bucket',
+      value: 'some-bucket',
+    },
+  ],
   retry: false,
 };
 
@@ -116,9 +119,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -268,9 +274,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_ARCHIVED_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
       });
     });
@@ -292,9 +301,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_ARCHIVED_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
       });
     });
@@ -320,9 +332,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_ARCHIVED_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -348,9 +363,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_ARCHIVED_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -395,9 +413,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_FINALIZED_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
       });
     });
@@ -419,9 +440,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_FINALIZED_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
       });
     });
@@ -447,9 +471,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_FINALIZED_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -478,9 +505,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_FINALIZED_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -525,9 +555,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_DELETED_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
       });
 
@@ -551,9 +584,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_DELETED_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
       });
     });
@@ -579,9 +615,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_DELETED_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -607,9 +646,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_DELETED_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -654,9 +696,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_METADATA_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
       });
 
@@ -680,9 +725,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_METADATA_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
       });
     });
@@ -708,9 +756,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_METADATA_TRIGGER,
-          eventFilters: {
-            bucket: 'my-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'my-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });
@@ -739,9 +790,12 @@ describe('v2/storage', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_METADATA_TRIGGER,
-          eventFilters: {
-            bucket: 'default-bucket',
-          },
+          eventFilters: [
+            {
+              attribute: 'bucket',
+              value: 'default-bucket',
+            },
+          ],
         },
         region: ['us-west1'],
       });

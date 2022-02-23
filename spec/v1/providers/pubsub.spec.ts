@@ -108,9 +108,12 @@ describe('Pubsub Functions', () => {
           platform: 'gcfv1',
           eventTrigger: {
             eventType: 'google.pubsub.topic.publish',
-            eventFilters: {
-              resource: 'projects/project1/topics/toppy',
-            },
+            eventFilters: [
+              {
+                attribute: 'resource',
+                value: 'projects/project1/topics/toppy',
+              },
+            ],
             retry: false,
           },
           labels: {},

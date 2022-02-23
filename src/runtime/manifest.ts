@@ -19,6 +19,20 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+
+/** An Expression type for use with manifest parameters */
+type Expression<T extends string | number | boolean> = string;
+
+/**
+ * One or more event filters restrict the set of events delivered to an EventTrigger.
+ */
+interface EventFilter {
+  attribute: string;
+  value: string | Expression<string>;
+  // if left unspecified, equality is used.
+  operator?: string;
+}
+
 /**
  * An definition of a function as appears in the Manifest.
  */
@@ -48,7 +62,7 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: Record<string, string>;
+    eventFilters: Array<EventFilter>;
     eventType: string;
     retry: boolean;
     region?: string;

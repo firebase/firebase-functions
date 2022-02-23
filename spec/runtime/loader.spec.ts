@@ -122,7 +122,12 @@ describe('extractStack', () => {
           platform: 'gcfv1',
           eventTrigger: {
             eventType: 'google.pubsub.topic.publish',
-            eventFilters: { resource: 'projects/my-project/topics/my-topic' },
+            eventFilters: [
+              {
+                attribute: 'resource',
+                value: 'projects/my-project/topics/my-topic',
+              },
+            ],
             retry: false,
           },
           labels: {},

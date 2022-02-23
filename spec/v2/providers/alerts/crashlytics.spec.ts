@@ -17,9 +17,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newFatalIssueAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newFatalIssueAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -33,10 +36,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newFatalIssueAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newFatalIssueAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -52,9 +61,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newFatalIssueAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newFatalIssueAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -70,10 +82,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newFatalIssueAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newFatalIssueAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -89,9 +107,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newNonfatalIssueAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newNonfatalIssueAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -105,10 +126,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newNonfatalIssueAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newNonfatalIssueAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -124,9 +151,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newNonfatalIssueAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newNonfatalIssueAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -142,10 +172,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newNonfatalIssueAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newNonfatalIssueAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -161,9 +197,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.regressionAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.regressionAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -177,10 +216,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.regressionAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.regressionAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -196,9 +241,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.regressionAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.regressionAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -214,10 +262,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.regressionAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.regressionAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -233,9 +287,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.stabilityDigestAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.stabilityDigestAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -249,10 +306,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.stabilityDigestAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.stabilityDigestAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -268,9 +331,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.stabilityDigestAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.stabilityDigestAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -286,10 +352,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.stabilityDigestAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.stabilityDigestAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -305,9 +377,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.velocityAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.velocityAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -321,10 +396,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.velocityAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.velocityAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -340,9 +421,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.velocityAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.velocityAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -358,10 +442,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.velocityAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.velocityAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -377,9 +467,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newAnrIssueAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newAnrIssueAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -393,10 +486,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newAnrIssueAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newAnrIssueAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -412,9 +511,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newAnrIssueAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newAnrIssueAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -430,10 +532,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: crashlytics.newAnrIssueAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: crashlytics.newAnrIssueAlert,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -449,9 +557,12 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
@@ -465,10 +576,16 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -485,9 +602,12 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
@@ -504,10 +624,16 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
