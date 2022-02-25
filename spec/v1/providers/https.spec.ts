@@ -236,7 +236,6 @@ describe('#onEnqueue', () => {
     const result = https
       .taskQueue({
         rateLimits: {
-          maxBurstSize: 20,
           maxConcurrentDispatches: 30,
           maxDispatchesPerSecond: 40,
         },
@@ -248,12 +247,11 @@ describe('#onEnqueue', () => {
         },
         invoker: 'private',
       })
-      .onDispatch(() => {});
+      .onDispatch(() => { });
 
     expect(result.__trigger).to.deep.equal({
       taskQueueTrigger: {
         rateLimits: {
-          maxBurstSize: 20,
           maxConcurrentDispatches: 30,
           maxDispatchesPerSecond: 40,
         },
@@ -271,7 +269,6 @@ describe('#onEnqueue', () => {
       platform: 'gcfv1',
       taskQueueTrigger: {
         rateLimits: {
-          maxBurstSize: 20,
           maxConcurrentDispatches: 30,
           maxDispatchesPerSecond: 40,
         },

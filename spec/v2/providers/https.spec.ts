@@ -427,7 +427,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should return a minimal trigger with appropriate values', () => {
-    const result = https.onTaskDispatched(() => {});
+    const result = https.onTaskDispatched(() => { });
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -447,13 +447,12 @@ describe('onTaskEnqueue', () => {
           maxBackoffSeconds: 2,
         },
         rateLimits: {
-          maxBurstSize: 10,
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
         invoker: 'private',
       },
-      () => {}
+      () => { }
     );
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
@@ -465,7 +464,6 @@ describe('onTaskEnqueue', () => {
           maxBackoffSeconds: 2,
         },
         rateLimits: {
-          maxBurstSize: 10,
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
@@ -486,7 +484,7 @@ describe('onTaskEnqueue', () => {
         region: 'us-west1',
         minInstances: 3,
       },
-      (request) => {}
+      (request) => { }
     );
 
     expect(result.__trigger).to.deep.equal({
@@ -517,7 +515,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should be an express handler', async () => {
-    const func = https.onTaskDispatched((request) => {});
+    const func = https.onTaskDispatched((request) => { });
 
     const req = new MockRequest(
       {

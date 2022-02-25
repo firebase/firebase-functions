@@ -198,9 +198,6 @@ export interface TaskRetryConfig {
 
 /** How congestion control should be applied to the function. */
 export interface TaskRateLimits {
-  // If left unspecified, will default to 100
-  maxBurstSize?: number;
-
   // If left unspecified, wild default to 1000
   maxConcurrentDispatches?: number;
 
@@ -580,7 +577,7 @@ function unsafeDecodeToken(token: string): unknown {
       if (typeof obj === 'object') {
         payload = obj;
       }
-    } catch (e) {}
+    } catch (e) { }
   }
   return payload;
 }
