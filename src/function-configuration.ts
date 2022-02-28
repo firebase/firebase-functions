@@ -127,7 +127,8 @@ export interface RuntimeOptions {
   minInstances?: number;
 
   /**
-   * Max number of actual instances allowed to be running in parallel.
+   * Max number of actual instances allowed to be running in parallel. Pass '0'
+   * to remove the limit.
    */
   maxInstances?: number;
 
