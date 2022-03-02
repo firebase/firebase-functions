@@ -20,6 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 /**
+ * One or more event filters restrict the set of events delivered to an EventTrigger.
+ */
+interface EventFilter {
+  attribute: string;
+  value: string;
+  // if left unspecified, equality is used.
+  operator?: string;
+}
+
+/**
  * An definition of a function as appears in the Manifest.
  */
 export interface ManifestEndpoint {
@@ -48,12 +58,7 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: Array<{
-      attribute: string;
-      value: string;
-      // if left unspecified, equality is used.
-      operator?: 'match-path-pattern';
-    }>;
+    eventFilters: EventFilter[];
     eventType: string;
     retry: boolean;
     region?: string;
