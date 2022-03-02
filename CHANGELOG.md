@@ -1,0 +1,1 @@
+- Add support for more regions and memory for v2 functions (#1037).
