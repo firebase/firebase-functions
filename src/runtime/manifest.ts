@@ -48,7 +48,7 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: Record<string, string>;
+    eventFilters: { attribute: string; value: string }[];
     eventType: string;
     retry: boolean;
     region?: string;

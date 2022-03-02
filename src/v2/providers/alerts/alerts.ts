@@ -91,14 +91,20 @@ export function getEndpointAnnotation(
     },
     eventTrigger: {
       eventType,
-      eventFilters: {
-        alertType,
-      },
+      eventFilters: [
+        {
+          attribute: 'alertType',
+          value: alertType,
+        },
+      ],
       retry: !!opts.retry,
     },
   };
   if (appId) {
-    endpoint.eventTrigger.eventFilters.appId = appId;
+    endpoint.eventTrigger.eventFilters.push({
+      attribute: 'appId',
+      value: appId,
+    });
   }
   return endpoint;
 }
