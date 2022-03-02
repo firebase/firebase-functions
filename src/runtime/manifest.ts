@@ -39,7 +39,7 @@ export interface ManifestEndpoint {
   labels?: Record<string, string>;
   ingressSettings?: string;
   environmentVariables?: Record<string, string>;
-  secretEnvironmentVariables?: { key: string; secret?: string }[];
+  secretEnvironmentVariables?: Array<{ key: string; secret?: string }>;
 
   httpsTrigger?: {
     invoker?: string[];
@@ -48,7 +48,12 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: { attribute: string; value: string }[];
+    eventFilters: Array<{
+      attribute: string;
+      value: string;
+      // if left unspecified, equality is used.
+      operator?: 'match-path-pattern';
+    }>;
     eventType: string;
     retry: boolean;
     region?: string;
@@ -75,7 +80,7 @@ export interface ManifestRequiredAPI {
 
 /**
  * An definition of a function deployment as appears in the Manifest.
- **/
+ */
 export interface ManifestStack {
   specVersion: 'v1alpha1';
   requiredAPIs: ManifestRequiredAPI[];
