@@ -93,7 +93,7 @@ export function getEndpointAnnotation(
       eventType,
       eventFilters: [
         {
-          attribute: 'alertType',
+          attribute: 'alerttype',
           value: alertType,
         },
       ],
@@ -102,7 +102,7 @@ export function getEndpointAnnotation(
   };
   if (appId) {
     endpoint.eventTrigger.eventFilters.push({
-      attribute: 'appId',
+      attribute: 'appid',
       value: appId,
     });
   }

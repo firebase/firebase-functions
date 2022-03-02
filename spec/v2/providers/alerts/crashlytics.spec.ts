@@ -47,7 +47,7 @@ describe('crashlytics', () => {
             eventType: alerts.eventType,
             eventFilters: [
               {
-                attribute: 'alertType',
+                attribute: 'alerttype',
                 value: event,
               },
             ],
@@ -66,11 +66,11 @@ describe('crashlytics', () => {
             eventType: alerts.eventType,
             eventFilters: [
               {
-                attribute: 'alertType',
+                attribute: 'alerttype',
                 value: event,
               },
               {
-                attribute: 'appId',
+                attribute: 'appid',
                 value: APPID,
               },
             ],
@@ -88,7 +88,7 @@ describe('crashlytics', () => {
             eventType: alerts.eventType,
             eventFilters: [
               {
-                attribute: 'alertType',
+                attribute: 'alerttype',
                 value: event,
               },
             ],
@@ -109,11 +109,11 @@ describe('crashlytics', () => {
             eventType: alerts.eventType,
             eventFilters: [
               {
-                attribute: 'alertType',
+                attribute: 'alerttype',
                 value: event,
               },
               {
-                attribute: 'appId',
+                attribute: 'appid',
                 value: APPID,
               },
             ],
@@ -135,7 +135,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
@@ -154,11 +154,11 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],
@@ -180,7 +180,7 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
@@ -202,11 +202,11 @@ describe('crashlytics', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],

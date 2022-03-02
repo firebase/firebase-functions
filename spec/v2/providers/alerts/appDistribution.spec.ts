@@ -21,11 +21,11 @@ describe('appDistribution', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: appDistribution.newTesterIosDeviceAlert,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],
@@ -46,7 +46,7 @@ describe('appDistribution', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: appDistribution.newTesterIosDeviceAlert,
             },
           ],
@@ -67,11 +67,11 @@ describe('appDistribution', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: appDistribution.newTesterIosDeviceAlert,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],
@@ -90,7 +90,7 @@ describe('appDistribution', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: appDistribution.newTesterIosDeviceAlert,
             },
           ],

@@ -18,7 +18,7 @@ describe('alerts', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
@@ -43,11 +43,11 @@ describe('alerts', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],
@@ -83,7 +83,7 @@ describe('alerts', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
@@ -101,7 +101,7 @@ describe('alerts', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
@@ -119,11 +119,11 @@ describe('alerts', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],
@@ -155,11 +155,11 @@ describe('alerts', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
             {
-              attribute: 'appId',
+              attribute: 'appid',
               value: APPID,
             },
           ],

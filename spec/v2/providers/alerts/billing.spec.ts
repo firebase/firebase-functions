@@ -18,7 +18,7 @@ describe('billing', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: billing.planUpdateAlert,
             },
           ],
@@ -39,7 +39,7 @@ describe('billing', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: billing.planUpdateAlert,
             },
           ],
@@ -60,7 +60,7 @@ describe('billing', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: billing.automatedPlanUpdateAlert,
             },
           ],
@@ -81,7 +81,7 @@ describe('billing', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: billing.automatedPlanUpdateAlert,
             },
           ],
@@ -102,7 +102,7 @@ describe('billing', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
@@ -124,7 +124,7 @@ describe('billing', () => {
           eventType: alerts.eventType,
           eventFilters: [
             {
-              attribute: 'alertType',
+              attribute: 'alerttype',
               value: ALERT_TYPE,
             },
           ],
