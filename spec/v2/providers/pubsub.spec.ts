@@ -12,9 +12,12 @@ const EVENT_TRIGGER = {
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
-  eventFilters: {
-    topic: 'topic',
-  },
+  eventFilters: [
+    {
+      attribute: 'topic',
+      value: 'topic',
+    },
+  ],
   retry: false,
 };
 

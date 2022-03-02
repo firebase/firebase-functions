@@ -19,10 +19,16 @@ describe('appDistribution', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: appDistribution.newTesterIosDeviceAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: appDistribution.newTesterIosDeviceAlert,
+            },
+            {
+              attribute: 'appId',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -38,9 +44,12 @@ describe('appDistribution', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: appDistribution.newTesterIosDeviceAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: appDistribution.newTesterIosDeviceAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -56,10 +65,16 @@ describe('appDistribution', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: appDistribution.newTesterIosDeviceAlert,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: appDistribution.newTesterIosDeviceAlert,
+            },
+            {
+              attribute: 'appId',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -73,9 +88,12 @@ describe('appDistribution', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: appDistribution.newTesterIosDeviceAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: appDistribution.newTesterIosDeviceAlert,
+            },
+          ],
           retry: false,
         },
       });

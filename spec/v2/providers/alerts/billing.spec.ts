@@ -16,9 +16,12 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: billing.planUpdateAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: billing.planUpdateAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -34,9 +37,12 @@ describe('billing', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: billing.planUpdateAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: billing.planUpdateAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -52,9 +58,12 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: billing.automatedPlanUpdateAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: billing.automatedPlanUpdateAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -70,9 +79,12 @@ describe('billing', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: billing.automatedPlanUpdateAlert,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: billing.automatedPlanUpdateAlert,
+            },
+          ],
           retry: false,
         },
       });
@@ -88,9 +100,12 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
@@ -107,9 +122,12 @@ describe('billing', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alertType',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
