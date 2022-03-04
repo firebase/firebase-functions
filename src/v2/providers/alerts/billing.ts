@@ -32,7 +32,7 @@ export type BillingEvent<T> = CloudEvent<FirebaseAlertData<T>, WithAlertType>;
 /** @internal */
 export const planUpdateAlert = 'billing.planUpdate';
 /** @internal */
-export const automatedPlanUpdateAlert = 'billing.automatedPlanUpdate';
+export const planAutomatedUpdateAlert = 'billing.planAutomatedUpdate';
 
 /**
  * Declares a function that can handle a billing plan update event.
@@ -60,18 +60,18 @@ export function onPlanUpdatePublished(
 /**
  * Declares a function that can handle an automated billing plan update event.
  */
-export function onAutomatedPlanUpdatePublished(
+export function onPlanAutomatedUpdatePublished(
   handler: (
     event: BillingEvent<PlanAutomatedUpdatePayload>
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
-export function onAutomatedPlanUpdatePublished(
+export function onPlanAutomatedUpdatePublished(
   opts: options.EventHandlerOptions,
   handler: (
     event: BillingEvent<PlanAutomatedUpdatePayload>
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>>;
-export function onAutomatedPlanUpdatePublished(
+export function onPlanAutomatedUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
     | ((event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>),
@@ -80,7 +80,7 @@ export function onAutomatedPlanUpdatePublished(
   ) => any | Promise<any>
 ): CloudFunction<FirebaseAlertData<PlanAutomatedUpdatePayload>> {
   return onOperation<PlanAutomatedUpdatePayload>(
-    automatedPlanUpdateAlert,
+    planAutomatedUpdateAlert,
     optsOrHandler,
     handler
   );

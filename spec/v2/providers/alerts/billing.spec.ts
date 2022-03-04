@@ -49,19 +49,18 @@ describe('billing', () => {
     });
   });
 
-  describe('onAutomatedPlanUpdatePublished', () => {
+  describe('onPlanAutomatedUpdatePublished', () => {
     it('should create a function with only handler', () => {
-      const func = billing.onAutomatedPlanUpdatePublished(myHandler);
+      const func = billing.onPlanAutomatedUpdatePublished(myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
             {
               attribute: 'alerttype',
-              value: billing.automatedPlanUpdateAlert,
+              value: billing.planAutomatedUpdateAlert,
             },
           ],
           retry: false,
@@ -70,7 +69,7 @@ describe('billing', () => {
     });
 
     it('should create a function with opts & handler', () => {
-      const func = billing.onAutomatedPlanUpdatePublished(
+      const func = billing.onPlanAutomatedUpdatePublished(
         { ...FULL_OPTIONS },
         myHandler
       );
@@ -82,7 +81,7 @@ describe('billing', () => {
           eventFilters: [
             {
               attribute: 'alerttype',
-              value: billing.automatedPlanUpdateAlert,
+              value: billing.planAutomatedUpdateAlert,
             },
           ],
           retry: false,
