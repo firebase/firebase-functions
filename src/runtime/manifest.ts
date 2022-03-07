@@ -20,6 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 /**
+ * One or more event filters restrict the set of events delivered to an EventTrigger.
+ */
+interface EventFilter {
+  attribute: string;
+  value: string;
+  // if left unspecified, equality is used.
+  operator?: string;
+}
+
+/**
  * An definition of a function as appears in the Manifest.
  */
 export interface ManifestEndpoint {
@@ -39,7 +49,7 @@ export interface ManifestEndpoint {
   labels?: Record<string, string>;
   ingressSettings?: string;
   environmentVariables?: Record<string, string>;
-  secretEnvironmentVariables?: { key: string; secret?: string }[];
+  secretEnvironmentVariables?: Array<{ key: string; secret?: string }>;
 
   httpsTrigger?: {
     invoker?: string[];
@@ -48,7 +58,7 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: Record<string, string>;
+    eventFilters: EventFilter[];
     eventType: string;
     retry: boolean;
     region?: string;
@@ -75,7 +85,7 @@ export interface ManifestRequiredAPI {
 
 /**
  * An definition of a function deployment as appears in the Manifest.
- **/
+ */
 export interface ManifestStack {
   specVersion: 'v1alpha1';
   requiredAPIs: ManifestRequiredAPI[];

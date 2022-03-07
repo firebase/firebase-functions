@@ -16,9 +16,12 @@ describe('alerts', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
@@ -38,10 +41,16 @@ describe('alerts', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -72,9 +81,12 @@ describe('alerts', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
@@ -87,9 +99,12 @@ describe('alerts', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+          ],
           retry: false,
         },
       });
@@ -102,10 +117,16 @@ describe('alerts', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
@@ -132,10 +153,16 @@ describe('alerts', () => {
         minInstances: 3,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: {
-            alertType: ALERT_TYPE,
-            appId: APPID,
-          },
+          eventFilters: [
+            {
+              attribute: 'alerttype',
+              value: ALERT_TYPE,
+            },
+            {
+              attribute: 'appid',
+              value: APPID,
+            },
+          ],
           retry: false,
         },
       });
