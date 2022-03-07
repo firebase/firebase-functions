@@ -58,6 +58,7 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
+          eventFilters: [
             {
               attribute: 'alerttype',
               value: billing.planAutomatedUpdateAlert,
