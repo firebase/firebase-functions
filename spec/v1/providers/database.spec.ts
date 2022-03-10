@@ -529,6 +529,22 @@ describe('Database Functions', () => {
       expect(path).to.equal('/bar');
     });
 
+    it('should return the correct instance and path strings if root path is /refs', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/refs'
+      );
+      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/refs');
+    });
+
+    it('should return the correct instance and path strings if a child path contain /refs', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/root/refs'
+      );
+      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/root/refs');
+    });
+
     it('should return the correct multi-region instance and path strings if domain is present', () => {
       const [instance, path] = database.extractInstanceAndPath(
         'projects/_/instances/foo/refs/bar',
