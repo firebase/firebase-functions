@@ -1,1 +1,2 @@
 - Add support for more regions and memory for v2 functions (#1037).
+- Fixes bug where some RTDB instance names were incorrectly parsed (#1056).
