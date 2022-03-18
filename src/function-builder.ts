@@ -295,10 +295,10 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     return new FunctionBuilder(runtimeOptions);
   }
 }
-
+  
 type ExtractParams<T> = T extends `${infer Pre}{${infer A}}${infer Post}`
   ? { [K in A]: string } & ExtractParams<Pre> & ExtractParams<Post>
-  : {};
+  : string extends T ? Record<string,string> :  {};
 
 export class FunctionBuilder {
   constructor(private options: DeploymentOptions) {}
