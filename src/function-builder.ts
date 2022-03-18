@@ -296,6 +296,10 @@ export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   }
 }
 
+type ExtractParams<T> = T extends `${infer Pre}{${infer A}}${infer Post}`
+  ? { [K in A]: string } & ExtractParams<Pre> & ExtractParams<Post>
+  : {};
+
 export class FunctionBuilder {
   constructor(private options: DeploymentOptions) {}
 
@@ -427,8 +431,13 @@ export class FunctionBuilder {
        * collection is named "users" and the document is named "Ada", then the
        * path is "/users/Ada".
        */
-      document: (path: string) =>
-        firestore._documentWithOptions(path, this.options),
+
+      
+      document: <T extends string>(path: T) =>
+        firestore._documentWithOptions<ExtractParams<T>>(
+          path,
+          this.options
+        ),
 
       /** @hidden */
       namespace: (namespace: string) =>

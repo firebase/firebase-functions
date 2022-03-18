@@ -43,8 +43,12 @@ export const service = 'firestore.googleapis.com';
 /** @hidden */
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
-export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
-export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+export type DocumentSnapshot<
+  T = { [field: string]: any }
+> = firebase.firestore.DocumentSnapshot<T>;
+export type QueryDocumentSnapshot<
+  T = { [field: string]: any }
+> = firebase.firestore.QueryDocumentSnapshot<T>;
 
 /**
  * Select the Firestore document to listen to for events.
@@ -84,8 +88,13 @@ export function _namespaceWithOptions(
 }
 
 /** @hidden */
-export function _documentWithOptions(path: string, options: DeploymentOptions) {
-  return _databaseWithOptions(defaultDatabase, options).document(path);
+export function _documentWithOptions<Params extends Record<string, string>>(
+  path: string,
+  options: DeploymentOptions
+) {
+  return _databaseWithOptions(defaultDatabase, options).document<Params>(
+    path
+  );
 }
 
 export class DatabaseBuilder {
@@ -96,8 +105,8 @@ export class DatabaseBuilder {
     return new NamespaceBuilder(this.database, this.options, namespace);
   }
 
-  document(path: string) {
-    return new NamespaceBuilder(this.database, this.options).document(path);
+  document<Params extends Record<string, string>>(path: string) {
+    return new NamespaceBuilder(this.database, this.options).document<Params>(path);
   }
 }
 
@@ -109,8 +118,8 @@ export class NamespaceBuilder {
     private namespace?: string
   ) {}
 
-  document(path: string) {
-    return new DocumentBuilder(() => {
+  document<Params extends Record<string, string>>(path: string) {
+    return new DocumentBuilder<Params>(() => {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error('process.env.GCLOUD_PROJECT is not set.');
       }
@@ -194,7 +203,9 @@ function changeConstructor(raw: Event) {
   );
 }
 
-export class DocumentBuilder {
+export class DocumentBuilder<
+  Params extends Record<string, string> = Record<string, string>
+> {
   /** @hidden */
   constructor(
     private triggerResource: () => string,
@@ -204,42 +215,42 @@ export class DocumentBuilder {
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite(
+  onWrite<T extends Record<string, any>>(
     handler: (
-      change: Change<DocumentSnapshot>,
-      context: EventContext
+      change: Change<DocumentSnapshot<T>>,
+      context: EventContext<Params>
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DocumentSnapshot>> {
+  ): CloudFunction<Change<DocumentSnapshot<T>>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
   }
 
   /** Respond only to document updates. */
-  onUpdate(
+  onUpdate<T extends Record<string, any>>(
     handler: (
-      change: Change<QueryDocumentSnapshot>,
-      context: EventContext
+      change: Change<QueryDocumentSnapshot<T>>,
+      context: EventContext<Params>
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<QueryDocumentSnapshot>> {
+  ): CloudFunction<Change<QueryDocumentSnapshot<T>>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
   /** Respond only to document creations. */
-  onCreate(
+  onCreate<T extends Record<string, any>>(
     handler: (
-      snapshot: QueryDocumentSnapshot,
-      context: EventContext
+      snapshot: QueryDocumentSnapshot<T>,
+      context: EventContext<Params>
     ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot<T>> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
-  onDelete(
+  onDelete<T extends Record<string, any>>(
     handler: (
-      snapshot: QueryDocumentSnapshot,
-      context: EventContext
+      snapshot: QueryDocumentSnapshot<T>,
+      context: EventContext<Params>
     ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot<T>> {
     return this.onOperation(
       handler,
       'document.delete',
@@ -248,7 +259,7 @@ export class DocumentBuilder {
   }
 
   private onOperation<T>(
-    handler: (data: T, context: EventContext) => PromiseLike<any> | any,
+    handler: (data: T, context: EventContext<Params>) => PromiseLike<any> | any,
     eventType: string,
     dataConstructor: (raw: Event) => any
   ): CloudFunction<T> {

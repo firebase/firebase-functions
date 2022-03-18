@@ -68,7 +68,9 @@ export interface Event {
  * - Authorization of the request that triggered the event, if applicable and
  *   available.
  */
-export interface EventContext {
+export interface EventContext<
+  Params extends Record<string, string> = Record<string, string>
+> {
   /**
    * Authentication information for the user that triggered the function.
    * This object contains `uid` and `token` properties for authenticated users.
@@ -130,7 +132,7 @@ export interface EventContext {
    * provided to the [`ref()`](providers_database_.html#ref) method for a Realtime
    * Database trigger. Cannot be accessed while inside the handler namespace.
    */
-  params: { [option: string]: any };
+  params: Params;
 
   /**
    * The resource that emitted the event. Valid values are:
