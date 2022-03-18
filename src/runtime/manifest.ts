@@ -56,6 +56,7 @@ export interface ManifestEndpoint {
     retry: boolean;
     region?: string;
     serviceAccountEmail?: string;
+    channel?: string;
   };
 
   scheduleTrigger?: {
