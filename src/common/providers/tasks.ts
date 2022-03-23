@@ -68,8 +68,7 @@ export interface RateLimits {
 export interface AuthData {
   uid: string;
   token: firebase.auth.DecodedIdToken;
-};
-
+}
 
 /** Metadata about a call to a Task Queue function. */
 export interface TaskContext {

@@ -71,9 +71,7 @@ export function onTaskDispatched<Args = any>(
   let opts: TaskQueueOptions;
   if (arguments.length == 1) {
     opts = {};
-    handler = optsOrHandler as (
-      request: Request<Args>
-    ) => void | Promise<void>;
+    handler = optsOrHandler as (request: Request<Args>) => void | Promise<void>;
   } else {
     opts = optsOrHandler as TaskQueueOptions;
   }

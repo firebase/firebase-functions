@@ -34,12 +34,7 @@ import {
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
 
-export {
-  Request,
-  CallableRequest,
-  FunctionsErrorCode,
-  HttpsError,
-};
+export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
   region?:
