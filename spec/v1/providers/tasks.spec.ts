@@ -27,7 +27,7 @@ import { taskQueue } from '../../../src/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
 
-describe('#onEnqueue', () => {
+describe('#onDispatch', () => {
   it('should return a trigger/endpoint with appropriate values', () => {
     const result = taskQueue({
       rateLimits: {

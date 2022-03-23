@@ -76,7 +76,7 @@ export function onTaskDispatched<Args = any>(
     opts = optsOrHandler as TaskQueueOptions;
   }
 
-  // onEnqueueHandler sniffs the function length to determine which API to present.
+  // onDispatchHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: Request<Args>) => handler(req);
   const func: any = onDispatchHandler(fixedLen);

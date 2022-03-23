@@ -25,14 +25,13 @@ import { expect } from 'chai';
 import * as options from '../../../src/v2/options';
 import {
   onTaskDispatched,
-  onTaskDispatched as onTaskDispatched1,
   Request,
 } from '../../../src/v2/providers/tasks';
 import { FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
 
-describe('onTaskEnqueue', () => {
+describe('onTaskDispatched', () => {
   beforeEach(() => {
     options.setGlobalOptions({});
     process.env.GCLOUD_PROJECT = 'aProject';
@@ -43,7 +42,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should return a minimal trigger with appropriate values', () => {
-    const result = onTaskDispatched1(() => {});
+    const result = onTaskDispatched(() => {});
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -124,7 +123,7 @@ describe('onTaskEnqueue', () => {
         token: 'token',
       },
     };
-    const cf = onTaskDispatched1((r) => {
+    const cf = onTaskDispatched((r) => {
       expect(r.data).to.deep.equal(request.data);
       expect(r.auth).to.deep.equal(request.auth);
     });
@@ -133,7 +132,7 @@ describe('onTaskEnqueue', () => {
   });
 
   it('should be an express handler', async () => {
-    const func = onTaskDispatched1((request) => {});
+    const func = onTaskDispatched((request) => {});
 
     const req = new MockRequest(
       {
@@ -152,17 +151,17 @@ describe('onTaskEnqueue', () => {
 
   // These tests pass if the code transpiles
   it('allows desirable syntax', () => {
-    onTaskDispatched1<string>((request: Request<string>) => {
+    onTaskDispatched<string>((request: Request<string>) => {
       // There should be no lint warnings that data is not a string.
       console.log(`hello, ${request.data}`);
     });
-    onTaskDispatched1((request: Request<string>) => {
+    onTaskDispatched((request: Request<string>) => {
       console.log(`hello, ${request.data}`);
     });
-    onTaskDispatched1<string>((request: Request) => {
+    onTaskDispatched<string>((request: Request) => {
       console.log(`hello, ${request.data}`);
     });
-    onTaskDispatched1((request: Request) => {
+    onTaskDispatched((request: Request) => {
       console.log(`Hello, ${request.data}`);
     });
   });

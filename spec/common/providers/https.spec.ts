@@ -10,10 +10,6 @@ import {
   RunHandlerResult,
 } from '../../helper';
 import {
-  unsafeDecodeAppCheckToken,
-  unsafeDecodeIdToken,
-} from '../../../src/common/providers/https';
-import {
   expectedResponseHeaders,
   generateAppCheckToken,
   generateIdToken,
@@ -655,19 +651,19 @@ describe('decode tokens', () => {
   const appId = '123:web:abc';
 
   it('decodes valid Auth ID Token', () => {
-    const idToken = unsafeDecodeIdToken(generateIdToken(projectId));
+    const idToken = https.unsafeDecodeIdToken(generateIdToken(projectId));
     expect(idToken.uid).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });
 
   it('decodes invalid Auth ID Token', () => {
-    const idToken = unsafeDecodeIdToken(generateUnsignedIdToken(projectId));
+    const idToken = https.unsafeDecodeIdToken(generateUnsignedIdToken(projectId));
     expect(idToken.uid).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });
 
   it('decodes valid App Check Token', () => {
-    const idToken = unsafeDecodeAppCheckToken(
+    const idToken = https.unsafeDecodeAppCheckToken(
       generateAppCheckToken(projectId, appId)
     );
     expect(idToken.app_id).to.equal(appId);
@@ -675,7 +671,7 @@ describe('decode tokens', () => {
   });
 
   it('decodes invalid App Check Token', () => {
-    const idToken = unsafeDecodeAppCheckToken(
+    const idToken = https.unsafeDecodeAppCheckToken(
       generateUnsignedAppCheckToken(projectId, appId)
     );
     expect(idToken.app_id).to.equal(appId);

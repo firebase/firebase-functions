@@ -33,8 +33,8 @@ import {
 } from '../../fixtures/mockrequest';
 import {
   onDispatchHandler,
-  TaskContext as TaskContext1,
-  Request as TaskRequest1,
+  TaskContext,
+  Request,
 } from '../../../src/common/providers/tasks';
 import { apps as appsNamespace } from '../../../src/apps';
 import * as mocks from '../../fixtures/credential/key.json';
@@ -49,9 +49,9 @@ interface TaskTest {
   // The expected format of the request passed to the handler.
   expectedData: any;
 
-  taskFunction?: (data: any, context: TaskContext1) => void | Promise<void>;
+  taskFunction?: (data: any, context: TaskContext) => void | Promise<void>;
 
-  taskFunction2?: (request: TaskRequest1<any>) => void | Promise<void>;
+  taskFunction2?: (request: Request<any>) => void | Promise<void>;
 
   // The expected shape of the http response returned to the callable SDK.
   expectedStatus: number;
