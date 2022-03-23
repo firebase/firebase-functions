@@ -3,7 +3,7 @@ import * as sinon from 'sinon';
 import * as config from '../../../src/config';
 import * as options from '../../../src/v2/options';
 import * as storage from '../../../src/v2/providers/storage';
-import { FULL_OPTIONS } from './helpers';
+import { FULL_OPTIONS } from './fixtures';
 
 const EVENT_TRIGGER = {
   eventType: 'event-type',
