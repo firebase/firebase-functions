@@ -98,11 +98,26 @@
       "v1/storage": [
         "lib/providers/storage"
       ],
+      "v1/tasks": [
+        "lib/providers/tasks"
+      ],
       "v1/testLab": [
         "lib/providers/testLab"
       ],
       "v2": [
         "lib/v2"
+      ],
+      "v2/alerts": [
+        "lib/v2/providers/tasks"
+      ],
+      "v2/alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
       ],
       "v2/base": [
         "lib/v2/base"
@@ -122,17 +137,8 @@
       "v2/storage": [
         "lib/v2/providers/storage"
       ],
-      "v2/alerts": [
-        "lib/v2/providers/alerts"
-      ],
-      "v2/alerts/appDistribution": [
-        "lib/v2/providers/alerts/appDistribution"
-      ],
-      "v2/alerts/billing": [
-        "lib/v2/providers/alerts/billing"
-      ],
-      "v2/alerts/crashlytics": [
-        "lib/v2/providers/alerts/crashlytics"
+      "v2/tasks": [
+        "lib/v2/providers/tasks"
       ]
     }
   },

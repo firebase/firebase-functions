@@ -32,6 +32,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
 /**
@@ -90,12 +91,9 @@ export class HandlerBuilder {
       get taskQueue() {
         return {
           onEnqueue(
-            handler: (
-              data: any,
-              context: https.TaskContext
-            ) => void | Promise<void>
+            handler: (data: any, context: tasks.TaskContext) => void | Promise<void>
           ) {
-            const builder = new https.TaskQueueBuilder();
+            const builder = new tasks.TaskQueueBuilder();
             const func = builder.onDispatch(handler);
             func.__trigger = {};
             func.__endpoint = undefined;

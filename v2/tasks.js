@@ -20,16 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as logger from '../logger';
-import * as params from './params';
-import * as alerts from './providers/alerts';
-import * as https from './providers/https';
-import * as pubsub from './providers/pubsub';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
-
-export { alerts, https, pubsub, storage, logger, params, tasks };
-
-export { setGlobalOptions, GlobalOptions } from './options';
-
-export { CloudFunction, CloudEvent } from './core';
+// This file is not part of the firebase-functions SDK. It is used to silence the
+// imports eslint plugin until it can understand import paths defined by node
+// package exports.
+// For more information, see github.com/import-js/eslint-plugin-import/issues/1810

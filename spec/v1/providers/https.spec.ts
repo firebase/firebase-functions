@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as express from 'express';
 
 import * as functions from '../../../src/index';
 import * as https from '../../../src/providers/https';
@@ -29,68 +28,7 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-
-/**
- * RunHandlerResult contains the data from an express.Response.
- */
-interface RunHandlerResult {
-  status: number;
-  headers: { [name: string]: string };
-  body: any;
-}
-
-function runHandler(
-  handler: express.Handler,
-  request: https.Request
-): Promise<RunHandlerResult> {
-  return new Promise((resolve, reject) => {
-    // MockResponse mocks an express.Response.
-    // This class lives here so it can reference resolve and reject.
-    class MockResponse {
-      private statusCode = 0;
-      private headers: { [name: string]: string } = {};
-      private callback: Function;
-
-      public status(code: number) {
-        this.statusCode = code;
-        return this;
-      }
-
-      // Headers are only set by the cors handler.
-      public setHeader(name: string, value: string) {
-        this.headers[name] = value;
-      }
-
-      public getHeader(name: string): string {
-        return this.headers[name];
-      }
-
-      public send(body: any) {
-        resolve({
-          status: this.statusCode,
-          headers: this.headers,
-          body,
-        });
-        if (this.callback) {
-          this.callback();
-        }
-      }
-
-      public end() {
-        this.send(undefined);
-      }
-
-      public on(event: string, callback: Function) {
-        if (event !== 'finish') {
-          throw new Error('MockResponse only implements the finish event');
-        }
-        this.callback = callback;
-      }
-    }
-    const response = new MockResponse();
-    handler(request, response as any, () => undefined);
-  });
-}
+import { runHandler } from '../../helper';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
@@ -227,137 +165,6 @@ describe('#onCall', () => {
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(200);
-    expect(gotData).to.deep.equal({ foo: 'bar' });
-  });
-});
-
-describe('#onEnqueue', () => {
-  it('should return a trigger/endpoint with appropriate values', () => {
-    const result = https
-      .taskQueue({
-        rateLimits: {
-          maxBurstSize: 20,
-          maxConcurrentDispatches: 30,
-          maxDispatchesPerSecond: 40,
-        },
-        retryConfig: {
-          maxAttempts: 5,
-          maxBackoffSeconds: 20,
-          maxDoublings: 3,
-          minBackoffSeconds: 5,
-        },
-        invoker: 'private',
-      })
-      .onDispatch(() => {});
-
-    expect(result.__trigger).to.deep.equal({
-      taskQueueTrigger: {
-        rateLimits: {
-          maxBurstSize: 20,
-          maxConcurrentDispatches: 30,
-          maxDispatchesPerSecond: 40,
-        },
-        retryConfig: {
-          maxAttempts: 5,
-          maxBackoffSeconds: 20,
-          maxDoublings: 3,
-          minBackoffSeconds: 5,
-        },
-        invoker: ['private'],
-      },
-    });
-
-    expect(result.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
-      taskQueueTrigger: {
-        rateLimits: {
-          maxBurstSize: 20,
-          maxConcurrentDispatches: 30,
-          maxDispatchesPerSecond: 40,
-        },
-        retryConfig: {
-          maxAttempts: 5,
-          maxBackoffSeconds: 20,
-          maxDoublings: 3,
-          minBackoffSeconds: 5,
-        },
-        invoker: ['private'],
-      },
-    });
-  });
-
-  it('should allow both region and runtime options to be set', () => {
-    const fn = functions
-      .region('us-east1')
-      .runWith({
-        timeoutSeconds: 90,
-        memory: '256MB',
-      })
-      .https.taskQueue({ retryConfig: { maxAttempts: 5 } })
-      .onDispatch(() => null);
-
-    expect(fn.__trigger).to.deep.equal({
-      regions: ['us-east1'],
-      availableMemoryMb: 256,
-      timeout: '90s',
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: 5,
-        },
-      },
-    });
-
-    expect(fn.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
-      region: ['us-east1'],
-      availableMemoryMb: 256,
-      timeoutSeconds: 90,
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: 5,
-        },
-      },
-    });
-  });
-
-  it('has a .run method', async () => {
-    const data = 'data';
-    const context = {
-      auth: {
-        uid: 'abc',
-        token: 'token' as any,
-      },
-    };
-    let done = false;
-    const cf = https.taskQueue().onDispatch((d, c) => {
-      expect(d).to.equal(data);
-      expect(c).to.deep.equal(context);
-      done = true;
-    });
-
-    await cf.run(data, context);
-    expect(done).to.be.true;
-  });
-
-  // Regression test for firebase-functions#947
-  it('should lock to the v1 API even with function.length == 1', async () => {
-    let gotData: Record<string, any>;
-    const func = https.taskQueue().onDispatch((data) => {
-      gotData = data;
-    });
-
-    const req = new MockRequest(
-      {
-        data: { foo: 'bar' },
-      },
-      {
-        'content-type': 'application/json',
-      }
-    );
-    req.method = 'POST';
-
-    const response = await runHandler(func, req as any);
-    expect(response.status).to.equal(204);
     expect(gotData).to.deep.equal({ foo: 'bar' });
   });
 });
