@@ -34,7 +34,7 @@ import {
 import {
   onDispatchHandler,
   TaskContext as TaskContext1,
-  TaskRequest as TaskRequest1,
+  Request as TaskRequest1,
 } from '../../../src/common/providers/tasks';
 import { apps as appsNamespace } from '../../../src/apps';
 import * as mocks from '../../fixtures/credential/key.json';

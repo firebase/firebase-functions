@@ -28,17 +28,18 @@ import {
 } from '../../common/encoding';
 import { HttpsFunction } from './https';
 import {
+  AuthData,
+  RateLimits,
+  Request,
+  RetryConfig,
   onDispatchHandler,
-  TaskRateLimits,
-  TaskRequest,
-  TaskRetryConfig,
 } from '../../common/providers/tasks';
 
-export { TaskRateLimits, TaskRequest, TaskRetryConfig as TaskRetryPolicy };
+export { AuthData, RateLimits, Request, RetryConfig as RetryPolicy };
 
 export interface TaskQueueOptions extends options.GlobalOptions {
-  retryConfig?: TaskRetryConfig;
-  rateLimits?: TaskRateLimits;
+  retryConfig?: RetryConfig;
+  rateLimits?: RateLimits;
   /**
    * Who can enqueue tasks for this function.
    * If left unspecified, only service accounts which have
@@ -49,29 +50,29 @@ export interface TaskQueueOptions extends options.GlobalOptions {
 }
 
 export interface TaskQueueFunction<T = any> extends HttpsFunction {
-  run(data: TaskRequest<T>): void | Promise<void>;
+  run(data: Request<T>): void | Promise<void>;
 }
 
 /** Handle a request sent to a Cloud Tasks queue. */
 export function onTaskDispatched<Args = any>(
-  handler: (request: TaskRequest<Args>) => void | Promise<void>
+  handler: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 /** Handle a request sent to a Cloud Tasks queue. */
 export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
-  handler: (request: TaskRequest<Args>) => void | Promise<void>
+  handler: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 export function onTaskDispatched<Args = any>(
   optsOrHandler:
     | TaskQueueOptions
-    | ((request: TaskRequest<Args>) => void | Promise<void>),
-  handler?: (request: TaskRequest<Args>) => void | Promise<void>
+    | ((request: Request<Args>) => void | Promise<void>),
+  handler?: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args> {
   let opts: TaskQueueOptions;
   if (arguments.length == 1) {
     opts = {};
     handler = optsOrHandler as (
-      request: TaskRequest<Args>
+      request: Request<Args>
     ) => void | Promise<void>;
   } else {
     opts = optsOrHandler as TaskQueueOptions;
@@ -79,7 +80,7 @@ export function onTaskDispatched<Args = any>(
 
   // onEnqueueHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
-  const fixedLen = (req: TaskRequest<Args>) => handler(req);
+  const fixedLen = (req: Request<Args>) => handler(req);
   const func: any = onDispatchHandler(fixedLen);
 
   Object.defineProperty(func, '__trigger', {

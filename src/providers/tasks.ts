@@ -34,15 +34,15 @@ import {
 import {
   onDispatchHandler,
   TaskContext,
-  TaskRateLimits,
-  TaskRetryConfig,
+  RateLimits,
+  RetryConfig,
 } from '../common/providers/tasks';
 
 export {
   /** @hidden */
-  TaskRetryConfig as TaskRetryPolicy,
+  RetryConfig as RetryPolicy,
   /** @hidden */
-  TaskRateLimits,
+  RateLimits,
   /** @hidden */
   TaskContext,
 };
@@ -52,8 +52,8 @@ export {
  * @hidden
  */
 export interface TaskQueueOptions {
-  retryConfig?: TaskRetryConfig;
-  rateLimits?: TaskRateLimits;
+  retryConfig?: RetryConfig;
+  rateLimits?: RateLimits;
 
   /**
    * Who can enqueue tasks for this function.

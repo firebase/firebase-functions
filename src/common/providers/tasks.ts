@@ -21,18 +21,13 @@
 // SOFTWARE.
 
 import * as express from 'express';
+import * as firebase from 'firebase-admin';
+
 import * as logger from '../../logger';
-import {
-  AuthData,
-  HttpsError,
-  Request,
-  checkAuthToken,
-  decode,
-  isValidRequest,
-} from './https';
+import * as https from './https';
 
 /** How a task should be retried in the event of a non-2xx return. */
-export interface TaskRetryConfig {
+export interface RetryConfig {
   /**
    * Maximum number of times a request should be attempted.
    * If left unspecified, will default to 3.
@@ -59,7 +54,7 @@ export interface TaskRetryConfig {
 }
 
 /** How congestion control should be applied to the function. */
-export interface TaskRateLimits {
+export interface RateLimits {
   // If left unspecified, will default to 100
   maxBurstSize?: number;
 
@@ -69,6 +64,12 @@ export interface TaskRateLimits {
   // If left unspecified, will default to 500
   maxDispatchesPerSecond?: number;
 }
+
+export interface AuthData {
+  uid: string;
+  token: firebase.auth.DecodedIdToken;
+};
+
 
 /** Metadata about a call to a Task Queue function. */
 export interface TaskContext {
@@ -81,7 +82,7 @@ export interface TaskContext {
 /**
  * The request used to call a Task Queue function.
  */
-export interface TaskRequest<T = any> {
+export interface Request<T = any> {
   /**
    * The parameters used by a client when calling this function.
    */
@@ -94,31 +95,31 @@ export interface TaskRequest<T = any> {
 }
 
 type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
-type v2TaskHandler<Req> = (request: TaskRequest<Req>) => void | Promise<void>;
+type v2TaskHandler<Req> = (request: Request<Req>) => void | Promise<void>;
 
 /** @internal */
 export function onDispatchHandler<Req = any>(
   handler: v1TaskHandler | v2TaskHandler<Req>
-): (req: Request, res: express.Response) => Promise<void> {
-  return async (req: Request, res: express.Response): Promise<void> => {
+): (req: https.Request, res: express.Response) => Promise<void> {
+  return async (req: https.Request, res: express.Response): Promise<void> => {
     try {
-      if (!isValidRequest(req)) {
+      if (!https.isValidRequest(req)) {
         logger.error('Invalid request, unable to process.');
-        throw new HttpsError('invalid-argument', 'Bad Request');
+        throw new https.HttpsError('invalid-argument', 'Bad Request');
       }
 
       const context: TaskContext = {};
-      const status = await checkAuthToken(req, context);
+      const status = await https.checkAuthToken(req, context);
       // Note: this should never happen since task queue functions are guarded by IAM.
       if (status === 'INVALID') {
-        throw new HttpsError('unauthenticated', 'Unauthenticated');
+        throw new https.HttpsError('unauthenticated', 'Unauthenticated');
       }
 
-      const data: Req = decode(req.body.data);
+      const data: Req = https.decode(req.body.data);
       if (handler.length === 2) {
         await handler(data, context);
       } else {
-        const arg: TaskRequest<Req> = {
+        const arg: Request<Req> = {
           ...context,
           data,
         };
@@ -129,10 +130,10 @@ export function onDispatchHandler<Req = any>(
 
       res.status(204).end();
     } catch (err) {
-      if (!(err instanceof HttpsError)) {
+      if (!(err instanceof https.HttpsError)) {
         // This doesn't count as an 'explicit' error.
         logger.error('Unhandled error', err);
-        err = new HttpsError('internal', 'INTERNAL');
+        err = new https.HttpsError('internal', 'INTERNAL');
       }
 
       const { status } = err.httpErrorCode;

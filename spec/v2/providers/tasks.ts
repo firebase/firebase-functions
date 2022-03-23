@@ -26,7 +26,7 @@ import * as options from '../../../src/v2/options';
 import {
   onTaskDispatched,
   onTaskDispatched as onTaskDispatched1,
-  TaskRequest,
+  Request,
 } from '../../../src/v2/providers/tasks';
 import { FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 import { MockRequest } from '../../fixtures/mockrequest';
@@ -152,17 +152,17 @@ describe('onTaskEnqueue', () => {
 
   // These tests pass if the code transpiles
   it('allows desirable syntax', () => {
-    onTaskDispatched1<string>((request: TaskRequest<string>) => {
+    onTaskDispatched1<string>((request: Request<string>) => {
       // There should be no lint warnings that data is not a string.
       console.log(`hello, ${request.data}`);
     });
-    onTaskDispatched1((request: TaskRequest<string>) => {
+    onTaskDispatched1((request: Request<string>) => {
       console.log(`hello, ${request.data}`);
     });
-    onTaskDispatched1<string>((request: TaskRequest) => {
+    onTaskDispatched1<string>((request: Request) => {
       console.log(`hello, ${request.data}`);
     });
-    onTaskDispatched1((request: TaskRequest) => {
+    onTaskDispatched1((request: Request) => {
       console.log(`Hello, ${request.data}`);
     });
   });

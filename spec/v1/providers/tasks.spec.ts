@@ -87,7 +87,7 @@ describe('#onEnqueue', () => {
         timeoutSeconds: 90,
         memory: '256MB',
       })
-      .https.taskQueue({ retryConfig: { maxAttempts: 5 } })
+      .tasks.taskQueue({ retryConfig: { maxAttempts: 5 } })
       .onDispatch(() => null);
 
     expect(fn.__trigger).to.deep.equal({
@@ -153,5 +153,13 @@ describe('#onEnqueue', () => {
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(204);
     expect(gotData).to.deep.equal({ foo: 'bar' });
+  });
+});
+
+describe('handler namespace', () => {
+  it('should return an empty trigger', () => {
+    const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
+    expect(result.__trigger).to.deep.equal({});
+    expect(result.__endpoint).to.be.undefined;
   });
 });
