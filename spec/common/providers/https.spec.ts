@@ -657,7 +657,9 @@ describe('decode tokens', () => {
   });
 
   it('decodes invalid Auth ID Token', () => {
-    const idToken = https.unsafeDecodeIdToken(generateUnsignedIdToken(projectId));
+    const idToken = https.unsafeDecodeIdToken(
+      generateUnsignedIdToken(projectId)
+    );
     expect(idToken.uid).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });

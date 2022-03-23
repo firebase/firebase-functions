@@ -23,10 +23,7 @@
 import { expect } from 'chai';
 
 import * as options from '../../../src/v2/options';
-import {
-  onTaskDispatched,
-  Request,
-} from '../../../src/v2/providers/tasks';
+import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
