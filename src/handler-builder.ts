@@ -87,12 +87,28 @@ export class HandlerBuilder {
         func.__requiredAPIs = undefined;
         return func;
       },
-      /** @hidden */
+    };
+  }
+
+  /**
+   * Create a handler for tasks functions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.tasks.onDispatch((data, context) => { ... })
+   * ```
+   */
+  /** @hidden */
+  get tasks() {
+    return {
       get taskQueue() {
         return {
-          onEnqueue(
-            handler: (data: any, context: tasks.TaskContext) => void | Promise<void>
-          ) {
+          onDispatch: (
+            handler: (
+              data: any,
+              context: tasks.TaskContext
+            ) => void | Promise<void>
+          ): HttpsFunction => {
             const builder = new tasks.TaskQueueBuilder();
             const func = builder.onDispatch(handler);
             func.__trigger = {};

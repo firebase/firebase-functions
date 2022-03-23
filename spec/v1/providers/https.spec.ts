@@ -84,14 +84,6 @@ describe('handler namespace', () => {
       expect(result.__endpoint).to.be.undefined;
     });
   });
-
-  describe('#onEnqueue', () => {
-    it('should return an empty trigger', () => {
-      const result = functions.handler.https.taskQueue.onEnqueue(() => null);
-      expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.be.undefined;
-    });
-  });
 });
 
 describe('#onCall', () => {
