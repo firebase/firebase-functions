@@ -102,9 +102,12 @@ describe('v2/eventarc', () => {
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
           channel: "locations/us-west1/channels/my-channel",
-          eventFilters: {
-            "foo": "bar",
-          }
+          eventFilters: [
+            {
+              "attribute": "foo",
+              "value": "bar"
+            }
+          ]
         },
       });
     });

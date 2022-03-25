@@ -23,7 +23,7 @@
 import * as options from '../options';
 import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../runtime/manifest';
+import { ManifestEndpoint, EventFilter } from '../../runtime/manifest';
 
 /** Options that can be set on an eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
@@ -146,7 +146,7 @@ export function onCustomEventPublished<T = any>(
         },
         eventTrigger: {
           eventType,
-          eventFilters: opts.filters,
+          eventFilters: toEventFilter(opts.filters),
           retry: false,
           channel,
         },
@@ -160,4 +160,18 @@ export function onCustomEventPublished<T = any>(
   });
 
   return func;
+}
+
+function toEventFilter(filters: Record<string, string> | undefined): EventFilter[] | undefined {
+  if (typeof filters === 'undefined') {
+    return undefined;
+  }
+  const out : EventFilter[] = [];
+  for (var k in filters) {
+    out.push({
+      attribute: k,
+      value: filters[k]
+    });
+  }
+  return out;
 }
