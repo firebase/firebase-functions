@@ -37,17 +37,17 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
    *   * partial channel-id, in which case the runtime project ID of the
    *     function and `us-central1` as location will be used:
    *     `{channel-id}`
-   * 
+   *
    * If not specified, the default Firebase channel will be used:
    * `projects/{project}/locations/us-central1/channels/firebase`
    */
-   channel?: string;
+  channel?: string;
 
   /**
    * Eventarc event exact match filter.
    */
-   filters?: Record<string, string>;
- }
+  filters?: Record<string, string>;
+}
 
 export type CloudEventHandler = (event: CloudEvent<any>) => any | Promise<any>;
 
@@ -65,18 +65,14 @@ export function onCustomEventPublished<T = any>(
 
 export function onCustomEventPublished<T = any>(
   eventType: string,
-  optsOrHandler:
-    CloudEventHandler
-    | EventarcTriggerOptions,
-  handler?: CloudEventHandler,
+  optsOrHandler: CloudEventHandler | EventarcTriggerOptions,
+  handler?: CloudEventHandler
 ): CloudFunction<CloudEvent<T>> {
   if (arguments.length < 2) {
-    throw new Error(
-      'Missing required parameters.'
-    );  
+    throw new Error('Missing required parameters.');
   }
   if (arguments.length == 2) {
-    if (typeof optsOrHandler !== 'function') { 
+    if (typeof optsOrHandler !== 'function') {
       throw new Error(
         'Expected second parameter to be the event handler function.'
       );
@@ -162,15 +158,17 @@ export function onCustomEventPublished<T = any>(
   return func;
 }
 
-function toEventFilter(filters: Record<string, string> | undefined): EventFilter[] | undefined {
+function toEventFilter(
+  filters: Record<string, string> | undefined
+): EventFilter[] | undefined {
   if (typeof filters === 'undefined') {
     return undefined;
   }
-  const out : EventFilter[] = [];
+  const out: EventFilter[] = [];
   for (var k in filters) {
     out.push({
       attribute: k,
-      value: filters[k]
+      value: filters[k],
     });
   }
   return out;
