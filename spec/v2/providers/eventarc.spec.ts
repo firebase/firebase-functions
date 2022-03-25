@@ -14,7 +14,6 @@ const ENDPOINT_EVENT_TRIGGER = {
 
 describe('v2/eventarc', () => {
   describe('onCustomEventPublished', () => {
-
     beforeEach(() => {
       process.env.GCLOUD_PROJECT = 'aProject';
     });
@@ -32,7 +31,7 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...EVENT_TRIGGER,
-          channel: "locations/us-central1/channels/firebase",
+          channel: 'locations/us-central1/channels/firebase',
         },
       });
 
@@ -41,7 +40,7 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: "locations/us-central1/channels/firebase",
+          channel: 'locations/us-central1/channels/firebase',
         },
       });
     });
@@ -58,7 +57,7 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...EVENT_TRIGGER,
-          channel: "locations/us-central1/channels/firebase",
+          channel: 'locations/us-central1/channels/firebase',
         },
         regions: ['us-west1'],
       });
@@ -68,7 +67,7 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: "locations/us-central1/channels/firebase",
+          channel: 'locations/us-central1/channels/firebase',
         },
         region: ['us-west1'],
       });
@@ -77,9 +76,9 @@ describe('v2/eventarc', () => {
     it('should create a minimal trigger with bucket with opts', () => {
       const result = eventarc.onCustomEventPublished(
         'event-type',
-        { 
-          channel: 'locations/us-west1/channels/my-channel', 
-          filters: {"foo" : "bar"}
+        {
+          channel: 'locations/us-west1/channels/my-channel',
+          filters: { foo: 'bar' },
         },
         () => 42
       );
@@ -89,10 +88,10 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...EVENT_TRIGGER,
-          channel: "locations/us-west1/channels/my-channel",
+          channel: 'locations/us-west1/channels/my-channel',
           filters: {
-            "foo": "bar",
-          }
+            foo: 'bar',
+          },
         },
       });
 
@@ -101,13 +100,13 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: "locations/us-west1/channels/my-channel",
+          channel: 'locations/us-west1/channels/my-channel',
           eventFilters: [
             {
-              "attribute": "foo",
-              "value": "bar"
-            }
-          ]
+              attribute: 'foo',
+              value: 'bar',
+            },
+          ],
         },
       });
     });
@@ -139,7 +138,7 @@ describe('v2/eventarc', () => {
         },
         eventTrigger: {
           ...EVENT_TRIGGER,
-          channel: "locations/us-west1/channels/my-channel",
+          channel: 'locations/us-west1/channels/my-channel',
         },
       });
 
@@ -162,7 +161,7 @@ describe('v2/eventarc', () => {
         },
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: "locations/us-west1/channels/my-channel",
+          channel: 'locations/us-west1/channels/my-channel',
         },
       });
     });
@@ -192,7 +191,7 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...EVENT_TRIGGER,
-          channel: "locations/us-west1/channels/my-channel",
+          channel: 'locations/us-west1/channels/my-channel',
         },
       });
 
@@ -204,7 +203,7 @@ describe('v2/eventarc', () => {
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: "locations/us-west1/channels/my-channel",
+          channel: 'locations/us-west1/channels/my-channel',
         },
       });
     });
