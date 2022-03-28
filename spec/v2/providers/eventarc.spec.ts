@@ -3,10 +3,6 @@ import * as options from '../../../src/v2/options';
 import * as eventarc from '../../../src/v2/providers/eventarc';
 import { FULL_OPTIONS } from './helpers';
 
-const EVENT_TRIGGER = {
-  eventType: 'event-type',
-};
-
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: 'event-type',
   retry: false,
@@ -26,15 +22,6 @@ describe('v2/eventarc', () => {
     it('should create a minimal trigger/endpoint with bucket', () => {
       const result = eventarc.onCustomEventPublished('event-type', () => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          channel: 'locations/us-central1/channels/firebase',
-        },
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -51,16 +38,6 @@ describe('v2/eventarc', () => {
         { region: 'us-west1' },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          channel: 'locations/us-central1/channels/firebase',
-        },
-        regions: ['us-west1'],
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -82,18 +59,6 @@ describe('v2/eventarc', () => {
         },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          channel: 'locations/us-west1/channels/my-channel',
-          filters: {
-            foo: 'bar',
-          },
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -120,27 +85,6 @@ describe('v2/eventarc', () => {
         },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        regions: ['us-west1'],
-        availableMemoryMb: 512,
-        timeout: '60s',
-        minInstances: 1,
-        maxInstances: 3,
-        concurrency: 20,
-        vpcConnector: 'aConnector',
-        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-        serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
-        ingressSettings: 'ALLOW_ALL',
-        labels: {
-          hello: 'world',
-        },
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          channel: 'locations/us-west1/channels/my-channel',
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -182,18 +126,6 @@ describe('v2/eventarc', () => {
         },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        concurrency: 20,
-        minInstances: 3,
-        regions: ['us-west1'],
-        labels: {},
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          channel: 'locations/us-west1/channels/my-channel',
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
