@@ -54,6 +54,7 @@ describe('onTaskDispatched', () => {
         ...FULL_OPTIONS,
         retryConfig: {
           maxAttempts: 4,
+          maxRetrySeconds: 10,
           maxDoublings: 3,
           minBackoffSeconds: 1,
           maxBackoffSeconds: 2,
@@ -72,6 +73,7 @@ describe('onTaskDispatched', () => {
       taskQueueTrigger: {
         retryConfig: {
           maxAttempts: 4,
+          maxRetrySeconds: 10,
           maxDoublings: 3,
           minBackoffSeconds: 1,
           maxBackoffSeconds: 2,

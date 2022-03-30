@@ -37,6 +37,7 @@ describe('#onDispatch', () => {
       },
       retryConfig: {
         maxAttempts: 5,
+        maxRetrySeconds: 10,
         maxBackoffSeconds: 20,
         maxDoublings: 3,
         minBackoffSeconds: 5,
@@ -53,6 +54,7 @@ describe('#onDispatch', () => {
         },
         retryConfig: {
           maxAttempts: 5,
+          maxRetrySeconds: 10,
           maxBackoffSeconds: 20,
           maxDoublings: 3,
           minBackoffSeconds: 5,
@@ -71,6 +73,7 @@ describe('#onDispatch', () => {
         },
         retryConfig: {
           maxAttempts: 5,
+          maxRetrySeconds: 10,
           maxBackoffSeconds: 20,
           maxDoublings: 3,
           minBackoffSeconds: 5,
