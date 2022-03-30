@@ -35,6 +35,12 @@ export interface RetryConfig {
   maxAttempts?: number;
 
   /**
+   * Maximum amount of time for retrying failed task.
+   * If left unspecified will retry indefinitely.
+   */
+  maxRetrySeconds?: number;
+
+  /**
    * The maximum amount of time to wait between attempts.
    * If left unspecified will default to 1hr.
    */
