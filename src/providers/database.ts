@@ -307,6 +307,8 @@ export class RefBuilder {
   };
 }
 
+const resourceRegex = /^projects\/([^/]+)\/instances\/([a-zA-Z0-9-]+)\/refs(\/.+)?/;
+
 /**
  * Utility function to extract database reference from resource string
  *
@@ -320,7 +322,6 @@ export function extractInstanceAndPath(
   resource: string,
   domain = 'firebaseio.com'
 ) {
-  const resourceRegex = `projects/([^/]+)/instances/([a-zA-Z0-9\-^/]+)/refs(/.+)?`;
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
     throw new Error(

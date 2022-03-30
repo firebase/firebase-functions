@@ -281,6 +281,7 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
+    secrets?: string[];
   };
 }
 
@@ -460,9 +461,12 @@ export function makeCloudFunction<EventData>({
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + '.' + eventType,
-          eventFilters: {
-            resource: triggerResource(),
-          },
+          eventFilters: [
+            {
+              attribute: 'resource',
+              value: triggerResource(),
+            },
+          ],
           retry: !!options.failurePolicy,
         };
       }
@@ -552,7 +556,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
+    'labels',
+    'secrets'
   );
   convertIfPresent(
     trigger,
@@ -619,6 +624,13 @@ export function optionsToEndpoint(
     'serviceAccountEmail',
     'serviceAccount',
     (sa) => sa
+  );
+  convertIfPresent(
+    endpoint,
+    options,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
   );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };

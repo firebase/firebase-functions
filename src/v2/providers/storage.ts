@@ -360,9 +360,7 @@ export function onOperation(
         },
         eventTrigger: {
           eventType,
-          eventFilters: {
-            bucket,
-          },
+          eventFilters: [{ attribute: 'bucket', value: bucket }],
           retry: false,
         },
       };

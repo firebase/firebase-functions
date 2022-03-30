@@ -45,9 +45,12 @@ describe('Database Functions', () => {
       return {
         platform: 'gcfv1',
         eventTrigger: {
-          eventFilters: {
-            resource,
-          },
+          eventFilters: [
+            {
+              attribute: 'resource',
+              value: resource,
+            },
+          ],
           eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
           retry: false,
         },
@@ -524,6 +527,22 @@ describe('Database Functions', () => {
       );
       expect(instance).to.equal('https://foo.firebaseio-staging.com');
       expect(path).to.equal('/bar');
+    });
+
+    it('should return the correct instance and path strings if root path is /refs', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/refs'
+      );
+      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/refs');
+    });
+
+    it('should return the correct instance and path strings if a child path contain /refs', () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        'projects/_/instances/foo/refs/root/refs'
+      );
+      expect(instance).to.equal('https://foo.firebaseio.com');
+      expect(path).to.equal('/root/refs');
     });
 
     it('should return the correct multi-region instance and path strings if domain is present', () => {
