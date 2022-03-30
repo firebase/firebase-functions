@@ -1049,12 +1049,12 @@ function wrapHandler(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
       const rawDecodedJWT = decodeJWT(req.body.data.jwt);
-      const decodedJWT = shouldVerifyJWT()
+      const decodedPayload = shouldVerifyJWT()
         ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
         : (rawDecodedJWT.payload as DecodedPayload);
-      checkDecodedToken(decodedJWT, eventType, projectId);
-      const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
-      const authEventContext = parseAuthEventContext(decodedJWT, projectId);
+      checkDecodedToken(decodedPayload, eventType, projectId);
+      const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
+      const authEventContext = parseAuthEventContext(decodedPayload, projectId);
       const authResponse =
         (await handler(authUserRecord, authEventContext)) || undefined;
       validateAuthResponse(eventType, authResponse);
