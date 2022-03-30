@@ -41,7 +41,7 @@ describe('identity', () => {
       ).to.be.true;
     });
 
-    it('should return true if publicKeysExpireAt equals Date.now()', () => {
+    it('should return true if publicKeysExpireAt are less than equals Date.now() plus a buffer', () => {
       const time = Date.now();
       expect(
         identity.invalidPublicKeys(
@@ -54,26 +54,13 @@ describe('identity', () => {
       ).to.be.true;
     });
 
-    it('should return true if publicKeysExpireAt are less than Date.now()', () => {
+    it('should return false if publicKeysExpireAt are greater than Date.now() plus a buffer', () => {
       const time = Date.now();
       expect(
         identity.invalidPublicKeys(
           {
             publicKeys: {},
-            publicKeysExpireAt: time - 1,
-          },
-          time
-        )
-      ).to.be.true;
-    });
-
-    it('should return false if publicKeysExpireAt are greater than Date.now()', () => {
-      const time = Date.now();
-      expect(
-        identity.invalidPublicKeys(
-          {
-            publicKeys: {},
-            publicKeysExpireAt: time + 100,
+            publicKeysExpireAt: time + identity.INVALID_TOKEN_BUFFER + 60000,
           },
           time
         )
@@ -89,10 +76,9 @@ describe('identity', () => {
         publicKeys: {},
         publicKeysExpireAt: undefined,
       };
+      const headers = new Map();
       const response = {
-        headers: {
-          has: (str: string) => false,
-        },
+        headers,
       };
 
       await identity.setKeyExpirationTime(response, publicKeysCache, time);
@@ -105,11 +91,10 @@ describe('identity', () => {
         publicKeys: {},
         publicKeysExpireAt: undefined,
       };
+      const headers = new Map();
+      headers.set('cache-control', 'item=val, item2=val2, item3=val3');
       const response = {
-        headers: {
-          has: (str: string) => true,
-          get: (str: string) => 'item=val, item2=val2, item3=val3',
-        },
+        headers,
       };
 
       await identity.setKeyExpirationTime(response, publicKeysCache, time);
@@ -122,11 +107,13 @@ describe('identity', () => {
         publicKeys: {},
         publicKeysExpireAt: undefined,
       };
+      const headers = new Map();
+      headers.set(
+        'cache-control',
+        'item=val, max-age=50, item2=val2, item3=val3'
+      );
       const response = {
-        headers: {
-          has: (str: string) => true,
-          get: (str: string) => 'item=val, max-age=50, item2=val2, item3=val3',
-        },
+        headers,
       };
 
       await identity.setKeyExpirationTime(response, publicKeysCache, time);
@@ -197,7 +184,7 @@ describe('identity', () => {
     });
   });
 
-  describe('validRequest', () => {
+  describe('isValidRequest', () => {
     it('should error on non-post', () => {
       const req = ({
         method: 'GET',
@@ -211,9 +198,7 @@ describe('identity', () => {
         },
       } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw(
-        'Request has invalid method "GET".'
-      );
+      expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error on bad Content-Type', () => {
@@ -229,9 +214,7 @@ describe('identity', () => {
         },
       } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw(
-        'Request has invalid header Content-Type.'
-      );
+      expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error without req body', () => {
@@ -242,9 +225,7 @@ describe('identity', () => {
         },
       } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw(
-        'Request has an invalid body.'
-      );
+      expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error without req body data', () => {
@@ -256,9 +237,7 @@ describe('identity', () => {
         body: {},
       } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw(
-        'Request has an invalid body.'
-      );
+      expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error without req body', () => {
@@ -272,9 +251,7 @@ describe('identity', () => {
         },
       } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.throw(
-        'Request has an invalid body.'
-      );
+      expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should not error on valid request', () => {
@@ -290,7 +267,7 @@ describe('identity', () => {
         },
       } as unknown) as express.Request;
 
-      expect(() => identity.validRequest(req)).to.not.throw();
+      expect(identity.isValidRequest(req)).to.be.true;
     });
   });
 
@@ -370,7 +347,7 @@ describe('identity', () => {
         identity.checkDecodedToken(
           {
             event_type: EVENT,
-          } as identity.DecodedJWT,
+          } as identity.DecodedPayload,
           'newEvent',
           PROJECT
         )
@@ -382,7 +359,7 @@ describe('identity', () => {
           {
             aud: `fake-region-${PROJECT}.cloudfunctions.net/fn1`,
             event_type: EVENT,
-          } as identity.DecodedJWT,
+          } as identity.DecodedPayload,
           EVENT,
           PROJECT
         )
@@ -396,7 +373,7 @@ describe('identity', () => {
             aud: VALID_URL,
             iss: `https://someissuer.com/a-project`,
             event_type: EVENT,
-          } as identity.DecodedJWT,
+          } as identity.DecodedPayload,
           EVENT,
           PROJECT
         )
@@ -415,7 +392,7 @@ describe('identity', () => {
               key: 'val',
             },
             event_type: EVENT,
-          } as unknown) as identity.DecodedJWT,
+          } as unknown) as identity.DecodedPayload,
           EVENT,
           PROJECT
         )
@@ -430,7 +407,7 @@ describe('identity', () => {
             iss: `${identity.JWT_ISSUER}${PROJECT}`,
             sub: '',
             event_type: EVENT,
-          } as identity.DecodedJWT,
+          } as identity.DecodedPayload,
           EVENT,
           PROJECT
         )
@@ -446,7 +423,7 @@ describe('identity', () => {
             iss: `${identity.JWT_ISSUER}${PROJECT}`,
             sub: str.toString(),
             event_type: EVENT,
-          } as identity.DecodedJWT,
+          } as identity.DecodedPayload,
           EVENT,
           PROJECT
         )
@@ -463,7 +440,7 @@ describe('identity', () => {
           iss: `${identity.JWT_ISSUER}${PROJECT}`,
           sub: sub,
           event_type: EVENT,
-        } as identity.DecodedJWT;
+        } as identity.DecodedPayload;
 
         identity.checkDecodedToken(decoded, EVENT, PROJECT);
 
@@ -541,7 +518,7 @@ describe('identity', () => {
         '123456': '7890',
         '2468': '1357',
       },
-      publicKeysExpireAt: time + 1,
+      publicKeysExpireAt: time + identity.INVALID_TOKEN_BUFFER + 10000,
     };
     const rawDecodedJWT = {
       header: {
@@ -712,7 +689,7 @@ describe('identity', () => {
 
     it('should error on an invalid factor', () => {
       const factors = {
-        enrolled_factors: [{} as identity.DecodedJwtMfaInfo],
+        enrolled_factors: [{} as identity.DecodedPayloadMfaInfo],
       };
 
       expect(() => identity.parseMultiFactor(factors)).to.throw(
@@ -869,7 +846,7 @@ describe('identity', () => {
 
     it('should error if decoded does not have uid', () => {
       expect(() =>
-        identity.parseAuthUserRecord({} as identity.DecodedJwtUserRecord)
+        identity.parseAuthUserRecord({} as identity.DecodedPayloadUserRecord)
       ).to.throw('INTERNAL ASSERT FAILED: Invalid user response');
     });
 

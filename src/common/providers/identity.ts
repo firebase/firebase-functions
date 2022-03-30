@@ -22,7 +22,6 @@
 
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import * as _ from 'lodash';
 import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
 import { HttpsError } from './https';
@@ -31,6 +30,9 @@ import { SUPPORTED_REGIONS } from '../../function-configuration';
 import { logger } from '../..';
 
 export { HttpsError };
+
+/** @internal */
+export const INVALID_TOKEN_BUFFER = 60000; // set to 1 minute
 
 /** @internal */
 export const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
@@ -48,7 +50,7 @@ export interface PublicKeysCache {
   publicKeysExpireAt?: number;
 }
 
-const CLAIMS_NON_ALLOW_LISTED = [
+const DISALLOWED_CUSTOM_CLAIMS = [
   'acr',
   'amr',
   'at_hash',
@@ -119,44 +121,52 @@ export function userRecordConstructor(wireData: Object): UserRecord {
     passwordHash: null,
     tokensValidAfterTime: null,
   };
-  const record = _.assign({}, falseyValues, wireData);
+  const record = { ...falseyValues, ...wireData };
 
-  const meta = _.get(record, 'metadata');
+  const meta = record['metadata'];
   if (meta) {
-    _.set(
-      record,
-      'metadata',
-      new UserRecordMetadata(
-        meta.createdAt || meta.creationTime,
-        meta.lastSignedInAt || meta.lastSignInTime
-      )
+    record['metadata'] = new UserRecordMetadata(
+      meta.createdAt || meta.creationTime,
+      meta.lastSignedInAt || meta.lastSignInTime
     );
   } else {
-    _.set(record, 'metadata', new UserRecordMetadata(null, null));
+    record['metadata'] = new UserRecordMetadata(null, null);
   }
-  _.forEach(record.providerData, (entry) => {
-    _.set(entry, 'toJSON', () => {
+  for (const entry of Object.entries(record.providerData)) {
+    entry['toJSON'] = () => {
       return entry;
-    });
-  });
-  _.set(record, 'toJSON', () => {
-    const json: any = _.pick(record, [
-      'uid',
-      'email',
-      'emailVerified',
-      'displayName',
-      'photoURL',
-      'phoneNumber',
-      'disabled',
-      'passwordHash',
-      'passwordSalt',
-      'tokensValidAfterTime',
-    ]);
-    json.metadata = _.get(record, 'metadata').toJSON();
-    json.customClaims = _.cloneDeep(record.customClaims);
-    json.providerData = _.map(record.providerData, (entry) => entry.toJSON());
+    };
+  }
+  record['toJSON'] = () => {
+    const {
+      uid,
+      email,
+      emailVerified,
+      displayName,
+      photoURL,
+      phoneNumber,
+      disabled,
+      passwordHash,
+      passwordSalt,
+      tokensValidAfterTime,
+    } = record;
+    const json = {
+      uid,
+      email,
+      emailVerified,
+      displayName,
+      photoURL,
+      phoneNumber,
+      disabled,
+      passwordHash,
+      passwordSalt,
+      tokensValidAfterTime,
+    };
+    json['metadata'] = record['metadata'].toJSON();
+    json['customClaims'] = JSON.parse(JSON.stringify(record.customClaims));
+    json['providerData'] = record.providerData.map((entry) => entry.toJSON());
     return json;
-  });
+  };
   return record as UserRecord;
 }
 
@@ -351,12 +361,12 @@ export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
 
-interface DecodedJwtMetadata {
+interface DecodedPayloadUserRecordMetadata {
   creation_time?: number;
   last_sign_in_time?: number;
 }
 
-interface DecodedJwtUserInfo {
+interface DecodedPayloadUserRecordUserInfo {
   uid: string;
   display_name?: string;
   email?: string;
@@ -366,7 +376,7 @@ interface DecodedJwtUserInfo {
 }
 
 /** @internal */
-export interface DecodedJwtMfaInfo {
+export interface DecodedPayloadMfaInfo {
   uid: string;
   display_name?: string;
   phone_number?: string;
@@ -374,12 +384,12 @@ export interface DecodedJwtMfaInfo {
   factor_id?: string;
 }
 
-interface DecodedJwtEnrolledFactors {
-  enrolled_factors?: DecodedJwtMfaInfo[];
+interface DecodedPayloadUserRecordEnrolledFactors {
+  enrolled_factors?: DecodedPayloadMfaInfo[];
 }
 
 /** @internal */
-export interface DecodedJwtUserRecord {
+export interface DecodedPayloadUserRecord {
   uid: string;
   email?: string;
   email_verified?: boolean;
@@ -387,11 +397,11 @@ export interface DecodedJwtUserRecord {
   display_name?: string;
   photo_url?: string;
   disabled?: boolean;
-  metadata?: DecodedJwtMetadata;
+  metadata?: DecodedPayloadUserRecordMetadata;
   password_hash?: string;
   password_salt?: string;
-  provider_data?: DecodedJwtUserInfo[];
-  multi_factor?: DecodedJwtEnrolledFactors;
+  provider_data?: DecodedPayloadUserRecordUserInfo[];
+  multi_factor?: DecodedPayloadUserRecordEnrolledFactors;
   custom_claims?: any;
   tokens_valid_after_time?: number;
   tenant_id?: string;
@@ -399,7 +409,7 @@ export interface DecodedJwtUserRecord {
 }
 
 /** @internal */
-export interface DecodedJWT {
+export interface DecodedPayload {
   aud: string;
   exp: number;
   iat: number;
@@ -411,7 +421,7 @@ export interface DecodedJWT {
   user_agent?: string;
   locale?: string;
   sign_in_method?: string;
-  user_record?: DecodedJwtUserRecord;
+  user_record?: DecodedPayloadUserRecord;
   tenant_id?: string;
   raw_user_info?: string;
   sign_in_attributes?: {
@@ -426,8 +436,8 @@ export interface DecodedJWT {
 }
 
 /**
- * @internal
  * Helper to determine if we refresh the public keys
+ * @internal
  */
 export function invalidPublicKeys(
   keys: PublicKeysCache,
@@ -436,12 +446,12 @@ export function invalidPublicKeys(
   if (!keys.publicKeysExpireAt) {
     return true;
   }
-  return time >= keys.publicKeysExpireAt;
+  return time + INVALID_TOKEN_BUFFER >= keys.publicKeysExpireAt;
 }
 
 /**
- * @internal
  * Helper to parse the response headers to obtain the expiration time.
+ * @internal
  */
 export function setKeyExpirationTime(
   response: any,
@@ -485,28 +495,26 @@ async function refreshPublicKeys(
 }
 
 /**
- * @internal
  * Checks for a valid identity platform web request, otherwise throws an HttpsError
+ * @internal
  */
-export function validRequest(req: express.Request): void {
+export function isValidRequest(req: express.Request): boolean {
   if (req.method !== 'POST') {
-    throw new HttpsError(
-      'invalid-argument',
-      `Request has invalid method "${req.method}".`
-    );
+    logger.warn(`Request has invalid method "${req.method}".`);
+    return false;
   }
 
   const contentType: string = (req.header('Content-Type') || '').toLowerCase();
   if (!contentType.includes('application/json')) {
-    throw new HttpsError(
-      'invalid-argument',
-      'Request has invalid header Content-Type.'
-    );
+    logger.warn('Request has invalid header Content-Type.');
+    return false;
   }
 
   if (!req.body?.data?.jwt) {
-    throw new HttpsError('invalid-argument', 'Request has an invalid body.');
+    logger.warn('Request has an invalid body.');
+    return false;
   }
+  return true;
 }
 
 /** @internal */
@@ -534,8 +542,8 @@ export function getPublicKeyFromHeader(
 }
 
 /**
- * @internal
  * Checks for a well forms cloud functions url
+ * @internal
  */
 export function isAuthorizedCloudFunctionURL(
   cloudFunctionUrl: string,
@@ -551,11 +559,11 @@ export function isAuthorizedCloudFunctionURL(
 }
 
 /**
- * @internal
  * Checks for errors in a decoded jwt
+ * @internal
  */
 export function checkDecodedToken(
-  decodedJWT: DecodedJWT,
+  decodedJWT: DecodedPayload,
   eventType: string,
   projectId: string
 ): void {
@@ -595,8 +603,8 @@ export function checkDecodedToken(
 }
 
 /**
- * @internal
  * Helper function to decode the jwt, internally uses the 'jsonwebtoken' package.
+ * @internal
  */
 export function decodeJWT(token: string): Record<string, any> {
   let decoded: Record<string, any>;
@@ -616,8 +624,8 @@ export function decodeJWT(token: string): Record<string, any> {
 }
 
 /**
- * @internal
  * Helper function to determine if we need to do full verification of the jwt
+ * @internal
  */
 export function shouldVerifyJWT(): boolean {
   // TODO(colerogers): add emulator support to skip verification
@@ -625,16 +633,16 @@ export function shouldVerifyJWT(): boolean {
 }
 
 /**
- * @internal
  * Verifies the jwt using the 'jwt' library and decodes the token with the public keys
  * Throws an error if the event types do not match
+ * @internal
  */
 export function verifyJWT(
   token: string,
   rawDecodedJWT: Record<string, any>,
   keysCache: PublicKeysCache,
   time: number = Date.now()
-): DecodedJWT {
+): DecodedPayload {
   if (!rawDecodedJWT.header) {
     throw new HttpsError(
       'internal',
@@ -650,7 +658,7 @@ export function verifyJWT(
     publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
-    }) as DecodedJWT;
+    }) as DecodedPayload;
   } catch (err) {
     logger.error('Verifying the JWT failed', err);
   }
@@ -660,7 +668,7 @@ export function verifyJWT(
     publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
-    }) as DecodedJWT;
+    }) as DecodedPayload;
   } catch (err) {
     logger.error('Verifying the JWT failed again', err);
     throw new HttpsError('internal', 'Failed to verify the JWT.');
@@ -668,10 +676,12 @@ export function verifyJWT(
 }
 
 /**
- * @internal
  * Helper function to parse the decoded metadata object into a UserMetaData object
+ * @internal
  */
-export function parseMetadata(metadata: DecodedJwtMetadata): AuthUserMetadata {
+export function parseMetadata(
+  metadata: DecodedPayloadUserRecordMetadata
+): AuthUserMetadata {
   const creationTime = metadata?.creation_time
     ? new Date((metadata.creation_time as number) * 1000).toUTCString()
     : null;
@@ -685,11 +695,11 @@ export function parseMetadata(metadata: DecodedJwtMetadata): AuthUserMetadata {
 }
 
 /**
- * @internal
  * Helper function to parse the decoded user info array into an AuthUserInfo array
+ * @internal
  */
 export function parseProviderData(
-  providerData: DecodedJwtUserInfo[]
+  providerData: DecodedPayloadUserRecordUserInfo[]
 ): AuthUserInfo[] {
   const providers: AuthUserInfo[] = [];
   for (const provider of providerData) {
@@ -706,8 +716,8 @@ export function parseProviderData(
 }
 
 /**
- * @internal
  * Helper function to parse the date into a UTC string
+ * @internal
  */
 export function parseDate(tokensValidAfterTime?: number): string | null {
   if (!tokensValidAfterTime) {
@@ -724,11 +734,11 @@ export function parseDate(tokensValidAfterTime?: number): string | null {
 }
 
 /**
- * @internal
  * Helper function to parse the decoded enrolled factors into a valid MultiFactorSettings
+ * @internal
  */
 export function parseMultiFactor(
-  multiFactor?: DecodedJwtEnrolledFactors
+  multiFactor?: DecodedPayloadUserRecordEnrolledFactors
 ): AuthMultiFactorSettings {
   if (!multiFactor) {
     return null;
@@ -764,11 +774,11 @@ export function parseMultiFactor(
 }
 
 /**
- * @internal
  * Parses the decoded user record into a valid UserRecord for use in the handler
+ * @internal
  */
 export function parseAuthUserRecord(
-  decodedJWTUserRecord: DecodedJwtUserRecord
+  decodedJWTUserRecord: DecodedPayloadUserRecord
 ): AuthUserRecord {
   if (!decodedJWTUserRecord.uid) {
     throw new HttpsError(
@@ -805,7 +815,9 @@ export function parseAuthUserRecord(
 }
 
 /** Helper to get the AdditionalUserInfo from the decoded jwt */
-function parseAdditionalUserInfo(decodedJWT: DecodedJWT): AdditionalUserInfo {
+function parseAdditionalUserInfo(
+  decodedJWT: DecodedPayload
+): AdditionalUserInfo {
   let profile, username;
   if (decodedJWT.raw_user_info)
     try {
@@ -834,7 +846,10 @@ function parseAdditionalUserInfo(decodedJWT: DecodedJWT): AdditionalUserInfo {
 }
 
 /** Helper to get the Credential from the decoded jwt */
-function parseAuthCredential(decodedJWT: DecodedJWT, time: number): Credential {
+function parseAuthCredential(
+  decodedJWT: DecodedPayload,
+  time: number
+): Credential {
   if (
     !decodedJWT.sign_in_attributes &&
     !decodedJWT.oauth_id_token &&
@@ -861,11 +876,11 @@ function parseAuthCredential(decodedJWT: DecodedJWT, time: number): Credential {
 }
 
 /**
- * @internal
  * Parses the decoded jwt into a valid AuthEventContext for use in the handler
+ * @internal
  */
 export function parseAuthEventContext(
-  decodedJWT: DecodedJWT,
+  decodedJWT: DecodedPayload,
   projectId: string,
   time: number = new Date().getTime()
 ): AuthEventContext {
@@ -895,8 +910,8 @@ export function parseAuthEventContext(
 }
 
 /**
- * @internal
  * Checks the handler response for invalid customClaims & sessionClaims objects
+ * @internal
  */
 export function validateAuthResponse(
   eventType: string,
@@ -906,7 +921,7 @@ export function validateAuthResponse(
     authRequest = {};
   }
   if (authRequest.customClaims) {
-    const invalidClaims = CLAIMS_NON_ALLOW_LISTED.filter((claim) =>
+    const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
       authRequest.customClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
@@ -930,7 +945,7 @@ export function validateAuthResponse(
     eventType === 'beforeSignIn' &&
     (authRequest as BeforeSignInResponse).sessionClaims
   ) {
-    const invalidClaims = CLAIMS_NON_ALLOW_LISTED.filter((claim) =>
+    const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
       (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
@@ -964,8 +979,8 @@ export function validateAuthResponse(
 }
 
 /**
- * @internal
  * Helper function to generate the update mask for the identity platform changed values
+ * @internal
  */
 export function getUpdateMask(
   authResponse?: BeforeCreateResponse | BeforeSignInResponse
@@ -1029,11 +1044,14 @@ function wrapHandler(
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const projectId = process.env.GCLOUD_PROJECT;
-      validRequest(req);
+      if (!isValidRequest(req)) {
+        logger.error('Invalid request, unable to process');
+        throw new HttpsError('invalid-argument', 'Bad Request');
+      }
       const rawDecodedJWT = decodeJWT(req.body.data.jwt);
       const decodedJWT = shouldVerifyJWT()
         ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
-        : (rawDecodedJWT.payload as DecodedJWT);
+        : (rawDecodedJWT.payload as DecodedPayload);
       checkDecodedToken(decodedJWT, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedJWT.user_record);
       const authEventContext = parseAuthEventContext(decodedJWT, projectId);
@@ -1060,7 +1078,7 @@ function wrapHandler(
 
       res.status(err.code);
       res.setHeader('Content-Type', 'application/json');
-      res.send(JSON.stringify(err.toJSON()));
+      res.send({ error: err.toJson() });
     }
   };
 }
