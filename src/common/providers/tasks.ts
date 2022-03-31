@@ -114,11 +114,11 @@ export function onDispatchHandler<Req = any>(
       }
 
       const context: TaskContext = {};
-      const status = await https.checkAuthToken(req, context);
-      // Note: this should never happen since task queue functions are guarded by IAM.
-      if (status === 'INVALID') {
-        throw new https.HttpsError('unauthenticated', 'Unauthenticated');
-      }
+      // const status = await https.checkAuthToken(req, context);
+      // // Note: this should never happen since task queue functions are guarded by IAM.
+      // if (status === 'INVALID') {
+      //   throw new https.HttpsError('unauthenticated', 'Unauthenticated');
+      // }
 
       const data: Req = https.decode(req.body.data);
       if (handler.length === 2) {
