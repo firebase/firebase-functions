@@ -114,6 +114,38 @@ export function onTaskDispatched<Args = any>(
     },
   });
 
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToManifestEndpoint handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  func.__endpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    taskQueueTrigger: {},
+  };
+  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, 'retryConfig');
+  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, 'rateLimits');
+  convertIfPresent(
+      func.__endpoint.taskQueueTrigger,
+      opts,
+      'invoker',
+      'invoker',
+      convertInvoker
+  );
+
+  func.__requiredAPIs = [
+    {
+      api: 'cloudtasks.googleapis.com',
+      reason: 'Needed for task queue functions',
+    },
+  ];
+
   func.run = handler;
   return func;
 }

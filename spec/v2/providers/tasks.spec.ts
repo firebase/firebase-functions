@@ -24,7 +24,7 @@ import { expect } from 'chai';
 
 import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
-import { FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
 
@@ -38,17 +38,24 @@ describe('onTaskDispatched', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = onTaskDispatched(() => {});
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
       taskQueueTrigger: {},
       labels: {},
     });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      taskQueueTrigger: {},
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = onTaskDispatched(
       {
         ...FULL_OPTIONS,
@@ -68,8 +75,29 @@ describe('onTaskDispatched', () => {
       },
       () => {}
     );
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+          maxDoublings: 3,
+          minBackoffSeconds: 1,
+          maxBackoffSeconds: 2,
+        },
+        rateLimits: {
+          maxBurstSize: 10,
+          maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ['private'],
+      },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      platform: 'gcfv2',
       taskQueueTrigger: {
         retryConfig: {
           maxAttempts: 4,
@@ -110,6 +138,15 @@ describe('onTaskDispatched', () => {
       concurrency: 20,
       minInstances: 3,
       regions: ['us-west1'],
+      labels: {},
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      taskQueueTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1'],
       labels: {},
     });
   });
