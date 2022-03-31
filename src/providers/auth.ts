@@ -25,12 +25,21 @@ import {
   UserInfo,
   UserRecordMetadata,
   userRecordConstructor,
+  AuthUserRecord,
+  AuthEventContext,
+  BeforeCreateResponse,
+  BeforeSignInResponse,
+  createHandler,
+  PublicKeysCache,
 } from '../common/providers/identity';
 import {
+  BlockingFunction,
   CloudFunction,
   Event,
   EventContext,
   makeCloudFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
 } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
@@ -42,25 +51,36 @@ export const provider = 'google.firebase.auth';
 /** @hidden */
 export const service = 'firebaseauth.googleapis.com';
 
+/** Resource level options */
+export interface UserOptions {
+  blockingOptions: {
+    idToken?: boolean;
+    accessToken?: boolean;
+    refreshToken?: boolean;
+  };
+};
+
 /**
  * Handle events related to Firebase authentication users.
  */
-export function user() {
+export function user(userOptions?: UserOptions) {
   return _userWithOptions({});
 }
 
 /** @hidden */
-export function _userWithOptions(options: DeploymentOptions) {
+export function _userWithOptions(options: DeploymentOptions, userOptions?: UserOptions) {
   return new UserBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error('process.env.GCLOUD_PROJECT is not set.');
     }
     return 'projects/' + process.env.GCLOUD_PROJECT;
-  }, options);
+  }, options, userOptions);
 }
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
+  private keysCache: PublicKeysCache;
+
   private static dataConstructor(raw: Event): UserRecord {
     return userRecordConstructor(raw.data);
   }
@@ -68,8 +88,13 @@ export class UserBuilder {
   /** @hidden */
   constructor(
     private triggerResource: () => string,
-    private options?: DeploymentOptions
-  ) {}
+    private options: DeploymentOptions,
+    private userOptions?: UserOptions,
+  ) {
+    this.keysCache = {
+      publicKeys: {}
+    }
+  }
 
   /** Respond to the creation of a Firebase Auth user. */
   onCreate(
@@ -83,6 +108,24 @@ export class UserBuilder {
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.delete');
+  }
+
+  beforeCreate(
+    handler: (
+      user: AuthUserRecord,
+      context: AuthEventContext
+    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  ): BlockingFunction {
+    return this.beforeOperation(handler, 'providers/cloud.auth/eventTypes/user.beforeCreate');
+  }
+
+  beforeSignIn(
+    handler: (
+      user: AuthUserRecord,
+      context: AuthEventContext
+    ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  ): BlockingFunction {
+    return this.beforeOperation(handler, 'providers/cloud.auth/eventTypes/user.beforeSignIn');
   }
 
   private onOperation(
@@ -102,5 +145,49 @@ export class UserBuilder {
       legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
       options: this.options,
     });
+  }
+
+  private beforeOperation(
+    handler: (
+      user: AuthUserRecord,
+      context: AuthEventContext
+    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>,
+    eventType: string
+  ): BlockingFunction {
+    let accessToken = false, idToken = false, refreshToken = false;
+    if (this.userOptions) {
+      accessToken = this.userOptions.blockingOptions.accessToken;
+      idToken = this.userOptions.blockingOptions.idToken;
+      refreshToken = this.userOptions.blockingOptions.refreshToken;
+    }
+
+    const func: any = createHandler(handler, eventType, this.keysCache);
+    
+    func.__trigger = {
+      labels: {},
+      ...optionsToTrigger(this.options),
+      blockingTrigger: {
+        eventType,
+        accessToken,
+        idToken,
+        refreshToken,
+      },
+    };
+  
+    func.__endpoint = {
+      platform: 'gcfv1',
+      labels: {},
+      ...optionsToEndpoint(this.options),
+      blockingTrigger: {
+        eventType,
+        accessToken,
+        idToken,
+        refreshToken,
+      },
+    };
+  
+    func.run = handler;
+  
+    return func;
   }
 }

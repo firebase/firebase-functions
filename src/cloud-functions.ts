@@ -282,6 +282,13 @@ export interface TriggerAnnotated {
     serviceAccountEmail?: string;
     ingressSettings?: string;
     secrets?: string[];
+    blockingTrigger?: {
+      eventType: string;
+      accessToken?: boolean;
+      idToken?: boolean;
+      refreshToken?: boolean;
+      // options?: Record<string, string>;
+    },
   };
 }
 
@@ -314,6 +321,8 @@ export interface Runnable<T> {
 export type HttpsFunction = TriggerAnnotated &
   EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
+
+export type BlockingFunction = HttpsFunction;
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported
