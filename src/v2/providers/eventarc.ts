@@ -25,16 +25,16 @@ import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint, EventFilter } from '../../runtime/manifest';
 
-/** Options that can be set on an eventarc trigger. */
+/** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
    * ID of the channel. Can be either:
    *   * fully qualified channel resource name:
    *     `projects/{project}/locations/{location}/channels/{channel-id}`
-   *   * partial resource name with location and channel id, in which case
+   *   * partial resource name with location and channel ID, in which case
    *     the runtime project ID of the function will be used:
    *     `locations/{location}/channels/{channel-id}`
-   *   * partial channel-id, in which case the runtime project ID of the
+   *   * partial channel ID, in which case the runtime project ID of the
    *     function and `us-central1` as location will be used:
    *     `{channel-id}`
    *
