@@ -51,6 +51,7 @@ export interface ManifestEndpoint {
   eventTrigger?: {
     eventFilters: Record<string, string>;
     eventFilterPathPatterns?: Record<string, string>;
+    channel?: string;
     eventType: string;
     retry: boolean;
     region?: string;
