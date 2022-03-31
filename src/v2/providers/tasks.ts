@@ -114,7 +114,6 @@ export function onTaskDispatched<Args = any>(
     },
   });
 
-
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToManifestEndpoint handles both cases.
@@ -132,11 +131,11 @@ export function onTaskDispatched<Args = any>(
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, 'retryConfig');
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, 'rateLimits');
   convertIfPresent(
-      func.__endpoint.taskQueueTrigger,
-      opts,
-      'invoker',
-      'invoker',
-      convertInvoker
+    func.__endpoint.taskQueueTrigger,
+    opts,
+    'invoker',
+    'invoker',
+    convertInvoker
   );
 
   func.__requiredAPIs = [
