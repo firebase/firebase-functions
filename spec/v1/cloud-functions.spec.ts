@@ -62,12 +62,9 @@ describe('makeCloudFunction', () => {
       platform: 'gcfv1',
       eventTrigger: {
         eventType: 'mock.provider.mock.event',
-        eventFilters: [
-          {
-            attribute: 'resource',
-            value: 'resource',
-          },
-        ],
+        eventFilters: {
+          resource: 'resource',
+        },
         retry: false,
       },
       labels: {},
@@ -89,12 +86,9 @@ describe('makeCloudFunction', () => {
       platform: 'gcfv1',
       eventTrigger: {
         eventType: 'providers/provider/eventTypes/event',
-        eventFilters: [
-          {
-            attribute: 'resource',
-            value: 'resource',
-          },
-        ],
+        eventFilters: {
+          resource: 'resource',
+        },
         retry: false,
       },
       labels: {},
@@ -125,12 +119,9 @@ describe('makeCloudFunction', () => {
       serviceAccountEmail: 'foo@google.com',
       eventTrigger: {
         eventType: 'mock.provider.mock.event',
-        eventFilters: [
-          {
-            attribute: 'resource',
-            value: 'resource',
-          },
-        ],
+        eventFilters: {
+          resource: 'resource',
+        },
         retry: false,
       },
       secretEnvironmentVariables: [{ secret: 'MY_SECRET', key: 'MY_SECRET' }],
@@ -152,12 +143,9 @@ describe('makeCloudFunction', () => {
       platform: 'gcfv1',
       eventTrigger: {
         eventType: 'mock.provider.mock.event',
-        eventFilters: [
-          {
-            attribute: 'resource',
-            value: 'resource',
-          },
-        ],
+        eventFilters: {
+          resource: 'resource',
+        },
         retry: true,
       },
       labels: {},
