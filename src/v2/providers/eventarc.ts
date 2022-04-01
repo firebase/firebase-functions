@@ -28,6 +28,11 @@ import { ManifestEndpoint, EventFilter } from '../../runtime/manifest';
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
+   * Type of the event.
+   */
+  eventType: string;
+
+  /**
    * ID of the channel. Can be either:
    *   * fully qualified channel resource name:
    *     `projects/{project}/locations/{location}/channels/{channel-id}`
@@ -58,32 +63,22 @@ export function onCustomEventPublished<T = any>(
 ): CloudFunction<CloudEvent<T>>;
 
 export function onCustomEventPublished<T = any>(
-  eventType: string,
   opts: EventarcTriggerOptions,
   handler: CloudEventHandler
 ): CloudFunction<CloudEvent<T>>;
 
 export function onCustomEventPublished<T = any>(
-  eventType: string,
-  optsOrHandler: CloudEventHandler | EventarcTriggerOptions,
-  handler?: CloudEventHandler
+  eventTypeOrOpts: string | EventarcTriggerOptions,
+  handler: CloudEventHandler
 ): CloudFunction<CloudEvent<T>> {
-  if (arguments.length < 2) {
-    throw new Error('Missing required parameters.');
-  }
-  if (arguments.length == 2) {
-    if (typeof optsOrHandler !== 'function') {
-      throw new Error(
-        'Expected second parameter to be the event handler function.'
-      );
+  let opts : EventarcTriggerOptions;
+  if (typeof eventTypeOrOpts === "string") {
+    opts = {
+      eventType: eventTypeOrOpts as string
     }
-    handler = optsOrHandler as CloudEventHandler;
-    optsOrHandler = {} as EventarcTriggerOptions;
-  } else if (arguments.length == 3) {
-    optsOrHandler = optsOrHandler as EventarcTriggerOptions;
+  } else if (typeof eventTypeOrOpts === "object") {
+    opts = eventTypeOrOpts as EventarcTriggerOptions;
   }
-
-  const opts = optsOrHandler as EventarcTriggerOptions;
   const func = (raw: CloudEvent<unknown>) => {
     return handler(raw as CloudEvent<T>);
   };
@@ -104,7 +99,7 @@ export function onCustomEventPublished<T = any>(
       ...specificOpts?.labels,
     },
     eventTrigger: {
-      eventType,
+      eventType: opts.eventType,
       eventFilters: toEventFilter(opts.filters),
       retry: false,
       channel,

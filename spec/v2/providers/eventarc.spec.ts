@@ -34,8 +34,7 @@ describe('v2/eventarc', () => {
 
     it('should create a minimal trigger/endpoint with opts', () => {
       const result = eventarc.onCustomEventPublished(
-        'event-type',
-        { region: 'us-west1' },
+        { eventType: 'event-type', region: 'us-west1' },
         () => 42
       );
 
@@ -52,8 +51,8 @@ describe('v2/eventarc', () => {
 
     it('should create a minimal trigger with bucket with opts', () => {
       const result = eventarc.onCustomEventPublished(
-        'event-type',
         {
+          eventType: 'event-type',
           channel: 'locations/us-west1/channels/my-channel',
           filters: { foo: 'bar' },
         },
@@ -78,9 +77,9 @@ describe('v2/eventarc', () => {
 
     it('should create a complex trigger/endpoint with appropriate values', () => {
       const result = eventarc.onCustomEventPublished(
-        'event-type',
         {
           ...FULL_OPTIONS,
+          eventType: 'event-type',
           channel: 'locations/us-west1/channels/my-channel',
         },
         () => 42
@@ -118,8 +117,8 @@ describe('v2/eventarc', () => {
       });
 
       const result = eventarc.onCustomEventPublished(
-        'event-type',
         {
+          eventType: 'event-type',
           channel: 'locations/us-west1/channels/my-channel',
           region: 'us-west1',
           minInstances: 3,
