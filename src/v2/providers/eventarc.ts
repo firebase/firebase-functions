@@ -71,12 +71,12 @@ export function onCustomEventPublished<T = any>(
   eventTypeOrOpts: string | EventarcTriggerOptions,
   handler: CloudEventHandler
 ): CloudFunction<CloudEvent<T>> {
-  let opts : EventarcTriggerOptions;
-  if (typeof eventTypeOrOpts === "string") {
+  let opts: EventarcTriggerOptions;
+  if (typeof eventTypeOrOpts === 'string') {
     opts = {
-      eventType: eventTypeOrOpts as string
-    }
-  } else if (typeof eventTypeOrOpts === "object") {
+      eventType: eventTypeOrOpts as string,
+    };
+  } else if (typeof eventTypeOrOpts === 'object') {
     opts = eventTypeOrOpts as EventarcTriggerOptions;
   }
   const func = (raw: CloudEvent<unknown>) => {
