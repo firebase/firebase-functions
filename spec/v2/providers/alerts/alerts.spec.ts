@@ -6,6 +6,15 @@ import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
 const ALERT_TYPE = 'new-alert-type';
 const APPID = '123456789';
 
+const ALERT_EVENT_FILTER = {
+  alerttype: ALERT_TYPE,
+};
+
+const ALERT_APP_EVENT_FILTER = {
+  alerttype: ALERT_TYPE,
+  appid: APPID,
+};
+
 describe('alerts', () => {
   describe('onAlertPublished', () => {
     it('should create the function without opts', () => {
@@ -16,12 +25,7 @@ describe('alerts', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: ALERT_EVENT_FILTER,
           retry: false,
         },
       });
@@ -41,16 +45,7 @@ describe('alerts', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: ALERT_APP_EVENT_FILTER,
           retry: false,
         },
       });
@@ -81,12 +76,7 @@ describe('alerts', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: ALERT_EVENT_FILTER,
           retry: false,
         },
       });
@@ -99,12 +89,7 @@ describe('alerts', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: ALERT_EVENT_FILTER,
           retry: false,
         },
       });
@@ -117,16 +102,7 @@ describe('alerts', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: ALERT_APP_EVENT_FILTER,
           retry: false,
         },
       });
@@ -153,16 +129,7 @@ describe('alerts', () => {
         minInstances: 3,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: ALERT_APP_EVENT_FILTER,
           retry: false,
         },
       });
