@@ -64,12 +64,9 @@ describe('Auth Functions', () => {
       return {
         platform: 'gcfv1',
         eventTrigger: {
-          eventFilters: [
-            {
-              attribute: 'resource',
-              value: `projects/${project}`,
-            },
-          ],
+          eventFilters: {
+            resource: `projects/${project}`,
+          },
           eventType: `providers/firebase.auth/eventTypes/${eventType}`,
           retry: false,
         },

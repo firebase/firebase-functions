@@ -50,12 +50,9 @@ describe('Test Lab Functions', () => {
           platform: 'gcfv1',
           eventTrigger: {
             eventType: 'google.testing.testMatrix.complete',
-            eventFilters: [
-              {
-                attribute: 'resource',
-                value: 'projects/project1/testMatrices/{matrix}',
-              },
-            ],
+            eventFilters: {
+              resource: 'projects/project1/testMatrices/{matrix}',
+            },
             retry: false,
           },
           labels: {},

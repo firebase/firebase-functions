@@ -107,12 +107,9 @@ describe('Firestore Functions', () => {
       return {
         platform: 'gcfv1',
         eventTrigger: {
-          eventFilters: [
-            {
-              attribute: 'resource',
-              value: resource,
-            },
-          ],
+          eventFilters: {
+            resource,
+          },
           eventType: `providers/cloud.firestore/eventTypes/${eventType}`,
           retry: false,
         },
