@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.15.7",
+  "version": "3.19.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -22,6 +22,9 @@
     "lib"
   ],
   "main": "lib/index.js",
+  "bin": {
+    "firebase-functions": "./lib/bin/firebase-functions.js"
+  },
   "types": "lib/index.d.ts",
   "exports": {
     ".": "./lib/index.js",
@@ -54,7 +57,11 @@
     "./v2/https": "./lib/v2/providers/https.js",
     "./v2/params": "./lib/v2/params/index.js",
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
-    "./v2/storage": "./lib/v2/providers/storage.js"
+    "./v2/storage": "./lib/v2/providers/storage.js",
+    "./v2/alerts": "./lib/v2/providers/alerts/index.js",
+    "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
+    "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
+    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
   },
   "typesVersions": {
     "*": {
@@ -114,6 +121,18 @@
       ],
       "v2/storage": [
         "lib/v2/providers/storage"
+      ],
+      "v2/alerts": [
+        "lib/v2/providers/alerts"
+      ],
+      "v2/alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
       ]
     }
   },
@@ -139,14 +158,16 @@
     "format:fix": "prettier --write '**/*.{json,md,ts,yml,yaml}'",
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
-    "test": "mocha"
+    "test": "mocha --file ./mocha/setup.ts \"spec/**/*.spec.ts\"",
+    "test:bin": "./scripts/bin-test/run.sh"
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "lodash": "^4.17.14"
+    "lodash": "^4.17.14",
+    "node-fetch": "^2.6.7"
   },
   "devDependencies": {
     "@firebase/api-documenter": "^0.1.2",
@@ -160,11 +181,12 @@
     "@types/mock-require": "^2.0.0",
     "@types/nock": "^10.0.3",
     "@types/node": "^8.10.50",
+    "@types/node-fetch": "^3.0.3",
     "@types/sinon": "^7.0.13",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
-    "firebase-admin": "^9.8.0",
+    "firebase-admin": "10.0.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
@@ -173,19 +195,22 @@
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
     "nock": "^10.0.6",
+    "node-fetch": "^2.6.7",
+    "portfinder": "^1.0.28",
     "prettier": "^1.18.2",
+    "semver": "^7.3.5",
     "sinon": "^7.3.2",
-    "ts-node": "^8.3.0",
+    "ts-node": "^10.4.0",
     "tslint": "^5.18.0",
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "^0.21.5",
+    "typedoc": "0.21.2",
     "typescript": "^4.3.5",
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
-    "firebase-admin": "^8.0.0 || ^9.0.0"
+    "firebase-admin": "^8.0.0 || ^9.0.0 || ^10.0.0"
   },
   "engines": {
     "node": "^8.13.0 || >=10.10.0"

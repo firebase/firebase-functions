@@ -229,6 +229,18 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     }
   }
 
+  if (runtimeOptions.secrets !== undefined) {
+    const invalidSecrets = runtimeOptions.secrets.filter(
+      (s) => !/^[A-Za-z\d\-_]+$/.test(s)
+    );
+    if (invalidSecrets.length > 0) {
+      throw new Error(
+        `Invalid secrets: ${invalidSecrets.join(',')}. ` +
+          'Secret must be configured using the resource id (e.g. API_KEY)'
+      );
+    }
+  }
+
   return true;
 }
 
@@ -355,6 +367,15 @@ export class FunctionBuilder {
           context: https.CallableContext
         ) => any | Promise<any>
       ) => https._onCallWithOptions(handler, this.options),
+
+      /**
+       * Declares a task queue function for clients to call using a Firebase Admin SDK.
+       * @param options Configurations for the task queue function.
+       */
+      /** @hidden */
+      taskQueue: (options?: https.TaskQueueOptions) => {
+        return new https.TaskQueueBuilder(options, this.options);
+      },
     };
   }
 

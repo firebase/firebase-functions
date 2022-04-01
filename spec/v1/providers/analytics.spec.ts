@@ -50,10 +50,14 @@ describe('Analytics Functions', () => {
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
     describe('#onLog', () => {
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = analytics.event('first_open').onLog(() => null);
 
         expect(cloudFunction.__trigger).to.deep.equal({
@@ -63,6 +67,19 @@ describe('Analytics Functions', () => {
             resource: 'projects/project1/events/first_open',
             service: 'app-measurement.com',
           },
+        });
+
+        expect(cloudFunction.__endpoint).to.deep.equal({
+          platform: 'gcfv1',
+          eventTrigger: {
+            eventFilters: {
+              resource: 'projects/project1/events/first_open',
+            },
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            retry: false,
+          },
+          labels: {},
         });
       });
     });
@@ -305,11 +322,12 @@ describe('Analytics Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onLog', () => {
-      it('should return an empty trigger', () => {
+      it('should return an empty trigger/endpoint', () => {
         const cloudFunction = functions.handler.analytics.event.onLog(
           () => null
         );
         expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should handle an event with the appropriate fields', () => {

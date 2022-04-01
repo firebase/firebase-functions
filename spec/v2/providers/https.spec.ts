@@ -7,7 +7,7 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './helpers';
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -82,10 +82,11 @@ describe('onRequest', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = https.onRequest((req, res) => {
       res.send(200);
     });
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -94,9 +95,15 @@ describe('onRequest', () => {
       },
       labels: {},
     });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {},
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = https.onRequest(
       {
         ...FULL_OPTIONS,
@@ -107,6 +114,7 @@ describe('onRequest', () => {
         res.send(200);
       }
     );
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       httpsTrigger: {
@@ -114,6 +122,14 @@ describe('onRequest', () => {
         invoker: ['service-account1@', 'service-account2@'],
       },
       regions: ['us-west1', 'us-central1'],
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      httpsTrigger: {
+        invoker: ['service-account1@', 'service-account2@'],
+      },
+      region: ['us-west1', 'us-central1'],
     });
   });
 
@@ -146,6 +162,17 @@ describe('onRequest', () => {
       concurrency: 20,
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
+      labels: {},
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {
+        invoker: ['private'],
+      },
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1', 'us-central1'],
       labels: {},
     });
   });
@@ -209,8 +236,9 @@ describe('onCall', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = https.onCall((request) => 42);
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -221,10 +249,17 @@ describe('onCall', () => {
         'deployment-callable': 'true',
       },
     });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      callableTrigger: {},
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = https.onCall(FULL_OPTIONS, (request) => 42);
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       httpsTrigger: {
@@ -234,6 +269,11 @@ describe('onCall', () => {
         ...FULL_TRIGGER.labels,
         'deployment-callable': 'true',
       },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      callableTrigger: {},
     });
   });
 
@@ -264,6 +304,15 @@ describe('onCall', () => {
       labels: {
         'deployment-callable': 'true',
       },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      callableTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1', 'us-central1'],
+      labels: {},
     });
   });
 
@@ -364,5 +413,141 @@ describe('onCall', () => {
       (request: https.CallableRequest<string>) => `Hello, ${request.data}`
     );
     https.onCall((request: https.CallableRequest) => `Hello, ${request.data}`);
+  });
+});
+
+describe('onTaskEnqueue', () => {
+  beforeEach(() => {
+    options.setGlobalOptions({});
+    process.env.GCLOUD_PROJECT = 'aProject';
+  });
+
+  afterEach(() => {
+    delete process.env.GCLOUD_PROJECT;
+  });
+
+  it('should return a minimal trigger with appropriate values', () => {
+    const result = https.onTaskDispatched(() => {});
+    expect(result.__trigger).to.deep.equal({
+      apiVersion: 2,
+      platform: 'gcfv2',
+      taskQueueTrigger: {},
+      labels: {},
+    });
+  });
+
+  it('should create a complex trigger with appropriate values', () => {
+    const result = https.onTaskDispatched(
+      {
+        ...FULL_OPTIONS,
+        retryConfig: {
+          maxAttempts: 4,
+          maxDoublings: 3,
+          minBackoffSeconds: 1,
+          maxBackoffSeconds: 2,
+        },
+        rateLimits: {
+          maxBurstSize: 10,
+          maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: 'private',
+      },
+      () => {}
+    );
+    expect(result.__trigger).to.deep.equal({
+      ...FULL_TRIGGER,
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxDoublings: 3,
+          minBackoffSeconds: 1,
+          maxBackoffSeconds: 2,
+        },
+        rateLimits: {
+          maxBurstSize: 10,
+          maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ['private'],
+      },
+    });
+  });
+
+  it('should merge options and globalOptions', () => {
+    options.setGlobalOptions({
+      concurrency: 20,
+      region: 'europe-west1',
+      minInstances: 1,
+    });
+
+    const result = https.onTaskDispatched(
+      {
+        region: 'us-west1',
+        minInstances: 3,
+      },
+      (request) => {}
+    );
+
+    expect(result.__trigger).to.deep.equal({
+      apiVersion: 2,
+      platform: 'gcfv2',
+      taskQueueTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      regions: ['us-west1'],
+      labels: {},
+    });
+  });
+
+  it('has a .run method', async () => {
+    const request: any = {
+      data: 'data',
+      auth: {
+        uid: 'abc',
+        token: 'token',
+      },
+    };
+    const cf = https.onTaskDispatched((r) => {
+      expect(r.data).to.deep.equal(request.data);
+      expect(r.auth).to.deep.equal(request.auth);
+    });
+
+    await cf.run(request);
+  });
+
+  it('should be an express handler', async () => {
+    const func = https.onTaskDispatched((request) => {});
+
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        'content-type': 'application/json',
+        origin: 'example.com',
+      }
+    );
+    req.method = 'POST';
+
+    const resp = await runHandler(func, req as any);
+    expect(resp.status).to.equal(204);
+  });
+
+  // These tests pass if the code transpiles
+  it('allows desirable syntax', () => {
+    https.onTaskDispatched<string>((request: https.TaskRequest<string>) => {
+      // There should be no lint warnings that data is not a string.
+      console.log(`hello, ${request.data}`);
+    });
+    https.onTaskDispatched((request: https.TaskRequest<string>) => {
+      console.log(`hello, ${request.data}`);
+    });
+    https.onTaskDispatched<string>((request: https.TaskRequest) => {
+      console.log(`hello, ${request.data}`);
+    });
+    https.onTaskDispatched((request: https.TaskRequest) => {
+      console.log(`Hello, ${request.data}`);
+    });
   });
 });

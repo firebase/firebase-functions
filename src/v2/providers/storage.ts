@@ -20,9 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as options from '../options';
 import { firebaseConfig } from '../../config';
 import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
+import { copyIfPresent } from '../../common/encoding';
+import { ManifestEndpoint } from '../../runtime/manifest';
 
 /**
  * An object within Google Cloud Storage.
@@ -313,11 +315,6 @@ export function onOperation(
 
   func.run = handler;
 
-  // TypeScript doesn't recongize defineProperty as adding a property and complains
-  // that __trigger doesn't exist. We can either cast to any and lose all type safety
-  // or we can just assign a meaningless value before calling defineProperty.
-  func.__trigger = 'silence the transpiler';
-
   Object.defineProperty(func, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -334,10 +331,41 @@ export function onOperation(
           ...specificOpts?.labels,
         },
         eventTrigger: {
-          eventType: eventType,
+          eventType,
           resource: bucket, // TODO(colerogers): replace with 'bucket,' eventually
         },
       };
+    },
+  });
+
+  // TypeScript doesn't recognize defineProperty as adding a property and complains
+  // that __endpoint doesn't exist. We can either cast to any and lose all type safety
+  // or we can just assign a meaningless value before calling defineProperty.
+  func.__endpoint = {} as ManifestEndpoint;
+
+  // SDK may attempt to read FIREBASE_CONFIG env var to fetch the default bucket name.
+  // To prevent runtime errors when FIREBASE_CONFIG env var is missing, we use getters.
+  Object.defineProperty(func, '__endpoint', {
+    get: () => {
+      const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+      const specificOpts = options.optionsToEndpoint(opts);
+
+      const endpoint: ManifestEndpoint = {
+        platform: 'gcfv2',
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        eventTrigger: {
+          eventType,
+          eventFilters: { bucket },
+          retry: false,
+        },
+      };
+      copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+      return endpoint;
     },
   });
 

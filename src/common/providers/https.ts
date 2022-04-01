@@ -29,10 +29,67 @@ import * as logger from '../../logger';
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
 import { apps } from '../../apps';
+import { isDebugFeatureEnabled } from '../../common/debug';
+
+const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
 /** @hidden */
 export interface Request extends express.Request {
   rawBody: Buffer;
+}
+
+// This is actually a firebase.appCheck.DecodedAppCheckToken, but
+// that type may not be available in some supported SDK versions.
+// Declare as an inline type, which DecodedAppCheckToken will be
+// able to merge with.
+// TODO: Replace with the real type once we bump the min-version of
+// the admin SDK
+interface DecodedAppCheckToken {
+  /**
+   * The issuer identifier for the issuer of the response.
+   *
+   * This value is a URL with the format
+   * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
+   * same project number specified in the [`aud`](#aud) property.
+   */
+  iss: string;
+
+  /**
+   * The Firebase App ID corresponding to the app the token belonged to.
+   *
+   * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
+   */
+  sub: string;
+
+  /**
+   * The audience for which this token is intended.
+   *
+   * This value is a JSON array of two strings, the first is the project number of your
+   * Firebase project, and the second is the project ID of the same project.
+   */
+  aud: string[];
+
+  /**
+   * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
+   * time at which this App Check token expires and should no longer be considered valid.
+   */
+  exp: number;
+
+  /**
+   * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
+   * time at which this App Check token was issued and should start to be considered
+   * valid.;
+   */
+  iat: number;
+
+  /**
+   * The App ID corresponding to the App the App Check token belonged to.
+   *
+   * This value is not actually one of the JWT token claims. It is added as a
+   * convenience, and is set as the value of the [`sub`](#sub) property.
+   */
+  app_id: string;
+  [key: string]: any;
 }
 
 /**
@@ -40,60 +97,7 @@ export interface Request extends express.Request {
  */
 export interface AppCheckData {
   appId: string;
-
-  // This is actually a firebase.appCheck.DecodedAppCheckToken, but
-  // that type may not be available in some supported SDK versions.
-  // Declare as an inline type, which DecodedAppCheckToken will be
-  // able to merge with.
-  // TODO: Replace with the real type once we bump the min-version of
-  // the admin SDK
-  token: {
-    /**
-     * The issuer identifier for the issuer of the response.
-     *
-     * This value is a URL with the format
-     * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
-     * same project number specified in the [`aud`](#aud) property.
-     */
-    iss: string;
-
-    /**
-     * The Firebase App ID corresponding to the app the token belonged to.
-     *
-     * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
-     */
-    sub: string;
-
-    /**
-     * The audience for which this token is intended.
-     *
-     * This value is a JSON array of two strings, the first is the project number of your
-     * Firebase project, and the second is the project ID of the same project.
-     */
-    aud: string[];
-
-    /**
-     * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
-     * time at which this App Check token expires and should no longer be considered valid.
-     */
-    exp: number;
-
-    /**
-     * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
-     * time at which this App Check token was issued and should start to be considered
-     * valid.
-     */
-    iat: number;
-
-    /**
-     * The App ID corresponding to the App the App Check token belonged to.
-     *
-     * This value is not actually one of the JWT token claims. It is added as a
-     * convenience, and is set as the value of the [`sub`](#sub) property.
-     */
-    app_id: string;
-    [key: string]: any;
-  };
+  token: DecodedAppCheckToken;
 }
 
 /**
@@ -163,6 +167,68 @@ export interface CallableRequest<T = any> {
    * The raw request handled by the callable.
    */
   rawRequest: Request;
+}
+
+/** How a task should be retried in the event of a non-2xx return. */
+export interface TaskRetryConfig {
+  /**
+   * Maximum number of times a request should be attempted.
+   * If left unspecified, will default to 3.
+   */
+  maxAttempts?: number;
+
+  /**
+   * The maximum amount of time to wait between attempts.
+   * If left unspecified will default to 1hr.
+   */
+  maxBackoffSeconds?: number;
+
+  /**
+   * The maximum number of times to double the backoff between
+   * retries. If left unspecified will default to 16.
+   */
+  maxDoublings?: number;
+
+  /**
+   * The minimum time to wait between attempts. If left unspecified
+   * will default to 100ms.
+   */
+  minBackoffSeconds?: number;
+}
+
+/** How congestion control should be applied to the function. */
+export interface TaskRateLimits {
+  // If left unspecified, will default to 100
+  maxBurstSize?: number;
+
+  // If left unspecified, wild default to 1000
+  maxConcurrentDispatches?: number;
+
+  // If left unspecified, will default to 500
+  maxDispatchesPerSecond?: number;
+}
+
+/** Metadata about a call to a Task Queue function. */
+export interface TaskContext {
+  /**
+   * The result of decoding and verifying an ODIC token.
+   */
+  auth?: AuthData;
+}
+
+/**
+ * The request used to call a Task Queue function.
+ */
+export interface TaskRequest<T = any> {
+  /**
+   * The parameters used by a client when calling this function.
+   */
+  data: T;
+
+  /**
+   * The result of decoding and verifying an ODIC token.
+   */
+  auth?: AuthData;
 }
 
 /**
@@ -371,7 +437,7 @@ function isValidRequest(req: Request): req is HttpRequest {
   // If it has a charset, just ignore it for now.
   const semiColon = contentType.indexOf(';');
   if (semiColon >= 0) {
-    contentType = contentType.substr(0, semiColon).trim();
+    contentType = contentType.slice(0, semiColon).trim();
   }
   if (contentType !== 'application/json') {
     logger.warn('Request has incorrect Content-Type.', contentType);
@@ -426,7 +492,7 @@ export function encode(data: any): any {
   if (Array.isArray(data)) {
     return data.map(encode);
   }
-  if (typeof data === 'object') {
+  if (typeof data === 'object' || typeof data === 'function') {
     // Sadly we don't have Object.fromEntries in Node 10, so we can't use a single
     // list comprehension
     const obj: Record<string, any> = {};
@@ -500,6 +566,55 @@ interface CallableTokenStatus {
   auth: TokenStatus;
 }
 
+function unsafeDecodeToken(token: string): unknown {
+  if (!JWT_REGEX.test(token)) {
+    return {};
+  }
+  const components = token
+    .split('.')
+    .map((s) => Buffer.from(s, 'base64').toString());
+  let payload = components[1];
+  if (typeof payload === 'string') {
+    try {
+      const obj = JSON.parse(payload);
+      if (typeof obj === 'object') {
+        payload = obj;
+      }
+    } catch (e) {}
+  }
+  return payload;
+}
+
+/**
+ * Decode, but not verify, a Auth ID token.
+ *
+ * Do not use in production. Token should always be verified using the Admin SDK.
+ *
+ * This is exposed only for testing.
+ */
+/** @internal */
+export function unsafeDecodeIdToken(
+  token: string
+): firebase.auth.DecodedIdToken {
+  const decoded = unsafeDecodeToken(token) as firebase.auth.DecodedIdToken;
+  decoded.uid = decoded.sub;
+  return decoded;
+}
+
+/**
+ * Decode, but not verify, an App Check token.
+ *
+ * Do not use in production. Token should always be verified using the Admin SDK.
+ *
+ * This is exposed only for testing.
+ */
+/** @internal */
+export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
+  const decoded = unsafeDecodeToken(token) as DecodedAppCheckToken;
+  decoded.app_id = decoded.sub;
+  return decoded;
+}
+
 /**
  * Check and verify tokens included in the requests. Once verified, tokens
  * are injected into the callable context.
@@ -508,59 +623,24 @@ interface CallableTokenStatus {
  * @param {CallableContext} ctx - Context to be sent to callable function handler.
  * @return {CallableTokenStatus} Status of the token verifications.
  */
-/** @hidden */
+/** @internal */
 async function checkTokens(
   req: Request,
   ctx: CallableContext
 ): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
-    app: 'MISSING',
-    auth: 'MISSING',
+    app: 'INVALID',
+    auth: 'INVALID',
   };
 
-  const appCheck = req.header('X-Firebase-AppCheck');
-  if (appCheck) {
-    verifications.app = 'INVALID';
-    try {
-      if (!apps().admin.appCheck) {
-        throw new Error(
-          'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
-        );
-      }
-      const appCheckToken = await apps()
-        .admin.appCheck()
-        .verifyToken(appCheck);
-      ctx.app = {
-        appId: appCheckToken.appId,
-        token: appCheckToken.token,
-      };
-      verifications.app = 'VALID';
-    } catch (err) {
-      logger.warn('Failed to validate AppCheck token.', err);
-    }
-  }
-
-  const authorization = req.header('Authorization');
-  if (authorization) {
-    verifications.auth = 'INVALID';
-    const match = authorization.match(/^Bearer (.*)$/);
-    if (match) {
-      const idToken = match[1];
-      try {
-        const authToken = await apps()
-          .admin.auth()
-          .verifyIdToken(idToken);
-
-        verifications.auth = 'VALID';
-        ctx.auth = {
-          uid: authToken.uid,
-          token: authToken,
-        };
-      } catch (err) {
-        logger.warn('Failed to validate auth token.', err);
-      }
-    }
-  }
+  await Promise.all([
+    Promise.resolve().then(async () => {
+      verifications.auth = await checkAuthToken(req, ctx);
+    }),
+    Promise.resolve().then(async () => {
+      verifications.app = await checkAppCheckToken(req, ctx);
+    }),
+  ]);
 
   const logPayload = {
     verifications,
@@ -589,19 +669,95 @@ async function checkTokens(
   return verifications;
 }
 
-type v1Handler = (data: any, context: CallableContext) => any | Promise<any>;
-type v2Handler<Req, Res> = (request: CallableRequest<Req>) => Res;
+/** @interanl */
+async function checkAuthToken(
+  req: Request,
+  ctx: CallableContext | TaskContext
+): Promise<TokenStatus> {
+  const authorization = req.header('Authorization');
+  if (!authorization) {
+    return 'MISSING';
+  }
+  const match = authorization.match(/^Bearer (.*)$/);
+  if (match) {
+    const idToken = match[1];
+    try {
+      let authToken: firebase.auth.DecodedIdToken;
+      if (isDebugFeatureEnabled('skipTokenVerification')) {
+        authToken = unsafeDecodeIdToken(idToken);
+      } else {
+        authToken = await apps()
+          .admin.auth()
+          .verifyIdToken(idToken);
+      }
+      ctx.auth = {
+        uid: authToken.uid,
+        token: authToken,
+      };
+      return 'VALID';
+    } catch (err) {
+      logger.warn('Failed to validate auth token.', err);
+      return 'INVALID';
+    }
+  }
+}
 
-/** @hidden */
+/** @internal */
+async function checkAppCheckToken(
+  req: Request,
+  ctx: CallableContext
+): Promise<TokenStatus> {
+  const appCheck = req.header('X-Firebase-AppCheck');
+  if (!appCheck) {
+    return 'MISSING';
+  }
+  try {
+    if (!apps().admin.appCheck) {
+      throw new Error(
+        'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
+      );
+    }
+    let appCheckData;
+    if (isDebugFeatureEnabled('skipTokenVerification')) {
+      const decodedToken = unsafeDecodeAppCheckToken(appCheck);
+      appCheckData = { appId: decodedToken.app_id, token: decodedToken };
+    } else {
+      appCheckData = await apps()
+        .admin.appCheck()
+        .verifyToken(appCheck);
+    }
+    ctx.app = appCheckData;
+    return 'VALID';
+  } catch (err) {
+    logger.warn('Failed to validate AppCheck token.', err);
+    return 'INVALID';
+  }
+}
+
+type v1CallableHandler = (
+  data: any,
+  context: CallableContext
+) => any | Promise<any>;
+type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
+type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
+type v2TaskHandler<Req> = (request: TaskRequest<Req>) => void | Promise<void>;
+
+/** @internal **/
+export interface CallableOptions {
+  cors: cors.CorsOptions;
+  allowInvalidAppCheckToken?: boolean;
+}
+
+/** @internal */
 export function onCallHandler<Req = any, Res = any>(
-  options: cors.CorsOptions,
-  handler: v1Handler | v2Handler<Req, Res>
+  options: CallableOptions,
+  handler: v1CallableHandler | v2CallableHandler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
-  const wrapped = wrapOnCallHandler(handler);
+  const wrapped = wrapOnCallHandler(options, handler);
   return (req: Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on('finish', resolve);
-      cors(options)(req, res, () => {
+      cors(options.cors)(req, res, () => {
         resolve(wrapped(req, res));
       });
     });
@@ -610,7 +766,8 @@ export function onCallHandler<Req = any, Res = any>(
 
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
-  handler: v1Handler | v2Handler<Req, Res>
+  options: CallableOptions,
+  handler: v1CallableHandler | v2CallableHandler<Req, Res>
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
     try {
@@ -621,7 +778,10 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       const context: CallableContext = { rawRequest: req };
       const tokenStatus = await checkTokens(req, context);
-      if (tokenStatus.app === 'INVALID' || tokenStatus.auth === 'INVALID') {
+      if (tokenStatus.auth === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
+      }
+      if (tokenStatus.app === 'INVALID' && !options.allowInvalidAppCheckToken) {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 
@@ -654,6 +814,53 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
       res.status(200).send(responseBody);
+    } catch (err) {
+      if (!(err instanceof HttpsError)) {
+        // This doesn't count as an 'explicit' error.
+        logger.error('Unhandled error', err);
+        err = new HttpsError('internal', 'INTERNAL');
+      }
+
+      const { status } = err.httpErrorCode;
+      const body = { error: err.toJSON() };
+
+      res.status(status).send(body);
+    }
+  };
+}
+
+/** @internal */
+export function onDispatchHandler<Req = any>(
+  handler: v1TaskHandler | v2TaskHandler<Req>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response): Promise<void> => {
+    try {
+      if (!isValidRequest(req)) {
+        logger.error('Invalid request, unable to process.');
+        throw new HttpsError('invalid-argument', 'Bad Request');
+      }
+
+      const context: TaskContext = {};
+      const status = await checkAuthToken(req, context);
+      // Note: this should never happen since task queue functions are guarded by IAM.
+      if (status === 'INVALID') {
+        throw new HttpsError('unauthenticated', 'Unauthenticated');
+      }
+
+      const data: Req = decode(req.body.data);
+      if (handler.length === 2) {
+        await handler(data, context);
+      } else {
+        const arg: TaskRequest<Req> = {
+          ...context,
+          data,
+        };
+        // For some reason the type system isn't picking up that the handler
+        // is a one argument function.
+        await (handler as any)(arg);
+      }
+
+      res.status(204).end();
     } catch (err) {
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.

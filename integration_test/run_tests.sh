@@ -68,6 +68,7 @@ function create_package_json {
   # backup file called package.json-e that we should clean up afterwards.
   sed -i -e "s/__SDK_TARBALL__/firebase-functions-$1.tgz/g" functions/package.json
   sed -i -e "s/__NODE_VERSION__/$2/g" functions/package.json
+  sed -i -e "s/__FIREBASE_ADMIN__/$3/g" functions/package.json
   rm -f functions/package.json-e
 }
 
@@ -138,8 +139,13 @@ build_sdk
 delete_all_functions
 set_region
 
-for version in 10 12 14; do
-  create_package_json $TIMESTAMP $version
+for version in 10 12 14 16; do
+  if [[ "$version" -eq 10 ]]; then
+    admin_sdk="^9.12.0"
+  else
+    admin_sdk="^10.0.0"
+  fi
+  create_package_json $TIMESTAMP $version $admin_sdk
   install_deps
   announce "Re-deploying the same functions to Node $version runtime ..."
   deploy

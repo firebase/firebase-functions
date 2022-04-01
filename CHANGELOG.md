@@ -1,1 +1,1 @@
-- GCS Enhancement
+- Changes internal structure to be more flexible (#1070).

@@ -22,18 +22,43 @@
 
 import * as express from 'express';
 
-import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
-import { convertIfPresent, convertInvoker } from '../common/encoding';
+import {
+  HttpsFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+  Runnable,
+} from '../cloud-functions';
+import {
+  convertIfPresent,
+  convertInvoker,
+  copyIfPresent,
+} from '../common/encoding';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 import {
   CallableContext,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
+  onDispatchHandler,
   Request,
+  TaskContext,
+  TaskRateLimits,
+  TaskRetryConfig,
 } from '../common/providers/https';
 import { DeploymentOptions } from '../function-configuration';
 
-export { Request, CallableContext, FunctionsErrorCode, HttpsError };
+export {
+  Request,
+  CallableContext,
+  FunctionsErrorCode,
+  HttpsError,
+  /** @hidden */
+  TaskRetryConfig as TaskRetryPolicy,
+  /** @hidden */
+  TaskRateLimits,
+  /** @hidden */
+  TaskContext,
+};
 
 /**
  * Handle HTTP requests.
@@ -54,6 +79,101 @@ export function onCall(
   handler: (data: any, context: CallableContext) => any | Promise<any>
 ): HttpsFunction & Runnable<any> {
   return _onCallWithOptions(handler, {});
+}
+
+/**
+ * Configurations for Task Queue Functions.
+ * @hidden
+ */
+export interface TaskQueueOptions {
+  retryConfig?: TaskRetryConfig;
+  rateLimits?: TaskRateLimits;
+
+  /**
+   * Who can enqueue tasks for this function.
+   * If left unspecified, only service accounts which have
+   * roles/cloudtasks.enqueuer and roles/cloudfunctions.invoker
+   * will have permissions.
+   */
+  invoker?: 'private' | string | string[];
+}
+
+/** @hidden */
+export interface TaskQueueFunction {
+  (req: Request, res: express.Response): Promise<void>;
+  __trigger: unknown;
+  __endpoint: ManifestEndpoint;
+  __requiredAPIs?: ManifestRequiredAPI[];
+  run(data: any, context: TaskContext): void | Promise<void>;
+}
+
+/** @hidden */
+export class TaskQueueBuilder {
+  /** @internal */
+  constructor(
+    private readonly tqOpts?: TaskQueueOptions,
+    private readonly depOpts?: DeploymentOptions
+  ) {}
+
+  onDispatch(
+    handler: (data: any, context: TaskContext) => void | Promise<void>
+  ): TaskQueueFunction {
+    // onEnqueueHandler sniffs the function length of the passed-in callback
+    // and the user could have only tried to listen to data. Wrap their handler
+    // in another handler to avoid accidentally triggering the v2 API
+    const fixedLen = (data: any, context: TaskContext) =>
+      handler(data, context);
+    const func: any = onDispatchHandler(fixedLen);
+
+    func.__trigger = {
+      ...optionsToTrigger(this.depOpts || {}),
+      taskQueueTrigger: {},
+    };
+    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, 'retryConfig');
+    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, 'rateLimits');
+    convertIfPresent(
+      func.__trigger.taskQueueTrigger,
+      this.tqOpts,
+      'invoker',
+      'invoker',
+      convertInvoker
+    );
+
+    func.__endpoint = {
+      platform: 'gcfv1',
+      ...optionsToEndpoint(this.depOpts),
+      taskQueueTrigger: {},
+    };
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'retryConfig');
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'rateLimits');
+    convertIfPresent(
+      func.__endpoint.taskQueueTrigger,
+      this.tqOpts,
+      'invoker',
+      'invoker',
+      convertInvoker
+    );
+
+    func.__requiredAPIs = [
+      {
+        api: 'cloudtasks.googleapis.com',
+        reason: 'Needed for task queue functions',
+      },
+    ];
+
+    func.run = handler;
+
+    return func;
+  }
+}
+
+/**
+ * Declares a function that can handle tasks enqueued using the Firebase Admin SDK.
+ * @param options Configuration for the Task Queue that feeds into this function.
+ * @hidden
+ */
+export function taskQueue(options?: TaskQueueOptions): TaskQueueBuilder {
+  return new TaskQueueBuilder(options);
 }
 
 /** @hidden */
@@ -77,6 +197,19 @@ export function _onRequestWithOptions(
     convertInvoker
   );
   // TODO parse the options
+
+  cloudFunction.__endpoint = {
+    platform: 'gcfv1',
+    ...optionsToEndpoint(options),
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    cloudFunction.__endpoint.httpsTrigger,
+    options,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
   return cloudFunction;
 }
 
@@ -90,7 +223,13 @@ export function _onCallWithOptions(
   // in another handler to avoid accidentally triggering the v2 API
   const fixedLen = (data: any, context: CallableContext) =>
     handler(data, context);
-  const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
+  const func: any = onCallHandler(
+    {
+      allowInvalidAppCheckToken: options.allowInvalidAppCheckToken,
+      cors: { origin: true, methods: 'POST' },
+    },
+    fixedLen
+  );
 
   func.__trigger = {
     labels: {},
@@ -98,6 +237,13 @@ export function _onCallWithOptions(
     httpsTrigger: {},
   };
   func.__trigger.labels['deployment-callable'] = 'true';
+
+  func.__endpoint = {
+    platform: 'gcfv1',
+    labels: {},
+    ...optionsToEndpoint(options),
+    callableTrigger: {},
+  };
 
   func.run = handler;
 
