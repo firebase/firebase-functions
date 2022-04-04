@@ -434,7 +434,7 @@ function isValidRequest(req: Request): req is HttpRequest {
   // If it has a charset, just ignore it for now.
   const semiColon = contentType.indexOf(';');
   if (semiColon >= 0) {
-    contentType = contentType.substr(0, semiColon).trim();
+    contentType = contentType.slice(0, semiColon).trim();
   }
   if (contentType !== 'application/json') {
     logger.warn('Request has incorrect Content-Type.', contentType);

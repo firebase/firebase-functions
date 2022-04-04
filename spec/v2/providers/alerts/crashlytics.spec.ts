@@ -36,6 +36,15 @@ describe('crashlytics', () => {
   ];
 
   for (const { method, event } of testcases) {
+    const ALERT_EVENT_FILTER = {
+      alerttype: event,
+    };
+
+    const ALERT_APP_EVENT_FILTER = {
+      ...ALERT_EVENT_FILTER,
+      appid: APPID,
+    };
+
     describe(method, () => {
       it('should create a function only handler', () => {
         const func = crashlytics[method](myHandler);
@@ -45,12 +54,7 @@ describe('crashlytics', () => {
           labels: {},
           eventTrigger: {
             eventType: alerts.eventType,
-            eventFilters: [
-              {
-                attribute: 'alerttype',
-                value: event,
-              },
-            ],
+            eventFilters: ALERT_EVENT_FILTER,
             retry: false,
           },
         });
@@ -64,16 +68,7 @@ describe('crashlytics', () => {
           labels: {},
           eventTrigger: {
             eventType: alerts.eventType,
-            eventFilters: [
-              {
-                attribute: 'alerttype',
-                value: event,
-              },
-              {
-                attribute: 'appid',
-                value: APPID,
-              },
-            ],
+            eventFilters: ALERT_APP_EVENT_FILTER,
             retry: false,
           },
         });
@@ -86,12 +81,7 @@ describe('crashlytics', () => {
           ...FULL_ENDPOINT,
           eventTrigger: {
             eventType: alerts.eventType,
-            eventFilters: [
-              {
-                attribute: 'alerttype',
-                value: event,
-              },
-            ],
+            eventFilters: ALERT_EVENT_FILTER,
             retry: false,
           },
         });
@@ -107,22 +97,22 @@ describe('crashlytics', () => {
           ...FULL_ENDPOINT,
           eventTrigger: {
             eventType: alerts.eventType,
-            eventFilters: [
-              {
-                attribute: 'alerttype',
-                value: event,
-              },
-              {
-                attribute: 'appid',
-                value: APPID,
-              },
-            ],
+            eventFilters: ALERT_APP_EVENT_FILTER,
             retry: false,
           },
         });
       });
     });
   }
+
+  const ALERT_EVENT_FILTER = {
+    alerttype: ALERT_TYPE,
+  };
+
+  const ALERT_APP_EVENT_FILTER = {
+    ...ALERT_EVENT_FILTER,
+    appid: APPID,
+  };
 
   describe('onOperation', () => {
     it('should create a function with alertType only', () => {
@@ -133,12 +123,7 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: ALERT_EVENT_FILTER,
           retry: false,
         },
       });
@@ -152,16 +137,7 @@ describe('crashlytics', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: ALERT_APP_EVENT_FILTER,
           retry: false,
         },
       });
@@ -178,12 +154,7 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: ALERT_EVENT_FILTER,
           retry: false,
         },
       });
@@ -200,16 +171,7 @@ describe('crashlytics', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: ALERT_APP_EVENT_FILTER,
           retry: false,
         },
       });
