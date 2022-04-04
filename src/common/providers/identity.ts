@@ -24,10 +24,10 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
-import { HttpsError } from './https';
+import { logger } from '../..';
 import { EventContext } from '../../cloud-functions';
 import { SUPPORTED_REGIONS } from '../../function-configuration';
-import { logger } from '../..';
+import { HttpsError } from './https';
 
 export { HttpsError };
 
@@ -90,7 +90,7 @@ export type UserInfo = firebase.auth.UserInfo;
  * Helper class to create the user metadata in a UserRecord object
  */
 export class UserRecordMetadata implements firebase.auth.UserMetadata {
-  constructor(public creationTime: string, public lastSignInTime: string) {}
+  constructor(public creationTime: string, public lastSignInTime: string) { }
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
   toJSON(): AuthUserMetadata {
@@ -123,21 +123,21 @@ export function userRecordConstructor(wireData: Object): UserRecord {
   };
   const record = { ...falseyValues, ...wireData };
 
-  const meta = record['metadata'];
+  const meta = record.metadata;
   if (meta) {
-    record['metadata'] = new UserRecordMetadata(
+    record.metadata = new UserRecordMetadata(
       meta.createdAt || meta.creationTime,
       meta.lastSignedInAt || meta.lastSignInTime
     );
   } else {
-    record['metadata'] = new UserRecordMetadata(null, null);
+    record.metadata = new UserRecordMetadata(null, null);
   }
   for (const entry of Object.entries(record.providerData)) {
-    entry['toJSON'] = () => {
+    (entry as any).toJSON = () => {
       return entry;
     };
   }
-  record['toJSON'] = () => {
+  record.toJSON = () => {
     const {
       uid,
       email,
@@ -150,7 +150,7 @@ export function userRecordConstructor(wireData: Object): UserRecord {
       passwordSalt,
       tokensValidAfterTime,
     } = record;
-    const json = {
+    const json: Record<string, undefined> = {
       uid,
       email,
       emailVerified,
@@ -162,9 +162,9 @@ export function userRecordConstructor(wireData: Object): UserRecord {
       passwordSalt,
       tokensValidAfterTime,
     };
-    json['metadata'] = record['metadata'].toJSON();
-    json['customClaims'] = JSON.parse(JSON.stringify(record.customClaims));
-    json['providerData'] = record.providerData.map((entry) => entry.toJSON());
+    json.metadata = record.metadata.toJSON();
+    json.customClaims = JSON.parse(JSON.stringify(record.customClaims));
+    json.providerData = record.providerData.map((entry) => entry.toJSON());
     return json;
   };
   return record as UserRecord;
@@ -583,7 +583,7 @@ export function checkDecodedToken(
     throw new HttpsError(
       'invalid-argument',
       `Provided JWT has incorrect "iss" (issuer) claim. Expected ` +
-        `"${JWT_ISSUER}${projectId}" but got "${decodedJWT.iss}".`
+      `"${JWT_ISSUER}${projectId}" but got "${decodedJWT.iss}".`
     );
   }
   if (typeof decodedJWT.sub !== 'string' || decodedJWT.sub.length === 0) {
@@ -729,7 +729,7 @@ export function parseDate(tokensValidAfterTime?: number): string | null {
     if (!isNaN(date.getTime())) {
       return date.toUTCString();
     }
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -819,12 +819,13 @@ function parseAdditionalUserInfo(
   decodedJWT: DecodedPayload
 ): AdditionalUserInfo {
   let profile, username;
-  if (decodedJWT.raw_user_info)
+  if (decodedJWT.raw_user_info) {
     try {
       profile = JSON.parse(decodedJWT.raw_user_info);
     } catch (err) {
       logger.debug(`Parse Error: ${err.message}`);
     }
+  }
   if (profile) {
     if (decodedJWT.sign_in_method === 'github.com') {
       username = profile.login;

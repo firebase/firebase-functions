@@ -27,10 +27,10 @@ import {
   serviceAccountFromShorthand,
 } from '../common/encoding';
 import * as logger from '../logger';
+import { ManifestEndpoint } from '../runtime/manifest';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
-import { ManifestEndpoint } from '../runtime/manifest';
 
 /**
  * List of all regions supported by Cloud Functions v2

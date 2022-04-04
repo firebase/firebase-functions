@@ -1,4 +1,4 @@
-import { getEndpointAnnotation, FirebaseAlertData } from '.';
+import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 

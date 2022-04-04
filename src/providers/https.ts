@@ -33,7 +33,6 @@ import {
   convertInvoker,
   copyIfPresent,
 } from '../common/encoding';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 import {
   CallableContext,
   FunctionsErrorCode,
@@ -46,6 +45,7 @@ import {
   TaskRetryConfig,
 } from '../common/providers/https';
 import { DeploymentOptions } from '../function-configuration';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 
 export {
   Request,

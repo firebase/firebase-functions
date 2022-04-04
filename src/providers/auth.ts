@@ -21,17 +21,17 @@
 // SOFTWARE.
 
 import {
-  UserRecord,
-  UserInfo,
-  UserRecordMetadata,
-  userRecordConstructor,
-} from '../common/providers/identity';
-import {
   CloudFunction,
   Event,
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
+import {
+  UserInfo,
+  UserRecord,
+  userRecordConstructor,
+  UserRecordMetadata,
+} from '../common/providers/identity';
 import { DeploymentOptions } from '../function-configuration';
 
 // TODO: yank in next breaking change release

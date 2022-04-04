@@ -28,7 +28,6 @@ import {
   copyIfPresent,
 } from '../../common/encoding';
 
-import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -41,6 +40,7 @@ import {
   TaskRetryConfig,
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import * as options from '../options';
 
 export {
   Request,

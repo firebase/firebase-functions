@@ -577,7 +577,7 @@ function unsafeDecodeToken(token: string): unknown {
       if (typeof obj === 'object') {
         payload = obj;
       }
-    } catch (e) { }
+    } catch (e) {}
   }
   return payload;
 }

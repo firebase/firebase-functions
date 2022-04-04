@@ -1,12 +1,12 @@
-import * as path from 'path';
 import * as subprocess from 'child_process';
+import * as path from 'path';
 import { promisify } from 'util';
 
+import { expect } from 'chai';
+import * as yaml from 'js-yaml';
 import fetch from 'node-fetch';
 import * as portfinder from 'portfinder';
-import * as yaml from 'js-yaml';
 import * as semver from 'semver';
-import { expect } from 'chai';
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
@@ -43,11 +43,11 @@ const BASE_STACK = {
   specVersion: 'v1alpha1',
 };
 
-type Testcase = {
+interface Testcase {
   name: string;
   modulePath: string;
   expected: Record<string, any>;
-};
+}
 
 async function retryUntil(
   fn: () => Promise<boolean>,
@@ -66,7 +66,7 @@ async function retryUntil(
   });
   const retry = (async () => {
     while (true) {
-      if (await fn()) break;
+      if (await fn()) { break; }
       await sleep();
     }
   })();

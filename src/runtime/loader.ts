@@ -19,13 +19,13 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import * as url from 'url';
 import * as path from 'path';
+import * as url from 'url';
 
 import {
-  ManifestStack,
   ManifestEndpoint,
   ManifestRequiredAPI,
+  ManifestStack,
 } from './manifest';
 
 /**
@@ -59,7 +59,7 @@ async function loadModule(functionsDir: string) {
 
 /* @internal */
 export function extractStack(
-  module,
+  module: Record<string, any>,
   endpoints: Record<string, ManifestEndpoint>,
   requiredAPIs: ManifestRequiredAPI[],
   prefix = ''
@@ -67,16 +67,16 @@ export function extractStack(
   for (const [name, val] of Object.entries(module)) {
     if (
       typeof val === 'function' &&
-      val['__endpoint'] &&
-      typeof val['__endpoint'] === 'object'
+      val.__endpoint &&
+      typeof val.__endpoint === 'object'
     ) {
       const funcName = prefix + name;
       endpoints[funcName] = {
-        ...val['__endpoint'],
+        ...val.__endpoint,
         entryPoint: funcName.replace(/-/g, '.'),
       };
-      if (val['__requiredAPIs'] && Array.isArray(val['__requiredAPIs'])) {
-        requiredAPIs.push(...val['__requiredAPIs']);
+      if (val.__requiredAPIs && Array.isArray(val.__requiredAPIs)) {
+        requiredAPIs.push(...val.__requiredAPIs);
       }
     } else if (typeof val === 'object' && val !== null) {
       extractStack(val, endpoints, requiredAPIs, prefix + name + '-');

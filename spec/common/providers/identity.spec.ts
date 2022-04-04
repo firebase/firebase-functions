@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { expect } from 'chai';
 import * as express from 'express';
 import * as jwt from 'jsonwebtoken';
 import * as sinon from 'sinon';
 import * as identity from '../../../src/common/providers/identity';
-import { expect } from 'chai';
 
 const PROJECT = 'my-project';
 const EVENT = 'EVENT_TYPE';
@@ -308,8 +308,8 @@ describe('identity', () => {
             kid: '123456',
           },
           {
-            '123456': '7890',
-            '2468': '1357',
+            123456: '7890',
+            2468: '1357',
           }
         )
       ).to.eq('7890');
@@ -438,7 +438,7 @@ describe('identity', () => {
         const decoded = {
           aud: VALID_URL,
           iss: `${identity.JWT_ISSUER}${PROJECT}`,
-          sub: sub,
+          sub,
           event_type: EVENT,
         } as identity.DecodedPayload;
 
@@ -515,8 +515,8 @@ describe('identity', () => {
     let jwtVerifyStub: sinon.SinonStub;
     const keysCache = {
       publicKeys: {
-        '123456': '7890',
-        '2468': '1357',
+        123456: '7890',
+        2468: '1357',
       },
       publicKeysExpireAt: time + identity.INVALID_TOKEN_BUFFER + 10000,
     };

@@ -1,12 +1,12 @@
-import * as path from 'path';
 import { expect } from 'chai';
+import * as path from 'path';
 
-import * as loader from '../../src/runtime/loader';
 import * as functions from '../../src/index';
+import * as loader from '../../src/runtime/loader';
 import {
-  ManifestStack,
   ManifestEndpoint,
   ManifestRequiredAPI,
+  ManifestStack,
 } from '../../src/runtime/manifest';
 
 describe('extractStack', () => {
@@ -246,11 +246,11 @@ describe('loadStack', () => {
     specVersion: 'v1alpha1',
   };
 
-  type Testcase = {
+  interface Testcase {
     name: string;
     modulePath: string;
     expected: ManifestStack;
-  };
+  }
   function runTests(tc: Testcase) {
     it('loads stack given relative path', async () => {
       await expect(loader.loadStack(tc.modulePath)).to.eventually.deep.equal(

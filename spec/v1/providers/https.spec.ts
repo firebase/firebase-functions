@@ -247,7 +247,7 @@ describe('#onEnqueue', () => {
         },
         invoker: 'private',
       })
-      .onDispatch(() => { });
+      .onDispatch(() => {});
 
     expect(result.__trigger).to.deep.equal({
       taskQueueTrigger: {
