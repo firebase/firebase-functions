@@ -45,12 +45,9 @@ describe('Database Functions', () => {
       return {
         platform: 'gcfv1',
         eventTrigger: {
-          eventFilters: [
-            {
-              attribute: 'resource',
-              value: resource,
-            },
-          ],
+          eventFilters: {
+            resource,
+          },
           eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
           retry: false,
         },
