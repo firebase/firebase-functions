@@ -42,12 +42,9 @@ describe('Storage Functions', () => {
       return {
         platform: 'gcfv1',
         eventTrigger: {
-          eventFilters: [
-            {
-              attribute: 'resource',
-              value: `projects/_/buckets/${bucket}`,
-            },
-          ],
+          eventFilters: {
+            resource: `projects/_/buckets/${bucket}`,
+          },
           eventType: `google.storage.object.${eventType}`,
           retry: false,
         },

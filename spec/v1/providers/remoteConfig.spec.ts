@@ -68,12 +68,9 @@ describe('RemoteConfig Functions', () => {
         platform: 'gcfv1',
         eventTrigger: {
           eventType: 'google.firebase.remoteconfig.update',
-          eventFilters: [
-            {
-              attribute: 'resource',
-              value: 'projects/project1',
-            },
-          ],
+          eventFilters: {
+            resource: 'projects/project1',
+          },
           retry: false,
         },
         labels: {},
