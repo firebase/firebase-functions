@@ -31,7 +31,6 @@ describe('#onDispatch', () => {
   it('should return a trigger/endpoint with appropriate values', () => {
     const result = taskQueue({
       rateLimits: {
-        maxBurstSize: 20,
         maxConcurrentDispatches: 30,
         maxDispatchesPerSecond: 40,
       },

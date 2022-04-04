@@ -67,7 +67,6 @@ describe('onTaskDispatched', () => {
           maxBackoffSeconds: 2,
         },
         rateLimits: {
-          maxBurstSize: 10,
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },

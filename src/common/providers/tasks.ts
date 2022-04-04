@@ -61,9 +61,6 @@ export interface RetryConfig {
 
 /** How congestion control should be applied to the function. */
 export interface RateLimits {
-  // If left unspecified, will default to 100
-  maxBurstSize?: number;
-
   // If left unspecified, wild default to 1000
   maxConcurrentDispatches?: number;
 
