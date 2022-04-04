@@ -4,9 +4,9 @@ import { expect } from 'chai';
 import * as loader from '../../src/runtime/loader';
 import * as functions from '../../src/index';
 import {
-  ManifestStack,
   ManifestEndpoint,
   ManifestRequiredAPI,
+  ManifestStack,
 } from '../../src/runtime/manifest';
 
 describe('extractStack', () => {
@@ -44,7 +44,7 @@ describe('extractStack', () => {
 
   it('extracts stack with required APIs', () => {
     const module = {
-      taskq: functions.https.taskQueue().onDispatch(() => {}),
+      taskq: functions.tasks.taskQueue().onDispatch(() => {}),
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
