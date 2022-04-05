@@ -19,16 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-/**
- * One or more event filters restrict the set of events delivered to an EventTrigger.
- */
-
-export interface EventFilter {
-  attribute: string;
-  value: string;
-  // if left unspecified, equality is used.
-  operator?: string;
-}
 
 /**
  * An definition of a function as appears in the Manifest.
