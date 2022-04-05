@@ -23,7 +23,7 @@
 import { expect } from 'chai';
 import * as options from '../../../src/v2/options';
 import * as eventarc from '../../../src/v2/providers/eventarc';
-import { FULL_OPTIONS } from './helpers';
+import { FULL_OPTIONS } from './fixtures';
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: 'event-type',
