@@ -22,7 +22,7 @@
 
 import * as options from '../options';
 import { CloudEvent, CloudFunction } from '../core';
-import { copyIfPresent } from '../../common/encoding';
+import { copyIfPresent, convertIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 
 /** Options that can be set on an Eventarc trigger. */
@@ -100,15 +100,13 @@ export function onCustomEventPublished<T = any>(
     },
     eventTrigger: {
       eventType: opts.eventType,
-      eventFilters: opts.filters,
+      eventFilters: {},
       retry: false,
       channel,
     },
   };
-  if (!opts.filters) {
-    delete endpoint.eventTrigger.eventFilters;
-  }
-  copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+  convertIfPresent(endpoint.eventTrigger, opts, 'eventFilters', 'filters');
+  copyIfPresent(endpoint.eventTrigger, opts, 'retry');
 
   func.__endpoint = endpoint;
 

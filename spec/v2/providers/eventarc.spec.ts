@@ -28,6 +28,7 @@ import { FULL_OPTIONS } from './helpers';
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: 'event-type',
   retry: false,
+  eventFilters: {},
 };
 
 describe('v2/eventarc', () => {
@@ -41,7 +42,7 @@ describe('v2/eventarc', () => {
       delete process.env.GCLOUD_PROJECT;
     });
 
-    it('should create a minimal trigger/endpoint with bucket', () => {
+    it('should create a minimal trigger/endpoint with default channel', () => {
       const result = eventarc.onCustomEventPublished('event-type', () => 42);
 
       expect(result.__endpoint).to.deep.equal({
@@ -71,7 +72,7 @@ describe('v2/eventarc', () => {
       });
     });
 
-    it('should create a minimal trigger with bucket with opts', () => {
+    it('should create a minimal trigger with channel with opts', () => {
       const result = eventarc.onCustomEventPublished(
         {
           eventType: 'event-type',
