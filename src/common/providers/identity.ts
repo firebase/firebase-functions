@@ -71,8 +71,8 @@ const DISALLOWED_CUSTOM_CLAIMS = [
 const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
 
 const EVENT_MAPPING: Record<string, string> = {
-  beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
-  beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+  beforeCreate: 'google.cloud.auth.user.v1.beforeCreate',
+  beforeSignIn: 'google.cloud.auth.user.v1.beforeSignIn',
 };
 
 /**
@@ -345,6 +345,12 @@ export interface AuthEventContext extends EventContext {
   userAgent: string;
   additionalUserInfo?: AdditionalUserInfo;
   credential?: Credential;
+}
+
+/** Defines the auth event for v2 blocking events */
+
+export interface AuthBlockingEvent extends AuthEventContext {
+  data: AuthUserRecord;
 }
 
 /** The handler response type for beforeCreate blocking events */
@@ -637,12 +643,12 @@ export function shouldVerifyJWT(): boolean {
  * Throws an error if the event types do not match
  * @internal
  */
-export function verifyJWT(
+export async function verifyJWT(
   token: string,
   rawDecodedJWT: Record<string, any>,
   keysCache: PublicKeysCache,
   time: number = Date.now()
-): DecodedPayload {
+): Promise<DecodedPayload> {
   if (!rawDecodedJWT.header) {
     throw new HttpsError(
       'internal',
@@ -653,7 +659,7 @@ export function verifyJWT(
   let publicKey;
   try {
     if (invalidPublicKeys(keysCache, time)) {
-      refreshPublicKeys(keysCache);
+      await refreshPublicKeys(keysCache);
     }
     publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
@@ -664,7 +670,7 @@ export function verifyJWT(
   }
   // force refresh keys and retry one more time
   try {
-    refreshPublicKeys(keysCache);
+    await refreshPublicKeys(keysCache);
     publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
@@ -1003,43 +1009,48 @@ export function getUpdateMask(
   return updateMask.join(',');
 }
 
+type handlerV1 = (
+  user: AuthUserRecord,
+  context: AuthEventContext
+) =>
+  | BeforeCreateResponse
+  | Promise<BeforeCreateResponse>
+  | BeforeSignInResponse
+  | Promise<BeforeSignInResponse>
+  | void
+  | Promise<void>;
+
+type handlerV2 = (
+  event: AuthBlockingEvent
+) =>
+  | BeforeSignInResponse
+  | Promise<BeforeSignInResponse>
+  | void
+  | Promise<void>;
+
 /** @internal */
 export function createHandler(
-  handler: (
-    user: AuthUserRecord,
-    context: AuthEventContext
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>,
+  handler: handlerV1,
   eventType: string,
   keysCache: PublicKeysCache
 ): (req: express.Request, resp: express.Response) => Promise<void> {
-  const wrappedHandler = wrapHandler(handler, eventType, keysCache);
-  return (req: express.Request, res: express.Response) => {
-    return new Promise((resolve) => {
-      res.on('finish', resolve);
-      resolve(wrappedHandler(req, res));
-    });
-  };
+  return wrapHandler(handler, eventType, keysCache, false);
+}
+
+/** @internal */
+export function createV2Handler(
+  handler: handlerV2,
+  eventType: string,
+  keysCache: PublicKeysCache
+): (req: express.Request, resp: express.Response) => Promise<void> {
+  return wrapHandler(handler, eventType, keysCache, true);
 }
 
 function wrapHandler(
-  handler: (
-    user: AuthUserRecord,
-    context: AuthEventContext
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>,
+  handler: handlerV1 | handlerV2,
   eventType: string,
-  keysCache: PublicKeysCache
+  keysCache: PublicKeysCache,
+  v2: boolean
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
@@ -1049,22 +1060,38 @@ function wrapHandler(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
       const rawDecodedJWT = decodeJWT(req.body.data.jwt);
+      // TODO(colerogers): add isDebugFeatureEnabled('skipTokenVerification') here
       const decodedPayload = shouldVerifyJWT()
-        ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
+        ? await verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
         : (rawDecodedJWT.payload as DecodedPayload);
       checkDecodedToken(decodedPayload, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
-      const authResponse =
-        (await handler(authUserRecord, authEventContext)) || undefined;
+      let authResponse;
+      if (v2) {
+        const authEvent: AuthBlockingEvent = {
+          data: authUserRecord,
+          ...authEventContext,
+        };
+        handler = handler as handlerV2;
+        authResponse = (await handler(authEvent)) || undefined;
+      } else {
+        handler = handler as handlerV1;
+        authResponse =
+          (await handler(authUserRecord, authEventContext)) || undefined;
+      }
+
       validateAuthResponse(eventType, authResponse);
       const updateMask = getUpdateMask(authResponse);
-      const result = {
-        userRecord: {
-          ...authResponse,
-          updateMask,
-        },
-      };
+      const result =
+        updateMask.length === 0
+          ? {}
+          : {
+              userRecord: {
+                ...authResponse,
+                updateMask,
+              },
+            };
 
       res.status(200);
       res.setHeader('Content-Type', 'application/json');
@@ -1076,9 +1103,9 @@ function wrapHandler(
         err = new HttpsError('internal', 'An unexpected error occurred.');
       }
 
-      res.status(err.code);
-      res.setHeader('Content-Type', 'application/json');
-      res.send({ error: err.toJson() });
+      const { status } = err.httpErrorCode;
+      const body = { error: err.toJSON() };
+      res.status(status).send(body);
     }
   };
 }

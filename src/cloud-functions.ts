@@ -287,8 +287,7 @@ export interface TriggerAnnotated {
       accessToken?: boolean;
       idToken?: boolean;
       refreshToken?: boolean;
-      // options?: Record<string, string>;
-    },
+    };
   };
 }
 

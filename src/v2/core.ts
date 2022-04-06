@@ -49,8 +49,7 @@ export interface TriggerAnnotation {
     accessToken?: boolean;
     idToken?: boolean;
     refreshToken?: boolean;
-    // options?: Record<string, string>;
-  },
+  };
 
   // TODO: schedule
 }

@@ -58,7 +58,7 @@ export interface UserOptions {
     accessToken?: boolean;
     refreshToken?: boolean;
   };
-};
+}
 
 /**
  * Handle events related to Firebase authentication users.
@@ -68,13 +68,20 @@ export function user(userOptions?: UserOptions) {
 }
 
 /** @hidden */
-export function _userWithOptions(options: DeploymentOptions, userOptions?: UserOptions) {
-  return new UserBuilder(() => {
-    if (!process.env.GCLOUD_PROJECT) {
-      throw new Error('process.env.GCLOUD_PROJECT is not set.');
-    }
-    return 'projects/' + process.env.GCLOUD_PROJECT;
-  }, options, userOptions);
+export function _userWithOptions(
+  options: DeploymentOptions,
+  userOptions?: UserOptions
+) {
+  return new UserBuilder(
+    () => {
+      if (!process.env.GCLOUD_PROJECT) {
+        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      }
+      return 'projects/' + process.env.GCLOUD_PROJECT;
+    },
+    options,
+    userOptions
+  );
 }
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
@@ -89,11 +96,11 @@ export class UserBuilder {
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions,
-    private userOptions?: UserOptions,
+    private userOptions?: UserOptions
   ) {
     this.keysCache = {
-      publicKeys: {}
-    }
+      publicKeys: {},
+    };
   }
 
   /** Respond to the creation of a Firebase Auth user. */
@@ -114,18 +121,32 @@ export class UserBuilder {
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+    ) =>
+      | BeforeCreateResponse
+      | Promise<BeforeCreateResponse>
+      | void
+      | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(handler, 'providers/cloud.auth/eventTypes/user.beforeCreate');
+    return this.beforeOperation(
+      handler,
+      /*'providers/cloud.auth/eventTypes/user.beforeCreate'*/ 'google.cloud.auth.user.v1.beforecreate'
+    );
   }
 
   beforeSignIn(
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+    ) =>
+      | BeforeSignInResponse
+      | Promise<BeforeSignInResponse>
+      | void
+      | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(handler, 'providers/cloud.auth/eventTypes/user.beforeSignIn');
+    return this.beforeOperation(
+      handler,
+      /*'providers/cloud.auth/eventTypes/user.beforeSignIn'*/ 'google.cloud.auth.user.v1.beforesignin'
+    );
   }
 
   private onOperation(
@@ -151,18 +172,34 @@ export class UserBuilder {
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>,
+    ) =>
+      | BeforeCreateResponse
+      | Promise<BeforeCreateResponse>
+      | BeforeSignInResponse
+      | Promise<BeforeSignInResponse>
+      | void
+      | Promise<void>,
     eventType: string
   ): BlockingFunction {
-    let accessToken = false, idToken = false, refreshToken = false;
+    let accessToken = false,
+      idToken = false,
+      refreshToken = false;
     if (this.userOptions) {
       accessToken = this.userOptions.blockingOptions.accessToken;
       idToken = this.userOptions.blockingOptions.idToken;
       refreshToken = this.userOptions.blockingOptions.refreshToken;
     }
 
-    const func: any = createHandler(handler, eventType, this.keysCache);
-    
+    const shortHandEventType =
+      eventType === 'google.cloud.auth.user.v1.beforecreate'
+        ? 'beforeCreate'
+        : 'beforeSignIn';
+    const func: any = createHandler(
+      handler,
+      shortHandEventType,
+      this.keysCache
+    );
+
     func.__trigger = {
       labels: {},
       ...optionsToTrigger(this.options),
@@ -173,7 +210,7 @@ export class UserBuilder {
         refreshToken,
       },
     };
-  
+
     func.__endpoint = {
       platform: 'gcfv1',
       labels: {},
@@ -185,9 +222,16 @@ export class UserBuilder {
         refreshToken,
       },
     };
-  
+
+    func.__requiredAPIs = [
+      {
+        api: 'cloudtasks.googleapis.com',
+        reason: 'Needed for task queue functions',
+      },
+    ];
+
     func.run = handler;
-  
+
     return func;
   }
 }

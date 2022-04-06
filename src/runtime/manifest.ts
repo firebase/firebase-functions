@@ -76,6 +76,13 @@ export interface ManifestEndpoint {
       maxDoublings?: number;
     };
   };
+
+  blockingTrigger?: {
+    eventType: string;
+    accessToken?: boolean;
+    idToken?: boolean;
+    refreshToken?: boolean;
+  };
 }
 
 export interface ManifestRequiredAPI {

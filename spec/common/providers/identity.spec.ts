@@ -545,14 +545,15 @@ describe('identity', () => {
     it('should error if header does not exist', () => {
       const rawDecodedJwt = { payload: 'val' };
 
-      expect(() =>
-        identity.verifyJWT('123456', rawDecodedJwt, keysCache, time)
+      expect(
+        async () =>
+          await identity.verifyJWT('123456', rawDecodedJwt, keysCache, time)
       ).to.throw(
         'Unable to verify JWT payload, the decoded JWT does not have a header property.'
       );
     });
 
-    it('should return the decoded jwt', () => {
+    it('should return the decoded jwt', async () => {
       const decoded = {
         aud: VALID_URL,
         iss: `${identity.JWT_ISSUER}${PROJECT}`,
@@ -560,9 +561,14 @@ describe('identity', () => {
       };
       jwtVerifyStub.returns(decoded);
 
-      expect(
-        identity.verifyJWT('123456', rawDecodedJWT, keysCache, time)
-      ).to.deep.equal(decoded);
+      const d = await identity.verifyJWT(
+        '123456',
+        rawDecodedJWT,
+        keysCache,
+        time
+      );
+
+      expect(d).to.deep.equal(decoded);
     });
   });
 
