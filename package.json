@@ -63,7 +63,8 @@
     "./v2/alerts": "./lib/v2/providers/alerts/index.js",
     "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
     "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
-    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
+    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
+    "./v2/eventarc": "./lib/v2/providers/eventarc.js"
   },
   "typesVersions": {
     "*": {
@@ -123,6 +124,9 @@
       ],
       "v2/base": [
         "lib/v2/base"
+      ],
+      "v2/eventarc": [
+        "lib/v2/providers/eventarc"
       ],
       "v2/options": [
         "lib/v2/options"
