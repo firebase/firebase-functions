@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { evaluate, expectEq, success, TestSuite } from './testing';
+import { evaluate, expectEq, success, TestSuite } from '../testing';
 import PubsubMessage = functions.pubsub.Message;
 
 const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
