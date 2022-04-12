@@ -13,8 +13,6 @@ export const testLabTests: any = functions
     return new TestSuite<TestMatrix>('test matrix complete')
       .it('should have eventId', (snap, context) => context.eventId)
 
-      .it('should have timestamp', (snap, context) => context.timestamp)
-
       .it('should have right eventType', (_, context) =>
         expectEq(context.eventType, 'google.testing.testMatrix.complete')
       )

@@ -29,7 +29,7 @@ async function fetchDefaultDevice(
   accessToken: admin.GoogleOAuthAccessToken
 ): Promise<AndroidDevice> {
   const response = await fetch(
-    `${TESTING_API_SERVICE_NAME}/v1/testEnvironmentCatalog/ANDROID`,
+    `https://${TESTING_API_SERVICE_NAME}/v1/testEnvironmentCatalog/ANDROID`,
     {
       headers: {
         Authorization: 'Bearer ' + accessToken.access_token,
@@ -103,6 +103,7 @@ async function createTestMatrix(
         Authorization: 'Bearer ' + accessToken.access_token,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(body),
     }
   );
   return;
