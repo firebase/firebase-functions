@@ -50,6 +50,25 @@ async function callScheduleTrigger(functionName: string, region: string) {
   return;
 }
 
+async function updateRemoteConfig(
+  testId: string,
+  accessToken: string
+): Promise<void> {
+  await fetch(
+    `https://firebaseremoteconfig.googleapis.com/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json; UTF-8',
+        'Accept-Encoding': 'gzip',
+        'If-Match': '*',
+      },
+      body: JSON.stringify({ version: { description: testId } }),
+    }
+  );
+}
+
 function v1Tests(testId: string, accessToken: string) {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
@@ -82,19 +101,7 @@ function v1Tests(testId: string, accessToken: string) {
     // Invoke a callable HTTPS trigger.
     callHttpsTrigger('v1-callableTests', { foo: 'bar', testId }),
     // A Remote Config update to trigger the Remote Config tests.
-    fetch(
-      `https://firebaseremoteconfig.googleapis.com/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-      {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json; UTF-8',
-          'Accept-Encoding': 'gzip',
-          'If-Match': '*',
-        },
-        body: JSON.stringify({ version: { description: testId } }),
-      }
-    ),
+    updateRemoteConfig(testId, accessToken),
     // A storage upload to trigger the Storage tests
     admin
       .storage()
