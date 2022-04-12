@@ -11,7 +11,7 @@ export const databaseTests: any = functions
   .database.ref('dbTests/{testId}/start')
   .onWrite((ch, ctx) => {
     if (ch.after.val() === null) {
-      console.log(
+      functions.logger.info(
         'Event for ' +
           ctx.params[testIdFieldName] +
           ' is null; presuming data cleanup, so skipping.'

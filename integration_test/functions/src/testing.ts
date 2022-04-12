@@ -1,7 +1,7 @@
 import * as firebase from 'firebase-admin';
-import { EventContext } from 'firebase-functions';
+import * as functions from 'firebase-functions';
 
-export type TestCase<T> = (data: T, context?: EventContext) => any;
+export type TestCase<T> = (data: T, context?: functions.EventContext) => any;
 export interface TestCaseMap<T> {
   [key: string]: TestCase<T>;
 }
@@ -20,7 +20,7 @@ export class TestSuite<T> {
     return this;
   }
 
-  run(testId: string, data: T, context?: EventContext): Promise<any> {
+  run(testId: string, data: T, context?: functions.EventContext): Promise<any> {
     const running: Array<Promise<any>> = [];
     for (const testName in this.tests) {
       if (!this.tests.hasOwnProperty(testName)) {
@@ -30,7 +30,7 @@ export class TestSuite<T> {
         .then(() => this.tests[testName](data, context))
         .then(
           (result) => {
-            console.log(
+            functions.logger.info(
               `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`
             );
             return { name: testName, passed: !!result };
@@ -47,7 +47,7 @@ export class TestSuite<T> {
       results.forEach((val) => (sum = sum + val.passed));
       const summary = `passed ${sum} of ${running.length}`;
       const passed = sum === running.length;
-      console.log(summary);
+      functions.logger.info(summary);
       const result = { passed, summary, tests: results };
       return firebase
         .database()
