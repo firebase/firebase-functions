@@ -1,8 +1,7 @@
 import * as functions from 'firebase-functions';
+import { REGION } from '../region';
 import { expectEq, TestSuite } from '../testing';
 import ObjectMetadata = functions.storage.ObjectMetadata;
-
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const storageTests: any = functions
   .runWith({

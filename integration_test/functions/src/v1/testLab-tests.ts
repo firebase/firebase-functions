@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
+import { REGION } from '../region';
 import { expectEq, TestSuite } from '../testing';
 import TestMatrix = functions.testLab.TestMatrix;
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const testLabTests: any = functions
   .runWith({

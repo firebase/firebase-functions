@@ -1,10 +1,10 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { expectEq, expectMatches, TestSuite } from '../testing';
+import { REGION } from '../region';
 import DataSnapshot = admin.database.DataSnapshot;
 
 const testIdFieldName = 'testId';
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const databaseTests: any = functions
   .region(REGION)

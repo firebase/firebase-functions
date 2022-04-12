@@ -1,10 +1,10 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { expectDeepEq, expectEq, TestSuite } from '../testing';
+import { REGION } from '../region';
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
 
 const testIdFieldName = 'documentId';
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const firestoreTests: any = functions
   .runWith({
