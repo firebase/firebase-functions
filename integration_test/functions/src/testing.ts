@@ -49,6 +49,7 @@ export class TestSuite<T> {
       const passed = sum === running.length;
       console.log(summary);
       const result = { passed, summary, tests: results };
+      console.log(`writing results to: testRuns/${testId}/${this.name}`);
       return firebase
         .database()
         .ref(`testRuns/${testId}/${this.name}`)
