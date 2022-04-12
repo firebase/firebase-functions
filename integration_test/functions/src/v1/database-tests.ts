@@ -40,7 +40,7 @@ export const databaseTests: any = functions
             return expectMatches(
               url,
               new RegExp(
-                `^https://${process.env.GCLOUD_PROJECT}.firebaseio.com/dbTests`
+                `^https://${process.env.GCLOUD_PROJECT}-default-rtdb.firebaseio.com/dbTests`
               )
             );
           })
@@ -52,7 +52,7 @@ export const databaseTests: any = functions
       .it('should have refs resources', (change, context) =>
         expectEq(
           context.resource.name,
-          `projects/_/instances/${process.env.GCLOUD_PROJECT}/refs/dbTests/${context.params.testId}/start`
+          `projects/_/instances/${process.env.GCLOUD_PROJECT}-default-rtdb/refs/dbTests/${context.params.testId}/start`
         )
       )
 

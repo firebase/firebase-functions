@@ -4,19 +4,18 @@ import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
-import * as https from 'https';
 
-export * as v1 from './v1/index';
-const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
+import * as v1 from './v1/index';
+const numTests = Object.keys(v1).length; // Assumption: every exported function is its own test.
+export { v1 };
 
 import * as testLab from './v1/testLab-utils';
 
 
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
-admin.initializeApp();
 const REGION = functions.config().functions.test_region;
+admin.initializeApp();
 
-// TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
 function callHttpsTrigger(name: string, data: any) {
     return fetch(`https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`, {
         method: "POST",
@@ -31,13 +30,15 @@ async function callScheduleTrigger(functionName: string, region: string) {
     const accessToken = await admin.credential
         .applicationDefault()
         .getAccessToken();
-    const response = await fetch(`https://cloudscheduler.googleapis.com/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken.access_token}`,
-        },
-    });
+    const response = await fetch(
+        `https://cloudscheduler.googleapis.com/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${accessToken.access_token}`,
+            },
+        });
     if (!response.ok) {
         throw new Error(`Failed request with status ${response.status}!`);
     }
@@ -46,7 +47,7 @@ async function callScheduleTrigger(functionName: string, region: string) {
     return;
 }
 
-function v1Tests(testId: string) {
+function v1Tests(testId: string, accessToken: string) {
     return [
         // A database write to trigger the Firebase Realtime Database tests.
         admin
@@ -78,26 +79,17 @@ function v1Tests(testId: string) {
         // Invoke a callable HTTPS trigger.
         callHttpsTrigger('v1-callableTests', {foo: 'bar', testId}),
         // A Remote Config update to trigger the Remote Config tests.
-        admin.credential
-            .applicationDefault()
-            .getAccessToken()
-            .then((accessToken) => {
-                const options = {
-                    hostname: 'firebaseremoteconfig.googleapis.com',
-                    path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-                    method: 'PUT',
-                    headers: {
-                        Authorization: 'Bearer ' + accessToken.access_token,
-                        'Content-Type': 'application/json; UTF-8',
-                        'Accept-Encoding': 'gzip',
-                        'If-Match': '*',
-                    },
-                };
-                const request = https.request(options, (resp) => {
-                });
-                request.write(JSON.stringify({version: {description: testId}}));
-                request.end();
-            }),
+        fetch(`https://firebaseremoteconfig.googleapis.com/v1/projects/${firebaseConfig.projectId}/remoteConfig`, {
+                method: 'PUT',
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json; UTF-8',
+                    'Accept-Encoding': 'gzip',
+                    'If-Match': '*',
+                },
+                body: JSON.stringify({version: {description: testId}})
+            }
+        ),
         // A storage upload to trigger the Storage tests
         admin
             .storage()
@@ -128,7 +120,8 @@ export const integrationTests: any = functions
         fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {
         });
         try {
-            await Promise.all([...v1Tests(testId)]);
+            const accessToken = await admin.credential.applicationDefault().getAccessToken();
+            await Promise.all([...v1Tests(testId, accessToken.access_token)]);
             // On test completion, check that all tests pass and reply "PASS", or provide further details.
             functions.logger.info('Waiting for all tests to report they pass...');
             await new Promise<void>((resolve, reject) => {
