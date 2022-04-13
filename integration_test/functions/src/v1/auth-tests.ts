@@ -1,9 +1,8 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import { expectEq, TestSuite } from '../testing';
+import { REGION } from '../region';
 import UserMetadata = admin.auth.UserRecord;
-
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const createUserTests: any = functions
   .region(REGION)

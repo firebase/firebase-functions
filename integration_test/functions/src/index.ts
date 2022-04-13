@@ -5,20 +5,24 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
 
-import * as v1 from './v1/index';
-const numTests = Object.keys(v1).filter((k) =>
-  ({}.hasOwnProperty.call(v1[k], '__endpoint'))
-).length;
-export { v1 };
+import * as v1 from './v1';
+import * as v2 from './v2';
+const getNumTests = (m: object): number => {
+  return Object.keys(m).filter((k) =>
+    ({}.hasOwnProperty.call(m[k], '__endpoint'))
+  ).length;
+};
+const numTests = getNumTests(v1) + getNumTests(v2);
+export { v1, v2 };
 
 import * as testLab from './v1/testLab-utils';
+import { REGION } from './region';
 
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
-const REGION = functions.config().functions.test_region;
 admin.initializeApp();
 
-function callHttpsTrigger(name: string, data: any) {
-  return fetch(
+async function callHttpsTrigger(name: string, data: any) {
+  const resp = await fetch(
     `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`,
     {
       method: 'POST',
@@ -28,19 +32,56 @@ function callHttpsTrigger(name: string, data: any) {
       body: JSON.stringify({ data }),
     }
   );
+  if (!resp.ok) {
+    throw Error(resp.statusText);
+  }
 }
 
-async function callScheduleTrigger(functionName: string, region: string) {
-  const accessToken = await admin.credential
-    .applicationDefault()
-    .getAccessToken();
+async function callV2HttpsTrigger(
+  name: string,
+  data: any,
+  accessToken: string
+) {
+  let resp = await fetch(
+    `https://cloudfunctions.googleapis.com/v2beta/projects/${firebaseConfig.projectId}/locations/${REGION}/functions/${name}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
+  const fn = await resp.json();
+  const uri = fn.serviceConfig?.uri;
+  if (!uri) {
+    throw new Error(`Cannot call v2 https trigger ${name} - no uri found`);
+  }
+  resp = await fetch(uri, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ data }),
+  });
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
+}
+
+async function callScheduleTrigger(
+  functionName: string,
+  region: string,
+  accessToken: string
+) {
   const response = await fetch(
     `https://cloudscheduler.googleapis.com/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     }
   );
@@ -56,7 +97,7 @@ async function updateRemoteConfig(
   testId: string,
   accessToken: string
 ): Promise<void> {
-  await fetch(
+  const resp = await fetch(
     `https://firebaseremoteconfig.googleapis.com/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
     {
       method: 'PUT',
@@ -69,9 +110,12 @@ async function updateRemoteConfig(
       body: JSON.stringify({ version: { description: testId } }),
     }
   );
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
 }
 
-function v1Tests(testId: string, accessToken: string) {
+function v1Tests(testId: string, accessToken: string): Promise<void>[] {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
     admin
@@ -109,9 +153,16 @@ function v1Tests(testId: string, accessToken: string) {
       .storage()
       .bucket()
       .upload('/tmp/' + testId + '.txt'),
-    testLab.startTestRun(firebaseConfig.projectId, testId),
+    testLab.startTestRun(firebaseConfig.projectId, testId, accessToken),
     // Invoke the schedule for our scheduled function to fire
-    callScheduleTrigger('v1-schedule', 'us-central1'),
+    callScheduleTrigger('v1-schedule', 'us-central1', accessToken),
+  ];
+}
+
+function v2Tests(testId: string, accessToken: string): Promise<void>[] {
+  return [
+    // Invoke a callable HTTPS trigger.
+    callV2HttpsTrigger('v2-callabletests', { foo: 'bar', testId }, accessToken),
   ];
 }
 
@@ -136,15 +187,21 @@ export const integrationTests: any = functions
       const accessToken = await admin.credential
         .applicationDefault()
         .getAccessToken();
-      await Promise.all([...v1Tests(testId, accessToken.access_token)]);
+      await Promise.all([
+        ...v1Tests(testId, accessToken.access_token),
+        ...v2Tests(testId, accessToken.access_token),
+      ]);
       // On test completion, check that all tests pass and reply "PASS", or provide further details.
       functions.logger.info('Waiting for all tests to report they pass...');
       await new Promise<void>((resolve, reject) => {
         setTimeout(() => reject(new Error('Timeout')), 5 * 60 * 1000);
         let testsExecuted = 0;
         testIdRef.on('child_added', (snapshot) => {
+          if (snapshot.key === 'timestamp') {
+            return;
+          }
           testsExecuted += 1;
-          if (snapshot.key != 'timestamp' && !snapshot.val().passed) {
+          if (!snapshot.val().passed) {
             reject(
               new Error(
                 `test ${snapshot.key} failed; see database for details.`

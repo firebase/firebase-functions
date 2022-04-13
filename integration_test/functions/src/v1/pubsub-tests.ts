@@ -1,9 +1,8 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
+import { REGION } from '../region';
 import { evaluate, expectEq, success, TestSuite } from '../testing';
 import PubsubMessage = functions.pubsub.Message;
-
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 // TODO(inlined) use multiple queues to run inline.
 // Expected message data: {"hello": "world"}
