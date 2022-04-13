@@ -6,7 +6,7 @@ import * as functions from 'firebase-functions';
 import * as fs from 'fs';
 
 import * as v1 from './v1/index';
-const numTests = Object.keys(v1).length; // Assumption: every exported function is its own test.
+const numTests = Object.keys(v1).filter((k) => ({}.hasOwnProperty.call(v1[k], "__endpoint"))).length;
 export { v1 };
 
 import * as testLab from './v1/testLab-utils';
