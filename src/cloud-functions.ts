@@ -469,12 +469,9 @@ export function makeCloudFunction<EventData>({
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + '.' + eventType,
-          eventFilters: [
-            {
-              attribute: 'resource',
-              value: triggerResource(),
-            },
-          ],
+          eventFilters: {
+            resource: triggerResource(),
+          },
           retry: !!options.failurePolicy,
         };
       }

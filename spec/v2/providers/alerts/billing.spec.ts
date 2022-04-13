@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as billing from '../../../../src/v2/providers/alerts/billing';
-import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS } from '../fixtures';
 
 const ALERT_TYPE = 'new-alert-type';
 const myHandler = () => 42;
@@ -16,12 +16,9 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: billing.planUpdateAlert,
-            },
-          ],
+          eventFilters: {
+            alerttype: billing.planUpdateAlert,
+          },
           retry: false,
         },
       });
@@ -37,12 +34,9 @@ describe('billing', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: billing.planUpdateAlert,
-            },
-          ],
+          eventFilters: {
+            alerttype: billing.planUpdateAlert,
+          },
           retry: false,
         },
       });
@@ -58,12 +52,9 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: billing.planAutomatedUpdateAlert,
-            },
-          ],
+          eventFilters: {
+            alerttype: billing.planAutomatedUpdateAlert,
+          },
           retry: false,
         },
       });
@@ -79,12 +70,9 @@ describe('billing', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: billing.planAutomatedUpdateAlert,
-            },
-          ],
+          eventFilters: {
+            alerttype: billing.planAutomatedUpdateAlert,
+          },
           retry: false,
         },
       });
@@ -100,12 +88,9 @@ describe('billing', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: {
+            alerttype: ALERT_TYPE,
+          },
           retry: false,
         },
       });
@@ -122,12 +107,9 @@ describe('billing', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: ALERT_TYPE,
-            },
-          ],
+          eventFilters: {
+            alerttype: ALERT_TYPE,
+          },
           retry: false,
         },
       });

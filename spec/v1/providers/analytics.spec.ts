@@ -72,12 +72,9 @@ describe('Analytics Functions', () => {
         expect(cloudFunction.__endpoint).to.deep.equal({
           platform: 'gcfv1',
           eventTrigger: {
-            eventFilters: [
-              {
-                attribute: 'resource',
-                value: 'projects/project1/events/first_open',
-              },
-            ],
+            eventFilters: {
+              resource: 'projects/project1/events/first_open',
+            },
             eventType:
               'providers/google.firebase.analytics/eventTypes/event.log',
             retry: false,

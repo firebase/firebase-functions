@@ -174,7 +174,7 @@ export function onMessagePublished<T = any>(
     },
     eventTrigger: {
       eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
-      eventFilters: [{ attribute: 'topic', value: topic }],
+      eventFilters: { topic },
       retry: false,
     },
   };

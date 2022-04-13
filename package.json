@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.19.0",
+  "version": "3.20.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -40,6 +40,7 @@
     "./lib/providers/pubsub": "./lib/providers/pubsub.js",
     "./lib/providers/remoteConfig": "./lib/providers/remoteConfig.js",
     "./lib/providers/storage": "./lib/providers/storage.js",
+    "./lib/providers/tasks": "./lib/providers/tasks.js",
     "./lib/providers/testLab": "./lib/providers/testLab.js",
     "./v1": "./lib/index.js",
     "./v1/analytics": "./lib/providers/analytics.js",
@@ -59,10 +60,12 @@
     "./v2/params": "./lib/v2/params/index.js",
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
     "./v2/storage": "./lib/v2/providers/storage.js",
+    "./v2/tasks": "./lib/v2/providers/tasks.js",
     "./v2/alerts": "./lib/v2/providers/alerts/index.js",
     "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
     "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
-    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js"
+    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
+    "./v2/eventarc": "./lib/v2/providers/eventarc.js"
   },
   "typesVersions": {
     "*": {
@@ -99,14 +102,32 @@
       "v1/storage": [
         "lib/providers/storage"
       ],
+      "v1/tasks": [
+        "lib/providers/tasks"
+      ],
       "v1/testLab": [
         "lib/providers/testLab"
       ],
       "v2": [
         "lib/v2"
       ],
+      "v2/alerts": [
+        "lib/v2/providers/alerts"
+      ],
+      "v2/alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
+      ],
       "v2/base": [
         "lib/v2/base"
+      ],
+      "v2/eventarc": [
+        "lib/v2/providers/eventarc"
       ],
       "v2/options": [
         "lib/v2/options"
@@ -126,17 +147,8 @@
       "v2/storage": [
         "lib/v2/providers/storage"
       ],
-      "v2/alerts": [
-        "lib/v2/providers/alerts"
-      ],
-      "v2/alerts/appDistribution": [
-        "lib/v2/providers/alerts/appDistribution"
-      ],
-      "v2/alerts/billing": [
-        "lib/v2/providers/alerts/billing"
-      ],
-      "v2/alerts/crashlytics": [
-        "lib/v2/providers/alerts/crashlytics"
+      "v2/tasks": [
+        "lib/v2/providers/tasks"
       ]
     }
   },

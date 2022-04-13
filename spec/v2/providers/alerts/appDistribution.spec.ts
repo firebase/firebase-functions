@@ -1,10 +1,14 @@
 import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as appDistribution from '../../../../src/v2/providers/alerts/appDistribution';
-import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS } from '../fixtures';
 
 const APPID = '123456789';
 const myHandler = () => 42;
+
+const APP_EVENT_FILTER = {
+  appid: APPID,
+};
 
 describe('appDistribution', () => {
   describe('onNewTesterIosDevicePublished', () => {
@@ -19,16 +23,10 @@ describe('appDistribution', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: appDistribution.newTesterIosDeviceAlert,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: {
+            ...APP_EVENT_FILTER,
+            alerttype: appDistribution.newTesterIosDeviceAlert,
+          },
           retry: false,
         },
       });
@@ -44,12 +42,9 @@ describe('appDistribution', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: appDistribution.newTesterIosDeviceAlert,
-            },
-          ],
+          eventFilters: {
+            alerttype: appDistribution.newTesterIosDeviceAlert,
+          },
           retry: false,
         },
       });
@@ -65,16 +60,10 @@ describe('appDistribution', () => {
         ...FULL_ENDPOINT,
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: appDistribution.newTesterIosDeviceAlert,
-            },
-            {
-              attribute: 'appid',
-              value: APPID,
-            },
-          ],
+          eventFilters: {
+            ...APP_EVENT_FILTER,
+            alerttype: appDistribution.newTesterIosDeviceAlert,
+          },
           retry: false,
         },
       });
@@ -88,12 +77,9 @@ describe('appDistribution', () => {
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
-          eventFilters: [
-            {
-              attribute: 'alerttype',
-              value: appDistribution.newTesterIosDeviceAlert,
-            },
-          ],
+          eventFilters: {
+            alerttype: appDistribution.newTesterIosDeviceAlert,
+          },
           retry: false,
         },
       });

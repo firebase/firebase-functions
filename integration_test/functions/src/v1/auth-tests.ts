@@ -1,16 +1,15 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { expectEq, TestSuite } from './testing';
+import { expectEq, TestSuite } from '../testing';
+import { REGION } from '../region';
 import UserMetadata = admin.auth.UserRecord;
-
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const createUserTests: any = functions
   .region(REGION)
   .auth.user()
   .onCreate((u, c) => {
     const testId: string = u.displayName;
-    console.log(`testId is ${testId}`);
+    functions.logger.info(`testId is ${testId}`);
 
     return new TestSuite<UserMetadata>('auth user onCreate')
       .it('should have a project as resource', (user, context) =>
@@ -50,7 +49,7 @@ export const deleteUserTests: any = functions
   .auth.user()
   .onDelete((u, c) => {
     const testId: string = u.displayName;
-    console.log(`testId is ${testId}`);
+    functions.logger.info(`testId is ${testId}`);
 
     return new TestSuite<UserMetadata>('auth user onDelete')
       .it('should have a project as resource', (user, context) =>

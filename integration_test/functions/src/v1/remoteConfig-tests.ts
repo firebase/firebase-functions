@@ -1,8 +1,7 @@
 import * as functions from 'firebase-functions';
-import { expectEq, TestSuite } from './testing';
+import { REGION } from '../region';
+import { expectEq, TestSuite } from '../testing';
 import TemplateVersion = functions.remoteConfig.TemplateVersion;
-
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const remoteConfigTests: any = functions
   .region(REGION)

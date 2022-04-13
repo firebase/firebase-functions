@@ -32,6 +32,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
 /**
@@ -86,16 +87,29 @@ export class HandlerBuilder {
         func.__requiredAPIs = undefined;
         return func;
       },
-      /** @hidden */
+    };
+  }
+
+  /**
+   * Create a handler for tasks functions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.tasks.onDispatch((data, context) => { ... })
+   * ```
+   */
+  /** @hidden */
+  get tasks() {
+    return {
       get taskQueue() {
         return {
-          onEnqueue(
+          onDispatch: (
             handler: (
               data: any,
-              context: https.TaskContext
+              context: tasks.TaskContext
             ) => void | Promise<void>
-          ) {
-            const builder = new https.TaskQueueBuilder();
+          ): HttpsFunction => {
+            const builder = new tasks.TaskQueueBuilder();
             const func = builder.onDispatch(handler);
             func.__trigger = {};
             func.__endpoint = undefined;
