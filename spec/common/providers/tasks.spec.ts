@@ -21,14 +21,12 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as sinon from 'sinon';
 import * as firebase from 'firebase-admin';
 
 import { checkAuthContext, runHandler } from '../../helper';
 import {
   generateIdToken,
   generateUnsignedIdToken,
-  mockFetchPublicKeys,
   mockRequest,
 } from '../../fixtures/mockrequest';
 import {
@@ -39,7 +37,6 @@ import {
 import { apps as appsNamespace } from '../../../src/apps';
 import * as mocks from '../../fixtures/credential/key.json';
 import * as https from '../../../src/common/providers/https';
-import * as debug from '../../../src/common/debug';
 
 /** Represents a test case for a Task Queue Function */
 interface TaskTest {
@@ -83,6 +80,14 @@ export async function runTaskTest(test: TaskTest): Promise<any> {
 describe('onEnqueueHandler', () => {
   let app: firebase.app.App;
 
+  function mockEnqueueRequest(
+    data: unknown,
+    contentType: string = 'application/json',
+    context: { authorization: string } = { authorization: 'Bearer abc' }
+  ): ReturnType<typeof mockRequest> {
+    return mockRequest(data, contentType, context);
+  }
+
   before(() => {
     const credential = {
       getAccessToken: () => {
@@ -111,7 +116,7 @@ describe('onEnqueueHandler', () => {
 
   it('should handle success', () => {
     return runTaskTest({
-      httpRequest: mockRequest({ foo: 'bar' }),
+      httpRequest: mockEnqueueRequest({ foo: 'bar' }),
       expectedData: { foo: 'bar' },
       expectedStatus: 204,
     });
@@ -129,7 +134,7 @@ describe('onEnqueueHandler', () => {
 
   it('should ignore charset', () => {
     return runTaskTest({
-      httpRequest: mockRequest(null, 'application/json; charset=utf-8'),
+      httpRequest: mockEnqueueRequest(null, 'application/json; charset=utf-8'),
       expectedData: null,
       expectedStatus: 204,
     });
@@ -137,14 +142,14 @@ describe('onEnqueueHandler', () => {
 
   it('should reject bad content type', () => {
     return runTaskTest({
-      httpRequest: mockRequest(null, 'text/plain'),
+      httpRequest: mockEnqueueRequest(null, 'text/plain'),
       expectedData: null,
       expectedStatus: 400,
     });
   });
 
   it('should reject extra body fields', () => {
-    const req = mockRequest(null);
+    const req = mockEnqueueRequest(null);
     req.body.extra = 'bad';
     return runTaskTest({
       httpRequest: req,
@@ -155,7 +160,7 @@ describe('onEnqueueHandler', () => {
 
   it('should handle unhandled error', () => {
     return runTaskTest({
-      httpRequest: mockRequest(null),
+      httpRequest: mockEnqueueRequest(null),
       expectedData: null,
       taskFunction: (data, context) => {
         throw new Error(`ceci n'est pas une error`);
@@ -169,7 +174,7 @@ describe('onEnqueueHandler', () => {
 
   it('should handle unknown error status', () => {
     return runTaskTest({
-      httpRequest: mockRequest(null),
+      httpRequest: mockEnqueueRequest(null),
       expectedData: null,
       taskFunction: (data, context) => {
         throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
@@ -183,7 +188,7 @@ describe('onEnqueueHandler', () => {
 
   it('should handle well-formed error', () => {
     return runTaskTest({
-      httpRequest: mockRequest(null),
+      httpRequest: mockEnqueueRequest(null),
       expectedData: null,
       taskFunction: (data, context) => {
         throw new https.HttpsError('not-found', 'i am error');
@@ -196,11 +201,10 @@ describe('onEnqueueHandler', () => {
   });
 
   it('should handle auth', async () => {
-    const mock = mockFetchPublicKeys();
     const projectId = appsNamespace().admin.options.projectId;
     const idToken = generateIdToken(projectId);
     await runTaskTest({
-      httpRequest: mockRequest(null, 'application/json', {
+      httpRequest: mockEnqueueRequest(null, 'application/json', {
         authorization: 'Bearer ' + idToken,
       }),
       expectedData: null,
@@ -214,49 +218,25 @@ describe('onEnqueueHandler', () => {
       },
       expectedStatus: 204,
     });
-    mock.done();
   });
 
-  it('should reject bad auth', async () => {
+  it('should accept unsigned auth too', async () => {
     const projectId = appsNamespace().admin.options.projectId;
     const idToken = generateUnsignedIdToken(projectId);
     await runTaskTest({
-      httpRequest: mockRequest(null, 'application/json', {
+      httpRequest: mockEnqueueRequest(null, 'application/json', {
         authorization: 'Bearer ' + idToken,
       }),
       expectedData: null,
-      expectedStatus: 401,
-    });
-  });
-
-  describe('skip token verification debug mode support', () => {
-    before(() => {
-      sinon
-        .stub(debug, 'isDebugFeatureEnabled')
-        .withArgs('skipTokenVerification')
-        .returns(true);
-    });
-
-    after(() => {
-      sinon.verifyAndRestore();
-    });
-
-    it('should skip auth token verification', async () => {
-      const projectId = appsNamespace().admin.options.projectId;
-      const idToken = generateUnsignedIdToken(projectId);
-      await runTaskTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          authorization: 'Bearer ' + idToken,
-        }),
-        expectedData: null,
-        taskFunction: (data, context) => {
-          checkAuthContext(context, projectId, mocks.user_id);
-        },
-        taskFunction2: (request) => {
-          checkAuthContext(request, projectId, mocks.user_id);
-        },
-        expectedStatus: 204,
-      });
+      taskFunction: (data, context) => {
+        checkAuthContext(context, projectId, mocks.user_id);
+        return null;
+      },
+      taskFunction2: (request) => {
+        checkAuthContext(request, projectId, mocks.user_id);
+        return null;
+      },
+      expectedStatus: 204,
     });
   });
 });

@@ -98,7 +98,7 @@ async function createTestMatrix(
       },
     },
   };
-  await fetch(
+  const resp = await fetch(
     `https://${TESTING_API_SERVICE_NAME}/v1/projects/${projectId}/testMatrices`,
     {
       method: 'POST',
@@ -109,5 +109,8 @@ async function createTestMatrix(
       body: JSON.stringify(body),
     }
   );
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
   return;
 }

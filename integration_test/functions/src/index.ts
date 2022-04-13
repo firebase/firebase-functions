@@ -5,9 +5,14 @@ import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
 
-import * as v1 from './v1/index';
-import * as v2 from './v2/index';
-const numTests = Object.keys(v1).length + Object.keys(v2).length; // Assumption: every exported function is its own test.
+import * as v1 from './v1';
+import * as v2 from './v2';
+const getNumTests = (m: object): number => {
+    return Object.keys(m).filter((k) =>
+        ({}.hasOwnProperty.call(m[k], '__endpoint'))
+    ).length;
+}
+const numTests = getNumTests(v1) + getNumTests(v2);
 export { v1, v2 };
 
 import * as testLab from './v1/testLab-utils';
@@ -110,7 +115,7 @@ async function updateRemoteConfig(
   }
 }
 
-function v1Tests(testId: string, accessToken: string) {
+function v1Tests(testId: string, accessToken: string): Promise<void>[] {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
     admin
@@ -154,7 +159,7 @@ function v1Tests(testId: string, accessToken: string) {
   ];
 }
 
-function v2Tests(testId: string, accessToken: string) {
+function v2Tests(testId: string, accessToken: string): Promise<void>[] {
   return [
     // Invoke a callable HTTPS trigger.
     callV2HttpsTrigger('v2-callabletests', { foo: 'bar', testId }, accessToken),
