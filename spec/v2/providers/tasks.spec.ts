@@ -149,16 +149,9 @@ describe('onTaskDispatched', () => {
   });
 
   it('has a .run method', async () => {
-    const request: any = {
-      data: 'data',
-      auth: {
-        uid: 'abc',
-        token: 'token',
-      },
-    };
+    const request: any = { data: 'data' };
     const cf = onTaskDispatched((r) => {
       expect(r.data).to.deep.equal(request.data);
-      expect(r.auth).to.deep.equal(request.auth);
     });
 
     await cf.run(request);
@@ -173,6 +166,7 @@ describe('onTaskDispatched', () => {
       },
       {
         'content-type': 'application/json',
+        authorization: 'Bearer abc',
         origin: 'example.com',
       }
     );
