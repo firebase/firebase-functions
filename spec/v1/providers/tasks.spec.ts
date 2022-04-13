@@ -146,6 +146,7 @@ describe('#onDispatch', () => {
       },
       {
         'content-type': 'application/json',
+        authorization: 'Bearer abc',
       }
     );
     req.method = 'POST';
