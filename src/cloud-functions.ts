@@ -264,6 +264,10 @@ export interface Resource {
 export interface TriggerAnnotated {
   __trigger: {
     availableMemoryMb?: number;
+    blockingTrigger?: {
+      eventType: string;
+      options?: Record<string, unknown>;
+    };
     eventTrigger?: {
       eventType: string;
       resource: string;
@@ -282,12 +286,6 @@ export interface TriggerAnnotated {
     serviceAccountEmail?: string;
     ingressSettings?: string;
     secrets?: string[];
-    blockingTrigger?: {
-      eventType: string;
-      accessToken?: boolean;
-      idToken?: boolean;
-      refreshToken?: boolean;
-    };
   };
 }
 

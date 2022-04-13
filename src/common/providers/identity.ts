@@ -28,6 +28,7 @@ import { HttpsError } from './https';
 import { EventContext } from '../../cloud-functions';
 import { SUPPORTED_REGIONS } from '../../function-configuration';
 import { logger } from '../..';
+import { apps } from '../../apps';
 
 export { HttpsError };
 
@@ -71,8 +72,10 @@ const DISALLOWED_CUSTOM_CLAIMS = [
 const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
 
 const EVENT_MAPPING: Record<string, string> = {
-  beforeCreate: 'google.cloud.auth.user.v1.beforeCreate',
-  beforeSignIn: 'google.cloud.auth.user.v1.beforeSignIn',
+  // beforeCreate: 'google.cloud.auth.user.v1.beforeCreate',
+  // beforeSignIn: 'google.cloud.auth.user.v1.beforeSignIn',
+  beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+  beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
 };
 
 /**
@@ -1059,11 +1062,17 @@ function wrapHandler(
         logger.error('Invalid request, unable to process');
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
-      const rawDecodedJWT = decodeJWT(req.body.data.jwt);
-      // TODO(colerogers): add isDebugFeatureEnabled('skipTokenVerification') here
-      const decodedPayload = shouldVerifyJWT()
-        ? await verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
-        : (rawDecodedJWT.payload as DecodedPayload);
+
+      const decodedPayload = await apps().admin.auth()._verifyAuthBlockingToken(req.body.data.jwt);
+
+      // const rawDecodedJWT = decodeJWT(req.body.data.jwt);
+      // // TODO(colerogers): add isDebugFeatureEnabled('skipTokenVerification') here
+      // const decodedPayload = shouldVerifyJWT()
+      //   ? await verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
+      //   : (rawDecodedJWT.payload as DecodedPayload);
+
+
+
       checkDecodedToken(decodedPayload, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);

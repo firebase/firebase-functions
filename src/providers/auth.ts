@@ -129,7 +129,7 @@ export class UserBuilder {
   ): BlockingFunction {
     return this.beforeOperation(
       handler,
-      /*'providers/cloud.auth/eventTypes/user.beforeCreate'*/ 'google.cloud.auth.user.v1.beforecreate'
+      'beforeCreate'
     );
   }
 
@@ -145,7 +145,7 @@ export class UserBuilder {
   ): BlockingFunction {
     return this.beforeOperation(
       handler,
-      /*'providers/cloud.auth/eventTypes/user.beforeSignIn'*/ 'google.cloud.auth.user.v1.beforesignin'
+      'beforeSignIn'
     );
   }
 
@@ -185,18 +185,16 @@ export class UserBuilder {
       idToken = false,
       refreshToken = false;
     if (this.userOptions) {
-      accessToken = this.userOptions.blockingOptions.accessToken;
-      idToken = this.userOptions.blockingOptions.idToken;
-      refreshToken = this.userOptions.blockingOptions.refreshToken;
+      accessToken = this.userOptions.blockingOptions.accessToken || false;
+      idToken = this.userOptions.blockingOptions.idToken || false;
+      refreshToken = this.userOptions.blockingOptions.refreshToken || false;
     }
 
-    const shortHandEventType =
-      eventType === 'google.cloud.auth.user.v1.beforecreate'
-        ? 'beforeCreate'
-        : 'beforeSignIn';
+    const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
+
     const func: any = createHandler(
       handler,
-      shortHandEventType,
+      eventType,
       this.keysCache
     );
 
@@ -204,10 +202,12 @@ export class UserBuilder {
       labels: {},
       ...optionsToTrigger(this.options),
       blockingTrigger: {
-        eventType,
-        accessToken,
-        idToken,
-        refreshToken,
+        eventType: legacyEventType,
+        options: {
+          accessToken,
+          idToken,
+          refreshToken,
+        }
       },
     };
 
@@ -216,17 +216,19 @@ export class UserBuilder {
       labels: {},
       ...optionsToEndpoint(this.options),
       blockingTrigger: {
-        eventType,
-        accessToken,
-        idToken,
-        refreshToken,
+        eventType: legacyEventType,
+        options: {
+          accessToken,
+          idToken,
+          refreshToken,
+        },
       },
     };
 
     func.__requiredAPIs = [
       {
-        api: 'cloudtasks.googleapis.com',
-        reason: 'Needed for task queue functions',
+        api: 'identitytoolkit.googleapis.com',
+        reason: 'Needed for auth blocking functions',
       },
     ];
 

@@ -72,9 +72,7 @@ export interface ManifestEndpoint {
 
   blockingTrigger?: {
     eventType: string;
-    accessToken?: boolean;
-    idToken?: boolean;
-    refreshToken?: boolean;
+    options?: Record<string, unknown>;
   };
 }
 

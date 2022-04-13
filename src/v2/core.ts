@@ -46,9 +46,7 @@ export interface TriggerAnnotation {
   ingressSettings?: string;
   blockingTrigger?: {
     eventType: string;
-    accessToken?: boolean;
-    idToken?: boolean;
-    refreshToken?: boolean;
+    options?: Record<string, unknown>;
   };
 
   // TODO: schedule

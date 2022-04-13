@@ -127,8 +127,8 @@ export function beforeUserCreated(
 
   func.__requiredAPIs = [
     {
-      api: 'cloudtasks.googleapis.com',
-      reason: 'Needed for task queue functions',
+      api: 'identitytoolkit.googleapis.com',
+      reason: 'Needed for auth blocking functions',
     },
   ];
 
@@ -243,8 +243,8 @@ export function beforeUserSignedIn(
 
   func.__requiredAPIs = [
     {
-      api: 'cloudtasks.googleapis.com',
-      reason: 'Needed for task queue functions',
+      api: 'identitytoolkit.googleapis.com',
+      reason: 'Needed for auth blocking functions',
     },
   ];
 
