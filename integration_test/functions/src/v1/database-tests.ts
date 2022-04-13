@@ -1,6 +1,6 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { expectEq, expectMatches, TestSuite } from './testing';
+import { expectEq, expectMatches, TestSuite } from '../testing';
 import DataSnapshot = admin.database.DataSnapshot;
 
 const testIdFieldName = 'testId';
@@ -11,7 +11,7 @@ export const databaseTests: any = functions
   .database.ref('dbTests/{testId}/start')
   .onWrite((ch, ctx) => {
     if (ch.after.val() === null) {
-      console.log(
+      functions.logger.info(
         'Event for ' +
           ctx.params[testIdFieldName] +
           ' is null; presuming data cleanup, so skipping.'
@@ -40,7 +40,7 @@ export const databaseTests: any = functions
             return expectMatches(
               url,
               new RegExp(
-                `^https://${process.env.GCLOUD_PROJECT}.firebaseio.com/dbTests`
+                `^https://${process.env.GCLOUD_PROJECT}(-default-rtdb)*.firebaseio.com/dbTests`
               )
             );
           })
@@ -50,9 +50,11 @@ export const databaseTests: any = functions
       })
 
       .it('should have refs resources', (change, context) =>
-        expectEq(
+        expectMatches(
           context.resource.name,
-          `projects/_/instances/${process.env.GCLOUD_PROJECT}/refs/dbTests/${context.params.testId}/start`
+          new RegExp(
+            `^projects/_/instances/${process.env.GCLOUD_PROJECT}(-default-rtdb)*/refs/dbTests/${context.params.testId}/start$`
+          )
         )
       )
 

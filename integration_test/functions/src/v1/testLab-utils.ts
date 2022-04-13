@@ -1,7 +1,5 @@
+import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
-import * as http from 'http';
-import * as https from 'https';
-import * as utils from './test-utils';
 
 interface AndroidDevice {
   androidModelId: string;
@@ -30,10 +28,16 @@ export async function startTestRun(projectId: string, testId: string) {
 async function fetchDefaultDevice(
   accessToken: admin.GoogleOAuthAccessToken
 ): Promise<AndroidDevice> {
-  const response = await utils.makeRequest(
-    requestOptions(accessToken, 'GET', '/v1/testEnvironmentCatalog/ANDROID')
+  const response = await fetch(
+    `https://${TESTING_API_SERVICE_NAME}/v1/testEnvironmentCatalog/ANDROID`,
+    {
+      headers: {
+        Authorization: 'Bearer ' + accessToken.access_token,
+        'Content-Type': 'application/json',
+      },
+    }
   );
-  const data = JSON.parse(response);
+  const data = await response.json();
   const models = data?.androidDeviceCatalog?.models || [];
   const defaultModels = models.filter(
     (m) =>
@@ -58,17 +62,12 @@ async function fetchDefaultDevice(
   } as AndroidDevice;
 }
 
-function createTestMatrix(
+async function createTestMatrix(
   accessToken: admin.GoogleOAuthAccessToken,
   projectId: string,
   testId: string,
   device: AndroidDevice
-): Promise<string> {
-  const options = requestOptions(
-    accessToken,
-    'POST',
-    '/v1/projects/' + projectId + '/testMatrices'
-  );
+): Promise<void> {
   const body = {
     projectId,
     testSpecification: {
@@ -96,21 +95,16 @@ function createTestMatrix(
       },
     },
   };
-  return utils.makeRequest(options, JSON.stringify(body));
-}
-
-function requestOptions(
-  accessToken: admin.GoogleOAuthAccessToken,
-  method: string,
-  path: string
-): https.RequestOptions {
-  return {
-    method,
-    hostname: TESTING_API_SERVICE_NAME,
-    path,
-    headers: {
-      Authorization: 'Bearer ' + accessToken.access_token,
-      'Content-Type': 'application/json',
-    },
-  };
+  await fetch(
+    `https://${TESTING_API_SERVICE_NAME}/v1/projects/${projectId}/testMatrices`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + accessToken.access_token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    }
+  );
+  return;
 }
