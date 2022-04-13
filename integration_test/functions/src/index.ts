@@ -8,10 +8,10 @@ import * as fs from 'fs';
 import * as v1 from './v1';
 import * as v2 from './v2';
 const getNumTests = (m: object): number => {
-    return Object.keys(m).filter((k) =>
-        ({}.hasOwnProperty.call(m[k], '__endpoint'))
-    ).length;
-}
+  return Object.keys(m).filter((k) =>
+    ({}.hasOwnProperty.call(m[k], '__endpoint'))
+  ).length;
+};
 const numTests = getNumTests(v1) + getNumTests(v2);
 export { v1, v2 };
 
