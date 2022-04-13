@@ -22,7 +22,12 @@
 
 import * as express from 'express';
 
-import { HttpsFunction, optionsToTrigger, Runnable } from '../cloud-functions';
+import {
+  HttpsFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+  Runnable,
+} from '../cloud-functions';
 import { convertIfPresent, convertInvoker } from '../common/encoding';
 import {
   CallableContext,
@@ -77,6 +82,19 @@ export function _onRequestWithOptions(
     convertInvoker
   );
   // TODO parse the options
+
+  cloudFunction.__endpoint = {
+    platform: 'gcfv1',
+    ...optionsToEndpoint(options),
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    cloudFunction.__endpoint.httpsTrigger,
+    options,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
   return cloudFunction;
 }
 
@@ -90,7 +108,13 @@ export function _onCallWithOptions(
   // in another handler to avoid accidentally triggering the v2 API
   const fixedLen = (data: any, context: CallableContext) =>
     handler(data, context);
-  const func: any = onCallHandler({ origin: true, methods: 'POST' }, fixedLen);
+  const func: any = onCallHandler(
+    {
+      allowInvalidAppCheckToken: options.allowInvalidAppCheckToken,
+      cors: { origin: true, methods: 'POST' },
+    },
+    fixedLen
+  );
 
   func.__trigger = {
     labels: {},
@@ -98,6 +122,13 @@ export function _onCallWithOptions(
     httpsTrigger: {},
   };
   func.__trigger.labels['deployment-callable'] = 'true';
+
+  func.__endpoint = {
+    platform: 'gcfv1',
+    labels: {},
+    ...optionsToEndpoint(options),
+    callableTrigger: {},
+  };
 
   func.run = handler;
 

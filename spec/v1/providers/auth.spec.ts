@@ -21,13 +21,12 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as firebase from 'firebase-admin';
-
 import {
   CloudFunction,
   Event,
   EventContext,
 } from '../../../src/cloud-functions';
+import { UserRecord } from '../../../src/common/providers/identity';
 import * as functions from '../../../src/index';
 import * as auth from '../../../src/providers/auth';
 
@@ -51,12 +50,38 @@ describe('Auth Functions', () => {
   };
 
   describe('AuthBuilder', () => {
-    const handler = (user: firebase.auth.UserRecord) => {
+    function expectedTrigger(project: string, eventType: string) {
+      return {
+        eventTrigger: {
+          resource: `projects/${project}`,
+          eventType: `providers/firebase.auth/eventTypes/${eventType}`,
+          service: 'firebaseauth.googleapis.com',
+        },
+      };
+    }
+
+    function expectedEndpoint(project: string, eventType: string) {
+      return {
+        platform: 'gcfv1',
+        eventTrigger: {
+          eventFilters: {
+            resource: `projects/${project}`,
+          },
+          eventType: `providers/firebase.auth/eventTypes/${eventType}`,
+          retry: false,
+        },
+        labels: {},
+      };
+    }
+
+    const handler = (user: UserRecord) => {
       return Promise.resolve();
     };
 
+    const project = 'project1';
+
     before(() => {
-      process.env.GCLOUD_PROJECT = 'project1';
+      process.env.GCLOUD_PROJECT = project;
     });
 
     after(() => {
@@ -76,43 +101,47 @@ describe('Auth Functions', () => {
       expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
     describe('#onCreate', () => {
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onCreate(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.create',
-            resource: 'projects/project1',
-            service: 'firebaseauth.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(project, 'user.create')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(project, 'user.create')
+        );
       });
     });
 
     describe('#onDelete', () => {
-      it('should return a TriggerDefinition with appropriate values', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onDelete(handler);
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType: 'providers/firebase.auth/eventTypes/user.delete',
-            resource: 'projects/project1',
-            service: 'firebaseauth.googleapis.com',
-          },
-        });
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(project, 'user.delete')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(project, 'user.delete')
+        );
       });
     });
 
     describe('#_dataConstructor', () => {
-      let cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord>;
+      let cloudFunctionDelete: CloudFunction<UserRecord>;
 
       before(() => {
         cloudFunctionDelete = auth
           .user()
-          .onDelete(
-            (data: firebase.auth.UserRecord, context: EventContext) => data
-          );
+          .onDelete((data: UserRecord, context: EventContext) => data);
       });
 
       it('should handle wire format as of v5.0.0 of firebase-admin', () => {
@@ -130,87 +159,32 @@ describe('Auth Functions', () => {
     });
   });
 
-  describe('userRecordConstructor', () => {
-    it('will provide falsey values for fields that are not in raw wire data', () => {
-      const record = auth.userRecordConstructor({ uid: '123' });
-      expect(record.toJSON()).to.deep.equal({
-        uid: '123',
-        email: null,
-        emailVerified: false,
-        displayName: null,
-        photoURL: null,
-        phoneNumber: null,
-        disabled: false,
-        providerData: [],
-        customClaims: {},
-        passwordSalt: null,
-        passwordHash: null,
-        tokensValidAfterTime: null,
-        metadata: {
-          creationTime: null,
-          lastSignInTime: null,
-        },
-      });
-    });
-
-    it('will not interfere with fields that are in raw wire data', () => {
-      const raw: any = {
-        uid: '123',
-        email: 'email@gmail.com',
-        emailVerified: true,
-        displayName: 'User',
-        photoURL: 'url',
-        phoneNumber: '1233332222',
-        disabled: true,
-        providerData: [],
-        customClaims: {},
-        passwordSalt: 'abc',
-        passwordHash: 'def',
-        tokensValidAfterTime: '2027-02-02T23:01:19.797Z',
-        metadata: {
-          creationTime: '2017-02-02T23:06:26.124Z',
-          lastSignInTime: '2017-02-02T23:01:19.797Z',
-        },
-      };
-      const record = auth.userRecordConstructor(raw);
-      expect(record.toJSON()).to.deep.equal(raw);
-    });
-
-    it('will convert raw wire fields createdAt and lastSignedInAt to creationTime and lastSignInTime', () => {
-      const raw: any = {
-        uid: '123',
-        metadata: {
-          createdAt: '2017-02-02T23:06:26.124Z',
-          lastSignedInAt: '2017-02-02T23:01:19.797Z',
-        },
-      };
-      const record = auth.userRecordConstructor(raw);
-      expect(record.metadata).to.deep.equal({
-        creationTime: '2017-02-02T23:06:26.124Z',
-        lastSignInTime: '2017-02-02T23:01:19.797Z',
-      });
-    });
-  });
-
   describe('handler namespace', () => {
     describe('#onCreate', () => {
       it('should return an empty trigger', () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
+
+      it('should return an empty endpoint', () => {
+        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
+        expect(cloudFunction.__endpoint).to.be.undefined;
+      });
     });
 
     describe('#onDelete', () => {
-      const cloudFunctionDelete: CloudFunction<firebase.auth.UserRecord> = functions.handler.auth.user.onDelete(
-        (data: firebase.auth.UserRecord) => data
+      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
+        (data: UserRecord) => data
       );
 
       it('should return an empty trigger', () => {
-        const handler = (user: firebase.auth.UserRecord) => {
-          return Promise.resolve();
-        };
-        const cloudFunction = functions.handler.auth.user.onDelete(handler);
+        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
+      });
+
+      it('should return an empty endpoint', () => {
+        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
+        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it('should handle wire format as of v5.0.0 of firebase-admin', () => {
@@ -235,6 +209,10 @@ describe('Auth Functions', () => {
 
     it('should throw when trigger is accessed', () => {
       expect(() => auth.user().onCreate(() => null).__trigger).to.throw(Error);
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(() => auth.user().onCreate(() => null).__endpoint).to.throw(Error);
     });
 
     it('should not throw when #run is called', () => {

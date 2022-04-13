@@ -29,6 +29,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
 import * as apps from './apps';
@@ -49,6 +50,7 @@ export {
   pubsub,
   remoteConfig,
   storage,
+  tasks,
   testLab,
   logger,
 };

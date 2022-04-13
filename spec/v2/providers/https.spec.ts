@@ -1,5 +1,26 @@
+// The MIT License (MIT)
+//
+// Copyright (c) 2022 Firebase
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import { expect } from 'chai';
-import * as express from 'express';
 
 import * as options from '../../../src/v2/options';
 import * as https from '../../../src/v2/providers/https';
@@ -7,70 +28,8 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
-
-/**
- * RunHandlerResult contains the data from an express.Response.
- */
-interface RunHandlerResult {
-  status: number;
-  headers: { [name: string]: string };
-  body: any;
-}
-
-function runHandler(
-  handler: express.Handler,
-  request: https.Request
-): Promise<RunHandlerResult> {
-  return new Promise((resolve, reject) => {
-    // MockResponse mocks an express.Response.
-    // This class lives here so it can reference resolve and reject.
-    class MockResponse {
-      private statusCode = 0;
-      private headers: { [name: string]: string } = {};
-      private callback: Function;
-
-      public status(code: number) {
-        this.statusCode = code;
-        return this;
-      }
-
-      // Headers are only set by the cors handler.
-      public setHeader(name: string, value: string) {
-        this.headers[name] = value;
-      }
-
-      public getHeader(name: string): string {
-        return this.headers[name];
-      }
-
-      public send(body: any) {
-        resolve({
-          status: this.statusCode,
-          headers: this.headers,
-          body,
-        });
-        if (this.callback) {
-          this.callback();
-        }
-      }
-
-      public end() {
-        this.send(undefined);
-      }
-
-      public on(event: string, callback: Function) {
-        if (event !== 'finish') {
-          throw new Error('MockResponse only implements the finish event');
-        }
-        this.callback = callback;
-      }
-    }
-
-    const response = new MockResponse();
-    handler(request, response as any, () => undefined);
-  });
-}
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import { runHandler } from '../../helper';
 
 describe('onRequest', () => {
   beforeEach(() => {
@@ -82,10 +41,11 @@ describe('onRequest', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = https.onRequest((req, res) => {
       res.send(200);
     });
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -94,9 +54,15 @@ describe('onRequest', () => {
       },
       labels: {},
     });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {},
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = https.onRequest(
       {
         ...FULL_OPTIONS,
@@ -107,6 +73,7 @@ describe('onRequest', () => {
         res.send(200);
       }
     );
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       httpsTrigger: {
@@ -114,6 +81,14 @@ describe('onRequest', () => {
         invoker: ['service-account1@', 'service-account2@'],
       },
       regions: ['us-west1', 'us-central1'],
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      httpsTrigger: {
+        invoker: ['service-account1@', 'service-account2@'],
+      },
+      region: ['us-west1', 'us-central1'],
     });
   });
 
@@ -146,6 +121,17 @@ describe('onRequest', () => {
       concurrency: 20,
       minInstances: 3,
       regions: ['us-west1', 'us-central1'],
+      labels: {},
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      httpsTrigger: {
+        invoker: ['private'],
+      },
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1', 'us-central1'],
       labels: {},
     });
   });
@@ -209,8 +195,9 @@ describe('onCall', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = https.onCall((request) => 42);
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
@@ -221,10 +208,17 @@ describe('onCall', () => {
         'deployment-callable': 'true',
       },
     });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      callableTrigger: {},
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = https.onCall(FULL_OPTIONS, (request) => 42);
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       httpsTrigger: {
@@ -234,6 +228,11 @@ describe('onCall', () => {
         ...FULL_TRIGGER.labels,
         'deployment-callable': 'true',
       },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      callableTrigger: {},
     });
   });
 
@@ -264,6 +263,15 @@ describe('onCall', () => {
       labels: {
         'deployment-callable': 'true',
       },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      callableTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1', 'us-central1'],
+      labels: {},
     });
   });
 

@@ -24,6 +24,7 @@ import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
+import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -31,7 +32,7 @@ import {
   onCallHandler,
   Request,
 } from '../../common/providers/https';
-import * as options from '../options';
+import { ManifestEndpoint } from '../../runtime/manifest';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -40,13 +41,16 @@ export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
     | options.SupportedRegion
     | string
     | Array<options.SupportedRegion | string>;
-  cors?: string | boolean;
+  cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
 
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
-) => void | Promise<void>) & { __trigger: unknown };
+) => void | Promise<void>) & {
+  __trigger?: unknown;
+  __endpoint: ManifestEndpoint;
+};
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
@@ -95,6 +99,7 @@ export function onRequest(
       });
     };
   }
+
   Object.defineProperty(handler, '__trigger', {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(
@@ -130,6 +135,30 @@ export function onRequest(
       return trigger;
     },
   });
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToTriggerAnnotations handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const endpoint: Partial<ManifestEndpoint> = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    endpoint.httpsTrigger,
+    opts,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
+  (handler as HttpsFunction).__endpoint = endpoint;
+
   return handler as HttpsFunction;
 }
 
@@ -157,7 +186,10 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
-  const func: any = onCallHandler({ origin, methods: 'POST' }, fixedLen);
+  const func: any = onCallHandler(
+    { cors: { origin, methods: 'POST' } },
+    fixedLen
+  );
 
   Object.defineProperty(func, '__trigger', {
     get: () => {
@@ -187,6 +219,21 @@ export function onCall<T = any, Return = any | Promise<any>>(
       };
     },
   });
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToManifestEndpoint handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  func.__endpoint = {
+    platform: 'gcfv2',
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    callableTrigger: {},
+  };
 
   func.run = handler;
   return func;

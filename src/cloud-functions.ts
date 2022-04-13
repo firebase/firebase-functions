@@ -37,6 +37,7 @@ import {
   durationFromSeconds,
   serviceAccountFromShorthand,
 } from './common/encoding';
+import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
@@ -280,7 +281,17 @@ export interface TriggerAnnotated {
     vpcConnectorEgressSettings?: string;
     serviceAccountEmail?: string;
     ingressSettings?: string;
+    secrets?: string[];
   };
+}
+
+/**
+ * @hidden
+ * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
+ */
+export interface EndpointAnnotated {
+  __endpoint: ManifestEndpoint;
+  __requiredAPIs?: ManifestRequiredAPI[];
 }
 
 /**
@@ -301,6 +312,7 @@ export interface Runnable<T> {
  * arguments.
  */
 export type HttpsFunction = TriggerAnnotated &
+  EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
 
 /**
@@ -312,6 +324,7 @@ export type HttpsFunction = TriggerAnnotated &
  */
 export type CloudFunction<T> = Runnable<T> &
   TriggerAnnotated &
+  EndpointAnnotated &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
 /** @hidden */
@@ -322,9 +335,9 @@ export interface MakeCloudFunctionArgs<EventData> {
   dataConstructor?: (raw: Event) => EventData;
   eventType: string;
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
-  labels?: { [key: string]: any };
+  labels?: Record<string, string>;
   legacyEventType?: string;
-  options?: { [key: string]: any };
+  options?: DeploymentOptions;
   /*
    * TODO: should remove `provider` and require a fully qualified `eventType`
    * once all providers have migrated to new format.
@@ -432,6 +445,47 @@ export function makeCloudFunction<EventData>({
     },
   });
 
+  Object.defineProperty(cloudFunction, '__endpoint', {
+    get: () => {
+      if (triggerResource() == null) {
+        return undefined;
+      }
+
+      const endpoint: ManifestEndpoint = {
+        platform: 'gcfv1',
+        ...optionsToEndpoint(options),
+      };
+
+      if (options.schedule) {
+        endpoint.scheduleTrigger = options.schedule;
+      } else {
+        endpoint.eventTrigger = {
+          eventType: legacyEventType || provider + '.' + eventType,
+          eventFilters: {
+            resource: triggerResource(),
+          },
+          retry: !!options.failurePolicy,
+        };
+      }
+
+      // Note: We intentionally don't make use of labels args here.
+      // labels is used to pass SDK-defined labels to the trigger, which isn't
+      // something we will do in the container contract world.
+      endpoint.labels = { ...endpoint.labels };
+
+      return endpoint;
+    },
+  });
+
+  if (options.schedule) {
+    cloudFunction.__requiredAPIs = [
+      {
+        api: 'cloudscheduler.googleapis.com',
+        reason: 'Needed for scheduled functions.',
+      },
+    ];
+  }
+
   cloudFunction.run = handler || contextOnlyHandler;
   return cloudFunction;
 }
@@ -499,7 +553,8 @@ export function optionsToTrigger(options: DeploymentOptions) {
     'ingressSettings',
     'vpcConnectorEgressSettings',
     'vpcConnector',
-    'labels'
+    'labels',
+    'secrets'
   );
   convertIfPresent(
     trigger,
@@ -544,4 +599,56 @@ export function optionsToTrigger(options: DeploymentOptions) {
   );
 
   return trigger;
+}
+
+export function optionsToEndpoint(
+  options: DeploymentOptions
+): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
+  copyIfPresent(
+    endpoint,
+    options,
+    'minInstances',
+    'maxInstances',
+    'ingressSettings',
+    'labels',
+    'timeoutSeconds'
+  );
+  convertIfPresent(endpoint, options, 'region', 'regions');
+  convertIfPresent(
+    endpoint,
+    options,
+    'serviceAccountEmail',
+    'serviceAccount',
+    (sa) => sa
+  );
+  convertIfPresent(
+    endpoint,
+    options,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
+  );
+  if (options?.vpcConnector) {
+    endpoint.vpc = { connector: options.vpcConnector };
+    convertIfPresent(
+      endpoint.vpc,
+      options,
+      'egressSettings',
+      'vpcConnectorEgressSettings'
+    );
+  }
+  convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
+    const memoryLookup = {
+      '128MB': 128,
+      '256MB': 256,
+      '512MB': 512,
+      '1GB': 1024,
+      '2GB': 2048,
+      '4GB': 4096,
+      '8GB': 8192,
+    };
+    return memoryLookup[mem];
+  });
+  return endpoint;
 }

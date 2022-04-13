@@ -32,6 +32,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
 /**
@@ -48,16 +49,16 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for HTTPS events.
-  
+
    * `onRequest` handles an HTTPS request and has the same signature as an Express app.
    *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.https.onRequest((req, res) => { ... })
    * ```
-   * 
+   *
    * `onCall` declares a callable function for clients to call using a Firebase SDK.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.https.onCall((data, context) => { ... })
@@ -70,6 +71,8 @@ export class HandlerBuilder {
       ): HttpsFunction => {
         const func = https._onRequestWithOptions(handler, {});
         func.__trigger = {};
+        func.__endpoint = undefined;
+        func.__requiredAPIs = undefined;
         return func;
       },
       onCall: (
@@ -80,28 +83,61 @@ export class HandlerBuilder {
       ): HttpsFunction => {
         const func = https._onCallWithOptions(handler, {});
         func.__trigger = {};
+        func.__endpoint = undefined;
+        func.__requiredAPIs = undefined;
         return func;
       },
     };
   }
 
   /**
+   * Create a handler for tasks functions.
+   *
+   * @example
+   * ```javascript
+   * exports.myFunction = functions.handler.tasks.onDispatch((data, context) => { ... })
+   * ```
+   */
+  /** @hidden */
+  get tasks() {
+    return {
+      get taskQueue() {
+        return {
+          onDispatch: (
+            handler: (
+              data: any,
+              context: tasks.TaskContext
+            ) => void | Promise<void>
+          ): HttpsFunction => {
+            const builder = new tasks.TaskQueueBuilder();
+            const func = builder.onDispatch(handler);
+            func.__trigger = {};
+            func.__endpoint = undefined;
+            func.__requiredAPIs = undefined;
+            return func;
+          },
+        };
+      },
+    };
+  }
+
+  /**
    * Create a handler for Firebase Realtime Database events.
-   * 
+   *
    * `ref.onCreate` handles the creation of new data.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.database.ref.onCreate((snap, context) => { ... })
    * ```
-   * 
+   *
    * `ref.onUpdate` handles updates to existing data.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.database.ref.onUpdate((change, context) => { ... })
    * ```
-  
+
    * `ref.onDelete` handles the deletion of existing data.
    *
    * @example
@@ -134,21 +170,21 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for Cloud Firestore events.
-   * 
+   *
    * `document.onCreate` handles the creation of new documents.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.firestore.document.onCreate((snap, context) => { ... })
    * ```
-   
+
    * `document.onUpdate` handles updates to existing documents.
    *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.firestore.document.onUpdate((change, context) => { ... })
    * ```
-   
+
    * `document.onDelete` handles the deletion of existing documents.
    *
    * @example
@@ -156,7 +192,7 @@ export class HandlerBuilder {
    * exports.myFunction = functions.handler.firestore.document.onDelete((snap, context) =>
    * { ... })
    * ```
-   
+
    * `document.onWrite` handles the creation, update, or deletion of documents.
    *
    * @example
@@ -185,7 +221,7 @@ export class HandlerBuilder {
    * Create a handler for Firebase Remote Config events.
 
    * `remoteConfig.onUpdate` handles events that update a Remote Config template.
- 
+
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.remoteConfig.onUpdate() => { ... })
@@ -206,9 +242,9 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for Google Analytics events.
-   
+
    * `event.onLog` handles the logging of Analytics conversion events.
- 
+
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.analytics.event.onLog((event) => { ... })
@@ -224,21 +260,21 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for Cloud Storage for Firebase events.
-   * 
+   *
    * `object.onArchive` handles the archiving of Storage objects.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.storage.object.onArchive((object) => { ... })
    * ```
-   
+
    * `object.onDelete` handles the deletion of Storage objects.
    *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.storage.object.onDelete((object) => { ... })
    * ```
-   
+
    * `object.onFinalize` handles the creation of Storage objects.
    *
    * @example
@@ -246,7 +282,7 @@ export class HandlerBuilder {
    * exports.myFunction = functions.handler.storage.object.onFinalize((object) =>
    * { ... })
    * ```
-   
+
    * `object.onMetadataUpdate` handles changes to the metadata of existing Storage objects.
    *
    * @example
@@ -269,16 +305,16 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for Cloud Pub/Sub events.
-   * 
-   * `topic.onPublish` handles messages published to a Pub/Sub topic from SDKs, Cloud Console, or gcloud CLI. 
-   * 
+   *
+   * `topic.onPublish` handles messages published to a Pub/Sub topic from SDKs, Cloud Console, or gcloud CLI.
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.pubsub.topic.onPublish((message) => { ... })
    * ```
-   
+
    * `schedule.onPublish` handles messages published to a Pub/Sub topic on a schedule.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.pubsub.schedule.onPublish((message) => { ... })
@@ -297,21 +333,21 @@ export class HandlerBuilder {
 
   /**
    * Create a handler for Firebase Authentication events.
-   * 
+   *
    * `user.onCreate` handles the creation of users.
-   * 
+   *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.auth.user.onCreate((user) => { ... })
    * ```
-   
+
    * `user.onDelete` handles the deletion of users.
    *
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.auth.user.onDelete((user => { ... })
    * ```
-   
+
    */
   get auth() {
     return {
@@ -325,7 +361,7 @@ export class HandlerBuilder {
    * Create a handler for Firebase Test Lab events.
 
    * `testMatrix.onComplete` handles the completion of a test matrix.
- 
+
    * @example
    * ```javascript
    * exports.myFunction = functions.handler.testLab.testMatrix.onComplete((testMatrix) => { ... })

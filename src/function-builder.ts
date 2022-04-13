@@ -42,6 +42,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
 /**
@@ -229,6 +230,18 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     }
   }
 
+  if (runtimeOptions.secrets !== undefined) {
+    const invalidSecrets = runtimeOptions.secrets.filter(
+      (s) => !/^[A-Za-z\d\-_]+$/.test(s)
+    );
+    if (invalidSecrets.length > 0) {
+      throw new Error(
+        `Invalid secrets: ${invalidSecrets.join(',')}. ` +
+          'Secret must be configured using the resource id (e.g. API_KEY)'
+      );
+    }
+  }
+
   return true;
 }
 
@@ -355,6 +368,19 @@ export class FunctionBuilder {
           context: https.CallableContext
         ) => any | Promise<any>
       ) => https._onCallWithOptions(handler, this.options),
+    };
+  }
+
+  get tasks() {
+    return {
+      /**
+       * Declares a task queue function for clients to call using a Firebase Admin SDK.
+       * @param options Configurations for the task queue function.
+       */
+      /** @hidden */
+      taskQueue: (options?: tasks.TaskQueueOptions) => {
+        return new tasks.TaskQueueBuilder(options, this.options);
+      },
     };
   }
 

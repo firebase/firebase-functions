@@ -21,84 +21,26 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as express from 'express';
-import * as _ from 'lodash';
+
 import * as functions from '../../../src/index';
 import * as https from '../../../src/providers/https';
 import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-
-/**
- * RunHandlerResult contains the data from an express.Response.
- */
-interface RunHandlerResult {
-  status: number;
-  headers: { [name: string]: string };
-  body: any;
-}
-
-function runHandler(
-  handler: express.Handler,
-  request: https.Request
-): Promise<RunHandlerResult> {
-  return new Promise((resolve, reject) => {
-    // MockResponse mocks an express.Response.
-    // This class lives here so it can reference resolve and reject.
-    class MockResponse {
-      private statusCode = 0;
-      private headers: { [name: string]: string } = {};
-      private callback: Function;
-
-      public status(code: number) {
-        this.statusCode = code;
-        return this;
-      }
-
-      // Headers are only set by the cors handler.
-      public setHeader(name: string, value: string) {
-        this.headers[name] = value;
-      }
-
-      public getHeader(name: string): string {
-        return this.headers[name];
-      }
-
-      public send(body: any) {
-        resolve({
-          status: this.statusCode,
-          headers: this.headers,
-          body,
-        });
-        if (this.callback) {
-          this.callback();
-        }
-      }
-
-      public end() {
-        this.send(undefined);
-      }
-
-      public on(event: string, callback: Function) {
-        if (event !== 'finish') {
-          throw new Error('MockResponse only implements the finish event');
-        }
-        this.callback = callback;
-      }
-    }
-    const response = new MockResponse();
-    handler(request, response as any, () => undefined);
-  });
-}
+import { runHandler } from '../../helper';
 
 describe('CloudHttpsBuilder', () => {
   describe('#onRequest', () => {
-    it('should return a Trigger with appropriate values', () => {
+    it('should return a trigger with appropriate values', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
       expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
+      expect(result.__endpoint).to.deep.equal({
+        platform: 'gcfv1',
+        httpsTrigger: {},
+      });
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -115,6 +57,11 @@ describe('CloudHttpsBuilder', () => {
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
       expect(fn.__trigger.timeout).to.deep.equal('90s');
       expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
+      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(['private']);
     });
   });
 });
@@ -126,6 +73,7 @@ describe('handler namespace', () => {
         res.send(200);
       });
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 
@@ -133,18 +81,26 @@ describe('handler namespace', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
+      expect(result.__endpoint).to.be.undefined;
     });
   });
 });
 
 describe('#onCall', () => {
-  it('should return a Trigger with appropriate values', () => {
+  it('should return a trigger/endpoint with appropriate values', () => {
     const result = https.onCall((data) => {
       return 'response';
     });
+
     expect(result.__trigger).to.deep.equal({
       httpsTrigger: {},
       labels: { 'deployment-callable': 'true' },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv1',
+      callableTrigger: {},
+      labels: {},
     });
   });
 
@@ -160,6 +116,10 @@ describe('#onCall', () => {
     expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
     expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+    expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+    expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
   it('has a .run method', () => {

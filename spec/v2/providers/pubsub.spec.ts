@@ -3,11 +3,19 @@ import { expect } from 'chai';
 import { CloudEvent } from '../../../src/v2/core';
 import * as options from '../../../src/v2/options';
 import * as pubsub from '../../../src/v2/providers/pubsub';
-import { FULL_OPTIONS, FULL_TRIGGER } from './helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 
 const EVENT_TRIGGER = {
   eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
   resource: 'projects/aProject/topics/topic',
+};
+
+const ENDPOINT_EVENT_TRIGGER = {
+  eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
+  eventFilters: {
+    topic: 'topic',
+  },
+  retry: false,
 };
 
 describe('onMessagePublished', () => {
@@ -20,24 +28,37 @@ describe('onMessagePublished', () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger with appropriate values', () => {
+  it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = pubsub.onMessagePublished('topic', () => 42);
+
     expect(result.__trigger).to.deep.equal({
       apiVersion: 2,
       platform: 'gcfv2',
       eventTrigger: EVENT_TRIGGER,
       labels: {},
     });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      eventTrigger: ENDPOINT_EVENT_TRIGGER,
+      labels: {},
+    });
   });
 
-  it('should create a complex trigger with appropriate values', () => {
+  it('should create a complex trigger/endpoint with appropriate values', () => {
     const result = pubsub.onMessagePublished(
       { ...FULL_OPTIONS, topic: 'topic' },
       () => 42
     );
+
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,
       eventTrigger: EVENT_TRIGGER,
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      eventTrigger: ENDPOINT_EVENT_TRIGGER,
     });
   });
 
@@ -65,6 +86,45 @@ describe('onMessagePublished', () => {
       regions: ['us-west1'],
       labels: {},
       eventTrigger: EVENT_TRIGGER,
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      concurrency: 20,
+      minInstances: 3,
+      region: ['us-west1'],
+      labels: {},
+      eventTrigger: ENDPOINT_EVENT_TRIGGER,
+    });
+  });
+
+  it('should convert retry option if appropriate', () => {
+    const result = pubsub.onMessagePublished(
+      {
+        topic: 'topic',
+        region: 'us-west1',
+        minInstances: 3,
+        retry: true,
+      },
+      () => 42
+    );
+
+    expect(result.__trigger).to.deep.equal({
+      apiVersion: 2,
+      platform: 'gcfv2',
+      minInstances: 3,
+      regions: ['us-west1'],
+      labels: {},
+      eventTrigger: EVENT_TRIGGER,
+      failurePolicy: { retry: true },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: 'gcfv2',
+      minInstances: 3,
+      region: ['us-west1'],
+      labels: {},
+      eventTrigger: { ...ENDPOINT_EVENT_TRIGGER, retry: true },
     });
   });
 
