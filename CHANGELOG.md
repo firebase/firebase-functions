@@ -1,1 +1,0 @@
-- Improve authorization for tasks. (#1073)
