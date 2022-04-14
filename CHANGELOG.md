@@ -1,1 +1,1 @@
-- Changes internal structure to be more flexible (#1070).
+- Improve authorization for tasks. (#1073)

@@ -1,5 +1,26 @@
+// The MIT License (MIT)
+//
+// Copyright (c) 2022 Firebase
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
 import { expect } from 'chai';
-import * as express from 'express';
 
 import * as options from '../../../src/v2/options';
 import * as https from '../../../src/v2/providers/https';
@@ -7,70 +28,8 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './helpers';
-
-/**
- * RunHandlerResult contains the data from an express.Response.
- */
-interface RunHandlerResult {
-  status: number;
-  headers: { [name: string]: string };
-  body: any;
-}
-
-function runHandler(
-  handler: express.Handler,
-  request: https.Request
-): Promise<RunHandlerResult> {
-  return new Promise((resolve, reject) => {
-    // MockResponse mocks an express.Response.
-    // This class lives here so it can reference resolve and reject.
-    class MockResponse {
-      private statusCode = 0;
-      private headers: { [name: string]: string } = {};
-      private callback: Function;
-
-      public status(code: number) {
-        this.statusCode = code;
-        return this;
-      }
-
-      // Headers are only set by the cors handler.
-      public setHeader(name: string, value: string) {
-        this.headers[name] = value;
-      }
-
-      public getHeader(name: string): string {
-        return this.headers[name];
-      }
-
-      public send(body: any) {
-        resolve({
-          status: this.statusCode,
-          headers: this.headers,
-          body,
-        });
-        if (this.callback) {
-          this.callback();
-        }
-      }
-
-      public end() {
-        this.send(undefined);
-      }
-
-      public on(event: string, callback: Function) {
-        if (event !== 'finish') {
-          throw new Error('MockResponse only implements the finish event');
-        }
-        this.callback = callback;
-      }
-    }
-
-    const response = new MockResponse();
-    handler(request, response as any, () => undefined);
-  });
-}
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import { runHandler } from '../../helper';
 
 describe('onRequest', () => {
   beforeEach(() => {
@@ -413,141 +372,5 @@ describe('onCall', () => {
       (request: https.CallableRequest<string>) => `Hello, ${request.data}`
     );
     https.onCall((request: https.CallableRequest) => `Hello, ${request.data}`);
-  });
-});
-
-describe('onTaskEnqueue', () => {
-  beforeEach(() => {
-    options.setGlobalOptions({});
-    process.env.GCLOUD_PROJECT = 'aProject';
-  });
-
-  afterEach(() => {
-    delete process.env.GCLOUD_PROJECT;
-  });
-
-  it('should return a minimal trigger with appropriate values', () => {
-    const result = https.onTaskDispatched(() => {});
-    expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
-      platform: 'gcfv2',
-      taskQueueTrigger: {},
-      labels: {},
-    });
-  });
-
-  it('should create a complex trigger with appropriate values', () => {
-    const result = https.onTaskDispatched(
-      {
-        ...FULL_OPTIONS,
-        retryConfig: {
-          maxAttempts: 4,
-          maxDoublings: 3,
-          minBackoffSeconds: 1,
-          maxBackoffSeconds: 2,
-        },
-        rateLimits: {
-          maxBurstSize: 10,
-          maxConcurrentDispatches: 5,
-          maxDispatchesPerSecond: 10,
-        },
-        invoker: 'private',
-      },
-      () => {}
-    );
-    expect(result.__trigger).to.deep.equal({
-      ...FULL_TRIGGER,
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: 4,
-          maxDoublings: 3,
-          minBackoffSeconds: 1,
-          maxBackoffSeconds: 2,
-        },
-        rateLimits: {
-          maxBurstSize: 10,
-          maxConcurrentDispatches: 5,
-          maxDispatchesPerSecond: 10,
-        },
-        invoker: ['private'],
-      },
-    });
-  });
-
-  it('should merge options and globalOptions', () => {
-    options.setGlobalOptions({
-      concurrency: 20,
-      region: 'europe-west1',
-      minInstances: 1,
-    });
-
-    const result = https.onTaskDispatched(
-      {
-        region: 'us-west1',
-        minInstances: 3,
-      },
-      (request) => {}
-    );
-
-    expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
-      platform: 'gcfv2',
-      taskQueueTrigger: {},
-      concurrency: 20,
-      minInstances: 3,
-      regions: ['us-west1'],
-      labels: {},
-    });
-  });
-
-  it('has a .run method', async () => {
-    const request: any = {
-      data: 'data',
-      auth: {
-        uid: 'abc',
-        token: 'token',
-      },
-    };
-    const cf = https.onTaskDispatched((r) => {
-      expect(r.data).to.deep.equal(request.data);
-      expect(r.auth).to.deep.equal(request.auth);
-    });
-
-    await cf.run(request);
-  });
-
-  it('should be an express handler', async () => {
-    const func = https.onTaskDispatched((request) => {});
-
-    const req = new MockRequest(
-      {
-        data: {},
-      },
-      {
-        'content-type': 'application/json',
-        origin: 'example.com',
-      }
-    );
-    req.method = 'POST';
-
-    const resp = await runHandler(func, req as any);
-    expect(resp.status).to.equal(204);
-  });
-
-  // These tests pass if the code transpiles
-  it('allows desirable syntax', () => {
-    https.onTaskDispatched<string>((request: https.TaskRequest<string>) => {
-      // There should be no lint warnings that data is not a string.
-      console.log(`hello, ${request.data}`);
-    });
-    https.onTaskDispatched((request: https.TaskRequest<string>) => {
-      console.log(`hello, ${request.data}`);
-    });
-    https.onTaskDispatched<string>((request: https.TaskRequest) => {
-      console.log(`hello, ${request.data}`);
-    });
-    https.onTaskDispatched((request: https.TaskRequest) => {
-      console.log(`Hello, ${request.data}`);
-    });
   });
 });

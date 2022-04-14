@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions';
-import { expectEq, TestSuite } from './testing';
+import { REGION } from '../region';
+import { expectEq, TestSuite } from '../testing';
 import TestMatrix = functions.testLab.TestMatrix;
-const REGION = process.env.FIREBASE_FUNCTIONS_TEST_REGION || 'us-central1';
 
 export const testLabTests: any = functions
   .runWith({
@@ -12,8 +12,6 @@ export const testLabTests: any = functions
   .onComplete((matrix, context) => {
     return new TestSuite<TestMatrix>('test matrix complete')
       .it('should have eventId', (snap, context) => context.eventId)
-
-      .it('should have timestamp', (snap, context) => context.timestamp)
 
       .it('should have right eventType', (_, context) =>
         expectEq(context.eventType, 'google.testing.testMatrix.complete')
