@@ -30,7 +30,17 @@ import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 import * as eventarc from './providers/eventarc';
 
-export { alerts, https, identity, pubsub, storage, logger, params, tasks, eventarc };
+export {
+  alerts,
+  https,
+  identity,
+  pubsub,
+  storage,
+  logger,
+  params,
+  tasks,
+  eventarc,
+};
 
 export { setGlobalOptions, GlobalOptions } from './options';
 

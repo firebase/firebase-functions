@@ -15,7 +15,7 @@ export interface BlockingOptions extends options.GlobalOptions {
 }
 
 interface InternalOptions {
-  globalOptions: options.GlobalOptions;
+  opts: options.GlobalOptions;
   idToken: boolean;
   accessToken: boolean;
   refreshToken: boolean;
@@ -58,83 +58,7 @@ export function beforeUserCreated(
     | void
     | Promise<void>
 ): BlockingFunction {
-  const eventType = 'google.cloud.auth.user.v1.beforecreate';
-  if (!handler) {
-    handler = optsOrHandler as (
-      event: AuthBlockingEvent
-    ) =>
-      | BeforeCreateResponse
-      | Promise<BeforeCreateResponse>
-      | void
-      | Promise<void>;
-    optsOrHandler = {};
-  }
-  const { globalOptions, accessToken, idToken, refreshToken } = getOpts(
-    optsOrHandler as BlockingOptions
-  );
-
-  const keysCache: PublicKeysCache = {
-    publicKeys: {},
-  };
-  const func: any = createV2Handler(handler, 'beforeCreate', keysCache);
-
-  const baseOptsTrigger = options.optionsToTriggerAnnotations(
-    options.getGlobalOptions()
-  );
-  // global options calls region a scalar and https allows it to be an array,
-  // but optionsToTriggerAnnotations handles both cases.
-  const specificOptsTrigger = options.optionsToTriggerAnnotations(
-    globalOptions
-  );
-
-  func.__trigger = {
-    apiVersion: 2,
-    platform: 'gcfv2',
-    ...baseOptsTrigger,
-    ...specificOptsTrigger,
-    labels: {
-      ...baseOptsTrigger?.labels,
-      ...specificOptsTrigger?.labels,
-    },
-    blockingTrigger: {
-      eventType,
-      accessToken,
-      idToken,
-      refreshToken,
-    },
-  };
-
-  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  // global options calls region a scalar and https allows it to be an array,
-  // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(globalOptions);
-
-  func.__endpoint = {
-    platform: 'gcfv2',
-    ...baseOpts,
-    ...specificOpts,
-    labels: {
-      ...baseOpts?.labels,
-      ...specificOpts?.labels,
-    },
-    blockingTrigger: {
-      eventType,
-      accessToken,
-      idToken,
-      refreshToken,
-    },
-  };
-
-  func.__requiredAPIs = [
-    {
-      api: 'identitytoolkit.googleapis.com',
-      reason: 'Needed for auth blocking functions',
-    },
-  ];
-
-  func.run = handler;
-
-  return func;
+  return beforeOperation('beforeCreate', optsOrHandler, handler);
 }
 
 export function beforeUserSignedIn(
@@ -174,35 +98,64 @@ export function beforeUserSignedIn(
     | void
     | Promise<void>
 ): BlockingFunction {
-  const eventType = 'google.cloud.auth.user.v1.beforesignin';
-  if (!handler) {
+  return beforeOperation('beforeSignIn', optsOrHandler, handler);
+}
+
+/** @internal */
+export function beforeOperation(
+  eventType: string,
+  optsOrHandler:
+    | BlockingOptions
+    | ((
+        event: AuthBlockingEvent
+      ) =>
+        | BeforeCreateResponse
+        | BeforeSignInResponse
+        | void
+        | Promise<BeforeCreateResponse>
+        | Promise<BeforeSignInResponse>
+        | Promise<void>),
+  handler: (
+    event: AuthBlockingEvent
+  ) =>
+    | BeforeCreateResponse
+    | BeforeSignInResponse
+    | void
+    | Promise<BeforeCreateResponse>
+    | Promise<BeforeSignInResponse>
+    | Promise<void>
+): BlockingFunction {
+  if (!handler || typeof optsOrHandler === 'function') {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
     ) =>
       | BeforeCreateResponse
-      | Promise<BeforeCreateResponse>
+      | BeforeSignInResponse
       | void
+      | Promise<BeforeCreateResponse>
+      | Promise<BeforeSignInResponse>
       | Promise<void>;
     optsOrHandler = {};
   }
-  const { globalOptions, accessToken, idToken, refreshToken } = getOpts(
+
+  const { opts, accessToken, idToken, refreshToken } = getOpts(
     optsOrHandler as BlockingOptions
   );
 
+  // TODO(colerogers): yank when admin sdk changes are released
   const keysCache: PublicKeysCache = {
     publicKeys: {},
   };
-  const func: any = createV2Handler(handler, 'beforeSignIn', keysCache);
 
+  const func: any = createV2Handler(eventType, handler, keysCache);
+
+  const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
+
+  /** Trigger */
   const baseOptsTrigger = options.optionsToTriggerAnnotations(
     options.getGlobalOptions()
   );
-  // global options calls region a scalar and https allows it to be an array,
-  // but optionsToTriggerAnnotations handles both cases.
-  const specificOptsTrigger = options.optionsToTriggerAnnotations(
-    globalOptions
-  );
-
+  const specificOptsTrigger = options.optionsToTriggerAnnotations(opts);
   func.__trigger = {
     apiVersion: 2,
     platform: 'gcfv2',
@@ -213,31 +166,35 @@ export function beforeUserSignedIn(
       ...specificOptsTrigger?.labels,
     },
     blockingTrigger: {
-      eventType,
-      accessToken,
-      idToken,
-      refreshToken,
+      legacyEventType,
+      options: {
+        accessToken,
+        idToken,
+        refreshToken,
+      },
     },
   };
 
-  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  // global options calls region a scalar and https allows it to be an array,
-  // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(globalOptions);
-
+  /** Endpoint */
+  const baseOptsEndpoint = options.optionsToEndpoint(
+    options.getGlobalOptions()
+  );
+  const specificOptsEndpoint = options.optionsToEndpoint(opts);
   func.__endpoint = {
     platform: 'gcfv2',
-    ...baseOpts,
-    ...specificOpts,
+    ...baseOptsEndpoint,
+    ...specificOptsEndpoint,
     labels: {
-      ...baseOpts?.labels,
-      ...specificOpts?.labels,
+      ...baseOptsEndpoint?.labels,
+      ...specificOptsEndpoint?.labels,
     },
     blockingTrigger: {
-      eventType,
-      accessToken,
-      idToken,
-      refreshToken,
+      legacyEventType,
+      options: {
+        accessToken,
+        idToken,
+        refreshToken,
+      },
     },
   };
 
@@ -255,25 +212,15 @@ export function beforeUserSignedIn(
 
 /** @internal */
 export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
-  let opts = {};
-  let accessToken = false,
-    idToken = false,
-    refreshToken = false;
-  if (blockingOptions.accessToken) {
-    accessToken = blockingOptions.accessToken;
-  }
-  if (blockingOptions.idToken) {
-    idToken = blockingOptions.idToken;
-  }
-  if (blockingOptions.refreshToken) {
-    refreshToken = blockingOptions.refreshToken;
-  }
-  opts = { ...blockingOptions };
+  const accessToken = blockingOptions.accessToken || false;
+  const idToken = blockingOptions.idToken || false;
+  const refreshToken = blockingOptions.refreshToken || false;
+  const opts = { ...blockingOptions };
   delete (opts as any).accessToken;
   delete (opts as any).idToken;
   delete (opts as any).refresh;
   return {
-    globalOptions: opts,
+    opts,
     accessToken,
     idToken,
     refreshToken,

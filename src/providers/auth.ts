@@ -29,7 +29,7 @@ import {
   AuthEventContext,
   BeforeCreateResponse,
   BeforeSignInResponse,
-  createHandler,
+  createV1Handler,
   PublicKeysCache,
 } from '../common/providers/identity';
 import {
@@ -127,10 +127,7 @@ export class UserBuilder {
       | void
       | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(
-      handler,
-      'beforeCreate'
-    );
+    return this.beforeOperation(handler, 'beforeCreate');
   }
 
   beforeSignIn(
@@ -143,10 +140,7 @@ export class UserBuilder {
       | void
       | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(
-      handler,
-      'beforeSignIn'
-    );
+    return this.beforeOperation(handler, 'beforeSignIn');
   }
 
   private onOperation(
@@ -174,29 +168,20 @@ export class UserBuilder {
       context: AuthEventContext
     ) =>
       | BeforeCreateResponse
-      | Promise<BeforeCreateResponse>
       | BeforeSignInResponse
-      | Promise<BeforeSignInResponse>
       | void
+      | Promise<BeforeCreateResponse>
+      | Promise<BeforeSignInResponse>
       | Promise<void>,
     eventType: string
   ): BlockingFunction {
-    let accessToken = false,
-      idToken = false,
-      refreshToken = false;
-    if (this.userOptions) {
-      accessToken = this.userOptions.blockingOptions.accessToken || false;
-      idToken = this.userOptions.blockingOptions.idToken || false;
-      refreshToken = this.userOptions.blockingOptions.refreshToken || false;
-    }
+    let accessToken = this.userOptions?.blockingOptions?.accessToken || false;
+    let idToken = this.userOptions?.blockingOptions?.idToken || false;
+    let refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
+
+    const func: any = createV1Handler(eventType, handler, this.keysCache);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
-
-    const func: any = createHandler(
-      handler,
-      eventType,
-      this.keysCache
-    );
 
     func.__trigger = {
       labels: {},
@@ -207,7 +192,7 @@ export class UserBuilder {
           accessToken,
           idToken,
           refreshToken,
-        }
+        },
       },
     };
 

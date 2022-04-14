@@ -1012,46 +1012,48 @@ export function getUpdateMask(
   return updateMask.join(',');
 }
 
-type handlerV1 = (
+type HandlerV1 = (
   user: AuthUserRecord,
   context: AuthEventContext
 ) =>
   | BeforeCreateResponse
-  | Promise<BeforeCreateResponse>
   | BeforeSignInResponse
-  | Promise<BeforeSignInResponse>
   | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
   | Promise<void>;
 
-type handlerV2 = (
+type HandlerV2 = (
   event: AuthBlockingEvent
 ) =>
+  | BeforeCreateResponse
   | BeforeSignInResponse
-  | Promise<BeforeSignInResponse>
   | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
   | Promise<void>;
 
 /** @internal */
-export function createHandler(
-  handler: handlerV1,
+export function createV1Handler(
   eventType: string,
+  handler: HandlerV1,
   keysCache: PublicKeysCache
 ): (req: express.Request, resp: express.Response) => Promise<void> {
-  return wrapHandler(handler, eventType, keysCache, false);
+  return wrapHandler(eventType, handler, keysCache, false);
 }
 
 /** @internal */
 export function createV2Handler(
-  handler: handlerV2,
   eventType: string,
+  handler: HandlerV2,
   keysCache: PublicKeysCache
 ): (req: express.Request, resp: express.Response) => Promise<void> {
-  return wrapHandler(handler, eventType, keysCache, true);
+  return wrapHandler(eventType, handler, keysCache, true);
 }
 
 function wrapHandler(
-  handler: handlerV1 | handlerV2,
   eventType: string,
+  handler: HandlerV1 | HandlerV2,
   keysCache: PublicKeysCache,
   v2: boolean
 ) {
@@ -1063,7 +1065,9 @@ function wrapHandler(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
-      const decodedPayload = await apps().admin.auth()._verifyAuthBlockingToken(req.body.data.jwt);
+      const decodedPayload = await apps()
+        .admin.auth()
+        ._verifyAuthBlockingToken(req.body.data.jwt);
 
       // const rawDecodedJWT = decodeJWT(req.body.data.jwt);
       // // TODO(colerogers): add isDebugFeatureEnabled('skipTokenVerification') here
@@ -1071,23 +1075,20 @@ function wrapHandler(
       //   ? await verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
       //   : (rawDecodedJWT.payload as DecodedPayload);
 
-
-
       checkDecodedToken(decodedPayload, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
       let authResponse;
       if (v2) {
         const authEvent: AuthBlockingEvent = {
-          data: authUserRecord,
           ...authEventContext,
+          data: authUserRecord,
         };
-        handler = handler as handlerV2;
-        authResponse = (await handler(authEvent)) || undefined;
+        authResponse = (await (handler as HandlerV2)(authEvent)) || undefined;
       } else {
-        handler = handler as handlerV1;
         authResponse =
-          (await handler(authUserRecord, authEventContext)) || undefined;
+          (await (handler as HandlerV1)(authUserRecord, authEventContext)) ||
+          undefined;
       }
 
       validateAuthResponse(eventType, authResponse);
