@@ -505,7 +505,8 @@ interface CallableTokenStatus {
   auth: TokenStatus;
 }
 
-function unsafeDecodeToken(token: string): unknown {
+/** @internal */
+export function unsafeDecodeToken(token: string): unknown {
   if (!JWT_REGEX.test(token)) {
     return {};
   }

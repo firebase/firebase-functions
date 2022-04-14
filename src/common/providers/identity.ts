@@ -24,11 +24,12 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
-import { HttpsError } from './https';
+import { HttpsError, unsafeDecodeToken } from './https';
 import { EventContext } from '../../cloud-functions';
 import { SUPPORTED_REGIONS } from '../../function-configuration';
 import { logger } from '../..';
 import { apps } from '../../apps';
+import { isDebugFeatureEnabled } from '../debug';
 
 export { HttpsError };
 
@@ -72,8 +73,6 @@ const DISALLOWED_CUSTOM_CLAIMS = [
 const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
 
 const EVENT_MAPPING: Record<string, string> = {
-  // beforeCreate: 'google.cloud.auth.user.v1.beforeCreate',
-  // beforeSignIn: 'google.cloud.auth.user.v1.beforeSignIn',
   beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
   beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
 };
@@ -633,6 +632,19 @@ export function decodeJWT(token: string): Record<string, any> {
 }
 
 /**
+ * Decode, but not verify, an Auth Blocking token.
+ *
+ * Do not use in production. Token should always be verified using the Admin SDK.
+ *
+ * This is exposed only for testing.
+ */
+function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
+  const decoded = unsafeDecodeToken(token) as DecodedPayload;
+  decoded.uid = decoded.sub;
+  return decoded;
+}
+
+/**
  * Helper function to determine if we need to do full verification of the jwt
  * @internal
  */
@@ -1065,9 +1077,14 @@ function wrapHandler(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
-      const decodedPayload = await apps()
-        .admin.auth()
-        ._verifyAuthBlockingToken(req.body.data.jwt);
+      let decodedPayload: DecodedPayload;
+      if (isDebugFeatureEnabled('skipTokenVerification')) {
+        decodedPayload = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
+      } else {
+        decodedPayload = await apps()
+          .admin.auth()
+          ._verifyAuthBlockingToken(req.body.data.jwt);
+      }
 
       // const rawDecodedJWT = decodeJWT(req.body.data.jwt);
       // // TODO(colerogers): add isDebugFeatureEnabled('skipTokenVerification') here
