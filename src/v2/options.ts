@@ -174,7 +174,7 @@ export interface GlobalOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   * defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this

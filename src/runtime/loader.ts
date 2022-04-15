@@ -69,7 +69,7 @@ export function extractStack(
     const val: any = valAsUnknown;
     if (
       typeof val === 'function' &&
-      (val as any).__endpoint &&
+      val.__endpoint &&
       typeof val.__endpoint === 'object'
     ) {
       const funcName = prefix + name;
