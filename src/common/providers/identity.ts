@@ -24,10 +24,10 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
-import { HttpsError } from './https';
+import { logger } from '../..';
 import { EventContext } from '../../cloud-functions';
 import { SUPPORTED_REGIONS } from '../../function-configuration';
-import { logger } from '../..';
+import { HttpsError } from './https';
 
 export { HttpsError };
 
@@ -123,21 +123,16 @@ export function userRecordConstructor(wireData: Object): UserRecord {
   };
   const record = { ...falseyValues, ...wireData };
 
-  const meta = record['metadata'];
+  const meta = record.metadata;
   if (meta) {
-    record['metadata'] = new UserRecordMetadata(
+    record.metadata = new UserRecordMetadata(
       meta.createdAt || meta.creationTime,
       meta.lastSignedInAt || meta.lastSignInTime
     );
   } else {
-    record['metadata'] = new UserRecordMetadata(null, null);
+    record.metadata = new UserRecordMetadata(null, null);
   }
-  for (const entry of Object.entries(record.providerData)) {
-    entry['toJSON'] = () => {
-      return entry;
-    };
-  }
-  record['toJSON'] = () => {
+  record.toJSON = () => {
     const {
       uid,
       email,
@@ -150,7 +145,7 @@ export function userRecordConstructor(wireData: Object): UserRecord {
       passwordSalt,
       tokensValidAfterTime,
     } = record;
-    const json = {
+    const json: Record<string, unknown> = {
       uid,
       email,
       emailVerified,
@@ -162,9 +157,9 @@ export function userRecordConstructor(wireData: Object): UserRecord {
       passwordSalt,
       tokensValidAfterTime,
     };
-    json['metadata'] = record['metadata'].toJSON();
-    json['customClaims'] = JSON.parse(JSON.stringify(record.customClaims));
-    json['providerData'] = record.providerData.map((entry) => entry.toJSON());
+    json.metadata = record.metadata.toJSON();
+    json.customClaims = JSON.parse(JSON.stringify(record.customClaims));
+    json.providerData = record.providerData.map((entry) => entry.toJSON());
     return json;
   };
   return record as UserRecord;
@@ -819,12 +814,13 @@ function parseAdditionalUserInfo(
   decodedJWT: DecodedPayload
 ): AdditionalUserInfo {
   let profile, username;
-  if (decodedJWT.raw_user_info)
+  if (decodedJWT.raw_user_info) {
     try {
       profile = JSON.parse(decodedJWT.raw_user_info);
     } catch (err) {
       logger.debug(`Parse Error: ${err.message}`);
     }
+  }
   if (profile) {
     if (decodedJWT.sign_in_method === 'github.com') {
       username = profile.login;

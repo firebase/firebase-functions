@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { expectEq, expectMatches, TestSuite } from '../testing';
 import { REGION } from '../region';
+import { expectEq, expectMatches, TestSuite } from '../testing';
 import DataSnapshot = admin.database.DataSnapshot;
 
 const testIdFieldName = 'testId';

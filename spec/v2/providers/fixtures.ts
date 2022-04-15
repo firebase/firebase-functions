@@ -11,13 +11,13 @@ export const FULL_OPTIONS: options.GlobalOptions = {
   vpcConnectorEgressSettings: 'ALL_TRAFFIC',
   serviceAccount: 'root@',
   ingressSettings: 'ALLOW_ALL',
+  cpu: 'gcf_gen1',
   labels: {
     hello: 'world',
   },
 };
 
 export const FULL_TRIGGER = {
-  apiVersion: 2,
   platform: 'gcfv2',
   regions: ['us-west1'],
   availableMemoryMb: 512,
@@ -48,6 +48,7 @@ export const FULL_ENDPOINT = {
   },
   serviceAccountEmail: 'root@',
   ingressSettings: 'ALLOW_ALL',
+  cpu: 'gcf_gen1',
   labels: {
     hello: 'world',
   },

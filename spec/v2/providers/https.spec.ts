@@ -28,8 +28,8 @@ import {
   expectedResponseHeaders,
   MockRequest,
 } from '../../fixtures/mockrequest';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 import { runHandler } from '../../helper';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 
 describe('onRequest', () => {
   beforeEach(() => {
@@ -47,7 +47,6 @@ describe('onRequest', () => {
     });
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       httpsTrigger: {
         allowInsecure: false,
@@ -112,7 +111,6 @@ describe('onRequest', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       httpsTrigger: {
         allowInsecure: false,
@@ -199,7 +197,6 @@ describe('onCall', () => {
     const result = https.onCall((request) => 42);
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       httpsTrigger: {
         allowInsecure: false,
@@ -252,7 +249,6 @@ describe('onCall', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       httpsTrigger: {
         allowInsecure: false,

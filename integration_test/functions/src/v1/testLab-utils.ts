@@ -1,5 +1,5 @@
-import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
+import fetch from 'node-fetch';
 
 interface AndroidDevice {
   androidModelId: string;

@@ -1,7 +1,7 @@
-import * as options from '../options';
-import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import { CloudEvent, CloudFunction } from '../core';
+import * as options from '../options';
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
@@ -143,9 +143,6 @@ export function onMessagePublished<T = any>(
       const specificOpts = options.optionsToTriggerAnnotations(opts);
 
       return {
-        // TODO(inlined): Remove "apiVersion" once the CLI has migrated to
-        // "platform"
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
