@@ -66,7 +66,9 @@ async function retryUntil(
   });
   const retry = (async () => {
     while (true) {
-      if (await fn()) { break; }
+      if (await fn()) {
+        break;
+      }
       await sleep();
     }
   })();

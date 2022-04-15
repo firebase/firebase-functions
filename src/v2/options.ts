@@ -324,7 +324,7 @@ export function optionsToEndpoint(
     'ingressSettings',
     'labels',
     'timeoutSeconds',
-    'cpu',
+    'cpu'
   );
   convertIfPresent(endpoint, opts, 'serviceAccountEmail', 'serviceAccount');
   if (opts.vpcConnector) {
