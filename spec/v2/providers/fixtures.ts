@@ -1,3 +1,5 @@
+import { ManifestEndpoint } from '../../../src/runtime/manifest';
+import { TriggerAnnotation } from '../../../src/v2/core';
 import * as options from '../../../src/v2/options';
 
 export const FULL_OPTIONS: options.GlobalOptions = {
@@ -15,9 +17,10 @@ export const FULL_OPTIONS: options.GlobalOptions = {
   labels: {
     hello: 'world',
   },
+  secrets: ['MY_SECRET'],
 };
 
-export const FULL_TRIGGER = {
+export const FULL_TRIGGER: TriggerAnnotation = {
   platform: 'gcfv2',
   regions: ['us-west1'],
   availableMemoryMb: 512,
@@ -32,9 +35,10 @@ export const FULL_TRIGGER = {
   labels: {
     hello: 'world',
   },
+  secrets: ['MY_SECRET'],
 };
 
-export const FULL_ENDPOINT = {
+export const FULL_ENDPOINT: ManifestEndpoint = {
   platform: 'gcfv2',
   region: ['us-west1'],
   availableMemoryMb: 512,
@@ -52,4 +56,5 @@ export const FULL_ENDPOINT = {
   labels: {
     hello: 'world',
   },
+  secretEnvironmentVariables: [{ key: 'MY_SECRET', secret: 'MY_SECRET' }],
 };

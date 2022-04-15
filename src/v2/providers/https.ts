@@ -36,14 +36,6 @@ import * as options from '../options';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
-export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
-  region?:
-    | options.SupportedRegion
-    | string
-    | Array<options.SupportedRegion | string>;
-  cors?: string | boolean | RegExp | Array<string | RegExp>;
-}
-
 export type HttpsFunction = ((
   req: Request,
   res: express.Response
@@ -56,7 +48,7 @@ export interface CallableFunction<T, Return> extends HttpsFunction {
 }
 
 export function onRequest(
-  opts: HttpsOptions,
+  opts: options.HttpsOptions,
   handler: (
     request: Request,
     response: express.Response
@@ -70,14 +62,14 @@ export function onRequest(
 ): HttpsFunction;
 export function onRequest(
   optsOrHandler:
-    | HttpsOptions
+    | options.HttpsOptions
     | ((request: Request, response: express.Response) => void | Promise<void>),
   handler?: (
     request: Request,
     response: express.Response
   ) => void | Promise<void>
 ): HttpsFunction {
-  let opts: HttpsOptions;
+  let opts: options.HttpsOptions;
   if (arguments.length === 1) {
     opts = {};
     handler = optsOrHandler as (
@@ -85,7 +77,7 @@ export function onRequest(
       response: express.Response
     ) => void | Promise<void>;
   } else {
-    opts = optsOrHandler as HttpsOptions;
+    opts = optsOrHandler as options.HttpsOptions;
   }
 
   if ('cors' in opts) {
@@ -160,22 +152,24 @@ export function onRequest(
 }
 
 export function onCall<T = any, Return = any | Promise<any>>(
-  opts: HttpsOptions,
+  opts: options.HttpsOptions,
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: HttpsOptions | ((request: CallableRequest<T>) => Return),
+  optsOrHandler:
+    | options.HttpsOptions
+    | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
-  let opts: HttpsOptions;
+  let opts: options.HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
     handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
-    opts = optsOrHandler as HttpsOptions;
+    opts = optsOrHandler as options.HttpsOptions;
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
@@ -195,9 +189,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts);
       return {
         platform: 'gcfv2',
         ...baseOpts,
@@ -215,9 +207,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   });
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  // global options calls region a scalar and https allows it to be an array,
-  // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
     platform: 'gcfv2',
     ...baseOpts,

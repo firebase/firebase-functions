@@ -215,6 +215,11 @@ export interface GlobalOptions {
    * Invoker to set access control on https functions.
    */
   invoker?: 'public' | 'private' | string | string[];
+
+  /*
+   * Secrets to bind to a functions.
+   */
+  secrets?: string[];
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -240,6 +245,15 @@ export function getGlobalOptions(): GlobalOptions {
 }
 
 /**
+ * Options that can be set on an individual HTTPS Cloud Function.
+ */
+export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
+  /* HTTP functions can override and specify more than one regions. */
+  region?: SupportedRegion | string | Array<SupportedRegion | string>;
+  cors?: string | boolean | RegExp | Array<string | RegExp>;
+}
+
+/**
  * Options that can be set on an individual event-handling Cloud Function.
  */
 export interface EventHandlerOptions extends GlobalOptions {
@@ -251,7 +265,7 @@ export interface EventHandlerOptions extends GlobalOptions {
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): TriggerAnnotation {
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
@@ -263,7 +277,8 @@ export function optionsToTriggerAnnotations(
     'ingressSettings',
     'labels',
     'vpcConnector',
-    'vpcConnectorEgressSettings'
+    'vpcConnectorEgressSettings',
+    'secrets'
   );
   convertIfPresent(
     annotation,
@@ -312,7 +327,7 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
@@ -350,6 +365,13 @@ export function optionsToEndpoint(
     }
     return region;
   });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
+  );
 
   return endpoint;
 }
