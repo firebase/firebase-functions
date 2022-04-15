@@ -24,7 +24,6 @@ import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
-import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -33,6 +32,7 @@ import {
   Request,
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import * as options from '../options';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -111,9 +111,6 @@ export function onRequest(
         opts as options.GlobalOptions
       );
       const trigger: any = {
-        // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
-        // has migrated to "platform".
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
@@ -202,9 +199,6 @@ export function onCall<T = any, Return = any | Promise<any>>(
         opts as options.GlobalOptions
       );
       return {
-        // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
-        // has migrated to "platform".
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,

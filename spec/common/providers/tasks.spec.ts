@@ -23,20 +23,20 @@
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
 
-import { checkAuthContext, runHandler } from '../../helper';
+import { apps as appsNamespace } from '../../../src/apps';
+import * as https from '../../../src/common/providers/https';
+import {
+  onDispatchHandler,
+  Request,
+  TaskContext,
+} from '../../../src/common/providers/tasks';
+import * as mocks from '../../fixtures/credential/key.json';
 import {
   generateIdToken,
   generateUnsignedIdToken,
   mockRequest,
 } from '../../fixtures/mockrequest';
-import {
-  onDispatchHandler,
-  TaskContext,
-  Request,
-} from '../../../src/common/providers/tasks';
-import { apps as appsNamespace } from '../../../src/apps';
-import * as mocks from '../../fixtures/credential/key.json';
-import * as https from '../../../src/common/providers/https';
+import { checkAuthContext, runHandler } from '../../helper';
 
 /** Represents a test case for a Task Queue Function */
 interface TaskTest {

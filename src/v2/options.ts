@@ -27,10 +27,10 @@ import {
   serviceAccountFromShorthand,
 } from '../common/encoding';
 import * as logger from '../logger';
+import { ManifestEndpoint } from '../runtime/manifest';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
-import { ManifestEndpoint } from '../runtime/manifest';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -167,9 +167,21 @@ export interface GlobalOptions {
   /**
    * Number of requests a function can serve at once.
    * Can only be applied to functions running on Cloud Functions v2.
-   * A value of null restores the default concurrency.
+   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    */
   concurrency?: number | null;
+
+  /**
+   * Fractional number of CPUs to allocate to a function.
+   * defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * This is different from the defaults when using the gcloud utility and is different from
+   * the fixed amount assigned in Google Cloud Functions generation 1.
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * to the value "gcf_gen1"
+   */
+  cpu?: number | 'gcf_gen1';
+
   /**
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
@@ -311,7 +323,8 @@ export function optionsToEndpoint(
     'maxInstances',
     'ingressSettings',
     'labels',
-    'timeoutSeconds'
+    'timeoutSeconds',
+    'cpu',
   );
   convertIfPresent(endpoint, opts, 'serviceAccountEmail', 'serviceAccount');
   if (opts.vpcConnector) {

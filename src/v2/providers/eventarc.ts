@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as options from '../options';
-import { CloudEvent, CloudFunction } from '../core';
-import { copyIfPresent, convertIfPresent } from '../../common/encoding';
+import { convertIfPresent, copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import { CloudEvent, CloudFunction } from '../core';
+import * as options from '../options';
 
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
