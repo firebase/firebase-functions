@@ -1077,6 +1077,12 @@ function wrapHandler(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
+      if (!apps().admin.auth()._verifyAuthBlockingToken) {
+        throw new Error(
+          'Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.0.3'
+        );
+      }
+
       let decodedPayload: DecodedPayload;
       if (isDebugFeatureEnabled('skipTokenVerification')) {
         decodedPayload = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
