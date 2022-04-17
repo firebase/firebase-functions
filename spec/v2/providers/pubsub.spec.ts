@@ -32,7 +32,6 @@ describe('onMessagePublished', () => {
     const result = pubsub.onMessagePublished('topic', () => 42);
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       eventTrigger: EVENT_TRIGGER,
       labels: {},
@@ -79,7 +78,6 @@ describe('onMessagePublished', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       concurrency: 20,
       minInstances: 3,
@@ -110,7 +108,6 @@ describe('onMessagePublished', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       minInstances: 3,
       regions: ['us-west1'],

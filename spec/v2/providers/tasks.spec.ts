@@ -24,9 +24,9 @@ import { expect } from 'chai';
 
 import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 
 describe('onTaskDispatched', () => {
   beforeEach(() => {
@@ -42,7 +42,6 @@ describe('onTaskDispatched', () => {
     const result = onTaskDispatched(() => {});
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       taskQueueTrigger: {},
       labels: {},
@@ -129,7 +128,6 @@ describe('onTaskDispatched', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       taskQueueTrigger: {},
       concurrency: 20,

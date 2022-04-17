@@ -3,7 +3,7 @@ import * as sinon from 'sinon';
 import * as config from '../../../src/config';
 import * as options from '../../../src/v2/options';
 import * as storage from '../../../src/v2/providers/storage';
-import { FULL_OPTIONS } from './fixtures';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 
 const EVENT_TRIGGER = {
   eventType: 'event-type',
@@ -161,40 +161,12 @@ describe('v2/storage', () => {
       );
 
       expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        regions: ['us-west1'],
-        availableMemoryMb: 512,
-        timeout: '60s',
-        minInstances: 1,
-        maxInstances: 3,
-        concurrency: 20,
-        vpcConnector: 'aConnector',
-        vpcConnectorEgressSettings: 'ALL_TRAFFIC',
-        serviceAccountEmail: 'root@aProject.iam.gserviceaccount.com',
-        ingressSettings: 'ALLOW_ALL',
-        labels: {
-          hello: 'world',
-        },
+        ...FULL_TRIGGER,
         eventTrigger: EVENT_TRIGGER,
       });
 
       expect(result.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        region: ['us-west1'],
-        availableMemoryMb: 512,
-        timeoutSeconds: 60,
-        minInstances: 1,
-        maxInstances: 3,
-        concurrency: 20,
-        vpc: {
-          connector: 'aConnector',
-          egressSettings: 'ALL_TRAFFIC',
-        },
-        serviceAccountEmail: 'root@',
-        ingressSettings: 'ALLOW_ALL',
-        labels: {
-          hello: 'world',
-        },
+        ...FULL_ENDPOINT,
         eventTrigger: ENDPOINT_EVENT_TRIGGER,
       });
     });

@@ -1,7 +1,7 @@
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
-import { expectEq, TestSuite } from '../testing';
 import { REGION } from '../region';
+import { expectEq, TestSuite } from '../testing';
 import UserMetadata = admin.auth.UserRecord;
 
 export const createUserTests: any = functions
