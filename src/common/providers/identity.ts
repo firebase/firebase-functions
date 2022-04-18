@@ -22,35 +22,13 @@
 
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import * as jwt from 'jsonwebtoken';
-import fetch from 'node-fetch';
 import { HttpsError, unsafeDecodeToken } from './https';
 import { EventContext } from '../../cloud-functions';
-import { SUPPORTED_REGIONS } from '../../function-configuration';
 import { logger } from '../..';
 import { apps } from '../../apps';
 import { isDebugFeatureEnabled } from '../debug';
 
 export { HttpsError };
-
-/** @internal */
-export const INVALID_TOKEN_BUFFER = 60000; // set to 1 minute
-
-/** @internal */
-export const JWT_CLIENT_CERT_URL = 'https://www.googleapis.com';
-/** @internal */
-export const JWT_CLIENT_CERT_PATH =
-  'robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
-/** @internal */
-export const JWT_ALG = 'RS256';
-/** @internal */
-export const JWT_ISSUER = 'https://securetoken.google.com/';
-
-/** @internal */
-export interface PublicKeysCache {
-  publicKeys: Record<string, string>;
-  publicKeysExpireAt?: number;
-}
 
 const DISALLOWED_CUSTOM_CLAIMS = [
   'acr',
@@ -71,6 +49,9 @@ const DISALLOWED_CUSTOM_CLAIMS = [
 ];
 
 const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
+
+/** Shorthand auth blocking events from GCIP. */
+export type AuthBlockingEventType = 'beforeCreate' | 'beforeSignIn';
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
@@ -438,64 +419,26 @@ export interface DecodedPayload {
   [key: string]: any;
 }
 
-/**
- * Helper to determine if we refresh the public keys
- * @internal
- */
-export function invalidPublicKeys(
-  keys: PublicKeysCache,
-  time: number = Date.now()
-): boolean {
-  if (!keys.publicKeysExpireAt) {
-    return true;
-  }
-  return time + INVALID_TOKEN_BUFFER >= keys.publicKeysExpireAt;
-}
+type HandlerV1 = (
+  user: AuthUserRecord,
+  context: AuthEventContext
+) =>
+  | BeforeCreateResponse
+  | BeforeSignInResponse
+  | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
+  | Promise<void>;
 
-/**
- * Helper to parse the response headers to obtain the expiration time.
- * @internal
- */
-export function setKeyExpirationTime(
-  response: any,
-  keysCache: PublicKeysCache,
-  time: number
-): void {
-  if (response.headers.has('cache-control')) {
-    const ccHeader = response.headers.get('cache-control');
-    const maxAgeEntry = ccHeader
-      .split(', ')
-      .find((item) => item.includes('max-age'));
-    if (maxAgeEntry) {
-      const maxAge = +maxAgeEntry.trim().split('=')[1];
-      keysCache.publicKeysExpireAt = time + maxAge * 1000;
-    }
-  }
-}
-
-/**
- * Fetch the public keys for use in decoding and verifying the jwt sent from identity platform.
- */
-async function refreshPublicKeys(
-  keysCache: PublicKeysCache,
-  time: number = Date.now()
-): Promise<void> {
-  const url = `${JWT_CLIENT_CERT_URL}/${JWT_CLIENT_CERT_PATH}`;
-  try {
-    const response = await fetch(url);
-    setKeyExpirationTime(response, keysCache, time);
-    const data = await response.json();
-    keysCache.publicKeys = data as Record<string, string>;
-  } catch (err) {
-    logger.error(
-      `Failed to obtain public keys for JWT verification: ${err.message}`
-    );
-    throw new HttpsError(
-      'internal',
-      'Failed to obtain the public keys for JWT verification.'
-    );
-  }
-}
+type HandlerV2 = (
+  event: AuthBlockingEvent
+) =>
+  | BeforeCreateResponse
+  | BeforeSignInResponse
+  | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
+  | Promise<void>;
 
 /**
  * Checks for a valid identity platform web request, otherwise throws an HttpsError
@@ -520,112 +463,6 @@ export function isValidRequest(req: express.Request): boolean {
   return true;
 }
 
-/** @internal */
-export function getPublicKeyFromHeader(
-  header: Record<string, any>,
-  publicKeys: Record<string, string>
-): string {
-  if (header.alg !== JWT_ALG) {
-    throw new HttpsError(
-      'invalid-argument',
-      `Provided JWT has incorrect algorithm. Expected ${JWT_ALG} but got ${header.alg}.`
-    );
-  }
-  if (!header.kid) {
-    throw new HttpsError('invalid-argument', 'JWT header missing "kid" claim.');
-  }
-  if (!publicKeys.hasOwnProperty(header.kid)) {
-    throw new HttpsError(
-      'invalid-argument',
-      'Provided JWT has "kid" claim which does not correspond to a known public key. Most likely the JWT is expired.'
-    );
-  }
-
-  return publicKeys[header.kid];
-}
-
-/**
- * Checks for a well forms cloud functions url
- * @internal
- */
-export function isAuthorizedCloudFunctionURL(
-  cloudFunctionUrl: string,
-  projectId: string
-): boolean {
-  const re = new RegExp(
-    `^https://(${SUPPORTED_REGIONS.join(
-      '|'
-    )})+-${projectId}\.cloudfunctions\.net/`
-  );
-  const res = re.exec(cloudFunctionUrl) || [];
-  return res.length > 0;
-}
-
-/**
- * Checks for errors in a decoded jwt
- * @internal
- */
-export function checkDecodedToken(
-  decodedJWT: DecodedPayload,
-  eventType: string,
-  projectId: string
-): void {
-  if (decodedJWT.event_type !== eventType) {
-    throw new HttpsError(
-      'invalid-argument',
-      `Expected "${eventType}" but received "${decodedJWT.event_type}".`
-    );
-  }
-  if (!isAuthorizedCloudFunctionURL(decodedJWT.aud, projectId)) {
-    throw new HttpsError(
-      'invalid-argument',
-      'Provided JWT has incorrect "aud" (audience) claim.'
-    );
-  }
-  if (decodedJWT.iss !== `${JWT_ISSUER}${projectId}`) {
-    throw new HttpsError(
-      'invalid-argument',
-      `Provided JWT has incorrect "iss" (issuer) claim. Expected ` +
-        `"${JWT_ISSUER}${projectId}" but got "${decodedJWT.iss}".`
-    );
-  }
-  if (typeof decodedJWT.sub !== 'string' || decodedJWT.sub.length === 0) {
-    throw new HttpsError(
-      'invalid-argument',
-      'Provided JWT has no "sub" (subject) claim.'
-    );
-  }
-  if (decodedJWT.sub.length > 128) {
-    throw new HttpsError(
-      'invalid-argument',
-      'Provided JWT has "sub" (subject) claim longer than 128 characters.'
-    );
-  }
-  // set uid to sub
-  decodedJWT.uid = decodedJWT.sub;
-}
-
-/**
- * Helper function to decode the jwt, internally uses the 'jsonwebtoken' package.
- * @internal
- */
-export function decodeJWT(token: string): Record<string, any> {
-  let decoded: Record<string, any>;
-  try {
-    decoded = jwt.decode(token, { complete: true }) as Record<string, any>;
-  } catch (err) {
-    logger.error('Decoding the JWT failed', err);
-    throw new HttpsError('internal', 'Failed to decode the JWT.');
-  }
-  if (!decoded?.payload) {
-    throw new HttpsError(
-      'internal',
-      'The decoded JWT is not structured correctly.'
-    );
-  }
-  return decoded;
-}
-
 /**
  * Decode, but not verify, an Auth Blocking token.
  *
@@ -637,58 +474,6 @@ function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
   const decoded = unsafeDecodeToken(token) as DecodedPayload;
   decoded.uid = decoded.sub;
   return decoded;
-}
-
-/**
- * Helper function to determine if we need to do full verification of the jwt
- * @internal
- */
-export function shouldVerifyJWT(): boolean {
-  // TODO(colerogers): add emulator support to skip verification
-  return true;
-}
-
-/**
- * Verifies the jwt using the 'jwt' library and decodes the token with the public keys
- * Throws an error if the event types do not match
- * @internal
- */
-export async function verifyJWT(
-  token: string,
-  rawDecodedJWT: Record<string, any>,
-  keysCache: PublicKeysCache,
-  time: number = Date.now()
-): Promise<DecodedPayload> {
-  if (!rawDecodedJWT.header) {
-    throw new HttpsError(
-      'internal',
-      'Unable to verify JWT payload, the decoded JWT does not have a header property.'
-    );
-  }
-  const header = rawDecodedJWT.header;
-  let publicKey;
-  try {
-    if (invalidPublicKeys(keysCache, time)) {
-      await refreshPublicKeys(keysCache);
-    }
-    publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
-    return jwt.verify(token, publicKey, {
-      algorithms: [JWT_ALG],
-    }) as DecodedPayload;
-  } catch (err) {
-    logger.error('Verifying the JWT failed', err);
-  }
-  // force refresh keys and retry one more time
-  try {
-    await refreshPublicKeys(keysCache);
-    publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
-    return jwt.verify(token, publicKey, {
-      algorithms: [JWT_ALG],
-    }) as DecodedPayload;
-  } catch (err) {
-    logger.error('Verifying the JWT failed again', err);
-    throw new HttpsError('internal', 'Failed to verify the JWT.');
-  }
 }
 
 /**
@@ -1020,49 +805,10 @@ export function getUpdateMask(
   return updateMask.join(',');
 }
 
-type HandlerV1 = (
-  user: AuthUserRecord,
-  context: AuthEventContext
-) =>
-  | BeforeCreateResponse
-  | BeforeSignInResponse
-  | void
-  | Promise<BeforeCreateResponse>
-  | Promise<BeforeSignInResponse>
-  | Promise<void>;
-
-type HandlerV2 = (
-  event: AuthBlockingEvent
-) =>
-  | BeforeCreateResponse
-  | BeforeSignInResponse
-  | void
-  | Promise<BeforeCreateResponse>
-  | Promise<BeforeSignInResponse>
-  | Promise<void>;
-
 /** @internal */
-export function createV1Handler(
-  eventType: string,
-  handler: HandlerV1,
-  keysCache: PublicKeysCache
-): (req: express.Request, resp: express.Response) => Promise<void> {
-  return wrapHandler(eventType, handler, keysCache, false);
-}
-
-/** @internal */
-export function createV2Handler(
-  eventType: string,
-  handler: HandlerV2,
-  keysCache: PublicKeysCache
-): (req: express.Request, resp: express.Response) => Promise<void> {
-  return wrapHandler(eventType, handler, keysCache, true);
-}
-
-function wrapHandler(
-  eventType: string,
+export function wrapHandler(
+  eventType: AuthBlockingEventType,
   handler: HandlerV1 | HandlerV2,
-  keysCache: PublicKeysCache,
   v2: boolean
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
@@ -1079,21 +825,24 @@ function wrapHandler(
         );
       }
 
-      let decodedPayload: DecodedPayload;
-      if (isDebugFeatureEnabled('skipTokenVerification')) {
-        decodedPayload = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
-      } else {
-        decodedPayload = await apps()
-          .admin.auth()
-          ._verifyAuthBlockingToken(req.body.data.jwt);
-      }
+      const decodedPayload: DecodedPayload = isDebugFeatureEnabled(
+        'skipTokenVerification'
+      )
+        ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
+        : await apps()
+            .admin.auth()
+            ._verifyAuthBlockingToken(req.body.data.jwt);
 
-      checkDecodedToken(decodedPayload, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
-      const authResponse = (v2)
-        ? (await (handler as HandlerV2)({ ...authEventContext, data: authUserRecord })) || undefined
-        : (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined;
+
+      const authResponse = v2
+        ? (await (handler as HandlerV2)({
+            ...authEventContext,
+            data: authUserRecord,
+          } as AuthBlockingEvent)) || undefined
+        : (await (handler as HandlerV1)(authUserRecord, authEventContext)) ||
+          undefined;
 
       validateAuthResponse(eventType, authResponse);
       const updateMask = getUpdateMask(authResponse);

@@ -320,7 +320,7 @@ export type HttpsFunction = TriggerAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
 
 /**
- * The Cloud Function type for Blocking triggers. 
+ * The Cloud Function type for Blocking triggers.
  */
 export type BlockingFunction = HttpsFunction;
 

@@ -29,8 +29,8 @@ import {
   AuthEventContext,
   BeforeCreateResponse,
   BeforeSignInResponse,
-  createV1Handler,
-  PublicKeysCache,
+  wrapHandler,
+  AuthBlockingEventType,
 } from '../common/providers/identity';
 import {
   BlockingFunction,
@@ -86,8 +86,6 @@ export function _userWithOptions(
 
 /** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
-  private keysCache: PublicKeysCache;
-
   private static dataConstructor(raw: Event): UserRecord {
     return userRecordConstructor(raw.data);
   }
@@ -97,12 +95,7 @@ export class UserBuilder {
     private triggerResource: () => string,
     private options: DeploymentOptions,
     private userOptions?: UserOptions
-  ) {
-    // TODO(colerogers): yank when admin sdk changes are released
-    this.keysCache = {
-      publicKeys: {},
-    };
-  }
+  ) {}
 
   /** Respond to the creation of a Firebase Auth user. */
   onCreate(
@@ -174,13 +167,13 @@ export class UserBuilder {
       | Promise<BeforeCreateResponse>
       | Promise<BeforeSignInResponse>
       | Promise<void>,
-    eventType: string
+    eventType: AuthBlockingEventType
   ): BlockingFunction {
     let accessToken = this.userOptions?.blockingOptions?.accessToken || false;
     let idToken = this.userOptions?.blockingOptions?.idToken || false;
     let refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
-    const func: any = createV1Handler(eventType, handler, this.keysCache);
+    const func: any = wrapHandler(eventType, handler, false);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

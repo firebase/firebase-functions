@@ -1,10 +1,10 @@
 import { BlockingFunction } from '../../cloud-functions';
 import {
   AuthBlockingEvent,
+  AuthBlockingEventType,
   BeforeCreateResponse,
   BeforeSignInResponse,
-  createV2Handler,
-  PublicKeysCache,
+  wrapHandler,
 } from '../../common/providers/identity';
 import * as options from '../options';
 
@@ -113,7 +113,7 @@ export function beforeUserSignedIn(
 
 /** @internal */
 export function beforeOperation(
-  eventType: string,
+  eventType: AuthBlockingEventType,
   optsOrHandler:
     | BlockingOptions
     | ((
@@ -152,12 +152,7 @@ export function beforeOperation(
     optsOrHandler as BlockingOptions
   );
 
-  // TODO(colerogers): yank when admin sdk changes are released
-  const keysCache: PublicKeysCache = {
-    publicKeys: {},
-  };
-
-  const func: any = createV2Handler(eventType, handler, keysCache);
+  const func: any = wrapHandler(eventType, handler, true);
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
@@ -176,7 +171,7 @@ export function beforeOperation(
       ...specificOptsTrigger?.labels,
     },
     blockingTrigger: {
-      legacyEventType,
+      eventType: legacyEventType,
       options: {
         accessToken,
         idToken,
@@ -199,7 +194,7 @@ export function beforeOperation(
       ...specificOptsEndpoint?.labels,
     },
     blockingTrigger: {
-      legacyEventType,
+      eventType: legacyEventType,
       options: {
         accessToken,
         idToken,
