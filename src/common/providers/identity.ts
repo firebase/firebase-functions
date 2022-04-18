@@ -24,10 +24,12 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 import * as jwt from 'jsonwebtoken';
 import fetch from 'node-fetch';
-import { logger } from '../..';
+import { HttpsError, unsafeDecodeToken } from './https';
 import { EventContext } from '../../cloud-functions';
 import { SUPPORTED_REGIONS } from '../../function-configuration';
-import { HttpsError } from './https';
+import { logger } from '../..';
+import { apps } from '../../apps';
+import { isDebugFeatureEnabled } from '../debug';
 
 export { HttpsError };
 
@@ -342,6 +344,12 @@ export interface AuthEventContext extends EventContext {
   credential?: Credential;
 }
 
+/** Defines the auth event for v2 blocking events */
+
+export interface AuthBlockingEvent extends AuthEventContext {
+  data: AuthUserRecord;
+}
+
 /** The handler response type for beforeCreate blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
@@ -619,6 +627,19 @@ export function decodeJWT(token: string): Record<string, any> {
 }
 
 /**
+ * Decode, but not verify, an Auth Blocking token.
+ *
+ * Do not use in production. Token should always be verified using the Admin SDK.
+ *
+ * This is exposed only for testing.
+ */
+function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
+  const decoded = unsafeDecodeToken(token) as DecodedPayload;
+  decoded.uid = decoded.sub;
+  return decoded;
+}
+
+/**
  * Helper function to determine if we need to do full verification of the jwt
  * @internal
  */
@@ -632,12 +653,12 @@ export function shouldVerifyJWT(): boolean {
  * Throws an error if the event types do not match
  * @internal
  */
-export function verifyJWT(
+export async function verifyJWT(
   token: string,
   rawDecodedJWT: Record<string, any>,
   keysCache: PublicKeysCache,
   time: number = Date.now()
-): DecodedPayload {
+): Promise<DecodedPayload> {
   if (!rawDecodedJWT.header) {
     throw new HttpsError(
       'internal',
@@ -648,7 +669,7 @@ export function verifyJWT(
   let publicKey;
   try {
     if (invalidPublicKeys(keysCache, time)) {
-      refreshPublicKeys(keysCache);
+      await refreshPublicKeys(keysCache);
     }
     publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
@@ -659,7 +680,7 @@ export function verifyJWT(
   }
   // force refresh keys and retry one more time
   try {
-    refreshPublicKeys(keysCache);
+    await refreshPublicKeys(keysCache);
     publicKey = getPublicKeyFromHeader(header, keysCache.publicKeys);
     return jwt.verify(token, publicKey, {
       algorithms: [JWT_ALG],
@@ -999,43 +1020,50 @@ export function getUpdateMask(
   return updateMask.join(',');
 }
 
+type HandlerV1 = (
+  user: AuthUserRecord,
+  context: AuthEventContext
+) =>
+  | BeforeCreateResponse
+  | BeforeSignInResponse
+  | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
+  | Promise<void>;
+
+type HandlerV2 = (
+  event: AuthBlockingEvent
+) =>
+  | BeforeCreateResponse
+  | BeforeSignInResponse
+  | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
+  | Promise<void>;
+
 /** @internal */
-export function createHandler(
-  handler: (
-    user: AuthUserRecord,
-    context: AuthEventContext
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>,
+export function createV1Handler(
   eventType: string,
+  handler: HandlerV1,
   keysCache: PublicKeysCache
 ): (req: express.Request, resp: express.Response) => Promise<void> {
-  const wrappedHandler = wrapHandler(handler, eventType, keysCache);
-  return (req: express.Request, res: express.Response) => {
-    return new Promise((resolve) => {
-      res.on('finish', resolve);
-      resolve(wrappedHandler(req, res));
-    });
-  };
+  return wrapHandler(eventType, handler, keysCache, false);
+}
+
+/** @internal */
+export function createV2Handler(
+  eventType: string,
+  handler: HandlerV2,
+  keysCache: PublicKeysCache
+): (req: express.Request, resp: express.Response) => Promise<void> {
+  return wrapHandler(eventType, handler, keysCache, true);
 }
 
 function wrapHandler(
-  handler: (
-    user: AuthUserRecord,
-    context: AuthEventContext
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>,
   eventType: string,
-  keysCache: PublicKeysCache
+  handler: HandlerV1 | HandlerV2,
+  keysCache: PublicKeysCache,
+  v2: boolean
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
@@ -1044,23 +1072,40 @@ function wrapHandler(
         logger.error('Invalid request, unable to process');
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
-      const rawDecodedJWT = decodeJWT(req.body.data.jwt);
-      const decodedPayload = shouldVerifyJWT()
-        ? verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
-        : (rawDecodedJWT.payload as DecodedPayload);
+
+      if (!apps().admin.auth()._verifyAuthBlockingToken) {
+        throw new Error(
+          'Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.0.3'
+        );
+      }
+
+      let decodedPayload: DecodedPayload;
+      if (isDebugFeatureEnabled('skipTokenVerification')) {
+        decodedPayload = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
+      } else {
+        decodedPayload = await apps()
+          .admin.auth()
+          ._verifyAuthBlockingToken(req.body.data.jwt);
+      }
+
       checkDecodedToken(decodedPayload, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
-      const authResponse =
-        (await handler(authUserRecord, authEventContext)) || undefined;
+      const authResponse = (v2)
+        ? (await (handler as HandlerV2)({ ...authEventContext, data: authUserRecord })) || undefined
+        : (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined;
+
       validateAuthResponse(eventType, authResponse);
       const updateMask = getUpdateMask(authResponse);
-      const result = {
-        userRecord: {
-          ...authResponse,
-          updateMask,
-        },
-      };
+      const result =
+        updateMask.length === 0
+          ? {}
+          : {
+              userRecord: {
+                ...authResponse,
+                updateMask,
+              },
+            };
 
       res.status(200);
       res.setHeader('Content-Type', 'application/json');
@@ -1072,9 +1117,9 @@ function wrapHandler(
         err = new HttpsError('internal', 'An unexpected error occurred.');
       }
 
-      res.status(err.code);
-      res.setHeader('Content-Type', 'application/json');
-      res.send({ error: err.toJson() });
+      const { status } = err.httpErrorCode;
+      const body = { error: err.toJSON() };
+      res.status(status).send(body);
     }
   };
 }
