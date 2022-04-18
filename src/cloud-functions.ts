@@ -319,6 +319,9 @@ export type HttpsFunction = TriggerAnnotated &
   EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
 
+/**
+ * The Cloud Function type for Blocking triggers. 
+ */
 export type BlockingFunction = HttpsFunction;
 
 /**

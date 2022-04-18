@@ -53,7 +53,7 @@ export const service = 'firebaseauth.googleapis.com';
 
 /** Resource level options */
 export interface UserOptions {
-  blockingOptions: {
+  blockingOptions?: {
     idToken?: boolean;
     accessToken?: boolean;
     refreshToken?: boolean;
@@ -64,13 +64,13 @@ export interface UserOptions {
  * Handle events related to Firebase authentication users.
  */
 export function user(userOptions?: UserOptions) {
-  return _userWithOptions({});
+  return _userWithOptions({}, userOptions || {});
 }
 
 /** @hidden */
 export function _userWithOptions(
   options: DeploymentOptions,
-  userOptions?: UserOptions
+  userOptions: UserOptions
 ) {
   return new UserBuilder(
     () => {
@@ -98,6 +98,7 @@ export class UserBuilder {
     private options: DeploymentOptions,
     private userOptions?: UserOptions
   ) {
+    // TODO(colerogers): yank when admin sdk changes are released
     this.keysCache = {
       publicKeys: {},
     };
@@ -123,8 +124,8 @@ export class UserBuilder {
       context: AuthEventContext
     ) =>
       | BeforeCreateResponse
-      | Promise<BeforeCreateResponse>
       | void
+      | Promise<BeforeCreateResponse>
       | Promise<void>
   ): BlockingFunction {
     return this.beforeOperation(handler, 'beforeCreate');
@@ -136,8 +137,8 @@ export class UserBuilder {
       context: AuthEventContext
     ) =>
       | BeforeSignInResponse
-      | Promise<BeforeSignInResponse>
       | void
+      | Promise<BeforeSignInResponse>
       | Promise<void>
   ): BlockingFunction {
     return this.beforeOperation(handler, 'beforeSignIn');

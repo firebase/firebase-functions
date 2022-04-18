@@ -8,12 +8,7 @@ import {
 } from '../../common/providers/identity';
 import * as options from '../options';
 
-export interface BlockingOptions extends options.GlobalOptions {
-  idToken?: boolean;
-  accessToken?: boolean;
-  refreshToken?: boolean;
-}
-
+/** Internally used when parsing the options. */
 interface InternalOptions {
   opts: options.GlobalOptions;
   idToken: boolean;
@@ -21,6 +16,18 @@ interface InternalOptions {
   refreshToken: boolean;
 }
 
+/**
+ * All function options plus idToken, accessToken, and refreshToken.
+ */
+export interface BlockingOptions extends options.GlobalOptions {
+  idToken?: boolean;
+  accessToken?: boolean;
+  refreshToken?: boolean;
+}
+
+/**
+ * Handle an event that is triggered before a user is created.
+ */
 export function beforeUserCreated(
   handler: (
     event: AuthBlockingEvent
@@ -61,6 +68,9 @@ export function beforeUserCreated(
   return beforeOperation('beforeCreate', optsOrHandler, handler);
 }
 
+/**
+ * Handle an event that is triggered before a user is signed in.
+ */
 export function beforeUserSignedIn(
   handler: (
     event: AuthBlockingEvent
@@ -218,7 +228,7 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
   const opts = { ...blockingOptions };
   delete (opts as any).accessToken;
   delete (opts as any).idToken;
-  delete (opts as any).refresh;
+  delete (opts as any).refreshToken;
   return {
     opts,
     accessToken,

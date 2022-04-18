@@ -1088,27 +1088,12 @@ function wrapHandler(
           ._verifyAuthBlockingToken(req.body.data.jwt);
       }
 
-      // const rawDecodedJWT = decodeJWT(req.body.data.jwt);
-      // // TODO(colerogers): add isDebugFeatureEnabled('skipTokenVerification') here
-      // const decodedPayload = shouldVerifyJWT()
-      //   ? await verifyJWT(req.body.data.jwt, rawDecodedJWT, keysCache)
-      //   : (rawDecodedJWT.payload as DecodedPayload);
-
       checkDecodedToken(decodedPayload, eventType, projectId);
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
-      let authResponse;
-      if (v2) {
-        const authEvent: AuthBlockingEvent = {
-          ...authEventContext,
-          data: authUserRecord,
-        };
-        authResponse = (await (handler as HandlerV2)(authEvent)) || undefined;
-      } else {
-        authResponse =
-          (await (handler as HandlerV1)(authUserRecord, authEventContext)) ||
-          undefined;
-      }
+      const authResponse = (v2)
+        ? (await (handler as HandlerV2)({ ...authEventContext, data: authUserRecord })) || undefined
+        : (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined;
 
       validateAuthResponse(eventType, authResponse);
       const updateMask = getUpdateMask(authResponse);
