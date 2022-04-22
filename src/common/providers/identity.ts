@@ -821,7 +821,7 @@ export function wrapHandler(
 
       if (!apps().admin.auth()._verifyAuthBlockingToken) {
         throw new Error(
-          'Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.0.3'
+          'Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.1.0'
         );
       }
 
