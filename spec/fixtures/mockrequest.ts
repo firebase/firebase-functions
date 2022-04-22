@@ -80,6 +80,7 @@ export function generateIdToken(projectId: string): string {
     algorithm: 'RS256',
     header: {
       kid: mockKey.key_id,
+      alg: '',
     },
   };
   return jwt.sign(claims, mockKey.private_key, options);
