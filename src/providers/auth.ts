@@ -173,7 +173,7 @@ export class UserBuilder {
     let idToken = this.userOptions?.blockingOptions?.idToken || false;
     let refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
-    const func: any = wrapHandler(eventType, handler, false);
+    const func: any = wrapHandler(eventType, handler);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

@@ -152,33 +152,9 @@ export function beforeOperation(
     optsOrHandler as BlockingOptions
   );
 
-  const func: any = wrapHandler(eventType, handler, true);
+  const func: any = wrapHandler(eventType, handler);
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
-
-  /** Trigger */
-  const baseOptsTrigger = options.optionsToTriggerAnnotations(
-    options.getGlobalOptions()
-  );
-  const specificOptsTrigger = options.optionsToTriggerAnnotations(opts);
-  func.__trigger = {
-    apiVersion: 2,
-    platform: 'gcfv2',
-    ...baseOptsTrigger,
-    ...specificOptsTrigger,
-    labels: {
-      ...baseOptsTrigger?.labels,
-      ...specificOptsTrigger?.labels,
-    },
-    blockingTrigger: {
-      eventType: legacyEventType,
-      options: {
-        accessToken,
-        idToken,
-        refreshToken,
-      },
-    },
-  };
 
   /** Endpoint */
   const baseOptsEndpoint = options.optionsToEndpoint(

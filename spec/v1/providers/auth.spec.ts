@@ -29,8 +29,6 @@ import {
 import { UserRecord } from '../../../src/common/providers/identity';
 import * as functions from '../../../src/index';
 import * as auth from '../../../src/providers/auth';
-import * as identityCommon from '../../../src/common/providers/identity';
-import * as sinon from 'sinon';
 
 describe('Auth Functions', () => {
   const event: Event = {
@@ -82,18 +80,12 @@ describe('Auth Functions', () => {
 
     const project = 'project1';
 
-    let wrapHandlerStub: sinon.SinonStub;
-
-    beforeEach(() => {
+    before(() => {
       process.env.GCLOUD_PROJECT = project;
-      wrapHandlerStub = sinon
-        .stub(identityCommon, 'wrapHandler')
-        .throws('unexpected call to wrapHandler');
     });
 
-    afterEach(() => {
+    after(() => {
       delete process.env.GCLOUD_PROJECT;
-      sinon.verifyAndRestore();
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -145,8 +137,6 @@ describe('Auth Functions', () => {
 
     describe('beforeCreate', () => {
       it('should create the function without options', () => {
-        wrapHandlerStub.returns(() => Promise.resolve());
-
         const fn = auth.user().beforeCreate((u, c) => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
@@ -181,8 +171,6 @@ describe('Auth Functions', () => {
       });
 
       it('should create the function with options', () => {
-        wrapHandlerStub.returns(() => Promise.resolve());
-
         const fn = functions
           .region('us-east1')
           .runWith({
@@ -237,8 +225,6 @@ describe('Auth Functions', () => {
 
     describe('beforeSignIn', () => {
       it('should create the function without options', () => {
-        wrapHandlerStub.returns(() => Promise.resolve());
-
         const fn = auth.user().beforeSignIn((u, c) => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
@@ -273,8 +259,6 @@ describe('Auth Functions', () => {
       });
 
       it('should create the function with options', () => {
-        wrapHandlerStub.returns(() => Promise.resolve());
-
         const fn = functions
           .region('us-east1')
           .runWith({

@@ -20,8 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import * as identity from '../../../src/v2/providers/identity';
-import * as identityCommon from '../../../src/common/providers/identity';
-import * as sinon from 'sinon';
 import { expect } from 'chai';
 
 const BEFORE_CREATE_TRIGGER = {
@@ -50,30 +48,10 @@ const opts: identity.BlockingOptions = {
 };
 
 describe('identity', () => {
-  let wrapHandlerStub: sinon.SinonStub;
-
-  beforeEach(() => {
-    wrapHandlerStub = sinon
-      .stub(identityCommon, 'wrapHandler')
-      .throws('unexpected call to wrapHandler');
-  });
-
-  afterEach(() => {
-    sinon.verifyAndRestore();
-  });
-
   describe('beforeUserCreated', () => {
     it('should accept a handler', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeUserCreated((event) => Promise.resolve());
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        blockingTrigger: BEFORE_CREATE_TRIGGER,
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -88,24 +66,8 @@ describe('identity', () => {
     });
 
     it('should accept options and a handler', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeUserCreated(opts, (event) => Promise.resolve());
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        minInstances: 1,
-        regions: ['us-west1'],
-        blockingTrigger: {
-          ...BEFORE_CREATE_TRIGGER,
-          options: {
-            ...BEFORE_CREATE_TRIGGER.options,
-            accessToken: true,
-          },
-        },
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -130,16 +92,8 @@ describe('identity', () => {
 
   describe('beforeUserSignedIn', () => {
     it('should accept a handler', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeUserSignedIn((event) => Promise.resolve());
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -154,26 +108,10 @@ describe('identity', () => {
     });
 
     it('should accept options and a handler', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeUserSignedIn(opts, (event) =>
         Promise.resolve()
       );
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        minInstances: 1,
-        regions: ['us-west1'],
-        blockingTrigger: {
-          ...BEFORE_SIGN_IN_TRIGGER,
-          options: {
-            ...BEFORE_SIGN_IN_TRIGGER.options,
-            accessToken: true,
-          },
-        },
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -198,20 +136,12 @@ describe('identity', () => {
 
   describe('beforeOperation', () => {
     it('should handle eventType and handler for before create events', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeOperation(
         'beforeCreate',
         (event) => Promise.resolve(),
         undefined
       );
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        blockingTrigger: BEFORE_CREATE_TRIGGER,
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -226,20 +156,12 @@ describe('identity', () => {
     });
 
     it('should handle eventType and handler for before sign in events', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeOperation(
         'beforeSignIn',
         (event) => Promise.resolve(),
         undefined
       );
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -254,26 +176,10 @@ describe('identity', () => {
     });
 
     it('should handle eventType, options, and handler for before create events', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeOperation('beforeCreate', opts, (event) =>
         Promise.resolve()
       );
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        minInstances: 1,
-        regions: ['us-west1'],
-        blockingTrigger: {
-          ...BEFORE_CREATE_TRIGGER,
-          options: {
-            ...BEFORE_CREATE_TRIGGER.options,
-            accessToken: true,
-          },
-        },
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -296,26 +202,10 @@ describe('identity', () => {
     });
 
     it('should handle eventType, options, and handler for before sign in events', () => {
-      wrapHandlerStub.returns(() => Promise.resolve());
-
       const fn = identity.beforeOperation('beforeSignIn', opts, (event) =>
         Promise.resolve()
       );
 
-      expect(fn.__trigger).to.deep.equal({
-        apiVersion: 2,
-        platform: 'gcfv2',
-        labels: {},
-        minInstances: 1,
-        regions: ['us-west1'],
-        blockingTrigger: {
-          ...BEFORE_SIGN_IN_TRIGGER,
-          options: {
-            ...BEFORE_SIGN_IN_TRIGGER.options,
-            accessToken: true,
-          },
-        },
-      });
       expect(fn.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},

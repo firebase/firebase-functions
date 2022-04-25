@@ -326,7 +326,6 @@ export interface AuthEventContext extends EventContext {
 }
 
 /** Defines the auth event for v2 blocking events */
-
 export interface AuthBlockingEvent extends AuthEventContext {
   data: AuthUserRecord;
 }
@@ -808,8 +807,7 @@ export function getUpdateMask(
 /** @internal */
 export function wrapHandler(
   eventType: AuthBlockingEventType,
-  handler: HandlerV1 | HandlerV2,
-  v2: boolean
+  handler: HandlerV1 | HandlerV2
 ) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
@@ -836,13 +834,18 @@ export function wrapHandler(
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
 
-      const authResponse = v2
-        ? (await (handler as HandlerV2)({
+      let authResponse;
+      if (handler.length === 2) {
+        authResponse =
+          (await (handler as HandlerV1)(authUserRecord, authEventContext)) ||
+          undefined;
+      } else {
+        authResponse =
+          (await (handler as HandlerV2)({
             ...authEventContext,
             data: authUserRecord,
-          } as AuthBlockingEvent)) || undefined
-        : (await (handler as HandlerV1)(authUserRecord, authEventContext)) ||
-          undefined;
+          } as AuthBlockingEvent)) || undefined;
+      }
 
       validateAuthResponse(eventType, authResponse);
       const updateMask = getUpdateMask(authResponse);
@@ -868,6 +871,7 @@ export function wrapHandler(
 
       const { status } = err.httpErrorCode;
       const body = { error: err.toJSON() };
+      res.setHeader('Content-Type', 'application/json');
       res.status(status).send(body);
     }
   };
