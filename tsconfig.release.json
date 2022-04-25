@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es2018", "DOM"],
+    "lib": ["es2018"],
     "module": "commonjs",
     "noImplicitAny": false,
     "noUnusedLocals": true,
     "outDir": "lib",
     "stripInternal": true,
+    "skipLibCheck": true,
     "target": "es2018",
     "typeRoots": ["./node_modules/@types"]
   },
