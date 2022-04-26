@@ -5,8 +5,11 @@ import {
   BeforeCreateResponse,
   BeforeSignInResponse,
   wrapHandler,
+  HttpsError,
 } from '../../common/providers/identity';
 import * as options from '../options';
+
+export { HttpsError };
 
 /** Internally used when parsing the options. */
 interface InternalOptions {

@@ -31,6 +31,7 @@ import {
   BeforeSignInResponse,
   wrapHandler,
   AuthBlockingEventType,
+  HttpsError,
 } from '../common/providers/identity';
 import {
   BlockingFunction,
@@ -45,6 +46,8 @@ import { DeploymentOptions } from '../function-configuration';
 
 // TODO: yank in next breaking change release
 export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
+
+export { HttpsError };
 
 /** @hidden */
 export const provider = 'google.firebase.auth';
