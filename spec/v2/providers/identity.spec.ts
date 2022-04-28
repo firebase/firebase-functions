@@ -19,8 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import * as identity from '../../../src/v2/providers/identity';
 import { expect } from 'chai';
+import * as identity from '../../../src/v2/providers/identity';
 
 const BEFORE_CREATE_TRIGGER = {
   eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',

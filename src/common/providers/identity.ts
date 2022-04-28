@@ -22,11 +22,11 @@
 
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import { HttpsError, unsafeDecodeToken } from './https';
-import { EventContext } from '../../cloud-functions';
 import { logger } from '../..';
 import { apps } from '../../apps';
+import { EventContext } from '../../cloud-functions';
 import { isDebugFeatureEnabled } from '../debug';
+import { HttpsError, unsafeDecodeToken } from './https';
 
 export { HttpsError };
 

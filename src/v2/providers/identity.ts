@@ -4,8 +4,8 @@ import {
   AuthBlockingEventType,
   BeforeCreateResponse,
   BeforeSignInResponse,
-  wrapHandler,
   HttpsError,
+  wrapHandler,
 } from '../../common/providers/identity';
 import * as options from '../options';
 

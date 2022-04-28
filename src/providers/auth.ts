@@ -21,19 +21,6 @@
 // SOFTWARE.
 
 import {
-  UserRecord,
-  UserInfo,
-  UserRecordMetadata,
-  userRecordConstructor,
-  AuthUserRecord,
-  AuthEventContext,
-  BeforeCreateResponse,
-  BeforeSignInResponse,
-  wrapHandler,
-  AuthBlockingEventType,
-  HttpsError,
-} from '../common/providers/identity';
-import {
   BlockingFunction,
   CloudFunction,
   Event,
@@ -42,6 +29,19 @@ import {
   optionsToEndpoint,
   optionsToTrigger,
 } from '../cloud-functions';
+import {
+  AuthBlockingEventType,
+  AuthEventContext,
+  AuthUserRecord,
+  BeforeCreateResponse,
+  BeforeSignInResponse,
+  HttpsError,
+  UserInfo,
+  UserRecord,
+  userRecordConstructor,
+  UserRecordMetadata,
+  wrapHandler,
+} from '../common/providers/identity';
 import { DeploymentOptions } from '../function-configuration';
 
 // TODO: yank in next breaking change release
@@ -172,9 +172,10 @@ export class UserBuilder {
       | Promise<void>,
     eventType: AuthBlockingEventType
   ): BlockingFunction {
-    let accessToken = this.userOptions?.blockingOptions?.accessToken || false;
-    let idToken = this.userOptions?.blockingOptions?.idToken || false;
-    let refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
+    const accessToken = this.userOptions?.blockingOptions?.accessToken || false;
+    const idToken = this.userOptions?.blockingOptions?.idToken || false;
+    const refreshToken =
+      this.userOptions?.blockingOptions?.refreshToken || false;
 
     // Create our own function that just calls the provided function so we know for sure that
     // handler takes two arguments. This is something common/providers/identity depends on.
