@@ -1,6 +1,6 @@
 export {};
 
 declare global {
-    interface AbortSignal {}
-    interface AbortController {}
+  interface AbortSignal {}
+  interface AbortController {}
 }
