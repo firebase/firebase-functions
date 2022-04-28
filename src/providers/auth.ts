@@ -176,7 +176,11 @@ export class UserBuilder {
     let idToken = this.userOptions?.blockingOptions?.idToken || false;
     let refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
-    const func: any = wrapHandler(eventType, handler);
+    // Create our own function that just calls the provided function so we know for sure that
+    // handler takes two arguments. This is something common/providers/identity depends on.
+    const wrappedHandler = (user: AuthUserRecord, context: AuthEventContext) =>
+      handler(user, context);
+    const func: any = wrapHandler(eventType, wrappedHandler);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

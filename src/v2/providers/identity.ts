@@ -155,7 +155,10 @@ export function beforeOperation(
     optsOrHandler as BlockingOptions
   );
 
-  const func: any = wrapHandler(eventType, handler);
+  // Create our own function that just calls the provided function so we know for sure that
+  // handler takes one argument. This is something common/providers/identity depends on.
+  const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
+  const func: any = wrapHandler(eventType, wrappedHandler);
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
