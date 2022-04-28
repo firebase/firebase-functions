@@ -174,7 +174,8 @@ export class UserBuilder {
   ): BlockingFunction {
     const accessToken = this.userOptions?.blockingOptions?.accessToken || false;
     const idToken = this.userOptions?.blockingOptions?.idToken || false;
-    const refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
+    const refreshToken =
+      this.userOptions?.blockingOptions?.refreshToken || false;
 
     // Create our own function that just calls the provided function so we know for sure that
     // handler takes two arguments. This is something common/providers/identity depends on.
