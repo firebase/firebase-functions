@@ -513,7 +513,8 @@ export class FunctionBuilder {
       /**
        * Handle events related to Firebase authentication users.
        */
-      user: () => auth._userWithOptions(this.options),
+      user: (userOptions?: auth.UserOptions) =>
+        auth._userWithOptions(this.options, userOptions),
     };
   }
 

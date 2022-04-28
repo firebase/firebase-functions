@@ -70,6 +70,11 @@ export interface ManifestEndpoint {
       maxDoublings?: number;
     };
   };
+
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
 }
 
 export interface ManifestRequiredAPI {

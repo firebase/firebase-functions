@@ -44,6 +44,10 @@ export interface TriggerAnnotation {
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;
   ingressSettings?: string;
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
 
   // TODO: schedule
 }
