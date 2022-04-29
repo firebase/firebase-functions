@@ -15,7 +15,7 @@ interface Issue {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewFatalIssuePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewFatalIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewFatalIssuePayload';
   issue: Issue;
 }
 
@@ -24,7 +24,7 @@ export interface NewFatalIssuePayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewNonfatalIssuePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewNonfatalIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewNonfatalIssuePayload';
   issue: Issue;
 }
 
@@ -33,7 +33,7 @@ export interface NewNonfatalIssuePayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface RegressionAlertPayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsRegressionAlertPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsRegressionAlertPayload';
   type: string;
   issue: Issue;
   resolveTime: string;
@@ -52,7 +52,7 @@ interface TrendingIssueDetails {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface StabilityDigestPayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsStabilityDigestPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsStabilityDigestPayload';
   digestDate: string;
   trendingIssues: TrendingIssueDetails[];
 }
@@ -62,7 +62,7 @@ export interface StabilityDigestPayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface VelocityAlertPayload {
-  ['@type']: 'com.google.firebase.firebasealerts.VelocityAlertPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.VelocityAlertPayload';
   issue: Issue;
   createTime: string;
   crashCount: number;
@@ -75,7 +75,7 @@ export interface VelocityAlertPayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewAnrIssuePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.NewAnrIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.NewAnrIssuePayload';
   issue: Issue;
 }
 
