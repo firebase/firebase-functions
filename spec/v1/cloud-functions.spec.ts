@@ -29,7 +29,7 @@ import {
   EventContext,
   makeCloudFunction,
   MakeCloudFunctionArgs,
-} from '../../src/cloud-functions';
+} from '../../src';
 
 describe('makeCloudFunction', () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
@@ -124,7 +124,7 @@ describe('makeCloudFunction', () => {
         },
         retry: false,
       },
-      secretEnvironmentVariables: [{ secret: 'MY_SECRET', key: 'MY_SECRET' }],
+      secretEnvironmentVariables: [{ key: 'MY_SECRET' }],
       labels: {},
     });
   });
