@@ -62,7 +62,7 @@ export interface StabilityDigestPayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface VelocityAlertPayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.VelocityAlertPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsVelocityAlertPayload';
   issue: Issue;
   createTime: string;
   crashCount: number;
@@ -75,7 +75,7 @@ export interface VelocityAlertPayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewAnrIssuePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.NewAnrIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewAnrIssuePayload';
   issue: Issue;
 }
 
