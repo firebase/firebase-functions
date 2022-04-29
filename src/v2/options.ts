@@ -31,6 +31,7 @@ import { ManifestEndpoint } from '../runtime/manifest';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
+import { HttpsOptions } from './providers/https';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -215,6 +216,11 @@ export interface GlobalOptions {
    * Invoker to set access control on https functions.
    */
   invoker?: 'public' | 'private' | string | string[];
+
+  /*
+   * Secrets to bind to a functions.
+   */
+  secrets?: string[];
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -251,7 +257,7 @@ export interface EventHandlerOptions extends GlobalOptions {
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): TriggerAnnotation {
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
@@ -263,7 +269,8 @@ export function optionsToTriggerAnnotations(
     'ingressSettings',
     'labels',
     'vpcConnector',
-    'vpcConnectorEgressSettings'
+    'vpcConnectorEgressSettings',
+    'secrets'
   );
   convertIfPresent(
     annotation,
@@ -312,7 +319,7 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
@@ -350,6 +357,13 @@ export function optionsToEndpoint(
     }
     return region;
   });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ key: secret }))
+  );
 
   return endpoint;
 }

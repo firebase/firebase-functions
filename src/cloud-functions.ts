@@ -636,7 +636,7 @@ export function optionsToEndpoint(
     options,
     'secretEnvironmentVariables',
     'secrets',
-    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
+    (secrets) => secrets.map((secret) => ({ key: secret }))
   );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };
