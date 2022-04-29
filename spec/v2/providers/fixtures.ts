@@ -56,5 +56,5 @@ export const FULL_ENDPOINT: ManifestEndpoint = {
   labels: {
     hello: 'world',
   },
-  secretEnvironmentVariables: [{ key: 'MY_SECRET', secret: 'MY_SECRET' }],
+  secretEnvironmentVariables: [{ key: 'MY_SECRET' }],
 };

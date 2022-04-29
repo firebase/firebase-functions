@@ -357,7 +357,7 @@ export function optionsToEndpoint(
     opts,
     'secretEnvironmentVariables',
     'secrets',
-    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
+    (secrets) => secrets.map((secret) => ({ key: secret }))
   );
 
   return endpoint;
