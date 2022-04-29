@@ -46,7 +46,10 @@ export interface TriggerAnnotation {
   serviceAccountEmail?: string;
   ingressSettings?: string;
   secrets?: string[];
-
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
   // TODO: schedule
 }
 

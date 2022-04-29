@@ -264,6 +264,10 @@ export interface Resource {
 export interface TriggerAnnotated {
   __trigger: {
     availableMemoryMb?: number;
+    blockingTrigger?: {
+      eventType: string;
+      options?: Record<string, unknown>;
+    };
     eventTrigger?: {
       eventType: string;
       resource: string;
@@ -314,6 +318,11 @@ export interface Runnable<T> {
 export type HttpsFunction = TriggerAnnotated &
   EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
+
+/**
+ * The Cloud Function type for Blocking triggers.
+ */
+export type BlockingFunction = HttpsFunction;
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported
