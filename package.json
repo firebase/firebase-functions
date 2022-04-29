@@ -64,7 +64,8 @@
     "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
     "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
     "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
-    "./v2/eventarc": "./lib/v2/providers/eventarc.js"
+    "./v2/eventarc": "./lib/v2/providers/eventarc.js",
+    "./v2/identity": "./lib/v2/providers/identity.js"
   },
   "typesVersions": {
     "*": {
@@ -128,6 +129,9 @@
       "v2/eventarc": [
         "lib/v2/providers/eventarc"
       ],
+      "v2/identity": [
+        "lib/v2/providers/identity"
+      ],
       "v2/options": [
         "lib/v2/options"
       ],
@@ -186,7 +190,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
-    "firebase-admin": "10.0.0",
+    "firebase-admin": "^10.1.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
