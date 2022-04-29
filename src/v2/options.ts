@@ -20,17 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  convertIfPresent,
-  copyIfPresent,
-  durationFromSeconds,
-  serviceAccountFromShorthand,
-} from '../common/encoding';
+import {convertIfPresent, copyIfPresent, durationFromSeconds, serviceAccountFromShorthand,} from '../common/encoding';
 import * as logger from '../logger';
-import { ManifestEndpoint } from '../runtime/manifest';
-import { TriggerAnnotation } from './core';
-import { declaredParams } from './params';
-import { ParamSpec } from './params/types';
+import {ManifestEndpoint} from '../runtime/manifest';
+import {TriggerAnnotation} from './core';
+import {declaredParams} from './params';
+import {ParamSpec} from './params/types';
+import {HttpsOptions} from "./providers/https";
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -242,15 +238,6 @@ export function setGlobalOptions(options: GlobalOptions) {
  */
 export function getGlobalOptions(): GlobalOptions {
   return globalOptions || {};
-}
-
-/**
- * Options that can be set on an individual HTTPS Cloud Function.
- */
-export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
-  /* HTTP functions can override and specify more than one regions. */
-  region?: SupportedRegion | string | Array<SupportedRegion | string>;
-  cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
 
 /**

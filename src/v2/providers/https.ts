@@ -22,19 +22,23 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
-import { convertIfPresent, convertInvoker } from '../../common/encoding';
+import {convertIfPresent, convertInvoker} from '../../common/encoding';
 
-import {
-  CallableRequest,
-  FunctionsErrorCode,
-  HttpsError,
-  onCallHandler,
-  Request,
-} from '../../common/providers/https';
-import { ManifestEndpoint } from '../../runtime/manifest';
+import {CallableRequest, FunctionsErrorCode, HttpsError, onCallHandler, Request,} from '../../common/providers/https';
+import {ManifestEndpoint} from '../../runtime/manifest';
 import * as options from '../options';
+import {GlobalOptions, SupportedRegion} from '../options';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
+
+/**
+ * Options that can be set on an individual HTTPS Cloud Function.
+ */
+export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
+  /* HTTP functions can override and specify more than one regions. */
+  region?: SupportedRegion | string | Array<SupportedRegion | string>;
+  cors?: string | boolean | RegExp | Array<string | RegExp>;
+}
 
 export type HttpsFunction = ((
   req: Request,
@@ -46,9 +50,8 @@ export type HttpsFunction = ((
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
-
 export function onRequest(
-  opts: options.HttpsOptions,
+  opts: HttpsOptions,
   handler: (
     request: Request,
     response: express.Response
@@ -62,14 +65,14 @@ export function onRequest(
 ): HttpsFunction;
 export function onRequest(
   optsOrHandler:
-    | options.HttpsOptions
+    | HttpsOptions
     | ((request: Request, response: express.Response) => void | Promise<void>),
   handler?: (
     request: Request,
     response: express.Response
   ) => void | Promise<void>
 ): HttpsFunction {
-  let opts: options.HttpsOptions;
+  let opts: HttpsOptions;
   if (arguments.length === 1) {
     opts = {};
     handler = optsOrHandler as (
@@ -77,7 +80,7 @@ export function onRequest(
       response: express.Response
     ) => void | Promise<void>;
   } else {
-    opts = optsOrHandler as options.HttpsOptions;
+    opts = optsOrHandler as HttpsOptions;
   }
 
   if ('cors' in opts) {
@@ -152,7 +155,7 @@ export function onRequest(
 }
 
 export function onCall<T = any, Return = any | Promise<any>>(
-  opts: options.HttpsOptions,
+  opts: HttpsOptions,
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
@@ -160,16 +163,16 @@ export function onCall<T = any, Return = any | Promise<any>>(
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
   optsOrHandler:
-    | options.HttpsOptions
+    | HttpsOptions
     | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
-  let opts: options.HttpsOptions;
+  let opts: HttpsOptions;
   if (arguments.length == 1) {
     opts = {};
     handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
-    opts = optsOrHandler as options.HttpsOptions;
+    opts = optsOrHandler as HttpsOptions;
   }
 
   const origin = 'cors' in opts ? opts.cors : true;
