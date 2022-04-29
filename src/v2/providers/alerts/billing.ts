@@ -7,7 +7,7 @@ import * as options from '../../options';
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface PlanUpdatePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.PlanUpdatePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanUpdatePayload';
   billingPlan: string;
   principalEmail: string;
 }
@@ -17,7 +17,7 @@ export interface PlanUpdatePayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface PlanAutomatedUpdatePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.PlanAutomatedUpdatePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanAutomatedUpdatePayload';
   billingPlan: string;
 }
 
