@@ -214,6 +214,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
   });
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
     platform: 'gcfv2',
