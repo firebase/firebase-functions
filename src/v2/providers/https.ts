@@ -22,12 +22,18 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
-import {convertIfPresent, convertInvoker} from '../../common/encoding';
+import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
-import {CallableRequest, FunctionsErrorCode, HttpsError, onCallHandler, Request,} from '../../common/providers/https';
-import {ManifestEndpoint} from '../../runtime/manifest';
+import {
+  CallableRequest,
+  FunctionsErrorCode,
+  HttpsError,
+  onCallHandler,
+  Request,
+} from '../../common/providers/https';
+import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
-import {GlobalOptions, SupportedRegion} from '../options';
+import { GlobalOptions, SupportedRegion } from '../options';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -162,9 +168,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler:
-    | HttpsOptions
-    | ((request: CallableRequest<T>) => Return),
+  optsOrHandler: HttpsOptions | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
   let opts: HttpsOptions;

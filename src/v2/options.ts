@@ -20,13 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {convertIfPresent, copyIfPresent, durationFromSeconds, serviceAccountFromShorthand,} from '../common/encoding';
+import {
+  convertIfPresent,
+  copyIfPresent,
+  durationFromSeconds,
+  serviceAccountFromShorthand,
+} from '../common/encoding';
 import * as logger from '../logger';
-import {ManifestEndpoint} from '../runtime/manifest';
-import {TriggerAnnotation} from './core';
-import {declaredParams} from './params';
-import {ParamSpec} from './params/types';
-import {HttpsOptions} from "./providers/https";
+import { ManifestEndpoint } from '../runtime/manifest';
+import { TriggerAnnotation } from './core';
+import { declaredParams } from './params';
+import { ParamSpec } from './params/types';
+import { HttpsOptions } from './providers/https';
 
 /**
  * List of all regions supported by Cloud Functions v2
