@@ -15,7 +15,9 @@ export interface NewTesterDevicePayload {
 }
 
 interface WithAlertTypeAndApp {
+  /** The type of the alerts that got triggered. */
   alertType: string;
+  /** The Firebase App ID that’s associated with the alert. */
   appId: string;
 }
 /**
