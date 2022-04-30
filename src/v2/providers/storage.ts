@@ -175,6 +175,7 @@ export interface CustomerEncryption {
 }
 
 interface WithBucket {
+  /** The name of the bucket containing this object. */
   bucket: string;
 }
 
@@ -214,7 +215,7 @@ export function onObjectArchived(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
   return onOperation(archivedEvent, buketOrOptsOrHandler, handler);
@@ -264,7 +265,7 @@ export function onObjectDeleted(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
   return onOperation(deletedEvent, buketOrOptsOrHandler, handler);
@@ -289,7 +290,7 @@ export function onObjectMetadataUpdated(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
   return onOperation(metadataUpdatedEvent, buketOrOptsOrHandler, handler);
@@ -301,12 +302,12 @@ export function onOperation(
   bucketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
+    | ((event: StorageEvent) => any | Promise<any>),
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageObjectData> {
   if (typeof bucketOrOptsOrHandler === 'function') {
     handler = bucketOrOptsOrHandler as (
-      event: CloudEvent<StorageObjectData>
+      event: StorageEvent
     ) => any | Promise<any>;
     bucketOrOptsOrHandler = {};
   }
@@ -388,7 +389,7 @@ export function getOptsAndBucket(
     bucket = bucketOrOpts;
     opts = {};
   } else {
-    bucket = bucketOrOpts.bucket || firebaseConfig().storageBucket;
+    bucket = bucketOrOpts.bucket || firebaseConfig()?.storageBucket;
     opts = { ...bucketOrOpts };
     delete (opts as any).bucket;
   }

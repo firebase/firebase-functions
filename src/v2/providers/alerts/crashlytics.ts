@@ -71,7 +71,7 @@ export interface StabilityDigestPayload {
    */
   digestDate: string;
   /** A stability digest containing several trending Crashlytics issues */
-   trendingIssues: TrendingIssueDetails[];
+  trendingIssues: TrendingIssueDetails[];
 }
 
 /**
