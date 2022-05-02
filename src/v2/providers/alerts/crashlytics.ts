@@ -111,19 +111,15 @@ export interface NewAnrIssuePayload {
   issue: Issue;
 }
 
-interface WithAlertTypeAndApp {
+/**
+ * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
+ */
+export interface CrashlyticsEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
   /** The type of the alerts that got triggered. */
   alertType: string;
   /** The Firebase App ID that’s associated with the alert. */
   appId: string;
 }
-/**
- * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
- */
-export type CrashlyticsEvent<T> = CloudEvent<
-  FirebaseAlertData<T>,
-  WithAlertTypeAndApp
->;
 
 /** @internal */
 export const newFatalIssueAlert = 'crashlytics.newFatalIssue';
@@ -150,15 +146,15 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
  */
 export function onNewFatalIssuePublished(
   handler: (event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewFatalIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewFatalIssuePayload>>;
 export function onNewFatalIssuePublished(
   appId: string,
   handler: (event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewFatalIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewFatalIssuePayload>>;
 export function onNewFatalIssuePublished(
   opts: CrashlyticsOptions,
   handler: (event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewFatalIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewFatalIssuePayload>>;
 export function onNewFatalIssuePublished(
   appIdOrOptsOrHandler:
     | string
@@ -167,7 +163,7 @@ export function onNewFatalIssuePublished(
   handler?: (
     event: CrashlyticsEvent<NewFatalIssuePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewFatalIssuePayload>> {
+): CloudFunction<CrashlyticsEvent<NewFatalIssuePayload>> {
   return onOperation<NewFatalIssuePayload>(
     newFatalIssueAlert,
     appIdOrOptsOrHandler,
@@ -182,19 +178,19 @@ export function onNewNonfatalIssuePublished(
   handler: (
     event: CrashlyticsEvent<NewNonfatalIssuePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewNonfatalIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 export function onNewNonfatalIssuePublished(
   appId: string,
   handler: (
     event: CrashlyticsEvent<NewNonfatalIssuePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewNonfatalIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 export function onNewNonfatalIssuePublished(
   opts: CrashlyticsOptions,
   handler: (
     event: CrashlyticsEvent<NewNonfatalIssuePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewNonfatalIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 export function onNewNonfatalIssuePublished(
   appIdOrOptsOrHandler:
     | string
@@ -205,7 +201,7 @@ export function onNewNonfatalIssuePublished(
   handler?: (
     event: CrashlyticsEvent<NewNonfatalIssuePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewNonfatalIssuePayload>> {
+): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>> {
   return onOperation<NewNonfatalIssuePayload>(
     newNonfatalIssueAlert,
     appIdOrOptsOrHandler,
@@ -220,19 +216,19 @@ export function onRegressionAlertPublished(
   handler: (
     event: CrashlyticsEvent<RegressionAlertPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<RegressionAlertPayload>>;
+): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 export function onRegressionAlertPublished(
   appId: string,
   handler: (
     event: CrashlyticsEvent<RegressionAlertPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<RegressionAlertPayload>>;
+): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 export function onRegressionAlertPublished(
   opts: CrashlyticsOptions,
   handler: (
     event: CrashlyticsEvent<RegressionAlertPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<RegressionAlertPayload>>;
+): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 export function onRegressionAlertPublished(
   appIdOrOptsOrHandler:
     | string
@@ -241,7 +237,7 @@ export function onRegressionAlertPublished(
   handler?: (
     event: CrashlyticsEvent<RegressionAlertPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<RegressionAlertPayload>> {
+): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>> {
   return onOperation<RegressionAlertPayload>(
     regressionAlert,
     appIdOrOptsOrHandler,
@@ -256,19 +252,19 @@ export function onStabilityDigestPublished(
   handler: (
     event: CrashlyticsEvent<StabilityDigestPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<StabilityDigestPayload>>;
+): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 export function onStabilityDigestPublished(
   appId: string,
   handler: (
     event: CrashlyticsEvent<StabilityDigestPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<StabilityDigestPayload>>;
+): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 export function onStabilityDigestPublished(
   opts: CrashlyticsOptions,
   handler: (
     event: CrashlyticsEvent<StabilityDigestPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<StabilityDigestPayload>>;
+): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 export function onStabilityDigestPublished(
   appIdOrOptsOrHandler:
     | string
@@ -277,7 +273,7 @@ export function onStabilityDigestPublished(
   handler?: (
     event: CrashlyticsEvent<StabilityDigestPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<StabilityDigestPayload>> {
+): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>> {
   return onOperation<StabilityDigestPayload>(
     stabilityDigestAlert,
     appIdOrOptsOrHandler,
@@ -290,15 +286,15 @@ export function onStabilityDigestPublished(
  */
 export function onVelocityAlertPublished(
   handler: (event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<VelocityAlertPayload>>;
+): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>>;
 export function onVelocityAlertPublished(
   appId: string,
   handler: (event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<VelocityAlertPayload>>;
+): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>>;
 export function onVelocityAlertPublished(
   opts: CrashlyticsOptions,
   handler: (event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<VelocityAlertPayload>>;
+): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>>;
 export function onVelocityAlertPublished(
   appIdOrOptsOrHandler:
     | string
@@ -307,7 +303,7 @@ export function onVelocityAlertPublished(
   handler?: (
     event: CrashlyticsEvent<VelocityAlertPayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<VelocityAlertPayload>> {
+): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>> {
   return onOperation<VelocityAlertPayload>(
     velocityAlert,
     appIdOrOptsOrHandler,
@@ -320,22 +316,22 @@ export function onVelocityAlertPublished(
  */
 export function onNewAnrIssuePublished(
   handler: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewAnrIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>>;
 export function onNewAnrIssuePublished(
   appId: string,
   handler: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewAnrIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>>;
 export function onNewAnrIssuePublished(
   opts: CrashlyticsOptions,
   handler: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewAnrIssuePayload>>;
+): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>>;
 export function onNewAnrIssuePublished(
   appIdOrOptsOrHandler:
     | string
     | CrashlyticsOptions
     | ((event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>),
   handler?: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewAnrIssuePayload>> {
+): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>> {
   return onOperation<NewAnrIssuePayload>(
     newAnrIssueAlert,
     appIdOrOptsOrHandler,
@@ -351,7 +347,7 @@ export function onOperation<T>(
     | CrashlyticsOptions
     | ((event: CrashlyticsEvent<T>) => any | Promise<any>),
   handler: (event: CrashlyticsEvent<T>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<T>> {
+): CloudFunction<CrashlyticsEvent<T>> {
   if (typeof appIdOrOptsOrHandler === 'function') {
     handler = appIdOrOptsOrHandler as (
       event: CrashlyticsEvent<T>
