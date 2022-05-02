@@ -8,8 +8,12 @@ import * as options from '../../options';
  */
 export interface PlanUpdatePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanUpdatePayload';
+  /** A Firebase billing plan. */
   billingPlan: string;
+  /** The email address of the person that triggered billing plan change */
   principalEmail: string;
+  /** The type of the notification, e.g. upgrade, downgrade */
+  notificationType: string;
 }
 
 /**
@@ -18,10 +22,14 @@ export interface PlanUpdatePayload {
  */
 export interface PlanAutomatedUpdatePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanAutomatedUpdatePayload';
+  /** A Firebase billing plan. */
   billingPlan: string;
+  /** The type of the notification, e.g. upgrade, downgrade */
+  notificationType: string;
 }
 
 interface WithAlertType {
+  /** The type of the alerts that got triggered. */
   alertType: string;
 }
 /**
