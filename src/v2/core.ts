@@ -24,6 +24,7 @@ import { ManifestEndpoint } from '../runtime/manifest';
 
 /** @internal */
 export interface TriggerAnnotation {
+  platform?: string;
   concurrency?: number;
   minInstances?: number;
   maxInstances?: number;
@@ -44,7 +45,11 @@ export interface TriggerAnnotation {
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;
   ingressSettings?: string;
-
+  secrets?: string[];
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
   // TODO: schedule
 }
 

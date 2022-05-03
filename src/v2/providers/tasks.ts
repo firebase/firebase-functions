@@ -20,20 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as options from '../options';
 import {
   convertIfPresent,
   convertInvoker,
   copyIfPresent,
 } from '../../common/encoding';
-import { HttpsFunction } from './https';
 import {
   AuthData,
+  onDispatchHandler,
   RateLimits,
   Request,
   RetryConfig,
-  onDispatchHandler,
 } from '../../common/providers/tasks';
+import * as options from '../options';
+import { HttpsFunction } from './https';
 
 export { AuthData, RateLimits, Request, RetryConfig as RetryPolicy };
 
@@ -101,7 +101,6 @@ export function onTaskDispatched<Args = any>(
         convertInvoker
       );
       return {
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,

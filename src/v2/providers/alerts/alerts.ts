@@ -6,13 +6,21 @@ import * as options from '../../options';
  * The CloudEvent data emitted by Firebase Alerts.
  */
 export interface FirebaseAlertData<T = any> {
+  /** Time that the event has created. */
   createTime: string;
+  /** Time that the event has ended. Optional, only present for ongoing alerts. */
   endTime: string;
+  /** Payload of the event, which includes the details of the specific alert. */
   payload: T;
 }
 
 interface WithAlertTypeAndApp {
+  /** The type of the alerts that got triggered. */
   alertType: string;
+  /**
+   * The Firebase App ID that’s associated with the alert. This is optional,
+   * and only present when the alert is targeting at a specific Firebase App.
+   */
   appId?: string;
 }
 /**

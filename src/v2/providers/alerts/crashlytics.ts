@@ -1,4 +1,4 @@
-import { getEndpointAnnotation, FirebaseAlertData } from '.';
+import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
@@ -15,7 +15,8 @@ interface Issue {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewFatalIssuePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewFatalIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewFatalIssuePayload';
+  /** Basic information of the Crashlytics issue */
   issue: Issue;
 }
 
@@ -24,7 +25,8 @@ export interface NewFatalIssuePayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewNonfatalIssuePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsNewNonfatalIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewNonfatalIssuePayload';
+  /** Basic information of the Crashlytics issue */
   issue: Issue;
 }
 
@@ -33,17 +35,27 @@ export interface NewNonfatalIssuePayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface RegressionAlertPayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsRegressionAlertPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsRegressionAlertPayload';
+  /** The type of the Crashlytics issue, e.g. new fatal, new nonfatal, ANR */
   type: string;
+  /** Basic information of the Crashlytics issue */
   issue: Issue;
+  /**
+   * The time that the Crashlytics issues was most recently resolved before it
+   * began to reoccur.
+   */
   resolveTime: string;
 }
 
 /** Generic crashlytics trending issue interface */
 interface TrendingIssueDetails {
+  /** The type of the Crashlytics issue, e.g. new fatal, new nonfatal, ANR */
   type: string;
+  /** Basic information of the Crashlytics issue */
   issue: Issue;
+  /** The number of crashes that occurred with the issue */
   eventCount: number;
+  /** The number of distinct users that were affected by the issue */
   userCount: number;
 }
 
@@ -52,8 +64,13 @@ interface TrendingIssueDetails {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface StabilityDigestPayload {
-  ['@type']: 'com.google.firebase.firebasealerts.CrashlyticsStabilityDigestPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsStabilityDigestPayload';
+  /**
+   * The date that the digest gets created. Issues in the digest should have the
+   * same date as the digest date
+   */
   digestDate: string;
+  /** A stability digest containing several trending Crashlytics issues */
   trendingIssues: TrendingIssueDetails[];
 }
 
@@ -62,11 +79,25 @@ export interface StabilityDigestPayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface VelocityAlertPayload {
-  ['@type']: 'com.google.firebase.firebasealerts.VelocityAlertPayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsVelocityAlertPayload';
+  /** Basic information of the Crashlytics issue */
   issue: Issue;
+  /** The time that the Crashlytics issue gets created */
   createTime: string;
+  /**
+   * The number of user sessions for the given app version that had this
+   * specific crash issue in the time period used to trigger the velocity alert.
+   */
   crashCount: number;
+  /**
+   * The percentage of user sessions for the given app version that had this
+   * specific crash issue in the time period used to trigger the velocity alert.
+   */
   crashPercentage: number;
+  /**
+   * The first app version where this issue was seen, and not necessarily the
+   * version that has triggered the alert.
+   */
   firstVersion: string;
 }
 
@@ -75,12 +106,15 @@ export interface VelocityAlertPayload {
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewAnrIssuePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.NewAnrIssuePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewAnrIssuePayload';
+  /** Basic information of the Crashlytics issue */
   issue: Issue;
 }
 
 interface WithAlertTypeAndApp {
+  /** The type of the alerts that got triggered. */
   alertType: string;
+  /** The Firebase App ID that’s associated with the alert. */
   appId: string;
 }
 /**

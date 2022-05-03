@@ -264,6 +264,10 @@ export interface Resource {
 export interface TriggerAnnotated {
   __trigger: {
     availableMemoryMb?: number;
+    blockingTrigger?: {
+      eventType: string;
+      options?: Record<string, unknown>;
+    };
     eventTrigger?: {
       eventType: string;
       resource: string;
@@ -314,6 +318,11 @@ export interface Runnable<T> {
 export type HttpsFunction = TriggerAnnotated &
   EndpointAnnotated &
   ((req: Request, resp: Response) => void | Promise<void>);
+
+/**
+ * The Cloud Function type for Blocking triggers.
+ */
+export type BlockingFunction = HttpsFunction;
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported
@@ -627,7 +636,7 @@ export function optionsToEndpoint(
     options,
     'secretEnvironmentVariables',
     'secrets',
-    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
+    (secrets) => secrets.map((secret) => ({ key: secret }))
   );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };

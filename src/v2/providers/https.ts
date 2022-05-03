@@ -24,7 +24,6 @@ import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
-import * as options from '../options';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -33,14 +32,17 @@ import {
   Request,
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import * as options from '../options';
+import { GlobalOptions, SupportedRegion } from '../options';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
-export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
-  region?:
-    | options.SupportedRegion
-    | string
-    | Array<options.SupportedRegion | string>;
+/**
+ * Options that can be set on an individual HTTPS Cloud Function.
+ */
+export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
+  /* HTTP functions can override and specify more than one regions. */
+  region?: SupportedRegion | string | Array<SupportedRegion | string>;
   cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
 
@@ -54,7 +56,6 @@ export type HttpsFunction = ((
 export interface CallableFunction<T, Return> extends HttpsFunction {
   run(data: CallableRequest<T>): Return;
 }
-
 export function onRequest(
   opts: HttpsOptions,
   handler: (
@@ -111,9 +112,6 @@ export function onRequest(
         opts as options.GlobalOptions
       );
       const trigger: any = {
-        // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
-        // has migrated to "platform".
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
@@ -198,13 +196,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts);
       return {
-        // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
-        // has migrated to "platform".
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
@@ -222,8 +215,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
-  // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  // but optionsToEndpoint handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
     platform: 'gcfv2',
     ...baseOpts,

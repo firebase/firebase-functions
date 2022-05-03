@@ -1,9 +1,9 @@
 import { PubSub } from '@google-cloud/pubsub';
 import { Request, Response } from 'express';
-import fetch from 'node-fetch';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 
 import * as v1 from './v1';
 import * as v2 from './v2';
@@ -15,8 +15,8 @@ const getNumTests = (m: object): number => {
 const numTests = getNumTests(v1) + getNumTests(v2);
 export { v1, v2 };
 
-import * as testLab from './v1/testLab-utils';
 import { REGION } from './region';
+import * as testLab from './v1/testLab-utils';
 
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
@@ -115,7 +115,7 @@ async function updateRemoteConfig(
   }
 }
 
-function v1Tests(testId: string, accessToken: string): Promise<void>[] {
+function v1Tests(testId: string, accessToken: string): Array<Promise<void>> {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
     admin
@@ -159,7 +159,7 @@ function v1Tests(testId: string, accessToken: string): Promise<void>[] {
   ];
 }
 
-function v2Tests(testId: string, accessToken: string): Promise<void>[] {
+function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
   return [
     // Invoke a callable HTTPS trigger.
     callV2HttpsTrigger('v2-callabletests', { foo: 'bar', testId }, accessToken),

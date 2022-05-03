@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
 import { expect } from 'chai';
+import * as express from 'express';
 
 import * as https from '../src/common/providers/https';
 import * as tasks from '../src/common/providers/tasks';

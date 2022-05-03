@@ -1,13 +1,13 @@
-import { getEndpointAnnotation, FirebaseAlertData } from './alerts';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
+import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
  * Payload is wrapped inside a FirebaseAlertData object.
  */
 export interface NewTesterDevicePayload {
-  ['@type']: 'com.google.firebase.firebasealerts.NewTesterDevicePayload';
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroNewTesterIosDevicePayload';
   testerName: string;
   testerEmail: string;
   testerDeviceModelName: string;
@@ -15,7 +15,9 @@ export interface NewTesterDevicePayload {
 }
 
 interface WithAlertTypeAndApp {
+  /** The type of the alerts that got triggered. */
   alertType: string;
+  /** The Firebase App ID that’s associated with the alert. */
   appId: string;
 }
 /**

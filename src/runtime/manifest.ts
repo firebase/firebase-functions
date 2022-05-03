@@ -33,6 +33,7 @@ export interface ManifestEndpoint {
   concurrency?: number;
   serviceAccountEmail?: string;
   timeoutSeconds?: number;
+  cpu?: number | 'gcf_gen1';
   vpc?: {
     connector: string;
     egressSettings?: string;
@@ -68,6 +69,11 @@ export interface ManifestEndpoint {
       maxBackoffDuration?: string;
       maxDoublings?: number;
     };
+  };
+
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
   };
 }
 
