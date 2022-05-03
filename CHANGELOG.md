@@ -1,2 +1,10 @@
-- Adds auth blocking triggers to the auth and identity namespaces (1080).
-- Add support for secrets for v2 triggers (#1079).
+- Add CPU option. Rip out deprecated apiVersion [pull request](https://github.com/firebase/firebase-functions/pull/1077)
+- Add auth blocking handlers [pull request](https://github.com/firebase/firebase-functions/pull/1080)
+- Add changelog for auth blocking triggers [pull request](https://github.com/firebase/firebase-functions/pull/1086)
+- Add support for secrets in v2 [pull request](https://github.com/firebase/firebase-functions/pull/1079)
+- Update types for AlertPayloads [pull request](https://github.com/firebase/firebase-functions/pull/1087)
+- Update AppDistribution `[@type]` [pull request](https://github.com/firebase/firebase-functions/pull/1088)
+- Update CloudEvent types [pull request](https://github.com/firebase/firebase-functions/pull/1089)
+- Generate documentation with api-extractor [pull request](https://github.com/firebase/firebase-functions/pull/1071)
+- Change type info to be inheritance friendly. [pull request](https://github.com/firebase/firebase-functions/pull/1091)
+- MB -> MiB; GB -> GiB [pull request](https://github.com/firebase/firebase-functions/pull/1090)
