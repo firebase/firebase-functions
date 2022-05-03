@@ -260,8 +260,6 @@ export interface Resource {
 /**
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
- *
- * @internal
  */
 export interface TriggerAnnotated {
   __trigger: {
@@ -292,7 +290,6 @@ export interface TriggerAnnotated {
 }
 
 /**
- * @internal
  * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
  */
 export interface EndpointAnnotated {
