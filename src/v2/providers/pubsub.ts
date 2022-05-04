@@ -101,18 +101,18 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 export function onMessagePublished<T = any>(
   topic: string,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<MessagePublishedData<T>>;
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 /** Handle a message being published to a Pub/Sub topic. */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<MessagePublishedData<T>>;
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<MessagePublishedData<T>> {
+): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === 'string') {

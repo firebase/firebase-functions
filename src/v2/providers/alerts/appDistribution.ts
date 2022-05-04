@@ -14,19 +14,16 @@ export interface NewTesterDevicePayload {
   testerDeviceIdentifier: string;
 }
 
-interface WithAlertTypeAndApp {
+/**
+ * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
+ */
+export interface AppDistributionEvent<T>
+  extends CloudEvent<FirebaseAlertData<T>> {
   /** The type of the alerts that got triggered. */
   alertType: string;
   /** The Firebase App ID that’s associated with the alert. */
   appId: string;
 }
-/**
- * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
- */
-export type AppDistributionEvent<T> = CloudEvent<
-  FirebaseAlertData<T>,
-  WithAlertTypeAndApp
->;
 
 /** @internal */
 export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
@@ -45,19 +42,19 @@ export function onNewTesterIosDevicePublished(
   handler: (
     event: AppDistributionEvent<NewTesterDevicePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewTesterDevicePayload>>;
+): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 export function onNewTesterIosDevicePublished(
   appId: string,
   handler: (
     event: AppDistributionEvent<NewTesterDevicePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewTesterDevicePayload>>;
+): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 export function onNewTesterIosDevicePublished(
   opts: AppDistributionOptions,
   handler: (
     event: AppDistributionEvent<NewTesterDevicePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewTesterDevicePayload>>;
+): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 export function onNewTesterIosDevicePublished(
   appIdOrOptsOrHandler:
     | string
@@ -68,7 +65,7 @@ export function onNewTesterIosDevicePublished(
   handler?: (
     event: AppDistributionEvent<NewTesterDevicePayload>
   ) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<NewTesterDevicePayload>> {
+): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>> {
   if (typeof appIdOrOptsOrHandler === 'function') {
     handler = appIdOrOptsOrHandler as (
       event: AppDistributionEvent<NewTesterDevicePayload>

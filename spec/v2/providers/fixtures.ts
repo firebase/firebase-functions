@@ -4,7 +4,7 @@ import * as options from '../../../src/v2/options';
 
 export const FULL_OPTIONS: options.GlobalOptions = {
   region: 'us-west1',
-  memory: '512MB',
+  memory: '512MiB',
   timeoutSeconds: 60,
   minInstances: 1,
   maxInstances: 3,

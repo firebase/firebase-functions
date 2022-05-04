@@ -1,0 +1,14 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "extends": "./api-extractor.base.json",
+  "mainEntryPointFilePath": "<projectFolder>/lib/v2/index.d.ts",
+  "docModel": {
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/docgen/v2/firebase-functions.api.json"
+  },
+  "apiReport": {
+    "enabled": true,
+    "reportTempFolder": "<projectFolder>/docgen/v2/temp",
+    "reportFolder": "<projectFolder>/docgen/v2"
+  }
+}
