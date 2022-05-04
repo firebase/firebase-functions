@@ -208,7 +208,6 @@
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
     "nock": "^10.0.6",
-    "node-fetch": "^2.6.7",
     "portfinder": "^1.0.28",
     "prettier": "^1.18.2",
     "semver": "^7.3.5",
@@ -218,7 +217,7 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "0.21.2",
+    "typedoc": "^0.22.15",
     "typescript": "^4.3.5",
     "yargs": "^15.3.1"
   },
