@@ -1,6 +1,6 @@
-/** @hidden */
 type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json';
 
+/* @alpha */
 export interface ParamSpec<T = unknown> {
   name: string;
   default?: T;
@@ -9,11 +9,13 @@ export interface ParamSpec<T = unknown> {
   valueType?: ParamValueType;
 }
 
+/* @alpha */
 export type ParamOptions<T = unknown> = Omit<
   ParamSpec<T>,
   'name' | 'valueType'
 >;
 
+/* @alpha */
 export class Param<T = unknown> {
   static valueType: ParamValueType = 'string';
 
@@ -51,10 +53,12 @@ export class Param<T = unknown> {
   }
 }
 
+/* @alpha */
 export class StringParam extends Param<string> {
   // identical to the abstract class, just explicitly a string
 }
 
+/* @alpha */
 export class IntParam extends Param<number> {
   static valueType: ParamValueType = 'int';
 
@@ -74,6 +78,7 @@ export class IntParam extends Param<number> {
   }
 }
 
+/* @alpha */
 export class FloatParam extends Param<number> {
   static valueType: ParamValueType = 'float';
 
@@ -92,6 +97,7 @@ export class FloatParam extends Param<number> {
   }
 }
 
+/* @alpha */
 export class BooleanParam extends Param {
   static valueType: ParamValueType = 'boolean';
 
@@ -114,6 +120,7 @@ export class BooleanParam extends Param {
   }
 }
 
+/* @alpha */
 export class ListParam extends Param<string[]> {
   static valueType: ParamValueType = 'list';
 
@@ -137,6 +144,7 @@ export class ListParam extends Param<string[]> {
   }
 }
 
+/* @alpha */
 export class JSONParam<T = any> extends Param<T> {
   static valueType: ParamValueType = 'json';
 
