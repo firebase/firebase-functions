@@ -115,7 +115,7 @@ async function updateRemoteConfig(
   }
 }
 
-function v1Tests(testId: string, accessToken: string): Array<Promise<void>> {
+function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
     admin

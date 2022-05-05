@@ -75,27 +75,27 @@ export const MAX_CONCURRENCY = 1_000;
  * List of available memory options supported by Cloud Functions.
  */
 export const SUPPORTED_MEMORY_OPTIONS = [
-  '128MB',
-  '256MB',
-  '512MB',
-  '1GB',
-  '2GB',
-  '4GB',
-  '8GB',
-  '16GB',
-  '32GB',
+  '128MiB',
+  '256MiB',
+  '512MiB',
+  '1GiB',
+  '2GiB',
+  '4GiB',
+  '8GiB',
+  '16GiB',
+  '32GiB',
 ] as const;
 
 const MemoryOptionToMB: Record<MemoryOption, number> = {
-  '128MB': 128,
-  '256MB': 256,
-  '512MB': 512,
-  '1GB': 1024,
-  '2GB': 2048,
-  '4GB': 4096,
-  '8GB': 8192,
-  '16GB': 16384,
-  '32GB': 32768,
+  '128MiB': 128,
+  '256MiB': 256,
+  '512MiB': 512,
+  '1GiB': 1024,
+  '2GiB': 2048,
+  '4GiB': 4096,
+  '8GiB': 8192,
+  '16GiB': 16384,
+  '32GiB': 32768,
 };
 
 /**
@@ -343,16 +343,7 @@ export function optionsToEndpoint(
     endpoint.vpc = vpc;
   }
   convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
-    const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-      '4GB': 4096,
-      '8GB': 8192,
-    };
-    return memoryLookup[mem];
+    return MemoryOptionToMB[mem];
   });
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {

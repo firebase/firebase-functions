@@ -114,7 +114,7 @@ function cleanup {
 build_sdk
 delete_all_functions
 
-for version in 12 14 16; do
+for version in 14 16; do
   create_package_json $TIMESTAMP $version "^10.0.0"
   install_deps
   announce "Re-deploying the same functions to Node $version runtime ..."
