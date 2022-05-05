@@ -43,9 +43,7 @@ import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
- * Wire format for an event.
- *
- * @internal
+ * Wire format for an event destined for a cloud function instance.
  */
 export interface Event {
   context: {
