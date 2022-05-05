@@ -144,7 +144,7 @@ function generateTocRecursively(
       if (member.kind == 'Namespace') {
         entryPointToc.section.push({
           title: member.displayName,
-          path: `${g3Path}/${getFilenameForApiItem(apiItem, false)}`,
+          path: `${g3Path}/${getFilenameForApiItem(member, false)}`,
         });
       }
     }
