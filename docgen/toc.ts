@@ -138,7 +138,8 @@ function generateTocRecursively(
   // Each version of the functions SDK should have 1 entry point made up of many namespaces so recursion is unncessary.
   // We keep the code nonetheless for the future where we run the api-documenter once to generate both v1 and v2 refs.
   if (apiItem.kind === ApiItemKind.EntryPoint) {
-    const entryPointName = (apiItem.canonicalReference.source! as ModuleSource).escapedPath;
+    const entryPointName = (apiItem.canonicalReference.source! as ModuleSource)
+      .escapedPath;
     const entryPointToc: ITocItem = {
       title: entryPointName,
       path: `${g3Path}/${getFilenameForApiItem(apiItem, false)}`,
