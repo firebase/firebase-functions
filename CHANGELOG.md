@@ -1,2 +1,9 @@
-- Adds auth blocking triggers to the auth and identity namespaces (1080).
-- Add support for secrets for v2 triggers (#1079).
+- Adds CPU option and enhances internal data structures (#1077)
+- Add auth blocking handlers (#1080)
+- Add support for secrets in v2 (#1079)
+- Update types for AlertPayloads (#1087)
+- Update AppDistribution `[@type]` (#1088)
+- Update CloudEvent types (#1089)
+- Generate documentation with api-extractor (#1071)
+- Change type info to be inheritance friendly. (#1091)
+- Changes the memory options from MB to MiB and GB to GiB for greater clarity (#1090)
