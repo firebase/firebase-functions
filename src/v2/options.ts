@@ -168,14 +168,14 @@ export interface GlobalOptions {
   /**
    * Number of requests a function can serve at once.
    * Can only be applied to functions running on Cloud Functions v2.
-   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * A value of null restores the default concurrency (80 when CPU \>= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    */
   concurrency?: number | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * Defaults to 1 for functions with \<= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
@@ -227,7 +227,7 @@ let globalOptions: GlobalOptions | undefined;
 
 /**
  * Sets default options for all functions written using the v2 SDK.
- * @param options Options to set as default
+ * @param options - Options to set as default
  */
 export function setGlobalOptions(options: GlobalOptions) {
   if (globalOptions) {
@@ -239,6 +239,7 @@ export function setGlobalOptions(options: GlobalOptions) {
 /**
  * Get the currently set default options.
  * Used only for trigger generation.
+ *
  * @internal
  */
 export function getGlobalOptions(): GlobalOptions {
@@ -254,6 +255,7 @@ export interface EventHandlerOptions extends GlobalOptions {
 
 /**
  * Apply GlobalOptions to trigger definitions.
+ *
  * @internal
  */
 export function optionsToTriggerAnnotations(
@@ -316,6 +318,7 @@ export function optionsToTriggerAnnotations(
 
 /**
  * Apply GlobalOptions to endpoint manifest.
+ *
  * @internal
  */
 export function optionsToEndpoint(
@@ -359,9 +362,7 @@ export function optionsToEndpoint(
   return endpoint;
 }
 
-/**
- * @hidden
- */
+/* @internal */
 export function __getSpec(): {
   globalOptions: GlobalOptions;
   params: ParamSpec[];

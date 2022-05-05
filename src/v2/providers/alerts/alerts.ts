@@ -56,8 +56,8 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
 
 /**
  * Declares a function that can handle Firebase Alerts from CloudEvents.
- * @param alertTypeOrOpts the alert type or Firebase Alert function configuration.
- * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
+ * @param alertTypeOrOpts - the alert type or Firebase Alert function configuration.
+ * @param handler - a function that can handle the Firebase Alert inside a CloudEvent.
  */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
