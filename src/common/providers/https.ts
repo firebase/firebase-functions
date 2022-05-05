@@ -34,9 +34,7 @@ import { TaskContext } from './tasks';
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
-/**
- * Represents incoming request object.
- */
+/** @hidden */
 export interface Request extends express.Request {
   rawBody: Buffer;
 }
@@ -230,9 +228,7 @@ export type FunctionsErrorCode =
   | 'data-loss'
   | 'unauthenticated';
 
-/**
- * Canonical name of HTTP status.
- */
+/** @hidden */
 export type CanonicalErrorCodeName =
   | 'OK'
   | 'CANCELLED'
@@ -252,6 +248,7 @@ export type CanonicalErrorCodeName =
   | 'UNAVAILABLE'
   | 'DATA_LOSS';
 
+/** @hidden */
 interface HttpErrorCode {
   canonicalName: CanonicalErrorCodeName;
   status: number;
@@ -286,6 +283,7 @@ const errorCodeMap: { [name in FunctionsErrorCode]: HttpErrorCode } = {
   'data-loss': { canonicalName: 'DATA_LOSS', status: 500 },
 };
 
+/** @hidden */
 interface HttpErrorWireFormat {
   details?: unknown;
   message: string;
@@ -311,7 +309,7 @@ export class HttpsError extends Error {
   /**
    * A wire format representation of a provided error code.
    *
-   * @internal
+   * @hidden
    */
   public readonly httpErrorCode: HttpErrorCode;
 
@@ -343,6 +341,7 @@ export class HttpsError extends Error {
   }
 }
 
+/** @hidden */
 // The allowed interface for an HTTP request to a Callable function.
 interface HttpRequest extends Request {
   body: {
@@ -350,17 +349,15 @@ interface HttpRequest extends Request {
   };
 }
 
+/** @hidden */
 // The format for an HTTP body response from a Callable function.
 interface HttpResponseBody {
   result?: any;
   error?: HttpsError;
 }
 
-/**
- * Returns true if req is a properly formatted callable request.
- *
- * @internal
- */
+/** @hidden */
+// Returns true if req is a properly formatted callable request.
 export function isValidRequest(req: Request): req is HttpRequest {
   // The body must not be empty.
   if (!req.body) {
@@ -403,15 +400,16 @@ export function isValidRequest(req: Request): req is HttpRequest {
   return true;
 }
 
+/** @hidden */
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
+/** @hidden */
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
 /**
  * Encodes arbitrary data in our special format for JSON.
  * This is exposed only for testing.
- *
- * @internal
  */
+/** @hidden */
 export function encode(data: any): any {
   if (data === null || typeof data === 'undefined') {
     return null;
@@ -450,9 +448,8 @@ export function encode(data: any): any {
 /**
  * Decodes our special format for JSON into native types.
  * This is exposed only for testing.
- *
- * @internal
  */
+/** @hidden */
 export function decode(data: any): any {
   if (data === null) {
     return data;
@@ -497,9 +494,12 @@ export function decode(data: any): any {
  *
  * Users are encouraged to setup log-based metric based on these values, and
  * changing their values may cause their metrics to break.
+ *
  */
+/** @hidden */
 type TokenStatus = 'MISSING' | 'VALID' | 'INVALID';
 
+/** @hidden */
 interface CallableTokenStatus {
   app: TokenStatus;
   auth: TokenStatus;

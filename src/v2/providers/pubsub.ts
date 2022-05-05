@@ -6,7 +6,7 @@ import * as options from '../options';
 /**
  * Interface representing a Google Cloud Pub/Sub message.
  *
- * @param data - Payload of a Pub/Sub message.
+ * @param data Payload of a Pub/Sub message.
  */
 export class Message<T> {
   /**
@@ -34,7 +34,7 @@ export class Message<T> {
    */
   readonly orderingKey: string;
 
-  /** @internal */
+  /** @hidden */
   private _json: T;
 
   constructor(data: any) {
@@ -68,7 +68,7 @@ export class Message<T> {
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @returns A JSON-serializable representation of this object.
+   * @return A JSON-serializable representation of this object.
    */
   toJSON(): any {
     const json: Record<string, any> = {
