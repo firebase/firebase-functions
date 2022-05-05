@@ -39,13 +39,13 @@ import {
 } from './common/encoding';
 import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
 
-/* @internal */
+/** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
- * Wire format for an event.
+ * @hidden
  *
- * @internal
+ * Wire format for an event.
  */
 export interface Event {
   context: {
@@ -181,21 +181,20 @@ export interface ChangeJson {
    */
   before?: any;
   /**
+   * @hidden
    * Comma-separated string that represents names of fields that changed.
-   *
-   * @internal
    */
   fieldMask?: string;
 }
 
 export namespace Change {
-  /** @internal */
+  /** @hidden */
   function reinterpretCast<T>(x: any) {
     return x as T;
   }
 
   /**
-   * @internal
+   * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
    * object.
    */
@@ -204,7 +203,7 @@ export namespace Change {
   }
 
   /**
-   * @internal
+   * @hidden
    * Factory method for creating a Change from a JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */
@@ -223,7 +222,7 @@ export namespace Change {
     );
   }
 
-  /** @internal */
+  /** @hidden */
   export function applyFieldMask(
     sparseBefore: any,
     after: any,
@@ -258,6 +257,7 @@ export interface Resource {
 }
 
 /**
+ * @hidden
  * TriggerAnnotated is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
  */
@@ -290,6 +290,7 @@ export interface TriggerAnnotated {
 }
 
 /**
+ * @hidden
  * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
  */
 export interface EndpointAnnotated {
@@ -335,7 +336,7 @@ export type CloudFunction<T> = Runnable<T> &
   EndpointAnnotated &
   ((input: any, context?: any) => PromiseLike<any> | any);
 
-/** @internal */
+/** @hidden */
 export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event) => void;
   before?: (raw: Event) => void;
@@ -355,7 +356,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
 }
 
-/** @internal */
+/** @hidden */
 export function makeCloudFunction<EventData>({
   after = () => {},
   before = () => {},
@@ -498,7 +499,7 @@ export function makeCloudFunction<EventData>({
   return cloudFunction;
 }
 
-/** @internal */
+/** @hidden */
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
@@ -526,7 +527,7 @@ function _makeParams(
   return params;
 }
 
-/** @internal */
+/** @hidden */
 function _makeAuth(event: Event, authType: string) {
   if (authType === 'UNAUTHENTICATED') {
     return null;
@@ -537,7 +538,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
-/** @internal */
+/** @hidden */
 function _detectAuthType(event: Event) {
   if (_.get(event, 'context.auth.admin')) {
     return 'ADMIN';
@@ -548,7 +549,7 @@ function _detectAuthType(event: Event) {
   return 'UNAUTHENTICATED';
 }
 
-/** @internal */
+/** @hidden */
 export function optionsToTrigger(options: DeploymentOptions) {
   const trigger: any = {};
   copyIfPresent(
