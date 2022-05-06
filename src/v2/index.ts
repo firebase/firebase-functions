@@ -42,6 +42,18 @@ export {
   eventarc,
 };
 
-export { setGlobalOptions, GlobalOptions } from './options';
+export {
+  setGlobalOptions,
+  GlobalOptions,
+  SupportedRegion,
+  MIN_TIMEOUT_SECONDS,
+  MAX_EVENT_TIMEOUT_SECONDS,
+  MAX_HTTPS_TIMEOUT_SECONDS,
+  MAX_CONCURRENCY,
+  MemoryOption,
+  VpcEgressSetting,
+  IngressSetting,
+  EventHandlerOptions,
+} from './options';
 
 export { CloudFunction, CloudEvent } from './core';

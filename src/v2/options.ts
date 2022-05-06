@@ -73,6 +73,7 @@ export const MAX_CONCURRENCY = 1_000;
 
 /**
  * List of available memory options supported by Cloud Functions.
+ * @beta
  */
 export const SUPPORTED_MEMORY_OPTIONS = [
   '128MiB',
@@ -100,6 +101,7 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
 
 /**
  * A supported memory option.
+ * @beta
  */
 export type MemoryOption = typeof SUPPORTED_MEMORY_OPTIONS[number];
 
@@ -130,6 +132,7 @@ export type IngressSetting = typeof SUPPORTED_INGRESS_SETTINGS[number];
 /**
  * GlobalOptions are options that can be set across an entire project.
  * These options are common to HTTPS and Event handling functions.
+ * @beta
  */
 export interface GlobalOptions {
   /**
@@ -180,6 +183,7 @@ export interface GlobalOptions {
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
+   * @beta
    */
   cpu?: number | 'gcf_gen1';
 
@@ -247,6 +251,7 @@ export function getGlobalOptions(): GlobalOptions {
 
 /**
  * Options that can be set on an individual event-handling Cloud Function.
+ * @{inheritDoc GlobalOptions}
  */
 export interface EventHandlerOptions extends GlobalOptions {
   retry?: boolean;
@@ -361,6 +366,7 @@ export function optionsToEndpoint(
 
 /**
  * @hidden
+ * @alpha
  */
 export function __getSpec(): {
   globalOptions: GlobalOptions;
