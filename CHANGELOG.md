@@ -1,1 +1,1 @@
-- Add debug feature to enable cors option for v2 onRequest and onCall handlers. (#1099).
+- Add debug feature to enable cors option for v2 onRequest and onCall handlers. (#1099)
