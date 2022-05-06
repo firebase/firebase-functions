@@ -168,7 +168,7 @@ describe('onRequest', () => {
       {
         'Access-Control-Request-Method': 'POST',
         'Access-Control-Request-Headers': 'origin',
-        Origin: 'example.com',
+        origin: 'example.com',
       }
     );
     req.method = 'OPTIONS';
@@ -201,7 +201,7 @@ describe('onRequest', () => {
         {
           'Access-Control-Request-Method': 'POST',
           'Access-Control-Request-Headers': 'origin',
-          Origin: 'localhost',
+          origin: 'localhost',
         }
     );
     req.method = 'OPTIONS';
@@ -215,9 +215,10 @@ describe('onRequest', () => {
       'Content-Length': '0',
       Vary: 'Origin, Access-Control-Request-Headers',
     });
+
+    sinon.restore();
   })
 
-  sinon.restore();
 });
 
 describe('onCall', () => {
@@ -354,7 +355,7 @@ describe('onCall', () => {
       {
         'Access-Control-Request-Method': 'POST',
         'Access-Control-Request-Headers': 'origin',
-        Origin: 'example.com',
+        origin: 'example.com',
       }
     );
     req.method = 'OPTIONS';
@@ -369,6 +370,42 @@ describe('onCall', () => {
       Vary: 'Origin, Access-Control-Request-Headers',
     });
   });
+
+  it('overrides CORS headers if debug feature is enabled', async () => {
+    sinon
+        .stub(debug, "isDebugFeatureEnabled")
+        .withArgs("enableCors")
+        .returns(true);
+
+    const func = https.onCall({ cors: 'example.com' }, (request) => {
+      throw new Error('Should not reach here for OPTIONS preflight');
+    });
+    const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'origin',
+          origin: 'localhost',
+        }
+    );
+    req.method = 'OPTIONS';
+
+    const response = await runHandler(func, req as any);
+
+    expect(response.status).to.equal(204);
+    expect(response.body).to.be.undefined;
+    expect(response.headers).to.deep.equal({
+      'Access-Control-Allow-Methods': 'POST',
+      'Access-Control-Allow-Origin': 'localhost',
+      'Content-Length': '0',
+      Vary: 'Origin, Access-Control-Request-Headers',
+    });
+
+    sinon.restore();
+  });
+
 
   it('adds CORS headers', async () => {
     const func = https.onCall((request) => 42);
@@ -388,36 +425,6 @@ describe('onCall', () => {
     expect(response.status).to.equal(200);
     expect(response.body).to.be.deep.equal({ result: 42 });
     expect(response.headers).to.deep.equal(expectedResponseHeaders);
-  });
-
-  it('overrides CORS headers if debug feature is enabled', async () => {
-    sinon
-        .stub(debug, "isDebugFeatureEnabled")
-        .withArgs("enableCors")
-        .returns(true);
-
-    const func = https.onCall({ cors: 'example.com' }, (request) => 42);
-    const req = new MockRequest(
-        {
-          data: {},
-        },
-        {
-          'content-type': 'application/json',
-          origin: 'localhost',
-        }
-    );
-    req.method = 'POST';
-
-    const response = await runHandler(func, req as any);
-
-    expect(response.status).to.equal(200);
-    expect(response.body).to.be.deep.equal({ result: 42 });
-    expect(response.headers).to.deep.equal({
-      'Access-Control-Allow-Origin': 'localhost',
-      Vary: 'Origin',
-    });
-
-    sinon.restore();
   });
 
   // These tests pass if the code transpiles
