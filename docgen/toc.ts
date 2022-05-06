@@ -19,46 +19,73 @@
  * Forked of https://github.com/firebase/firebase-js-sdk/blob/5ce06766303b92fea969c58172a7c1ab8695e21e/repo-scripts/api-documenter/src/toc.ts.
  */
 import { writeFileSync } from 'fs';
-import { join, resolve } from 'path';
+import { resolve } from 'path';
 
 import yargs from 'yargs';
 import * as yaml from 'js-yaml';
-import {
-  ApiItem,
-  ApiItemKind,
-  ApiModel,
-  ApiPackage,
-  ApiParameterListMixin,
-} from 'api-extractor-model-me';
-import { FileSystem, PackageName } from '@rushstack/node-core-library';
-import { ModuleSource } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
+import { FileSystem } from '@rushstack/node-core-library';
 
-const badFilenameCharsRegExp: RegExp = /[^a-z0-9_\-\.]/gi;
-
-export interface ITocGenerationOptions {
-  apiModel: ApiModel;
-  g3Path: string;
+export interface TocGenerationOptions {
+  inputFolder: string;
   outputFolder: string;
+  g3Path: string;
 }
 
-interface ITocItem {
+interface TocItem {
   title: string;
   path: string;
-  section?: ITocItem[];
+  section?: TocItem[];
 }
 
-function getSafeFilenameForName(name: string): string {
-  // We will fix that as part of https://github.com/microsoft/rushstack/issues/1308
-  return name.replace(badFilenameCharsRegExp, '_').toLowerCase();
+function fileExt(f: string) {
+  const parts = f.split('.');
+  if (parts.length < 2) {
+    return '';
+  }
+  return parts.pop();
 }
 
 export function generateToc({
-  apiModel,
+  inputFolder,
   g3Path,
   outputFolder,
-}: ITocGenerationOptions) {
-  const toc = [];
-  generateTocRecursively(toc, apiModel, g3Path);
+}: TocGenerationOptions) {
+  const asObj = FileSystem.readFolder(inputFolder)
+    .filter((f) => fileExt(f) === 'md')
+    .reduce((acc, f) => {
+      const parts = f.split('.');
+      parts.pop(); // Get rid of file extenion (.md)
+
+      let cursor = acc;
+      for (const p of parts) {
+        cursor[p] = cursor[p] || {};
+        cursor = cursor[p];
+      }
+      return acc;
+    }, {} as any);
+
+  function toToc(obj, prefix = ''): TocItem[] {
+    const toc: TocItem[] = [];
+    for (const key of Object.keys(obj)) {
+      const item = prefix?.length ? `${prefix}.${key}` : key;
+
+      toc.push({
+        title: item.replace(/\./g, '/'),
+        path: `${g3Path}/${item}.md`,
+        section: toToc(obj[key], item),
+      });
+    }
+    return toc;
+  }
+
+  const toc: TocItem[] = [
+    {
+      title: 'firebase-functions',
+      path: `${g3Path}/firebase-functions.md`,
+      section: [],
+    },
+    ...toToc(asObj['firebase-functions'], 'firebase-functions'),
+  ];
 
   writeFileSync(
     resolve(outputFolder, 'toc.yaml'),
@@ -69,97 +96,6 @@ export function generateToc({
       }
     )
   );
-}
-
-export function getFilenameForApiItem(
-  apiItem: ApiItem,
-  addFileNameSuffix: boolean
-): string {
-  if (apiItem.kind === ApiItemKind.Model) {
-    return 'index.md';
-  }
-
-  let baseName: string = '';
-  let multipleEntryPoints: boolean = false;
-  for (const hierarchyItem of apiItem.getHierarchy()) {
-    // For overloaded methods, add a suffix such as "MyClass.myMethod_2".
-    let qualifiedName: string = getSafeFilenameForName(
-      hierarchyItem.displayName
-    );
-    if (ApiParameterListMixin.isBaseClassOf(hierarchyItem)) {
-      if (hierarchyItem.overloadIndex > 1) {
-        // Subtract one for compatibility with earlier releases of API Documenter.
-        // (This will get revamped when we fix GitHub issue #1308)
-        qualifiedName += `_${hierarchyItem.overloadIndex - 1}`;
-      }
-    }
-
-    switch (hierarchyItem.kind) {
-      case ApiItemKind.Model:
-        break;
-      case ApiItemKind.EntryPoint:
-        const packageName: string = hierarchyItem.parent!.displayName;
-        let entryPointName: string = PackageName.getUnscopedName(packageName);
-        if (multipleEntryPoints) {
-          entryPointName = `${PackageName.getUnscopedName(packageName)}/${
-            hierarchyItem.displayName
-          }`;
-        }
-        baseName = getSafeFilenameForName(entryPointName);
-        break;
-      case ApiItemKind.Package:
-        baseName = getSafeFilenameForName(
-          PackageName.getUnscopedName(hierarchyItem.displayName)
-        );
-        if ((hierarchyItem as ApiPackage).entryPoints.length > 1) {
-          multipleEntryPoints = true;
-        }
-        break;
-      case ApiItemKind.Namespace:
-        baseName += '.' + qualifiedName;
-        if (addFileNameSuffix) {
-          baseName += '_n';
-        }
-        break;
-      case ApiItemKind.Class:
-      case ApiItemKind.Interface:
-        baseName += '.' + qualifiedName;
-        break;
-    }
-  }
-  return baseName + '.md';
-}
-
-function generateTocRecursively(
-  toc: ITocItem[],
-  apiItem: ApiItem,
-  g3Path: string
-) {
-  // Each version of the functions SDK should have 1 entry point made up of many namespaces so recursion is unncessary.
-  // We keep the code nonetheless for the future where we run the api-documenter once to generate both v1 and v2 refs.
-  if (apiItem.kind === ApiItemKind.EntryPoint) {
-    const entryPointName = (apiItem.canonicalReference.source! as ModuleSource)
-      .escapedPath;
-    const entryPointToc: ITocItem = {
-      title: entryPointName,
-      path: `${g3Path}/${getFilenameForApiItem(apiItem, false)}`,
-      section: [],
-    };
-    for (const member of apiItem.members) {
-      if (member.kind == 'Namespace') {
-        entryPointToc.section.push({
-          title: member.displayName,
-          path: `${g3Path}/${getFilenameForApiItem(member, false)}`,
-        });
-      }
-    }
-    toc.push(entryPointToc);
-  } else {
-    // travel the api tree to find the next entry point
-    for (const member of apiItem.members) {
-      generateTocRecursively(toc, member, g3Path);
-    }
-  }
 }
 
 const { input, output, path } = yargs(process.argv.slice(2))
@@ -180,13 +116,5 @@ const { input, output, path } = yargs(process.argv.slice(2))
   })
   .help().argv;
 
-const apiModel: ApiModel = new ApiModel();
-for (const filename of FileSystem.readFolder(input)) {
-  if (filename.match(/\.api\.json$/i)) {
-    console.log(`Reading ${filename}`);
-    const filenamePath: string = join(input, filename);
-    apiModel.loadPackage(filenamePath);
-  }
-}
 FileSystem.ensureFolder(output);
-generateToc({ apiModel, g3Path: path, outputFolder: output });
+generateToc({ inputFolder: input, g3Path: path, outputFolder: output });
