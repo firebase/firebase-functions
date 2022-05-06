@@ -35,7 +35,7 @@ interface TocItem {
   title: string;
   path: string;
   section?: TocItem[];
-  status?: "experimental",
+  status?: 'experimental';
 }
 
 function fileExt(f: string) {
@@ -85,7 +85,7 @@ export function generateToc({
   const toc: TocItem[] = [
     {
       title: 'firebase-functions',
-      status: "experimental",
+      status: 'experimental',
       path: `${g3Path}/firebase-functions.md`,
     },
     ...toToc(asObj['firebase-functions'], 'firebase-functions'),
