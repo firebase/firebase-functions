@@ -91,12 +91,12 @@ export function onRequest(
   }
 
   if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
-    const corsOrigin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
+    const origin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
         res.on('finish', resolve);
-        cors({ origin: corsOrigin })(req, res, () => {
+        cors({ origin })(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
       });

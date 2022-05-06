@@ -20,8 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as sinon from 'sinon';
 import { expect } from 'chai';
 
+import * as debug from "../../../src/common/debug";
 import * as options from '../../../src/v2/options';
 import * as https from '../../../src/v2/providers/https';
 import {
@@ -181,6 +183,41 @@ describe('onRequest', () => {
       Vary: 'Origin, Access-Control-Request-Headers',
     });
   });
+
+  it('should add CORS headers if debug feature is enabled', async () => {
+    sinon
+        .stub(debug, "isDebugFeatureEnabled")
+        .withArgs("enableCors")
+        .returns(true);
+
+    const func = https.onRequest((req, res) => {
+      throw new Error('Should not reach here for OPTIONS preflight');
+    });
+
+    const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          'Access-Control-Request-Method': 'POST',
+          'Access-Control-Request-Headers': 'origin',
+          Origin: 'localhost',
+        }
+    );
+    req.method = 'OPTIONS';
+
+    const resp = await runHandler(func, req as any);
+    expect(resp.status).to.equal(204);
+    expect(resp.body).to.be.undefined;
+    expect(resp.headers).to.deep.equal({
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Origin': 'localhost',
+      'Content-Length': '0',
+      Vary: 'Origin, Access-Control-Request-Headers',
+    });
+  })
+
+  sinon.restore();
 });
 
 describe('onCall', () => {
@@ -351,6 +388,36 @@ describe('onCall', () => {
     expect(response.status).to.equal(200);
     expect(response.body).to.be.deep.equal({ result: 42 });
     expect(response.headers).to.deep.equal(expectedResponseHeaders);
+  });
+
+  it('overrides CORS headers if debug feature is enabled', async () => {
+    sinon
+        .stub(debug, "isDebugFeatureEnabled")
+        .withArgs("enableCors")
+        .returns(true);
+
+    const func = https.onCall({ cors: 'example.com' }, (request) => 42);
+    const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          'content-type': 'application/json',
+          origin: 'localhost',
+        }
+    );
+    req.method = 'POST';
+
+    const response = await runHandler(func, req as any);
+
+    expect(response.status).to.equal(200);
+    expect(response.body).to.be.deep.equal({ result: 42 });
+    expect(response.headers).to.deep.equal({
+      'Access-Control-Allow-Origin': 'localhost',
+      Vary: 'Origin',
+    });
+
+    sinon.restore();
   });
 
   // These tests pass if the code transpiles
