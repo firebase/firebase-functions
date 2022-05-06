@@ -68,12 +68,15 @@ export function generateToc({
     const toc: TocItem[] = [];
     for (const key of Object.keys(obj)) {
       const item = prefix?.length ? `${prefix}.${key}` : key;
-
-      toc.push({
+      const section = toToc(obj[key], item);
+      const tic: TocItem = {
         title: item.replace(/\./g, '/'),
         path: `${g3Path}/${item}.md`,
-        section: toToc(obj[key], item),
-      });
+      };
+      if (section.length > 0) {
+        tic.section = section;
+      }
+      toc.push(tic);
     }
     return toc;
   }
@@ -82,7 +85,6 @@ export function generateToc({
     {
       title: 'firebase-functions',
       path: `${g3Path}/firebase-functions.md`,
-      section: [],
     },
     ...toToc(asObj['firebase-functions'], 'firebase-functions'),
   ];
