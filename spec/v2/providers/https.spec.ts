@@ -23,7 +23,7 @@
 import * as sinon from 'sinon';
 import { expect } from 'chai';
 
-import * as debug from "../../../src/common/debug";
+import * as debug from '../../../src/common/debug';
 import * as options from '../../../src/v2/options';
 import * as https from '../../../src/v2/providers/https';
 import {
@@ -186,23 +186,23 @@ describe('onRequest', () => {
 
   it('should add CORS headers if debug feature is enabled', async () => {
     sinon
-        .stub(debug, "isDebugFeatureEnabled")
-        .withArgs("enableCors")
-        .returns(true);
+      .stub(debug, 'isDebugFeatureEnabled')
+      .withArgs('enableCors')
+      .returns(true);
 
     const func = https.onRequest((req, res) => {
       throw new Error('Should not reach here for OPTIONS preflight');
     });
 
     const req = new MockRequest(
-        {
-          data: {},
-        },
-        {
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'origin',
-          origin: 'localhost',
-        }
+      {
+        data: {},
+      },
+      {
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'origin',
+        origin: 'localhost',
+      }
     );
     req.method = 'OPTIONS';
 
@@ -217,8 +217,7 @@ describe('onRequest', () => {
     });
 
     sinon.restore();
-  })
-
+  });
 });
 
 describe('onCall', () => {
@@ -373,22 +372,22 @@ describe('onCall', () => {
 
   it('overrides CORS headers if debug feature is enabled', async () => {
     sinon
-        .stub(debug, "isDebugFeatureEnabled")
-        .withArgs("enableCors")
-        .returns(true);
+      .stub(debug, 'isDebugFeatureEnabled')
+      .withArgs('enableCors')
+      .returns(true);
 
     const func = https.onCall({ cors: 'example.com' }, (request) => {
       throw new Error('Should not reach here for OPTIONS preflight');
     });
     const req = new MockRequest(
-        {
-          data: {},
-        },
-        {
-          'Access-Control-Request-Method': 'POST',
-          'Access-Control-Request-Headers': 'origin',
-          origin: 'localhost',
-        }
+      {
+        data: {},
+      },
+      {
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'origin',
+        origin: 'localhost',
+      }
     );
     req.method = 'OPTIONS';
 
@@ -405,7 +404,6 @@ describe('onCall', () => {
 
     sinon.restore();
   });
-
 
   it('adds CORS headers', async () => {
     const func = https.onCall((request) => 42);
