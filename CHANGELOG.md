@@ -1,2 +1,0 @@
-- Adds auth blocking triggers to the auth and identity namespaces (1080).
-- Add support for secrets for v2 triggers (#1079).
