@@ -35,6 +35,7 @@ interface TocItem {
   title: string;
   path: string;
   section?: TocItem[];
+  status?: "experimental",
 }
 
 function fileExt(f: string) {
@@ -67,11 +68,11 @@ export function generateToc({
   function toToc(obj, prefix = ''): TocItem[] {
     const toc: TocItem[] = [];
     for (const key of Object.keys(obj)) {
-      const item = prefix?.length ? `${prefix}.${key}` : key;
-      const section = toToc(obj[key], item);
+      const path = prefix?.length ? `${prefix}.${key}` : key;
+      const section = toToc(obj[key], path);
       const tic: TocItem = {
-        title: item.replace(/\./g, '/'),
-        path: `${g3Path}/${item}.md`,
+        title: key,
+        path: `${g3Path}/${path}.md`,
       };
       if (section.length > 0) {
         tic.section = section;
@@ -84,6 +85,7 @@ export function generateToc({
   const toc: TocItem[] = [
     {
       title: 'firebase-functions',
+      status: "experimental",
       path: `${g3Path}/firebase-functions.md`,
     },
     ...toToc(asObj['firebase-functions'], 'firebase-functions'),
