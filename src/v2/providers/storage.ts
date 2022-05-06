@@ -174,6 +174,7 @@ export interface CustomerEncryption {
   keySha256?: string;
 }
 
+/** A CloudEvent that contains StorageObjectData */
 export interface StorageEvent extends CloudEvent<StorageObjectData> {
   /** The name of the bucket containing this object. */
   bucket: string;

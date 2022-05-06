@@ -8,9 +8,13 @@ import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
  */
 export interface NewTesterDevicePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroNewTesterIosDevicePayload';
+  /** Name of the tester */
   testerName: string;
+  /** Email of the tester */
   testerEmail: string;
+  /** The device model name */
   testerDeviceModelName: string;
+  /** The device ID */
   testerDeviceIdentifier: string;
 }
 
