@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as options from '../options';
-import { firebaseConfig } from '../../config';
-import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
+import { firebaseConfig } from '../../config';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import { CloudEvent, CloudFunction } from '../core';
+import * as options from '../options';
 
 /**
  * An object within Google Cloud Storage.
@@ -174,6 +174,11 @@ export interface CustomerEncryption {
   keySha256?: string;
 }
 
+export interface StorageEvent extends CloudEvent<StorageObjectData> {
+  /** The name of the bucket containing this object. */
+  bucket: string;
+}
+
 /** @internal */
 export const archivedEvent = 'google.cloud.storage.object.v1.archived';
 /** @internal */
@@ -191,101 +196,101 @@ export interface StorageOptions extends options.EventHandlerOptions {
 
 /** Handle a storage object archived */
 export function onObjectArchived(
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectArchived(
   bucket: string,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectArchived(
   opts: StorageOptions,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectArchived(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData> {
+    | ((event: StorageEvent) => any | Promise<any>),
+  handler?: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent> {
   return onOperation(archivedEvent, buketOrOptsOrHandler, handler);
 }
 
 /** Handle a storage object finalized */
 export function onObjectFinalized(
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectFinalized(
   bucket: string,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectFinalized(
   opts: StorageOptions,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectFinalized(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData> {
+    | ((event: StorageEvent) => any | Promise<any>),
+  handler?: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent> {
   return onOperation(finalizedEvent, buketOrOptsOrHandler, handler);
 }
 
 /** Handle a storage object deleted */
 export function onObjectDeleted(
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectDeleted(
   bucket: string,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectDeleted(
   opts: StorageOptions,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectDeleted(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData> {
+    | ((event: StorageEvent) => any | Promise<any>),
+  handler?: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent> {
   return onOperation(deletedEvent, buketOrOptsOrHandler, handler);
 }
 
 /** Handle a storage object metadata updated */
 export function onObjectMetadataUpdated(
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectMetadataUpdated(
   bucket: string,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectMetadataUpdated(
   opts: StorageOptions,
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData>;
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent>;
 
 export function onObjectMetadataUpdated(
   buketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData> {
+    | ((event: StorageEvent) => any | Promise<any>),
+  handler?: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent> {
   return onOperation(metadataUpdatedEvent, buketOrOptsOrHandler, handler);
 }
 
@@ -295,12 +300,12 @@ export function onOperation(
   bucketOrOptsOrHandler:
     | string
     | StorageOptions
-    | ((event: CloudEvent<StorageObjectData>) => any | Promise<any>),
-  handler: (event: CloudEvent<StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageObjectData> {
+    | ((event: StorageEvent) => any | Promise<any>),
+  handler: (event: StorageEvent) => any | Promise<any>
+): CloudFunction<StorageEvent> {
   if (typeof bucketOrOptsOrHandler === 'function') {
     handler = bucketOrOptsOrHandler as (
-      event: CloudEvent<StorageObjectData>
+      event: StorageEvent
     ) => any | Promise<any>;
     bucketOrOptsOrHandler = {};
   }
@@ -310,7 +315,7 @@ export function onOperation(
   );
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as CloudEvent<StorageObjectData>);
+    return handler(raw as StorageEvent);
   };
 
   func.run = handler;
@@ -382,7 +387,7 @@ export function getOptsAndBucket(
     bucket = bucketOrOpts;
     opts = {};
   } else {
-    bucket = bucketOrOpts.bucket || firebaseConfig().storageBucket;
+    bucket = bucketOrOpts.bucket || firebaseConfig()?.storageBucket;
     opts = { ...bucketOrOpts };
     delete (opts as any).bucket;
   }

@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import * as crashlytics from '../../../../src/v2/providers/alerts/crashlytics';
-import { FULL_ENDPOINT, FULL_OPTIONS } from '../helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS } from '../fixtures';
 
 const ALERT_TYPE = 'new-alert-type';
 const APPID = '123456789';

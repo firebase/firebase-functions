@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { CloudEvent } from '../../../src/v2/core';
 import * as options from '../../../src/v2/options';
 import * as pubsub from '../../../src/v2/providers/pubsub';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './helpers';
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
 
 const EVENT_TRIGGER = {
   eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
@@ -32,7 +32,6 @@ describe('onMessagePublished', () => {
     const result = pubsub.onMessagePublished('topic', () => 42);
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       eventTrigger: EVENT_TRIGGER,
       labels: {},
@@ -79,7 +78,6 @@ describe('onMessagePublished', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       concurrency: 20,
       minInstances: 3,
@@ -110,7 +108,6 @@ describe('onMessagePublished', () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      apiVersion: 2,
       platform: 'gcfv2',
       minInstances: 3,
       regions: ['us-west1'],

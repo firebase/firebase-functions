@@ -27,10 +27,11 @@ import {
   serviceAccountFromShorthand,
 } from '../common/encoding';
 import * as logger from '../logger';
+import { ManifestEndpoint } from '../runtime/manifest';
 import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
-import { ManifestEndpoint } from '../runtime/manifest';
+import { HttpsOptions } from './providers/https';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -74,27 +75,27 @@ export const MAX_CONCURRENCY = 1_000;
  * List of available memory options supported by Cloud Functions.
  */
 export const SUPPORTED_MEMORY_OPTIONS = [
-  '128MB',
-  '256MB',
-  '512MB',
-  '1GB',
-  '2GB',
-  '4GB',
-  '8GB',
-  '16GB',
-  '32GB',
+  '128MiB',
+  '256MiB',
+  '512MiB',
+  '1GiB',
+  '2GiB',
+  '4GiB',
+  '8GiB',
+  '16GiB',
+  '32GiB',
 ] as const;
 
 const MemoryOptionToMB: Record<MemoryOption, number> = {
-  '128MB': 128,
-  '256MB': 256,
-  '512MB': 512,
-  '1GB': 1024,
-  '2GB': 2048,
-  '4GB': 4096,
-  '8GB': 8192,
-  '16GB': 16384,
-  '32GB': 32768,
+  '128MiB': 128,
+  '256MiB': 256,
+  '512MiB': 512,
+  '1GiB': 1024,
+  '2GiB': 2048,
+  '4GiB': 4096,
+  '8GiB': 8192,
+  '16GiB': 16384,
+  '32GiB': 32768,
 };
 
 /**
@@ -167,9 +168,21 @@ export interface GlobalOptions {
   /**
    * Number of requests a function can serve at once.
    * Can only be applied to functions running on Cloud Functions v2.
-   * A value of null restores the default concurrency.
+   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    */
   concurrency?: number | null;
+
+  /**
+   * Fractional number of CPUs to allocate to a function.
+   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * This is different from the defaults when using the gcloud utility and is different from
+   * the fixed amount assigned in Google Cloud Functions generation 1.
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * to the value "gcf_gen1"
+   */
+  cpu?: number | 'gcf_gen1';
+
   /**
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
@@ -203,6 +216,11 @@ export interface GlobalOptions {
    * Invoker to set access control on https functions.
    */
   invoker?: 'public' | 'private' | string | string[];
+
+  /*
+   * Secrets to bind to a functions.
+   */
+  secrets?: string[];
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -239,7 +257,7 @@ export interface EventHandlerOptions extends GlobalOptions {
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): TriggerAnnotation {
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
@@ -251,7 +269,8 @@ export function optionsToTriggerAnnotations(
     'ingressSettings',
     'labels',
     'vpcConnector',
-    'vpcConnectorEgressSettings'
+    'vpcConnectorEgressSettings',
+    'secrets'
   );
   convertIfPresent(
     annotation,
@@ -300,7 +319,7 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
@@ -311,7 +330,8 @@ export function optionsToEndpoint(
     'maxInstances',
     'ingressSettings',
     'labels',
-    'timeoutSeconds'
+    'timeoutSeconds',
+    'cpu'
   );
   convertIfPresent(endpoint, opts, 'serviceAccountEmail', 'serviceAccount');
   if (opts.vpcConnector) {
@@ -320,16 +340,7 @@ export function optionsToEndpoint(
     endpoint.vpc = vpc;
   }
   convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
-    const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-      '4GB': 4096,
-      '8GB': 8192,
-    };
-    return memoryLookup[mem];
+    return MemoryOptionToMB[mem];
   });
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {
@@ -337,6 +348,13 @@ export function optionsToEndpoint(
     }
     return region;
   });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ key: secret }))
+  );
 
   return endpoint;
 }

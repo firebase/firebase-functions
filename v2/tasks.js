@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 Firebase
+// Copyright (c) 2022 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as logger from '../logger';
-import * as params from './params';
-import * as alerts from './providers/alerts';
-import * as eventarc from './providers/eventarc';
-import * as https from './providers/https';
-import * as identity from './providers/identity';
-import * as pubsub from './providers/pubsub';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
-
-export {
-  alerts,
-  https,
-  identity,
-  pubsub,
-  storage,
-  logger,
-  params,
-  tasks,
-  eventarc,
-};
-
-export { setGlobalOptions, GlobalOptions } from './options';
-
-export { CloudFunction, CloudEvent } from './core';
+// This file is not part of the firebase-functions SDK. It is used to silence the
+// imports eslint plugin until it can understand import paths defined by node
+// package exports.
+// For more information, see github.com/import-js/eslint-plugin-import/issues/1810

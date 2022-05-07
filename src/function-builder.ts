@@ -42,6 +42,7 @@ import * as https from './providers/https';
 import * as pubsub from './providers/pubsub';
 import * as remoteConfig from './providers/remoteConfig';
 import * as storage from './providers/storage';
+import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
 /**
@@ -367,14 +368,18 @@ export class FunctionBuilder {
           context: https.CallableContext
         ) => any | Promise<any>
       ) => https._onCallWithOptions(handler, this.options),
+    };
+  }
 
+  get tasks() {
+    return {
       /**
        * Declares a task queue function for clients to call using a Firebase Admin SDK.
        * @param options Configurations for the task queue function.
        */
       /** @hidden */
-      taskQueue: (options?: https.TaskQueueOptions) => {
-        return new https.TaskQueueBuilder(options, this.options);
+      taskQueue: (options?: tasks.TaskQueueOptions) => {
+        return new tasks.TaskQueueBuilder(options, this.options);
       },
     };
   }
@@ -508,7 +513,8 @@ export class FunctionBuilder {
       /**
        * Handle events related to Firebase authentication users.
        */
-      user: () => auth._userWithOptions(this.options),
+      user: (userOptions?: auth.UserOptions) =>
+        auth._userWithOptions(this.options, userOptions),
     };
   }
 

@@ -3,81 +3,167 @@ import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
 import * as fs from 'fs';
-import * as https from 'https';
+import fetch from 'node-fetch';
 
-export * from './pubsub-tests';
-export * from './database-tests';
-export * from './auth-tests';
-export * from './firestore-tests';
-export * from './https-tests';
-export * from './remoteConfig-tests';
-export * from './storage-tests';
-export * from './testLab-tests';
-const numTests = Object.keys(exports).length; // Assumption: every exported function is its own test.
+import * as v1 from './v1';
+import * as v2 from './v2';
+const getNumTests = (m: object): number => {
+  return Object.keys(m).filter((k) =>
+    ({}.hasOwnProperty.call(m[k], '__endpoint'))
+  ).length;
+};
+const numTests = getNumTests(v1) + getNumTests(v2);
+export { v1, v2 };
 
-import * as utils from './test-utils';
-import * as testLab from './testLab-utils';
+import { REGION } from './region';
+import * as testLab from './v1/testLab-utils';
 
-import 'firebase-functions'; // temporary shim until process.env.FIREBASE_CONFIG available natively in GCF(BUG 63586213)
-import { config } from 'firebase-functions';
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
-const REGION = functions.config().functions.test_region;
 
-// TODO(klimt): Get rid of this once the JS client SDK supports callable triggers.
-function callHttpsTrigger(name: string, data: any, baseUrl) {
-  return utils.makeRequest(
+async function callHttpsTrigger(name: string, data: any) {
+  const resp = await fetch(
+    `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`,
     {
       method: 'POST',
-      host: REGION + '-' + firebaseConfig.projectId + '.' + baseUrl,
-      path: '/' + name,
       headers: {
         'Content-Type': 'application/json',
       },
-    },
-    JSON.stringify({ data })
+      body: JSON.stringify({ data }),
+    }
   );
+  if (!resp.ok) {
+    throw Error(resp.statusText);
+  }
 }
 
-async function callScheduleTrigger(functionName: string, region: string) {
-  const accessToken = await admin.credential
-    .applicationDefault()
-    .getAccessToken();
-  return new Promise<string>((resolve, reject) => {
-    const request = https.request(
-      {
-        method: 'POST',
-        host: 'cloudscheduler.googleapis.com',
-        path: `/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken.access_token}`,
-        },
+async function callV2HttpsTrigger(
+  name: string,
+  data: any,
+  accessToken: string
+) {
+  let resp = await fetch(
+    `https://cloudfunctions.googleapis.com/v2beta/projects/${firebaseConfig.projectId}/locations/${REGION}/functions/${name}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
       },
-      (response) => {
-        if (response.statusCode! / 100 != 2) {
-          reject(
-            new Error('Failed request with status ' + response.statusCode!)
-          );
-          return;
-        }
-        let body = '';
-        response.on('data', (chunk) => {
-          body += chunk;
-        });
-        response.on('end', () => {
-          console.log(`Successfully scheduled function ${functionName}`);
-          resolve(body);
-        });
-      }
-    );
-    request.on('error', (err) => {
-      console.error('Failed to schedule cloud scheduler job with error', err);
-      reject(err);
-    });
-    request.write('{}');
-    request.end();
+    }
+  );
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
+  const fn = await resp.json();
+  const uri = fn.serviceConfig?.uri;
+  if (!uri) {
+    throw new Error(`Cannot call v2 https trigger ${name} - no uri found`);
+  }
+  resp = await fetch(uri, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ data }),
   });
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
+}
+
+async function callScheduleTrigger(
+  functionName: string,
+  region: string,
+  accessToken: string
+) {
+  const response = await fetch(
+    `https://cloudscheduler.googleapis.com/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Failed request with status ${response.status}!`);
+  }
+  const data = await response.text();
+  functions.logger.log(`Successfully scheduled function ${functionName}`, data);
+  return;
+}
+
+async function updateRemoteConfig(
+  testId: string,
+  accessToken: string
+): Promise<void> {
+  const resp = await fetch(
+    `https://firebaseremoteconfig.googleapis.com/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
+    {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json; UTF-8',
+        'Accept-Encoding': 'gzip',
+        'If-Match': '*',
+      },
+      body: JSON.stringify({ version: { description: testId } }),
+    }
+  );
+  if (!resp.ok) {
+    throw new Error(resp.statusText);
+  }
+}
+
+function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
+  return [
+    // A database write to trigger the Firebase Realtime Database tests.
+    admin
+      .database()
+      .ref(`dbTests/${testId}/start`)
+      .set({ '.sv': 'timestamp' }),
+    // A Pub/Sub publish to trigger the Cloud Pub/Sub tests.
+    new PubSub()
+      .topic('pubsubTests')
+      .publish(Buffer.from(JSON.stringify({ testId }))),
+    // A user creation to trigger the Firebase Auth user creation tests.
+    admin
+      .auth()
+      .createUser({
+        email: `${testId}@fake.com`,
+        password: 'secret',
+        displayName: `${testId}`,
+      })
+      .then((userRecord) => {
+        // A user deletion to trigger the Firebase Auth user deletion tests.
+        admin.auth().deleteUser(userRecord.uid);
+      }),
+    // A firestore write to trigger the Cloud Firestore tests.
+    admin
+      .firestore()
+      .collection('tests')
+      .doc(testId)
+      .set({ test: testId }),
+    // Invoke a callable HTTPS trigger.
+    callHttpsTrigger('v1-callableTests', { foo: 'bar', testId }),
+    // A Remote Config update to trigger the Remote Config tests.
+    updateRemoteConfig(testId, accessToken),
+    // A storage upload to trigger the Storage tests
+    admin
+      .storage()
+      .bucket()
+      .upload('/tmp/' + testId + '.txt'),
+    testLab.startTestRun(firebaseConfig.projectId, testId, accessToken),
+    // Invoke the schedule for our scheduled function to fire
+    callScheduleTrigger('v1-schedule', 'us-central1', accessToken),
+  ];
+}
+
+function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
+  return [
+    // Invoke a callable HTTPS trigger.
+    callV2HttpsTrigger('v2-callabletests', { foo: 'bar', testId }, accessToken),
+  ];
 }
 
 export const integrationTests: any = functions
@@ -86,12 +172,6 @@ export const integrationTests: any = functions
     timeoutSeconds: 540,
   })
   .https.onRequest(async (req: Request, resp: Response) => {
-    // We take the base url for our https call (cloudfunctions.net, txckloud.net, etc) from the request
-    // so that it changes with the environment that the tests are run in
-    const baseUrl = req.hostname
-      .split('.')
-      .slice(1)
-      .join('.');
     const testId = admin
       .database()
       .ref()
@@ -101,77 +181,27 @@ export const integrationTests: any = functions
       .ref(`testRuns/${testId}/timestamp`)
       .set(Date.now());
     const testIdRef = admin.database().ref(`testRuns/${testId}`);
-    console.log('testId is: ', testId);
+    functions.logger.info('testId is: ', testId);
     fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {});
     try {
+      const accessToken = await admin.credential
+        .applicationDefault()
+        .getAccessToken();
       await Promise.all([
-        // A database write to trigger the Firebase Realtime Database tests.
-        admin
-          .database()
-          .ref(`dbTests/${testId}/start`)
-          .set({ '.sv': 'timestamp' }),
-        // A Pub/Sub publish to trigger the Cloud Pub/Sub tests.
-        new PubSub()
-          .topic('pubsubTests')
-          .publish(Buffer.from(JSON.stringify({ testId }))),
-        // A user creation to trigger the Firebase Auth user creation tests.
-        admin
-          .auth()
-          .createUser({
-            email: `${testId}@fake.com`,
-            password: 'secret',
-            displayName: `${testId}`,
-          })
-          .then((userRecord) => {
-            // A user deletion to trigger the Firebase Auth user deletion tests.
-            admin.auth().deleteUser(userRecord.uid);
-          }),
-        // A firestore write to trigger the Cloud Firestore tests.
-        admin
-          .firestore()
-          .collection('tests')
-          .doc(testId)
-          .set({ test: testId }),
-        // Invoke a callable HTTPS trigger.
-        callHttpsTrigger('callableTests', { foo: 'bar', testId }, baseUrl),
-        // A Remote Config update to trigger the Remote Config tests.
-        admin.credential
-          .applicationDefault()
-          .getAccessToken()
-          .then((accessToken) => {
-            const options = {
-              hostname: 'firebaseremoteconfig.googleapis.com',
-              path: `/v1/projects/${firebaseConfig.projectId}/remoteConfig`,
-              method: 'PUT',
-              headers: {
-                Authorization: 'Bearer ' + accessToken.access_token,
-                'Content-Type': 'application/json; UTF-8',
-                'Accept-Encoding': 'gzip',
-                'If-Match': '*',
-              },
-            };
-            const request = https.request(options, (resp) => {});
-            request.write(JSON.stringify({ version: { description: testId } }));
-            request.end();
-          }),
-        // A storage upload to trigger the Storage tests
-        admin
-          .storage()
-          .bucket()
-          .upload('/tmp/' + testId + '.txt'),
-        testLab.startTestRun(firebaseConfig.projectId, testId),
-        // Invoke the schedule for our scheduled function to fire
-        callScheduleTrigger('schedule', 'us-central1'),
+        ...v1Tests(testId, accessToken.access_token),
+        ...v2Tests(testId, accessToken.access_token),
       ]);
-
       // On test completion, check that all tests pass and reply "PASS", or provide further details.
-      console.log('Waiting for all tests to report they pass...');
+      functions.logger.info('Waiting for all tests to report they pass...');
       await new Promise<void>((resolve, reject) => {
         setTimeout(() => reject(new Error('Timeout')), 5 * 60 * 1000);
         let testsExecuted = 0;
         testIdRef.on('child_added', (snapshot) => {
+          if (snapshot.key === 'timestamp') {
+            return;
+          }
           testsExecuted += 1;
-          if (snapshot.key != 'timestamp' && !snapshot.val().passed) {
+          if (!snapshot.val().passed) {
             reject(
               new Error(
                 `test ${snapshot.key} failed; see database for details.`
@@ -179,7 +209,7 @@ export const integrationTests: any = functions
             );
             return;
           }
-          console.log(
+          functions.logger.info(
             `${snapshot.key} passed (${testsExecuted} of ${numTests})`
           );
           if (testsExecuted < numTests) {
@@ -190,10 +220,10 @@ export const integrationTests: any = functions
           resolve();
         });
       });
-      console.log('All tests pass!');
+      functions.logger.info('All tests pass!');
       resp.status(200).send('PASS \n');
     } catch (err) {
-      console.log(`Some tests failed: ${err}`);
+      functions.logger.info(`Some tests failed: ${err}`, err);
       resp
         .status(500)
         .send(

@@ -6,22 +6,29 @@ import * as options from '../../options';
  * The CloudEvent data emitted by Firebase Alerts.
  */
 export interface FirebaseAlertData<T = any> {
+  /** Time that the event has created. */
   createTime: string;
+  /** Time that the event has ended. Optional, only present for ongoing alerts. */
   endTime: string;
+  /** Payload of the event, which includes the details of the specific alert. */
   payload: T;
 }
 
-interface WithAlertTypeAndApp {
-  alertType: string;
-  appId?: string;
-}
 /**
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
  */
-export type AlertEvent<T> = CloudEvent<
-  FirebaseAlertData<T>,
-  WithAlertTypeAndApp
->;
+export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
+  /** The type of the alerts that got triggered. */
+  alertType: string;
+  /**
+   * The Firebase App ID that’s associated with the alert. This is optional,
+   * and only present when the alert is targeting at a specific Firebase App.
+   */
+  appId?: string;
+
+  /** Data for an AlertEvent is a FirebaseAlertData with a given payload. */
+  data: FirebaseAlertData<T>;
+}
 
 /** @internal */
 export const eventType = 'google.firebase.firebasealerts.alerts.v1.published';
@@ -55,13 +62,11 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
-): CloudFunction<FirebaseAlertData<T>> {
+): CloudFunction<AlertEvent<T>> {
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(
-      raw as CloudEvent<FirebaseAlertData<T>, WithAlertTypeAndApp>
-    );
+    return handler(raw as AlertEvent<T>);
   };
 
   func.run = handler;

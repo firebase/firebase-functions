@@ -29,7 +29,8 @@ import * as logger from '../../logger';
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
 import { apps } from '../../apps';
-import { isDebugFeatureEnabled } from '../../common/debug';
+import { isDebugFeatureEnabled } from '../debug';
+import { TaskContext } from './tasks';
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
@@ -167,68 +168,6 @@ export interface CallableRequest<T = any> {
    * The raw request handled by the callable.
    */
   rawRequest: Request;
-}
-
-/** How a task should be retried in the event of a non-2xx return. */
-export interface TaskRetryConfig {
-  /**
-   * Maximum number of times a request should be attempted.
-   * If left unspecified, will default to 3.
-   */
-  maxAttempts?: number;
-
-  /**
-   * The maximum amount of time to wait between attempts.
-   * If left unspecified will default to 1hr.
-   */
-  maxBackoffSeconds?: number;
-
-  /**
-   * The maximum number of times to double the backoff between
-   * retries. If left unspecified will default to 16.
-   */
-  maxDoublings?: number;
-
-  /**
-   * The minimum time to wait between attempts. If left unspecified
-   * will default to 100ms.
-   */
-  minBackoffSeconds?: number;
-}
-
-/** How congestion control should be applied to the function. */
-export interface TaskRateLimits {
-  // If left unspecified, will default to 100
-  maxBurstSize?: number;
-
-  // If left unspecified, wild default to 1000
-  maxConcurrentDispatches?: number;
-
-  // If left unspecified, will default to 500
-  maxDispatchesPerSecond?: number;
-}
-
-/** Metadata about a call to a Task Queue function. */
-export interface TaskContext {
-  /**
-   * The result of decoding and verifying an ODIC token.
-   */
-  auth?: AuthData;
-}
-
-/**
- * The request used to call a Task Queue function.
- */
-export interface TaskRequest<T = any> {
-  /**
-   * The parameters used by a client when calling this function.
-   */
-  data: T;
-
-  /**
-   * The result of decoding and verifying an ODIC token.
-   */
-  auth?: AuthData;
 }
 
 /**
@@ -419,7 +358,7 @@ interface HttpResponseBody {
 
 /** @hidden */
 // Returns true if req is a properly formatted callable request.
-function isValidRequest(req: Request): req is HttpRequest {
+export function isValidRequest(req: Request): req is HttpRequest {
   // The body must not be empty.
   if (!req.body) {
     logger.warn('Request is missing body.');
@@ -566,7 +505,8 @@ interface CallableTokenStatus {
   auth: TokenStatus;
 }
 
-function unsafeDecodeToken(token: string): unknown {
+/** @internal */
+export function unsafeDecodeToken(token: string): unknown {
   if (!JWT_REGEX.test(token)) {
     return {};
   }
@@ -670,7 +610,7 @@ async function checkTokens(
 }
 
 /** @interanl */
-async function checkAuthToken(
+export async function checkAuthToken(
   req: Request,
   ctx: CallableContext | TaskContext
 ): Promise<TokenStatus> {
@@ -739,8 +679,6 @@ type v1CallableHandler = (
   context: CallableContext
 ) => any | Promise<any>;
 type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
-type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
-type v2TaskHandler<Req> = (request: TaskRequest<Req>) => void | Promise<void>;
 
 /** @internal **/
 export interface CallableOptions {
@@ -814,53 +752,6 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
       res.status(200).send(responseBody);
-    } catch (err) {
-      if (!(err instanceof HttpsError)) {
-        // This doesn't count as an 'explicit' error.
-        logger.error('Unhandled error', err);
-        err = new HttpsError('internal', 'INTERNAL');
-      }
-
-      const { status } = err.httpErrorCode;
-      const body = { error: err.toJSON() };
-
-      res.status(status).send(body);
-    }
-  };
-}
-
-/** @internal */
-export function onDispatchHandler<Req = any>(
-  handler: v1TaskHandler | v2TaskHandler<Req>
-): (req: Request, res: express.Response) => Promise<void> {
-  return async (req: Request, res: express.Response): Promise<void> => {
-    try {
-      if (!isValidRequest(req)) {
-        logger.error('Invalid request, unable to process.');
-        throw new HttpsError('invalid-argument', 'Bad Request');
-      }
-
-      const context: TaskContext = {};
-      const status = await checkAuthToken(req, context);
-      // Note: this should never happen since task queue functions are guarded by IAM.
-      if (status === 'INVALID') {
-        throw new HttpsError('unauthenticated', 'Unauthenticated');
-      }
-
-      const data: Req = decode(req.body.data);
-      if (handler.length === 2) {
-        await handler(data, context);
-      } else {
-        const arg: TaskRequest<Req> = {
-          ...context,
-          data,
-        };
-        // For some reason the type system isn't picking up that the handler
-        // is a one argument function.
-        await (handler as any)(arg);
-      }
-
-      res.status(204).end();
     } catch (err) {
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.

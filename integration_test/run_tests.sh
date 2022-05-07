@@ -38,26 +38,6 @@ function build_sdk {
   mv firebase-functions-*.tgz "integration_test/functions/firebase-functions-${TIMESTAMP}.tgz"
 }
 
-function set_region {
-  if [[ "${FIREBASE_FUNCTIONS_TEST_REGION}" == "" ]]; then
-    FIREBASE_FUNCTIONS_TEST_REGION="us-central1"
-  fi
-  if [[ "${TOKEN}" == "" ]]; then 
-    firebase functions:config:set functions.test_region=$FIREBASE_FUNCTIONS_TEST_REGION --project=$PROJECT_ID
-  else
-    firebase functions:config:set functions.test_region=$FIREBASE_FUNCTIONS_TEST_REGION --project=$PROJECT_ID --token=$TOKEN
-  fi
-  announce "Set region to ${FIREBASE_FUNCTIONS_TEST_REGION}"
-}
-
-function unset_region {
-  if [[ "${TOKEN}" == "" ]]; then 
-    firebase functions:config:unset functions.test_region --project=$PROJECT_ID
-  else
-    firebase functions:config:unset functions.test_region --project=$PROJECT_ID --token=$TOKEN
-  fi
-}
-
 # Creates a Package.json from package.json.template
 # @param timestmap of the current SDK build
 # @param Node version to test under
@@ -85,9 +65,9 @@ function delete_all_functions {
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing.
   if [[ "${TOKEN}" == "" ]]; then
-    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests testLabTests --force --project=$PROJECT_ID || : &
+    firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID || : &
   else
-    firebase functions:delete callableTests createUserTests databaseTests deleteUserTests firestoreTests integrationTests pubsubTests remoteConfigTests testLabTests --force --project=$PROJECT_ID --token=$TOKEN || : &
+    firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID --token=$TOKEN || : &
   fi
   wait
   announce "Project emptied."
@@ -111,9 +91,6 @@ function run_tests {
   # causing this script to start failing, but currently we don't have a very
   # reliable way of determining the URL dynamically.
   TEST_DOMAIN="cloudfunctions.net"
-  if [[ "${FIREBASE_FUNCTIONS_URL}" == "https://preprod-cloudfunctions.sandbox.googleapis.com" ]]; then
-    TEST_DOMAIN="txcloud.net"
-  fi
   if [[ "${FIREBASE_FUNCTIONS_TEST_REGION}" == "" ]]; then
     FIREBASE_FUNCTIONS_TEST_REGION="us-central1"
   fi
@@ -126,7 +103,6 @@ function run_tests {
 function cleanup {
   announce "Performing cleanup..."
   delete_all_functions
-  unset_region
   rm "${DIR}/functions/firebase-functions-${TIMESTAMP}.tgz"
   rm "${DIR}/functions/package.json"
   rm -f "${DIR}/functions/firebase-debug.log"
@@ -137,15 +113,9 @@ function cleanup {
 # Setup
 build_sdk
 delete_all_functions
-set_region
 
-for version in 10 12 14 16; do
-  if [[ "$version" -eq 10 ]]; then
-    admin_sdk="^9.12.0"
-  else
-    admin_sdk="^10.0.0"
-  fi
-  create_package_json $TIMESTAMP $version $admin_sdk
+for version in 14 16; do
+  create_package_json $TIMESTAMP $version "^10.0.0"
   install_deps
   announce "Re-deploying the same functions to Node $version runtime ..."
   deploy

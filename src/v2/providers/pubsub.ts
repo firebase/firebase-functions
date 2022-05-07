@@ -1,7 +1,7 @@
-import * as options from '../options';
-import { CloudEvent, CloudFunction } from '../core';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import { CloudEvent, CloudFunction } from '../core';
+import * as options from '../options';
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
@@ -101,18 +101,18 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 export function onMessagePublished<T = any>(
   topic: string,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<MessagePublishedData<T>>;
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 /** Handle a message being published to a Pub/Sub topic. */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<MessagePublishedData<T>>;
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<MessagePublishedData<T>> {
+): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === 'string') {
@@ -143,9 +143,6 @@ export function onMessagePublished<T = any>(
       const specificOpts = options.optionsToTriggerAnnotations(opts);
 
       return {
-        // TODO(inlined): Remove "apiVersion" once the CLI has migrated to
-        // "platform"
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
