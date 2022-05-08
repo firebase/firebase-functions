@@ -36,7 +36,7 @@ const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
 /** @hidden */
 export interface Request extends express.Request {
-  rawBody: Buffer;
+  rawBody?: Buffer;
 }
 
 // This is actually a firebase.appCheck.DecodedAppCheckToken, but
