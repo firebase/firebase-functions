@@ -4,6 +4,22 @@ import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
 /**
+ * A PubSub Topic is:
+ * <ul>
+ * A resource that you can publish messages to and then consume those messages via subscriptions.
+ * An isolated data stream for pubsub messages.
+ * Messages are published to a topic.
+ * Messages are listened to via a subscription.
+ * Each subscription listens to the messages published to exactly one topic.
+ */
+export type PubSubTopic = string;
+
+/**
+ * Resource that listens to the messages published by exactly one topic.
+ */
+export type PubSubSubscription = string;
+
+/**
  * Interface representing a Google Cloud Pub/Sub message.
  *
  * @param data - Payload of a Pub/Sub message.
@@ -95,13 +111,13 @@ export interface MessagePublishedData<T = any> {
   /**  Google Cloud Pub/Sub message. */
   readonly message: Message<T>;
   /** A subscription resource. */
-  readonly subscription: string;
+  readonly subscription: PubSubSubscription;
 }
 
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
-  topic: string;
+  topic: PubSubTopic;
 }
 
 /**
@@ -111,7 +127,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  * @param T - Type representing `Message.data`'s json format
  */
 export function onMessagePublished<T = any>(
-  topic: string,
+  topic: PubSubTopic,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
@@ -150,7 +166,7 @@ export function onMessagePublished<T = any>(
   const func = (raw: CloudEvent<unknown>) => {
     const messagePublishedData = raw.data as {
       message: unknown;
-      subscription: string;
+      subscription: PubSubSubscription;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
     return handler(raw as CloudEvent<MessagePublishedData<T>>);
