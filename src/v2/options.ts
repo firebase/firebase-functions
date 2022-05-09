@@ -114,11 +114,10 @@ export interface GlobalOptions {
    * HTTPS functions can specify a higher timeout.
    * A value of null restores the default of 60s
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
-   * function depends on the type of function:
-   * 
-   * * Event handling functions have a maximum timeout of 540s (9 minutes)
-   * * HTTPS and Callable functions have a maximum timeout of 36,00s (1 hour)
-   * * TaskQueue functions have a maximum timeout of 1,800s (30 minutes)
+   * function depends on the type of function: Event handling functions have a
+   * maximum timeout of 540s (9 minutes). HTTPS and Callable functions have a
+   * maximum timeout of 36,00s (1 hour). TaskQueue functions have a maximum
+   * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | null;
 
