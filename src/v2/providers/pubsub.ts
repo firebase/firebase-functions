@@ -7,7 +7,7 @@ import * as options from '../options';
  * Interface representing a Google Cloud Pub/Sub message.
  *
  * @param data - Payload of a Pub/Sub message.
- * @beta
+ * @param T - Type representing `Message.data`'s json format
  */
 export class Message<T> {
   /**
@@ -49,7 +49,6 @@ export class Message<T> {
 
   /**
    * The JSON data payload of this message object, if any.
-   * @beta
    */
   get json(): T {
     if (typeof this._json === 'undefined') {
@@ -71,7 +70,6 @@ export class Message<T> {
    * Returns a JSON-serializable representation of this object.
    *
    * @returns A JSON-serializable representation of this object.
-   * @beta
    */
   toJSON(): any {
     const json: Record<string, any> = {
@@ -89,30 +87,49 @@ export class Message<T> {
   }
 }
 
-/** @beta The interface published in a Pub/Sub publish subscription. */
+/**
+ * The interface published in a Pub/Sub publish subscription.
+ * @param T - Type representing `Message.data`'s json format
+ */
 export interface MessagePublishedData<T = any> {
+  /**  Google Cloud Pub/Sub message. */
   readonly message: Message<T>;
   readonly subscription: string;
 }
 
-/** @beta PubSubOptions extend EventHandlerOptions but must include a topic. */
+/** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   topic: string;
 }
 
-/** @beta Handle a message being published to a Pub/Sub topic. */
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param topic - The Pub/Sub topic to watch for message events.
+ * @param handler - fires whenever the associated scheduler job sends a Pub/Sub message.
+ * @param T - Type representing `Message.data`'s json format
+ */
 export function onMessagePublished<T = any>(
   topic: string,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
-/** @beta Handle a message being published to a Pub/Sub topic. */
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param options - Option containing information (topic) for event
+ * @param handler - fires whenever the associated scheduler job sends a Pub/Sub message.
+ * @param T - Type representing `Message.data`'s json format
+ */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
-/** @beta Handle a message being published to a Pub/Sub topic. */
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param topicOrOptions - A string representing the PubSub topic or an option (which contains the topic)
+ * @param handler - fires whenever the associated scheduler job sends a Pub/Sub message.
+ * @param T - Type representing `Message.data`'s json format
+ */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
