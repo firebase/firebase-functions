@@ -29,7 +29,6 @@ import * as options from '../options';
 /**
  * An object within Google Cloud Storage.
  * Ref: https://github.com/googleapis/google-cloudevents-nodejs/blob/main/cloud/storage/v1/StorageObjectData.ts
- * @beta
  */
 export interface StorageObjectData {
   /**
@@ -163,7 +162,6 @@ export interface StorageObjectData {
 /**
  * Metadata of customer-supplied encryption key, if the object is encrypted by
  * such a key.
- * @beta
  */
 export interface CustomerEncryption {
   /**
@@ -176,7 +174,7 @@ export interface CustomerEncryption {
   keySha256?: string;
 }
 
-/** @beta A CloudEvent that contains StorageObjectData */
+/** A CloudEvent that contains StorageObjectData */
 export interface StorageEvent extends CloudEvent<StorageObjectData> {
   /** The name of the bucket containing this object. */
   bucket: string;
@@ -192,29 +190,61 @@ export const deletedEvent = 'google.cloud.storage.object.v1.deleted';
 export const metadataUpdatedEvent =
   'google.cloud.storage.object.v1.metadataUpdated';
 
-/** @beta StorageOptions extend EventHandlerOptions with a bucket name  */
+/** StorageOptions extend EventHandlerOptions with a bucket name  */
 export interface StorageOptions extends options.EventHandlerOptions {
+  /** The name of the bucket containing this object. */
   bucket?: string;
 }
 
-/** @beta Handle a storage object archived */
+/**
+ * Event handler sent only when a bucket has enabled object versioning.
+ * This event indicates that the live version of an object has become an
+ * archived version, either because it was archived or because it was
+ * overwritten by the upload of an object of the same name.
+ *
+ * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
+ */
 export function onObjectArchived(
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object archived */
+/**
+ * Event handler sent only when a bucket has enabled object versioning.
+ * This event indicates that the live version of an object has become an
+ * archived version, either because it was archived or because it was
+ * overwritten by the upload of an object of the same name.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
+ */
 export function onObjectArchived(
   bucket: string,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object archived */
+/**
+ * Event handler sent only when a bucket has enabled object versioning.
+ * This event indicates that the live version of an object has become an
+ * archived version, either because it was archived or because it was
+ * overwritten by the upload of an object of the same name.
+ *
+ * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
+ */
 export function onObjectArchived(
   opts: StorageOptions,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object archived */
+/**
+ * Event handler sent only when a bucket has enabled object versioning.
+ * This event indicates that the live version of an object has become an
+ * archived version, either because it was archived or because it was
+ * overwritten by the upload of an object of the same name.
+ *
+ * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
+ */
 export function onObjectArchived(
   buketOrOptsOrHandler:
     | string
@@ -225,24 +255,63 @@ export function onObjectArchived(
   return onOperation(archivedEvent, buketOrOptsOrHandler, handler);
 }
 
-/** @beta Handle a storage object finalized */
+/**
+ * Event handler which fires every time a Google Cloud Storage object
+ * creation occurs.
+ *
+ * Sent when a new object (or a new generation of an existing object)
+ * is successfully created in the bucket. This includes copying or rewriting
+ * an existing object. A failed upload does not trigger this event.
+ *
+ * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
+ */
 export function onObjectFinalized(
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object finalized */
+/**
+ * Event handler which fires every time a Google Cloud Storage object
+ * creation occurs.
+ *
+ * Sent when a new object (or a new generation of an existing object)
+ * is successfully created in the bucket. This includes copying or rewriting
+ * an existing object. A failed upload does not trigger this event.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
+ */
 export function onObjectFinalized(
   bucket: string,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object finalized */
+/**
+ * Event handler which fires every time a Google Cloud Storage object
+ * creation occurs.
+ *
+ * Sent when a new object (or a new generation of an existing object)
+ * is successfully created in the bucket. This includes copying or rewriting
+ * an existing object. A failed upload does not trigger this event.
+ *
+ * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
+ */
 export function onObjectFinalized(
   opts: StorageOptions,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object finalized */
+/**
+ * Event handler which fires every time a Google Cloud Storage object
+ * creation occurs.
+ *
+ * Sent when a new object (or a new generation of an existing object)
+ * is successfully created in the bucket. This includes copying or rewriting
+ * an existing object. A failed upload does not trigger this event.
+ *
+ * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
+ */
 export function onObjectFinalized(
   buketOrOptsOrHandler:
     | string
@@ -253,24 +322,67 @@ export function onObjectFinalized(
   return onOperation(finalizedEvent, buketOrOptsOrHandler, handler);
 }
 
-/** @beta Handle a storage object deleted */
+/**
+ * Event handler which fires every time a Google Cloud Storage deletion occurs.
+ *
+ * Sent when an object has been permanently deleted. This includes objects
+ * that are overwritten or are deleted as part of the bucket's lifecycle
+ * configuration. For buckets with object versioning enabled, this is not
+ * sent when an object is archived, even if archival occurs
+ * via the `storage.objects.delete` method.
+ *
+ * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
+ */
 export function onObjectDeleted(
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object deleted */
+/**
+ * Event handler which fires every time a Google Cloud Storage deletion occurs.
+ *
+ * Sent when an object has been permanently deleted. This includes objects
+ * that are overwritten or are deleted as part of the bucket's lifecycle
+ * configuration. For buckets with object versioning enabled, this is not
+ * sent when an object is archived, even if archival occurs
+ * via the `storage.objects.delete` method.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
+ */
 export function onObjectDeleted(
   bucket: string,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object deleted */
+/**
+ * Event handler which fires every time a Google Cloud Storage deletion occurs.
+ *
+ * Sent when an object has been permanently deleted. This includes objects
+ * that are overwritten or are deleted as part of the bucket's lifecycle
+ * configuration. For buckets with object versioning enabled, this is not
+ * sent when an object is archived, even if archival occurs
+ * via the `storage.objects.delete` method.
+ *
+ * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
+ */
 export function onObjectDeleted(
   opts: StorageOptions,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object deleted */
+/**
+ * Event handler which fires every time a Google Cloud Storage deletion occurs.
+ *
+ * Sent when an object has been permanently deleted. This includes objects
+ * that are overwritten or are deleted as part of the bucket's lifecycle
+ * configuration. For buckets with object versioning enabled, this is not
+ * sent when an object is archived, even if archival occurs
+ * via the `storage.objects.delete` method.
+ *
+ * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
+ */
 export function onObjectDeleted(
   buketOrOptsOrHandler:
     | string
@@ -281,24 +393,48 @@ export function onObjectDeleted(
   return onOperation(deletedEvent, buketOrOptsOrHandler, handler);
 }
 
-/** @beta Handle a storage object metadata updated */
+/**
+ * Event handler which fires every time the metadata of an existing object
+ * changes.
+ *
+ * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
+ */
 export function onObjectMetadataUpdated(
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object metadata updated */
+/**
+ * Event handler which fires every time the metadata of an existing object
+ * changes.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
+ */
 export function onObjectMetadataUpdated(
   bucket: string,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object metadata updated */
+/**
+ * Event handler which fires every time the metadata of an existing object
+ * changes.
+ *
+ * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
+ */
 export function onObjectMetadataUpdated(
   opts: StorageOptions,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
-/** @beta Handle a storage object metadata updated */
+/**
+ * Event handler which fires every time the metadata of an existing object
+ * changes.
+ *
+ * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
+ */
 export function onObjectMetadataUpdated(
   buketOrOptsOrHandler:
     | string
