@@ -20,7 +20,7 @@ interface InternalOptions {
 }
 
 /**
- * @beta All function options plus idToken, accessToken, and refreshToken.
+ * All function options plus idToken, accessToken, and refreshToken.
  */
 export interface BlockingOptions extends options.GlobalOptions {
   idToken?: boolean;
@@ -28,7 +28,7 @@ export interface BlockingOptions extends options.GlobalOptions {
   refreshToken?: boolean;
 }
 
-/** @beta Handle an event that is triggered before a user is created. */
+/** Handle an event that is triggered before a user is created. */
 export function beforeUserCreated(
   handler: (
     event: AuthBlockingEvent
@@ -39,7 +39,7 @@ export function beforeUserCreated(
     | Promise<void>
 ): BlockingFunction;
 
-/** @beta Handle an event that is triggered before a user is created. */
+/** Handle an event that is triggered before a user is created. */
 export function beforeUserCreated(
   opts: BlockingOptions,
   handler: (
@@ -51,7 +51,7 @@ export function beforeUserCreated(
     | Promise<void>
 ): BlockingFunction;
 
-/** @beta Handle an event that is triggered before a user is created. */
+/** Handle an event that is triggered before a user is created. */
 export function beforeUserCreated(
   optsOrHandler:
     | BlockingOptions
@@ -73,7 +73,7 @@ export function beforeUserCreated(
   return beforeOperation('beforeCreate', optsOrHandler, handler);
 }
 
-/** @beta Handle an event that is triggered before a user is signed in. */
+/** Handle an event that is triggered before a user is signed in. */
 export function beforeUserSignedIn(
   handler: (
     event: AuthBlockingEvent
@@ -84,7 +84,7 @@ export function beforeUserSignedIn(
     | Promise<void>
 ): BlockingFunction;
 
-/** @beta Handle an event that is triggered before a user is signed in. */
+/** Handle an event that is triggered before a user is signed in. */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
   handler: (
@@ -96,7 +96,7 @@ export function beforeUserSignedIn(
     | Promise<void>
 ): BlockingFunction;
 
-/** @beta Handle an event that is triggered before a user is signed in. */
+/** Handle an event that is triggered before a user is signed in. */
 export function beforeUserSignedIn(
   optsOrHandler:
     | BlockingOptions
