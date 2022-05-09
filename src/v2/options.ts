@@ -35,9 +35,8 @@ import { HttpsOptions } from './providers/https';
 
 /**
  * List of all regions supported by Cloud Functions v2
- * @beta
  */
-export type SupportedRegion = 
+export type SupportedRegion =
   | 'asia-northeast1'
   | 'europe-north1'
   | 'europe-west1'
@@ -48,7 +47,6 @@ export type SupportedRegion =
 
 /**
  * List of available memory options supported by Cloud Functions.
- * @beta
  */
 export type MemoryOption =
   | '128MiB'
@@ -73,18 +71,13 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
   '32GiB': 32768,
 };
 
-
 /**
  * List of available options for VpcConnectorEgressSettings.
- * @beta
  */
-export type VpcEgressSetting =
-  | 'PRIVATE_RANGES_ONLY'
-  | 'ALL_TRAFFIC';
+export type VpcEgressSetting = 'PRIVATE_RANGES_ONLY' | 'ALL_TRAFFIC';
 
 /**
  * List of available options for IngressSettings.
- * @beta
  */
 export type IngressSetting =
   | 'ALLOW_ALL'
@@ -94,7 +87,6 @@ export type IngressSetting =
 /**
  * GlobalOptions are options that can be set across an entire project.
  * These options are common to HTTPS and Event handling functions.
- * @beta
  */
 export interface GlobalOptions {
   /**
@@ -151,7 +143,6 @@ export interface GlobalOptions {
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
-   * @beta
    */
   cpu?: number | 'gcf_gen1';
 
@@ -200,7 +191,6 @@ let globalOptions: GlobalOptions | undefined;
 /**
  * Sets default options for all functions written using the v2 SDK.
  * @param options Options to set as default
- * @beta
  */
 export function setGlobalOptions(options: GlobalOptions) {
   if (globalOptions) {
@@ -220,7 +210,6 @@ export function getGlobalOptions(): GlobalOptions {
 
 /**
  * Additional fields that can be set on any event-handling Cloud Function.
- * @beta
  */
 export interface EventHandlerOptions extends GlobalOptions {
   retry?: boolean;
