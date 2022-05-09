@@ -28,7 +28,7 @@ import * as options from '../options';
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
-   * Type of the event.
+   * Type of the event to trigger on.
    */
   eventType: string;
 
@@ -54,14 +54,24 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   filters?: Record<string, string>;
 }
 
+/**
+ * A function that takes a CloudEvent.
+ */
 export type CloudEventHandler = (event: CloudEvent<any>) => any | Promise<any>;
 
-/** Handle an Eventarc event published on the default channel. */
+/** Handle an Eventarc event published on the default channel.
+ * @param eventType Type of the event to trigger on.
+ * @param handler A function to execute when triggered.
+ */
 export function onCustomEventPublished<T = any>(
   eventType: string,
   handler: CloudEventHandler
 ): CloudFunction<CloudEvent<T>>;
 
+/** Handle an Eventarc event. 
+ * @param opts Options to set on this Cloud Function
+ * @param handler A function to execute when triggered.
+*/
 export function onCustomEventPublished<T = any>(
   opts: EventarcTriggerOptions,
   handler: CloudEventHandler
