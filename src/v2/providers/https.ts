@@ -38,21 +38,23 @@ import { GlobalOptions, SupportedRegion } from '../options';
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 /**
- * Options that can be set on an individual HTTPS Cloud Function.
+ * Options that can be set on an individual HTTPS function.
  */
 export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?: SupportedRegion | string | Array<SupportedRegion | string>;
   /** If true, allows CORS on requests to this function.
-   * If this is a String or ReqExp, allows requests from domains that match the provided string or RegExp.
-   * If this is an Array, allows requests from domains matching at least one entry of the array.
-   * Defaults to true for {@link CallableFunction}s.
+   * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
+   * If this is an `Array`, allows requests from domains matching at least one entry of the array.
+   * Defaults to true for {@link CallableFunction}s and false otherwise.
    */
   cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
 
 /**
  * Handles HTTPS requests.
+ * @param req An Express request object representing the HTTPS call to the function.
+ * @param res An Express response object.
  */
 export type HttpsFunction = ((
   req: Request,
@@ -76,9 +78,9 @@ export interface CallableFunction<T, Return> extends HttpsFunction {
 }
 /**
  * Handles HTTPS requests.
- * @param opts - Options to set on this Cloud Function
+ * @param opts - Options to set on this function
  * @param handler - A function that takes a {@link Request} and response object, same signature as an Express app.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onRequest(
   opts: HttpsOptions,
@@ -90,7 +92,7 @@ export function onRequest(
 /**
  * Handles HTTPS requests.
  * @param handler - A function that takes a {@link Request} and response object, same signature as an Express app.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onRequest(
   handler: (
@@ -191,9 +193,9 @@ export function onRequest(
 
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
- * @param opts - Options to set on this Cloud Function.
+ * @param opts - Options to set on this function.
  * @param handler - A function that takes a {@link CallableRequest}.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
   opts: HttpsOptions,
@@ -202,7 +204,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler - A function that takes a {@link CallableRequest}.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
