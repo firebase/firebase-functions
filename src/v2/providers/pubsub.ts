@@ -6,7 +6,8 @@ import * as options from '../options';
 /**
  * Interface representing a Google Cloud Pub/Sub message.
  *
- * @param data Payload of a Pub/Sub message.
+ * @param data - Payload of a Pub/Sub message.
+ * @beta
  */
 export class Message<T> {
   /**
@@ -34,7 +35,7 @@ export class Message<T> {
    */
   readonly orderingKey: string;
 
-  /** @hidden */
+  /** @internal */
   private _json: T;
 
   constructor(data: any) {
@@ -48,6 +49,7 @@ export class Message<T> {
 
   /**
    * The JSON data payload of this message object, if any.
+   * @beta
    */
   get json(): T {
     if (typeof this._json === 'undefined') {
@@ -68,7 +70,8 @@ export class Message<T> {
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @return A JSON-serializable representation of this object.
+   * @returns A JSON-serializable representation of this object.
+   * @beta
    */
   toJSON(): any {
     const json: Record<string, any> = {
@@ -86,29 +89,30 @@ export class Message<T> {
   }
 }
 
-/** The interface published in a Pub/Sub publish subscription. */
+/** @beta The interface published in a Pub/Sub publish subscription. */
 export interface MessagePublishedData<T = any> {
   readonly message: Message<T>;
   readonly subscription: string;
 }
 
-/** PubSubOptions extend EventHandlerOptions but must include a topic. */
+/** @beta PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   topic: string;
 }
 
-/** Handle a message being published to a Pub/Sub topic. */
+/** @beta Handle a message being published to a Pub/Sub topic. */
 export function onMessagePublished<T = any>(
   topic: string,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
-/** Handle a message being published to a Pub/Sub topic. */
+/** @beta Handle a message being published to a Pub/Sub topic. */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
+/** @beta Handle a message being published to a Pub/Sub topic. */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
