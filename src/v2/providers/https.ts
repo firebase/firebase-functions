@@ -53,11 +53,11 @@ export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
 
 /**
  * Handles HTTPS requests.
- * @param req An Express request object representing the HTTPS call to the function.
- * @param res An Express response object.
  */
 export type HttpsFunction = ((
+  /** An Express request object representing the HTTPS call to the function. */
   req: Request,
+  /** An Express response object, for this function to respond to callers. */
   res: express.Response
 ) => void | Promise<void>) & {
   /** @alpha */
