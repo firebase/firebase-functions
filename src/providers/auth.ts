@@ -109,14 +109,20 @@ export class UserBuilder {
     private userOptions?: UserOptions
   ) {}
 
-  /** Responds to the creation of a Firebase Auth user. */
+  /**
+   * Responds to the creation of a Firebase Auth user.
+   * @public
+   */
   onCreate(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.create');
   }
 
-  /** Responds to the deletion of a Firebase Auth user. */
+  /**
+   * Responds to the deletion of a Firebase Auth user.
+   * @public
+   */
   onDelete(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
