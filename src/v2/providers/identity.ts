@@ -11,7 +11,7 @@ import * as options from '../options';
 
 export { HttpsError };
 
-/** @internal Internally used when parsing the options. */
+/** @hidden Internally used when parsing the options. */
 interface InternalOptions {
   opts: options.GlobalOptions;
   idToken: boolean;
@@ -118,7 +118,7 @@ export function beforeUserSignedIn(
   return beforeOperation('beforeSignIn', optsOrHandler, handler);
 }
 
-/** @internal */
+/** @hidden */
 export function beforeOperation(
   eventType: AuthBlockingEventType,
   optsOrHandler:
@@ -201,7 +201,7 @@ export function beforeOperation(
   return func;
 }
 
-/** @internal */
+/** @hidden */
 export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
   const accessToken = blockingOptions.accessToken || false;
   const idToken = blockingOptions.idToken || false;
