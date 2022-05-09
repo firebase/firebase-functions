@@ -54,7 +54,7 @@ export const provider = 'google.firebase.auth';
 /** @hidden */
 export const service = 'firebaseauth.googleapis.com';
 
-/** Resource level options */
+/** @public Resource level options */
 export interface UserOptions {
   blockingOptions?: {
     idToken?: boolean;
@@ -64,7 +64,7 @@ export interface UserOptions {
 }
 
 /**
- * Handle events related to Firebase authentication users.
+ * @public Handle events related to Firebase authentication users.
  */
 export function user(userOptions?: UserOptions) {
   return _userWithOptions({}, userOptions || {});
@@ -87,7 +87,7 @@ export function _userWithOptions(
   );
 }
 
-/** Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
+/** @public Builder used to create Cloud Functions for Firebase Auth user lifecycle events. */
 export class UserBuilder {
   private static dataConstructor(raw: Event): UserRecord {
     return userRecordConstructor(raw.data);
@@ -100,14 +100,14 @@ export class UserBuilder {
     private userOptions?: UserOptions
   ) {}
 
-  /** Respond to the creation of a Firebase Auth user. */
+  /** @public Respond to the creation of a Firebase Auth user. */
   onCreate(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
     return this.onOperation(handler, 'user.create');
   }
 
-  /** Respond to the deletion of a Firebase Auth user. */
+  /** @public Respond to the deletion of a Firebase Auth user. */
   onDelete(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
