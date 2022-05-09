@@ -94,11 +94,13 @@ export class Message<T> {
 export interface MessagePublishedData<T = any> {
   /**  Google Cloud Pub/Sub message. */
   readonly message: Message<T>;
+  /** A subscription resource. */
   readonly subscription: string;
 }
 
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
+  /** The Pub/Sub topic to watch for message events */
   topic: string;
 }
 
