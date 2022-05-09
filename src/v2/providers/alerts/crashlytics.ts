@@ -3,10 +3,14 @@ import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
 /** Generic crashlytics issue interface */
-interface Issue {
+export interface Issue {
+  /** The ID of the crashlytics issue */
   id: string;
+  /** The title of the crashlytics issue */
   title: string;
+  /** The subtitle of the crashlytics issue */
   subtitle: string;
+  /** The application version of the crashlytics issue */
   appVersion: string;
 }
 
@@ -48,7 +52,7 @@ export interface RegressionAlertPayload {
 }
 
 /** Generic crashlytics trending issue interface */
-interface TrendingIssueDetails {
+export interface TrendingIssueDetails {
   /** The type of the Crashlytics issue, e.g. new fatal, new nonfatal, ANR */
   type: string;
   /** Basic information of the Crashlytics issue */

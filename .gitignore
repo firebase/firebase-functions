@@ -3,6 +3,7 @@
 .tmp
 .vscode/
 coverage
+dist/
 docgen/html
 docgen/*/temp
 docgen/*/markdown
