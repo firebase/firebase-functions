@@ -68,10 +68,10 @@ export function onCustomEventPublished<T = any>(
   handler: CloudEventHandler
 ): CloudFunction<CloudEvent<T>>;
 
-/** Handle an Eventarc event. 
+/** Handle an Eventarc event.
  * @param opts Options to set on this Cloud Function
  * @param handler A function to execute when triggered.
-*/
+ */
 export function onCustomEventPublished<T = any>(
   opts: EventarcTriggerOptions,
   handler: CloudEventHandler
