@@ -35,7 +35,7 @@ export class Message<T> {
    */
   readonly orderingKey: string;
 
-  /** @internal */
+  /** @hidden */
   private _json: T;
 
   constructor(data: any) {
