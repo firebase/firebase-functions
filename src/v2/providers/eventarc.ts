@@ -55,14 +55,14 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
 }
 
 /**
- * A function that takes a CloudEvent.
+ * A function that takes a {@link CloudEvent}.
  */
 export type CloudEventHandler = (event: CloudEvent<any>) => any | Promise<any>;
 
 /** Handles an Eventarc event published on the default channel.
  * @param eventType - Type of the event to trigger on.
  * @param handler - A function to execute when triggered.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onCustomEventPublished<T = any>(
   eventType: string,
@@ -70,9 +70,9 @@ export function onCustomEventPublished<T = any>(
 ): CloudFunction<CloudEvent<T>>;
 
 /** Handles an Eventarc event.
- * @param opts - Options to set on this Cloud Function
+ * @param opts - Options to set on this function
  * @param handler - A function to execute when triggered.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onCustomEventPublished<T = any>(
   opts: EventarcTriggerOptions,
