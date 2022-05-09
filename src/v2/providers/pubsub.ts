@@ -123,7 +123,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 /**
  * Handle a message being published to a Pub/Sub topic.
  * @param topic - The Pub/Sub topic to watch for message events.
- * @param handler - fires whenever the associated scheduler job sends a Pub/Sub message.
+ * @param handler - runs every time a Cloud Pub/Sub message is published
  * @param T - Type representing `Message.data`'s json format
  */
 export function onMessagePublished<T = any>(
@@ -134,7 +134,7 @@ export function onMessagePublished<T = any>(
 /**
  * Handle a message being published to a Pub/Sub topic.
  * @param options - Option containing information (topic) for event
- * @param handler - fires whenever the associated scheduler job sends a Pub/Sub message.
+ * @param handler - runs every time a Cloud Pub/Sub message is published
  * @param T - Type representing `Message.data`'s json format
  */
 export function onMessagePublished<T = any>(
@@ -145,7 +145,7 @@ export function onMessagePublished<T = any>(
 /**
  * Handle a message being published to a Pub/Sub topic.
  * @param topicOrOptions - A string representing the PubSub topic or an option (which contains the topic)
- * @param handler - fires whenever the associated scheduler job sends a Pub/Sub message.
+ * @param handler - runs every time a Cloud Pub/Sub message is published
  * @param T - Type representing `Message.data`'s json format
  */
 export function onMessagePublished<T = any>(
