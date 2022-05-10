@@ -4,6 +4,7 @@ import * as options from '../../options';
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
+ * @typeParam T - the payload type that is expected for this alert.
  */
 export interface FirebaseAlertData<T = any> {
   /** Time that the event has created. */
@@ -16,6 +17,7 @@ export interface FirebaseAlertData<T = any> {
 
 /**
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
+ * @typeParam T - the data type for this alert that is wrapped in a `FirebaseAlertData` object.
  */
 export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
   /** The type of the alerts that got triggered. */
@@ -26,7 +28,7 @@ export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
    */
   appId?: string;
 
-  /** Data for an AlertEvent is a FirebaseAlertData with a given payload. */
+  /** Data for an `AlertEvent` is a `FirebaseAlertData` object with a given payload. */
   data: FirebaseAlertData<T>;
 }
 
@@ -50,14 +52,18 @@ export type AlertType =
  * Configuration for Firebase Alert functions.
  */
 export interface FirebaseAlertOptions extends options.EventHandlerOptions {
+  /** Scope the handler to trigger on an alert type. */
   alertType: AlertType;
+  /** Scope the function to trigger on a specific application. */
   appId?: string;
 }
 
 /**
  * Declares a function that can handle Firebase Alerts from CloudEvents.
+ * @typeParam T - The data type of the `FirebaseAlertData` object the function receives.
  * @param alertTypeOrOpts the alert type or Firebase Alert function configuration.
  * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
+ * @returns A function that you can export and deploy.
  */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
@@ -76,8 +82,8 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
 }
 
 /**
- * @internal
  * Helper function for getting the endpoint annotation used in alert handling functions.
+ * @internal
  */
 export function getEndpointAnnotation(
   opts: options.EventHandlerOptions,
@@ -109,8 +115,8 @@ export function getEndpointAnnotation(
 }
 
 /**
- * @internal
  * Helper function to parse the function opts, alert type, and appId.
+ * @internal
  */
 export function getOptsAndAlertTypeAndApp(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions
