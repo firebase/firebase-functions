@@ -59,9 +59,15 @@ export const service = 'firebaseauth.googleapis.com';
  * @public
  */
 export interface UserOptions {
+  /** Options to set at the resource level for blocking functions */
   blockingOptions?: {
+    /** Pass the ID Token credential to the function. */
     idToken?: boolean;
+
+    /** Pass the Access Token credential to the function. */
     accessToken?: boolean;
+
+    /** Pass the Refresh Token credential to the function. */
     refreshToken?: boolean;
   };
 }
