@@ -154,6 +154,7 @@ export class TaskQueueBuilder {
 /**
  * Declares a function that can handle tasks enqueued using the Firebase Admin SDK.
  * @param options - Configuration for the Task Queue that feeds into this function.
+ *        Omitting options will configure a Task Queue with default settings.
  */
 export function taskQueue(options?: TaskQueueOptions): TaskQueueBuilder {
   return new TaskQueueBuilder(options);
