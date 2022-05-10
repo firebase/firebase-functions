@@ -35,7 +35,7 @@ import {
 import * as options from '../options';
 import { HttpsFunction } from './https';
 
-export { AuthData, RateLimits, Request, RetryConfig as RetryPolicy };
+export { AuthData, RateLimits, Request, RetryConfig };
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
@@ -47,7 +47,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /**
    * Who can enqueue tasks for this function.
    * If left unspecified, only service accounts which have
-   * roles/cloudtasks.enqueuer and roles/cloudfunctions.invoker
+   * `roles/cloudtasks.enqueuer` and `roles/cloudfunctions.invoker`
    * will have permissions.
    */
   invoker?: 'private' | string | string[];
@@ -146,15 +146,38 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   retry?: boolean;
 }
 
+/**
+ * A handler for tasks.
+ * @typeParam T - The task data interface. Task data is unmarshaled from JSON.
+ */
 export interface TaskQueueFunction<T = any> extends HttpsFunction {
-  run(data: Request<T>): void | Promise<void>;
+  /**
+   * The callback passed to the `TaskQueueFunction` constructor.
+   * @param request - A TaskRequest containing data and auth information.
+   * @returns Any return value. Google Cloud Functions will await any promise
+   *          before shutting down your function. Resolved return values
+   *          are only used for unit testing purposes.
+   */
+  run(request: Request<T>): void | Promise<void>;
 }
 
-/** Handle a request sent to a Cloud Tasks queue. */
+/**
+ * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+ * @param handler - A callback to handle task requests.
+ * @typeParam Args - The interface for the request's `data` field.
+ * @returns A Cloud Function you can export and deploy.
+ */
 export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
-/** Handle a request sent to a Cloud Tasks queue. */
+
+/**
+ * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+ * @param options - Configuration for the task queue or Cloud Function.
+ * @param handler - A callback to handle task requests.
+ * @typeParam Args - The interface for the request's `data` field.
+ * @returns A Cloud Function you can export and deploy.
+ */
 export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
   handler: (request: Request<Args>) => void | Promise<void>
