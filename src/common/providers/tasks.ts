@@ -61,13 +61,20 @@ export interface RetryConfig {
 
 /** How congestion control should be applied to the function. */
 export interface RateLimits {
-  // If left unspecified, wild default to 1000
+  /**
+   * The maximum number of requests that can be outstanding at a time.
+   * If left unspecified, will default to 1000.
+   */
   maxConcurrentDispatches?: number;
 
-  // If left unspecified, will default to 500
+  /**
+   * The maximum number of requests that can be invoked per second.
+   * If left unspecified, will default to 500.
+   */
   maxDispatchesPerSecond?: number;
 }
 
+/** Metadata about the authorization used to invoke a function. */
 export interface AuthData {
   uid: string;
   token: firebase.auth.DecodedIdToken;
