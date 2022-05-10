@@ -304,7 +304,7 @@ export interface Runnable<T> {
  * arguments.
  */
 export interface HttpsFunction {
-  (req: Request, resp: Response): void | Promise<void>
+  (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
   __trigger: TriggerAnnotation;
@@ -320,7 +320,7 @@ export interface HttpsFunction {
  * The Cloud Function type for Blocking triggers.
  */
 export interface BlockingFunction {
-  (req: Request, resp: Response): void | Promise<void>
+  (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
   __trigger: TriggerAnnotation;
