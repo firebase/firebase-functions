@@ -6,11 +6,11 @@ import * as options from '../options';
 /**
  * A PubSub Topic is:
  * <ul>
- * A resource that you can publish messages to and then consume those messages via subscriptions.
- * An isolated data stream for pubsub messages.
- * Messages are published to a topic.
- * Messages are listened to via a subscription.
- * Each subscription listens to the messages published to exactly one topic.
+ *   <li>A resource that you can publish messages to and then consume those messages via subscriptions.
+ *   <li>An isolated data stream for Pub/Sub messages.
+ *   <li>Messages are published to a topic.
+ *   <li>Messages are listened to via a subscription.
+ *   <li>Each subscription listens to the messages published to exactly one topic.
  */
 export type PubSubTopic = string;
 
@@ -23,7 +23,7 @@ export type PubSubSubscription = string;
  * Interface representing a Google Cloud Pub/Sub message.
  *
  * @param data - Payload of a Pub/Sub message.
- * @param T - Type representing `Message.data`'s json format
+ * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export class Message<T> {
   /**
@@ -105,7 +105,7 @@ export class Message<T> {
 
 /**
  * The interface published in a Pub/Sub publish subscription.
- * @param T - Type representing `Message.data`'s json format
+ * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export interface MessagePublishedData<T = any> {
   /**  Google Cloud Pub/Sub message. */
@@ -124,7 +124,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  * Handle a message being published to a Pub/Sub topic.
  * @param topic - The Pub/Sub topic to watch for message events.
  * @param handler - runs every time a Cloud Pub/Sub message is published
- * @param T - Type representing `Message.data`'s json format
+ * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
   topic: PubSubTopic,
@@ -135,7 +135,7 @@ export function onMessagePublished<T = any>(
  * Handle a message being published to a Pub/Sub topic.
  * @param options - Option containing information (topic) for event
  * @param handler - runs every time a Cloud Pub/Sub message is published
- * @param T - Type representing `Message.data`'s json format
+ * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
@@ -146,7 +146,7 @@ export function onMessagePublished<T = any>(
  * Handle a message being published to a Pub/Sub topic.
  * @param topicOrOptions - A string representing the PubSub topic or an option (which contains the topic)
  * @param handler - runs every time a Cloud Pub/Sub message is published
- * @param T - Type representing `Message.data`'s json format
+ * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
