@@ -4,20 +4,25 @@ import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
 /**
- * A PubSub Topic is:
+ * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
+ * You can create a function ({@link onMessagePublished}) that handles pub/sub events by using functions.pubsub.
+ *
+ * This function triggers whenever a new pub/sub message is sent to a specific topic.
+ * You must specify the Pub/Sub topic name that you want to trigger your function, and set the event within the
+ * onPublish() event handler.
+ *
+ * PubSub Topic:
  * <ul>
  *   <li>A resource that you can publish messages to and then consume those messages via subscriptions.
- *   <li>An isolated data stream for Pub/Sub messages.
+ *   <li>An isolated data stream for pub/sub messages.
  *   <li>Messages are published to a topic.
  *   <li>Messages are listened to via a subscription.
  *   <li>Each subscription listens to the messages published to exactly one topic.
+ *
+ * Subscriptions - Resource that listens to the messages published by exactly one topic.
+ *
+ * [More info here](https://firebase.google.com/docs/functions/pubsub-events)
  */
-export type Topic = string;
-
-/**
- * Resource that listens to the messages published by exactly one topic.
- */
-export type Subscription = string;
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
@@ -118,6 +123,99 @@ export interface MessagePublishedData<T = any> {
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
   topic: string;
+
+  /**
+   * Region where functions should be deployed.
+   */
+  region?: options.SupportedRegion | string;
+
+  /**
+   * Amount of memory to allocate to a function.
+   * A value of null restores the defaults of 256MB.
+   */
+  memory?: options.MemoryOption | null;
+
+  /**
+   * Timeout for the function in sections, possible values are 0 to 540.
+   * HTTPS functions can specify a higher timeout.
+   * A value of null restores the default of 60s
+   * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
+   * function depends on the type of function: Event handling functions have a
+   * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
+   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * timeout of 1,800s (30 minutes)
+   */
+  timeoutSeconds?: number | null;
+
+  /**
+   * Min number of actual instances to be running at a given time.
+   * Instances will be billed for memory allocation and 10% of CPU allocation
+   * while idle.
+   * A value of null restores the default min instances.
+   */
+  minInstances?: number | null;
+
+  /**
+   * Max number of instances to be running in parallel.
+   * A value of null restores the default max instances.
+   */
+  maxInstances?: number | null;
+
+  /**
+   * Number of requests a function can serve at once.
+   * Can only be applied to functions running on Cloud Functions v2.
+   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
+   * The maximum value for concurrency is 1,000.
+   */
+  concurrency?: number | null;
+
+  /**
+   * Fractional number of CPUs to allocate to a function.
+   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * This is different from the defaults when using the gcloud utility and is different from
+   * the fixed amount assigned in Google Cloud Functions generation 1.
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * to the value "gcf_gen1"
+   */
+  cpu?: number | 'gcf_gen1';
+
+  /**
+   * Connect cloud function to specified VPC connector.
+   * A value of null removes the VPC connector
+   */
+  vpcConnector?: string | null;
+
+  /**
+   * Egress settings for VPC connector.
+   * A value of null turns off VPC connector egress settings
+   */
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+
+  /**
+   * Specific service account for the function to run as.
+   * A value of null restores the default service account.
+   */
+  serviceAccount?: string | null;
+
+  /**
+   * Ingress settings which control where this function can be called from.
+   * A value of null turns off ingress settings.
+   */
+  ingressSettings?: options.IngressSetting | null;
+
+  /**
+   * User labels to set on the function.
+   */
+  labels?: Record<string, string>;
+
+  /*
+   * Secrets to bind to a function.
+   */
+  secrets?: string[];
+
+  /** Whether failed executions should be delivered again. */
+  retry?: boolean;
 }
 
 /**

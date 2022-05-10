@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import * as logger from '../logger';
-import * as params from './params';
 import * as alerts from './providers/alerts';
 import * as eventarc from './providers/eventarc';
 import * as https from './providers/https';
@@ -30,18 +29,16 @@ import * as pubsub from './providers/pubsub';
 import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 
-export {
-  alerts,
-  https,
-  identity,
-  pubsub,
-  storage,
-  logger,
-  params,
-  tasks,
-  eventarc,
-};
+export { alerts, https, identity, pubsub, storage, logger, tasks, eventarc };
 
-export { setGlobalOptions, GlobalOptions } from './options';
+export {
+  setGlobalOptions,
+  GlobalOptions,
+  SupportedRegion,
+  MemoryOption,
+  VpcEgressSetting,
+  IngressSetting,
+  EventHandlerOptions,
+} from './options';
 
 export { CloudFunction, CloudEvent } from './core';

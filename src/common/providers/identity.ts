@@ -50,7 +50,11 @@ const DISALLOWED_CUSTOM_CLAIMS = [
 
 const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
 
-/** Shorthand auth blocking events from GCIP. */
+/**
+ * Shorthand auth blocking events from GCIP.
+ * @hidden
+ * @alpha
+ */
 export type AuthBlockingEventType = 'beforeCreate' | 'beforeSignIn';
 
 const EVENT_MAPPING: Record<string, string> = {
