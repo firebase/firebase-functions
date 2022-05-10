@@ -228,7 +228,7 @@ export function onObjectArchived(
  * archived version, either because it was archived or because it was
  * overwritten by the upload of an object of the same name.
  *
- * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
@@ -293,7 +293,7 @@ export function onObjectFinalized(
  * is successfully created in the bucket. This includes copying or rewriting
  * an existing object. A failed upload does not trigger this event.
  *
- * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
@@ -363,7 +363,7 @@ export function onObjectDeleted(
  * sent when an object is archived, even if archival occurs
  * via the `storage.objects.delete` method.
  *
- * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
@@ -420,7 +420,7 @@ export function onObjectMetadataUpdated(
  * Event handler which fires every time the metadata of an existing object
  * changes.
  *
- * @param opts - Options that can be set on an individual event-handling Cloud Function.
+ * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
