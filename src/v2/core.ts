@@ -56,7 +56,7 @@ export interface TriggerAnnotation {
 /**
  * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
- * @typeParam T - The tye of the event data.
+ * @typeParam T - The type of the event data.
  * @beta
  */
 export interface CloudEvent<T> {
@@ -100,8 +100,8 @@ export interface CloudFunction<EventType extends CloudEvent<unknown>> {
    * The callback passed to the CloudFunction constructor.
    * Use run to test a CloudFunction
    * @param event - The parsed event to handle.
-   * @returns Any return value. Google Cloud Functions will await any promise
-   *          before shutting down your Cloud Function. Resolved return values
+   * @returns Any return value. Google Cloud Functions awaits any promise
+   *          before shutting down your function. Resolved return values
    *          are only used for unit testing purposes.
    * @beta
    */
