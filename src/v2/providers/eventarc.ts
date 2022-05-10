@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Cloud functions to integrate directly with Eventarc.
+ * @packageDocumentation
+ */
+
 import { convertIfPresent, copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../core';
@@ -54,22 +59,20 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   filters?: Record<string, string>;
 }
 
-export type CloudEventHandler = (event: CloudEvent<any>) => any | Promise<any>;
-
 /** Handle an Eventarc event published on the default channel. */
 export function onCustomEventPublished<T = any>(
   eventType: string,
-  handler: CloudEventHandler
+  handler: (event: CloudEvent<T>) => any | Promise<any>
 ): CloudFunction<CloudEvent<T>>;
 
 export function onCustomEventPublished<T = any>(
   opts: EventarcTriggerOptions,
-  handler: CloudEventHandler
+  handler: (event: CloudEvent<T>) => any | Promise<any>
 ): CloudFunction<CloudEvent<T>>;
 
 export function onCustomEventPublished<T = any>(
   eventTypeOrOpts: string | EventarcTriggerOptions,
-  handler: CloudEventHandler
+  handler: (event: CloudEvent<T>) => any | Promise<any>
 ): CloudFunction<CloudEvent<T>> {
   let opts: EventarcTriggerOptions;
   if (typeof eventTypeOrOpts === 'string') {
