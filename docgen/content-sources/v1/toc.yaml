@@ -138,14 +138,14 @@ toc:
   - title: 'functions.tasks'
     path: /docs/reference/functions/providers_tasks.html
     section:
-    - title: AuthData
-      path: /docs/reference/functions/common_providers_tasks.authdata.html
-    - title: RateLimits
-      path: /docs/reference/functions/common_providers_tasks.ratelimits.html
-    - title: RetryConfig
-      path: /docs/reference/functions/common_providers_tasks.retryconfig.html
-    - title: TaskContext
-      path: /docs/reference/functions/common_providers_tasks.taskcontext.html
+      - title: AuthData
+        path: /docs/reference/functions/common_providers_tasks.authdata.html
+      - title: RateLimits
+        path: /docs/reference/functions/common_providers_tasks.ratelimits.html
+      - title: RetryConfig
+        path: /docs/reference/functions/common_providers_tasks.retryconfig.html
+      - title: TaskContext
+        path: /docs/reference/functions/common_providers_tasks.taskcontext.html
 
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab.html
