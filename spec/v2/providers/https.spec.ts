@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as sinon from 'sinon';
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 
 import * as debug from '../../../src/common/debug';
 import * as options from '../../../src/v2/options';

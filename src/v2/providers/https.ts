@@ -29,6 +29,7 @@ import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
+import { isDebugFeatureEnabled } from '../../common/debug';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -39,7 +40,6 @@ import {
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
 import { GlobalOptions, SupportedRegion } from '../options';
-import { isDebugFeatureEnabled } from '../../common/debug';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
