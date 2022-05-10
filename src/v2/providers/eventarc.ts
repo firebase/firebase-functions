@@ -20,6 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Cloud functions to integrate directly with Eventarc.
+ * @packageDocumentation
+ */
+
+/** Cloud functions to integrate directly with Eventarc. */
+declare namespace eventarc {}
+
 import { convertIfPresent, copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../core';

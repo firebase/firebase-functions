@@ -20,6 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * The V2 API for Cloud Functions for Firebase.
+ * This SDK also supports deep imports. For example, the namespace
+ * 'pubsub' is available at 'firebase-functions/v2' or is directly importable
+ * from 'firebase-functions/v2/pubsub'.
+ * @packageDocumentation
+ */
+
 import * as logger from '../logger';
 import * as params from './params';
 import * as alerts from './providers/alerts';
@@ -32,10 +40,10 @@ import * as tasks from './providers/tasks';
 
 export {
   alerts,
+  storage,
   https,
   identity,
   pubsub,
-  storage,
   logger,
   params,
   tasks,

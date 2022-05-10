@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Cloud functions to handle events from Google Cloud Storage.
+ * @packageDocumentation
+ */
+
 import { copyIfPresent } from '../../common/encoding';
 import { firebaseConfig } from '../../config';
 import { ManifestEndpoint } from '../../runtime/manifest';
