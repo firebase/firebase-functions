@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Cloud functions to handle HTTPS request or callable RPCs.
+ * @packageDocumentation
+ */
+
 import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
@@ -34,6 +39,7 @@ import {
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
 import { GlobalOptions, SupportedRegion } from '../options';
+import { isDebugFeatureEnabled } from '../../common/debug';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -213,12 +219,13 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if ('cors' in opts) {
+  if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
+    const origin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
         res.on('finish', resolve);
-        cors({ origin: opts.cors })(req, res, () => {
+        cors({ origin })(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
       });
@@ -314,7 +321,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  const origin = 'cors' in opts ? opts.cors : true;
+  const origin = isDebugFeatureEnabled('enableCors')
+    ? true
+    : 'cors' in opts
+    ? opts.cors
+    : true;
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
