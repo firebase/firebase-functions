@@ -257,45 +257,33 @@ export interface Resource {
 }
 
 /**
- * @hidden
- * TriggerAnnotated is used internally by the firebase CLI to understand what
+ * TriggerAnnotion is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
  */
-export interface TriggerAnnotated {
-  __trigger: {
-    availableMemoryMb?: number;
-    blockingTrigger?: {
-      eventType: string;
-      options?: Record<string, unknown>;
-    };
-    eventTrigger?: {
-      eventType: string;
-      resource: string;
-      service: string;
-    };
-    failurePolicy?: FailurePolicy;
-    httpsTrigger?: {
-      invoker?: string[];
-    };
-    labels?: { [key: string]: string };
-    regions?: string[];
-    schedule?: Schedule;
-    timeout?: Duration;
-    vpcConnector?: string;
-    vpcConnectorEgressSettings?: string;
-    serviceAccountEmail?: string;
-    ingressSettings?: string;
-    secrets?: string[];
+interface TriggerAnnotation {
+  availableMemoryMb?: number;
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
   };
-}
-
-/**
- * @hidden
- * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
- */
-export interface EndpointAnnotated {
-  __endpoint: ManifestEndpoint;
-  __requiredAPIs?: ManifestRequiredAPI[];
+  eventTrigger?: {
+    eventType: string;
+    resource: string;
+    service: string;
+  };
+  failurePolicy?: FailurePolicy;
+  httpsTrigger?: {
+    invoker?: string[];
+  };
+  labels?: { [key: string]: string };
+  regions?: string[];
+  schedule?: Schedule;
+  timeout?: Duration;
+  vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
+  serviceAccountEmail?: string;
+  ingressSettings?: string;
+  secrets?: string[];
 }
 
 /**
@@ -315,14 +303,34 @@ export interface Runnable<T> {
  * [`Response`](https://expressjs.com/en/api.html#res) objects as its only
  * arguments.
  */
-export type HttpsFunction = TriggerAnnotated &
-  EndpointAnnotated &
-  ((req: Request, resp: Response) => void | Promise<void>);
+export interface HttpsFunction {
+  (req: Request, resp: Response): void | Promise<void>
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
+  __endpoint: ManifestEndpoint;
+
+  /** @alpha */
+  __requiredAPIs?: ManifestRequiredAPI[];
+}
 
 /**
  * The Cloud Function type for Blocking triggers.
  */
-export type BlockingFunction = HttpsFunction;
+export interface BlockingFunction {
+  (req: Request, resp: Response): void | Promise<void>
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
+  __endpoint: ManifestEndpoint;
+
+  /** @alpha */
+  __requiredAPIs?: ManifestRequiredAPI[];
+}
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported
@@ -331,10 +339,18 @@ export type BlockingFunction = HttpsFunction;
  * This type is a special JavaScript function which takes a templated
  * `Event` object as its only argument.
  */
-export type CloudFunction<T> = Runnable<T> &
-  TriggerAnnotated &
-  EndpointAnnotated &
-  ((input: any, context?: any) => PromiseLike<any> | any);
+export interface CloudFunction<T> extends Runnable<T> {
+  (input: any, context?: any): PromiseLike<any> | any;
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
+  __endpoint: ManifestEndpoint;
+
+  /** @alpha */
+  __requiredAPIs?: ManifestRequiredAPI[];
+}
 
 /** @hidden */
 export interface MakeCloudFunctionArgs<EventData> {

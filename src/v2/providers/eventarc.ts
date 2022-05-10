@@ -54,7 +54,9 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   filters?: Record<string, string>;
 }
 
-export type CloudEventHandler = (event: CloudEvent<any>) => any | Promise<any>;
+export interface CloudEventHandler {
+  (event: CloudEvent<any>): any | Promise<any>;
+}
 
 /** Handle an Eventarc event published on the default channel. */
 export function onCustomEventPublished<T = any>(
