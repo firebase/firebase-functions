@@ -23,8 +23,13 @@ interface InternalOptions {
  * All function options plus idToken, accessToken, and refreshToken.
  */
 export interface BlockingOptions {
+  /** Pass the ID Token credential to the function. */
   idToken?: boolean;
+
+  /** Pass the Access Token credential to the function. */
   accessToken?: boolean;
+
+  /** Pass the Refresh Token credential to the function. */
   refreshToken?: boolean;
 
   /**
