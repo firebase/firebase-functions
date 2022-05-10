@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Core functionality of the Firebase Functions v2 SDK.
+ * @packageDocumentation
+ */
+
 import { ManifestEndpoint } from '../runtime/manifest';
 
 /** @internal */
