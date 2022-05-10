@@ -25,6 +25,7 @@ const debugMode = process.env.FIREBASE_DEBUG_MODE === 'true';
 
 interface DebugFeatures {
   skipTokenVerification?: boolean;
+  enableCors?: boolean;
 }
 
 function loadDebugFeatures(): DebugFeatures {
