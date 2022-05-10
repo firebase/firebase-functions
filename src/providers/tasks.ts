@@ -38,44 +38,55 @@ import {
 import { DeploymentOptions } from '../function-configuration';
 import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 
-export {
-  /** @hidden */
-  RetryConfig as RetryPolicy,
-  /** @hidden */
-  RateLimits,
-  /** @hidden */
-  TaskContext,
-};
+export { RetryConfig, RateLimits, TaskContext };
 
 /**
- * Configurations for Task Queue Functions.
- * @hidden
+ * Options for configuring the task queue to listen to.
  */
 export interface TaskQueueOptions {
+  /** How a task should be retried in the event of a non-2xx return. */
   retryConfig?: RetryConfig;
+  /** How congestion control should be applied to the function. */
   rateLimits?: RateLimits;
 
   /**
    * Who can enqueue tasks for this function.
    * If left unspecified, only service accounts which have
-   * roles/cloudtasks.enqueuer and roles/cloudfunctions.invoker
+   * `roles/cloudtasks.enqueuer` and `roles/cloudfunctions.invoker`
    * will have permissions.
    */
   invoker?: 'private' | string | string[];
 }
 
-/** @hidden */
+/**
+ * A handler for tasks.
+ */
 export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
 
+  /** @alpha */
   __trigger: unknown;
+
+  /** @alpha */
   __endpoint: ManifestEndpoint;
+
+  /** @alpha */
   __requiredAPIs?: ManifestRequiredAPI[];
 
+  /**
+   * The callback passed to the `TaskQueueFunction` constructor.
+   * @param data - The body enqueued into a task queue.
+   * @param context - The request context of the enqueued task
+   * @returns Any return value. Google Cloud Functions will await any promise
+   *          before shutting down your function. Resolved return values
+   *          are only used for unit testing purposes.
+   */
   run(data: any, context: TaskContext): void | Promise<void>;
 }
 
-/** @hidden */
+/**
+ * Builder for creating a `TaskQueueFunction`.
+ */
 export class TaskQueueBuilder {
   /** @internal */
   constructor(
@@ -83,6 +94,11 @@ export class TaskQueueBuilder {
     private readonly depOpts?: DeploymentOptions
   ) {}
 
+  /**
+   * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+   * @param handler - A callback to handle task requests.
+   * @returns A Cloud Function you can export and deploy.
+   */
   onDispatch(
     handler: (data: any, context: TaskContext) => void | Promise<void>
   ): TaskQueueFunction {
@@ -137,8 +153,7 @@ export class TaskQueueBuilder {
 
 /**
  * Declares a function that can handle tasks enqueued using the Firebase Admin SDK.
- * @param options Configuration for the Task Queue that feeds into this function.
- * @hidden
+ * @param options - Configuration for the Task Queue that feeds into this function.
  */
 export function taskQueue(options?: TaskQueueOptions): TaskQueueBuilder {
   return new TaskQueueBuilder(options);
