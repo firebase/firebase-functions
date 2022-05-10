@@ -39,8 +39,8 @@ export const service = 'pubsub.googleapis.com';
  * Registers a Cloud Function triggered when a Google Cloud Pub/Sub message
  * is sent to a specified topic.
  *
- * @param topic The Pub/Sub topic to watch for message events.
- * @return Pub/Sub topic builder interface.
+ * @param topic - The Pub/Sub topic to watch for message events.
+ * @returns Pub/Sub topic builder interface.
  */
 export function topic(topic: string) {
   return _topicWithOptions(topic, {});
@@ -79,7 +79,7 @@ export class TopicBuilder {
    * Event handler that fires every time a Cloud Pub/Sub message is
    * published.
    *
-   * @param handler Event handler that runs every time a Cloud Pub/Sub message
+   * @param handler - Event handler that runs every time a Cloud Pub/Sub message
    *   is published.
    * @return A Cloud Function that you can export and deploy.
    */
@@ -101,7 +101,7 @@ export class TopicBuilder {
 /**
  * Registers a Cloud Function to run at specified times.
  *
- * @param schedule The schedule, in Unix Crontab or AppEngine syntax.
+ * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
  * @return ScheduleBuilder interface.
  */
 export function schedule(schedule: string): ScheduleBuilder {
@@ -156,7 +156,7 @@ export class ScheduleBuilder {
    * Event handler for scheduled functions. Triggered whenever the associated
    * scheduler job sends a Pub/Sub message.
    *
-   * @param handler Handler that fires whenever the associated
+   * @param handler - Handler that fires whenever the associated
    *   scheduler job sends a Pub/Sub message.
    * @return A Cloud Function that you can export and deploy.
    */
@@ -177,7 +177,7 @@ export class ScheduleBuilder {
 /**
  * Interface representing a Google Cloud Pub/Sub message.
  *
- * @param data Payload of a Pub/Sub message.
+ * @param data - Payload of a Pub/Sub message.
  */
 export class Message {
   /**
