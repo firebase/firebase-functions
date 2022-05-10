@@ -38,7 +38,7 @@ import * as options from '../options';
 
 export { HttpsError };
 
-/** Internally used when parsing the options. */
+/** @hidden Internally used when parsing the options. */
 interface InternalOptions {
   opts: options.GlobalOptions;
   idToken: boolean;
@@ -56,7 +56,8 @@ export interface BlockingOptions extends options.GlobalOptions {
 }
 
 /**
- * Handle an event that is triggered before a user is created.
+ * Handles an event that is triggered before a user is created.
+ * @param handler - Event handler which is run every time before a user is created
  */
 export function beforeUserCreated(
   handler: (
@@ -67,6 +68,12 @@ export function beforeUserCreated(
     | void
     | Promise<void>
 ): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before a user is created.
+ * @param opts - Object containing function options
+ * @param handler - Event handler which is run every time before a user is created
+ */
 export function beforeUserCreated(
   opts: BlockingOptions,
   handler: (
@@ -77,6 +84,12 @@ export function beforeUserCreated(
     | void
     | Promise<void>
 ): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before a user is created
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user creation)
+ * @param handler? - If defined, an event handler which is run every time before a user is created
+ */
 export function beforeUserCreated(
   optsOrHandler:
     | BlockingOptions
@@ -99,7 +112,8 @@ export function beforeUserCreated(
 }
 
 /**
- * Handle an event that is triggered before a user is signed in.
+ * Handles an event that is triggered before a user is signed in.
+ * @param handler - Event handler which is run every time before a user is signed in
  */
 export function beforeUserSignedIn(
   handler: (
@@ -110,6 +124,12 @@ export function beforeUserSignedIn(
     | void
     | Promise<void>
 ): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before a user is signed in.
+ * @param opts - Object containing function options
+ * @param handler - Event handler which is run every time before a user is signed in
+ */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
   handler: (
@@ -120,6 +140,12 @@ export function beforeUserSignedIn(
     | void
     | Promise<void>
 ): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before a user is signed in.
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user signin)
+ * @param handler - Event handler which is run every time before a user is signed in
+ */
 export function beforeUserSignedIn(
   optsOrHandler:
     | BlockingOptions
@@ -141,7 +167,7 @@ export function beforeUserSignedIn(
   return beforeOperation('beforeSignIn', optsOrHandler, handler);
 }
 
-/** @internal */
+/** @hidden */
 export function beforeOperation(
   eventType: AuthBlockingEventType,
   optsOrHandler:
@@ -224,7 +250,7 @@ export function beforeOperation(
   return func;
 }
 
-/** @internal */
+/** @hidden */
 export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
   const accessToken = blockingOptions.accessToken || false;
   const idToken = blockingOptions.idToken || false;

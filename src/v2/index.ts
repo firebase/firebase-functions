@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2022 Firebase
+// Copyright (c) 2021 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,6 @@
  */
 
 import * as logger from '../logger';
-import * as params from './params';
 import * as alerts from './providers/alerts';
 import * as eventarc from './providers/eventarc';
 import * as https from './providers/https';
@@ -38,18 +37,16 @@ import * as pubsub from './providers/pubsub';
 import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 
-export {
-  alerts,
-  storage,
-  https,
-  identity,
-  pubsub,
-  logger,
-  params,
-  tasks,
-  eventarc,
-};
+export { alerts, storage, https, identity, pubsub, logger, tasks, eventarc };
 
-export { setGlobalOptions, GlobalOptions } from './options';
+export {
+  setGlobalOptions,
+  GlobalOptions,
+  SupportedRegion,
+  MemoryOption,
+  VpcEgressSetting,
+  IngressSetting,
+  EventHandlerOptions,
+} from './options';
 
 export { CloudFunction, CloudEvent } from './core';
