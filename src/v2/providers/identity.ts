@@ -1,3 +1,30 @@
+// The MIT License (MIT)
+//
+// Copyright (c) 2022 Firebase
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+
+/**
+ * Cloud functions to handle events from Google Cloud Identity Platform.
+ * @packageDocumentation
+ */
+
 import { BlockingFunction } from '../../cloud-functions';
 import {
   AuthBlockingEvent,
@@ -23,8 +50,13 @@ interface InternalOptions {
  * All function options plus idToken, accessToken, and refreshToken.
  */
 export interface BlockingOptions {
+  /** Pass the ID Token credential to the function. */
   idToken?: boolean;
+
+  /** Pass the Access Token credential to the function. */
   accessToken?: boolean;
+
+  /** Pass the Refresh Token credential to the function. */
   refreshToken?: boolean;
 
   /**
