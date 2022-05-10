@@ -5,9 +5,9 @@ import * as options from '../options';
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
- * You can create a function ({@link onMessagePublished}) that handles Pub/Sub events by using functions.pubsub.
+ * You can create a function ({@link onMessagePublished}) that handles pub/sub events by using functions.pubsub.
  *
- * This function triggers whenever a new Pub/Sub message is sent to a specific topic.
+ * This function triggers whenever a new pub/sub message is sent to a specific topic.
  * You must specify the Pub/Sub topic name that you want to trigger your function, and set the event within the
  * onPublish() event handler.
  *
