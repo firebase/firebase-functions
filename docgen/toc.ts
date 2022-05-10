@@ -21,9 +21,9 @@
 import { writeFileSync } from 'fs';
 import { resolve } from 'path';
 
-import yargs from 'yargs';
-import * as yaml from 'js-yaml';
 import { FileSystem } from '@rushstack/node-core-library';
+import * as yaml from 'js-yaml';
+import yargs from 'yargs';
 
 export interface TocGenerationOptions {
   inputFolder: string;
