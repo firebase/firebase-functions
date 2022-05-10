@@ -126,7 +126,7 @@ toc:
         path: /docs/reference/functions/providers_remoteconfig.remoteconfiguser.html
       - title: 'TemplateVersion'
         path: /docs/reference/functions/providers_remoteconfig.templateversion.html
-      - title: 'Updatebuilder'
+      - title: 'UpdateBuilder'
         path: /docs/reference/functions/providers_remoteconfig.updatebuilder.html
 
   - title: 'functions.storage'
