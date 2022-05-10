@@ -46,7 +46,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
    * If this is an `Array`, allows requests from domains matching at least one entry of the array.
-   * Defaults to true for {@link CallableFunction}s and false otherwise.
+   * Defaults to true for {@link https.CallableFunction} and false otherwise.
    */
   cors?: string | boolean | RegExp | Array<string | RegExp>;
 }
@@ -79,7 +79,7 @@ export interface CallableFunction<T, Return> extends HttpsFunction {
 /**
  * Handles HTTPS requests.
  * @param opts - Options to set on this function
- * @param handler - A function that takes a {@link Request} and response object, same signature as an Express app.
+ * @param handler - A function that takes a {@link https.Request} and response object, same signature as an Express app.
  * @returns A function that you can export and deploy.
  */
 export function onRequest(
@@ -91,7 +91,7 @@ export function onRequest(
 ): HttpsFunction;
 /**
  * Handles HTTPS requests.
- * @param handler - A function that takes a {@link Request} and response object, same signature as an Express app.
+ * @param handler - A function that takes a {@link https.Request} and response object, same signature as an Express app.
  * @returns A function that you can export and deploy.
  */
 export function onRequest(
@@ -194,7 +194,7 @@ export function onRequest(
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param opts - Options to set on this function.
- * @param handler - A function that takes a {@link CallableRequest}.
+ * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
@@ -203,7 +203,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
 ): CallableFunction<T, Return>;
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
- * @param handler - A function that takes a {@link CallableRequest}.
+ * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
