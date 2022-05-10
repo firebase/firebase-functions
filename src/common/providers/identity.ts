@@ -52,7 +52,8 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
 
 /**
  * Shorthand auth blocking events from GCIP.
- * @internal
+ * @hidden
+ * @alpha
  */
 export type AuthBlockingEventType = 'beforeCreate' | 'beforeSignIn';
 
