@@ -181,7 +181,7 @@ export interface GlobalOptions {
   invoker?: 'public' | 'private' | string | string[];
 
   /*
-   * Secrets to bind to a functions.
+   * Secrets to bind to a function.
    */
   secrets?: string[];
 }

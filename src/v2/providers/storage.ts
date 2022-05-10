@@ -281,7 +281,7 @@ export interface StorageOptions extends options.EventHandlerOptions {
   labels?: Record<string, string>;
 
   /*
-   * Secrets to bind to a functions.
+   * Secrets to bind to a function.
    */
   secrets?: string[];
 
