@@ -44,7 +44,7 @@ export function beforeUserCreated(
 
 /**
  * Handles an event that is triggered before a user is created.
- * @param opts - Object containing Function options
+ * @param opts - Object containing function options
  * @param handler - Event handler which is run every time before a user is created
  */
 export function beforeUserCreated(
@@ -60,8 +60,8 @@ export function beforeUserCreated(
 
 /**
  * Handles an event that is triggered before a user is created
- * @param optsOrHandler - Either an object containing Function options, or an event handler (run before user creation)
- * @param handler? - If defined, an wvent handler which is run every time before a user is created
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user creation)
+ * @param handler? - If defined, an event handler which is run every time before a user is created
  */
 export function beforeUserCreated(
   optsOrHandler:
@@ -100,7 +100,7 @@ export function beforeUserSignedIn(
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param opts - Object containing Function options
+ * @param opts - Object containing function options
  * @param handler - Event handler which is run every time before a user is signed in
  */
 export function beforeUserSignedIn(
@@ -116,7 +116,7 @@ export function beforeUserSignedIn(
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param optsOrHandler - Either an object containing Function options, or an event handler (run before user signin)
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user signin)
  * @param handler - Event handler which is run every time before a user is signed in
  */
 export function beforeUserSignedIn(
