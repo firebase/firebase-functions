@@ -135,6 +135,20 @@ toc:
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage.objectmetadata.html
 
+  - title: functions.tasks
+    path: /docs/reference/functions/providers_tasks.html
+    section:
+    - title: common_providers_tasks.authdata.html
+      path: /docs/reference/functions/common_providers_tasks.authdata.html
+    - title: common_providers_tasks.ratelimits.html
+      path: /docs/reference/functions/common_providers_tasks.ratelimits.html
+    - title: common_providers_tasks.request.html
+      path: /docs/reference/functions/common_providers_tasks.request.html
+    - title: common_providers_tasks.retryconfig.html
+      path: /docs/reference/functions/common_providers_tasks.retryconfig.html
+    - title: common_providers_tasks.taskcontext.html
+      path: /docs/reference/functions/common_providers_tasks.taskcontext.html
+
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab.html
     section:
