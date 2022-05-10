@@ -4,20 +4,25 @@ import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
 /**
- * A PubSub Topic is:
+ * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
+ * You can create a function ({@link onMessagePublished}) that handles pub/sub events by using functions.pubsub.
+ *
+ * This function triggers whenever a new pub/sub message is sent to a specific topic.
+ * You must specify the Pub/Sub topic name that you want to trigger your function, and set the event within the
+ * onPublish() event handler.
+ *
+ * PubSub Topic:
  * <ul>
  *   <li>A resource that you can publish messages to and then consume those messages via subscriptions.
- *   <li>An isolated data stream for Pub/Sub messages.
+ *   <li>An isolated data stream for pub/sub messages.
  *   <li>Messages are published to a topic.
  *   <li>Messages are listened to via a subscription.
  *   <li>Each subscription listens to the messages published to exactly one topic.
+ *
+ * Subscriptions - Resource that listens to the messages published by exactly one topic.
+ *
+ * [More info here](https://firebase.google.com/docs/functions/pubsub-events)
  */
-export type Topic = string;
-
-/**
- * Resource that listens to the messages published by exactly one topic.
- */
-export type Subscription = string;
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
