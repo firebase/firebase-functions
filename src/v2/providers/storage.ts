@@ -242,17 +242,17 @@ export function onObjectArchived(
  * archived version, either because it was archived or because it was
  * overwritten by the upload of an object of the same name.
  *
- * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param bucketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
-  buketOrOptsOrHandler:
+  bucketOrOptsOrHandler:
     | string
     | StorageOptions
     | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
-  return onOperation(archivedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(archivedEvent, bucketOrOptsOrHandler, handler);
 }
 
 /**
@@ -309,17 +309,17 @@ export function onObjectFinalized(
  * is successfully created in the bucket. This includes copying or rewriting
  * an existing object. A failed upload does not trigger this event.
  *
- * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param bucketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
-  buketOrOptsOrHandler:
+  bucketOrOptsOrHandler:
     | string
     | StorageOptions
     | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
-  return onOperation(finalizedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(finalizedEvent, bucketOrOptsOrHandler, handler);
 }
 
 /**
@@ -380,24 +380,24 @@ export function onObjectDeleted(
  * sent when an object is archived, even if archival occurs
  * via the `storage.objects.delete` method.
  *
- * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param bucketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
-  buketOrOptsOrHandler:
+  bucketOrOptsOrHandler:
     | string
     | StorageOptions
     | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
-  return onOperation(deletedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(deletedEvent, bucketOrOptsOrHandler, handler);
 }
 
 /**
  * Event handler which fires every time the metadata of an existing object
  * changes.
  *
- * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param bucketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
@@ -432,17 +432,17 @@ export function onObjectMetadataUpdated(
  * Event handler which fires every time the metadata of an existing object
  * changes.
  *
- * @param buketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
+ * @param bucketOrOptsOrHandler - Options or string that may (or may not) define the bucket to be used.
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  buketOrOptsOrHandler:
+  bucketOrOptsOrHandler:
     | string
     | StorageOptions
     | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
-  return onOperation(metadataUpdatedEvent, buketOrOptsOrHandler, handler);
+  return onOperation(metadataUpdatedEvent, bucketOrOptsOrHandler, handler);
 }
 
 /** @internal */
