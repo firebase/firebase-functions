@@ -12,12 +12,12 @@ import * as options from '../options';
  *   <li>Messages are listened to via a subscription.
  *   <li>Each subscription listens to the messages published to exactly one topic.
  */
-export type PubSubTopic = string;
+export type Topic = string;
 
 /**
  * Resource that listens to the messages published by exactly one topic.
  */
-export type PubSubSubscription = string;
+export type Subscription = string;
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
@@ -111,13 +111,13 @@ export interface MessagePublishedData<T = any> {
   /**  Google Cloud Pub/Sub message. */
   readonly message: Message<T>;
   /** A subscription resource. */
-  readonly subscription: PubSubSubscription;
+  readonly subscription: string;
 }
 
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
-  topic: PubSubTopic;
+  topic: string;
 }
 
 /**
@@ -127,7 +127,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topic: PubSubTopic,
+  topic: string,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
@@ -166,7 +166,7 @@ export function onMessagePublished<T = any>(
   const func = (raw: CloudEvent<unknown>) => {
     const messagePublishedData = raw.data as {
       message: unknown;
-      subscription: PubSubSubscription;
+      subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
     return handler(raw as CloudEvent<MessagePublishedData<T>>);
