@@ -4,9 +4,26 @@ import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
 /**
+ * A PubSub Topic is:
+ * <ul>
+ *   <li>A resource that you can publish messages to and then consume those messages via subscriptions.
+ *   <li>An isolated data stream for Pub/Sub messages.
+ *   <li>Messages are published to a topic.
+ *   <li>Messages are listened to via a subscription.
+ *   <li>Each subscription listens to the messages published to exactly one topic.
+ */
+export type PubSubTopic = string;
+
+/**
+ * Resource that listens to the messages published by exactly one topic.
+ */
+export type PubSubSubscription = string;
+
+/**
  * Interface representing a Google Cloud Pub/Sub message.
  *
- * @param data Payload of a Pub/Sub message.
+ * @param data - Payload of a Pub/Sub message.
+ * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export class Message<T> {
   /**
@@ -68,7 +85,7 @@ export class Message<T> {
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @return A JSON-serializable representation of this object.
+   * @returns A JSON-serializable representation of this object.
    */
   toJSON(): any {
     const json: Record<string, any> = {
@@ -86,29 +103,51 @@ export class Message<T> {
   }
 }
 
-/** The interface published in a Pub/Sub publish subscription. */
+/**
+ * The interface published in a Pub/Sub publish subscription.
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
 export interface MessagePublishedData<T = any> {
+  /**  Google Cloud Pub/Sub message. */
   readonly message: Message<T>;
-  readonly subscription: string;
+  /** A subscription resource. */
+  readonly subscription: PubSubSubscription;
 }
 
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
-  topic: string;
+  /** The Pub/Sub topic to watch for message events */
+  topic: PubSubTopic;
 }
 
-/** Handle a message being published to a Pub/Sub topic. */
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param topic - The Pub/Sub topic to watch for message events.
+ * @param handler - runs every time a Cloud Pub/Sub message is published
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
 export function onMessagePublished<T = any>(
-  topic: string,
+  topic: PubSubTopic,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
-/** Handle a message being published to a Pub/Sub topic. */
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param options - Option containing information (topic) for event
+ * @param handler - runs every time a Cloud Pub/Sub message is published
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param topicOrOptions - A string representing the PubSub topic or an option (which contains the topic)
+ * @param handler - runs every time a Cloud Pub/Sub message is published
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
@@ -127,7 +166,7 @@ export function onMessagePublished<T = any>(
   const func = (raw: CloudEvent<unknown>) => {
     const messagePublishedData = raw.data as {
       message: unknown;
-      subscription: string;
+      subscription: PubSubSubscription;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
     return handler(raw as CloudEvent<MessagePublishedData<T>>);
