@@ -14,6 +14,8 @@ toc:
         path: /docs/reference/functions/cloud_functions.change.html
       - title: 'ChangeJson'
         path: /docs/reference/functions/cloud_functions.changejson.html
+      - title: 'BlockingFunction'
+        path: /docs/reference/functions/cloud_functions.blockingfunction.html
 
   - title: 'functions.config'
     path: /docs/reference/functions/config.html
@@ -124,6 +126,8 @@ toc:
         path: /docs/reference/functions/providers_remoteconfig.remoteconfiguser.html
       - title: 'TemplateVersion'
         path: /docs/reference/functions/providers_remoteconfig.templateversion.html
+      - title: 'Updatebuilder'
+        path: /docs/reference/functions/providers_remoteconfig.updatebuilder.html
 
   - title: 'functions.storage'
     path: /docs/reference/functions/providers_storage.html
@@ -146,6 +150,12 @@ toc:
       path: /docs/reference/functions/common_providers_tasks.retryconfig.html
     - title: TaskContext
       path: /docs/reference/functions/common_providers_tasks.taskcontext.html
+    - title: TaskQueueBuilder
+      path: /docs/reference/functions/providers_tasks.taskqueuebuilder.html
+    - title: TaskQueueFunction
+      path: /docs/reference/functions/providers_tasks.taskqueuefunction.html
+    - title: TaskQueueOptions
+      path: /docs/reference/functions/providers_tasks.taskqueueoptions.html
 
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab.html
@@ -164,3 +174,8 @@ toc:
     section:
       - title: 'HandlerBuilder'
         path: /docs/reference/functions/handler_builder.handlerbuilder.html
+
+  - heading: Test SDK for Cloud Functions for Firebase
+  - title: firebase-functions-test
+    section:
+    - include: /docs/reference/functions/test/_toc.yaml
