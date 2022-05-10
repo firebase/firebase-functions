@@ -4,7 +4,7 @@ import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewTesterDevicePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroNewTesterIosDevicePayload';
@@ -20,7 +20,7 @@ export interface NewTesterDevicePayload {
 
 /**
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
- * @typeParam T - the data type for app distribution alerts that is wrapped in a FirebaseAlertData object.
+ * @typeParam T - the data type for app distribution alerts that is wrapped in a `FirebaseAlertData` object.
  */
 export interface AppDistributionEvent<T>
   extends CloudEvent<FirebaseAlertData<T>> {
@@ -43,8 +43,8 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
 
 /**
  * Declares a function that can handle adding a new tester iOS device.
- * @param handler - Event handler which is run every time a new tester iOS devices is added.
- * @returns A Cloud Function that you can export and deploy.
+ * @param handler - Event handler which is run every time a new tester iOS device is added.
+ * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
   handler: (
@@ -55,8 +55,8 @@ export function onNewTesterIosDevicePublished(
 /**
  * Declares a function that can handle adding a new tester iOS device.
  * @param appId - A specific application the handler will trigger on.
- * @param handler - Event handler which is run every time a new tester iOS devices is added.
- * @returns A Cloud Function that you can export and deploy.
+ * @param handler - Event handler which is run every time a new tester iOS device is added.
+ * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
   appId: string,
@@ -67,9 +67,9 @@ export function onNewTesterIosDevicePublished(
 
 /**
  * Declares a function that can handle adding a new tester iOS device.
- * @param opts - Options that can be set on the Cloud Function.
- * @param handler - Event handler which is run every time a new tester iOS devices is added.
- * @returns A Cloud Function that you can export and deploy.
+ * @param opts - Options that can be set on the function.
+ * @param handler - Event handler which is run every time a new tester iOS device is added.
+ * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
   opts: AppDistributionOptions,
@@ -81,8 +81,8 @@ export function onNewTesterIosDevicePublished(
 /**
  * Declares a function that can handle adding a new tester iOS device.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
- * @param handler - Event handler which is run every time a new tester iOS devices is added.
- * @returns A Cloud Function that you can export and deploy.
+ * @param handler - Event handler which is run every time a new tester iOS device is added.
+ * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
   appIdOrOptsOrHandler:

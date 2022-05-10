@@ -17,7 +17,7 @@ export interface FirebaseAlertData<T = any> {
 
 /**
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
- * @typeParam T - the data type for this alert that is wrapped in a FirebaseAlertData object.
+ * @typeParam T - the data type for this alert that is wrapped in a `FirebaseAlertData` object.
  */
 export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
   /** The type of the alerts that got triggered. */
@@ -28,7 +28,7 @@ export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
    */
   appId?: string;
 
-  /** Data for an AlertEvent is a FirebaseAlertData with a given payload. */
+  /** Data for an `AlertEvent` is a `FirebaseAlertData` object with a given payload. */
   data: FirebaseAlertData<T>;
 }
 
@@ -60,10 +60,10 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
 
 /**
  * Declares a function that can handle Firebase Alerts from CloudEvents.
- * @typeParam T - The type of FirebaseAlertData the function receives.
+ * @typeParam T - The data type of the `FirebaseAlertData` object the function receives.
  * @param alertTypeOrOpts the alert type or Firebase Alert function configuration.
  * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
- * @returns A CloudFunction with the passed in type as an AlertEvent.
+ * @returns A function that you can export and deploy.
  */
 export function onAlertPublished<T extends { ['@type']: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,

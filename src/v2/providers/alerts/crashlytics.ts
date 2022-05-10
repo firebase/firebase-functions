@@ -2,21 +2,21 @@ import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 
-/** Generic crashlytics issue interface */
+/** Generic Crashlytics issue interface */
 export interface Issue {
-  /** The ID of the crashlytics issue */
+  /** The ID of the Crashlytics issue */
   id: string;
-  /** The title of the crashlytics issue */
+  /** The title of the Crashlytics issue */
   title: string;
-  /** The subtitle of the crashlytics issue */
+  /** The subtitle of the Crashlytics issue */
   subtitle: string;
-  /** The application version of the crashlytics issue */
+  /** The application version of the Crashlytics issue */
   appVersion: string;
 }
 
 /**
  * The internal payload object for a new fatal issue.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewFatalIssuePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewFatalIssuePayload';
@@ -26,7 +26,7 @@ export interface NewFatalIssuePayload {
 
 /**
  * The internal payload object for a new non-fatal issue.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewNonfatalIssuePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewNonfatalIssuePayload';
@@ -36,7 +36,7 @@ export interface NewNonfatalIssuePayload {
 
 /**
  * The internal payload object for a regression alert.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface RegressionAlertPayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsRegressionAlertPayload';
@@ -51,7 +51,7 @@ export interface RegressionAlertPayload {
   resolveTime: string;
 }
 
-/** Generic crashlytics trending issue interface */
+/** Generic Crashlytics trending issue interface */
 export interface TrendingIssueDetails {
   /** The type of the Crashlytics issue, e.g. new fatal, new nonfatal, ANR */
   type: string;
@@ -65,7 +65,7 @@ export interface TrendingIssueDetails {
 
 /**
  * The internal payload object for a stability digest.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface StabilityDigestPayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsStabilityDigestPayload';
@@ -80,7 +80,7 @@ export interface StabilityDigestPayload {
 
 /**
  * The internal payload object for a velocity alert.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface VelocityAlertPayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsVelocityAlertPayload';
@@ -107,7 +107,7 @@ export interface VelocityAlertPayload {
 
 /**
  * The internal payload object for a new Application Not Responding issue.
- * Payload is wrapped inside a FirebaseAlertData object.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewAnrIssuePayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewAnrIssuePayload';
@@ -117,7 +117,7 @@ export interface NewAnrIssuePayload {
 
 /**
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
- * @typeParam T - the data type for crashlytics alerts that is wrapped in a FirebaseAlertData object.
+ * @typeParam T - the data type for Crashlytics alerts that is wrapped in a `FirebaseAlertData` object.
  */
 export interface CrashlyticsEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
   /** The type of the alerts that got triggered. */
@@ -140,7 +140,7 @@ export const velocityAlert = 'crashlytics.velocity';
 export const newAnrIssueAlert = 'crashlytics.newAnrIssue';
 
 /**
- * Configuration for crashlytics functions.
+ * Configuration for Crashlytics functions.
  */
 export interface CrashlyticsOptions extends options.EventHandlerOptions {
   /** Scope the function to trigger on a specific application. */
@@ -150,7 +150,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
 /**
  * Declares a function that can handle a new fatal issue published to Crashlytics.
  * @param handler - Event handler that is triggered when a new fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewFatalIssuePublished(
   handler: (event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>
@@ -160,7 +160,7 @@ export function onNewFatalIssuePublished(
  * Declares a function that can handle a new fatal issue published to Crashlytics.
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler that is triggered when a new fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewFatalIssuePublished(
   appId: string,
@@ -169,9 +169,9 @@ export function onNewFatalIssuePublished(
 
 /**
  * Declares a function that can handle a new fatal issue published to Crashlytics.
- * @param opts - Options that can be set on the Cloud Function.
+ * @param opts - Options that can be set on the function.
  * @param handler - Event handler that is triggered when a new fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewFatalIssuePublished(
   opts: CrashlyticsOptions,
@@ -182,7 +182,7 @@ export function onNewFatalIssuePublished(
  * Declares a function that can handle a new fatal issue published to Crashlytics.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler that is triggered when a new fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewFatalIssuePublished(
   appIdOrOptsOrHandler:
@@ -201,9 +201,9 @@ export function onNewFatalIssuePublished(
 }
 
 /**
- * Declares a function that can handle a new non-fatal issue published to crashlytics.
+ * Declares a function that can handle a new non-fatal issue published to Crashlytics.
  * @param handler - Event handler that is triggered when a new fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewNonfatalIssuePublished(
   handler: (
@@ -212,10 +212,10 @@ export function onNewNonfatalIssuePublished(
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 
 /**
- * Declares a function that can handle a new non-fatal issue published to crashlytics.
+ * Declares a function that can handle a new non-fatal issue published to Crashlytics.
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler that is triggered when a new non-fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewNonfatalIssuePublished(
   appId: string,
@@ -225,10 +225,10 @@ export function onNewNonfatalIssuePublished(
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 
 /**
- * Declares a function that can handle a new non-fatal issue published to crashlytics.
- * @param opts - Options that can be set on the Cloud Function.
+ * Declares a function that can handle a new non-fatal issue published to Crashlytics.
+ * @param opts - Options that can be set on the function.
  * @param handler - Event handler that is triggered when a new non-fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewNonfatalIssuePublished(
   opts: CrashlyticsOptions,
@@ -238,10 +238,10 @@ export function onNewNonfatalIssuePublished(
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 
 /**
- * Declares a function that can handle a new non-fatal issue published to crashlytics.
+ * Declares a function that can handle a new non-fatal issue published to Crashlytics.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler that is triggered when a new non-fatal issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewNonfatalIssuePublished(
   appIdOrOptsOrHandler:
@@ -262,9 +262,9 @@ export function onNewNonfatalIssuePublished(
 }
 
 /**
- * Declares a function that can handle a regression alert published to crashlytics.
+ * Declares a function that can handle a regression alert published to Crashlytics.
  * @param handler - Event handler that is triggered when a regression alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onRegressionAlertPublished(
   handler: (
@@ -273,10 +273,10 @@ export function onRegressionAlertPublished(
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 
 /**
- * Declares a function that can handle a regression alert published to crashlytics.
+ * Declares a function that can handle a regression alert published to Crashlytics.
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler that is triggered when a regression alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
 
  */
 export function onRegressionAlertPublished(
@@ -287,10 +287,10 @@ export function onRegressionAlertPublished(
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 
 /**
- * Declares a function that can handle a regression alert published to crashlytics.
- * @param opts - Options that can be set on the Cloud Function.
+ * Declares a function that can handle a regression alert published to Crashlytics.
+ * @param opts - Options that can be set on the function.
  * @param handler - Event handler that is triggered when a regression alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
 
  */
 export function onRegressionAlertPublished(
@@ -301,10 +301,10 @@ export function onRegressionAlertPublished(
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 
 /**
- * Declares a function that can handle a regression alert published to crashlytics.
+ * Declares a function that can handle a regression alert published to Crashlytics.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler that is triggered when a regression alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onRegressionAlertPublished(
   appIdOrOptsOrHandler:
@@ -323,9 +323,9 @@ export function onRegressionAlertPublished(
 }
 
 /**
- * Declares a function that can handle a stability digest published to crashlytics.
+ * Declares a function that can handle a stability digest published to Crashlytics.
  * @param handler - Event handler that is triggered when a stability digest is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onStabilityDigestPublished(
   handler: (
@@ -334,10 +334,10 @@ export function onStabilityDigestPublished(
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 
 /**
- * Declares a function that can handle a stability digest published to crashlytics.
+ * Declares a function that can handle a stability digest published to Crashlytics.
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler that is triggered when a stability digest is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
 
  */
 export function onStabilityDigestPublished(
@@ -348,10 +348,10 @@ export function onStabilityDigestPublished(
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 
 /**
- * Declares a function that can handle a stability digest published to crashlytics.
- * @param opts - Options that can be set on the Cloud Function.
+ * Declares a function that can handle a stability digest published to Crashlytics.
+ * @param opts - Options that can be set on the function.
  * @param handler - Event handler that is triggered when a stability digest is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
 
  */
 export function onStabilityDigestPublished(
@@ -362,10 +362,10 @@ export function onStabilityDigestPublished(
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 
 /**
- * Declares a function that can handle a stability digest published to crashlytics.
+ * Declares a function that can handle a stability digest published to Crashlytics.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler that is triggered when a stability digest is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onStabilityDigestPublished(
   appIdOrOptsOrHandler:
@@ -384,19 +384,19 @@ export function onStabilityDigestPublished(
 }
 
 /**
- * Declares a function that can handle a velocity alert published to crashlytics.
+ * Declares a function that can handle a velocity alert published to Crashlytics.
  * @param handler - Event handler that is triggered when a velocity alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onVelocityAlertPublished(
   handler: (event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>>;
 
 /**
- * Declares a function that can handle a velocity alert published to crashlytics.
+ * Declares a function that can handle a velocity alert published to Crashlytics.
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler that is triggered when a velocity alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onVelocityAlertPublished(
   appId: string,
@@ -404,10 +404,10 @@ export function onVelocityAlertPublished(
 ): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>>;
 
 /**
- * Declares a function that can handle a velocity alert published to crashlytics.
- * @param opts - Options that can be set on the Cloud Function.
+ * Declares a function that can handle a velocity alert published to Crashlytics.
+ * @param opts - Options that can be set on the function.
  * @param handler - Event handler that is triggered when a velocity alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onVelocityAlertPublished(
   opts: CrashlyticsOptions,
@@ -415,10 +415,10 @@ export function onVelocityAlertPublished(
 ): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>>;
 
 /**
- * Declares a function that can handle a velocity alert published to crashlytics.
+ * Declares a function that can handle a velocity alert published to Crashlytics.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler that is triggered when a velocity alert is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onVelocityAlertPublished(
   appIdOrOptsOrHandler:
@@ -437,19 +437,19 @@ export function onVelocityAlertPublished(
 }
 
 /**
- * Declares a function that can handle a new Application Not Responding issue published to crashlytics.
+ * Declares a function that can handle a new Application Not Responding issue published to Crashlytics.
  * @param handler - Event handler that is triggered when a new Application Not Responding issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewAnrIssuePublished(
   handler: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>>;
 
 /**
- * Declares a function that can handle a new Application Not Responding issue published to crashlytics.
+ * Declares a function that can handle a new Application Not Responding issue published to Crashlytics.
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler that is triggered when a new Application Not Responding issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
 
  */
 export function onNewAnrIssuePublished(
@@ -458,10 +458,10 @@ export function onNewAnrIssuePublished(
 ): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>>;
 
 /**
- * Declares a function that can handle a new Application Not Responding issue published to crashlytics.
- * @param opts - Options that can be set on the Cloud Function.
+ * Declares a function that can handle a new Application Not Responding issue published to Crashlytics.
+ * @param opts - Options that can be set on the function.
  * @param handler - Event handler that is triggered when a new Application Not Responding issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
 
  */
 export function onNewAnrIssuePublished(
@@ -470,10 +470,10 @@ export function onNewAnrIssuePublished(
 ): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>>;
 
 /**
- * Declares a function that can handle a new Application Not Responding issue published to crashlytics.
+ * Declares a function that can handle a new Application Not Responding issue published to Crashlytics.
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler that is triggered when a new Application Not Responding issue is published to Crashlytics.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onNewAnrIssuePublished(
   appIdOrOptsOrHandler:
