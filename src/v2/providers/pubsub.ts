@@ -14,7 +14,7 @@ import * as options from '../options';
  * PubSub Topic:
  * <ul>
  *   <li>A resource that you can publish messages to and then consume those messages via subscriptions.
- *   <li>An isolated data stream for Pub/Sub messages.
+ *   <li>An isolated data stream for pub/sub messages.
  *   <li>Messages are published to a topic.
  *   <li>Messages are listened to via a subscription.
  *   <li>Each subscription listens to the messages published to exactly one topic.
