@@ -161,6 +161,7 @@ export class UserBuilder {
     return this.beforeOperation(handler, 'beforeSignIn');
   }
 
+  /** @hidden */
   private onOperation(
     handler: (
       user: UserRecord,
@@ -180,6 +181,7 @@ export class UserBuilder {
     });
   }
 
+  /** @hidden */
   private beforeOperation(
     handler: (
       user: AuthUserRecord,
