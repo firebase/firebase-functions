@@ -142,20 +142,20 @@ toc:
   - title: 'functions.tasks'
     path: /docs/reference/functions/providers_tasks.html
     section:
-    - title: AuthData
-      path: /docs/reference/functions/common_providers_tasks.authdata.html
-    - title: RateLimits
-      path: /docs/reference/functions/common_providers_tasks.ratelimits.html
-    - title: RetryConfig
-      path: /docs/reference/functions/common_providers_tasks.retryconfig.html
-    - title: TaskContext
-      path: /docs/reference/functions/common_providers_tasks.taskcontext.html
-    - title: TaskQueueBuilder
-      path: /docs/reference/functions/providers_tasks.taskqueuebuilder.html
-    - title: TaskQueueFunction
-      path: /docs/reference/functions/providers_tasks.taskqueuefunction.html
-    - title: TaskQueueOptions
-      path: /docs/reference/functions/providers_tasks.taskqueueoptions.html
+      - title: AuthData
+        path: /docs/reference/functions/common_providers_tasks.authdata.html
+      - title: RateLimits
+        path: /docs/reference/functions/common_providers_tasks.ratelimits.html
+      - title: RetryConfig
+        path: /docs/reference/functions/common_providers_tasks.retryconfig.html
+      - title: TaskContext
+        path: /docs/reference/functions/common_providers_tasks.taskcontext.html
+      - title: TaskQueueBuilder
+        path: /docs/reference/functions/providers_tasks.taskqueuebuilder.html
+      - title: TaskQueueFunction
+        path: /docs/reference/functions/providers_tasks.taskqueuefunction.html
+      - title: TaskQueueOptions
+        path: /docs/reference/functions/providers_tasks.taskqueueoptions.html
 
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab.html
@@ -178,4 +178,4 @@ toc:
   - heading: Test SDK for Cloud Functions for Firebase
   - title: firebase-functions-test
     section:
-    - include: /docs/reference/functions/test/_toc.yaml
+      - include: /docs/reference/functions/test/_toc.yaml
