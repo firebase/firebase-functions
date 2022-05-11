@@ -174,8 +174,3 @@ toc:
     section:
       - title: 'HandlerBuilder'
         path: /docs/reference/functions/handler_builder.handlerbuilder.html
-
-  - heading: Test SDK for Cloud Functions for Firebase
-  - title: firebase-functions-test
-    section:
-      - include: /docs/reference/functions/test/_toc.yaml
