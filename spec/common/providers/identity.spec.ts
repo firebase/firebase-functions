@@ -88,6 +88,34 @@ describe('identity', () => {
         lastSignInTime: '2017-02-02T23:01:19.797Z',
       });
     });
+
+    it('should stringify the record', () => {
+      const raw: any = {
+        uid: '123',
+        email: 'email@gmail.com',
+        emailVerified: true,
+        displayName: 'User',
+        photoURL: 'url',
+        phoneNumber: '1233332222',
+        disabled: true,
+        providerData: ['something'],
+        customClaims: {
+          claim: 'value',
+          another: {
+            inner: 'value',
+          },
+        },
+        passwordSalt: 'abc',
+        passwordHash: 'def',
+        tokensValidAfterTime: '2027-02-02T23:01:19.797Z',
+        metadata: {
+          creationTime: '2017-02-02T23:06:26.124Z',
+          lastSignInTime: '2017-02-02T23:01:19.797Z',
+        },
+      };
+      const record = identity.userRecordConstructor(raw);
+      expect(() => JSON.stringify(record)).to.not.throw;
+    });
   });
 
   describe('isValidRequest', () => {
