@@ -1,0 +1,1 @@
+- Fixes bug where `toJSON` was not defined in `UserRecord` (#1125).
