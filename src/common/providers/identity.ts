@@ -148,9 +148,7 @@ export function userRecordConstructor(wireData: Object): UserRecord {
     json.customClaims = JSON.parse(JSON.stringify(record.customClaims));
     json.providerData = record.providerData.map((entry) => {
       const newEntry = { ...entry };
-      newEntry.toJSON = () => {
-        return entry;
-      };
+      newEntry.toJSON = () => entry;
       return newEntry;
     });
     return json;
