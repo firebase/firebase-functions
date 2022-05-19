@@ -117,7 +117,7 @@ export class DataSnapshot {
         source = source[part];
       }
     }
-    const node = { ...source };
+    const node = typeof source !== 'undefined' ? source : null;
     // const node = _.cloneDeep(
     //   parts.length ? _.get(source, parts, null) : source
     // );
