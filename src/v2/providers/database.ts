@@ -24,6 +24,7 @@ import { apps } from '../../apps';
 import { Change } from '../../cloud-functions';
 import { DataSnapshot } from '../../common/providers/database';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import { normalizePath } from '../../utilities/path';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
@@ -44,15 +45,14 @@ export const updatedEventType = 'google.firebase.database.ref.v1.updated';
 export const deletedEventType = 'google.firebase.database.ref.v1.deleted';
 
 /** @internal */
-export interface RawCloudEventData {
-  // properties from CloudEvent
+export interface RawRTDBCloudEventData {
   ['@type']: 'type.googleapis.com/google.events.firebase.database.v1.ReferenceEventData';
   data: any;
   delta: any;
 }
 
 /** @internal */
-export interface RawCloudEvent extends CloudEvent<RawCloudEventData> {
+export interface RawRTDBCloudEvent extends CloudEvent<RawRTDBCloudEventData> {
   /** The domain of the database instance */
   firebasedatabasehost: string;
   /** The instance ID portion of the fully qualified resource name */
@@ -83,13 +83,13 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
   /**
    * Specify the handler to trigger on a database reference(s).
    * This value can either be a single reference or a pattern.
-   * Examples~ '/foo/bar', '/foo/*'
+   * Examples~ '/foo/bar', '/foo/{bar} '
    */
   ref: string;
   /**
    * Specify the handler to trigger on a database instance(s).
    * If present, this value can either be a single instance or a pattern.
-   * Examples~ 'my-instance-1', 'my-instance-*', '*'
+   * Examples~ 'my-instance-1', '{instance}', '*'
    */
   instance?: string;
 }
@@ -174,38 +174,8 @@ export function onRefDeleted(
   ) as CloudFunction<DatabaseEvent<DataSnapshot>>;
 }
 
-/*
-
-{
-  id: "some-random-unique-id"
-  source: "//$RTDB_API/projects/_/locations/us-central1/instances/ns-default"
-  spec_version: "1.0"
-  type: "google.firebase.database.ref.v1.deleted"
-  attributes: {    
-    "subject": { "ceString": "refs/foo/path" },
-    "datacontenttype": { "ceString": "application/json" },    
-    "time": { "ceTimestamp": "1970-01-01T00:00:10Z" },
-    "location": { "ceString": "us-central1" }, 
-    "firebasedatabasehost": { "ceString": "firebaseio.com" }, 
-    "instance": { "ceString": "my-db" },
-    "ref": { "ceString": "foo/path" },
-  }
-  # see example test_data
-  text_data: "{
-   \"@type\": \"type.googleapis.com/google.events.firebase.database.v1.ReferenceEventData\",
-    \"data\": ...<scaped_json>
-    \"delta\": ...<escaped_json>
-  }”
-}
-
-*/
-
 /** @internal */
-function makeInstance(event: RawCloudEvent): string {
-  return `https://${event.instance}.${event.firebasedatabasehost}`;
-}
-
-function trimParam(param: string) {
+export function trimParam(param: string) {
   const paramNoBraces = param.slice(1, -1);
   if (paramNoBraces.includes('=')) {
     return paramNoBraces.slice(0, paramNoBraces.indexOf('=') - 1);
@@ -215,7 +185,7 @@ function trimParam(param: string) {
 
 /** @internal */
 export function makeParams(
-  event: RawCloudEvent,
+  event: RawRTDBCloudEvent,
   path: string,
   instance: string | undefined
 ): Record<string, string> {
@@ -232,8 +202,12 @@ export function makeParams(
     }
   }
 
+  if (!instance) {
+    return params;
+  }
+
   const instanceWildcards = instance.match(WILDCARD_REGEX);
-  /** my-{key}-db is not allowed or {key}-some-{db} */
+  /** my-{key}-db or {key}-some-{db} is not allowed */
   if (
     instanceWildcards &&
     instanceWildcards.length === 1 &&
@@ -248,14 +222,15 @@ export function makeParams(
 }
 
 function makeDatabaseEvent(
-  event: RawCloudEvent,
+  event: RawRTDBCloudEvent,
+  instance: string,
   params: Record<string, string>
 ): DatabaseEvent<DataSnapshot> {
   const snapshot = new DataSnapshot(
     event.data.data,
     event.ref,
     apps().admin,
-    makeInstance(event)
+    instance
   );
   const databaseEvent: DatabaseEvent<DataSnapshot> = {
     ...event,
@@ -266,20 +241,21 @@ function makeDatabaseEvent(
 }
 
 function makeChangedDatabaseEvent(
-  event: RawCloudEvent,
+  event: RawRTDBCloudEvent,
+  instance: string,
   params: Record<string, string>
 ) {
   const before = new DataSnapshot(
     event.data.data,
     event.ref,
     apps().admin,
-    makeInstance(event)
+    instance
   );
   const after = new DataSnapshot(
     event.data.delta,
     event.ref,
     apps().admin,
-    makeInstance(event)
+    instance
   );
   const databaseEvent: DatabaseEvent<Change<DataSnapshot>> = {
     ...event,
@@ -292,7 +268,8 @@ function makeChangedDatabaseEvent(
   return databaseEvent;
 }
 
-function onOperation(
+/** @internal */
+export function onOperation(
   eventType: string,
   referenceOrOpts: string | ReferenceOptions,
   handler: (
@@ -304,26 +281,25 @@ function onOperation(
   | CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
   let path: string, instance: string, opts: options.EventHandlerOptions;
   if (typeof referenceOrOpts === 'string') {
-    path = referenceOrOpts;
+    path = normalizePath(referenceOrOpts);
     instance = undefined;
     opts = {};
   } else {
-    path = referenceOrOpts.ref;
+    path = normalizePath(referenceOrOpts.ref);
     instance = referenceOrOpts.instance;
     opts = { ...referenceOrOpts };
     delete (opts as any).ref;
     delete (opts as any).instance;
   }
 
-  // normalize path & instance
-
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawCloudEvent;
+    const event = raw as RawRTDBCloudEvent;
+    const instance = `https://${event.instance}.${event.firebasedatabasehost}`;
     const params = makeParams(event, path, instance);
     const databaseEvent = changed
-      ? makeChangedDatabaseEvent(event, params)
-      : makeDatabaseEvent(event, params);
+      ? makeChangedDatabaseEvent(event, instance, params)
+      : makeDatabaseEvent(event, instance, params);
     return handler(databaseEvent);
   };
 
