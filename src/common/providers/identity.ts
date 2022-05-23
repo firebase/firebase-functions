@@ -146,7 +146,11 @@ export function userRecordConstructor(wireData: Object): UserRecord {
     };
     json.metadata = record.metadata.toJSON();
     json.customClaims = JSON.parse(JSON.stringify(record.customClaims));
-    json.providerData = record.providerData.map((entry) => entry.toJSON());
+    json.providerData = record.providerData.map((entry) => {
+      const newEntry = { ...entry };
+      newEntry.toJSON = () => entry;
+      return newEntry;
+    });
     return json;
   };
   return record as UserRecord;
