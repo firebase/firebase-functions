@@ -57,7 +57,9 @@ export class DataSnapshot {
       this.instance = app.options.databaseURL;
     } else if (process.env.GCLOUD_PROJECT) {
       this.instance =
-        'https://' + process.env.GCLOUD_PROJECT + '.firebaseio.com';
+        'https://' +
+        process.env.GCLOUD_PROJECT +
+        '-default-rtdb.firebaseio.com';
     }
 
     this._path = path;
