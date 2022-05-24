@@ -187,7 +187,7 @@ export function trimParam(param: string) {
 export function makeParams(
   event: RawRTDBCloudEvent,
   path: string,
-  instance: string | undefined
+  instance: string
 ): Record<string, string> {
   const params: Record<string, string> = {};
 
@@ -200,10 +200,6 @@ export function makeParams(
       const position = pathParts.indexOf(wildcard);
       params[trimmedWildcard] = eventPathParts[position];
     }
-  }
-
-  if (!instance) {
-    return params;
   }
 
   const instanceWildcards = instance.match(WILDCARD_REGEX);
@@ -282,11 +278,11 @@ export function onOperation(
   let path: string, instance: string, opts: options.EventHandlerOptions;
   if (typeof referenceOrOpts === 'string') {
     path = normalizePath(referenceOrOpts);
-    instance = undefined;
+    instance = "*";
     opts = {};
   } else {
     path = normalizePath(referenceOrOpts.ref);
-    instance = referenceOrOpts.instance;
+    instance = referenceOrOpts.instance || "*";
     opts = { ...referenceOrOpts };
     delete (opts as any).ref;
     delete (opts as any).instance;
@@ -295,11 +291,11 @@ export function onOperation(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
-    const instance = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
     const params = makeParams(event, path, instance);
     const databaseEvent = changed
-      ? makeChangedDatabaseEvent(event, instance, params)
-      : makeDatabaseEvent(event, instance, params);
+      ? makeChangedDatabaseEvent(event, instanceUrl, params)
+      : makeDatabaseEvent(event, instanceUrl, params);
     return handler(databaseEvent);
   };
 
