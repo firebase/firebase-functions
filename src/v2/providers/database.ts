@@ -278,11 +278,11 @@ export function onOperation(
   let path: string, instance: string, opts: options.EventHandlerOptions;
   if (typeof referenceOrOpts === 'string') {
     path = normalizePath(referenceOrOpts);
-    instance = "*";
+    instance = '*';
     opts = {};
   } else {
     path = normalizePath(referenceOrOpts.ref);
-    instance = referenceOrOpts.instance || "*";
+    instance = referenceOrOpts.instance || '*';
     opts = { ...referenceOrOpts };
     delete (opts as any).ref;
     delete (opts as any).instance;

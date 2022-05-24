@@ -38,7 +38,17 @@ import * as pubsub from './providers/pubsub';
 import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 
-export { alerts, database, storage, https, identity, pubsub, logger, tasks, eventarc };
+export {
+  alerts,
+  database,
+  storage,
+  https,
+  identity,
+  pubsub,
+  logger,
+  tasks,
+  eventarc,
+};
 
 export {
   setGlobalOptions,
