@@ -38,7 +38,7 @@ import { applyChange } from '../utils';
 /** @hidden */
 export const provider = 'google.firebase.database';
 /** @hidden */
-export const service = 'firebaseio.com';
+export const service = 'firebaseio-staging.com';
 
 const databaseURLRegex = new RegExp('^https://([^.]+).');
 const emulatorDatabaseURLRegex = new RegExp('^http://.*ns=([^&]+)');
