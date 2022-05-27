@@ -55,16 +55,13 @@ export interface RawRTDBCloudEventData {
 
 /** @internal */
 export interface RawRTDBCloudEvent extends CloudEvent<RawRTDBCloudEventData> {
-  /** The domain of the database instance */
   firebasedatabasehost: string;
-  /** The instance ID portion of the fully qualified resource name */
   instance: string;
-  /** The database reference path */
   ref: string;
-  /** The location of the database */
   location: string;
 }
 
+/** A CloudEvent that contains a DataSnapshot or a Change<DataSnapshot> */
 export interface DatabaseEvent<T> extends CloudEvent<T> {
   /** The domain of the database instance */
   firebaseDatabaseHost: string;
@@ -81,6 +78,7 @@ export interface DatabaseEvent<T> extends CloudEvent<T> {
   params: Record<string, string>;
 }
 
+/** ReferenceOptions extend EventHandlerOptions with provided ref and optional instance  */
 export interface ReferenceOptions extends options.EventHandlerOptions {
   /**
    * Specify the handler to trigger on a database reference(s).
@@ -91,19 +89,39 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
   /**
    * Specify the handler to trigger on a database instance(s).
    * If present, this value can either be a single instance or a pattern.
-   * Examples~ 'my-instance-1', '{instance}', '*'
+   * Examples~ 'my-instance-1', '{instance}'
    */
   instance?: string;
 }
 
+/**
+ * Event handler which triggers when data is created, updated, or deleted in Realtime Database.
+ *
+ * @param reference - The database reference path to trigger on.
+ * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
+ */
 export function onRefWritten(
   reference: string,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+
+/**
+ * Event handler which triggers when data is created, updated, or deleted in Realtime Database.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
+ */
 export function onRefWritten(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+
+/**
+ * Event handler which triggers when data is created, updated, or deleted in Realtime Database.
+ *
+ * @param referenceOrOpts - Options or a string reference.
+ * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
+ */
 export function onRefWritten(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
@@ -116,14 +134,34 @@ export function onRefWritten(
   ) as CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
 }
 
+/**
+ * Event handler which triggers when data is created in Realtime Database.
+ *
+ * @param reference - The database reference path to trigger on.
+ * @param handler - Event handler which is run every time a Realtime Database create occurs.
+ */
 export function onRefCreated(
   reference: string,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
+
+/**
+ * Event handler which triggers when data is created in Realtime Database.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Realtime Database create occurs.
+ */
 export function onRefCreated(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
+
+/**
+ * Event handler which triggers when data is created in Realtime Database.
+ *
+ * @param referenceOrOpts - Options or a string reference.
+ * @param handler - Event handler which is run every time a Realtime Database create occurs.
+ */
 export function onRefCreated(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
@@ -136,14 +174,34 @@ export function onRefCreated(
   ) as CloudFunction<DatabaseEvent<DataSnapshot>>;
 }
 
+/**
+ * Event handler which triggers when data is updated in Realtime Database.
+ *
+ * @param reference - The database reference path to trigger on.
+ * @param handler - Event handler which is run every time a Realtime Database update occurs.
+ */
 export function onRefUpdated(
   reference: string,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+
+/**
+ * Event handler which triggers when data is updated in Realtime Database.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Realtime Database update occurs.
+ */
 export function onRefUpdated(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+
+/**
+ * Event handler which triggers when data is updated in Realtime Database.
+ *
+ * @param referenceOrOpts - Options or a string reference.
+ * @param handler - Event handler which is run every time a Realtime Database update occurs.
+ */
 export function onRefUpdated(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
@@ -156,14 +214,34 @@ export function onRefUpdated(
   ) as CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
 }
 
+/**
+ * Event handler which triggers when data is deleted in Realtime Database.
+ *
+ * @param reference - The database reference path to trigger on.
+ * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
+ */
 export function onRefDeleted(
   reference: string,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
+
+/**
+ * Event handler which triggers when data is deleted in Realtime Database.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
+ */
 export function onRefDeleted(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
+
+/**
+ * Event handler which triggers when data is deleted in Realtime Database.
+ *
+ * @param referenceOrOpts - Options or a string reference.
+ * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
+ */
 export function onRefDeleted(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>

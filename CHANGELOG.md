@@ -1,0 +1,1 @@
+- Adds RTDB Triggers for v2 functions (#1127)
