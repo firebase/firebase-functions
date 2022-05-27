@@ -128,7 +128,7 @@
         "lib/v2/base"
       ],
       "v2/database": [
-        "lib/v2/database"
+        "lib/v2/providers/database"
       ],
       "v2/eventarc": [
         "lib/v2/providers/eventarc"
