@@ -299,23 +299,18 @@ export function matchParams(
     pathNdx < pathSegments.length && wildcardNdx < wildcards.length;
     pathNdx++
   ) {
-    if (pathSegments[pathNdx].includes('**')) {
-      const remaining = pathSegments.length - 1 - pathNdx;
-      const newRefNdx = refSegments.length - 1 - remaining;
-      if (pathSegments[pathNdx] === wildcards[wildcardNdx]) {
-        params[trimParam(wildcards[wildcardNdx])] = refSegments
-          .slice(refNdx, newRefNdx + 1)
-          .join('/');
-        wildcardNdx++;
-      }
-      refNdx = newRefNdx + 1;
-    } else {
-      if (pathSegments[pathNdx] === wildcards[wildcardNdx]) {
-        params[trimParam(wildcards[wildcardNdx])] = refSegments[refNdx];
-        wildcardNdx++;
-      }
-      refNdx++;
+    const multiSegmentWildcard = pathSegments[pathNdx].includes('**');
+
+    const remainingPathSegments = pathSegments.length - 1 - pathNdx;
+    const nextRefElement = refSegments.length - remainingPathSegments;
+
+    if (pathSegments[pathNdx] === wildcards[wildcardNdx]) {
+      params[trimParam(wildcards[wildcardNdx++])] = multiSegmentWildcard
+        ? refSegments.slice(refNdx, nextRefElement).join('/')
+        : refSegments[refNdx];
     }
+
+    refNdx = multiSegmentWildcard ? nextRefElement : refNdx + 1;
   }
 }
 
