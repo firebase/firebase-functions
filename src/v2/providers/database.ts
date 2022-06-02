@@ -83,13 +83,13 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
   /**
    * Specify the handler to trigger on a database reference(s).
    * This value can either be a single reference or a pattern.
-   * Examples~ '/foo/bar', '/foo/{bar} '
+   * Examples: '/foo/bar', '/foo/{bar}'
    */
   ref: string;
   /**
    * Specify the handler to trigger on a database instance(s).
    * If present, this value can either be a single instance or a pattern.
-   * Examples~ 'my-instance-1', '{instance}'
+   * Examples: 'my-instance-1', '{instance}'
    */
   instance?: string;
 }
@@ -418,12 +418,9 @@ export function onOperation(
   const specificOpts = options.optionsToEndpoint(opts);
 
   const eventFilters: Record<string, string> = {};
-  const eventFilterPathPatterns: Record<string, string> = {};
-  if (path.match(WILDCARD_REGEX) || path.includes('*')) {
-    eventFilterPathPatterns.ref = path;
-  } else {
-    eventFilters.ref = path;
-  }
+  const eventFilterPathPatterns: Record<string, string> = {
+    ref: path,
+  };
   if (instance.match(WILDCARD_REGEX) || instance.includes('*')) {
     eventFilterPathPatterns.instance = instance;
   } else {
