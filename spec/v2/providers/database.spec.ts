@@ -42,431 +42,433 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   type: 'type',
 };
 
-describe('makeParams', () => {
-  it('should make params with basic path', () => {
-    const event: database.RawRTDBCloudEvent = {
-      ...RAW_RTDB_EVENT,
-      ref: 'match_a/something/else/nothing/end/match_b',
-    };
+describe('database', () => {
+  describe('makeParams', () => {
+    it('should make params with basic path', () => {
+      const event: database.RawRTDBCloudEvent = {
+        ...RAW_RTDB_EVENT,
+        ref: 'match_a/something/else/nothing/end/match_b',
+      };
 
-    expect(
-      database.makeParams(
-        event,
-        new PathPattern('{a}/something/else/*/end/{b}'),
-        new PathPattern('*')
-      )
-    ).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
+      expect(
+        database.makeParams(
+          event,
+          new PathPattern('{a}/something/else/*/end/{b}'),
+          new PathPattern('*')
+        )
+      ).to.deep.equal({
+        a: 'match_a',
+        b: 'match_b',
+      });
+    });
+
+    it('should make params with multi segment path', () => {
+      const event: database.RawRTDBCloudEvent = {
+        ...RAW_RTDB_EVENT,
+        ref: 'something/is/a/thing/else/match_a/hello/match_b/world',
+      };
+
+      expect(
+        database.makeParams(
+          event,
+          new PathPattern('something/**/else/{a}/hello/{b}/world'),
+          new PathPattern('*')
+        )
+      ).to.deep.equal({
+        a: 'match_a',
+        b: 'match_b',
+      });
+    });
+
+    it('should make params with multi segment path capture', () => {
+      const event: database.RawRTDBCloudEvent = {
+        ...RAW_RTDB_EVENT,
+        ref: 'something/is/a/thing/else/match_a/hello/match_b/world',
+      };
+
+      expect(
+        database.makeParams(
+          event,
+          new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
+          new PathPattern('*')
+        )
+      ).to.deep.equal({
+        path: 'is/a/thing',
+        a: 'match_a',
+        b: 'match_b',
+      });
+    });
+
+    it('should make params for a full path and instance', () => {
+      const event: database.RawRTDBCloudEvent = {
+        ...RAW_RTDB_EVENT,
+        ref: 'something/is/a/thing/else/match_a/hello/match_b/world',
+      };
+
+      expect(
+        database.makeParams(
+          event,
+          new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
+          new PathPattern('{inst}')
+        )
+      ).to.deep.equal({
+        path: 'is/a/thing',
+        a: 'match_a',
+        b: 'match_b',
+        inst: 'my-instance',
+      });
     });
   });
 
-  it('should make params with multi segment path', () => {
-    const event: database.RawRTDBCloudEvent = {
-      ...RAW_RTDB_EVENT,
-      ref: 'something/is/a/thing/else/match_a/hello/match_b/world',
-    };
-
-    expect(
-      database.makeParams(
-        event,
-        new PathPattern('something/**/else/{a}/hello/{b}/world'),
-        new PathPattern('*')
-      )
-    ).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
+  describe('getOpts', () => {
+    it('should return opts when passed in a path', () => {
+      expect(database.getOpts('/foo/{bar}/')).to.deep.equal({
+        path: 'foo/{bar}',
+        instance: '*',
+        opts: {},
+      });
     });
-  });
 
-  it('should make params with multi segment path capture', () => {
-    const event: database.RawRTDBCloudEvent = {
-      ...RAW_RTDB_EVENT,
-      ref: 'something/is/a/thing/else/match_a/hello/match_b/world',
-    };
-
-    expect(
-      database.makeParams(
-        event,
-        new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
-        new PathPattern('*')
-      )
-    ).to.deep.equal({
-      path: 'is/a/thing',
-      a: 'match_a',
-      b: 'match_b',
-    });
-  });
-
-  it('should make params for a full path and instance', () => {
-    const event: database.RawRTDBCloudEvent = {
-      ...RAW_RTDB_EVENT,
-      ref: 'something/is/a/thing/else/match_a/hello/match_b/world',
-    };
-
-    expect(
-      database.makeParams(
-        event,
-        new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
-        new PathPattern('{inst}')
-      )
-    ).to.deep.equal({
-      path: 'is/a/thing',
-      a: 'match_a',
-      b: 'match_b',
-      inst: 'my-instance',
-    });
-  });
-});
-
-describe('getOpts', () => {
-  it('should return opts when passed in a path', () => {
-    expect(database.getOpts('/foo/{bar}/')).to.deep.equal({
-      path: 'foo/{bar}',
-      instance: '*',
-      opts: {},
-    });
-  });
-
-  it('should return opts when passed in an options object', () => {
-    expect(
-      database.getOpts({
-        ref: '/foo/{bar}/',
+    it('should return opts when passed in an options object', () => {
+      expect(
+        database.getOpts({
+          ref: '/foo/{bar}/',
+          instance: '{inst}',
+          region: 'us-central1',
+        })
+      ).to.deep.equal({
+        path: 'foo/{bar}',
         instance: '{inst}',
-        region: 'us-central1',
-      })
-    ).to.deep.equal({
-      path: 'foo/{bar}',
-      instance: '{inst}',
-      opts: {
-        region: 'us-central1',
-      },
-    });
-  });
-});
-
-describe('onOperation', () => {
-  it('should create a function for a written event', () => {
-    const func = database.onOperation(
-      database.writtenEventType,
-      '/foo/{bar}/',
-      (event) => 2
-    );
-
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.writtenEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
+        opts: {
+          region: 'us-central1',
         },
-        retry: false,
-      },
+      });
     });
   });
 
-  it('should create a function for a created event', () => {
-    const func = database.onOperation(
-      database.createdEventType,
-      '/foo/{bar}/',
-      (event) => 2
-    );
+  describe('onOperation', () => {
+    it('should create a function for a written event', () => {
+      const func = database.onOperation(
+        database.writtenEventType,
+        '/foo/{bar}/',
+        (event) => 2
+      );
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.createdEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
         },
-        retry: false,
-      },
+      });
     });
-  });
 
-  it('should create a function for a updated event', () => {
-    const func = database.onOperation(
-      database.updatedEventType,
-      '/foo/{bar}/',
-      (event) => 2
-    );
+    it('should create a function for a created event', () => {
+      const func = database.onOperation(
+        database.createdEventType,
+        '/foo/{bar}/',
+        (event) => 2
+      );
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.updatedEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.createdEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
         },
-        retry: false,
-      },
+      });
     });
-  });
 
-  it('should create a function for a deleted event', () => {
-    const func = database.onOperation(
-      database.deletedEventType,
-      '/foo/{bar}/',
-      (event) => 2
-    );
+    it('should create a function for a updated event', () => {
+      const func = database.onOperation(
+        database.updatedEventType,
+        '/foo/{bar}/',
+        (event) => 2
+      );
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.deletedEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.updatedEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
         },
-        retry: false,
-      },
+      });
     });
-  });
 
-  it('should create a complex function', () => {
-    const func = database.onOperation(
-      database.writtenEventType,
-      {
-        ref: '/foo/{path=**}/{bar}/',
-        instance: 'my-instance',
-        region: 'us-central1',
+    it('should create a function for a deleted event', () => {
+      const func = database.onOperation(
+        database.deletedEventType,
+        '/foo/{bar}/',
+        (event) => 2
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.deletedEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a complex function', () => {
+      const func = database.onOperation(
+        database.writtenEventType,
+        {
+          ref: '/foo/{path=**}/{bar}/',
+          instance: 'my-instance',
+          region: 'us-central1',
+          cpu: 'gcf_gen1',
+          minInstances: 2,
+        },
+        (event) => 2
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
         cpu: 'gcf_gen1',
         minInstances: 2,
-      },
-      (event) => 2
-    );
+        region: ['us-central1'],
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/{path=**}/{bar}',
+          },
+          retry: false,
+        },
+      });
+    });
+  });
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      cpu: 'gcf_gen1',
-      minInstances: 2,
-      region: ['us-central1'],
-      labels: {},
-      eventTrigger: {
-        eventType: database.writtenEventType,
-        eventFilters: {
+  describe('onRefWritten', () => {
+    it('should create a function with a reference', () => {
+      const func = database.onRefWritten('/foo/{bar}/', (event) => 2);
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with opts', () => {
+      const func = database.onRefWritten(
+        {
+          ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
+          region: 'us-central1',
+          cpu: 'gcf_gen1',
+          minInstances: 2,
         },
-        eventFilterPathPatterns: {
-          ref: 'foo/{path=**}/{bar}',
-        },
-        retry: false,
-      },
-    });
-  });
-});
+        (event) => 2
+      );
 
-describe('onRefWritten', () => {
-  it('should create a function with a reference', () => {
-    const func = database.onRefWritten('/foo/{bar}/', (event) => 2);
-
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.writtenEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
-        },
-        retry: false,
-      },
-    });
-  });
-
-  it('should create a function with opts', () => {
-    const func = database.onRefWritten(
-      {
-        ref: '/foo/{path=**}/{bar}/',
-        instance: 'my-instance',
-        region: 'us-central1',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
         cpu: 'gcf_gen1',
         minInstances: 2,
-      },
-      (event) => 2
-    );
+        region: ['us-central1'],
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/{path=**}/{bar}',
+          },
+          retry: false,
+        },
+      });
+    });
+  });
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      cpu: 'gcf_gen1',
-      minInstances: 2,
-      region: ['us-central1'],
-      labels: {},
-      eventTrigger: {
-        eventType: database.writtenEventType,
-        eventFilters: {
+  describe('onRefCreated', () => {
+    it('should create a function with a reference', () => {
+      const func = database.onRefCreated('/foo/{bar}/', (event) => 2);
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.createdEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with opts', () => {
+      const func = database.onRefCreated(
+        {
+          ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
+          region: 'us-central1',
+          cpu: 'gcf_gen1',
+          minInstances: 2,
         },
-        eventFilterPathPatterns: {
-          ref: 'foo/{path=**}/{bar}',
-        },
-        retry: false,
-      },
-    });
-  });
-});
+        (event) => 2
+      );
 
-describe('onRefCreated', () => {
-  it('should create a function with a reference', () => {
-    const func = database.onRefCreated('/foo/{bar}/', (event) => 2);
-
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.createdEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
-        },
-        retry: false,
-      },
-    });
-  });
-
-  it('should create a function with opts', () => {
-    const func = database.onRefCreated(
-      {
-        ref: '/foo/{path=**}/{bar}/',
-        instance: 'my-instance',
-        region: 'us-central1',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
         cpu: 'gcf_gen1',
         minInstances: 2,
-      },
-      (event) => 2
-    );
+        region: ['us-central1'],
+        labels: {},
+        eventTrigger: {
+          eventType: database.createdEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/{path=**}/{bar}',
+          },
+          retry: false,
+        },
+      });
+    });
+  });
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      cpu: 'gcf_gen1',
-      minInstances: 2,
-      region: ['us-central1'],
-      labels: {},
-      eventTrigger: {
-        eventType: database.createdEventType,
-        eventFilters: {
+  describe('onRefUpdated', () => {
+    it('should create a function with a reference', () => {
+      const func = database.onRefUpdated('/foo/{bar}/', (event) => 2);
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.updatedEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with opts', () => {
+      const func = database.onRefUpdated(
+        {
+          ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
+          region: 'us-central1',
+          cpu: 'gcf_gen1',
+          minInstances: 2,
         },
-        eventFilterPathPatterns: {
-          ref: 'foo/{path=**}/{bar}',
-        },
-        retry: false,
-      },
-    });
-  });
-});
+        (event) => 2
+      );
 
-describe('onRefUpdated', () => {
-  it('should create a function with a reference', () => {
-    const func = database.onRefUpdated('/foo/{bar}/', (event) => 2);
-
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.updatedEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
-        },
-        retry: false,
-      },
-    });
-  });
-
-  it('should create a function with opts', () => {
-    const func = database.onRefUpdated(
-      {
-        ref: '/foo/{path=**}/{bar}/',
-        instance: 'my-instance',
-        region: 'us-central1',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
         cpu: 'gcf_gen1',
         minInstances: 2,
-      },
-      (event) => 2
-    );
+        region: ['us-central1'],
+        labels: {},
+        eventTrigger: {
+          eventType: database.updatedEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/{path=**}/{bar}',
+          },
+          retry: false,
+        },
+      });
+    });
+  });
 
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      cpu: 'gcf_gen1',
-      minInstances: 2,
-      region: ['us-central1'],
-      labels: {},
-      eventTrigger: {
-        eventType: database.updatedEventType,
-        eventFilters: {
+  describe('onRefDeleted', () => {
+    it('should create a function with a reference', () => {
+      const func = database.onRefDeleted('/foo/{bar}/', (event) => 2);
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.deletedEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with opts', () => {
+      const func = database.onRefDeleted(
+        {
+          ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
+          region: 'us-central1',
+          cpu: 'gcf_gen1',
+          minInstances: 2,
         },
-        eventFilterPathPatterns: {
-          ref: 'foo/{path=**}/{bar}',
-        },
-        retry: false,
-      },
-    });
-  });
-});
+        (event) => 2
+      );
 
-describe('onRefDeleted', () => {
-  it('should create a function with a reference', () => {
-    const func = database.onRefDeleted('/foo/{bar}/', (event) => 2);
-
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      labels: {},
-      eventTrigger: {
-        eventType: database.deletedEventType,
-        eventFilters: {},
-        eventFilterPathPatterns: {
-          ref: 'foo/{bar}',
-          instance: '*',
-        },
-        retry: false,
-      },
-    });
-  });
-
-  it('should create a function with opts', () => {
-    const func = database.onRefDeleted(
-      {
-        ref: '/foo/{path=**}/{bar}/',
-        instance: 'my-instance',
-        region: 'us-central1',
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
         cpu: 'gcf_gen1',
         minInstances: 2,
-      },
-      (event) => 2
-    );
-
-    expect(func.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      cpu: 'gcf_gen1',
-      minInstances: 2,
-      region: ['us-central1'],
-      labels: {},
-      eventTrigger: {
-        eventType: database.deletedEventType,
-        eventFilters: {
-          instance: 'my-instance',
+        region: ['us-central1'],
+        labels: {},
+        eventTrigger: {
+          eventType: database.deletedEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/{path=**}/{bar}',
+          },
+          retry: false,
         },
-        eventFilterPathPatterns: {
-          ref: 'foo/{path=**}/{bar}',
-        },
-        retry: false,
-      },
+      });
     });
   });
 });

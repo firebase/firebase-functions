@@ -334,11 +334,6 @@ export function createEndpoint(
   instance.hasWildcards()
     ? (eventFilterPathPatterns.instance = instance.getValue())
     : (eventFilters.instance = instance.getValue());
-  // if (instance.hasWildcards()) {
-  //   eventFilterPathPatterns.instance = instance.getValue();
-  // } else {
-  //   eventFilters.instance = instance.getValue();
-  // }
 
   return {
     platform: 'gcfv2',
