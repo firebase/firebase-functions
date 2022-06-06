@@ -25,7 +25,7 @@ import { firebaseConfig } from '../../config';
 import { joinPath, pathParts } from '../../utilities/path';
 
 /**
- * Interface representing a Firebase Realtime Database data snapshot.
+ * Interface representing a Firebase Realtime database data snapshot.
  */
 export class DataSnapshot implements firebase.database.DataSnapshot {
   public instance: string;
@@ -44,7 +44,7 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
 
   constructor(
     data: any,
-    path?: string, // path will be undefined for the database root
+    path?: string, // path is undefined for the database root
     private app?: firebase.app.App,
     instance?: string
   ) {
@@ -72,7 +72,7 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
 
   /**
    * Returns a [`Reference`](/docs/reference/admin/node/admin.database.Reference)
-   * to the Database location where the triggering write occurred. Has
+   * to the database location where the triggering write occurred. Has
    * full read and write access.
    */
   get ref(): firebase.database.Reference {
@@ -92,10 +92,10 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
   /**
    * The key (last part of the path) of the location of this `DataSnapshot`.
    *
-   * The last token in a Database location is considered its key. For example,
+   * The last token in a database location is considered its key. For example,
    * "ada" is the key for the `/users/ada/` node. Accessing the key on any
-   * `DataSnapshot` will return the key for the location that generated it.
-   * However, accessing the key on the root URL of a Database will return `null`.
+   * `DataSnapshot` returns the key for the location that generated it.
+   * However, accessing the key on the root URL of a database returns `null`.
    */
   get key(): string | null {
     const segments = pathParts(this._fullPath());
@@ -111,7 +111,7 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
    * return `null`, indicating that the `DataSnapshot` is empty (contains no
    * data).
    *
-   * @return The DataSnapshot's contents as a JavaScript value (Object,
+   * @return The snapshot's contents as a JavaScript value (Object,
    *   Array, string, number, boolean, or `null`).
    */
   val(): any {
@@ -189,13 +189,13 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
    * JavaScript object returned by `val()` is not guaranteed to match the ordering
    * on the server nor the ordering of `child_added` events. That is where
    * `forEach()` comes in handy. It guarantees the children of a `DataSnapshot`
-   * will be iterated in their query order.
+   * can be iterated in their query order.
    *
    * If no explicit `orderBy*()` method is used, results are returned
    * ordered by key (unless priorities are used, in which case, results are
    * returned by priority).
    *
-   * @param action A function that will be called for each child `DataSnapshot`.
+   * @param action A function that is called for each child `DataSnapshot`.
    *   The callback can return `true` to cancel further enumeration.
    *
    * @return `true` if enumeration was canceled due to your callback
@@ -227,7 +227,7 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
    * You can use `hasChildren()` to determine if a `DataSnapshot` has any
    * children. If it does, you can enumerate them using `forEach()`. If it
    * doesn't, then either this snapshot contains a primitive value (which can be
-   * retrieved with `val()`) or it is empty (in which case, `val()` will return
+   * retrieved with `val()`) or it is empty (in which case, `val()` returns
    * `null`).
    *
    * @return `true` if this snapshot has any children; else `false`.
