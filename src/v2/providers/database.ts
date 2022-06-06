@@ -25,14 +25,12 @@ import { Change } from '../../cloud-functions';
 import { DataSnapshot } from '../../common/providers/database';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { normalizePath } from '../../utilities/path';
+import { PathPattern } from '../../utilities/path-pattern';
 import { applyChange } from '../../utils';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
 export { DataSnapshot };
-
-/** @hidden */
-const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /** @internal */
 export const writtenEventType = 'google.firebase.database.ref.v1.written';
@@ -126,12 +124,7 @@ export function onRefWritten(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
-  return onOperation(
-    writtenEventType,
-    referenceOrOpts,
-    handler,
-    true
-  ) as CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+  return onChangedOperation(writtenEventType, referenceOrOpts, handler);
 }
 
 /**
@@ -166,12 +159,7 @@ export function onRefCreated(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>> {
-  return onOperation(
-    createdEventType,
-    referenceOrOpts,
-    handler,
-    false
-  ) as CloudFunction<DatabaseEvent<DataSnapshot>>;
+  return onOperation(createdEventType, referenceOrOpts, handler);
 }
 
 /**
@@ -206,12 +194,7 @@ export function onRefUpdated(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
-  return onOperation(
-    updatedEventType,
-    referenceOrOpts,
-    handler,
-    true
-  ) as CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+  return onChangedOperation(updatedEventType, referenceOrOpts, handler);
 }
 
 /**
@@ -246,12 +229,8 @@ export function onRefDeleted(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>> {
-  return onOperation(
-    deletedEventType,
-    referenceOrOpts,
-    handler,
-    false
-  ) as CloudFunction<DatabaseEvent<DataSnapshot>>;
+  // TODO - need to use event.data.delta
+  return onOperation(deletedEventType, referenceOrOpts, handler);
 }
 
 /** @internal */
@@ -276,77 +255,26 @@ export function getOpts(referenceOrOpts: string | ReferenceOptions) {
   };
 }
 
-/** @hidden */
-function trimParam(param: string) {
-  const paramNoBraces = param.slice(1, -1);
-  if (paramNoBraces.includes('=')) {
-    return paramNoBraces.slice(0, paramNoBraces.indexOf('='));
-  }
-  return paramNoBraces;
-}
-
-/** @internal */
-export function matchParams(
-  pathSegments: string[],
-  wildcards: RegExpMatchArray,
-  refSegments: string[],
-  params: Record<string, string>
-): void {
-  let wildcardNdx = 0,
-    refNdx = 0;
-  for (
-    let pathNdx = 0;
-    pathNdx < pathSegments.length && wildcardNdx < wildcards.length;
-    pathNdx++
-  ) {
-    const multiSegmentWildcard = pathSegments[pathNdx].includes('**');
-
-    const remainingPathSegments = pathSegments.length - 1 - pathNdx;
-    const nextRefElement = refSegments.length - remainingPathSegments;
-
-    if (pathSegments[pathNdx] === wildcards[wildcardNdx]) {
-      params[trimParam(wildcards[wildcardNdx++])] = multiSegmentWildcard
-        ? refSegments.slice(refNdx, nextRefElement).join('/')
-        : refSegments[refNdx];
-    }
-
-    refNdx = multiSegmentWildcard ? nextRefElement : refNdx + 1;
-  }
-}
-
 /** @internal */
 export function makeParams(
   event: RawRTDBCloudEvent,
-  path: string,
-  instance: string
-): Record<string, string> {
-  const params: Record<string, string> = {};
-
-  const pathWildcards = path.match(WILDCARD_REGEX);
-  if (pathWildcards) {
-    matchParams(path.split('/'), pathWildcards, event.ref.split('/'), params);
-  }
-
-  const instanceWildcards = instance.match(WILDCARD_REGEX);
-  if (instanceWildcards) {
-    matchParams([instance], instanceWildcards, [event.instance], params);
-  }
-
-  return params;
+  path: PathPattern,
+  instance: PathPattern
+) {
+  return {
+    ...path.extractMatches(event.ref),
+    ...instance.extractMatches(event.instance),
+  };
 }
 
 /** @hidden */
 function makeDatabaseEvent(
   event: RawRTDBCloudEvent,
+  data: any,
   instance: string,
   params: Record<string, string>
 ): DatabaseEvent<DataSnapshot> {
-  const snapshot = new DataSnapshot(
-    event.data.delta,
-    event.ref,
-    apps().admin,
-    instance
-  );
+  const snapshot = new DataSnapshot(data, event.ref, apps().admin, instance);
   const databaseEvent: DatabaseEvent<DataSnapshot> = {
     ...event,
     firebaseDatabaseHost: event.firebasedatabasehost,
@@ -389,45 +317,30 @@ function makeChangedDatabaseEvent(
 }
 
 /** @internal */
-export function onOperation(
+export function createEndpoint(
   eventType: string,
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (
-    event: DatabaseEvent<DataSnapshot> | DatabaseEvent<Change<DataSnapshot>>
-  ) => any | Promise<any>,
-  changed: boolean
-):
-  | CloudFunction<DatabaseEvent<DataSnapshot>>
-  | CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
-  const { path, instance, opts } = getOpts(referenceOrOpts);
-
-  // wrap the handler
-  const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawRTDBCloudEvent;
-    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
-    const params = makeParams(event, path, instance);
-    const databaseEvent = changed
-      ? makeChangedDatabaseEvent(event, instanceUrl, params)
-      : makeDatabaseEvent(event, instanceUrl, params);
-    return handler(databaseEvent);
-  };
-
-  func.run = handler;
-
+  opts: options.EventHandlerOptions,
+  path: PathPattern,
+  instance: PathPattern
+): ManifestEndpoint {
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
 
   const eventFilters: Record<string, string> = {};
   const eventFilterPathPatterns: Record<string, string> = {
-    ref: path,
+    // Note: Eventarc always treats ref as a path pattern
+    ref: path.getValue(),
   };
-  if (instance.match(WILDCARD_REGEX) || instance.includes('*')) {
-    eventFilterPathPatterns.instance = instance;
-  } else {
-    eventFilters.instance = instance;
-  }
+  instance.hasWildcards()
+    ? (eventFilterPathPatterns.instance = instance.getValue())
+    : (eventFilters.instance = instance.getValue());
+  // if (instance.hasWildcards()) {
+  //   eventFilterPathPatterns.instance = instance.getValue();
+  // } else {
+  //   eventFilters.instance = instance.getValue();
+  // }
 
-  const endpoint: ManifestEndpoint = {
+  return {
     platform: 'gcfv2',
     ...baseOpts,
     ...specificOpts,
@@ -442,8 +355,70 @@ export function onOperation(
       retry: false,
     },
   };
+}
 
-  func.__endpoint = endpoint;
+/** @internal */
+export function onChangedOperation(
+  eventType: string,
+  referenceOrOpts: string | ReferenceOptions,
+  handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
+): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
+  const { path, instance, opts } = getOpts(referenceOrOpts);
+
+  const pathPattern = new PathPattern(path);
+  const instancePattern = new PathPattern(instance);
+
+  // wrap the handler
+  const func = (raw: CloudEvent<unknown>) => {
+    const event = raw as RawRTDBCloudEvent;
+    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const params = makeParams(event, pathPattern, instancePattern);
+    const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
+    return handler(databaseEvent);
+  };
+
+  func.run = handler;
+
+  func.__endpoint = createEndpoint(
+    eventType,
+    opts,
+    pathPattern,
+    instancePattern
+  );
+
+  return func;
+}
+
+/** @internal */
+export function onOperation(
+  eventType: string,
+  referenceOrOpts: string | ReferenceOptions,
+  handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
+): CloudFunction<DatabaseEvent<DataSnapshot>> {
+  const { path, instance, opts } = getOpts(referenceOrOpts);
+
+  const pathPattern = new PathPattern(path);
+  const instancePattern = new PathPattern(instance);
+
+  // wrap the handler
+  const func = (raw: CloudEvent<unknown>) => {
+    const event = raw as RawRTDBCloudEvent;
+    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const params = makeParams(event, pathPattern, instancePattern);
+    const data =
+      eventType === deletedEventType ? event.data.data : event.data.delta;
+    const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
+    return handler(databaseEvent);
+  };
+
+  func.run = handler;
+
+  func.__endpoint = createEndpoint(
+    eventType,
+    opts,
+    pathPattern,
+    instancePattern
+  );
 
   return func;
 }

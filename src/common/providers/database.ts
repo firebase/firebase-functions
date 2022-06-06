@@ -21,12 +21,13 @@
 // SOFTWARE.
 
 import * as firebase from 'firebase-admin';
-import { joinPath, /*normalizePath,*/ pathParts } from '../../utilities/path';
+import { firebaseConfig } from '../../config';
+import { joinPath, pathParts } from '../../utilities/path';
 
 /**
  * Interface representing a Firebase Realtime Database data snapshot.
  */
-export class DataSnapshot {
+export class DataSnapshot implements firebase.database.DataSnapshot {
   public instance: string;
 
   /** @hidden */
@@ -47,6 +48,7 @@ export class DataSnapshot {
     private app?: firebase.app.App,
     instance?: string
   ) {
+    const config = firebaseConfig();
     if (app?.options?.databaseURL?.startsWith('http:')) {
       // In this case we're dealing with an emulator
       this.instance = app.options.databaseURL;
@@ -55,6 +57,8 @@ export class DataSnapshot {
       this.instance = instance;
     } else if (app) {
       this.instance = app.options.databaseURL;
+    } else if (config.databaseURL) {
+      this.instance = config.databaseURL;
     } else if (process.env.GCLOUD_PROJECT) {
       this.instance =
         'https://' +
@@ -93,8 +97,7 @@ export class DataSnapshot {
    * `DataSnapshot` will return the key for the location that generated it.
    * However, accessing the key on the root URL of a Database will return `null`.
    */
-  get key(): string {
-    // const last = _.last(pathParts(this._fullPath()));
+  get key(): string | null {
     const segments = pathParts(this._fullPath());
     const last = segments[segments.length - 1];
     return !last || last === '' ? null : last;
@@ -119,10 +122,7 @@ export class DataSnapshot {
         source = source[part];
       }
     }
-    const node = typeof source !== 'undefined' ? source : null;
-    // const node = _.cloneDeep(
-    //   parts.length ? _.get(source, parts, null) : source
-    // );
+    const node = source ?? null;
 
     return this._checkAndConvertToArray(node);
   }
@@ -160,7 +160,6 @@ export class DataSnapshot {
    * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
    */
   exists(): boolean {
-    // return !_.isNull(this.val());
     return typeof this.val() === 'undefined' || this.val() === null
       ? false
       : true;
@@ -203,18 +202,9 @@ export class DataSnapshot {
    *   returning `true`.
    */
   forEach(action: (a: DataSnapshot) => boolean | void): boolean {
-    const val = this.val();
-    // if (_.isPlainObject(val)) {
-    if (typeof val === 'object' && typeof val !== 'function') {
-      for (const key of Object.keys(val)) {
-        if (action(this.child(key)) === true) {
-          return true;
-        }
-      }
-      // return _.some(
-      //   val,
-      //   (value, key: string) => action(this.child(key)) === true
-      // );
+    const val = this.val() || {};
+    if (typeof val === 'object') {
+      return Object.keys(val).some((key) => action(this.child(key)) === true);
     }
     return false;
   }
@@ -244,11 +234,8 @@ export class DataSnapshot {
    */
   hasChildren(): boolean {
     const val = this.val();
-    // return _.isPlainObject(val) && _.keys(val).length > 0;
     return (
-      typeof val === 'object' &&
-      typeof val !== 'function' &&
-      Object.keys(val).length > 0
+      val !== null && typeof val === 'object' && Object.keys(val).length > 0
     );
   }
 
@@ -259,8 +246,7 @@ export class DataSnapshot {
    */
   numChildren(): number {
     const val = this.val();
-    // return _.isPlainObject(val) ? Object.keys(val).length : 0;
-    return typeof val === 'object' && typeof val !== 'function'
+    return val !== null && typeof val === 'object'
       ? Object.keys(val).length
       : 0;
   }
@@ -310,9 +296,6 @@ export class DataSnapshot {
       for (const key of Object.keys(obj)) {
         array[key] = obj[key];
       }
-      // _.forOwn(obj, (val, key) => {
-      //   array[key] = val;
-      // });
 
       return array;
     }
@@ -338,7 +321,6 @@ export class DataSnapshot {
 
   /** @hidden */
   private _fullPath(): string {
-    const out = (this._path || '') + '/' + (this._childPath || '');
-    return out;
+    return (this._path || '') + '/' + (this._childPath || '');
   }
 }

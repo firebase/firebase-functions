@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
+import { PathPattern } from '../../../src/utilities/path-pattern';
 import * as database from '../../../src/v2/providers/database';
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
@@ -41,144 +42,6 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   type: 'type',
 };
 
-describe('matchParams', () => {
-  it('should parse without multi segment', () => {
-    const params = {};
-
-    database.matchParams(
-      '{a}/something/else/{b}/end/{c}'.split('/'),
-      ['{a}', '{b}', '{c}'],
-      'match_a/something/else/match_b/end/match_c'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
-      c: 'match_c',
-    });
-  });
-
-  it('should parse multi segment with params after', () => {
-    const params = {};
-
-    database.matchParams(
-      'something/**/else/{a}/hello/{b}/world'.split('/'),
-      ['{a}', '{b}'],
-      'something/is/a/thing/else/nothing/hello/user/world'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      a: 'nothing',
-      b: 'user',
-    });
-  });
-
-  it('should parse multi segment param with params after', () => {
-    const params = {};
-
-    database.matchParams(
-      'something/{path=**}/else/{a}/hello/{b}/world'.split('/'),
-      ['{path=**}', '{a}', '{b}'],
-      'something/is/a/thing/else/nothing/hello/user/world'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      path: 'is/a/thing',
-      a: 'nothing',
-      b: 'user',
-    });
-  });
-
-  it('should parse multi segment with params before', () => {
-    const params = {};
-
-    database.matchParams(
-      '{a}/something/{b}/**/end'.split('/'),
-      ['{a}', '{b}'],
-      'match_a/something/match_b/thing/else/nothing/hello/user/end'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
-    });
-  });
-
-  it('should parse multi segment param with params before', () => {
-    const params = {};
-
-    database.matchParams(
-      '{a}/something/{b}/{path=**}/end'.split('/'),
-      ['{a}', '{b}', '{path=**}'],
-      'match_a/something/match_b/thing/else/nothing/hello/user/end'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
-      path: 'thing/else/nothing/hello/user',
-    });
-  });
-
-  it('should parse multi segment with params before and after', () => {
-    const params = {};
-
-    database.matchParams(
-      '{a}/something/**/{b}/end'.split('/'),
-      ['{a}', '{b}'],
-      'match_a/something/thing/else/nothing/hello/user/match_b/end'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
-    });
-  });
-
-  it('should parse multi segment param with params before', () => {
-    const params = {};
-
-    database.matchParams(
-      '{a}/something/{path=**}/{b}/end'.split('/'),
-      ['{a}', '{path=**}', '{b}'],
-      'match_a/something/thing/else/nothing/hello/user/match_b/end'.split('/'),
-      params
-    );
-
-    expect(params).to.deep.equal({
-      a: 'match_a',
-      b: 'match_b',
-      path: 'thing/else/nothing/hello/user',
-    });
-  });
-
-  // handle an instance param
-  it('should parse an instance', () => {
-    const params = {};
-
-    database.matchParams(
-      ['{a}-something-{b}-else-{c}'],
-      ['{a}', '{b}', '{c}'],
-      ['match_a-something-match_b-else-match_c'],
-      params
-    );
-
-    expect(params).to.deep.equal({});
-
-    database.matchParams(['{a}'], ['{a}'], ['match_a'], params);
-
-    expect(params).to.deep.equal({
-      a: 'match_a',
-    });
-  });
-});
-
 describe('makeParams', () => {
   it('should make params with basic path', () => {
     const event: database.RawRTDBCloudEvent = {
@@ -187,7 +50,11 @@ describe('makeParams', () => {
     };
 
     expect(
-      database.makeParams(event, '{a}/something/else/*/end/{b}', '*')
+      database.makeParams(
+        event,
+        new PathPattern('{a}/something/else/*/end/{b}'),
+        new PathPattern('*')
+      )
     ).to.deep.equal({
       a: 'match_a',
       b: 'match_b',
@@ -201,7 +68,11 @@ describe('makeParams', () => {
     };
 
     expect(
-      database.makeParams(event, 'something/**/else/{a}/hello/{b}/world', '*')
+      database.makeParams(
+        event,
+        new PathPattern('something/**/else/{a}/hello/{b}/world'),
+        new PathPattern('*')
+      )
     ).to.deep.equal({
       a: 'match_a',
       b: 'match_b',
@@ -217,8 +88,8 @@ describe('makeParams', () => {
     expect(
       database.makeParams(
         event,
-        'something/{path=**}/else/{a}/hello/{b}/world',
-        '*'
+        new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
+        new PathPattern('*')
       )
     ).to.deep.equal({
       path: 'is/a/thing',
@@ -236,8 +107,8 @@ describe('makeParams', () => {
     expect(
       database.makeParams(
         event,
-        'something/{path=**}/else/{a}/hello/{b}/world',
-        '{inst}'
+        new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
+        new PathPattern('{inst}')
       )
     ).to.deep.equal({
       path: 'is/a/thing',
@@ -279,8 +150,7 @@ describe('onOperation', () => {
     const func = database.onOperation(
       database.writtenEventType,
       '/foo/{bar}/',
-      (event) => 2,
-      true
+      (event) => 2
     );
 
     expect(func.__endpoint).to.deep.equal({
@@ -302,8 +172,7 @@ describe('onOperation', () => {
     const func = database.onOperation(
       database.createdEventType,
       '/foo/{bar}/',
-      (event) => 2,
-      true
+      (event) => 2
     );
 
     expect(func.__endpoint).to.deep.equal({
@@ -325,8 +194,7 @@ describe('onOperation', () => {
     const func = database.onOperation(
       database.updatedEventType,
       '/foo/{bar}/',
-      (event) => 2,
-      true
+      (event) => 2
     );
 
     expect(func.__endpoint).to.deep.equal({
@@ -348,8 +216,7 @@ describe('onOperation', () => {
     const func = database.onOperation(
       database.deletedEventType,
       '/foo/{bar}/',
-      (event) => 2,
-      true
+      (event) => 2
     );
 
     expect(func.__endpoint).to.deep.equal({
@@ -377,8 +244,7 @@ describe('onOperation', () => {
         cpu: 'gcf_gen1',
         minInstances: 2,
       },
-      (event) => 2,
-      true
+      (event) => 2
     );
 
     expect(func.__endpoint).to.deep.equal({
