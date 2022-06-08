@@ -130,9 +130,6 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
   /**
    * Exports the entire contents of the `DataSnapshot` as a JavaScript object.
    *
-   * The `exportVal()` method is similar to `val()`, except priority information
-   * is included (if available), making it suitable for backing up your data.
-   *
    * @return The contents of the `DataSnapshot` as a JavaScript value
    *   (Object, Array, string, number, boolean, or `null`).
    */
@@ -160,9 +157,14 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
    * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
    */
   exists(): boolean {
-    return typeof this.val() === 'undefined' || this.val() === null
-      ? false
-      : true;
+    const val = this.val();
+    if (!val || val === null) {
+      return false;
+    }
+    if (typeof val === 'object' && Object.keys(val).length === 0) {
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -280,7 +282,12 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
         continue;
       }
       const childNode = node[key];
-      obj[key] = this._checkAndConvertToArray(childNode);
+      const v = this._checkAndConvertToArray(childNode);
+      if (v === null) {
+        // Empty child node
+        continue;
+      }
+      obj[key] = v;
       numKeys++;
       const integerRegExp = /^(0|[1-9]\d*)$/;
       if (allIntegerKeys && integerRegExp.test(key)) {
@@ -288,6 +295,11 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
       } else {
         allIntegerKeys = false;
       }
+    }
+
+    if (numKeys === 0) {
+      // Empty node
+      return null;
     }
 
     if (allIntegerKeys && maxKey < 2 * numKeys) {

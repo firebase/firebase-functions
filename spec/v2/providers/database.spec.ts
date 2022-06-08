@@ -146,9 +146,70 @@ describe('database', () => {
     });
   });
 
-  describe('onOperation', () => {
+  describe('makeEndpoint', () => {
+    it('should create an endpoint with an instance wildcard', () => {
+      const ep = database.makeEndpoint(
+        database.writtenEventType,
+        {
+          region: 'us-central1',
+          labels: { 1: '2' },
+        },
+        new PathPattern('foo/bar'),
+        new PathPattern('{inst}')
+      );
+
+      expect(ep).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {
+          1: '2',
+        },
+        region: ['us-central1'],
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/bar',
+            instance: '{inst}',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create an endpoint without an instance wildcard', () => {
+      const ep = database.makeEndpoint(
+        database.writtenEventType,
+        {
+          region: 'us-central1',
+          labels: { 1: '2' },
+        },
+        new PathPattern('foo/bar'),
+        new PathPattern('my-instance')
+      );
+
+      expect(ep).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {
+          1: '2',
+        },
+        region: ['us-central1'],
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/bar',
+          },
+          retry: false,
+        },
+      });
+    });
+  });
+
+  describe('onChangedOperation', () => {
     it('should create a function for a written event', () => {
-      const func = database.onOperation(
+      const func = database.onChangedOperation(
         database.writtenEventType,
         '/foo/{bar}/',
         (event) => 2
@@ -169,6 +230,62 @@ describe('database', () => {
       });
     });
 
+    it('should create a function for a updated event', () => {
+      const func = database.onChangedOperation(
+        database.updatedEventType,
+        '/foo/{bar}/',
+        (event) => 2
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: database.updatedEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: 'foo/{bar}',
+            instance: '*',
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a complex function', () => {
+      const func = database.onChangedOperation(
+        database.writtenEventType,
+        {
+          ref: '/foo/{path=**}/{bar}/',
+          instance: 'my-instance',
+          region: 'us-central1',
+          cpu: 'gcf_gen1',
+          minInstances: 2,
+        },
+        (event) => 2
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        cpu: 'gcf_gen1',
+        minInstances: 2,
+        region: ['us-central1'],
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {
+            instance: 'my-instance',
+          },
+          eventFilterPathPatterns: {
+            ref: 'foo/{path=**}/{bar}',
+          },
+          retry: false,
+        },
+      });
+    });
+  });
+
+  describe('onOperation', () => {
     it('should create a function for a created event', () => {
       const func = database.onOperation(
         database.createdEventType,
@@ -181,28 +298,6 @@ describe('database', () => {
         labels: {},
         eventTrigger: {
           eventType: database.createdEventType,
-          eventFilters: {},
-          eventFilterPathPatterns: {
-            ref: 'foo/{bar}',
-            instance: '*',
-          },
-          retry: false,
-        },
-      });
-    });
-
-    it('should create a function for a updated event', () => {
-      const func = database.onOperation(
-        database.updatedEventType,
-        '/foo/{bar}/',
-        (event) => 2
-      );
-
-      expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          eventType: database.updatedEventType,
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: 'foo/{bar}',
@@ -237,7 +332,7 @@ describe('database', () => {
 
     it('should create a complex function', () => {
       const func = database.onOperation(
-        database.writtenEventType,
+        database.createdEventType,
         {
           ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
@@ -255,7 +350,7 @@ describe('database', () => {
         region: ['us-central1'],
         labels: {},
         eventTrigger: {
-          eventType: database.writtenEventType,
+          eventType: database.createdEventType,
           eventFilters: {
             instance: 'my-instance',
           },

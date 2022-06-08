@@ -25,7 +25,7 @@ import { pathParts } from './path';
 /** https://cloud.google.com/eventarc/docs/path-patterns */
 
 /** @hidden */
-const WILDCARD_CAPTURE_REGEX = new RegExp('{[^/{}]*}', 'g');
+const WILDCARD_CAPTURE_REGEX = new RegExp('{[^/{}]+}', 'g');
 
 /** @internal */
 export function trimParam(param: string) {
@@ -98,11 +98,13 @@ class MultiCaptureSegment implements PathSegment {
  * @internal
  */
 export class PathPattern {
+
   /** @throws on validation error */
-  static compile(raw: string) {}
+  static compile(rawPath: string) {}
   private segments: PathSegment[];
 
   constructor(private raw: string) {
+    this.segments = [];
     this.initPathSegments(raw);
   }
 
@@ -155,7 +157,6 @@ export class PathPattern {
   }
 
   private initPathSegments(raw: string) {
-    this.segments = [];
     const parts = pathParts(raw);
     for (const part of parts) {
       let segment: PathSegment;

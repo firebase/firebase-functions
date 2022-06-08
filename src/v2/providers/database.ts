@@ -317,7 +317,7 @@ function makeChangedDatabaseEvent(
 }
 
 /** @internal */
-export function createEndpoint(
+export function makeEndpoint(
   eventType: string,
   opts: options.EventHandlerOptions,
   path: PathPattern,
@@ -374,12 +374,7 @@ export function onChangedOperation(
 
   func.run = handler;
 
-  func.__endpoint = createEndpoint(
-    eventType,
-    opts,
-    pathPattern,
-    instancePattern
-  );
+  func.__endpoint = makeEndpoint(eventType, opts, pathPattern, instancePattern);
 
   return func;
 }
@@ -408,12 +403,7 @@ export function onOperation(
 
   func.run = handler;
 
-  func.__endpoint = createEndpoint(
-    eventType,
-    opts,
-    pathPattern,
-    instancePattern
-  );
+  func.__endpoint = makeEndpoint(eventType, opts, pathPattern, instancePattern);
 
   return func;
 }
