@@ -98,7 +98,6 @@ class MultiCaptureSegment implements PathSegment {
  * @internal
  */
 export class PathPattern {
-
   /** @throws on validation error */
   static compile(rawPath: string) {}
   private segments: PathSegment[];
