@@ -639,16 +639,51 @@ describe('Database Functions', () => {
         expect(subject.val()).to.equal(0);
         populate({ myKey: 0 });
         expect(subject.val()).to.deep.equal({ myKey: 0 });
-
-        // Null values are still reported as null.
-        populate({ myKey: null });
-        expect(subject.val()).to.deep.equal({ myKey: null });
       });
 
       // Regression test: .val() was returning array of nulls when there's a property called length (BUG#37683995)
       it('should return correct values when data has "length" property', () => {
         populate({ length: 3, foo: 'bar' });
         expect(subject.val()).to.deep.equal({ length: 3, foo: 'bar' });
+      });
+
+      it('should deal with null-values appropriately', () => {
+        populate(null);
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: null });
+        expect(subject.val()).to.be.null;
+      });
+
+      it('should deal with empty object values appropriately', () => {
+        populate({});
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: {} });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: { child: null } });
+        expect(subject.val()).to.be.null;
+      });
+
+      it('should deal with empty array values appropriately', () => {
+        populate([]);
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [null] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [{}] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [{ myKey: null }] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [{ myKey: {} }] });
+        expect(subject.val()).to.be.null;
       });
     });
 
@@ -676,13 +711,36 @@ describe('Database Functions', () => {
       });
 
       it('should be false for a non-existent value', () => {
-        populate({ a: { b: 'c' } });
+        populate({ a: { b: 'c', nullChild: null } });
         expect(subject.child('d').exists()).to.be.false;
+        expect(subject.child('nullChild').exists()).to.be.false;
       });
 
       it('should be false for a value pathed beyond a leaf', () => {
         populate({ a: { b: 'c' } });
         expect(subject.child('a/b/c').exists()).to.be.false;
+      });
+
+      it('should be false for an empty object value', () => {
+        populate({ a: {} });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: { child: null } });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: { child: {} } });
+        expect(subject.child('a').exists()).to.be.false;
+      });
+
+      it('should be false for an empty array value', () => {
+        populate({ a: [] });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: [null] });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: [{}] });
+        expect(subject.child('a').exists()).to.be.false;
       });
     });
 
@@ -712,6 +770,17 @@ describe('Database Functions', () => {
 
         expect(subject.forEach(counter)).to.equal(false);
         expect(count).to.eq(0);
+
+        populate({
+          a: 'foo',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        count = 0;
+
+        expect(subject.forEach(counter)).to.equal(false);
+        expect(count).to.eq(1);
       });
 
       it('should cancel further enumeration if callback returns true', () => {
@@ -751,13 +820,51 @@ describe('Database Functions', () => {
 
     describe('#numChildren()', () => {
       it('should be key count for objects', () => {
-        populate({ a: 'b', c: 'd' });
+        populate({
+          a: 'b',
+          c: 'd',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(subject.numChildren()).to.eq(2);
       });
 
       it('should be 0 for non-objects', () => {
         populate(23);
         expect(subject.numChildren()).to.eq(0);
+
+        populate({
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.numChildren()).to.eq(0);
+      });
+    });
+
+    describe('#hasChildren()', () => {
+      it('should true for objects', () => {
+        populate({
+          a: 'b',
+          c: 'd',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.hasChildren()).to.be.true;
+      });
+
+      it('should be false for non-objects', () => {
+        populate(23);
+        expect(subject.hasChildren()).to.be.false;
+
+        populate({
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.hasChildren()).to.be.false;
       });
     });
 
@@ -769,9 +876,17 @@ describe('Database Functions', () => {
       });
 
       it('should return false if a child is missing', () => {
-        populate({ a: 'b' });
+        populate({
+          a: 'b',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(subject.hasChild('c')).to.be.false;
         expect(subject.hasChild('a/b')).to.be.false;
+        expect(subject.hasChild('nullChild')).to.be.false;
+        expect(subject.hasChild('emptyObjectChild')).to.be.false;
+        expect(subject.hasChild('emptyArrayChild')).to.be.false;
       });
     });
 
@@ -801,11 +916,21 @@ describe('Database Functions', () => {
 
     describe('#toJSON(): Object', () => {
       it('should return the current value', () => {
-        populate({ a: 'b' });
+        populate({
+          a: 'b',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(subject.toJSON()).to.deep.equal(subject.val());
       });
       it('should be stringifyable', () => {
-        populate({ a: 'b' });
+        populate({
+          a: 'b',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(JSON.stringify(subject)).to.deep.equal('{"a":"b"}');
       });
     });
