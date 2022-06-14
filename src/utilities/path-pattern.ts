@@ -98,13 +98,50 @@ class MultiCaptureSegment implements PathSegment {
  * @internal
  */
 export class PathPattern {
-  /** @throws on validation error */
-  static compile(rawPath: string) {}
   private segments: PathSegment[];
 
   constructor(private raw: string) {
     this.segments = [];
     this.initPathSegments(raw);
+  }
+
+  /** @throws on validation error */
+  static compile(rawPath: string) {
+    const segments = pathParts(rawPath);
+
+    if (segments.some((s) => s.length === 0)) {
+      throw new Error('A segment cannot be empty.');
+    }
+
+    let mulitSegmentPattern = 0;
+    for (const segment of segments) {
+      if (this.isValidMultiSegment(segment)) {
+        mulitSegmentPattern++;
+      // } else if (isValidSegment(segment)) {
+        
+      } else {
+        throw new Error('A segment must follow these rules - https://cloud.google.com/eventarc/docs/path-patterns');
+      }
+      
+
+
+      if (mulitSegmentPattern > 1) {
+        throw new Error('A path can only contain one Multi Segment Wildcard.');
+      }
+    }
+  }
+
+  private static isValidMultiSegment(segment: string): boolean {
+    if (!segment.includes('**')) {
+      return false;
+    }
+
+    if (segment.length === 2) {
+      return true;
+    }
+
+    // if (segment.includes('='))
+    return true;
   }
 
   getValue(): string {

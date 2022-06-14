@@ -23,6 +23,86 @@ import { expect } from 'chai';
 import * as pathPattern from '../../src/utilities/path-pattern';
 
 describe('path-pattern', () => {
+  describe('compile', () => {
+    it('should throw on an empty expression', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects//buckets/bucket-1/objects/file1.txt')
+      ).to.throw('A segment cannot be empty.');
+    });
+
+    it('should throw on multiple * in an expression', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket**/objects/file1.txt')
+      ).to.throw('A segment cannot be empty.');
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket-1/objects/file-*.*')
+      ).to.throw('A segment cannot be empty.');
+    });
+
+    it('should throw on multiple ** in a path', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/**/buckets/**')
+      ).to.throw('A segment cannot be empty.');
+    });
+
+    it('should throw on missing ID', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/{=*}/objects/file1.txt')
+      ).to.throw('A segment cannot be empty.');
+    });
+
+    it('should throw on empty expression', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/{bucket=}/objects/file1.txt')
+      ).to.throw('A segment cannot be empty.');
+    });
+
+    it('should throw on unclosed capture', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/{bucket/objects/file1.txt')
+      ).to.throw('A segment cannot be empty.');
+    });
+
+    it('should not throw on correct path patterns', () => {
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket-1/objects/file1.txt')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket-1/objects/*')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket-1/objects/*.txt')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket-1/objects/file-*.txt')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/**/file-*.txt')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/bucket-*/objects/file-*.txt')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/{bucket}/objects/file.*')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/{bucket=*}/objects/file.*')
+      ).to.not.throw;
+
+      expect(
+        () => pathPattern.PathPattern.compile('/projects/_/buckets/*/objects/{filename=file.*}')
+      ).to.not.throw;
+    });
+  });
+
   describe('trimParam', () => {
     it('should trim a capture param without equals', () => {
       expect(pathPattern.trimParam('{something}')).to.equal('something');
