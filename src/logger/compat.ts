@@ -31,7 +31,7 @@ function patchedConsole(severity: string): (data: any, ...args: any[]) => void {
   return function(data: any, ...args: any[]): void {
     let message = format(data, ...args);
     if (severity === 'ERROR') {
-      message = new Error(message).stack;
+      message = new Error(message).stack || message;
     }
 
     UNPATCHED_CONSOLE[CONSOLE_SEVERITY[severity]](
