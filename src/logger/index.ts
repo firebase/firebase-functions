@@ -153,7 +153,7 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   }
   // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
   let message = format.apply(null, args);
-  if (severity === "ERROR") {
+  if (severity === "ERROR" && !args.find(arg => arg instanceof Error)) {
     message = new Error(message).stack || message;
   }
   return { ...entry, severity, message };
