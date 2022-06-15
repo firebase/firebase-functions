@@ -22,7 +22,8 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
+import { DecodedIdToken } from 'firebase-admin/auth';
+import { DecodedAppCheckToken } from 'firebase-admin/app-check';
 
 import * as logger from '../../logger';
 
@@ -40,60 +41,6 @@ export interface Request extends express.Request {
   rawBody: Buffer;
 }
 
-// This is actually a firebase.appCheck.DecodedAppCheckToken, but
-// that type may not be available in some supported SDK versions.
-// Declare as an inline type, which DecodedAppCheckToken will be
-// able to merge with.
-// TODO: Replace with the real type once we bump the min-version of
-// the admin SDK
-interface DecodedAppCheckToken {
-  /**
-   * The issuer identifier for the issuer of the response.
-   *
-   * This value is a URL with the format
-   * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
-   * same project number specified in the [`aud`](#aud) property.
-   */
-  iss: string;
-
-  /**
-   * The Firebase App ID corresponding to the app the token belonged to.
-   *
-   * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
-   */
-  sub: string;
-
-  /**
-   * The audience for which this token is intended.
-   *
-   * This value is a JSON array of two strings, the first is the project number of your
-   * Firebase project, and the second is the project ID of the same project.
-   */
-  aud: string[];
-
-  /**
-   * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
-   * time at which this App Check token expires and should no longer be considered valid.
-   */
-  exp: number;
-
-  /**
-   * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
-   * time at which this App Check token was issued and should start to be considered
-   * valid.;
-   */
-  iat: number;
-
-  /**
-   * The App ID corresponding to the App the App Check token belonged to.
-   *
-   * This value is not actually one of the JWT token claims. It is added as a
-   * convenience, and is set as the value of the [`sub`](#sub) property.
-   */
-  app_id: string;
-  [key: string]: any;
-}
-
 /**
  * The interface for AppCheck tokens verified in Callable functions
  */
@@ -107,7 +54,7 @@ export interface AppCheckData {
  */
 export interface AuthData {
   uid: string;
-  token: firebase.auth.DecodedIdToken;
+  token: DecodedIdToken;
 }
 
 // This type is the direct v1 callable interface and is also an interface
@@ -555,8 +502,8 @@ export function unsafeDecodeToken(token: string): unknown {
 /** @internal */
 export function unsafeDecodeIdToken(
   token: string
-): firebase.auth.DecodedIdToken {
-  const decoded = unsafeDecodeToken(token) as firebase.auth.DecodedIdToken;
+): DecodedIdToken {
+  const decoded = unsafeDecodeToken(token) as DecodedIdToken;
   decoded.uid = decoded.sub;
   return decoded;
 }
@@ -642,7 +589,7 @@ export async function checkAuthToken(
   if (match) {
     const idToken = match[1];
     try {
-      let authToken: firebase.auth.DecodedIdToken;
+      let authToken: DecodedIdToken;
       if (isDebugFeatureEnabled('skipTokenVerification')) {
         authToken = unsafeDecodeIdToken(idToken);
       } else {
@@ -672,11 +619,6 @@ async function checkAppCheckToken(
     return 'MISSING';
   }
   try {
-    if (!apps().admin.appCheck) {
-      throw new Error(
-        'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
-      );
-    }
     let appCheckData;
     if (isDebugFeatureEnabled('skipTokenVerification')) {
       const decodedToken = unsafeDecodeAppCheckToken(appCheck);
