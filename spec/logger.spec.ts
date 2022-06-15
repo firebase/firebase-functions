@@ -2,12 +2,7 @@ import { expect } from 'chai';
 
 import * as logger from '../src/logger';
 
-const SUPPORTS_STRUCTURED_LOGS =
-  parseInt(process.versions?.node?.split('.')?.[0] || '8', 10) >= 10;
-
-describe(`logger (${
-  SUPPORTS_STRUCTURED_LOGS ? 'structured' : 'unstructured'
-})`, () => {
+describe('logger', () => {
   const stdoutWrite = process.stdout.write.bind(process.stdout);
   const stderrWrite = process.stderr.write.bind(process.stderr);
   let lastOut: string;
@@ -30,12 +25,7 @@ describe(`logger (${
   });
 
   function expectOutput(last: string, entry: any) {
-    if (SUPPORTS_STRUCTURED_LOGS) {
-      return expect(JSON.parse(last.trim())).to.deep.eq(entry);
-    } else {
-      // legacy logging is not structured, but do a sanity check
-      return expect(last).to.include(entry.message);
-    }
+    return expect(JSON.parse(last.trim())).to.deep.eq(entry);
   }
 
   function expectStdout(entry: any) {
