@@ -44,14 +44,14 @@ export const updatedEventType = 'google.firebase.database.ref.v1.updated';
 /** @internal */
 export const deletedEventType = 'google.firebase.database.ref.v1.deleted';
 
-/** @internal */
+/** @hidden */
 export interface RawRTDBCloudEventData {
   ['@type']: 'type.googleapis.com/google.events.firebase.database.v1.ReferenceEventData';
   data: any;
   delta: any;
 }
 
-/** @internal */
+/** @hidden */
 export interface RawRTDBCloudEvent extends CloudEvent<RawRTDBCloudEventData> {
   firebasedatabasehost: string;
   instance: string;
