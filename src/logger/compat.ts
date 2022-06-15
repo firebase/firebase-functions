@@ -21,10 +21,7 @@
 // SOFTWARE.
 
 import { format } from 'util';
-import {
-  CONSOLE_SEVERITY,
-  UNPATCHED_CONSOLE,
-} from './common';
+import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from './common';
 
 /** @hidden */
 function patchedConsole(severity: string): (data: any, ...args: any[]) => void {

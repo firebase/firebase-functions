@@ -20,7 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
 // Map LogSeverity types to their equivalent `console.*` method.
 /** @hidden */
 export const CONSOLE_SEVERITY: {
