@@ -22,8 +22,8 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
-import { DecodedIdToken } from 'firebase-admin/auth';
 import { DecodedAppCheckToken } from 'firebase-admin/app-check';
+import { DecodedIdToken } from 'firebase-admin/auth';
 
 import * as logger from '../../logger';
 
@@ -500,9 +500,7 @@ export function unsafeDecodeToken(token: string): unknown {
  * This is exposed only for testing.
  */
 /** @internal */
-export function unsafeDecodeIdToken(
-  token: string
-): DecodedIdToken {
+export function unsafeDecodeIdToken(token: string): DecodedIdToken {
   const decoded = unsafeDecodeToken(token) as DecodedIdToken;
   decoded.uid = decoded.sub;
   return decoded;
