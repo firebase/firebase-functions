@@ -618,7 +618,7 @@ async function checkTokens(
   }
 
   if (errs.length == 0) {
-    logger.info('Callable request verification passed', logPayload);
+    logger.debug('Callable request verification passed', logPayload);
   } else {
     logger.warn(
       `Callable request verification failed: ${errs.join(' ')}`,
