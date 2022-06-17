@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import { Request, Response } from 'express';
-import * as _ from 'lodash';
 import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
@@ -43,9 +42,10 @@ import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
- * @hidden
- *
  * Wire format for an event.
+
+ * @hidden
+ * @alpha
  */
 export interface Event {
   context: {
@@ -54,6 +54,13 @@ export interface Event {
     eventType: string;
     resource: Resource;
     domain?: string;
+    auth?: {
+      variable?: {
+        uid?: string;
+        token?: string;
+      };
+      admin: boolean;
+    };
   };
   data: any;
 }
@@ -231,14 +238,21 @@ export namespace Change {
     const before = { ...after };
     const masks = fieldMask.split(',');
 
-    masks.forEach((mask) => {
-      const val = _.get(sparseBefore, mask);
-      if (typeof val === 'undefined') {
-        _.unset(before, mask);
-      } else {
-        _.set(before, mask, val);
+    for (const mask of masks) {
+      const parts = mask.split('.');
+      const head = parts[0];
+      const tail = parts.slice(1).join('.');
+      if (parts.length > 1) {
+        before[head] = applyFieldMask(sparseBefore?.[head], after[head], tail);
+        continue;
       }
-    });
+      const val = sparseBefore?.[head];
+      if (typeof val === 'undefined') {
+        delete before[mask];
+      } else {
+        before[mask] = val;
+      }
+    }
 
     return before;
   }
@@ -374,8 +388,6 @@ export interface MakeCloudFunctionArgs<EventData> {
 
 /** @hidden */
 export function makeCloudFunction<EventData>({
-  after = () => {},
-  before = () => {},
   contextOnlyHandler,
   dataConstructor = (raw: Event) => raw.data,
   eventType,
@@ -426,8 +438,6 @@ export function makeCloudFunction<EventData>({
       context.params = context.params || _makeParams(context, triggerResource);
     }
 
-    before(event);
-
     let promise;
     if (labels && labels['deployment-scheduled']) {
       // Scheduled function do not have meaningful data, so exclude it
@@ -439,15 +449,7 @@ export function makeCloudFunction<EventData>({
     if (typeof promise === 'undefined') {
       warn('Function returned undefined, expected Promise or value');
     }
-    return Promise.resolve(promise)
-      .then((result) => {
-        after(event);
-        return result;
-      })
-      .catch((err) => {
-        after(event);
-        return Promise.reject(err);
-      });
+    return Promise.resolve(promise);
   };
 
   Object.defineProperty(cloudFunction, '__trigger', {
@@ -456,14 +458,15 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
-      const trigger: any = _.assign(optionsToTrigger(options), {
+      const trigger: any = {
+        ...optionsToTrigger(options),
         eventTrigger: {
           resource: triggerResource(),
           eventType: legacyEventType || provider + '.' + eventType,
           service,
         },
-      });
-      if (!_.isEmpty(labels)) {
+      };
+      if (!!labels && Object.keys(labels).length) {
         trigger.labels = { ...trigger.labels, ...labels };
       }
       return trigger;
@@ -519,7 +522,7 @@ export function makeCloudFunction<EventData>({
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
-): { [option: string]: any } {
+): Record<string, string> {
   if (context.params) {
     // In unit testing, user may directly provide `context.params`.
     return context.params;
@@ -531,14 +534,16 @@ function _makeParams(
   const triggerResource = triggerResourceGetter();
   const wildcards = triggerResource.match(WILDCARD_REGEX);
   const params: { [option: string]: any } = {};
-  if (wildcards) {
-    const triggerResourceParts = _.split(triggerResource, '/');
-    const eventResourceParts = _.split(context.resource.name, '/');
-    _.forEach(wildcards, (wildcard) => {
+
+  // Note: some tests don't set context.resource.name
+  const eventResourceParts = context?.resource?.name?.split?.('/');
+  if (wildcards && eventResourceParts) {
+    const triggerResourceParts = triggerResource.split('/');
+    for (const wildcard of wildcards) {
       const wildcardNoBraces = wildcard.slice(1, -1);
-      const position = _.indexOf(triggerResourceParts, wildcard);
+      const position = triggerResourceParts.indexOf(wildcard);
       params[wildcardNoBraces] = eventResourceParts[position];
-    });
+    }
   }
   return params;
 }
@@ -549,17 +554,17 @@ function _makeAuth(event: Event, authType: string) {
     return null;
   }
   return {
-    uid: _.get(event, 'context.auth.variable.uid'),
-    token: _.get(event, 'context.auth.variable.token'),
+    uid: event.context?.auth?.variable?.uid,
+    token: event.context?.auth?.variable?.token,
   };
 }
 
 /** @hidden */
 function _detectAuthType(event: Event) {
-  if (_.get(event, 'context.auth.admin')) {
+  if (event.context?.auth?.admin) {
     return 'ADMIN';
   }
-  if (_.has(event, 'context.auth.variable')) {
+  if (event.context?.auth?.variable) {
     return 'USER';
   }
   return 'UNAUTHENTICATED';

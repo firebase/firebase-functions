@@ -32,16 +32,13 @@ import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
-import * as apps from './apps';
+import { setApp as setEmulatedAdminApp } from './common/app';
 import { handler } from './handler-builder';
 import * as logger from './logger';
 import { setup } from './setup';
 
-const app = apps.apps();
-
 export {
   analytics,
-  app,
   auth,
   database,
   firestore,
@@ -54,6 +51,8 @@ export {
   testLab,
   logger,
 };
+
+export const app = { setEmulatedAdminApp };
 
 // Exported root types:
 export * from './cloud-functions';

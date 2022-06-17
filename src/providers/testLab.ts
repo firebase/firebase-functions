@@ -20,8 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
-
 import {
   CloudFunction,
   Event,
@@ -129,12 +127,15 @@ export class ClientInfo {
   details: { [key: string]: string };
 
   /** @internal */
-  constructor(data?: any) {
-    this.name = _.get(data, 'name', '');
+  constructor(data?: {
+    name: string;
+    clientInfoDetails?: Array<{ key: string; value?: string }>;
+  }) {
+    this.name = data?.name || '';
     this.details = {};
-    _.forEach(_.get(data, 'clientInfoDetails'), (detail: any) => {
+    for (const detail of data?.clientInfoDetails || []) {
       this.details[detail.key] = detail.value || '';
-    });
+    }
   }
 }
 
@@ -157,13 +158,10 @@ export class ResultStorage {
 
   /** @internal */
   constructor(data?: any) {
-    this.gcsPath = _.get(data, 'googleCloudStorage.gcsPath');
-    this.toolResultsHistoryId = _.get(data, 'toolResultsHistory.historyId');
-    this.toolResultsExecutionId = _.get(
-      data,
-      'toolResultsExecution.executionId'
-    );
-    this.resultsUrl = _.get(data, 'resultsUrl');
+    this.gcsPath = data?.googleCloudStorage?.gcsPath;
+    this.toolResultsHistoryId = data?.toolResultsHistory?.historyId;
+    this.toolResultsExecutionId = data?.toolResultsExecution?.executionId;
+    this.resultsUrl = data?.resultsUrl;
   }
 }
 

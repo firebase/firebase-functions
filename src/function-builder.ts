@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import * as express from 'express';
-import * as _ from 'lodash';
 
 import { CloudFunction, EventContext } from './cloud-functions';
 import {
@@ -53,7 +52,7 @@ import * as testLab from './providers/testLab';
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   if (
     runtimeOptions.memory &&
-    !_.includes(VALID_MEMORY_OPTIONS, runtimeOptions.memory)
+    !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)
   ) {
     throw new Error(
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(
@@ -72,7 +71,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (
     runtimeOptions.ingressSettings &&
-    !_.includes(INGRESS_SETTINGS_OPTIONS, runtimeOptions.ingressSettings)
+    !INGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.ingressSettings)
   ) {
     throw new Error(
       `The only valid ingressSettings values are: ${INGRESS_SETTINGS_OPTIONS.join(
@@ -83,8 +82,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (
     runtimeOptions.vpcConnectorEgressSettings &&
-    !_.includes(
-      VPC_EGRESS_SETTINGS_OPTIONS,
+    !VPC_EGRESS_SETTINGS_OPTIONS.includes(
       runtimeOptions.vpcConnectorEgressSettings
     )
   ) {
@@ -95,28 +93,11 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     );
   }
 
-  if (runtimeOptions.failurePolicy !== undefined) {
-    if (
-      _.isBoolean(runtimeOptions.failurePolicy) === false &&
-      _.isObjectLike(runtimeOptions.failurePolicy) === false
-    ) {
-      throw new Error(`failurePolicy must be a boolean or an object.`);
-    }
-
-    if (typeof runtimeOptions.failurePolicy === 'object') {
-      if (
-        _.isObjectLike(runtimeOptions.failurePolicy.retry) === false ||
-        _.isEmpty(runtimeOptions.failurePolicy.retry) === false
-      ) {
-        throw new Error('failurePolicy.retry must be an empty object.');
-      }
-    }
-  }
-
+  validateFailurePolicy(runtimeOptions.failurePolicy);
   if (
     runtimeOptions.serviceAccount &&
     runtimeOptions.serviceAccount !== 'default' &&
-    !_.includes(runtimeOptions.serviceAccount, '@')
+    !runtimeOptions.serviceAccount.includes('@')
   ) {
     throw new Error(
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
@@ -245,6 +226,20 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   return true;
 }
 
+function validateFailurePolicy(policy: any) {
+  if (typeof policy === 'boolean' || typeof policy === 'undefined') {
+    return;
+  }
+  if (typeof policy !== 'object') {
+    throw new Error(`failurePolicy must be a boolean or an object.`);
+  }
+
+  const retry = policy.retry;
+  if (typeof retry !== 'object' || Object.keys(retry).length) {
+    throw new Error('failurePolicy.retry must be an empty object.');
+  }
+}
+
 /**
  * Assert regions specified are valid.
  * @param regions list of regions.
@@ -334,7 +329,10 @@ export class FunctionBuilder {
    */
   runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     if (assertRuntimeOptionsValid(runtimeOptions)) {
-      this.options = _.assign(this.options, runtimeOptions);
+      this.options = {
+        ...this.options,
+        ...runtimeOptions,
+      };
       return this;
     }
   }
