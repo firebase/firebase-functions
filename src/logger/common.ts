@@ -20,12 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Determine if structured logs are supported (node >= 10). If something goes wrong,
-// assume no since unstructured is safer.
-/** @hidden */
-export const SUPPORTS_STRUCTURED_LOGS =
-  parseInt(process.versions?.node?.split('.')?.[0] || '8', 10) >= 10;
-
 // Map LogSeverity types to their equivalent `console.*` method.
 /** @hidden */
 export const CONSOLE_SEVERITY: {
