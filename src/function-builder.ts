@@ -242,6 +242,13 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     }
   }
 
+  if ('allowInvalidAppCheckToken' in runtimeOptions) {
+    throw new Error(
+      'runWith option "allowInvalidAppCheckToken" has been inverted and ' +
+        'renamed "enforceAppCheck"'
+    );
+  }
+
   return true;
 }
 

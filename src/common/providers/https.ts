@@ -643,7 +643,7 @@ type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
 /** @internal **/
 export interface CallableOptions {
   cors: cors.CorsOptions;
-  allowInvalidAppCheckToken?: boolean;
+  enforceAppCheck?: boolean;
 }
 
 /** @internal */
@@ -679,7 +679,16 @@ function wrapOnCallHandler<Req = any, Res = any>(
       if (tokenStatus.auth === 'INVALID') {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
-      if (tokenStatus.app === 'INVALID' && !options.allowInvalidAppCheckToken) {
+      if (tokenStatus.app === 'INVALID') {
+        if (options.enforceAppCheck) {
+          throw new HttpsError('unauthenticated', 'Unauthenticated');
+        } else {
+          logger.warn(
+            'Allowing request with invalid AppCheck token because enforcement is disabled'
+          );
+        }
+      }
+      if (tokenStatus.app === 'MISSING' && options.enforceAppCheck) {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 
