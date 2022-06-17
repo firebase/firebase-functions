@@ -40,8 +40,9 @@ import {
   EventContext,
   makeCloudFunction,
   optionsToEndpoint,
-} from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+  optionsToTrigger,
+} from '../cloud-functions';
+import { DeploymentOptions } from '../function-configuration';
 import { initV1Endpoint } from "../../runtime/manifest";
 
 // TODO: yank in next breaking change release
@@ -212,6 +213,19 @@ export class UserBuilder {
     const func: any = wrapHandler(eventType, wrappedHandler);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
+
+    func.__trigger = {
+      labels: {},
+      ...optionsToTrigger(this.options),
+      blockingTrigger: {
+        eventType: legacyEventType,
+        options: {
+          accessToken,
+          idToken,
+          refreshToken,
+        },
+      },
+    };
 
     func.__endpoint = {
       platform: "gcfv1",

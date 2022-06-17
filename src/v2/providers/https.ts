@@ -235,7 +235,38 @@ export function onRequest(
     };
   }
 
-  handler = wrapTraceContext(handler);
+  Object.defineProperty(handler, '__trigger', {
+    get: () => {
+      const baseOpts = options.optionsToTriggerAnnotations(
+        options.getGlobalOptions()
+      );
+      // global options calls region a scalar and https allows it to be an array,
+      // but optionsToTriggerAnnotations handles both cases.
+      const specificOpts = options.optionsToTriggerAnnotations(
+        opts as options.GlobalOptions
+      );
+      const trigger: any = {
+        platform: 'gcfv2',
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        httpsTrigger: {
+          allowInsecure: false,
+        },
+      };
+      convertIfPresent(
+        trigger.httpsTrigger,
+        opts,
+        'invoker',
+        'invoker',
+        convertInvoker
+      );
+      return trigger;
+    },
+  });
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,

@@ -27,8 +27,18 @@ import * as functions from "../../../src/v1";
 import * as storage from "../../../src/v1/providers/storage";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
-describe("Storage Functions", () => {
-  describe("ObjectBuilder", () => {
+describe('Storage Functions', () => {
+  describe('ObjectBuilder', () => {
+    function expectedTrigger(bucket: string, eventType: string) {
+      return {
+        eventTrigger: {
+          resource: `projects/_/buckets/${bucket}`,
+          eventType: `google.storage.object.${eventType}`,
+          service: 'storage.googleapis.com',
+        },
+      };
+    }
+
     function expectedEndpoint(bucket: string, eventType: string) {
       return {
         ...MINIMAL_V1_ENDPOINT,
@@ -66,7 +76,11 @@ describe("Storage Functions", () => {
         .storage.object()
         .onArchive(() => null);
 
-      expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
+      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
@@ -78,23 +92,49 @@ describe("Storage Functions", () => {
           .object()
           .onArchive(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint("bucky", "archive"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'archive')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'archive')
+        );
       });
 
       it("should use the default bucket when none is provided", () => {
         const cloudFunction = storage.object().onArchive(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(defaultBucket, "archive"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'archive')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'archive')
+        );
       });
 
       it("should allow fully qualified bucket names", () => {
         const subjectQualified = new storage.ObjectBuilder(() => "projects/_/buckets/bucky", {});
         const result = subjectQualified.onArchive(() => null);
 
-        expect(result.__endpoint).to.deep.equal(expectedEndpoint("bucky", "archive"));
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'archive')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'archive')
+        );
       });
 
-      it("should throw with improperly formatted buckets", () => {
+      it('should throw with improperly formatted buckets', () => {
+        expect(
+          () =>
+            storage
+              .bucket('bad/bucket/format')
+              .object()
+              .onArchive(() => null).__trigger
+        ).to.throw(Error);
+
         expect(
           () =>
             storage
@@ -139,20 +179,38 @@ describe("Storage Functions", () => {
           .object()
           .onDelete(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint("bucky", "delete"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'delete')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'delete')
+        );
       });
 
       it("should use the default bucket when none is provided", () => {
         const cloudFunction = storage.object().onDelete(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(defaultBucket, "delete"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'delete')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'delete')
+        );
       });
 
       it("should allow fully qualified bucket names", () => {
         const subjectQualified = new storage.ObjectBuilder(() => "projects/_/buckets/bucky", {});
         const result = subjectQualified.onDelete(() => null);
 
-        expect(result.__endpoint).to.deep.equal(expectedEndpoint("bucky", "delete"));
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'delete')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'delete')
+        );
       });
 
       it("should throw with improperly formatted buckets", () => {
@@ -160,6 +218,8 @@ describe("Storage Functions", () => {
           .bucket("bad/bucket/format")
           .object()
           .onDelete(() => null);
+
+        expect(() => fn.__trigger).to.throw(Error);
 
         expect(() => fn.__endpoint).to.throw(Error);
       });
@@ -199,20 +259,38 @@ describe("Storage Functions", () => {
           .object()
           .onFinalize(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint("bucky", "finalize"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'finalize')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'finalize')
+        );
       });
 
       it("should use the default bucket when none is provided", () => {
         const cloudFunction = storage.object().onFinalize(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(defaultBucket, "finalize"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'finalize')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint(defaultBucket, 'finalize')
+        );
       });
 
       it("should allow fully qualified bucket names", () => {
         const subjectQualified = new storage.ObjectBuilder(() => "projects/_/buckets/bucky", {});
         const result = subjectQualified.onFinalize(() => null);
 
-        expect(result.__endpoint).to.deep.equal(expectedEndpoint("bucky", "finalize"));
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'finalize')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'finalize')
+        );
       });
 
       it("should throw with improperly formatted buckets", () => {
@@ -220,6 +298,8 @@ describe("Storage Functions", () => {
           .bucket("bad/bucket/format")
           .object()
           .onFinalize(() => null);
+
+        expect(() => fn.__trigger).to.throw(Error);
 
         expect(() => fn.__endpoint).to.throw(Error);
       });
@@ -259,11 +339,21 @@ describe("Storage Functions", () => {
           .object()
           .onMetadataUpdate(() => null);
 
-        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint("bucky", "metadataUpdate"));
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'metadataUpdate')
+        );
+
+        expect(cloudFunction.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'metadataUpdate')
+        );
       });
 
       it("should use the default bucket when none is provided", () => {
         const cloudFunction = storage.object().onMetadataUpdate(() => null);
+
+        expect(cloudFunction.__trigger).to.deep.equal(
+          expectedTrigger(defaultBucket, 'metadataUpdate')
+        );
 
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(defaultBucket, "metadataUpdate")
@@ -274,7 +364,13 @@ describe("Storage Functions", () => {
         const subjectQualified = new storage.ObjectBuilder(() => "projects/_/buckets/bucky", {});
         const result = subjectQualified.onMetadataUpdate(() => null);
 
-        expect(result.__endpoint).to.deep.equal(expectedEndpoint("bucky", "metadataUpdate"));
+        expect(result.__trigger).to.deep.equal(
+          expectedTrigger('bucky', 'metadataUpdate')
+        );
+
+        expect(result.__endpoint).to.deep.equal(
+          expectedEndpoint('bucky', 'metadataUpdate')
+        );
       });
 
       it("should throw with improperly formatted buckets", () => {
@@ -283,6 +379,7 @@ describe("Storage Functions", () => {
           .object()
           .onMetadataUpdate(() => null);
 
+        expect(() => fn.__trigger).to.throw(Error);
         expect(() => fn.__endpoint).to.throw(Error);
       });
 
@@ -306,27 +403,212 @@ describe("Storage Functions", () => {
             },
           },
         };
-        return cloudFunction(goodMediaLinkEvent.data, goodMediaLinkEvent.context).then(
-          (result: any) => {
-            expect(result).equals(goodMediaLinkEvent.data.mediaLink);
-          }
-        );
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
       });
     });
   });
 
-  describe("process.env.FIREBASE_CONFIG not set", () => {
+  describe('namespace handler', () => {
+    before(() => {
+      process.env.FIREBASE_CONFIG = JSON.stringify({
+        storageBucket: 'bucket',
+      });
+    });
+
+    after(() => {
+      delete process.env.FIREBASE_CONFIG;
+    });
+
+    describe('#onArchive', () => {
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.storage.bucket.onArchive(
+          () => null
+        );
+
+        expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        const cloudFunction = functions.handler.storage.object.onArchive(
+          (data) => {
+            return data.mediaLink;
+          }
+        );
+        const goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.archive',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
+        };
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+
+    describe('#onDelete', () => {
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.storage.bucket.onDelete(
+          () => null
+        );
+
+        expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        const cloudFunction = functions.handler.storage.object.onDelete(
+          (data) => {
+            return data.mediaLink;
+          }
+        );
+        const goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.delete',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
+        };
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+
+    describe('#onFinalize', () => {
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.storage.bucket.onFinalize(
+          () => null
+        );
+
+        expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        const cloudFunction = functions.handler.storage.object.onFinalize(
+          (data) => {
+            return data.mediaLink;
+          }
+        );
+        const goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.finalize',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
+        };
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+
+    describe('#onMetadataUpdate', () => {
+      it('should return an empty trigger', () => {
+        const cloudFunction = functions.handler.storage.bucket.onMetadataUpdate(
+          () => null
+        );
+
+        expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
+      });
+
+      it('should not mess with media links using non-literal slashes', () => {
+        const cloudFunction = functions.handler.storage.object.onMetadataUpdate(
+          (data) => {
+            return data.mediaLink;
+          }
+        );
+        const goodMediaLinkEvent = {
+          data: {
+            mediaLink:
+              'https://www.googleapis.com/storage/v1/b/mybucket.appspot.com' +
+              '/o/nestedfolder%2Fanotherfolder%2Fmyobject.file?generation=12345&alt=media',
+          },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType: 'google.storage.object.metadataUpdate',
+            resource: {
+              service: 'storage.googleapis.com',
+              name: 'projects/_/buckets/bucky',
+            },
+          },
+        };
+        return cloudFunction(
+          goodMediaLinkEvent.data,
+          goodMediaLinkEvent.context
+        ).then((result: any, context: EventContext) => {
+          expect(result).equals(goodMediaLinkEvent.data.mediaLink);
+        });
+      });
+    });
+  });
+
+  describe('process.env.FIREBASE_CONFIG not set', () => {
     beforeEach(() => {
       (config as any).firebaseConfigCache = null;
       delete process.env.FIREBASE_CONFIG;
     });
 
-    it("should not throw if __endpoint is not accessed", () => {
+    it('should not throw if __trigger is not accessed', () => {
       expect(() => storage.object().onArchive(() => null)).to.not.throw(Error);
     });
 
-    it("should throw when endpoint is accessed", () => {
-      expect(() => storage.object().onArchive(() => null).__endpoint).to.throw(Error);
+    it('should throw when trigger is accessed', () => {
+      expect(() => storage.object().onArchive(() => null).__trigger).to.throw(
+        Error
+      );
+    });
+
+    it('should throw when endpoint is accessed', () => {
+      expect(() => storage.object().onArchive(() => null).__endpoint).to.throw(
+        Error
+      );
     });
 
     it("should not throw when #run is called", () => {

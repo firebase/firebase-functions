@@ -23,9 +23,9 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { Event } from "../../../src/v1/cloud-functions";
+import { Event, EventContext } from '../../../src/v1/cloud-functions';
 import * as analytics from "../../../src/v1/providers/analytics";
-import * as analyticsSpecInput from "./analytics.spec.input";
+import * as analytics_spec_input from './analytics.spec.input';
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Analytics Functions", () => {
@@ -48,14 +48,27 @@ describe("Analytics Functions", () => {
         .analytics.event("event")
         .onLog((event) => event);
 
-      expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
+      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal('90s');
+
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
-    describe("#onLog", () => {
-      it("should return a trigger/endpoint with appropriate values", () => {
-        const cloudFunction = analytics.event("first_open").onLog(() => null);
+    describe('#onLog', () => {
+      it('should return a trigger/endpoint with appropriate values', () => {
+        const cloudFunction = analytics.event('first_open').onLog(() => null);
+
+        expect(cloudFunction.__trigger).to.deep.equal({
+          eventTrigger: {
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: 'projects/project1/events/first_open',
+            service: 'app-measurement.com',
+          },
+        });
 
         expect(cloudFunction.__endpoint).to.deep.equal({
           ...MINIMAL_V1_ENDPOINT,
@@ -282,27 +295,79 @@ describe("Analytics Functions", () => {
           .event("first_open")
           .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        const payloadData = analyticsSpecInput.fullPayload.data;
-        const payloadContext = analyticsSpecInput.fullPayload.context;
+        const payloadData = analytics_spec_input.fullPayload.data;
+        const payloadContext = analytics_spec_input.fullPayload.context;
 
-        return expect(cloudFunction(payloadData, payloadContext)).to.eventually.deep.equal(
-          analyticsSpecInput.data
-        );
+        return expect(
+          cloudFunction(payloadData, payloadContext)
+        ).to.eventually.deep.equal(analytics_spec_input.data);
       });
     });
   });
 
-  describe("process.env.GCLOUD_PROJECT not set", () => {
-    it("should not throw if __endpoint is not accessed", () => {
-      expect(() => analytics.event("event").onLog(() => null)).to.not.throw(Error);
+  describe('handler namespace', () => {
+    describe('#onLog', () => {
+      it('should return an empty trigger/endpoint', () => {
+        const cloudFunction = functions.handler.analytics.event.onLog(
+          () => null
+        );
+        expect(cloudFunction.__trigger).to.deep.equal({});
+        expect(cloudFunction.__endpoint).to.be.undefined;
+      });
+
+      it('should handle an event with the appropriate fields', () => {
+        const cloudFunction = functions.handler.analytics.event.onLog(
+          (data: analytics.AnalyticsEvent, context: EventContext) => data
+        );
+
+        // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
+        // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
+        const event: Event = {
+          data: {
+            userDim: {
+              userId: 'hi!',
+            },
+          },
+          context: {
+            eventId: '70172329041928',
+            timestamp: '2018-04-09T07:56:12.975Z',
+            eventType:
+              'providers/google.firebase.analytics/eventTypes/event.log',
+            resource: {
+              service: 'app-measurement.com',
+              name: 'projects/project1/events/first_open',
+            },
+          },
+        };
+
+        return expect(
+          cloudFunction(event.data, event.context)
+        ).to.eventually.deep.equal({
+          params: {},
+          user: {
+            userId: 'hi!',
+            userProperties: {},
+          },
+        });
+      });
+    });
+  });
+
+  describe('process.env.GCLOUD_PROJECT not set', () => {
+    it('should not throw if __trigger is not accessed', () => {
+      expect(() => analytics.event('event').onLog(() => null)).to.not.throw(
+        Error
+      );
     });
 
-    it("should throw when __endpoint is accessed", () => {
-      expect(() => analytics.event("event").onLog(() => null).__endpoint).to.throw(Error);
+    it('should throw when trigger is accessed', () => {
+      expect(
+        () => analytics.event('event').onLog(() => null).__trigger
+      ).to.throw(Error);
     });
 
-    it("should not throw when #run is called", () => {
-      const cf = analytics.event("event").onLog(() => null);
+    it('should not throw when #run is called', () => {
+      const cf = analytics.event('event').onLog(() => null);
 
       expect(cf.run).to.not.throw(Error);
     });

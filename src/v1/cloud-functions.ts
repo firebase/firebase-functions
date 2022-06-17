@@ -20,9 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Request, Response } from "express";
-import { warn } from "../logger";
-import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
+import { Request, Response } from 'express';
+import * as _ from 'lodash';
+import { warn } from '../logger';
+import {
+  DEFAULT_FAILURE_POLICY,
+  DeploymentOptions,
+  RESET_VALUE,
+  FailurePolicy,
+  Schedule,
+} from './function-configuration';
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import {
@@ -196,6 +203,95 @@ export interface EventContext<Params = Record<string, string>> {
 }
 
 /**
+ * The Functions interface for events that change state, such as
+ * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
+ *
+ * For more information about the format used to construct `Change` objects, see
+ * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
+ *
+ */
+export class Change<T> {
+  constructor(public before: T, public after: T) {}
+}
+
+/**
+ * `ChangeJson` is the JSON format used to construct a Change object.
+ */
+export interface ChangeJson {
+  /**
+   * Key-value pairs representing state of data after the change.
+   */
+  after?: any;
+  /**
+   * Key-value pairs representing state of data before the change. If
+   * `fieldMask` is set, then only fields that changed are present in `before`.
+   */
+  before?: any;
+  /**
+   * @hidden
+   * Comma-separated string that represents names of fields that changed.
+   */
+  fieldMask?: string;
+}
+
+export namespace Change {
+  /** @hidden */
+  function reinterpretCast<T>(x: any) {
+    return x as T;
+  }
+
+  /**
+   * @hidden
+   * Factory method for creating a Change from a `before` object and an `after`
+   * object.
+   */
+  export function fromObjects<T>(before: T, after: T) {
+    return new Change(before, after);
+  }
+
+  /**
+   * @hidden
+   * Factory method for creating a Change from a JSON and an optional customizer
+   * function to be applied to both the `before` and the `after` fields.
+   */
+  export function fromJSON<T>(
+    json: ChangeJson,
+    customizer: (x: any) => T = reinterpretCast
+  ): Change<T> {
+    let before = { ...json.before };
+    if (json.fieldMask) {
+      before = applyFieldMask(before, json.after, json.fieldMask);
+    }
+
+    return Change.fromObjects(
+      customizer(before || {}),
+      customizer(json.after || {})
+    );
+  }
+
+  /** @hidden */
+  export function applyFieldMask(
+    sparseBefore: any,
+    after: any,
+    fieldMask: string
+  ) {
+    const before = { ...after };
+    const masks = fieldMask.split(',');
+
+    masks.forEach((mask) => {
+      const val = _.get(sparseBefore, mask);
+      if (typeof val === 'undefined') {
+        _.unset(before, mask);
+      } else {
+        _.set(before, mask, val);
+      }
+    });
+
+    return before;
+  }
+}
+
+/**
  * Resource is a standard format for defining a resource
  * (google.rpc.context.AttributeContext.Resource). In Cloud Functions, it is the
  * resource that triggered the function - such as a storage bucket.
@@ -215,6 +311,36 @@ export interface Resource {
   type?: string;
   /** Map of Resource's labels. */
   labels?: { [tag: string]: string };
+}
+
+/**
+ * TriggerAnnotion is used internally by the firebase CLI to understand what
+ * type of Cloud Function to deploy.
+ */
+interface TriggerAnnotation {
+  availableMemoryMb?: number;
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
+  eventTrigger?: {
+    eventType: string;
+    resource: string;
+    service: string;
+  };
+  failurePolicy?: FailurePolicy;
+  httpsTrigger?: {
+    invoker?: string[];
+  };
+  labels?: { [key: string]: string };
+  regions?: string[];
+  schedule?: Schedule;
+  timeout?: Duration;
+  vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
+  serviceAccountEmail?: string;
+  ingressSettings?: string;
+  secrets?: string[];
 }
 
 /**
@@ -240,6 +366,9 @@ export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
   /** @alpha */
@@ -260,6 +389,9 @@ export interface BlockingFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
   /** @alpha */
@@ -275,6 +407,9 @@ export interface BlockingFunction {
  */
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
 
   /** @alpha */
   __endpoint: ManifestEndpoint;
@@ -367,7 +502,27 @@ export function makeCloudFunction<EventData>({
     return Promise.resolve(promise);
   };
 
-  Object.defineProperty(cloudFunction, "__endpoint", {
+  Object.defineProperty(cloudFunction, '__trigger', {
+    get: () => {
+      if (triggerResource() == null) {
+        return {};
+      }
+
+      const trigger: any = _.assign(optionsToTrigger(options), {
+        eventTrigger: {
+          resource: triggerResource(),
+          eventType: legacyEventType || provider + '.' + eventType,
+          service,
+        },
+      });
+      if (!_.isEmpty(labels)) {
+        trigger.labels = { ...trigger.labels, ...labels };
+      }
+      return trigger;
+    },
+  });
+
+  Object.defineProperty(cloudFunction, '__endpoint', {
     get: () => {
       if (triggerResource() == null) {
         return undefined;
@@ -472,8 +627,70 @@ function _detectAuthType(event: Event) {
   return "UNAUTHENTICATED";
 }
 
-/** @internal */
-export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
+/** @hidden */
+export function optionsToTrigger(options: DeploymentOptions) {
+  const trigger: any = {};
+  copyIfPresent(
+    trigger,
+    options,
+    'regions',
+    'schedule',
+    'minInstances',
+    'maxInstances',
+    'ingressSettings',
+    'vpcConnectorEgressSettings',
+    'vpcConnector',
+    'labels',
+    'secrets'
+  );
+  convertIfPresent(
+    trigger,
+    options,
+    'failurePolicy',
+    'failurePolicy',
+    (policy) => {
+      if (policy === false) {
+        return undefined;
+      } else if (policy === true) {
+        return DEFAULT_FAILURE_POLICY;
+      } else {
+        return policy;
+      }
+    }
+  );
+  convertIfPresent(
+    trigger,
+    options,
+    'timeout',
+    'timeoutSeconds',
+    durationFromSeconds
+  );
+  convertIfPresent(trigger, options, 'availableMemoryMb', 'memory', (mem) => {
+    const memoryLookup = {
+      '128MB': 128,
+      '256MB': 256,
+      '512MB': 512,
+      '1GB': 1024,
+      '2GB': 2048,
+      '4GB': 4096,
+      '8GB': 8192,
+    };
+    return memoryLookup[mem];
+  });
+  convertIfPresent(
+    trigger,
+    options,
+    'serviceAccountEmail',
+    'serviceAccount',
+    serviceAccountFromShorthand
+  );
+
+  return trigger;
+}
+
+export function optionsToEndpoint(
+  options: DeploymentOptions
+): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,

@@ -43,8 +43,25 @@ describe("#onDispatch", () => {
         maxDoublings: 3,
         minBackoffSeconds: 5,
       },
-      invoker: "private",
-    }).onDispatch(() => undefined);
+      invoker: 'private',
+    }).onDispatch(() => {});
+
+    expect(result.__trigger).to.deep.equal({
+      taskQueueTrigger: {
+        rateLimits: {
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxRetrySeconds: 10,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ['private'],
+      },
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
@@ -75,6 +92,17 @@ describe("#onDispatch", () => {
       })
       .tasks.taskQueue({ retryConfig: { maxAttempts: 5 } })
       .onDispatch(() => null);
+
+    expect(fn.__trigger).to.deep.equal({
+      regions: ['us-east1'],
+      availableMemoryMb: 256,
+      timeout: '90s',
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
 
     expect(fn.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
@@ -130,6 +158,14 @@ describe("#onDispatch", () => {
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(204);
-    expect(gotData).to.deep.equal({ foo: "bar" });
+    expect(gotData).to.deep.equal({ foo: 'bar' });
+  });
+});
+
+describe('handler namespace', () => {
+  it('should return an empty trigger', () => {
+    const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
+    expect(result.__trigger).to.deep.equal({});
+    expect(result.__endpoint).to.be.undefined;
   });
 });
