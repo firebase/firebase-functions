@@ -279,9 +279,7 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.serviceAccountEmail).to.equal(
-      `test-service-account@`
-    );
+    expect(fn.__endpoint.serviceAccountEmail).to.equal(`test-service-account@`);
   });
 
   it('should set a null serviceAccountEmail if service account is set to `default`', () => {
@@ -484,9 +482,11 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([{
-      key: 'API_KEY',
-    }]);
+    expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
+      {
+        key: 'API_KEY',
+      },
+    ]);
   });
 
   it('should throw error given secrets expressed with full resource name', () => {
