@@ -21,14 +21,14 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
+import { UserRecord } from '../../../src/common/providers/identity';
+import * as functions from '../../../src/v1';
 import {
   CloudFunction,
   Event,
   EventContext,
-} from '../../../src/cloud-functions';
-import { UserRecord } from '../../../src/common/providers/identity';
-import * as functions from '../../../src/index';
-import * as auth from '../../../src/providers/auth';
+} from '../../../src/v1/cloud-functions';
+import * as auth from '../../../src/v1/providers/auth';
 
 describe('Auth Functions', () => {
   const event: Event = {

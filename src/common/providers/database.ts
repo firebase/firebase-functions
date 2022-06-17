@@ -21,8 +21,8 @@
 // SOFTWARE.
 
 import * as firebase from 'firebase-admin';
-import { firebaseConfig } from '../../config';
 import { joinPath, pathParts } from '../../utilities/path';
+import { firebaseConfig } from '../config';
 
 /**
  * Interface representing a Firebase Realtime database data snapshot.

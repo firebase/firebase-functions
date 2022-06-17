@@ -21,30 +21,60 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { setup } from '../../src/setup';
+import * as fs from 'fs';
+import * as process from 'process';
+import Sinon = require('sinon');
 
-describe('setup()', () => {
+import { firebaseConfig, resetCache } from '../../src/common/config';
+
+describe('firebaseConfig()', () => {
+  let readFileSync: Sinon.SinonStub;
+  let cwdStub: Sinon.SinonStub;
+
+  before(() => {
+    readFileSync = Sinon.stub(fs, 'readFileSync');
+    readFileSync.throws('Unexpected call');
+    cwdStub = Sinon.stub(process, 'cwd');
+    cwdStub.returns('/srv');
+  });
+
+  after(() => {
+    Sinon.verifyAndRestore();
+  });
+
   afterEach(() => {
+    resetCache();
+
     delete process.env.FIREBASE_CONFIG;
-    delete process.env.GCLOUD_PROJECT;
+    delete process.env.K_CONFIGURATION;
   });
 
-  it('sets GCLOUD_PROJECT from FIREBASE_CONFIG', () => {
-    const testProject = 'test-project';
+  it('loads Firebase configs from FIREBASE_CONFIG env variable', () => {
     process.env.FIREBASE_CONFIG = JSON.stringify({
-      projectId: testProject,
+      databaseURL: 'foo@firebaseio.com',
     });
-    setup();
-    expect(process.env.GCLOUD_PROJECT).to.equal(testProject);
+    expect(firebaseConfig()).to.have.property(
+      'databaseURL',
+      'foo@firebaseio.com'
+    );
   });
 
-  it('does not set GCLOUD_PROJECT if already defined', () => {
-    const existingProject = 'test-project';
-    process.env.GCLOUD_PROJECT = existingProject;
-    process.env.FIREBASE_CONFIG = JSON.stringify({
-      projectId: 'new-project',
-    });
-    setup();
-    expect(process.env.GCLOUD_PROJECT).to.equal(existingProject);
+  it('loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file', () => {
+    const oldEnv = process.env;
+    (process as any).env = {
+      ...oldEnv,
+      FIREBASE_CONFIG: '.firebaseconfig.json',
+    };
+    try {
+      readFileSync.returns(
+        Buffer.from('{"databaseURL": "foo@firebaseio.com"}')
+      );
+      expect(firebaseConfig()).to.have.property(
+        'databaseURL',
+        'foo@firebaseio.com'
+      );
+    } finally {
+      (process as any).env = oldEnv;
+    }
   });
 });

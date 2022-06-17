@@ -22,21 +22,21 @@
 
 import * as express from 'express';
 
-import { optionsToEndpoint, optionsToTrigger } from '../cloud-functions';
 import {
   convertIfPresent,
   convertInvoker,
   copyIfPresent,
-} from '../common/encoding';
-import { Request } from '../common/providers/https';
+} from '../../common/encoding';
+import { Request } from '../../common/providers/https';
 import {
   onDispatchHandler,
   RateLimits,
   RetryConfig,
   TaskContext,
-} from '../common/providers/tasks';
+} from '../../common/providers/tasks';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../../runtime/manifest';
+import { optionsToEndpoint, optionsToTrigger } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 
 export { RetryConfig, RateLimits, TaskContext };
 

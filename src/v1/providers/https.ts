@@ -22,20 +22,20 @@
 
 import * as express from 'express';
 
-import {
-  HttpsFunction,
-  optionsToEndpoint,
-  optionsToTrigger,
-  Runnable,
-} from '../cloud-functions';
-import { convertIfPresent, convertInvoker } from '../common/encoding';
+import { convertIfPresent, convertInvoker } from '../../common/encoding';
 import {
   CallableContext,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-} from '../common/providers/https';
+} from '../../common/providers/https';
+import {
+  HttpsFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+  Runnable,
+} from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };

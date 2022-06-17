@@ -22,8 +22,8 @@
 
 import { expect } from 'chai';
 
-import * as functions from '../../../src';
-import { taskQueue } from '../../../src/providers/tasks';
+import * as functions from '../../../src/v1';
+import { taskQueue } from '../../../src/v1/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
 

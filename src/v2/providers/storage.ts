@@ -25,8 +25,8 @@
  * @packageDocumentation
  */
 
+import { firebaseConfig } from '../../common/config';
 import { copyIfPresent } from '../../common/encoding';
-import { firebaseConfig } from '../../config';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';

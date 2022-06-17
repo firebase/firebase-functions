@@ -20,7 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { apps } from '../apps';
+import { apps } from '../../apps';
+import { firebaseConfig } from '../../common/config';
+import { DataSnapshot } from '../../common/providers/database';
+import { normalizePath } from '../../utilities/path';
+import { applyChange } from '../../utils';
 import {
   Change,
   CloudFunction,
@@ -28,11 +32,7 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import { DataSnapshot } from '../common/providers/database';
-import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
-import { normalizePath } from '../utilities/path';
-import { applyChange } from '../utils';
 
 export { DataSnapshot };
 
