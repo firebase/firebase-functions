@@ -24,7 +24,9 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 
 import { posix } from 'path';
-import { apps } from '../apps';
+import { apps } from '../../apps';
+import * as logger from '../../logger';
+import { dateToTimestampProto } from '../../utilities/encoder';
 import {
   Change,
   CloudFunction,
@@ -32,9 +34,7 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import { dateToTimestampProto } from '../encoder';
 import { DeploymentOptions } from '../function-configuration';
-import * as logger from '../logger';
 
 /** @hidden */
 export const provider = 'google.firestore';

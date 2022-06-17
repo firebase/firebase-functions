@@ -22,7 +22,7 @@
 
 import * as express from 'express';
 
-import { apps } from './apps';
+import { apps } from '../apps';
 import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';

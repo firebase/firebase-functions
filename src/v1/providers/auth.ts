@@ -21,15 +21,6 @@
 // SOFTWARE.
 
 import {
-  BlockingFunction,
-  CloudFunction,
-  Event,
-  EventContext,
-  makeCloudFunction,
-  optionsToEndpoint,
-  optionsToTrigger,
-} from '../cloud-functions';
-import {
   AuthBlockingEventType,
   AuthEventContext,
   AuthUserRecord,
@@ -41,7 +32,16 @@ import {
   userRecordConstructor,
   UserRecordMetadata,
   wrapHandler,
-} from '../common/providers/identity';
+} from '../../common/providers/identity';
+import {
+  BlockingFunction,
+  CloudFunction,
+  Event,
+  EventContext,
+  makeCloudFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+} from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
 // TODO: yank in next breaking change release

@@ -1,6 +1,5 @@
 import { expect } from 'chai';
-import * as sinon from 'sinon';
-import * as config from '../../../src/config';
+import * as config from '../../../src/common/config';
 import * as options from '../../../src/v2/options';
 import * as storage from '../../../src/v2/providers/storage';
 import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
@@ -29,25 +28,21 @@ const SPECIFIC_BUCKET_EVENT_FILTER = {
 describe('v2/storage', () => {
   describe('getOptsAndBucket', () => {
     it('should return the default bucket with empty opts', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const [opts, bucket] = storage.getOptsAndBucket({});
 
-      configStub.restore();
+      config.resetCache();
       expect(opts).to.deep.equal({});
       expect(bucket).to.eq('default-bucket');
     });
 
     it('should return the default bucket with opts param', () => {
-      const configStub = sinon
-        .stub(config, 'firebaseConfig')
-        .returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const [opts, bucket] = storage.getOptsAndBucket({ region: 'us-west1' });
 
-      configStub.restore();
+      config.resetCache();
       expect(opts).to.deep.equal({ region: 'us-west1' });
       expect(bucket).to.eq('default-bucket');
     });
@@ -71,17 +66,14 @@ describe('v2/storage', () => {
   });
 
   describe('onOperation', () => {
-    let configStub: sinon.SinonStub;
-
     beforeEach(() => {
       process.env.GCLOUD_PROJECT = 'aProject';
-      configStub = sinon.stub(config, 'firebaseConfig');
     });
 
     afterEach(() => {
       options.setGlobalOptions({});
+      config.resetCache();
       delete process.env.GCLOUD_PROJECT;
-      configStub.restore();
     });
 
     it('should create a minimal trigger/endpoint with bucket', () => {
@@ -101,7 +93,7 @@ describe('v2/storage', () => {
     });
 
     it('should create a minimal trigger/endpoint with opts', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onOperation(
         'event-type',
@@ -217,18 +209,13 @@ describe('v2/storage', () => {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.archivedEvent,
     };
-    let configStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig');
-    });
 
     afterEach(() => {
-      configStub.restore();
+      config.resetCache();
     });
 
     it('should accept only handler', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectArchived(() => 42);
 
@@ -301,7 +288,7 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectArchived({ region: 'us-west1' }, () => 42);
 
@@ -336,18 +323,13 @@ describe('v2/storage', () => {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.finalizedEvent,
     };
-    let configStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig');
-    });
 
     afterEach(() => {
-      configStub.restore();
+      config.resetCache();
     });
 
     it('should accept only handler', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectFinalized(() => 42);
 
@@ -420,7 +402,7 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectFinalized(
         { region: 'us-west1' },
@@ -458,18 +440,13 @@ describe('v2/storage', () => {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.deletedEvent,
     };
-    let configStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig');
-    });
 
     afterEach(() => {
-      configStub.restore();
+      config.resetCache();
     });
 
     it('should accept only handler', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectDeleted(() => 42);
 
@@ -490,8 +467,6 @@ describe('v2/storage', () => {
           eventFilters: DEFAULT_BUCKET_EVENT_FILTER,
         },
       });
-
-      configStub.restore();
     });
 
     it('should accept bucket and handler', () => {
@@ -544,7 +519,7 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectDeleted({ region: 'us-west1' }, () => 42);
 
@@ -579,18 +554,13 @@ describe('v2/storage', () => {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.metadataUpdatedEvent,
     };
-    let configStub: sinon.SinonStub;
-
-    beforeEach(() => {
-      configStub = sinon.stub(config, 'firebaseConfig');
-    });
 
     afterEach(() => {
-      configStub.restore();
+      config.resetCache();
     });
 
     it('should accept only handler', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectMetadataUpdated(() => 42);
 
@@ -611,8 +581,6 @@ describe('v2/storage', () => {
           eventFilters: DEFAULT_BUCKET_EVENT_FILTER,
         },
       });
-
-      configStub.restore();
     });
 
     it('should accept bucket and handler', () => {
@@ -665,7 +633,7 @@ describe('v2/storage', () => {
     });
 
     it('should accept opts and handler, default bucket', () => {
-      configStub.returns({ storageBucket: 'default-bucket' });
+      config.resetCache({ storageBucket: 'default-bucket' });
 
       const result = storage.onObjectMetadataUpdated(
         { region: 'us-west1' },

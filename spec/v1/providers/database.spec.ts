@@ -22,10 +22,10 @@
 
 import { expect } from 'chai';
 import { apps as appsNamespace } from '../../../src/apps';
-import * as config from '../../../src/config';
-import * as functions from '../../../src/index';
-import * as database from '../../../src/providers/database';
+import * as config from '../../../src/common/config';
 import { applyChange } from '../../../src/utils';
+import * as functions from '../../../src/v1';
+import * as database from '../../../src/v1/providers/database';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
@@ -56,14 +56,14 @@ describe('Database Functions', () => {
     }
 
     before(() => {
-      (config as any).firebaseConfigCache = {
+      config.resetCache({
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
-      };
+      });
       appsNamespace.init();
     });
 
     after(() => {
-      (config as any).firebaseConfigCache = null;
+      config.resetCache();
       delete appsNamespace.singleton;
     });
 

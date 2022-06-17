@@ -21,37 +21,25 @@
   "files": [
     "lib"
   ],
-  "main": "lib/index.js",
+  "main": "lib/v1/index.js",
   "bin": {
     "firebase-functions": "./lib/bin/firebase-functions.js"
   },
-  "types": "lib/index.d.ts",
+  "types": "lib/v1/index.d.ts",
   "exports": {
-    ".": "./lib/index.js",
+    ".": "./lib/v1/index.js",
     "./logger/compat": "./lib/logger/compat.js",
-    "./lib/logger/compat": "./lib/logger/compat.js",
     "./logger": "./lib/logger/index.js",
-    "./lib/logger": "./lib/logger/index.js",
-    "./lib/providers/auth": "./lib/providers/auth.js",
-    "./lib/providers/analytics": "./lib/providers/analytics.js",
-    "./lib/providers/database": "./lib/providers/database.js",
-    "./lib/providers/firestore": "./lib/providers/firestore.js",
-    "./lib/providers/https": "./lib/providers/https.js",
-    "./lib/providers/pubsub": "./lib/providers/pubsub.js",
-    "./lib/providers/remoteConfig": "./lib/providers/remoteConfig.js",
-    "./lib/providers/storage": "./lib/providers/storage.js",
-    "./lib/providers/tasks": "./lib/providers/tasks.js",
-    "./lib/providers/testLab": "./lib/providers/testLab.js",
-    "./v1": "./lib/index.js",
-    "./v1/analytics": "./lib/providers/analytics.js",
-    "./v1/auth": "./lib/providers/auth.js",
-    "./v1/database": "./lib/providers/database.js",
-    "./v1/firestore": "./lib/providers/firestore.js",
-    "./v1/https": "./lib/providers/https.js",
-    "./v1/pubsub": "./lib/providers/pubsub.js",
-    "./v1/remoteConfig": "./lib/providers/remoteConfig.js",
-    "./v1/storage": "./lib/providers/storage.js",
-    "./v1/testLab": "./lib/providers/testLab.js",
+    "./v1": "./lib/v1/index.js",
+    "./v1/analytics": "./lib/v1/providers/analytics.js",
+    "./v1/auth": "./lib/v1/providers/auth.js",
+    "./v1/database": "./lib/v1/providers/database.js",
+    "./v1/firestore": "./lib/v1/providers/firestore.js",
+    "./v1/pubsub": "./lib/v1/providers/pubsub.js",
+    "./v1/remoteConfig": "./lib/v1/providers/remoteConfig.js",
+    "./v1/storage": "./lib/v1/providers/storage.js",
+    "./v1/tasks": "./lib/v1/providers/tasks.js",
+    "./v1/testLab": "./lib/v1/providers/testLab.js",
     "./v2": "./lib/v2/index.js",
     "./v2/core": "./lib/v2/core.js",
     "./v2/options": "./lib/v2/options.js",
@@ -77,37 +65,34 @@
         "lib/logger/compat"
       ],
       "v1": [
-        "lib"
+        "lib/v1"
       ],
       "v1/analytics": [
-        "lib/providers/analytics"
+        "./lib/v1/providers/analytics"
       ],
       "v1/auth": [
-        "lib/providers/auth"
+        "./lib/v1/providers/auth"
       ],
       "v1/database": [
-        "lib/providers/database"
+        "./lib/v1/privders/database"
       ],
       "v1/firestore": [
-        "lib/providers/firestore"
-      ],
-      "v1/https": [
-        "lib/providers/https"
+        "./lib/v1/providers/firestore"
       ],
       "v1/pubsub": [
-        "lib/providers/pubsub"
+        "./lib/v1/providers/pubsub"
       ],
-      "v1/remoteConfig": [
-        "lib/providers/remoteConfig"
+      "/v1/remoteConfig": [
+        "./lib/v1/providers/remoteConfig"
       ],
-      "v1/storage": [
-        "lib/providers/storage"
+      "/v1/storage": [
+        "./lib/v1/providers/storage"
       ],
-      "v1/tasks": [
-        "lib/providers/tasks"
+      "/v1/tasks": [
+        "./lib/v1/providers/tasks"
       ],
-      "v1/testLab": [
-        "lib/providers/testLab"
+      "/v1/testLab": [
+        "./lib/v1/providers/testLab"
       ],
       "v2": [
         "lib/v2"

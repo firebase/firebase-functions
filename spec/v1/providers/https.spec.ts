@@ -22,8 +22,8 @@
 
 import { expect } from 'chai';
 
-import * as functions from '../../../src/index';
-import * as https from '../../../src/providers/https';
+import * as functions from '../../../src/v1';
+import * as https from '../../../src/v1/providers/https';
 import {
   expectedResponseHeaders,
   MockRequest,

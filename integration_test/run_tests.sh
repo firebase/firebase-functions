@@ -78,9 +78,9 @@ function deploy {
   ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore. If the deploy fails, retry twice
   if [[ "${TOKEN}" == "" ]]; then
-    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --only functions,database,firestore && break; done
+    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --only functions:integration-tests,database,firestore && break; done
   else
-    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --token="${TOKEN}" --only functions,database,firestore && break; done
+    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --token="${TOKEN}" --only functions:integration-tests,database,firestore && break; done
   fi
 }
 

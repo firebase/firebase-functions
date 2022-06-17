@@ -25,7 +25,6 @@
  * @packageDocumentation
  */
 
-import { BlockingFunction } from '../../cloud-functions';
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
@@ -34,6 +33,7 @@ import {
   HttpsError,
   wrapHandler,
 } from '../../common/providers/identity';
+import { BlockingFunction } from '../../v1/cloud-functions';
 import * as options from '../options';
 
 export { HttpsError };

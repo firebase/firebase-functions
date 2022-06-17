@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { Event, EventContext } from '../../../src';
-import * as functions from '../../../src';
-import * as config from '../../../src/config';
-import * as storage from '../../../src/providers/storage';
+import * as config from '../../../src/common/config';
+import { Event, EventContext } from '../../../src/v1';
+import * as functions from '../../../src/v1';
+import * as storage from '../../../src/v1/providers/storage';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
@@ -55,13 +55,13 @@ describe('Storage Functions', () => {
     const defaultBucket = 'bucket';
 
     before(() => {
-      (config as any).firebaseConfigCache = {
+      config.resetCache({
         storageBucket: defaultBucket,
-      };
+      });
     });
 
     after(() => {
-      (config as any).firebaseConfigcache = null;
+      config.resetCache();
     });
 
     it('should allow both region and runtime options to be set', () => {

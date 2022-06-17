@@ -22,9 +22,9 @@
 
 import * as express from 'express';
 import * as firebase from 'firebase-admin';
-import { logger } from '../..';
 import { apps } from '../../apps';
-import { EventContext } from '../../cloud-functions';
+import * as logger from '../../logger';
+import { EventContext } from '../../v1/cloud-functions';
 import { isDebugFeatureEnabled } from '../debug';
 import { HttpsError, unsafeDecodeToken } from './https';
 

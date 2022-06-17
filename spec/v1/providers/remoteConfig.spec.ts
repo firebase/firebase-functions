@@ -21,13 +21,13 @@
 // SOFTWARE.
 import { expect } from 'chai';
 
+import * as functions from '../../../src/v1';
 import {
   CloudFunction,
   Event,
   EventContext,
-} from '../../../src/cloud-functions';
-import * as functions from '../../../src/index';
-import * as remoteConfig from '../../../src/providers/remoteConfig';
+} from '../../../src/v1/cloud-functions';
+import * as remoteConfig from '../../../src/v1/providers/remoteConfig';
 
 describe('RemoteConfig Functions', () => {
   function constructVersion() {
