@@ -36,7 +36,6 @@ describe('CloudHttpsBuilder', () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
-      expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv1',
         httpsTrigger: {},
@@ -53,11 +52,6 @@ describe('CloudHttpsBuilder', () => {
         })
         .https.onRequest(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
-      expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
-
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
@@ -72,7 +66,6 @@ describe('handler namespace', () => {
       const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
-      expect(result.__trigger).to.deep.equal({});
       expect(result.__endpoint).to.be.undefined;
     });
   });
@@ -80,7 +73,6 @@ describe('handler namespace', () => {
   describe('#onCall', () => {
     it('should return an empty trigger', () => {
       const result = functions.handler.https.onCall(() => null);
-      expect(result.__trigger).to.deep.equal({});
       expect(result.__endpoint).to.be.undefined;
     });
   });
@@ -90,11 +82,6 @@ describe('#onCall', () => {
   it('should return a trigger/endpoint with appropriate values', () => {
     const result = https.onCall((data) => {
       return 'response';
-    });
-
-    expect(result.__trigger).to.deep.equal({
-      httpsTrigger: {},
-      labels: { 'deployment-callable': 'true' },
     });
 
     expect(result.__endpoint).to.deep.equal({
@@ -112,10 +99,6 @@ describe('#onCall', () => {
         memory: '256MB',
       })
       .https.onCall(() => null);
-
-    expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-    expect(fn.__trigger.timeout).to.deep.equal('90s');
 
     expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
