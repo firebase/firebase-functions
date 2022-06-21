@@ -24,7 +24,6 @@ import { expect } from 'chai';
 import * as _ from 'lodash';
 
 import {
-  Change,
   Event,
   EventContext,
   makeCloudFunction,
@@ -351,102 +350,6 @@ describe('makeAuth and makeAuthType', () => {
         },
       },
       authType: 'USER',
-    });
-  });
-});
-
-describe('Change', () => {
-  describe('applyFieldMask', () => {
-    const after = {
-      foo: 'bar',
-      num: 2,
-      obj: {
-        a: 1,
-        b: 2,
-      },
-    };
-
-    it('should handle deleted values', () => {
-      const sparseBefore = { baz: 'qux' };
-      const fieldMask = 'baz';
-      expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
-      ).to.deep.equal({
-        foo: 'bar',
-        num: 2,
-        obj: {
-          a: 1,
-          b: 2,
-        },
-        baz: 'qux',
-      });
-    });
-
-    it('should handle created values', () => {
-      const sparseBefore = {};
-      const fieldMask = 'num,obj.a';
-      expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
-      ).to.deep.equal({
-        foo: 'bar',
-        obj: {
-          b: 2,
-        },
-      });
-    });
-
-    it('should handle mutated values', () => {
-      const sparseBefore = {
-        num: 3,
-        obj: {
-          a: 3,
-        },
-      };
-      const fieldMask = 'num,obj.a';
-      expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
-      ).to.deep.equal({
-        foo: 'bar',
-        num: 3,
-        obj: {
-          a: 3,
-          b: 2,
-        },
-      });
-    });
-  });
-
-  describe('fromJSON', () => {
-    it('should create a Change object with a `before` and `after`', () => {
-      const created = Change.fromJSON<any>({
-        before: { foo: 'bar' },
-        after: { foo: 'faz' },
-      });
-      expect(created instanceof Change).to.equal(true);
-      expect(created.before).to.deep.equal({ foo: 'bar' });
-      expect(created.after).to.deep.equal({ foo: 'faz' });
-    });
-
-    it('should apply the customizer function to `before` and `after`', () => {
-      function customizer<T>(input: any) {
-        _.set(input, 'another', 'value');
-        return input as T;
-      }
-      const created = Change.fromJSON<object>(
-        {
-          before: { foo: 'bar' },
-          after: { foo: 'faz' },
-        },
-        customizer
-      );
-      expect(created.before).to.deep.equal({
-        foo: 'bar',
-        another: 'value',
-      });
-      expect(created.after).to.deep.equal({
-        foo: 'faz',
-        another: 'value',
-      });
     });
   });
 });

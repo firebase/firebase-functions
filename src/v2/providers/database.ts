@@ -21,12 +21,13 @@
 // SOFTWARE.
 
 import { apps } from '../../apps';
+import { Change } from '../../common/core';
 import { DataSnapshot } from '../../common/providers/database';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { normalizePath } from '../../utilities/path';
 import { PathPattern } from '../../utilities/path-pattern';
 import { applyChange } from '../../utils';
-import { Change, CloudEvent, CloudFunction } from '../core';
+import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
 export { DataSnapshot };

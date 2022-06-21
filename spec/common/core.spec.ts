@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { Change } from '../../src/v2/core';
+import { Change } from '../../src/common/core';
 
 describe('Change', () => {
   describe('applyFieldMask', () => {
