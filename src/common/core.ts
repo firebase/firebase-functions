@@ -25,7 +25,7 @@
  * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
  *
  * For more information about the format used to construct `Change` objects, see
- * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
+ * {@link ChangeJson} below.
  *
  */
 export class Change<T> {
