@@ -130,7 +130,7 @@ export function onDispatchHandler<Req = any>(
         context.auth = {
           uid: authToken.uid,
           token: authToken,
-        }
+        };
       }
 
       const data: Req = https.decode(req.body.data);

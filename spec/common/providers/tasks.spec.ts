@@ -240,10 +240,9 @@ describe('onEnqueueHandler', () => {
     });
   });
 
-
   it('should skip auth in emulated environment', async () => {
     const restore = process.env.FUNCTIONS_EMULATOR;
-    process.env.FUNCTIONS_EMULATOR = "true";
+    process.env.FUNCTIONS_EMULATOR = 'true';
 
     await runTaskTest({
       httpRequest: mockEnqueueRequest(null, 'application/json', {}),
