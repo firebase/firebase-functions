@@ -1,1 +1,2 @@
 - Adds RTDB Triggers for v2 functions (#1127)
+- Adds support for Firebase Admin SDK v11 (#1151)
