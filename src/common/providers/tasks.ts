@@ -117,20 +117,21 @@ export function onDispatchHandler<Req = any>(
         throw new https.HttpsError('invalid-argument', 'Bad Request');
       }
 
-      const authHeader = req.header('Authorization') || '';
-      const token = authHeader.match(/^Bearer (.*)$/)?.[1];
-      // Note: this should never happen since task queue functions are guarded by IAM.
-      if (!token) {
-        throw new https.HttpsError('unauthenticated', 'Unauthenticated');
-      }
-      // We skip authenticating the token since tq functions are guarded by IAM.
-      const authToken = await https.unsafeDecodeIdToken(token);
-      const context: TaskContext = {
-        auth: {
+      const context: TaskContext = {};
+      if (!process.env.FUNCTIONS_EMULATOR) {
+        const authHeader = req.header('Authorization') || '';
+        const token = authHeader.match(/^Bearer (.*)$/)?.[1];
+        // Note: this should never happen since task queue functions are guarded by IAM.
+        if (!token) {
+          throw new https.HttpsError('unauthenticated', 'Unauthenticated');
+        }
+        // We skip authenticating the token since tq functions are guarded by IAM.
+        const authToken = await https.unsafeDecodeIdToken(token);
+        context.auth = {
           uid: authToken.uid,
           token: authToken,
-        },
-      };
+        };
+      }
 
       const data: Req = https.decode(req.body.data);
       if (handler.length === 2) {
