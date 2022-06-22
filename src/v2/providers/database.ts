@@ -30,7 +30,7 @@ import { applyChange } from '../../utils';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 
-export { DataSnapshot };
+export { DataSnapshot, Change };
 
 /** @internal */
 export const writtenEventType = 'google.firebase.database.ref.v1.written';

@@ -34,7 +34,7 @@ import { DeploymentOptions } from '../function-configuration';
 import { normalizePath } from '../utilities/path';
 import { applyChange } from '../utils';
 
-export { DataSnapshot };
+export { DataSnapshot, Change };
 
 /** @hidden */
 export const provider = 'google.firebase.database';
