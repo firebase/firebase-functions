@@ -53,11 +53,6 @@ export interface ChangeJson {
 }
 
 export namespace Change {
-  /** @hidden */
-  function reinterpretCast<T>(x: any) {
-    return x as T;
-  }
-
   /**
    * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
