@@ -1,1 +1,2 @@
 - Adds RTDB Triggers for v2 functions (#1127)
+- Fixes bug where emulated task queue function required auth header (#1154)
