@@ -69,7 +69,7 @@ export namespace Change {
    */
   export function fromJSON<T>(
     json: ChangeJson,
-    customizer: (x: any) => T = reinterpretCast
+    customizer: (x: any) => T = (x) => x as T
   ): Change<T> {
     let before = { ...json.before };
     if (json.fieldMask) {
