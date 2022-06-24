@@ -370,6 +370,10 @@ describe('onCallHandler', () => {
     const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
     await runCallableTest({
       httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
+      callableOption: {
+        cors: { origin: true, methods: 'POST' },
+        enforceAppCheck: true,
+      },
       expectedData: null,
       callableFunction: (data, context) => {
         return;
@@ -390,7 +394,7 @@ describe('onCallHandler', () => {
     });
   });
 
-  it('should handle bad AppCheck token with callable option', async () => {
+  it('should handle bad AppCheck token with enforcement disabled', async () => {
     await runCallableTest({
       httpRequest: mockRequest(null, 'application/json', {
         appCheckToken: 'FAKE',
@@ -404,12 +408,70 @@ describe('onCallHandler', () => {
       },
       callableOption: {
         cors: { origin: true, methods: 'POST' },
-        allowInvalidAppCheckToken: true,
+        enforceAppCheck: false,
       },
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
         body: { result: null },
+      },
+    });
+  });
+
+  it('should handle bad AppCheck token with enforcement enabled', async () => {
+    await runCallableTest({
+      httpRequest: mockRequest(null, 'application/json', {
+        appCheckToken: 'FAKE',
+      }),
+      expectedData: null,
+      callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
+        return;
+      },
+      callableOption: {
+        cors: { origin: true, methods: 'POST' },
+        enforceAppCheck: true,
+      },
+      expectedHttpResponse: {
+        status: 401,
+        headers: expectedResponseHeaders,
+        body: {
+          error: {
+            message: 'Unauthenticated',
+            status: 'UNAUTHENTICATED',
+          },
+        },
+      },
+    });
+  });
+
+  it('should handle no AppCheck token with enforcement enabled', async () => {
+    await runCallableTest({
+      httpRequest: mockRequest(null, 'application/json', {
+        appCheckToken: 'MISSING',
+      }),
+      expectedData: null,
+      callableFunction: (data, context) => {
+        return;
+      },
+      callableFunction2: (request) => {
+        return;
+      },
+      callableOption: {
+        cors: { origin: true, methods: 'POST' },
+        enforceAppCheck: true,
+      },
+      expectedHttpResponse: {
+        status: 401,
+        headers: expectedResponseHeaders,
+        body: {
+          error: {
+            message: 'Unauthenticated',
+            status: 'UNAUTHENTICATED',
+          },
+        },
       },
     });
   });

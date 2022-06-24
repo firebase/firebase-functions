@@ -44,7 +44,7 @@ import { GlobalOptions, SupportedRegion } from '../options';
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 /**
- * Options that can be set on an individual HTTPS function.
+ * Options that can be set on an onRequest HTTPS function.
  */
 export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
@@ -148,6 +148,19 @@ export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
+}
+
+/**
+ * Options that can be set on a callable HTTPS function.
+ */
+export interface CallableOptions extends HttpsOptions {
+  /**
+   * Determines whether Firebase AppCheck is enforced.
+   * When true, requests with invalid tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set event.app to undefiend.
+   */
+  enforceAppCheck?: boolean;
 }
 
 /**
@@ -298,7 +311,7 @@ export function onRequest(
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
-  opts: HttpsOptions,
+  opts: CallableOptions,
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 /**
@@ -310,15 +323,15 @@ export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: HttpsOptions | ((request: CallableRequest<T>) => Return),
+  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
-  let opts: HttpsOptions;
+  let opts: CallableOptions;
   if (arguments.length == 1) {
     opts = {};
     handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
-    opts = optsOrHandler as HttpsOptions;
+    opts = optsOrHandler as CallableOptions;
   }
 
   const origin = isDebugFeatureEnabled('enableCors')
@@ -331,7 +344,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
   const func: any = onCallHandler(
-    { cors: { origin, methods: 'POST' } },
+    {
+      cors: { origin, methods: 'POST' },
+      enforceAppCheck:
+        opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+    },
     fixedLen
   );
 

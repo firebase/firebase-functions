@@ -189,6 +189,14 @@ export interface GlobalOptions {
    * Secrets to bind to a function.
    */
   secrets?: string[];
+
+  /**
+   * Determines whether Firebase AppCheck is enforced.
+   * When true, requests with invalid tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set event.app to undefiend.
+   */
+  enforceAppCheck?: boolean;
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -216,7 +224,8 @@ export function getGlobalOptions(): GlobalOptions {
 /**
  * Additional fields that can be set on any event-handling Cloud Function.
  */
-export interface EventHandlerOptions extends GlobalOptions {
+export interface EventHandlerOptions
+  extends Omit<GlobalOptions, 'enforceAppCheck'> {
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
 }

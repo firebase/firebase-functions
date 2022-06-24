@@ -162,14 +162,17 @@ export interface RuntimeOptions {
   invoker?: 'public' | 'private' | string | string[];
 
   /*
-   * Allow requests with invalid App Check tokens on callable functions.
-   */
-  allowInvalidAppCheckToken?: boolean;
-
-  /*
    * Secrets to bind to a function instance.
    */
   secrets?: string[];
+
+  /**
+   * Determines whether Firebase AppCheck is enforced.
+   * When true, requests with invalid tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set context.app to undefiend.
+   */
+  enforceAppCheck?: boolean;
 }
 
 export interface DeploymentOptions extends RuntimeOptions {

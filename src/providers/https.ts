@@ -110,7 +110,7 @@ export function _onCallWithOptions(
     handler(data, context);
   const func: any = onCallHandler(
     {
-      allowInvalidAppCheckToken: options.allowInvalidAppCheckToken,
+      enforceAppCheck: options.enforceAppCheck,
       cors: { origin: true, methods: 'POST' },
     },
     fixedLen
