@@ -26,7 +26,7 @@ import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import { FULL_ENDPOINT, FULL_OPTIONS } from './fixtures';
 
 describe('onTaskDispatched', () => {
   beforeEach(() => {
@@ -40,12 +40,6 @@ describe('onTaskDispatched', () => {
 
   it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = onTaskDispatched(() => {});
-
-    expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
-      taskQueueTrigger: {},
-      labels: {},
-    });
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
@@ -73,24 +67,6 @@ describe('onTaskDispatched', () => {
       },
       () => {}
     );
-
-    expect(result.__trigger).to.deep.equal({
-      ...FULL_TRIGGER,
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: 4,
-          maxRetrySeconds: 10,
-          maxDoublings: 3,
-          minBackoffSeconds: 1,
-          maxBackoffSeconds: 2,
-        },
-        rateLimits: {
-          maxConcurrentDispatches: 5,
-          maxDispatchesPerSecond: 10,
-        },
-        invoker: ['private'],
-      },
-    });
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
@@ -126,15 +102,6 @@ describe('onTaskDispatched', () => {
       },
       (request) => {}
     );
-
-    expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
-      taskQueueTrigger: {},
-      concurrency: 20,
-      minInstances: 3,
-      regions: ['us-west1'],
-      labels: {},
-    });
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',

@@ -56,14 +56,6 @@ describe('RemoteConfig Functions', () => {
     it('should have the correct trigger', () => {
       const cloudFunction = remoteConfig.onUpdate(() => null);
 
-      expect(cloudFunction.__trigger).to.deep.equal({
-        eventTrigger: {
-          resource: 'projects/project1',
-          eventType: 'google.firebase.remoteconfig.update',
-          service: 'firebaseremoteconfig.googleapis.com',
-        },
-      });
-
       expect(cloudFunction.__endpoint).to.deep.equal({
         platform: 'gcfv1',
         eventTrigger: {
@@ -85,10 +77,6 @@ describe('RemoteConfig Functions', () => {
           memory: '256MB',
         })
         .remoteConfig.onUpdate(() => null);
-
-      expect(cloudFunction.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(cloudFunction.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(cloudFunction.__trigger.timeout).to.deep.equal('90s');
 
       expect(cloudFunction.__endpoint.region).to.deep.equal(['us-east1']);
       expect(cloudFunction.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -143,7 +131,6 @@ describe('RemoteConfig Functions', () => {
           () => null
         );
 
-        expect(cloudFunction.__trigger).to.deep.equal({});
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 

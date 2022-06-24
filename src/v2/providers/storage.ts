@@ -569,29 +569,6 @@ export function onOperation(
 
   func.run = handler;
 
-  Object.defineProperty(func, '__trigger', {
-    get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
-
-      return {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        eventTrigger: {
-          eventType,
-          resource: bucket, // TODO(colerogers): replace with 'bucket,' eventually
-        },
-      };
-    },
-  });
-
   // TypeScript doesn't recognize defineProperty as adding a property and complains
   // that __endpoint doesn't exist. We can either cast to any and lose all type safety
   // or we can just assign a meaningless value before calling defineProperty.
