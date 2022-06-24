@@ -92,10 +92,6 @@ export interface FailurePolicy {
   retry: {};
 }
 
-export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
-  retry: {},
-};
-
 export const MAX_NUMBER_USER_LABELS = 58;
 
 export interface RuntimeOptions {

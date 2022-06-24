@@ -160,8 +160,6 @@ export type HttpsFunction = ((
   res: express.Response
 ) => void | Promise<void>) & {
   /** @alpha */
-  __trigger?: unknown;
-  /** @alpha */
   __endpoint: ManifestEndpoint;
 };
 
@@ -232,39 +230,6 @@ export function onRequest(
     };
   }
 
-  Object.defineProperty(handler, '__trigger', {
-    get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
-      // global options calls region a scalar and https allows it to be an array,
-      // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
-      const trigger: any = {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        httpsTrigger: {
-          allowInsecure: false,
-        },
-      };
-      convertIfPresent(
-        trigger.httpsTrigger,
-        opts,
-        'invoker',
-        'invoker',
-        convertInvoker
-      );
-      return trigger;
-    },
-  });
-
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
@@ -334,30 +299,6 @@ export function onCall<T = any, Return = any | Promise<any>>(
     { cors: { origin, methods: 'POST' } },
     fixedLen
   );
-
-  Object.defineProperty(func, '__trigger', {
-    get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
-      // global options calls region a scalar and https allows it to be an array,
-      // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
-      return {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-          'deployment-callable': 'true',
-        },
-        httpsTrigger: {
-          allowInsecure: false,
-        },
-      };
-    },
-  });
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,

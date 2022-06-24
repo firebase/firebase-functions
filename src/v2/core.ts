@@ -27,37 +27,6 @@
 
 import { ManifestEndpoint } from '../runtime/manifest';
 
-/** @internal */
-export interface TriggerAnnotation {
-  platform?: string;
-  concurrency?: number;
-  minInstances?: number;
-  maxInstances?: number;
-  availableMemoryMb?: number;
-  eventTrigger?: {
-    eventType: string;
-    resource: string;
-    service: string;
-  };
-  failurePolicy?: { retry: boolean };
-  httpsTrigger?: {
-    invoker?: string[];
-  };
-  labels?: { [key: string]: string };
-  regions?: string[];
-  timeout?: string;
-  vpcConnector?: string;
-  vpcConnectorEgressSettings?: string;
-  serviceAccountEmail?: string;
-  ingressSettings?: string;
-  secrets?: string[];
-  blockingTrigger?: {
-    eventType: string;
-    options?: Record<string, unknown>;
-  };
-  // TODO: schedule
-}
-
 /**
  * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
@@ -96,8 +65,6 @@ export interface CloudEvent<T> {
 export interface CloudFunction<EventType extends CloudEvent<unknown>> {
   (raw: CloudEvent<unknown>): any | Promise<any>;
 
-  /** @alpha */
-  __trigger?: unknown;
   /** @alpha */
   __endpoint: ManifestEndpoint;
 

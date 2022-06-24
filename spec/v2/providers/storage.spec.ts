@@ -2,12 +2,7 @@ import { expect } from 'chai';
 import * as config from '../../../src/common/config';
 import * as options from '../../../src/v2/options';
 import * as storage from '../../../src/v2/providers/storage';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
-
-const EVENT_TRIGGER = {
-  eventType: 'event-type',
-  resource: 'some-bucket',
-};
+import { FULL_ENDPOINT, FULL_OPTIONS } from './fixtures';
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: 'event-type',
@@ -79,12 +74,6 @@ describe('v2/storage', () => {
     it('should create a minimal trigger/endpoint with bucket', () => {
       const result = storage.onOperation('event-type', 'some-bucket', () => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: EVENT_TRIGGER,
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -100,16 +89,6 @@ describe('v2/storage', () => {
         { region: 'us-west1' },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...EVENT_TRIGGER,
-          resource: 'default-bucket',
-        },
-        regions: ['us-west1'],
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -129,12 +108,6 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: EVENT_TRIGGER,
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -151,11 +124,6 @@ describe('v2/storage', () => {
         },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        ...FULL_TRIGGER,
-        eventTrigger: EVENT_TRIGGER,
-      });
 
       expect(result.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
@@ -180,15 +148,6 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        concurrency: 20,
-        minInstances: 3,
-        regions: ['us-west1'],
-        labels: {},
-        eventTrigger: EVENT_TRIGGER,
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         concurrency: 20,
@@ -201,10 +160,6 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectArchived', () => {
-    const ARCHIVED_TRIGGER = {
-      ...EVENT_TRIGGER,
-      eventType: storage.archivedEvent,
-    };
     const ENDPOINT_ARCHIVED_TRIGGER = {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.archivedEvent,
@@ -219,15 +174,6 @@ describe('v2/storage', () => {
 
       const result = storage.onObjectArchived(() => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...ARCHIVED_TRIGGER,
-          resource: 'default-bucket',
-        },
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -240,15 +186,6 @@ describe('v2/storage', () => {
 
     it('should accept bucket and handler', () => {
       const result = storage.onObjectArchived('my-bucket', () => 42);
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...ARCHIVED_TRIGGER,
-          resource: 'my-bucket',
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -266,16 +203,6 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...ARCHIVED_TRIGGER,
-          resource: 'my-bucket',
-        },
-        regions: ['us-west1'],
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -292,16 +219,6 @@ describe('v2/storage', () => {
 
       const result = storage.onObjectArchived({ region: 'us-west1' }, () => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...ARCHIVED_TRIGGER,
-          resource: 'default-bucket',
-        },
-        regions: ['us-west1'],
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -315,10 +232,6 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectFinalized', () => {
-    const FINALIZED_TRIGGER = {
-      ...EVENT_TRIGGER,
-      eventType: storage.finalizedEvent,
-    };
     const ENDPOINT_FINALIZED_TRIGGER = {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.finalizedEvent,
@@ -333,15 +246,6 @@ describe('v2/storage', () => {
 
       const result = storage.onObjectFinalized(() => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...FINALIZED_TRIGGER,
-          resource: 'default-bucket',
-        },
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -354,15 +258,6 @@ describe('v2/storage', () => {
 
     it('should accept bucket and handler', () => {
       const result = storage.onObjectFinalized('my-bucket', () => 42);
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...FINALIZED_TRIGGER,
-          resource: 'my-bucket',
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -379,16 +274,6 @@ describe('v2/storage', () => {
         { bucket: 'my-bucket', region: 'us-west1' },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...FINALIZED_TRIGGER,
-          resource: 'my-bucket',
-        },
-        regions: ['us-west1'],
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -409,16 +294,6 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...FINALIZED_TRIGGER,
-          resource: 'default-bucket',
-        },
-        regions: ['us-west1'],
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -432,10 +307,6 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectDeleted', () => {
-    const DELETED_TRIGGER = {
-      ...EVENT_TRIGGER,
-      eventType: storage.deletedEvent,
-    };
     const ENDPOINT_DELETED_TRIGGER = {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.deletedEvent,
@@ -450,15 +321,6 @@ describe('v2/storage', () => {
 
       const result = storage.onObjectDeleted(() => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...DELETED_TRIGGER,
-          resource: 'default-bucket',
-        },
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -471,15 +333,6 @@ describe('v2/storage', () => {
 
     it('should accept bucket and handler', () => {
       const result = storage.onObjectDeleted('my-bucket', () => 42);
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...DELETED_TRIGGER,
-          resource: 'my-bucket',
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -497,16 +350,6 @@ describe('v2/storage', () => {
         () => 42
       );
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...DELETED_TRIGGER,
-          resource: 'my-bucket',
-        },
-        regions: ['us-west1'],
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -523,16 +366,6 @@ describe('v2/storage', () => {
 
       const result = storage.onObjectDeleted({ region: 'us-west1' }, () => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...DELETED_TRIGGER,
-          resource: 'default-bucket',
-        },
-        regions: ['us-west1'],
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -546,10 +379,6 @@ describe('v2/storage', () => {
   });
 
   describe('onObjectMetadataUpdated', () => {
-    const METADATA_TRIGGER = {
-      ...EVENT_TRIGGER,
-      eventType: storage.metadataUpdatedEvent,
-    };
     const ENDPOINT_METADATA_TRIGGER = {
       ...ENDPOINT_EVENT_TRIGGER,
       eventType: storage.metadataUpdatedEvent,
@@ -564,15 +393,6 @@ describe('v2/storage', () => {
 
       const result = storage.onObjectMetadataUpdated(() => 42);
 
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...METADATA_TRIGGER,
-          resource: 'default-bucket',
-        },
-      });
-
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
         labels: {},
@@ -585,15 +405,6 @@ describe('v2/storage', () => {
 
     it('should accept bucket and handler', () => {
       const result = storage.onObjectMetadataUpdated('my-bucket', () => 42);
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...METADATA_TRIGGER,
-          resource: 'my-bucket',
-        },
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -610,16 +421,6 @@ describe('v2/storage', () => {
         { bucket: 'my-bucket', region: 'us-west1' },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...METADATA_TRIGGER,
-          resource: 'my-bucket',
-        },
-        regions: ['us-west1'],
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -639,16 +440,6 @@ describe('v2/storage', () => {
         { region: 'us-west1' },
         () => 42
       );
-
-      expect(result.__trigger).to.deep.equal({
-        platform: 'gcfv2',
-        labels: {},
-        eventTrigger: {
-          ...METADATA_TRIGGER,
-          resource: 'default-bucket',
-        },
-        regions: ['us-west1'],
-      });
 
       expect(result.__endpoint).to.deep.equal({
         platform: 'gcfv2',
