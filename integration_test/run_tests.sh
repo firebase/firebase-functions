@@ -65,9 +65,9 @@ function delete_all_functions {
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing.
   if [[ "${TOKEN}" == "" ]]; then
-    firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID || : &
+    firebase functions:delete integration-tests --force --project=$PROJECT_ID || : &
   else
-    firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID --token=$TOKEN || : &
+    firebase functions:delete integration-tests --force --project=$PROJECT_ID --token=$TOKEN || : &
   fi
   wait
   announce "Project emptied."
