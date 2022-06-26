@@ -23,8 +23,8 @@
 import {
   App,
   applicationDefault,
-  // getApp as getAppNamed,
   deleteApp,
+  getApp as getAppNamed,
   initializeApp,
 } from 'firebase-admin/app';
 import { firebaseConfig } from '../config';
@@ -33,9 +33,11 @@ const APP_NAME = '__FIREBASE_FUNCTIONS_SDK__';
 
 let cache: App;
 export function getApp(): App {
-  // if (typeof cache === 'undefined') {
-  //   cache = getAppNamed(/* default */);
-  // }
+  if (typeof cache === 'undefined') {
+    try {
+      cache = getAppNamed(/* default */);
+    } catch {}
+  }
   if (typeof cache === 'undefined') {
     cache = initializeApp(
       {
