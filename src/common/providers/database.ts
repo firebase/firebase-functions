@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import * as firebase from 'firebase-admin';
-import { joinPath, pathParts } from '../../utilities/path';
+import { joinPath, pathParts } from '../../common/utilities/path';
 import { firebaseConfig } from '../config';
 
 /**

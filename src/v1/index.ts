@@ -32,7 +32,7 @@ import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
-import * as apps from '../apps';
+import * as apps from '../common/apps';
 import * as logger from '../logger';
 import { handler } from './handler-builder';
 

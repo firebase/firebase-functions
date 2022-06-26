@@ -22,7 +22,7 @@
 
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
-import { firebaseConfig } from './common/config';
+import { firebaseConfig } from './config';
 
 export function apps(): apps.Apps {
   if (typeof apps.singleton === 'undefined') {

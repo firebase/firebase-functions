@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { apps as appsNamespace } from '../../src/apps';
+import { apps as appsNamespace } from '../../src/common/apps';
 
 import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';

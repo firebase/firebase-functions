@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
 import * as sinon from 'sinon';
 
-import { apps as appsNamespace } from '../../../src/apps';
+import { apps as appsNamespace } from '../../../src/common/apps';
 import * as debug from '../../../src/common/debug';
 import * as https from '../../../src/common/providers/https';
 import * as mocks from '../../fixtures/credential/key.json';

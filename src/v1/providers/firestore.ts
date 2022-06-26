@@ -24,9 +24,9 @@ import * as firebase from 'firebase-admin';
 import * as _ from 'lodash';
 
 import { posix } from 'path';
-import { apps } from '../../apps';
+import { apps } from '../../common/apps';
+import { dateToTimestampProto } from '../../common/utilities/encoder';
 import * as logger from '../../logger';
-import { dateToTimestampProto } from '../../utilities/encoder';
 import {
   Change,
   CloudFunction,

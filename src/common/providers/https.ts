@@ -29,7 +29,7 @@ import * as logger from '../../logger';
 
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
-import { apps } from '../../apps';
+import { apps } from '../apps';
 import { isDebugFeatureEnabled } from '../debug';
 import { TaskContext } from './tasks';
 

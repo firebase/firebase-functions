@@ -23,7 +23,7 @@
 import { expect } from 'chai';
 import * as firebase from 'firebase-admin';
 
-import { apps as appsNamespace } from '../../../src/apps';
+import { apps as appsNamespace } from '../../../src/common/apps';
 import * as https from '../../../src/common/providers/https';
 import {
   onDispatchHandler,

@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { apps as appsNamespace } from '../../../src/apps';
+import { apps as appsNamespace } from '../../../src/common/apps';
 import * as config from '../../../src/common/config';
-import { applyChange } from '../../../src/utils';
+import { applyChange } from '../../../src/common/utilities/utils';
 import * as functions from '../../../src/v1';
 import * as database from '../../../src/v1/providers/database';
 
