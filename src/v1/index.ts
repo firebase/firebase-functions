@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 // Providers:
+import * as logger from '../logger';
 import * as analytics from './providers/analytics';
 import * as auth from './providers/auth';
 import * as database from './providers/database';
@@ -32,15 +33,11 @@ import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 import * as testLab from './providers/testLab';
 
-import * as apps from '../common/apps';
-import * as logger from '../logger';
+import { setApp as setEmulatedAdminApp } from '../common/app';
 import { handler } from './handler-builder';
-
-const app = apps.apps();
 
 export {
   analytics,
-  app,
   auth,
   database,
   firestore,
@@ -53,6 +50,8 @@ export {
   testLab,
   logger,
 };
+
+export const app = { setEmulatedAdminApp };
 
 // Exported root types:
 export * from './cloud-functions';

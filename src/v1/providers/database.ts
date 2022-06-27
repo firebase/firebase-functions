@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { apps } from '../../common/apps';
+import { getApp } from '../../common/app';
 import { firebaseConfig } from '../../common/config';
 import { DataSnapshot } from '../../common/providers/database';
 import { normalizePath } from '../../common/utilities/path';
@@ -117,7 +117,6 @@ export class InstanceBuilder {
   ref(path: string): RefBuilder {
     const normalized = normalizePath(path);
     return new RefBuilder(
-      apps(),
       () => `projects/_/instances/${this.instance}/refs/${normalized}`,
       this.options
     );
@@ -161,7 +160,7 @@ export function _refWithOptions(
     return `projects/_/instances/${instance}/refs/${normalized}`;
   };
 
-  return new RefBuilder(apps(), resourceGetter, options);
+  return new RefBuilder(resourceGetter, options);
 }
 
 /**
@@ -172,7 +171,6 @@ export function _refWithOptions(
 export class RefBuilder {
   /** @hidden */
   constructor(
-    private apps: apps.Apps,
     private triggerResource: () => string,
     private options: DeploymentOptions
   ) {}
@@ -231,12 +229,7 @@ export class RefBuilder {
         raw.context.resource.name,
         raw.context.domain
       );
-      return new DataSnapshot(
-        raw.data.delta,
-        path,
-        this.apps.admin,
-        dbInstance
-      );
+      return new DataSnapshot(raw.data.delta, path, getApp(), dbInstance);
     };
     return this.onOperation(handler, 'ref.create', dataConstructor);
   }
@@ -260,7 +253,7 @@ export class RefBuilder {
         raw.context.resource.name,
         raw.context.domain
       );
-      return new DataSnapshot(raw.data.data, path, this.apps.admin, dbInstance);
+      return new DataSnapshot(raw.data.data, path, getApp(), dbInstance);
     };
     return this.onOperation(handler, 'ref.delete', dataConstructor);
   }
@@ -278,8 +271,6 @@ export class RefBuilder {
       legacyEventType: `providers/${provider}/eventTypes/${eventType}`,
       triggerResource: this.triggerResource,
       dataConstructor,
-      before: (event) => this.apps.retain(),
-      after: (event) => this.apps.release(),
       options: this.options,
     });
   }
@@ -289,16 +280,11 @@ export class RefBuilder {
       raw.context.resource.name,
       raw.context.domain
     );
-    const before = new DataSnapshot(
-      raw.data.data,
-      path,
-      this.apps.admin,
-      dbInstance
-    );
+    const before = new DataSnapshot(raw.data.data, path, getApp(), dbInstance);
     const after = new DataSnapshot(
       applyChange(raw.data.data, raw.data.delta),
       path,
-      this.apps.admin,
+      getApp(),
       dbInstance
     );
     return {

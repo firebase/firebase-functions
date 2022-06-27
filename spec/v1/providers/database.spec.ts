@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { apps as appsNamespace } from '../../../src/common/apps';
+import { getApp, setApp } from '../../../src/common/app';
 import * as config from '../../../src/common/config';
 import { applyChange } from '../../../src/common/utilities/utils';
 import * as functions from '../../../src/v1';
@@ -49,12 +49,11 @@ describe('Database Functions', () => {
       config.resetCache({
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
       });
-      appsNamespace.init();
     });
 
     after(() => {
-      config.resetCache();
-      delete appsNamespace.singleton;
+      config.resetCache(undefined);
+      setApp(undefined);
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -518,14 +517,13 @@ describe('Database Functions', () => {
 
   describe('DataSnapshot', () => {
     let subject: any;
-    const apps = new appsNamespace.Apps();
 
     const populate = (data: any) => {
       const [instance, path] = database.extractInstanceAndPath(
         'projects/_/instances/other-subdomain/refs/foo',
         'firebaseio-staging.com'
       );
-      subject = new database.DataSnapshot(data, path, apps.admin, instance);
+      subject = new database.DataSnapshot(data, path, getApp(), instance);
     };
 
     describe('#ref: firebase.database.Reference', () => {
@@ -835,7 +833,7 @@ describe('Database Functions', () => {
         const snapshot = new database.DataSnapshot(
           null,
           path,
-          apps.admin,
+          getApp(),
           instance
         );
         expect(snapshot.key).to.be.null;

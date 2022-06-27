@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
+import { DecodedIdToken } from 'firebase-admin/auth';
 
 import * as logger from '../../logger';
 import * as https from './https';
@@ -77,7 +77,7 @@ export interface RateLimits {
 /** Metadata about the authorization used to invoke a function. */
 export interface AuthData {
   uid: string;
-  token: firebase.auth.DecodedIdToken;
+  token: DecodedIdToken;
 }
 
 /** Metadata about a call to a Task Queue function. */

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { apps } from '../../common/apps';
+import { getApp } from '../../common/app';
 import { DataSnapshot } from '../../common/providers/database';
 import { normalizePath } from '../../common/utilities/path';
 import { PathPattern } from '../../common/utilities/path-pattern';
@@ -274,7 +274,7 @@ function makeDatabaseEvent(
   instance: string,
   params: Record<string, string>
 ): DatabaseEvent<DataSnapshot> {
-  const snapshot = new DataSnapshot(data, event.ref, apps().admin, instance);
+  const snapshot = new DataSnapshot(data, event.ref, getApp(), instance);
   const databaseEvent: DatabaseEvent<DataSnapshot> = {
     ...event,
     firebaseDatabaseHost: event.firebasedatabasehost,
@@ -294,13 +294,13 @@ function makeChangedDatabaseEvent(
   const before = new DataSnapshot(
     event.data.data,
     event.ref,
-    apps().admin,
+    getApp(),
     instance
   );
   const after = new DataSnapshot(
     applyChange(event.data.data, event.data.delta),
     event.ref,
-    apps().admin,
+    getApp(),
     instance
   );
   const databaseEvent: DatabaseEvent<Change<DataSnapshot>> = {

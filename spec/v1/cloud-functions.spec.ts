@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as _ from 'lodash';
 
 import {
   Change,
@@ -160,9 +159,10 @@ describe('makeCloudFunction', () => {
   });
 
   it('should construct the right context for event', () => {
-    const args: any = _.assign({}, cloudFunctionArgs, {
+    const args: any = {
+      ...cloudFunctionArgs,
       handler: (data: any, context: EventContext) => context,
-    });
+    };
     const cf = makeCloudFunction(args);
     const test: Event = {
       context: {
@@ -190,10 +190,11 @@ describe('makeCloudFunction', () => {
   });
 
   it('should throw error when context.params accessed in handler environment', () => {
-    const args: any = _.assign({}, cloudFunctionArgs, {
+    const args: any = {
+      ...cloudFunctionArgs,
       handler: (data: any, context: EventContext) => context,
       triggerResource: () => null,
-    });
+    };
     const cf = makeCloudFunction(args);
     const test: Event = {
       context: {
@@ -413,7 +414,9 @@ describe('Change', () => {
 
     it('should apply the customizer function to `before` and `after`', () => {
       function customizer<T>(input: any) {
-        _.set(input, 'another', 'value');
+        if (input) {
+          input.another = 'value';
+        }
         return input as T;
       }
       const created = Change.fromJSON<object>(

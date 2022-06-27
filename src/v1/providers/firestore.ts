@@ -20,11 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
-import * as _ from 'lodash';
+import * as firestore from 'firebase-admin/firestore';
 
 import { posix } from 'path';
-import { apps } from '../../common/apps';
+import { getApp } from '../../common/app';
 import { dateToTimestampProto } from '../../common/utilities/encoder';
 import * as logger from '../../logger';
 import {
@@ -43,8 +42,8 @@ export const service = 'firestore.googleapis.com';
 /** @hidden */
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
-export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
-export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+export type DocumentSnapshot = firestore.DocumentSnapshot;
+export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
 
 /**
  * Select the Firestore document to listen to for events.
@@ -130,19 +129,20 @@ export class NamespaceBuilder {
 }
 
 function _getValueProto(data: any, resource: string, valueFieldName: string) {
-  if (_.isEmpty(_.get(data, valueFieldName))) {
+  const value = data?.[valueFieldName];
+  if (
+    typeof value === 'undefined' ||
+    value === null ||
+    (typeof value === 'object' && !Object.keys(value).length)
+  ) {
     // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
     return resource;
   }
   const proto = {
-    fields: _.get(data, [valueFieldName, 'fields'], {}),
-    createTime: dateToTimestampProto(
-      _.get(data, [valueFieldName, 'createTime'])
-    ),
-    updateTime: dateToTimestampProto(
-      _.get(data, [valueFieldName, 'updateTime'])
-    ),
-    name: _.get(data, [valueFieldName, 'name'], resource),
+    fields: value?.fields || {},
+    createTime: dateToTimestampProto(value?.createTime),
+    updateTime: dateToTimestampProto(value?.updateTime),
+    name: value?.name || resource,
   };
   return proto;
 }
@@ -150,7 +150,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 /** @hidden */
 export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
-    firestoreInstance = firebase.firestore(apps().admin);
+    firestoreInstance = firestore.getFirestore(getApp());
   }
   const valueProto = _getValueProto(
     event.data,
@@ -158,8 +158,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
     'value'
   );
   let timeString =
-    _.get(event, 'data.value.readTime') ??
-    _.get(event, 'data.value.updateTime');
+    event?.data?.value?.readTime ?? event?.data?.value?.updateTime;
 
   if (!timeString) {
     logger.warn('Snapshot has no readTime. Using now()');
@@ -174,16 +173,14 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
 // TODO remove this function when wire format changes to new format
 export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
-    firestoreInstance = firebase.firestore(apps().admin);
+    firestoreInstance = firestore.getFirestore(getApp());
   }
   const oldValueProto = _getValueProto(
     event.data,
     event.context.resource.name,
     'oldValue'
   );
-  const oldReadTime = dateToTimestampProto(
-    _.get(event, 'data.oldValue.readTime')
-  );
+  const oldReadTime = dateToTimestampProto(event?.data?.oldValue?.readTime);
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
 }
 

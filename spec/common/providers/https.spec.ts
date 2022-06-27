@@ -1,8 +1,8 @@
 import { expect } from 'chai';
-import * as firebase from 'firebase-admin';
+import { App, deleteApp, initializeApp } from 'firebase-admin/app';
 import * as sinon from 'sinon';
 
-import { apps as appsNamespace } from '../../../src/common/apps';
+import { getApp, setApp } from '../../../src/common/app';
 import * as debug from '../../../src/common/debug';
 import * as https from '../../../src/common/providers/https';
 import * as mocks from '../../fixtures/credential/key.json';
@@ -76,7 +76,7 @@ async function runCallableTest(test: CallTest): Promise<any> {
 }
 
 describe('onCallHandler', () => {
-  let app: firebase.app.App;
+  let app: App;
 
   before(() => {
     const credential = {
@@ -92,16 +92,16 @@ describe('onCallHandler', () => {
         };
       },
     };
-    app = firebase.initializeApp({
+    app = initializeApp({
       projectId: 'aProjectId',
       credential,
     });
-    Object.defineProperty(appsNamespace(), 'admin', { get: () => app });
+    setApp(app);
   });
 
   after(() => {
-    app.delete();
-    delete appsNamespace.singleton;
+    deleteApp(app);
+    setApp(undefined);
   });
 
   it('should handle success', () => {
@@ -288,7 +288,7 @@ describe('onCallHandler', () => {
 
   it('should handle auth', async () => {
     const mock = mockFetchPublicKeys();
-    const projectId = appsNamespace().admin.options.projectId;
+    const projectId = getApp().options.projectId;
     const idToken = generateIdToken(projectId);
     await runCallableTest({
       httpRequest: mockRequest(null, 'application/json', {
@@ -313,7 +313,7 @@ describe('onCallHandler', () => {
   });
 
   it('should reject bad auth', async () => {
-    const projectId = appsNamespace().admin.options.projectId;
+    const projectId = getApp().options.projectId;
     const idToken = generateUnsignedIdToken(projectId);
     await runCallableTest({
       httpRequest: mockRequest(null, 'application/json', {
@@ -341,7 +341,7 @@ describe('onCallHandler', () => {
 
   it('should handle AppCheck token', async () => {
     const mock = mockFetchAppCheckPublicJwks();
-    const projectId = appsNamespace().admin.options.projectId;
+    const projectId = getApp().options.projectId;
     const appId = '123:web:abc';
     const appCheckToken = generateAppCheckToken(projectId, appId);
     await runCallableTest({
@@ -365,7 +365,7 @@ describe('onCallHandler', () => {
   });
 
   it('should reject bad AppCheck token', async () => {
-    const projectId = appsNamespace().admin.options.projectId;
+    const projectId = getApp().options.projectId;
     const appId = '123:web:abc';
     const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
     await runCallableTest({
@@ -536,7 +536,7 @@ describe('onCallHandler', () => {
     });
 
     it('should skip auth token verification', async () => {
-      const projectId = appsNamespace().admin.options.projectId;
+      const projectId = getApp().options.projectId;
       const idToken = generateUnsignedIdToken(projectId);
       await runCallableTest({
         httpRequest: mockRequest(null, 'application/json', {
@@ -560,7 +560,7 @@ describe('onCallHandler', () => {
     });
 
     it('should skip app check token verification', async () => {
-      const projectId = appsNamespace().admin.options.projectId;
+      const projectId = getApp().options.projectId;
       const appId = '123:web:abc';
       const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
       await runCallableTest({

@@ -20,8 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as _ from 'lodash';
-
 import {
   CloudFunction,
   Event,
@@ -143,7 +141,7 @@ export class AnalyticsEvent {
       // If there's an eventDim, there'll always be exactly one.
       const eventDim = wireFormat.eventDim[0];
       copyField(eventDim, this, 'name');
-      copyField(eventDim, this, 'params', (p) => _.mapValues(p, unwrapValue));
+      copyField(eventDim, this, 'params', (p) => mapKeys(p, unwrapValue));
       copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
       copyFieldTo(eventDim, this, 'date', 'reportingDate');
       copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
@@ -218,10 +216,19 @@ export class UserDimensions {
       'firstOpenTime'
     );
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, 'userProperties', (r) =>
-      _.mapValues(r, (p) => new UserPropertyValue(p))
+    copyField(wireFormat, this, 'userProperties', (r) => {
+      const entries = Object.entries(r).map(([k, v]) => [
+        k,
+        new UserPropertyValue(v),
+      ]);
+      return Object.fromEntries(entries);
+    });
+    copyField(
+      wireFormat,
+      this,
+      'bundleInfo',
+      (r) => new ExportBundleInfo(r) as any
     );
-    copyField(wireFormat, this, 'bundleInfo', (r) => new ExportBundleInfo(r));
 
     // BUG(36000368) Remove when no longer necessary
     /* tslint:disable:no-string-literal */
@@ -242,7 +249,7 @@ export class UserPropertyValue {
 
   /** @hidden */
   constructor(wireFormat: any) {
-    copyField(wireFormat, this, 'value', unwrapValueAsString);
+    copyField(wireFormat, this, 'value', unwrapValueAsString as any);
     copyTimestampToString(wireFormat, this, 'setTimestampUsec', 'setTime');
   }
 }
@@ -418,33 +425,64 @@ export class ExportBundleInfo {
 }
 
 /** @hidden */
-function copyFieldTo<T, K extends keyof T>(
-  from: any,
-  to: T,
-  fromField: string,
-  toField: K,
-  transform: (val: any) => T[K] = _.identity
+function copyFieldTo<
+  From extends object,
+  FromKey extends keyof From,
+  To extends object,
+  ToKey extends keyof To
+>(
+  from: From,
+  to: To,
+  fromField: FromKey,
+  toField: ToKey,
+  transform?: (val: Required<From>[FromKey]) => Required<To>[ToKey]
 ): void {
-  if (from[fromField] !== undefined) {
-    to[toField] = transform(from[fromField]);
+  if (typeof from[fromField] === 'undefined') {
+    return;
   }
+  if (transform) {
+    to[toField] = transform(from[fromField]);
+    return;
+  }
+  to[toField] = from[fromField] as any;
 }
 
 /** @hidden */
-function copyField<T, K extends keyof T>(
-  from: any,
-  to: T,
-  field: K,
-  transform: (val: any) => T[K] = _.identity
+function copyField<
+  From extends object,
+  To extends Object,
+  Key extends keyof From & keyof To
+>(
+  from: From,
+  to: To,
+  field: Key,
+  transform: (val: Required<From>[Key]) => Required<To>[Key] = (from) =>
+    from as any
 ): void {
-  copyFieldTo(from, to, field as string, field, transform);
+  copyFieldTo(from, to, field, field, transform);
 }
 
 /** @hidden */
-function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
+function copyFields<
+  From extends object,
+  To extends object,
+  Key extends keyof From & keyof To
+>(from: From, to: To, fields: Key[]): void {
   for (const field of fields) {
     copyField(from, to, field);
   }
+}
+
+type TransformedObject<
+  Obj extends Object,
+  Transform extends (key: keyof Obj) => any
+> = { [key in keyof Obj]: ReturnType<Transform> };
+function mapKeys<Obj extends Object, Transform extends (key: keyof Obj) => any>(
+  obj: Obj,
+  transform: Transform
+): TransformedObject<Obj, Transform> {
+  const entries = Object.entries(obj).map(([k, v]) => [k, transform(v)]);
+  return Object.fromEntries(entries);
 }
 
 // The incoming payload will have fields like:
@@ -478,8 +516,8 @@ function copyFields<T, K extends keyof T>(from: any, to: T, fields: K[]): void {
 // 'unwrapValue' method just below.
 /** @hidden */
 function unwrapValueAsString(wrapped: any): string {
-  const key: string = _.keys(wrapped)[0];
-  return _.toString(wrapped[key]);
+  const key: string = Object.keys(wrapped)[0];
+  return wrapped[key].toString();
 }
 
 // Ditto as the method above, but returning the values in the idiomatic JavaScript type (string for strings,
@@ -500,9 +538,9 @@ const xValueNumberFields = ['intValue', 'floatValue', 'doubleValue'];
 
 /** @hidden */
 function unwrapValue(wrapped: any): any {
-  const key: string = _.keys(wrapped)[0];
+  const key: string = Object.keys(wrapped)[0];
   const value: string = unwrapValueAsString(wrapped);
-  return _.includes(xValueNumberFields, key) ? _.toNumber(value) : value;
+  return xValueNumberFields.includes(key) ? Number(value) : value;
 }
 
 // The JSON payload delivers timestamp fields as strings of timestamps denoted in microseconds.
@@ -516,7 +554,7 @@ function copyTimestampToMillis<T, K extends keyof T>(
   toName: K
 ) {
   if (from[fromName] !== undefined) {
-    to[toName] = _.round(from[fromName] / 1000) as any;
+    to[toName] = Math.round(from[fromName] / 1000) as any;
   }
 }
 

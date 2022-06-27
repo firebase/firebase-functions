@@ -20,25 +20,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/** @hidden */
-import * as _ from 'lodash';
+function isObject(obj: any): boolean {
+  return typeof obj === 'object' && !!obj;
+}
 
+/** @hidden */
 export function applyChange(src: any, dest: any) {
   // if not mergeable, don't merge
-  if (!_.isPlainObject(dest) || !_.isPlainObject(src)) {
+  if (!isObject(dest) || !isObject(src)) {
     return dest;
   }
 
-  return pruneNulls(_.merge({}, src, dest));
+  return merge(src, dest);
 }
 
-export function pruneNulls(obj: any) {
-  for (const key in obj) {
-    if (obj[key] === null) {
-      delete obj[key];
-    } else if (_.isPlainObject(obj[key])) {
-      pruneNulls(obj[key]);
+function merge(
+  src: Record<string, any>,
+  dest: Record<string, any>
+): Record<string, any> {
+  const res: Record<string, any> = {};
+  const keys = new Set([...Object.keys(src), ...Object.keys(dest)]);
+
+  for (const key of keys.values()) {
+    if (key in dest) {
+      if (dest[key] === null) {
+        continue;
+      }
+      res[key] = applyChange(src[key], dest[key]);
+    } else if (src[key] !== null) {
+      res[key] = src[key];
     }
   }
-  return obj;
+  return res;
 }
