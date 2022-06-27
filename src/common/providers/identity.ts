@@ -22,8 +22,8 @@
 
 import * as express from 'express';
 import * as auth from 'firebase-admin/auth';
-import { logger } from '../..';
-import { EventContext } from '../../cloud-functions';
+import * as logger from '../../logger';
+import { EventContext } from '../../v1/cloud-functions';
 import { getApp } from '../app';
 import { isDebugFeatureEnabled } from '../debug';
 import { HttpsError, unsafeDecodeToken } from './https';

@@ -21,14 +21,14 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
+import { UserRecord } from '../../../src/common/providers/identity';
+import * as functions from '../../../src/v1';
 import {
   CloudFunction,
   Event,
   EventContext,
-} from '../../../src/cloud-functions';
-import { UserRecord } from '../../../src/common/providers/identity';
-import * as functions from '../../../src/index';
-import * as auth from '../../../src/providers/auth';
+} from '../../../src/v1/cloud-functions';
+import * as auth from '../../../src/v1/providers/auth';
 
 describe('Auth Functions', () => {
   const event: Event = {
@@ -50,16 +50,6 @@ describe('Auth Functions', () => {
   };
 
   describe('AuthBuilder', () => {
-    function expectedTrigger(project: string, eventType: string) {
-      return {
-        eventTrigger: {
-          resource: `projects/${project}`,
-          eventType: `providers/firebase.auth/eventTypes/${eventType}`,
-          service: 'firebaseauth.googleapis.com',
-        },
-      };
-    }
-
     function expectedEndpoint(project: string, eventType: string) {
       return {
         platform: 'gcfv1',
@@ -98,9 +88,9 @@ describe('Auth Functions', () => {
         .auth.user()
         .onCreate(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -110,10 +100,6 @@ describe('Auth Functions', () => {
     describe('#onCreate', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onCreate(() => null);
-
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(project, 'user.create')
-        );
 
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(project, 'user.create')
@@ -125,10 +111,6 @@ describe('Auth Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = auth.user().onDelete(handler);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(project, 'user.delete')
-        );
-
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(project, 'user.delete')
         );
@@ -139,17 +121,6 @@ describe('Auth Functions', () => {
       it('should create the function without options', () => {
         const fn = auth.user().beforeCreate((u, c) => Promise.resolve());
 
-        expect(fn.__trigger).to.deep.equal({
-          labels: {},
-          blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
-            options: {
-              accessToken: false,
-              idToken: false,
-              refreshToken: false,
-            },
-          },
-        });
         expect(fn.__endpoint).to.deep.equal({
           platform: 'gcfv1',
           labels: {},
@@ -185,20 +156,6 @@ describe('Auth Functions', () => {
           })
           .beforeCreate((u, c) => Promise.resolve());
 
-        expect(fn.__trigger).to.deep.equal({
-          labels: {},
-          regions: ['us-east1'],
-          availableMemoryMb: 256,
-          timeout: '90s',
-          blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
-            options: {
-              accessToken: true,
-              idToken: false,
-              refreshToken: false,
-            },
-          },
-        });
         expect(fn.__endpoint).to.deep.equal({
           platform: 'gcfv1',
           labels: {},
@@ -227,17 +184,6 @@ describe('Auth Functions', () => {
       it('should create the function without options', () => {
         const fn = auth.user().beforeSignIn((u, c) => Promise.resolve());
 
-        expect(fn.__trigger).to.deep.equal({
-          labels: {},
-          blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
-            options: {
-              accessToken: false,
-              idToken: false,
-              refreshToken: false,
-            },
-          },
-        });
         expect(fn.__endpoint).to.deep.equal({
           platform: 'gcfv1',
           labels: {},
@@ -273,20 +219,6 @@ describe('Auth Functions', () => {
           })
           .beforeSignIn((u, c) => Promise.resolve());
 
-        expect(fn.__trigger).to.deep.equal({
-          labels: {},
-          regions: ['us-east1'],
-          availableMemoryMb: 256,
-          timeout: '90s',
-          blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
-            options: {
-              accessToken: true,
-              idToken: false,
-              refreshToken: false,
-            },
-          },
-        });
         expect(fn.__endpoint).to.deep.equal({
           platform: 'gcfv1',
           labels: {},
@@ -337,11 +269,6 @@ describe('Auth Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onCreate', () => {
-      it('should return an empty trigger', () => {
-        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-      });
-
       it('should return an empty endpoint', () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
         expect(cloudFunction.__endpoint).to.be.undefined;
@@ -352,11 +279,6 @@ describe('Auth Functions', () => {
       const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
         (data: UserRecord) => data
       );
-
-      it('should return an empty trigger', () => {
-        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-      });
 
       it('should return an empty endpoint', () => {
         const cloudFunction = functions.handler.auth.user.onDelete(() => null);
@@ -379,12 +301,8 @@ describe('Auth Functions', () => {
   });
 
   describe('process.env.GCLOUD_PROJECT not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
+    it('should not throw if __endpoint is not accessed', () => {
       expect(() => auth.user().onCreate(() => null)).to.not.throw(Error);
-    });
-
-    it('should throw when trigger is accessed', () => {
-      expect(() => auth.user().onCreate(() => null).__trigger).to.throw(Error);
     });
 
     it('should throw when endpoint is accessed', () => {

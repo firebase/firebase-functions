@@ -22,8 +22,8 @@
 
 import { App } from 'firebase-admin/app';
 import * as database from 'firebase-admin/database';
-import { firebaseConfig } from '../../config';
-import { joinPath, pathParts } from '../../utilities/path';
+import { firebaseConfig } from '../../common/config';
+import { joinPath, pathParts } from '../../common/utilities/path';
 
 /**
  * Interface representing a Firebase Realtime database data snapshot.

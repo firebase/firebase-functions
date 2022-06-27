@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { normalizePath, pathParts } from '../../src/utilities/path';
+import { normalizePath, pathParts } from '../../../src/common/utilities/path';
 
 describe('utilities', () => {
   describe('path', () => {

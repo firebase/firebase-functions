@@ -22,9 +22,9 @@
 
 import { expect } from 'chai';
 
-import * as functions from '../../../src';
-import { Event, EventContext } from '../../../src/cloud-functions';
-import * as analytics from '../../../src/providers/analytics';
+import * as functions from '../../../src/v1';
+import { Event, EventContext } from '../../../src/v1/cloud-functions';
+import * as analytics from '../../../src/v1/providers/analytics';
 import * as analytics_spec_input from './analytics.spec.input';
 
 describe('Analytics Functions', () => {
@@ -47,10 +47,6 @@ describe('Analytics Functions', () => {
         .analytics.event('event')
         .onLog((event) => event);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
-
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
@@ -59,15 +55,6 @@ describe('Analytics Functions', () => {
     describe('#onLog', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const cloudFunction = analytics.event('first_open').onLog(() => null);
-
-        expect(cloudFunction.__trigger).to.deep.equal({
-          eventTrigger: {
-            eventType:
-              'providers/google.firebase.analytics/eventTypes/event.log',
-            resource: 'projects/project1/events/first_open',
-            service: 'app-measurement.com',
-          },
-        });
 
         expect(cloudFunction.__endpoint).to.deep.equal({
           platform: 'gcfv1',
@@ -322,11 +309,10 @@ describe('Analytics Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onLog', () => {
-      it('should return an empty trigger/endpoint', () => {
+      it('should return an empty endpoint', () => {
         const cloudFunction = functions.handler.analytics.event.onLog(
           () => null
         );
-        expect(cloudFunction.__trigger).to.deep.equal({});
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
@@ -369,15 +355,15 @@ describe('Analytics Functions', () => {
   });
 
   describe('process.env.GCLOUD_PROJECT not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
+    it('should not throw if __endpoint is not accessed', () => {
       expect(() => analytics.event('event').onLog(() => null)).to.not.throw(
         Error
       );
     });
 
-    it('should throw when trigger is accessed', () => {
+    it('should throw when __endpoint is accessed', () => {
       expect(
-        () => analytics.event('event').onLog(() => null).__trigger
+        () => analytics.event('event').onLog(() => null).__endpoint
       ).to.throw(Error);
     });
 

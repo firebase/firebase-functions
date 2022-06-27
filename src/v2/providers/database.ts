@@ -20,13 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Change } from '../../cloud-functions';
 import { getApp } from '../../common/app';
 import { DataSnapshot } from '../../common/providers/database';
+import { normalizePath } from '../../common/utilities/path';
+import { PathPattern } from '../../common/utilities/path-pattern';
+import { applyChange } from '../../common/utilities/utils';
 import { ManifestEndpoint } from '../../runtime/manifest';
-import { normalizePath } from '../../utilities/path';
-import { PathPattern } from '../../utilities/path-pattern';
-import { applyChange } from '../../utils';
+import { Change } from '../../v1/cloud-functions';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
 

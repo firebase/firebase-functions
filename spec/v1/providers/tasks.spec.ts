@@ -22,8 +22,8 @@
 
 import { expect } from 'chai';
 
-import * as functions from '../../../src';
-import { taskQueue } from '../../../src/providers/tasks';
+import * as functions from '../../../src/v1';
+import { taskQueue } from '../../../src/v1/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
 
@@ -43,23 +43,6 @@ describe('#onDispatch', () => {
       },
       invoker: 'private',
     }).onDispatch(() => {});
-
-    expect(result.__trigger).to.deep.equal({
-      taskQueueTrigger: {
-        rateLimits: {
-          maxConcurrentDispatches: 30,
-          maxDispatchesPerSecond: 40,
-        },
-        retryConfig: {
-          maxAttempts: 5,
-          maxRetrySeconds: 10,
-          maxBackoffSeconds: 20,
-          maxDoublings: 3,
-          minBackoffSeconds: 5,
-        },
-        invoker: ['private'],
-      },
-    });
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv1',
@@ -89,17 +72,6 @@ describe('#onDispatch', () => {
       })
       .tasks.taskQueue({ retryConfig: { maxAttempts: 5 } })
       .onDispatch(() => null);
-
-    expect(fn.__trigger).to.deep.equal({
-      regions: ['us-east1'],
-      availableMemoryMb: 256,
-      timeout: '90s',
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: 5,
-        },
-      },
-    });
 
     expect(fn.__endpoint).to.deep.equal({
       platform: 'gcfv1',
@@ -160,7 +132,6 @@ describe('#onDispatch', () => {
 describe('handler namespace', () => {
   it('should return an empty trigger', () => {
     const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
-    expect(result.__trigger).to.deep.equal({});
     expect(result.__endpoint).to.be.undefined;
   });
 });

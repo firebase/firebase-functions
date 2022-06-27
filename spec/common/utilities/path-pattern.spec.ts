@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import { expect } from 'chai';
-import * as pathPattern from '../../src/utilities/path-pattern';
+import * as pathPattern from '../../../src/common/utilities/path-pattern';
 
 describe('path-pattern', () => {
   describe('trimParam', () => {

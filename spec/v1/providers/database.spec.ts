@@ -22,24 +22,14 @@
 
 import { expect } from 'chai';
 import { getApp, setApp } from '../../../src/common/app';
-import * as config from '../../../src/config';
-import * as functions from '../../../src/index';
-import * as database from '../../../src/providers/database';
-import { applyChange } from '../../../src/utils';
+import * as config from '../../../src/common/config';
+import { applyChange } from '../../../src/common/utilities/utils';
+import * as functions from '../../../src/v1';
+import * as database from '../../../src/v1/providers/database';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
     // TODO add tests for building a data or change based on the type of operation
-
-    function expectedTrigger(resource: string, eventType: string) {
-      return {
-        eventTrigger: {
-          resource,
-          eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
-          service: 'firebaseio.com',
-        },
-      };
-    }
 
     function expectedEndpoint(resource: string, eventType: string) {
       return {
@@ -56,13 +46,13 @@ describe('Database Functions', () => {
     }
 
     before(() => {
-      (config as any).firebaseConfigCache = {
+      config.resetCache({
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
-      };
+      });
     });
 
     after(() => {
-      (config as any).firebaseConfigCache = null;
+      config.resetCache(undefined);
       setApp(undefined);
     });
 
@@ -76,9 +66,9 @@ describe('Database Functions', () => {
         .database.ref('/')
         .onCreate((snap) => snap);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -86,15 +76,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onWrite()', () => {
-      it('should return a trigger/endpoint with appropriate values', () => {
+      it('should return a endpoint with appropriate values', () => {
         const func = database.ref('foo').onWrite(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.write'
-          )
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
@@ -109,10 +92,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onWrite(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.write')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.write')
@@ -147,13 +126,6 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onCreate(() => null);
 
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.create'
-          )
-        );
-
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
             'projects/_/instances/subdomain/refs/foo',
@@ -167,10 +139,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onCreate(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.create')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.create')
@@ -206,13 +174,6 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onUpdate(() => null);
 
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.update'
-          )
-        );
-
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
             'projects/_/instances/subdomain/refs/foo',
@@ -226,10 +187,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onUpdate(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.update')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.update')
@@ -265,13 +222,6 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onDelete(() => null);
 
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.delete'
-          )
-        );
-
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
             'projects/_/instances/subdomain/refs/foo',
@@ -285,10 +235,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onDelete(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.delete')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.delete')
@@ -323,9 +269,8 @@ describe('Database Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onWrite()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets __endpoint to undefind', () => {
         const cf = functions.handler.database.ref.onWrite(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -333,7 +278,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onWrite(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -363,9 +307,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onCreate()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets endpoint to undefined', () => {
         const cf = functions.handler.database.ref.onCreate(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -373,7 +316,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onCreate(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -402,9 +344,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onUpdate()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets endpoint to undefined', () => {
         const cf = functions.handler.database.ref.onUpdate(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -412,7 +353,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onUpdate(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -441,9 +381,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onDelete()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets endpoint to undefined', () => {
         const cf = functions.handler.database.ref.onDelete(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -451,7 +390,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onDelete(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -482,16 +420,10 @@ describe('Database Functions', () => {
   });
 
   describe('process.env.FIREBASE_CONFIG not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
+    it('should not throw if __endpoint is not accessed', () => {
       expect(() => database.ref('/path').onWrite(() => null)).to.not.throw(
         Error
       );
-    });
-
-    it('should throw when trigger is accessed', () => {
-      expect(
-        () => database.ref('/path').onWrite(() => null).__trigger
-      ).to.throw(Error);
     });
 
     it('should throw when endpoint is accessed', () => {

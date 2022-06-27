@@ -27,7 +27,7 @@ import {
   getApp as getAppNamed,
   initializeApp,
 } from 'firebase-admin/app';
-import { firebaseConfig } from '../config';
+import { firebaseConfig } from './config';
 
 const APP_NAME = '__FIREBASE_FUNCTIONS_SDK__';
 

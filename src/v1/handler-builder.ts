@@ -69,7 +69,6 @@ export class HandlerBuilder {
         handler: (req: express.Request, resp: express.Response) => void
       ): HttpsFunction => {
         const func = https._onRequestWithOptions(handler, {});
-        func.__trigger = {};
         func.__endpoint = undefined;
         func.__requiredAPIs = undefined;
         return func;
@@ -81,7 +80,6 @@ export class HandlerBuilder {
         ) => any | Promise<any>
       ): HttpsFunction => {
         const func = https._onCallWithOptions(handler, {});
-        func.__trigger = {};
         func.__endpoint = undefined;
         func.__requiredAPIs = undefined;
         return func;
@@ -110,7 +108,6 @@ export class HandlerBuilder {
           ): HttpsFunction => {
             const builder = new tasks.TaskQueueBuilder();
             const func = builder.onDispatch(handler);
-            func.__trigger = {};
             func.__endpoint = undefined;
             func.__requiredAPIs = undefined;
             return func;
