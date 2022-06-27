@@ -21,8 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as admin from 'firebase-admin';
-import * as _ from 'lodash';
+import { Timestamp } from 'firebase-admin/firestore';
 
 import * as functions from '../../../src/index';
 import * as firestore from '../../../src/providers/firestore';
@@ -41,18 +40,16 @@ describe('Firestore Functions', () => {
     context = context || {};
     return {
       data,
-      context: _.merge(
-        {
-          eventId: '123',
-          timestamp: '2018-07-03T00:49:04.264Z',
-          eventType: 'google.firestore.document.create',
-          resource: {
-            name: 'projects/myproj/databases/(default)/documents/tests/test1',
-            service: 'service',
-          },
+      context: {
+        eventId: '123',
+        timestamp: '2018-07-03T00:49:04.264Z',
+        eventType: 'google.firestore.document.create',
+        resource: {
+          name: 'projects/myproj/databases/(default)/documents/tests/test1',
+          service: 'service',
         },
-        context
-      ),
+        ...context,
+      },
     };
   }
 
@@ -521,7 +518,7 @@ describe('Firestore Functions', () => {
             value: raw,
           })
         );
-        expect(_.get(snapshot.data(), 'referenceVal').path).to.equal('doc1/id');
+        expect(snapshot.data()?.referenceVal?.path).to.equal('doc1/id');
       });
 
       it('should parse timestamp values with precision to the millisecond', () => {
@@ -536,7 +533,7 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          timestampVal: admin.firestore.Timestamp.fromDate(
+          timestampVal: Timestamp.fromDate(
             new Date('2017-06-13T00:58:40.349Z')
           ),
         });
@@ -554,9 +551,7 @@ describe('Firestore Functions', () => {
           })
         );
         expect(snapshot.data()).to.deep.equal({
-          timestampVal: admin.firestore.Timestamp.fromDate(
-            new Date('2017-06-13T00:58:40Z')
-          ),
+          timestampVal: Timestamp.fromDate(new Date('2017-06-13T00:58:40Z')),
         });
       });
 

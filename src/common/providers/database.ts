@@ -20,18 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firebase from 'firebase-admin';
+import { App } from 'firebase-admin/app';
+import * as database from 'firebase-admin/database';
 import { firebaseConfig } from '../../config';
 import { joinPath, pathParts } from '../../utilities/path';
 
 /**
  * Interface representing a Firebase Realtime database data snapshot.
  */
-export class DataSnapshot implements firebase.database.DataSnapshot {
+export class DataSnapshot implements database.DataSnapshot {
   public instance: string;
 
   /** @hidden */
-  private _ref: firebase.database.Reference;
+  private _ref: database.Reference;
 
   /** @hidden */
   private _path: string;
@@ -45,7 +46,7 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
   constructor(
     data: any,
     path?: string, // path is undefined for the database root
-    private app?: firebase.app.App,
+    private app?: App,
     instance?: string
   ) {
     const config = firebaseConfig();
@@ -75,7 +76,7 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
    * to the database location where the triggering write occurred. Has
    * full read and write access.
    */
-  get ref(): firebase.database.Reference {
+  get ref(): database.Reference {
     if (!this.app) {
       // may be unpopulated in user's unit tests
       throw new Error(
@@ -84,7 +85,13 @@ export class DataSnapshot implements firebase.database.DataSnapshot {
       );
     }
     if (!this._ref) {
-      this._ref = this.app.database(this.instance).ref(this._fullPath());
+      let db: database.Database;
+      if (this.instance) {
+        db = database.getDatabaseWithUrl(this.instance, this.app);
+      } else {
+        db = database.getDatabase(this.app);
+      }
+      this._ref = db.ref(this._fullPath());
     }
     return this._ref;
   }
