@@ -21,18 +21,6 @@
 // SOFTWARE.
 
 /**
- * The Functions interface for events that change state, such as
- * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
- *
- * For more information about the format used to construct `Change` objects, see
- * {@link ChangeJson} below.
- *
- */
-export class Change<T> {
-  constructor(public before: T, public after: T) {}
-}
-
-/**
  * `ChangeJson` is the JSON format used to construct a Change object.
  */
 export interface ChangeJson {
@@ -52,13 +40,49 @@ export interface ChangeJson {
   fieldMask?: string;
 }
 
-export namespace Change {
+/** @hidden */
+export function applyFieldMask(
+  sparseBefore: any,
+  after: any,
+  fieldMask: string
+) {
+  const before = { ...after };
+  const masks = fieldMask.split(',');
+
+  for (const mask of masks) {
+    const parts = mask.split('.');
+    const head = parts[0];
+    const tail = parts.slice(1).join('.');
+    if (parts.length > 1) {
+      before[head] = applyFieldMask(sparseBefore?.[head], after[head], tail);
+      continue;
+    }
+    const val = sparseBefore?.[head];
+    if (typeof val === 'undefined') {
+      delete before[mask];
+    } else {
+      before[mask] = val;
+    }
+  }
+
+  return before;
+}
+
+/**
+ * The Functions interface for events that change state, such as
+ * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
+ *
+ * For more information about the format used to construct `Change` objects, see
+ * {@link ChangeJson} below.
+ *
+ */
+export class Change<T> {
   /**
    * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
    * object.
    */
-  export function fromObjects<T>(before: T, after: T) {
+  static fromObjects<T>(before: T, after: T) {
     return new Change(before, after);
   }
 
@@ -67,7 +91,7 @@ export namespace Change {
    * Factory method for creating a Change from a JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */
-  export function fromJSON<T>(
+  static fromJSON<T>(
     json: ChangeJson,
     customizer: (x: any) => T = (x) => x as T
   ): Change<T> {
@@ -81,32 +105,5 @@ export namespace Change {
       customizer(json.after || {})
     );
   }
-
-  /** @hidden */
-  export function applyFieldMask(
-    sparseBefore: any,
-    after: any,
-    fieldMask: string
-  ) {
-    const before = { ...after };
-    const masks = fieldMask.split(',');
-
-    for (const mask of masks) {
-      const parts = mask.split('.');
-      const head = parts[0];
-      const tail = parts.slice(1).join('.');
-      if (parts.length > 1) {
-        before[head] = applyFieldMask(sparseBefore?.[head], after[head], tail);
-        continue;
-      }
-      const val = sparseBefore?.[head];
-      if (typeof val === 'undefined') {
-        delete before[mask];
-      } else {
-        before[mask] = val;
-      }
-    }
-
-    return before;
-  }
+  constructor(public before: T, public after: T) {}
 }

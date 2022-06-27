@@ -31,7 +31,7 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import { Change } from '../common/core';
+import { Change } from '../common/change';
 import { dateToTimestampProto } from '../encoder';
 import { DeploymentOptions } from '../function-configuration';
 import * as logger from '../logger';

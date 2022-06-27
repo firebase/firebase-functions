@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { Change } from '../../src/common/core';
+import * as change from '../../src/common/change';
 
 describe('Change', () => {
   describe('applyFieldMask', () => {
@@ -38,7 +38,7 @@ describe('Change', () => {
       const sparseBefore = { baz: 'qux' };
       const fieldMask = 'baz';
       expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
+        change.applyFieldMask(sparseBefore, after, fieldMask)
       ).to.deep.equal({
         foo: 'bar',
         num: 2,
@@ -54,7 +54,7 @@ describe('Change', () => {
       const sparseBefore = {};
       const fieldMask = 'num,obj.a';
       expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
+        change.applyFieldMask(sparseBefore, after, fieldMask)
       ).to.deep.equal({
         foo: 'bar',
         obj: {
@@ -72,7 +72,7 @@ describe('Change', () => {
       };
       const fieldMask = 'num,obj.a';
       expect(
-        Change.applyFieldMask(sparseBefore, after, fieldMask)
+        change.applyFieldMask(sparseBefore, after, fieldMask)
       ).to.deep.equal({
         foo: 'bar',
         num: 3,
@@ -86,11 +86,11 @@ describe('Change', () => {
 
   describe('fromJSON', () => {
     it('should create a Change object with a `before` and `after`', () => {
-      const created = Change.fromJSON<any>({
+      const created = change.Change.fromJSON<any>({
         before: { foo: 'bar' },
         after: { foo: 'faz' },
       });
-      expect(created instanceof Change).to.equal(true);
+      expect(created instanceof change.Change).to.equal(true);
       expect(created.before).to.deep.equal({ foo: 'bar' });
       expect(created.after).to.deep.equal({ foo: 'faz' });
     });
@@ -98,10 +98,9 @@ describe('Change', () => {
     it('should apply the customizer function to `before` and `after`', () => {
       function customizer<T>(input: any) {
         input.another = 'value';
-        // _.set(input, 'another', 'value');
         return input as T;
       }
-      const created = Change.fromJSON<object>(
+      const created = change.Change.fromJSON<object>(
         {
           before: { foo: 'bar' },
           after: { foo: 'faz' },

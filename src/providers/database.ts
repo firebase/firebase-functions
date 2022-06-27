@@ -27,14 +27,14 @@ import {
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
-import { Change } from '../common/core';
+import { Change } from '../common/change';
 import { DataSnapshot } from '../common/providers/database';
 import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';
 import { normalizePath } from '../utilities/path';
 import { applyChange } from '../utils';
 
-export { DataSnapshot, Change };
+export { DataSnapshot };
 
 /** @hidden */
 export const provider = 'google.firebase.database';
