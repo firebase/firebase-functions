@@ -61,7 +61,7 @@ export interface RawRTDBCloudEvent extends CloudEvent<RawRTDBCloudEventData> {
 }
 
 /** A CloudEvent that contains a DataSnapshot or a Change<DataSnapshot> */
-export interface DatabaseEvent<T, PathPattern extends string = string>
+export interface DatabaseEvent<T, Params = Record<string, string>>
   extends CloudEvent<T> {
   /** The domain of the database instance */
   firebaseDatabaseHost: string;
@@ -75,7 +75,7 @@ export interface DatabaseEvent<T, PathPattern extends string = string>
    * An object containing the values of the path patterns.
    * Only named capture groups will be populated - {key}, {key=*}, {key=**}
    */
-  params: ParamsOf<PathPattern>;
+  params: Params;
 }
 
 /** ReferenceOptions extend EventHandlerOptions with provided ref and optional instance  */
@@ -200,9 +200,9 @@ export interface ReferenceOptions<
 export function onValueWritten<Ref extends string>(
   ref: Ref,
   handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, Ref>
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>
   ) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
  * Event handler which triggers when data is created, updated, or deleted in Realtime Database.
@@ -213,9 +213,9 @@ export function onValueWritten<Ref extends string>(
 export function onValueWritten<Ref extends string, Instance extends string>(
   opts: ReferenceOptions<Ref, Instance>,
   handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, Ref | Instance>
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
   ) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>>;
 
 /**
  * Event handler which triggers when data is created, updated, or deleted in Realtime Database.
@@ -223,10 +223,14 @@ export function onValueWritten<Ref extends string, Instance extends string>(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
  */
-export function onValueWritten(
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
+export function onValueWritten<Ref extends string, Instance extends string>(
+  referenceOrOpts: Ref | ReferenceOptions<Ref, Instance>,
+  handler: (
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
+  ) => any | Promise<any>
+): CloudFunction<
+  DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
+> {
   return onChangedOperation(writtenEventType, referenceOrOpts, handler);
 }
 
@@ -238,8 +242,10 @@ export function onValueWritten(
  */
 export function onValueCreated<Ref extends string>(
   ref: Ref,
-  handler: (event: DatabaseEvent<DataSnapshot, Ref>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>>;
+  handler: (
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>
+  ) => any | Promise<any>
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
  * Event handler which triggers when data is created in Realtime Database.
@@ -250,9 +256,9 @@ export function onValueCreated<Ref extends string>(
 export function onValueCreated<Ref extends string, Instance extends string>(
   opts: ReferenceOptions<Ref, Instance>,
   handler: (
-    event: DatabaseEvent<DataSnapshot, Ref | Instance>
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>
   ) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>>;
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>>;
 
 /**
  * Event handler which triggers when data is created in Realtime Database.
@@ -260,10 +266,12 @@ export function onValueCreated<Ref extends string, Instance extends string>(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database create occurs.
  */
-export function onValueCreated(
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>> {
+export function onValueCreated<Ref extends string, Instance extends string>(
+  referenceOrOpts: Ref | ReferenceOptions<Ref, Instance>,
+  handler: (
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>
+  ) => any | Promise<any>
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>> {
   return onOperation(createdEventType, referenceOrOpts, handler);
 }
 
@@ -276,9 +284,9 @@ export function onValueCreated(
 export function onValueUpdated<Ref extends string>(
   ref: Ref,
   handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, Ref>
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>
   ) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
  * Event handler which triggers when data is updated in Realtime Database.
@@ -289,9 +297,9 @@ export function onValueUpdated<Ref extends string>(
 export function onValueUpdated<Ref extends string, Instance extends string>(
   opts: ReferenceOptions<Ref, Instance>,
   handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, Ref | Instance>
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
   ) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
+): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>>;
 
 /**
  * Event handler which triggers when data is updated in Realtime Database.
@@ -299,10 +307,14 @@ export function onValueUpdated<Ref extends string, Instance extends string>(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database update occurs.
  */
-export function onValueUpdated(
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
+export function onValueUpdated<Ref extends string, Instance extends string>(
+  referenceOrOpts: Ref | ReferenceOptions<Ref, Instance>,
+  handler: (
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
+  ) => any | Promise<any>
+): CloudFunction<
+  DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
+> {
   return onChangedOperation(updatedEventType, referenceOrOpts, handler);
 }
 
@@ -314,8 +326,10 @@ export function onValueUpdated(
  */
 export function onValueDeleted<Ref extends string>(
   ref: Ref,
-  handler: (event: DatabaseEvent<DataSnapshot, Ref>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>>;
+  handler: (
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>
+  ) => any | Promise<any>
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
  * Event handler which triggers when data is deleted in Realtime Database.
@@ -326,9 +340,9 @@ export function onValueDeleted<Ref extends string>(
 export function onValueDeleted<Ref extends string, Instance extends string>(
   opts: ReferenceOptions<Ref, Instance>,
   handler: (
-    event: DatabaseEvent<DataSnapshot, Ref | Instance>
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>
   ) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>>;
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>>;
 
 /**
  * Event handler which triggers when data is deleted in Realtime Database.
@@ -336,10 +350,12 @@ export function onValueDeleted<Ref extends string, Instance extends string>(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
  */
-export function onValueDeleted(
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>> {
+export function onValueDeleted<Ref extends string, Instance extends string>(
+  referenceOrOpts: Ref | ReferenceOptions<Ref, Instance>,
+  handler: (
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>
+  ) => any | Promise<any>
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>> {
   // TODO - need to use event.data.delta
   return onOperation(deletedEventType, referenceOrOpts, handler);
 }
@@ -379,14 +395,14 @@ export function makeParams(
 }
 
 /** @hidden */
-function makeDatabaseEvent(
+function makeDatabaseEvent<Params>(
   event: RawRTDBCloudEvent,
   data: any,
   instance: string,
-  params: Record<string, string>
-): DatabaseEvent<DataSnapshot> {
+  params: Params
+): DatabaseEvent<DataSnapshot, Params> {
   const snapshot = new DataSnapshot(data, event.ref, getApp(), instance);
-  const databaseEvent: DatabaseEvent<DataSnapshot> = {
+  const databaseEvent: DatabaseEvent<DataSnapshot, Params> = {
     ...event,
     firebaseDatabaseHost: event.firebasedatabasehost,
     data: snapshot,
@@ -397,11 +413,11 @@ function makeDatabaseEvent(
 }
 
 /** @hidden */
-function makeChangedDatabaseEvent(
+function makeChangedDatabaseEvent<Params>(
   event: RawRTDBCloudEvent,
   instance: string,
-  params: Record<string, string>
-): DatabaseEvent<Change<DataSnapshot>> {
+  params: Params
+): DatabaseEvent<Change<DataSnapshot>, Params> {
   const before = new DataSnapshot(
     event.data.data,
     event.ref,
@@ -414,7 +430,7 @@ function makeChangedDatabaseEvent(
     getApp(),
     instance
   );
-  const databaseEvent: DatabaseEvent<Change<DataSnapshot>> = {
+  const databaseEvent: DatabaseEvent<Change<DataSnapshot>, Params> = {
     ...event,
     firebaseDatabaseHost: event.firebasedatabasehost,
     data: {
@@ -464,11 +480,15 @@ export function makeEndpoint(
 }
 
 /** @internal */
-export function onChangedOperation(
+export function onChangedOperation<Ref extends string, Instance extends string>(
   eventType: string,
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
+  referenceOrOpts: Ref | ReferenceOptions<Ref, Instance>,
+  handler: (
+    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
+  ) => any | Promise<any>
+): CloudFunction<
+  DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref | Instance>>
+> {
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
@@ -478,7 +498,11 @@ export function onChangedOperation(
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
-    const params = makeParams(event, pathPattern, instancePattern);
+    const params = makeParams(
+      event,
+      pathPattern,
+      instancePattern
+    ) as unknown as ParamsOf<Ref | Instance>;
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
     return handler(databaseEvent);
   };
@@ -491,11 +515,13 @@ export function onChangedOperation(
 }
 
 /** @internal */
-export function onOperation(
+export function onOperation<Ref extends string, Instance extends string>(
   eventType: string,
-  referenceOrOpts: string | ReferenceOptions,
-  handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
-): CloudFunction<DatabaseEvent<DataSnapshot>> {
+  referenceOrOpts: Ref | ReferenceOptions<Ref, Instance>,
+  handler: (
+    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>
+  ) => any | Promise<any>
+): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref | Instance>>> {
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
@@ -505,7 +531,11 @@ export function onOperation(
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
-    const params = makeParams(event, pathPattern, instancePattern);
+    const params = makeParams(
+      event,
+      pathPattern,
+      instancePattern
+    ) as unknown as ParamsOf<Ref | Instance>;
     const data =
       eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
