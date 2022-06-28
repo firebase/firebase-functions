@@ -22,12 +22,12 @@
 
 import { apps } from '../apps';
 import {
-  Change,
   CloudFunction,
   Event,
   EventContext,
   makeCloudFunction,
 } from '../cloud-functions';
+import { Change } from '../common/change';
 import { DataSnapshot } from '../common/providers/database';
 import { firebaseConfig } from '../config';
 import { DeploymentOptions } from '../function-configuration';

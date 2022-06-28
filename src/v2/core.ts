@@ -25,7 +25,10 @@
  * @packageDocumentation
  */
 
+import { Change } from '../common/change';
 import { ManifestEndpoint } from '../runtime/manifest';
+
+export { Change };
 
 /** @internal */
 export interface TriggerAnnotation {

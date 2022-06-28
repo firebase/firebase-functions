@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { apps } from '../../apps';
-import { Change } from '../../cloud-functions';
+import { Change } from '../../common/change';
 import { DataSnapshot } from '../../common/providers/database';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { normalizePath } from '../../utilities/path';
@@ -84,12 +84,106 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
    * Examples: '/foo/bar', '/foo/{bar}'
    */
   ref: string;
+
   /**
    * Specify the handler to trigger on a database instance(s).
    * If present, this value can either be a single instance or a pattern.
    * Examples: 'my-instance-1', '{instance}'
    */
   instance?: string;
+
+  /**
+   * Region where functions should be deployed.
+   */
+  region?: options.SupportedRegion | string;
+
+  /**
+   * Amount of memory to allocate to a function.
+   * A value of null restores the defaults of 256MB.
+   */
+  memory?: options.MemoryOption | null;
+
+  /**
+   * Timeout for the function in sections, possible values are 0 to 540.
+   * HTTPS functions can specify a higher timeout.
+   * A value of null restores the default of 60s
+   * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
+   * function depends on the type of function: Event handling functions have a
+   * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
+   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * timeout of 1,800s (30 minutes)
+   */
+  timeoutSeconds?: number | null;
+
+  /**
+   * Min number of actual instances to be running at a given time.
+   * Instances will be billed for memory allocation and 10% of CPU allocation
+   * while idle.
+   * A value of null restores the default min instances.
+   */
+  minInstances?: number | null;
+
+  /**
+   * Max number of instances to be running in parallel.
+   * A value of null restores the default max instances.
+   */
+  maxInstances?: number | null;
+
+  /**
+   * Number of requests a function can serve at once.
+   * Can only be applied to functions running on Cloud Functions v2.
+   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
+   * The maximum value for concurrency is 1,000.
+   */
+  concurrency?: number | null;
+
+  /**
+   * Fractional number of CPUs to allocate to a function.
+   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * This is different from the defaults when using the gcloud utility and is different from
+   * the fixed amount assigned in Google Cloud Functions generation 1.
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * to the value "gcf_gen1"
+   */
+  cpu?: number | 'gcf_gen1';
+
+  /**
+   * Connect cloud function to specified VPC connector.
+   * A value of null removes the VPC connector
+   */
+  vpcConnector?: string | null;
+
+  /**
+   * Egress settings for VPC connector.
+   * A value of null turns off VPC connector egress settings
+   */
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+
+  /**
+   * Specific service account for the function to run as.
+   * A value of null restores the default service account.
+   */
+  serviceAccount?: string | null;
+
+  /**
+   * Ingress settings which control where this function can be called from.
+   * A value of null turns off ingress settings.
+   */
+  ingressSettings?: options.IngressSetting | null;
+
+  /**
+   * User labels to set on the function.
+   */
+  labels?: Record<string, string>;
+
+  /*
+   * Secrets to bind to a function.
+   */
+  secrets?: string[];
+
+  /** Whether failed executions should be delivered again. */
+  retry?: boolean;
 }
 
 /**
@@ -98,7 +192,7 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
  * @param reference - The database reference path to trigger on.
  * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
  */
-export function onRefWritten(
+export function onValueWritten(
   reference: string,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
@@ -109,7 +203,7 @@ export function onRefWritten(
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
  */
-export function onRefWritten(
+export function onValueWritten(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
@@ -120,7 +214,7 @@ export function onRefWritten(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database create, update, or delete occurs.
  */
-export function onRefWritten(
+export function onValueWritten(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
@@ -133,7 +227,7 @@ export function onRefWritten(
  * @param reference - The database reference path to trigger on.
  * @param handler - Event handler which is run every time a Realtime Database create occurs.
  */
-export function onRefCreated(
+export function onValueCreated(
   reference: string,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
@@ -144,7 +238,7 @@ export function onRefCreated(
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Realtime Database create occurs.
  */
-export function onRefCreated(
+export function onValueCreated(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
@@ -155,7 +249,7 @@ export function onRefCreated(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database create occurs.
  */
-export function onRefCreated(
+export function onValueCreated(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>> {
@@ -168,7 +262,7 @@ export function onRefCreated(
  * @param reference - The database reference path to trigger on.
  * @param handler - Event handler which is run every time a Realtime Database update occurs.
  */
-export function onRefUpdated(
+export function onValueUpdated(
   reference: string,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
@@ -179,7 +273,7 @@ export function onRefUpdated(
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Realtime Database update occurs.
  */
-export function onRefUpdated(
+export function onValueUpdated(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>>;
@@ -190,7 +284,7 @@ export function onRefUpdated(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database update occurs.
  */
-export function onRefUpdated(
+export function onValueUpdated(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<Change<DataSnapshot>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>>> {
@@ -203,7 +297,7 @@ export function onRefUpdated(
  * @param reference - The database reference path to trigger on.
  * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
  */
-export function onRefDeleted(
+export function onValueDeleted(
   reference: string,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
@@ -214,7 +308,7 @@ export function onRefDeleted(
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
  */
-export function onRefDeleted(
+export function onValueDeleted(
   opts: ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>>;
@@ -225,7 +319,7 @@ export function onRefDeleted(
  * @param referenceOrOpts - Options or a string reference.
  * @param handler - Event handler which is run every time a Realtime Database deletion occurs.
  */
-export function onRefDeleted(
+export function onValueDeleted(
   referenceOrOpts: string | ReferenceOptions,
   handler: (event: DatabaseEvent<DataSnapshot>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<DataSnapshot>> {
