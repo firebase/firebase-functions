@@ -22,36 +22,50 @@
 
 /** @internal */
 export type Split<S extends string, D extends string> =
-    string extends S ? string[] :
-    S extends '' ? [] :
-    S extends `${infer T}${D}${infer U}`
-      ? T extends '' ? [...Split<U, D>] : [T, ...Split<U, D>]
-    : [S];
+  // A non-literal string splits into a string[]
+  string extends S
+    ? string[]
+    : // A literal empty string turns into a zero-tuple
+    S extends ''
+    ? []
+    : // Split the string; Head may be the empty string
+    S extends `${D}${infer Tail}`
+    ? [...Split<Tail, D>]
+    : S extends `${infer Head}${D}${infer Tail}`
+    ? [Head, ...Split<Tail, D>]
+    : // A string without delimiters splits into an array of itself
+      [S];
 
 /** @internal */
-export type NullSafe<S extends null | undefined | string> = 
-  S extends null ? never :
-  S extends undefined ? never :
-  S extends string ? S : never;
+export type NullSafe<S extends null | undefined | string> = S extends null
+  ? never
+  : S extends undefined
+  ? never
+  : S extends string
+  ? S
+  : never;
 
 /** @internal */
-export type Extract<Part extends string> =
-    Part extends `{${infer Param}=**}` ? Param :
-    Part extends `{${infer Param}=*}` ? Param :
-    Part extends `{${infer Param}}` ? Param :
-    never;
+export type Extract<Part extends string> = Part extends `{${infer Param}=**}`
+  ? Param
+  : Part extends `{${infer Param}=*}`
+  ? Param
+  : Part extends `{${infer Param}}`
+  ? Param
+  : never;
 
 /**
  * A type that maps all parameter capture gropus into keys of a record.
  * For example, ParamsOf<"users/{uid}"> is { uid: string }
  * ParamsOf<"users/{uid}/logs/{log}"> is { uid: string; log: string }
  * ParamsOf<"some/static/data"> is {}
- * 
+ *
  * For flexibility reasons, ParamsOf<string> is Record<string, string>
  */
 export type ParamsOf<PathPattern extends string> =
   // if we have lost type information, revert back to an untyped dictionary
-  string extends PathPattern ? Record<string, string> :
-  {
-    [Key in Extract<Split<NullSafe<PathPattern>, "/">[number]>]: string;
-  };
+  string extends PathPattern
+    ? Record<string, string>
+    : {
+        [Key in Extract<Split<NullSafe<PathPattern>, '/'>[number]>]: string;
+      };

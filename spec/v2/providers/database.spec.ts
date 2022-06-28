@@ -23,6 +23,7 @@
 import { expect } from 'chai';
 import { PathPattern } from '../../../src/common/utilities/path-pattern';
 import * as database from '../../../src/v2/providers/database';
+import { SameType, use } from '../../common/metaprogramming';
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -365,7 +366,10 @@ describe('database', () => {
 
   describe('onValueWritten', () => {
     it('should create a function with a reference', () => {
-      const func = database.onValueWritten('/foo/{bar}/', (event) => 2);
+      const func = database.onValueWritten('/foo/{bar}/', (event) => {
+        const assertion: SameType<typeof event.params, { bar: string }> = true;
+        use(assertion);
+      });
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -391,7 +395,16 @@ describe('database', () => {
           cpu: 'gcf_gen1',
           minInstances: 2,
         },
-        (event) => 2
+        (event) => {
+          const assertion: SameType<
+            typeof event.params,
+            {
+              path: string;
+              bar: string;
+            }
+          > = true;
+          use(assertion);
+        }
       );
 
       expect(func.__endpoint).to.deep.equal({
@@ -416,7 +429,10 @@ describe('database', () => {
 
   describe('onValueCreated', () => {
     it('should create a function with a reference', () => {
-      const func = database.onValueCreated('/foo/{bar}/', (event) => 2);
+      const func = database.onValueCreated('/foo/{bar}/', (event) => {
+        const assertion: SameType<typeof event.params, { bar: string }> = true;
+        use(assertion);
+      });
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -437,12 +453,22 @@ describe('database', () => {
       const func = database.onValueCreated(
         {
           ref: '/foo/{path=**}/{bar}/',
-          instance: 'my-instance',
+          instance: '{instance}',
           region: 'us-central1',
           cpu: 'gcf_gen1',
           minInstances: 2,
         },
-        (event) => 2
+        (event) => {
+          const assertion: SameType<
+            typeof event.params,
+            {
+              path: string;
+              bar: string;
+              instance: string;
+            }
+          > = true;
+          use(assertion);
+        }
       );
 
       expect(func.__endpoint).to.deep.equal({
@@ -453,11 +479,10 @@ describe('database', () => {
         labels: {},
         eventTrigger: {
           eventType: database.createdEventType,
-          eventFilters: {
-            instance: 'my-instance',
-          },
+          eventFilters: {},
           eventFilterPathPatterns: {
             ref: 'foo/{path=**}/{bar}',
+            instance: '{instance}',
           },
           retry: false,
         },
@@ -467,7 +492,10 @@ describe('database', () => {
 
   describe('onValueUpdated', () => {
     it('should create a function with a reference', () => {
-      const func = database.onValueUpdated('/foo/{bar}/', (event) => 2);
+      const func = database.onValueUpdated('/foo/{bar}/', (event) => {
+        const assertion: SameType<typeof event.params, { bar: string }> = true;
+        use(assertion);
+      });
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -493,7 +521,16 @@ describe('database', () => {
           cpu: 'gcf_gen1',
           minInstances: 2,
         },
-        (event) => 2
+        (event) => {
+          const assertion: SameType<
+            typeof event.params,
+            {
+              path: string;
+              bar: string;
+            }
+          > = true;
+          use(assertion);
+        }
       );
 
       expect(func.__endpoint).to.deep.equal({
@@ -518,7 +555,10 @@ describe('database', () => {
 
   describe('onValueDeleted', () => {
     it('should create a function with a reference', () => {
-      const func = database.onValueDeleted('/foo/{bar}/', (event) => 2);
+      const func = database.onValueDeleted('/foo/{bar}/', (event) => {
+        const assertion: SameType<typeof event.params, { bar: string }> = true;
+        use(assertion);
+      });
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -544,7 +584,16 @@ describe('database', () => {
           cpu: 'gcf_gen1',
           minInstances: 2,
         },
-        (event) => 2
+        (event) => {
+          const assertion: SameType<
+            typeof event.params,
+            {
+              path: string;
+              bar: string;
+            }
+          > = true;
+          use(assertion);
+        }
       );
 
       expect(func.__endpoint).to.deep.equal({

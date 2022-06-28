@@ -29,7 +29,5 @@ export function pathParts(path: string): string[] {
  * @param child A second path segment, in POSIX format.
  */
 export function joinPath(base: string, child: string) {
-  return pathParts(base)
-    .concat(pathParts(child))
-    .join('/');
+  return pathParts(base).concat(pathParts(child)).join('/');
 }
