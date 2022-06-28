@@ -25,7 +25,10 @@
  * @packageDocumentation
  */
 
+import { Change } from '../common/change';
 import { ManifestEndpoint } from '../runtime/manifest';
+
+export { Change };
 
 /**
  * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.

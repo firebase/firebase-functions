@@ -363,9 +363,9 @@ describe('database', () => {
     });
   });
 
-  describe('onRefWritten', () => {
+  describe('onValueWritten', () => {
     it('should create a function with a reference', () => {
-      const func = database.onRefWritten('/foo/{bar}/', (event) => 2);
+      const func = database.onValueWritten('/foo/{bar}/', (event) => 2);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -383,7 +383,7 @@ describe('database', () => {
     });
 
     it('should create a function with opts', () => {
-      const func = database.onRefWritten(
+      const func = database.onValueWritten(
         {
           ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
@@ -414,9 +414,9 @@ describe('database', () => {
     });
   });
 
-  describe('onRefCreated', () => {
+  describe('onValueCreated', () => {
     it('should create a function with a reference', () => {
-      const func = database.onRefCreated('/foo/{bar}/', (event) => 2);
+      const func = database.onValueCreated('/foo/{bar}/', (event) => 2);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -434,7 +434,7 @@ describe('database', () => {
     });
 
     it('should create a function with opts', () => {
-      const func = database.onRefCreated(
+      const func = database.onValueCreated(
         {
           ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
@@ -465,9 +465,9 @@ describe('database', () => {
     });
   });
 
-  describe('onRefUpdated', () => {
+  describe('onValueUpdated', () => {
     it('should create a function with a reference', () => {
-      const func = database.onRefUpdated('/foo/{bar}/', (event) => 2);
+      const func = database.onValueUpdated('/foo/{bar}/', (event) => 2);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -485,7 +485,7 @@ describe('database', () => {
     });
 
     it('should create a function with opts', () => {
-      const func = database.onRefUpdated(
+      const func = database.onValueUpdated(
         {
           ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',
@@ -516,9 +516,9 @@ describe('database', () => {
     });
   });
 
-  describe('onRefDeleted', () => {
+  describe('onValueDeleted', () => {
     it('should create a function with a reference', () => {
-      const func = database.onRefDeleted('/foo/{bar}/', (event) => 2);
+      const func = database.onValueDeleted('/foo/{bar}/', (event) => 2);
 
       expect(func.__endpoint).to.deep.equal({
         platform: 'gcfv2',
@@ -536,7 +536,7 @@ describe('database', () => {
     });
 
     it('should create a function with opts', () => {
-      const func = database.onRefDeleted(
+      const func = database.onValueDeleted(
         {
           ref: '/foo/{path=**}/{bar}/',
           instance: 'my-instance',

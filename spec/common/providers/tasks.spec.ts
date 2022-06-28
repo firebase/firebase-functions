@@ -83,7 +83,7 @@ describe('onEnqueueHandler', () => {
   function mockEnqueueRequest(
     data: unknown,
     contentType: string = 'application/json',
-    context: { authorization: string } = { authorization: 'Bearer abc' }
+    context: { authorization?: string } = { authorization: 'Bearer abc' }
   ): ReturnType<typeof mockRequest> {
     return mockRequest(data, contentType, context);
   }
@@ -238,5 +238,25 @@ describe('onEnqueueHandler', () => {
       },
       expectedStatus: 204,
     });
+  });
+
+  it('should skip auth in emulated environment', async () => {
+    const restore = process.env.FUNCTIONS_EMULATOR;
+    process.env.FUNCTIONS_EMULATOR = 'true';
+
+    await runTaskTest({
+      httpRequest: mockEnqueueRequest(null, 'application/json', {}),
+      expectedData: null,
+      taskFunction: (data, context) => {
+        expect(context.auth).to.be.undefined;
+        return null;
+      },
+      taskFunction2: (request) => {
+        expect(request.auth).to.be.undefined;
+      },
+      expectedStatus: 204,
+    });
+
+    process.env.FUNCTIONS_EMULATOR = restore;
   });
 });

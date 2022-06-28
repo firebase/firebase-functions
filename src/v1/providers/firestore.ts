@@ -24,10 +24,10 @@ import * as firestore from 'firebase-admin/firestore';
 
 import { posix } from 'path';
 import { getApp } from '../../common/app';
+import { Change } from '../../common/change';
 import { dateToTimestampProto } from '../../common/utilities/encoder';
 import * as logger from '../../logger';
 import {
-  Change,
   CloudFunction,
   Event,
   EventContext,

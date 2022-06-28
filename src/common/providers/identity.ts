@@ -835,9 +835,13 @@ export function wrapHandler(
         'skipTokenVerification'
       )
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
+        : handler.length === 2
+        ? await auth
+            .getAuth(getApp())
+            ._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth
             .getAuth(getApp())
-            ._verifyAuthBlockingToken(req.body.data.jwt);
+            ._verifyAuthBlockingToken(req.body.data.jwt, 'run.app');
 
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);

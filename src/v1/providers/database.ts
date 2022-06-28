@@ -21,12 +21,12 @@
 // SOFTWARE.
 
 import { getApp } from '../../common/app';
+import { Change } from '../../common/change';
 import { firebaseConfig } from '../../common/config';
 import { DataSnapshot } from '../../common/providers/database';
 import { normalizePath } from '../../common/utilities/path';
 import { applyChange } from '../../common/utilities/utils';
 import {
-  Change,
   CloudFunction,
   Event,
   EventContext,
