@@ -23,6 +23,7 @@
 import { getApp } from '../../common/app';
 import { Change } from '../../common/change';
 import { firebaseConfig } from '../../common/config';
+import { ParamsOf } from '../../common/params';
 import { DataSnapshot } from '../../common/providers/database';
 import { normalizePath } from '../../common/utilities/path';
 import { applyChange } from '../../common/utilities/utils';
@@ -90,7 +91,7 @@ export function instance(instance: string) {
  * @param path The path within the Database to watch for write events.
  * @return Firebase Realtime Database builder interface.
  */
-export function ref(path: string) {
+export function ref<Ref extends string>(path: Ref) {
   return _refWithOptions(path, {});
 }
 
@@ -114,9 +115,9 @@ export class InstanceBuilder {
   /**
    * @return Firebase Realtime Database reference builder interface.
    */
-  ref(path: string): RefBuilder {
+  ref<Ref extends string>(path: Ref): RefBuilder<Ref> {
     const normalized = normalizePath(path);
-    return new RefBuilder(
+    return new RefBuilder<Ref>(
       () => `projects/_/instances/${this.instance}/refs/${normalized}`,
       this.options
     );
@@ -124,10 +125,10 @@ export class InstanceBuilder {
 }
 
 /** @hidden */
-export function _refWithOptions(
-  path: string,
+export function _refWithOptions<Ref extends string>(
+  path: Ref,
   options: DeploymentOptions
-): RefBuilder {
+): RefBuilder<Ref> {
   const resourceGetter = () => {
     const normalized = normalizePath(path);
     const databaseURL = firebaseConfig().databaseURL;
@@ -160,7 +161,7 @@ export function _refWithOptions(
     return `projects/_/instances/${instance}/refs/${normalized}`;
   };
 
-  return new RefBuilder(resourceGetter, options);
+  return new RefBuilder<Ref>(resourceGetter, options);
 }
 
 /**
@@ -168,7 +169,7 @@ export function _refWithOptions(
  *
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
-export class RefBuilder {
+export class RefBuilder<Ref extends string> {
   /** @hidden */
   constructor(
     private triggerResource: () => string,
@@ -186,7 +187,7 @@ export class RefBuilder {
   onWrite(
     handler: (
       change: Change<DataSnapshot>,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.write', this.changeConstructor);
@@ -204,7 +205,7 @@ export class RefBuilder {
   onUpdate(
     handler: (
       change: Change<DataSnapshot>,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, 'ref.update', this.changeConstructor);
@@ -221,7 +222,7 @@ export class RefBuilder {
   onCreate(
     handler: (
       snapshot: DataSnapshot,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
@@ -245,7 +246,7 @@ export class RefBuilder {
   onDelete(
     handler: (
       snapshot: DataSnapshot,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {

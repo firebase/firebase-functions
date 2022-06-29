@@ -25,6 +25,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 import * as functions from '../../../src/v1';
 import * as firestore from '../../../src/v1/providers/firestore';
+import { SameType, use } from '../../common/metaprogramming';
 
 describe('Firestore Functions', () => {
   function constructValue(fields: any) {
@@ -117,7 +118,11 @@ describe('Firestore Functions', () => {
         'projects/project1/databases/(default)/documents/users/{uid}';
       const cloudFunction = firestore
         .document('users/{uid}')
-        .onWrite(() => null);
+        .onWrite((snap, context) => {
+          const assertion: SameType<typeof context.params, { uid: string }> =
+            true;
+          use(assertion);
+        });
 
       expect(cloudFunction.__endpoint).to.deep.equal(
         expectedEndpoint(resource, 'document.write')
@@ -130,7 +135,11 @@ describe('Firestore Functions', () => {
       const cloudFunction = firestore
         .namespace('v2')
         .document('users/{uid}')
-        .onWrite(() => null);
+        .onWrite((snap, context) => {
+          const assertion: SameType<typeof context.params, { uid: string }> =
+            true;
+          use(assertion);
+        });
 
       expect(cloudFunction.__endpoint).to.deep.equal(
         expectedEndpoint(resource, 'document.write')
@@ -156,7 +165,11 @@ describe('Firestore Functions', () => {
         .database('myDB')
         .namespace('v2')
         .document('users/{uid}')
-        .onWrite(() => null);
+        .onWrite((snap, context) => {
+          const assertion: SameType<typeof context.params, { uid: string }> =
+            true;
+          use(assertion);
+        });
 
       expect(cloudFunction.__endpoint).to.deep.equal(
         expectedEndpoint(resource, 'document.write')
@@ -171,7 +184,13 @@ describe('Firestore Functions', () => {
           memory: '256MB',
         })
         .firestore.document('doc')
-        .onCreate((snap) => snap);
+        .onCreate((snap, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            Record<string, never>
+          > = true;
+          use(assertion);
+        });
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);

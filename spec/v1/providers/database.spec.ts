@@ -26,6 +26,7 @@ import * as config from '../../../src/common/config';
 import { applyChange } from '../../../src/common/utilities/utils';
 import * as functions from '../../../src/v1';
 import * as database from '../../../src/v1/providers/database';
+import { SameType, use } from '../../common/metaprogramming';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
@@ -120,6 +121,35 @@ describe('Database Functions', () => {
 
         return handler(event.data, event.context);
       });
+
+      it('Should have params of the correct type', () => {
+        database.ref('foo').onWrite((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            Record<string, never>
+          > = true;
+          use(assertion);
+        });
+        database.ref('foo/{bar}').onWrite((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            {
+              bar: string;
+            }
+          > = true;
+          use(assertion);
+        });
+        database.ref('foo/{bar}/{baz}').onWrite((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            {
+              bar: string;
+              baz: string;
+            }
+          > = true;
+          use(assertion);
+        });
+      });
     });
 
     describe('#onCreate()', () => {
@@ -167,6 +197,35 @@ describe('Database Functions', () => {
           });
 
         return handler(event.data, event.context);
+      });
+
+      it('Should have params of the correct type', () => {
+        database.ref('foo').onCreate((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            Record<string, never>
+          > = true;
+          use(assertion);
+        });
+        database.ref('foo/{bar}').onCreate((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            {
+              bar: string;
+            }
+          > = true;
+          use(assertion);
+        });
+        database.ref('foo/{bar}/{baz}').onCreate((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            {
+              bar: string;
+              baz: string;
+            }
+          > = true;
+          use(assertion);
+        });
       });
     });
 
@@ -216,6 +275,35 @@ describe('Database Functions', () => {
 
         return handler(event.data, event.context);
       });
+
+      it('Should have params of the correct type', () => {
+        database.ref('foo').onUpdate((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            Record<string, never>
+          > = true;
+          use(assertion);
+        });
+        database.ref('foo/{bar}').onUpdate((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            {
+              bar: string;
+            }
+          > = true;
+          use(assertion);
+        });
+        database.ref('foo/{bar}/{baz}').onUpdate((event, context) => {
+          const assertion: SameType<
+            typeof context.params,
+            {
+              bar: string;
+              baz: string;
+            }
+          > = true;
+          use(assertion);
+        });
+      });
     });
 
     describe('#onDelete()', () => {
@@ -263,6 +351,35 @@ describe('Database Functions', () => {
           });
 
         return handler(event.data, event.context);
+      });
+    });
+
+    it('Should have params of the correct type', () => {
+      database.ref('foo').onUpdate((event, context) => {
+        const assertion: SameType<
+          typeof context.params,
+          Record<string, never>
+        > = true;
+        use(assertion);
+      });
+      database.ref('foo/{bar}').onUpdate((event, context) => {
+        const assertion: SameType<
+          typeof context.params,
+          {
+            bar: string;
+          }
+        > = true;
+        use(assertion);
+      });
+      database.ref('foo/{bar}/{baz}').onUpdate((event, context) => {
+        const assertion: SameType<
+          typeof context.params,
+          {
+            bar: string;
+            baz: string;
+          }
+        > = true;
+        use(assertion);
       });
     });
   });
