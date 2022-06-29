@@ -120,7 +120,7 @@ describe('identity', () => {
 
   describe('isValidRequest', () => {
     it('should error on non-post', () => {
-      const req = ({
+      const req = {
         method: 'GET',
         header: {
           'Content-Type': 'application/json',
@@ -130,13 +130,13 @@ describe('identity', () => {
             jwt: '1.2.3',
           },
         },
-      } as unknown) as express.Request;
+      } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error on bad Content-Type', () => {
-      const req = ({
+      const req = {
         method: 'POST',
         header(val: string) {
           return 'text/css';
@@ -146,36 +146,36 @@ describe('identity', () => {
             jwt: '1.2.3',
           },
         },
-      } as unknown) as express.Request;
+      } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error without req body', () => {
-      const req = ({
+      const req = {
         method: 'POST',
         header(val: string) {
           return 'application/json';
         },
-      } as unknown) as express.Request;
+      } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error without req body data', () => {
-      const req = ({
+      const req = {
         method: 'POST',
         header(val: string) {
           return 'application/json';
         },
         body: {},
-      } as unknown) as express.Request;
+      } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should error without req body', () => {
-      const req = ({
+      const req = {
         method: 'POST',
         header(val: string) {
           return 'application/json';
@@ -183,13 +183,13 @@ describe('identity', () => {
         body: {
           data: {},
         },
-      } as unknown) as express.Request;
+      } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
     it('should not error on valid request', () => {
-      const req = ({
+      const req = {
         method: 'POST',
         header(val: string) {
           return 'application/json';
@@ -199,7 +199,7 @@ describe('identity', () => {
             jwt: '1.2.3',
           },
         },
-      } as unknown) as express.Request;
+      } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.true;
     });

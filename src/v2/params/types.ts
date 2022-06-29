@@ -64,9 +64,9 @@ export class Param<T = unknown> {
       valueType: (this.constructor as typeof Param).valueType,
     };
     if (this.options.default && typeof this.options.default !== 'string') {
-      out.default = (this.options.default as
-        | { toString?: () => string }
-        | undefined)?.toString?.();
+      out.default = (
+        this.options.default as { toString?: () => string } | undefined
+      )?.toString?.();
     }
 
     return out as ParamSpec<string>;

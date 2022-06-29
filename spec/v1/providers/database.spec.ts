@@ -620,12 +620,7 @@ describe('Database Functions', () => {
     describe('#child(): DataSnapshot', () => {
       it('should work with multiple calls', () => {
         populate({ a: { b: { c: 'd' } } });
-        expect(
-          subject
-            .child('a')
-            .child('b/c')
-            .val()
-        ).to.equal('d');
+        expect(subject.child('a').child('b/c').val()).to.equal('d');
       });
     });
 
