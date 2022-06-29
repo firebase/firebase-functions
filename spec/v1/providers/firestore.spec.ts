@@ -25,7 +25,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 
 import * as functions from '../../../src/v1';
 import * as firestore from '../../../src/v1/providers/firestore';
-import { SameType, use } from '../../common/metaprogramming';
+import { expectType } from '../../common/metaprogramming';
 
 describe('Firestore Functions', () => {
   function constructValue(fields: any) {
@@ -119,9 +119,7 @@ describe('Firestore Functions', () => {
       const cloudFunction = firestore
         .document('users/{uid}')
         .onWrite((snap, context) => {
-          const assertion: SameType<typeof context.params, { uid: string }> =
-            true;
-          use(assertion);
+          expectType<{ uid: string }>(context.params);
         });
 
       expect(cloudFunction.__endpoint).to.deep.equal(
@@ -136,9 +134,7 @@ describe('Firestore Functions', () => {
         .namespace('v2')
         .document('users/{uid}')
         .onWrite((snap, context) => {
-          const assertion: SameType<typeof context.params, { uid: string }> =
-            true;
-          use(assertion);
+          expectType<{ uid: string }>(context.params);
         });
 
       expect(cloudFunction.__endpoint).to.deep.equal(
@@ -166,9 +162,7 @@ describe('Firestore Functions', () => {
         .namespace('v2')
         .document('users/{uid}')
         .onWrite((snap, context) => {
-          const assertion: SameType<typeof context.params, { uid: string }> =
-            true;
-          use(assertion);
+          expectType<{ uid: string }>(context.params);
         });
 
       expect(cloudFunction.__endpoint).to.deep.equal(
@@ -185,11 +179,7 @@ describe('Firestore Functions', () => {
         })
         .firestore.document('doc')
         .onCreate((snap, context) => {
-          const assertion: SameType<
-            typeof context.params,
-            Record<string, never>
-          > = true;
-          use(assertion);
+          expectType<Record<string, string>>(context.params);
         });
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);

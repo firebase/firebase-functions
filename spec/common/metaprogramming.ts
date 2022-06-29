@@ -20,13 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-export type SameType<A, B> = A extends B ? (B extends A ? true : never) : never;
-export type IsNever<A> = never extends A ? true : never;
-
-// Sanity check: uncommenting this line should cause a compilation error
-// const assertion: SameType<number, string> = true;
-
-// TypeScript will fail to compile with an unused variable and our TS settings.
-// Rather than turn off unused var checks globally or all errors in this file,
-// we'll use a stupid function to silence the compiler.
-export function use<T>(t: T) {}
+// This method will fail to compile if value is not of the explicit parameter type.
+export function expectType<Type>(value: Type) {}
+export function expectNever<Type extends never>() {}

@@ -23,7 +23,7 @@
 import { expect } from 'chai';
 import { PathPattern } from '../../../src/common/utilities/path-pattern';
 import * as database from '../../../src/v2/providers/database';
-import { SameType, use } from '../../common/metaprogramming';
+import { expectType } from '../../common/metaprogramming';
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -367,8 +367,7 @@ describe('database', () => {
   describe('onValueWritten', () => {
     it('should create a function with a reference', () => {
       const func = database.onValueWritten('/foo/{bar}/', (event) => {
-        const assertion: SameType<typeof event.params, { bar: string }> = true;
-        use(assertion);
+        expectType<{ bar: string }>(event.params);
       });
 
       expect(func.__endpoint).to.deep.equal({
@@ -396,14 +395,7 @@ describe('database', () => {
           minInstances: 2,
         },
         (event) => {
-          const assertion: SameType<
-            typeof event.params,
-            {
-              path: string;
-              bar: string;
-            }
-          > = true;
-          use(assertion);
+          expectType<{ path: string; bar: string }>(event.params);
         }
       );
 
@@ -430,8 +422,7 @@ describe('database', () => {
   describe('onValueCreated', () => {
     it('should create a function with a reference', () => {
       const func = database.onValueCreated('/foo/{bar}/', (event) => {
-        const assertion: SameType<typeof event.params, { bar: string }> = true;
-        use(assertion);
+        expectType<{ bar: string }>(event.params);
       });
 
       expect(func.__endpoint).to.deep.equal({
@@ -459,15 +450,11 @@ describe('database', () => {
           minInstances: 2,
         },
         (event) => {
-          const assertion: SameType<
-            typeof event.params,
-            {
-              path: string;
-              bar: string;
-              instance: string;
-            }
-          > = true;
-          use(assertion);
+          expectType<{
+            path: string;
+            bar: string;
+            instance: string;
+          }>(event.params);
         }
       );
 
@@ -493,8 +480,7 @@ describe('database', () => {
   describe('onValueUpdated', () => {
     it('should create a function with a reference', () => {
       const func = database.onValueUpdated('/foo/{bar}/', (event) => {
-        const assertion: SameType<typeof event.params, { bar: string }> = true;
-        use(assertion);
+        expectType<{ bar: string }>(event.params);
       });
 
       expect(func.__endpoint).to.deep.equal({
@@ -522,14 +508,7 @@ describe('database', () => {
           minInstances: 2,
         },
         (event) => {
-          const assertion: SameType<
-            typeof event.params,
-            {
-              path: string;
-              bar: string;
-            }
-          > = true;
-          use(assertion);
+          expectType<{ path: string; bar: string }>(event.params);
         }
       );
 
@@ -556,8 +535,7 @@ describe('database', () => {
   describe('onValueDeleted', () => {
     it('should create a function with a reference', () => {
       const func = database.onValueDeleted('/foo/{bar}/', (event) => {
-        const assertion: SameType<typeof event.params, { bar: string }> = true;
-        use(assertion);
+        expectType<{ bar: string }>(event.params);
       });
 
       expect(func.__endpoint).to.deep.equal({
@@ -585,14 +563,7 @@ describe('database', () => {
           minInstances: 2,
         },
         (event) => {
-          const assertion: SameType<
-            typeof event.params,
-            {
-              path: string;
-              bar: string;
-            }
-          > = true;
-          use(assertion);
+          expectType<{ path: string; bar: string }>(event.params);
         }
       );
 
