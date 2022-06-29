@@ -39,6 +39,8 @@ import {
 } from './common/encoding';
 import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
 
+export { Change } from './common/change';
+
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
