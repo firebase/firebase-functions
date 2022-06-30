@@ -88,7 +88,8 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
   /**
    * Specify the handler to trigger on a database instance(s).
    * If present, this value can either be a single instance or a pattern.
-   * Examples: 'my-instance-1', '{instance}'
+   * Examples: 'my-instance-1', 'my-instance-*'
+   * Note: The capture syntax cannot be used for 'instance'.
    */
   instance?: string;
 
