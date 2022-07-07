@@ -313,7 +313,7 @@ describe('loadStack', () => {
       {
         name: 'has params',
         modulePath: './spec/fixtures/sources/commonjs-params',
-        expected: {...expected, params: [{"name": "foo", "type": "string"}]},
+        expected: { ...expected, params: [{ name: 'foo', type: 'string' }] },
       },
     ];
 

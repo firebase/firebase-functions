@@ -28,7 +28,7 @@ import {
   ManifestStack,
 } from './manifest';
 
-import * as params from  "../v2/params";
+import * as params from '../v2/params';
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -114,7 +114,7 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
 
   extractStack(mod, endpoints, requiredAPIs);
 
-  var stack:ManifestStack = {
+  var stack: ManifestStack = {
     endpoints,
     specVersion: 'v1alpha1',
     requiredAPIs: mergeRequiredAPIs(requiredAPIs),
@@ -122,5 +122,5 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   if (params.declaredParams.length > 0) {
     stack.params = params.declaredParams.map((p) => p.toSpec());
   }
-  return stack
+  return stack;
 }
