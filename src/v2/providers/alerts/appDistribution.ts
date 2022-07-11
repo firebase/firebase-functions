@@ -89,6 +89,7 @@ export interface AppDistributionEvent<T>
 
 /** @internal */
 export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
+/** @internal */
 export const inAppFeedbackAlert = 'appDistribution.inAppFeedback';
 
 /**
