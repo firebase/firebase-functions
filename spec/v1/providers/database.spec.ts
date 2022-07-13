@@ -861,6 +861,8 @@ describe('Database Functions', () => {
         expect(subject.hasChild('nullChild')).to.be.false;
         expect(subject.hasChild('emptyObjectChild')).to.be.false;
         expect(subject.hasChild('emptyArrayChild')).to.be.false;
+        expect(subject.hasChild('c')).to.be.false;
+        expect(subject.hasChild('a/b')).to.be.false;
       });
     });
 
@@ -898,6 +900,7 @@ describe('Database Functions', () => {
         });
         expect(subject.toJSON()).to.deep.equal(subject.val());
       });
+
       it('should be stringifyable', () => {
         populate({
           a: 'b',

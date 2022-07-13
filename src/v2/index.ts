@@ -61,3 +61,4 @@ export {
 } from './options';
 
 export { CloudFunction, CloudEvent, ParamsOf } from './core';
+export { Change } from '../common/change';
