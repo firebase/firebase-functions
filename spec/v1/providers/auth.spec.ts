@@ -276,9 +276,8 @@ describe('Auth Functions', () => {
     });
 
     describe('#onDelete', () => {
-      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
-        (data: UserRecord) => data
-      );
+      const cloudFunctionDelete: CloudFunction<UserRecord> =
+        functions.handler.auth.user.onDelete((data: UserRecord) => data);
 
       it('should return an empty endpoint', () => {
         const cloudFunction = functions.handler.auth.user.onDelete(() => null);

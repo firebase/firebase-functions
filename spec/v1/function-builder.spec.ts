@@ -147,7 +147,8 @@ describe('FunctionBuilder', () => {
   it('should throw an error if user chooses a failurePolicy which is neither an object nor a boolean', () => {
     expect(() =>
       functions.runWith({
-        failurePolicy: (1234 as unknown) as functions.RuntimeOptions['failurePolicy'],
+        failurePolicy:
+          1234 as unknown as functions.RuntimeOptions['failurePolicy'],
       })
     ).to.throw(Error, 'failurePolicy must be a boolean or an object');
   });
@@ -155,7 +156,7 @@ describe('FunctionBuilder', () => {
   it('should throw an error if user chooses a failurePolicy.retry which is not an object', () => {
     expect(() =>
       functions.runWith({
-        failurePolicy: { retry: (1234 as unknown) as object },
+        failurePolicy: { retry: 1234 as unknown as object },
       })
     ).to.throw(Error, 'failurePolicy.retry');
   });
@@ -366,8 +367,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         labels: {
-          key:
-            'a-very-long-value-that-is-more-than-the-maximum-allowed-length-for-values',
+          key: 'a-very-long-value-that-is-more-than-the-maximum-allowed-length-for-values',
         },
       })
     ).to.throw();

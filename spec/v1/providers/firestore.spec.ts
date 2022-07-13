@@ -600,8 +600,7 @@ describe('Firestore Functions', () => {
             },
             {
               resource: {
-                name:
-                  'projects/pid/databases/(default)/documents/collection/123',
+                name: 'projects/pid/databases/(default)/documents/collection/123',
               },
             }
           )

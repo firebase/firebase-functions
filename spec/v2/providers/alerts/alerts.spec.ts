@@ -138,9 +138,8 @@ describe('alerts', () => {
 
   describe('getOptsAndAlertTypeAndApp', () => {
     it('should parse a string', () => {
-      const [opts, alertType, appId] = alerts.getOptsAndAlertTypeAndApp(
-        ALERT_TYPE
-      );
+      const [opts, alertType, appId] =
+        alerts.getOptsAndAlertTypeAndApp(ALERT_TYPE);
 
       expect(opts).to.deep.equal({});
       expect(alertType).to.equal(ALERT_TYPE);

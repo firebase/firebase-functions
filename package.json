@@ -199,7 +199,7 @@
     "nock": "^10.0.6",
     "node-fetch": "^2.6.7",
     "portfinder": "^1.0.28",
-    "prettier": "^1.18.2",
+    "prettier": "^2.7.1",
     "semver": "^7.3.5",
     "sinon": "^7.3.2",
     "ts-node": "^10.4.0",

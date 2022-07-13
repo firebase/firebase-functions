@@ -294,7 +294,8 @@ export class RefBuilder {
   };
 }
 
-const resourceRegex = /^projects\/([^/]+)\/instances\/([a-zA-Z0-9-]+)\/refs(\/.+)?/;
+const resourceRegex =
+  /^projects\/([^/]+)\/instances\/([a-zA-Z0-9-]+)\/refs(\/.+)?/;
 
 /**
  * Utility function to extract database reference from resource string
