@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * @hidden
+ * @alpha
+ */
+
 import {
   BooleanParam,
   FloatParam,
@@ -52,7 +57,7 @@ function registerParam(param: Param) {
 /**
  * Declare a string param.
  *
- * @alpha
+ * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `string` return type for `.value`.
@@ -86,7 +91,7 @@ export function defineBoolean(
 /**
  * Declare an integer param.
  *
- * @alpha
+ * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.

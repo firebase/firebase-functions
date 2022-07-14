@@ -2,7 +2,7 @@ const functions = require("../../../../src/index");
 const functionsv2 = require("../../../../src/v2/index");
 const { defineString } = require("../../../../src/v2/params");
 
-defineString("foo");
+defineString("FOO");
 
 exports.v1http = functions.https.onRequest((req, resp) => {
     resp.status(200).send("PASS");

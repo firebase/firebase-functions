@@ -114,7 +114,7 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
 
   extractStack(mod, endpoints, requiredAPIs);
 
-  var stack: ManifestStack = {
+  const stack: ManifestStack = {
     endpoints,
     specVersion: 'v1alpha1',
     requiredAPIs: mergeRequiredAPIs(requiredAPIs),
