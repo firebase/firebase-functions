@@ -66,7 +66,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | null;
+  memory?: options.MemoryOption | string | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -78,7 +78,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: number | string | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -86,13 +86,13 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: number | string | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: number | string | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -101,7 +101,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: number | string | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.

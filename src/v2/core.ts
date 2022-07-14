@@ -33,10 +33,10 @@ export { Change };
 /** @internal */
 export interface TriggerAnnotation {
   platform?: string;
-  concurrency?: number;
-  minInstances?: number;
-  maxInstances?: number;
-  availableMemoryMb?: number;
+  concurrency?: number | string;
+  minInstances?: number | string;
+  maxInstances?: number | string;
+  availableMemoryMb?: number | string;
   eventTrigger?: {
     eventType: string;
     resource: string;

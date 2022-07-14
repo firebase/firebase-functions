@@ -102,13 +102,15 @@ export interface GlobalOptions {
 
   /**
    * Amount of memory to allocate to a function.
+   * Must be either null, an integer or a CEL expression specifying a parameter with integer type.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: MemoryOption | null;
+  memory?: MemoryOption | string | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
+   * Must be either null, an integer or a CEL expression specifying a parameter with integer type.
    * A value of null restores the default of 60s
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -116,30 +118,33 @@ export interface GlobalOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: number | string | null;
 
   /**
    * Min number of actual instances to be running at a given time.
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
+   * Must be either null, an integer or a CEL expression specifying a parameter with integer type.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: number | string | null;
 
   /**
    * Max number of instances to be running in parallel.
+   * Must be either null, an integer or a CEL expression specifying a parameter with integer type.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: number | string | null;
 
   /**
    * Number of requests a function can serve at once.
    * Can only be applied to functions running on Cloud Functions v2.
+   * Must be either an integer or a CEL expression specifying a parameter with integer type.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: number | string | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -246,8 +251,8 @@ export function optionsToTriggerAnnotations(
     opts,
     'availableMemoryMb',
     'memory',
-    (mem: MemoryOption) => {
-      return MemoryOptionToMB[mem];
+    (mem: MemoryOption | string) => {
+      return MemoryOptionToMB[mem] || mem;
     }
   );
   convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
@@ -309,7 +314,7 @@ export function optionsToEndpoint(
     endpoint.vpc = vpc;
   }
   convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
-    return MemoryOptionToMB[mem];
+    return MemoryOptionToMB[mem] || mem;
   });
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {
