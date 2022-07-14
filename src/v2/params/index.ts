@@ -57,7 +57,6 @@ function registerParam(param: Param) {
 /**
  * Declare a string param.
  *
- * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `string` return type for `.value`.
@@ -74,7 +73,6 @@ export function defineString(
 /**
  * Declare a boolean param.
  *
- * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `boolean` return type for `.value`.
@@ -91,7 +89,6 @@ export function defineBoolean(
 /**
  * Declare an integer param.
  *
- * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
@@ -108,7 +105,6 @@ export function defineInt(
 /**
  * Declare a float param.
  *
- * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
@@ -125,7 +121,6 @@ export function defineFloat(
 /**
  * Declare a list param (array of strings).
  *
- * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `string[]` return type for `.value`.
@@ -143,7 +138,6 @@ export function defineList(
  * Declare a JSON param. The associated environment variable will be treated
  * as a JSON string when loading its value.
  *
- * @hidden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a specifiable return type for `.value`.
