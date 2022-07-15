@@ -111,7 +111,7 @@ export function mockFetchAppCheckPublicJwks(): nock.Scope {
   };
 
   return nock('https://firebaseappcheck.googleapis.com:443')
-    .get('/v1beta/jwks')
+    .get('/v1/jwks')
     .reply(200, mockedResponse);
 }
 
