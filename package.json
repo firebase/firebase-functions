@@ -224,8 +224,8 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "0.23.7",
-    "typescript": "^4.3.5",
+    "typedoc": "~0.21.2",
+    "typescript": "~4.4.0",
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
