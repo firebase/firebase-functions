@@ -27,12 +27,12 @@ export interface ManifestEndpoint {
   entryPoint?: string;
   region?: string[];
   platform?: string;
-  availableMemoryMb?: number;
-  maxInstances?: number;
-  minInstances?: number;
-  concurrency?: number;
+  availableMemoryMb?: number | string;
+  maxInstances?: number | string;
+  minInstances?: number | string;
+  concurrency?: number | string;
   serviceAccountEmail?: string;
-  timeoutSeconds?: number;
+  timeoutSeconds?: number | string;
   cpu?: number | 'gcf_gen1';
   vpc?: {
     connector: string;

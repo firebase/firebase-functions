@@ -63,3 +63,5 @@ export {
 export { Change } from '../common/change';
 
 export { CloudFunction, CloudEvent } from './core';
+
+export { Expression } from './expressions';

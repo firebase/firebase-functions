@@ -27,16 +27,17 @@
 
 import { Change } from '../common/change';
 import { ManifestEndpoint } from '../runtime/manifest';
+import { Expression } from './expressions';
 
 export { Change };
 
 /** @internal */
 export interface TriggerAnnotation {
   platform?: string;
-  concurrency?: number;
-  minInstances?: number;
-  maxInstances?: number;
-  availableMemoryMb?: number;
+  concurrency?: number | Expression<number>;
+  minInstances?: number | Expression<number>;
+  maxInstances?: number | Expression<number>;
+  availableMemoryMb?: number | Expression<number>;
   eventTrigger?: {
     eventType: string;
     resource: string;
@@ -48,7 +49,7 @@ export interface TriggerAnnotation {
   };
   labels?: { [key: string]: string };
   regions?: string[];
-  timeout?: string;
+  timeout?: string | Expression<number>;
   vpcConnector?: string;
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;

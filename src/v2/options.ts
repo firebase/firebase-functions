@@ -37,6 +37,7 @@ import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
 import { HttpsOptions } from './providers/https';
+import { Expression, Field, ExprString } from './expressions';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -76,6 +77,10 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
   '32GiB': 32768,
 };
 
+function isMemoryOption(arg: MemoryOption | Expression<number>): arg is MemoryOption {
+  return (arg in MemoryOptionToMB);
+}
+
 /**
  * List of available options for VpcConnectorEgressSettings.
  */
@@ -104,7 +109,7 @@ export interface GlobalOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: MemoryOption | null;
+  memory?: MemoryOption | Expression<number> | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -116,7 +121,7 @@ export interface GlobalOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: Field<number>;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -124,13 +129,13 @@ export interface GlobalOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: Field<number>;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: Field<number>;
 
   /**
    * Number of requests a function can serve at once.
@@ -139,7 +144,7 @@ export interface GlobalOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: Field<number>;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -246,8 +251,8 @@ export function optionsToTriggerAnnotations(
     opts,
     'availableMemoryMb',
     'memory',
-    (mem: MemoryOption) => {
-      return MemoryOptionToMB[mem];
+    (mem: MemoryOption | Expression<number>): number | string => {
+      return isMemoryOption(mem) ? MemoryOptionToMB[mem] : ExprString(mem);
     }
   );
   convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
@@ -308,8 +313,8 @@ export function optionsToEndpoint(
     convertIfPresent(vpc, opts, 'egressSettings', 'vpcConnectorEgressSettings');
     endpoint.vpc = vpc;
   }
-  convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
-    return MemoryOptionToMB[mem];
+  convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem: MemoryOption | Expression<number>): number | string => {
+    return isMemoryOption(mem) ? MemoryOptionToMB[mem] : ExprString(mem);
   });
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {
