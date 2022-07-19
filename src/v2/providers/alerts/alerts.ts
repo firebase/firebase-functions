@@ -68,6 +68,7 @@ export type AlertType =
   | 'billing.planUpdate'
   | 'billing.automatedPlanUpdate'
   | 'appDistribution.newTesterIosDevice'
+  | 'appDistribution.inAppFeedback'
   | string;
 
 /**

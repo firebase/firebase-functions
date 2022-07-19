@@ -46,6 +46,36 @@ export interface NewTesterDevicePayload {
 }
 
 /**
+ * The internal payload object for receiving in-app feedback from a tester.
+ * Payload is wrapped inside a `FirebaseAlertData` object.
+ */
+export interface InAppFeedbackPayload {
+  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload';
+  /** Resource name. Format: `projects/{project_number}/apps/{app_id}/releases/{release_id}/feedbackReports/{feedback_id}` */
+  feedbackReport: string;
+  /** Name of the tester */
+  testerName?: string;
+  /** Email of the tester */
+  testerEmail: string;
+  /**
+   * Display version of the release. For an Android release, the display version
+   * is the `versionName`. For an iOS release, the display version is the
+   * `CFBundleShortVersionString`.
+   */
+  displayVersion: string;
+  /**
+   * Build version of the release. For an Android release, the build version
+   * is the `versionCode`. For an iOS release, the build version is the
+   * `CFBundleVersion`.
+   */
+  buildVersion: string;
+  /** Text entered by the tester */
+  text: string;
+  /** URIs to download screenshot(s) */
+  screenshotUris?: string[];
+}
+
+/**
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
  * @typeParam T - the data type for app distribution alerts that is wrapped in a `FirebaseAlertData` object.
  */
@@ -59,6 +89,8 @@ export interface AppDistributionEvent<T>
 
 /** @internal */
 export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
+/** @internal */
+export const inAppFeedbackAlert = 'appDistribution.inAppFeedback';
 
 /**
  * Configuration for app distribution functions.
@@ -230,6 +262,79 @@ export function onNewTesterIosDevicePublished(
 
   func.run = handler;
   func.__endpoint = getEndpointAnnotation(opts, newTesterIosDeviceAlert, appId);
+
+  return func;
+}
+
+/**
+ * Declares a function that can handle receiving new in-app feedback from a tester.
+ * @param handler - Event handler which is run every time new feedback is received.
+ * @returns A function that you can export and deploy.
+ */
+export function onInAppFeedbackPublished(
+  handler: (
+    event: AppDistributionEvent<InAppFeedbackPayload>
+  ) => any | Promise<any>
+): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
+
+/**
+ * Declares a function that can handle receiving new in-app feedback from a tester.
+ * @param appId - A specific application the handler will trigger on.
+ * @param handler - Event handler which is run every time new feedback is received.
+ * @returns A function that you can export and deploy.
+ */
+export function onInAppFeedbackPublished(
+  appId: string,
+  handler: (
+    event: AppDistributionEvent<InAppFeedbackPayload>
+  ) => any | Promise<any>
+): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
+
+/**
+ * Declares a function that can handle receiving new in-app feedback from a tester.
+ * @param opts - Options that can be set on the function.
+ * @param handler - Event handler which is run every time new feedback is received.
+ * @returns A function that you can export and deploy.
+ */
+export function onInAppFeedbackPublished(
+  opts: AppDistributionOptions,
+  handler: (
+    event: AppDistributionEvent<InAppFeedbackPayload>
+  ) => any | Promise<any>
+): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
+
+/**
+ * Declares a function that can handle receiving new in-app feedback from a tester.
+ * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
+ * @param handler - Event handler which is run every time new feedback is received.
+ * @returns A function that you can export and deploy.
+ */
+export function onInAppFeedbackPublished(
+  appIdOrOptsOrHandler:
+    | string
+    | AppDistributionOptions
+    | ((
+        event: AppDistributionEvent<InAppFeedbackPayload>
+      ) => any | Promise<any>),
+  handler?: (
+    event: AppDistributionEvent<InAppFeedbackPayload>
+  ) => any | Promise<any>
+): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>> {
+  if (typeof appIdOrOptsOrHandler === 'function') {
+    handler = appIdOrOptsOrHandler as (
+      event: AppDistributionEvent<InAppFeedbackPayload>
+    ) => any | Promise<any>;
+    appIdOrOptsOrHandler = {};
+  }
+
+  const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
+
+  const func = (raw: CloudEvent<unknown>) => {
+    return handler(raw as AppDistributionEvent<InAppFeedbackPayload>);
+  };
+
+  func.run = handler;
+  func.__endpoint = getEndpointAnnotation(opts, inAppFeedbackAlert, appId);
 
   return func;
 }
