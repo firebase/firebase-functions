@@ -77,8 +77,10 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
   '32GiB': 32768,
 };
 
-function isMemoryOption(arg: MemoryOption | Expression<number>): arg is MemoryOption {
-  return (arg in MemoryOptionToMB);
+function isMemoryOption(
+  arg: MemoryOption | Expression<number>
+): arg is MemoryOption {
+  return arg in MemoryOptionToMB;
 }
 
 /**
@@ -313,9 +315,15 @@ export function optionsToEndpoint(
     convertIfPresent(vpc, opts, 'egressSettings', 'vpcConnectorEgressSettings');
     endpoint.vpc = vpc;
   }
-  convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem: MemoryOption | Expression<number>): number | string => {
-    return isMemoryOption(mem) ? MemoryOptionToMB[mem] : ExprString(mem);
-  });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'availableMemoryMb',
+    'memory',
+    (mem: MemoryOption | Expression<number>): number | string => {
+      return isMemoryOption(mem) ? MemoryOptionToMB[mem] : ExprString(mem);
+    }
+  );
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {
       return [region];
