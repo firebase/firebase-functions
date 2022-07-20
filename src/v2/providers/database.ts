@@ -185,7 +185,7 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
   secrets?: string[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: Field<boolean>;
 }
 
 /**

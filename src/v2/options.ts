@@ -224,8 +224,22 @@ export function getGlobalOptions(): GlobalOptions {
  * Additional fields that can be set on any event-handling Cloud Function.
  */
 export interface EventHandlerOptions extends GlobalOptions {
+  eventType?: string;
+
+  eventFilters?: Record<string, string | Expression<string>>;
+  eventFilterPathPatterns?: Record<string, string | Expression<string>>;
+
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: Field<boolean>;
+
+  /** Region of the EventArc trigger. */
+  region?: Field<string>;
+
+  /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
+  serviceAccount?: string | null;
+
+  /** The name of the channel where the function receives events. */
+  channel?: string;
 }
 
 /**

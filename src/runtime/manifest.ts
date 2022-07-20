@@ -54,7 +54,7 @@ export interface ManifestEndpoint {
     eventFilterPathPatterns?: Record<string, string>;
     channel?: string;
     eventType: string;
-    retry: boolean;
+    retry: boolean | string;
     region?: string;
     serviceAccountEmail?: string;
   };
@@ -63,11 +63,11 @@ export interface ManifestEndpoint {
     schedule?: string;
     timezone?: string;
     retryConfig?: {
-      retryCount?: number;
+      retryCount?: number | string;
       maxRetryDuration?: string;
       minBackoffDuration?: string;
       maxBackoffDuration?: string;
-      maxDoublings?: number;
+      maxDoublings?: number | string;
     };
   };
 

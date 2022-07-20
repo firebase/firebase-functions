@@ -112,6 +112,64 @@ describe('onTaskDispatched', () => {
     });
   });
 
+  it('should accept Expression<number> for the values of retryConfig and rateLimits', () => {
+    const result = onTaskDispatched(
+      {
+        ...FULL_OPTIONS,
+        retryConfig: {
+          maxAttempts: '{{ params.MAXATTEMPTS }}',
+          maxRetrySeconds: '{{ params.MAXRETRYSECONDS }}',
+          maxDoublings: '{{ params.MAXDOUBLINGS }}',
+          minBackoffSeconds: '{{ params.MINBACKOFFSECONDS }}',
+          maxBackoffSeconds: '{{ params.MAXBACKOFFSECONDS }}',
+        },
+        rateLimits: {
+          maxConcurrentDispatches: '{{ params.MAXCONCURRENTDISPATCHES }}',
+          maxDispatchesPerSecond: '{{ params.MAXDISPATCHESPERSECOND }}',
+        },
+        invoker: 'private',
+      },
+      () => {}
+    );
+
+    expect(result.__trigger).to.deep.equal({
+      ...FULL_TRIGGER,
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: '{{ params.MAXATTEMPTS }}',
+          maxRetrySeconds: '{{ params.MAXRETRYSECONDS }}',
+          maxDoublings: '{{ params.MAXDOUBLINGS }}',
+          minBackoffSeconds: '{{ params.MINBACKOFFSECONDS }}',
+          maxBackoffSeconds: '{{ params.MAXBACKOFFSECONDS }}',
+        },
+        rateLimits: {
+          maxConcurrentDispatches: '{{ params.MAXCONCURRENTDISPATCHES }}',
+          maxDispatchesPerSecond: '{{ params.MAXDISPATCHESPERSECOND }}',
+        },
+        invoker: ['private'],
+      },
+    });
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      platform: 'gcfv2',
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: '{{ params.MAXATTEMPTS }}',
+          maxRetrySeconds: '{{ params.MAXRETRYSECONDS }}',
+          maxDoublings: '{{ params.MAXDOUBLINGS }}',
+          minBackoffSeconds: '{{ params.MINBACKOFFSECONDS }}',
+          maxBackoffSeconds: '{{ params.MAXBACKOFFSECONDS }}',
+        },
+        rateLimits: {
+          maxConcurrentDispatches: '{{ params.MAXCONCURRENTDISPATCHES }}',
+          maxDispatchesPerSecond: '{{ params.MAXDISPATCHESPERSECOND }}',
+        },
+        invoker: ['private'],
+      },
+    });
+  });
+
   it('should merge options and globalOptions', () => {
     options.setGlobalOptions({
       concurrency: 20,

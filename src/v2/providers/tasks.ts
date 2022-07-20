@@ -33,22 +33,68 @@ import {
 import {
   AuthData,
   onDispatchHandler,
-  RateLimits,
   Request,
-  RetryConfig,
 } from '../../common/providers/tasks';
 import * as options from '../options';
 import { HttpsFunction } from './https';
 import { Expression, Field } from '../expressions';
 
-export { AuthData, RateLimits, Request, RetryConfig };
+export { AuthData, Request };
+
+/** How congestion control should be applied to the function. */
+export interface ParameterizedRateLimits {
+  /**
+   * The maximum number of requests that can be outstanding at a time.
+   * If left unspecified, will default to 1000.
+   */
+  maxConcurrentDispatches?: Field<number>;
+
+  /**
+   * The maximum number of requests that can be invoked per second.
+   * If left unspecified, will default to 500.
+   */
+  maxDispatchesPerSecond?: Field<number>;
+}
+
+/** How a task should be retried in the event of a non-2xx return. */
+export interface ParameterizedRetryConfig {
+  /**
+   * Maximum number of times a request should be attempted.
+   * If left unspecified, will default to 3.
+   */
+  maxAttempts?: Field<number>;
+
+  /**
+   * Maximum amount of time for retrying failed task.
+   * If left unspecified will retry indefinitely.
+   */
+  maxRetrySeconds?: Field<number>;
+
+  /**
+   * The maximum amount of time to wait between attempts.
+   * If left unspecified will default to 1hr.
+   */
+  maxBackoffSeconds?: Field<number>;
+
+  /**
+   * The maximum number of times to double the backoff between
+   * retries. If left unspecified will default to 16.
+   */
+  maxDoublings?: Field<number>;
+
+  /**
+   * The minimum time to wait between attempts. If left unspecified
+   * will default to 100ms.
+   */
+  minBackoffSeconds?: Field<number>;
+}
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
-  retryConfig?: RetryConfig;
+  retryConfig?: ParameterizedRetryConfig;
 
   /** How congestion control should be applied to the function. */
-  rateLimits?: RateLimits;
+  rateLimits?: ParameterizedRateLimits;
 
   /**
    * Who can enqueue tasks for this function.
