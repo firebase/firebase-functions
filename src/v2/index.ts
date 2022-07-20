@@ -35,6 +35,7 @@ import * as eventarc from './providers/eventarc';
 import * as https from './providers/https';
 import * as identity from './providers/identity';
 import * as pubsub from './providers/pubsub';
+import * as schedule from './providers/schedule';
 import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
 
@@ -48,6 +49,7 @@ export {
   logger,
   tasks,
   eventarc,
+  schedule,
 };
 
 export {
