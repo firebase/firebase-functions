@@ -64,4 +64,4 @@ export { Change } from '../common/change';
 
 export { CloudFunction, CloudEvent } from './core';
 
-export { Expression } from './expressions';
+export { Expression, Field, FromParam } from './expressions';

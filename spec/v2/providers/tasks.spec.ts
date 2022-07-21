@@ -23,6 +23,7 @@
 import { expect } from 'chai';
 
 import * as options from '../../../src/v2/options';
+import { FromParam } from '../../../src/v2';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
@@ -117,15 +118,15 @@ describe('onTaskDispatched', () => {
       {
         ...FULL_OPTIONS,
         retryConfig: {
-          maxAttempts: '{{ params.MAXATTEMPTS }}',
-          maxRetrySeconds: '{{ params.MAXRETRYSECONDS }}',
-          maxDoublings: '{{ params.MAXDOUBLINGS }}',
-          minBackoffSeconds: '{{ params.MINBACKOFFSECONDS }}',
-          maxBackoffSeconds: '{{ params.MAXBACKOFFSECONDS }}',
+          maxAttempts: FromParam<number>('MAXATTEMPTS'),
+          maxRetrySeconds: FromParam<number>('MAXRETRYSECONDS'),
+          maxDoublings: FromParam<number>('MAXDOUBLINGS'),
+          minBackoffSeconds: FromParam<number>('MINBACKOFFSECONDS'),
+          maxBackoffSeconds: FromParam<number>('MAXBACKOFFSECONDS'),
         },
         rateLimits: {
-          maxConcurrentDispatches: '{{ params.MAXCONCURRENTDISPATCHES }}',
-          maxDispatchesPerSecond: '{{ params.MAXDISPATCHESPERSECOND }}',
+          maxConcurrentDispatches: FromParam<number>('MAXCONCURRENTDISPATCHES'),
+          maxDispatchesPerSecond: FromParam<number>('MAXDISPATCHESPERSECOND'),
         },
         invoker: 'private',
       },
@@ -136,15 +137,15 @@ describe('onTaskDispatched', () => {
       ...FULL_TRIGGER,
       taskQueueTrigger: {
         retryConfig: {
-          maxAttempts: '{{ params.MAXATTEMPTS }}',
-          maxRetrySeconds: '{{ params.MAXRETRYSECONDS }}',
-          maxDoublings: '{{ params.MAXDOUBLINGS }}',
-          minBackoffSeconds: '{{ params.MINBACKOFFSECONDS }}',
-          maxBackoffSeconds: '{{ params.MAXBACKOFFSECONDS }}',
+          maxAttempts: FromParam<number>('MAXATTEMPTS'),
+          maxRetrySeconds: FromParam<number>('MAXRETRYSECONDS'),
+          maxDoublings: FromParam<number>('MAXDOUBLINGS'),
+          minBackoffSeconds: FromParam<number>('MINBACKOFFSECONDS'),
+          maxBackoffSeconds: FromParam<number>('MAXBACKOFFSECONDS'),
         },
         rateLimits: {
-          maxConcurrentDispatches: '{{ params.MAXCONCURRENTDISPATCHES }}',
-          maxDispatchesPerSecond: '{{ params.MAXDISPATCHESPERSECOND }}',
+          maxConcurrentDispatches: FromParam<number>('MAXCONCURRENTDISPATCHES'),
+          maxDispatchesPerSecond: FromParam<number>('MAXDISPATCHESPERSECOND'),
         },
         invoker: ['private'],
       },
@@ -155,15 +156,15 @@ describe('onTaskDispatched', () => {
       platform: 'gcfv2',
       taskQueueTrigger: {
         retryConfig: {
-          maxAttempts: '{{ params.MAXATTEMPTS }}',
-          maxRetrySeconds: '{{ params.MAXRETRYSECONDS }}',
-          maxDoublings: '{{ params.MAXDOUBLINGS }}',
-          minBackoffSeconds: '{{ params.MINBACKOFFSECONDS }}',
-          maxBackoffSeconds: '{{ params.MAXBACKOFFSECONDS }}',
+          maxAttempts: FromParam<number>('MAXATTEMPTS'),
+          maxRetrySeconds: FromParam<number>('MAXRETRYSECONDS'),
+          maxDoublings: FromParam<number>('MAXDOUBLINGS'),
+          minBackoffSeconds: FromParam<number>('MINBACKOFFSECONDS'),
+          maxBackoffSeconds: FromParam<number>('MAXBACKOFFSECONDS'),
         },
         rateLimits: {
-          maxConcurrentDispatches: '{{ params.MAXCONCURRENTDISPATCHES }}',
-          maxDispatchesPerSecond: '{{ params.MAXDISPATCHESPERSECOND }}',
+          maxConcurrentDispatches: FromParam<number>('MAXCONCURRENTDISPATCHES'),
+          maxDispatchesPerSecond: FromParam<number>('MAXDISPATCHESPERSECOND'),
         },
         invoker: ['private'],
       },
