@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import * as express from 'express';
+import { logger } from '../..';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
@@ -96,11 +97,14 @@ export function onSchedule(
     req: express.Request,
     res: express.Response
   ): Promise<void> => {
-    await handler(req);
+    try {
+      await handler(req);
+    } catch (err) {
+      logger.warn((err as Error).message);
+    }
 
-    res.status(200);
     res.setHeader('Content-Type', 'application/json');
-    res.send();
+    res.status(200).send();
   };
   func.run = handler;
 
@@ -116,8 +120,6 @@ export function onSchedule(
     labels: {
       ...baseOptsEndpoint?.labels,
       ...specificOptsEndpoint?.labels,
-
-      'deployment-scheduled': 'true', // maybe delete this??
     },
     scheduleTrigger: {
       schedule: separatedOpts.schedule,
@@ -141,6 +143,13 @@ export function onSchedule(
   //   convertInvoker
   // );
   func.__endpoint = ep;
+
+  func.__requiredAPIs = [
+    {
+      api: 'cloudscheduler.googleapis.com',
+      reason: 'Needed for scheduled functions.',
+    },
+  ];
 
   return func;
 }
