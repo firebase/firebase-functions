@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { ParamSpec } from '../v2/params/types';
+
 /**
  * An definition of a function as appears in the Manifest.
  */
@@ -87,6 +89,7 @@ export interface ManifestRequiredAPI {
  */
 export interface ManifestStack {
   specVersion: 'v1alpha1';
+  params?: ParamSpec[];
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
 }
