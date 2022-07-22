@@ -60,4 +60,67 @@ describe('schedule', () => {
       });
     });
   });
+
+  describe('onSchedule', () => {
+    it('should create a schedule function given a schedule', () => {
+      const schfn = schedule.onSchedule('* * * * *', (req) => 1);
+
+      expect(schfn.__endpoint).to.deep.eq({
+        platform: 'gcfv2',
+        labels: {},
+        scheduleTrigger: {
+          schedule: '* * * * *',
+          retryConfig: {},
+        },
+      });
+      expect(schfn.__requiredAPIs).to.deep.eq([
+        {
+          api: 'cloudscheduler.googleapis.com',
+          reason: 'Needed for scheduled functions.',
+        },
+      ]);
+      expect(schfn.run({} as any)).to.eq(1);
+    });
+
+    it('should create a schedule function given options', () => {
+      const schfn = schedule.onSchedule(
+        {
+          schedule: '* * * * *',
+          timeZone: 'utc',
+          retryCount: 3,
+          maxRetryDuration: '10',
+          minBackoffDuration: '11',
+          maxBackoffDuration: '12',
+          maxDoublings: 2,
+          region: 'us-central1',
+          labels: { key: 'val' },
+        },
+        (req) => 1
+      );
+
+      expect(schfn.__endpoint).to.deep.eq({
+        platform: 'gcfv2',
+        labels: { key: 'val' },
+        region: ['us-central1'],
+        scheduleTrigger: {
+          schedule: '* * * * *',
+          timeZone: 'utc',
+          retryConfig: {
+            retryCount: 3,
+            maxRetryDuration: '10',
+            minBackoffDuration: '11',
+            maxBackoffDuration: '12',
+            maxDoublings: 2,
+          },
+        },
+      });
+      expect(schfn.__requiredAPIs).to.deep.eq([
+        {
+          api: 'cloudscheduler.googleapis.com',
+          reason: 'Needed for scheduled functions.',
+        },
+      ]);
+      expect(schfn.run({} as any)).to.eq(1);
+    });
+  });
 });

@@ -24,14 +24,14 @@ import * as express from 'express';
 import { logger } from '../..';
 import { copyIfPresent } from '../../common/encoding';
 import { timezone } from '../../common/timezone';
-import { ManifestEndpoint } from '../../runtime/manifest';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../../runtime/manifest';
 import * as options from '../options';
 import { HttpsFunction } from './https';
 
 /** @hidden */
 interface ScheduleArgs {
-  schedule: timezone;
-  timeZone?: string;
+  schedule: string;
+  timeZone?: timezone;
   retryCount?: number;
   maxRetryDuration?: string;
   minBackoffDuration?: string;
@@ -40,19 +40,63 @@ interface ScheduleArgs {
   opts: options.GlobalOptions;
 }
 
+/** @internal */
+export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
+  if (typeof args === 'string') {
+    return {
+      schedule: args,
+      opts: {},
+    };
+  }
+  const scheduleArgs: Partial<ScheduleArgs> = {
+    schedule: args.schedule,
+    timeZone: args.timeZone,
+    retryCount: args.retryCount,
+    maxRetryDuration: args.maxRetryDuration,
+    minBackoffDuration: args.minBackoffDuration,
+    maxBackoffDuration: args.maxBackoffDuration,
+    maxDoublings: args.maxDoublings,
+  };
+  const opts = { ...args };
+  delete (opts as any).schedule;
+  delete (opts as any).timeZone;
+  delete (opts as any).retryCount;
+  delete (opts as any).maxRetryDuration;
+  delete (opts as any).minBackoffDuration;
+  delete (opts as any).maxBackoffDuration;
+  delete (opts as any).maxDoublings;
+
+  scheduleArgs.opts = opts;
+  return scheduleArgs as ScheduleArgs;
+}
+
 /** The Cloud Function type for Schedule triggers. */
 export interface ScheduleFunction extends HttpsFunction {
-  run(data: express.Request): void | Promise<void>;
+  __requiredAPIs?: ManifestRequiredAPI[];
+  run(data: express.Request): any | Promise<any>;
 }
 
 /** Options that can be set on a Schedule trigger. */
 export interface ScheduleOptions extends options.GlobalOptions {
-  schedule: timezone;
-  timeZone?: string;
+  /** The schedule, in Unix Crontab or AppEngine syntax. */
+  schedule: string;
+
+  /** The timezone that the schedule executes in. */
+  timeZone?: timezone;
+
+  /** The number of retry attempts for a failed run. */
   retryCount?: number;
+
+  /** The time limit for retrying. */
   maxRetryDuration?: string;
+
+  /** The minimum time to wait before retying. */
   minBackoffDuration?: string;
+
+  /** The maximum time to wait before retrying. */
   maxBackoffDuration?: string;
+
+  /** The time between will double max doublings times. */
   maxDoublings?: number;
 }
 
@@ -64,8 +108,8 @@ export interface ScheduleOptions extends options.GlobalOptions {
  * @returns A function that you can export and deploy.
  */
 export function onSchedule(
-  schedule: timezone,
-  handler: (req: express.Request) => void | Promise<void>
+  schedule: string,
+  handler: (req: express.Request) => any | Promise<any>
 ): ScheduleFunction;
 
 /**
@@ -77,7 +121,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (req: express.Request) => void | Promise<void>
+  handler: (req: express.Request) => any | Promise<any>
 ): ScheduleFunction;
 
 /**
@@ -88,15 +132,15 @@ export function onSchedule(
  * @returns A function that you can export and deploy.
  */
 export function onSchedule(
-  args: timezone | ScheduleOptions,
-  handler: (req: express.Request) => void | Promise<void>
+  args: string | ScheduleOptions,
+  handler: (req: express.Request) => any | Promise<any>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
   const func: any = async (
     req: express.Request,
     res: express.Response
-  ): Promise<void> => {
+  ): Promise<any> => {
     try {
       await handler(req);
     } catch (err) {
@@ -123,6 +167,7 @@ export function onSchedule(
     },
     scheduleTrigger: {
       schedule: separatedOpts.schedule,
+      retryConfig: {},
     },
   };
   copyIfPresent(ep.scheduleTrigger, separatedOpts, 'timeZone');
@@ -150,34 +195,4 @@ export function onSchedule(
   ];
 
   return func;
-}
-
-/** @internal */
-export function getOpts(args: timezone | ScheduleOptions): ScheduleArgs {
-  if (typeof args === 'string') {
-    return {
-      schedule: args,
-      opts: {},
-    };
-  }
-  const scheduleArgs: Partial<ScheduleArgs> = {
-    schedule: args.schedule,
-    timeZone: args.timeZone,
-    retryCount: args.retryCount,
-    maxRetryDuration: args.maxRetryDuration,
-    minBackoffDuration: args.minBackoffDuration,
-    maxBackoffDuration: args.maxBackoffDuration,
-    maxDoublings: args.maxDoublings,
-  };
-  const opts = { ...args };
-  delete (opts as any).schedule;
-  delete (opts as any).timeZone;
-  delete (opts as any).retryCount;
-  delete (opts as any).maxRetryDuration;
-  delete (opts as any).minBackoffDuration;
-  delete (opts as any).maxBackoffDuration;
-  delete (opts as any).maxDoublings;
-
-  scheduleArgs.opts = opts;
-  return scheduleArgs as ScheduleArgs;
 }
