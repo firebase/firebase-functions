@@ -23,13 +23,14 @@
 import * as express from 'express';
 import { logger } from '../..';
 import { copyIfPresent } from '../../common/encoding';
+import { timezone } from '../../common/timezone';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
 import { HttpsFunction } from './https';
 
 /** @hidden */
 interface ScheduleArgs {
-  schedule: string;
+  schedule: timezone;
   timeZone?: string;
   retryCount?: number;
   maxRetryDuration?: string;
@@ -39,18 +40,14 @@ interface ScheduleArgs {
   opts: options.GlobalOptions;
 }
 
-/**
- *
- */
+/** The Cloud Function type for Schedule triggers. */
 export interface ScheduleFunction extends HttpsFunction {
   run(data: express.Request): void | Promise<void>;
 }
 
-/**
- *
- */
+/** Options that can be set on a Schedule trigger. */
 export interface ScheduleOptions extends options.GlobalOptions {
-  schedule: string;
+  schedule: timezone;
   timeZone?: string;
   retryCount?: number;
   maxRetryDuration?: string;
@@ -60,35 +57,38 @@ export interface ScheduleOptions extends options.GlobalOptions {
 }
 
 /**
- *
- * @param schedule
- * @param handler
- * @returns
+ * Handler for scheduled functions. Triggered whenever the associated
+ * scheduler job sends a http request.
+ * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
+ * @param handler - A function to execute when triggered.
+ * @returns A function that you can export and deploy.
  */
 export function onSchedule(
-  schedule: string,
+  schedule: timezone,
   handler: (req: express.Request) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
- *
- * @param opts
- * @param handler
- * @returns
+ * Handler for scheduled functions. Triggered whenever the associated
+ * scheduler job sends a http request.
+ * @param options - Options to set on scheduled functions.
+ * @param handler - A function to execute when triggered.
+ * @returns A function that you can export and deploy.
  */
 export function onSchedule(
-  opts: ScheduleOptions,
+  options: ScheduleOptions,
   handler: (req: express.Request) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
- *
- * @param args
- * @param handler
- * @returns
+ * Handler for scheduled functions. Triggered whenever the associated
+ * scheduler job sends a http request.
+ * @param args - Either a schedule or an object containing function options.
+ * @param handler - A function to execute when triggered.
+ * @returns A function that you can export and deploy.
  */
 export function onSchedule(
-  args: string | ScheduleOptions,
+  args: timezone | ScheduleOptions,
   handler: (req: express.Request) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
@@ -135,13 +135,11 @@ export function onSchedule(
     'maxBackoffDuration',
     'maxDoublings'
   );
-  // convertIfPresent(
-  //   ep.scheduleTrigger,
-  //   separatedOpts.opts,
-  //   'invoker',
-  //   'invoker',
-  //   convertInvoker
-  // );
+  // TODO(colerogers): add invoker to scheduleTrigger
+  // and the container contract if we want to
+  // support enterprise customers and change the
+  // behavior of using the default compute service agent as
+  // the function invoker from cloud scheduler.
   func.__endpoint = ep;
 
   func.__requiredAPIs = [
@@ -155,7 +153,7 @@ export function onSchedule(
 }
 
 /** @internal */
-export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
+export function getOpts(args: timezone | ScheduleOptions): ScheduleArgs {
   if (typeof args === 'string') {
     return {
       schedule: args,
