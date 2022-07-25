@@ -10,26 +10,15 @@ env:
 jobs:
   unit:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version:
-          - 10.x
-          - 12.x
-          - 14.x
-          - 16.x
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Cache npm
-        uses: actions/cache@v1
+          node-version: 16
+      - uses: 'google-github-actions/auth@v0'
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
-
-      - run: npm ci
+          credentials_json: '${{ secrets.CF3_INTEGRATION_TEST_GOOGLE_CREDENTIALS }}'
+      - run: npm run
       - run: npm run lint
       - run: npm run format
       - run: npm run test
