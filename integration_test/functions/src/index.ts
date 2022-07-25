@@ -1,5 +1,5 @@
 import { PubSub } from '@google-cloud/pubsub';
-import  { GoogleAuth } from "google-auth-library";
+import { GoogleAuth } from 'google-auth-library';
 import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
@@ -24,16 +24,17 @@ admin.initializeApp();
 
 async function callHttpsTrigger(name: string, data: any) {
   const url = `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`;
-  const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
+  const client = await new GoogleAuth().getIdTokenClient(
+    '32555940559.apps.googleusercontent.com'
+  );
   const resp = await client.request({
     url,
-    method: "POST",
-    headers:{
+    method: 'POST',
+    headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({data})
-
-  })
+    body: JSON.stringify({ data }),
+  });
   if (resp.status > 200) {
     throw Error(resp.statusText);
   }
@@ -61,16 +62,17 @@ async function callV2HttpsTrigger(
     throw new Error(`Cannot call v2 https trigger ${name} - no uri found`);
   }
 
-  const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
+  const client = await new GoogleAuth().getIdTokenClient(
+    '32555940559.apps.googleusercontent.com'
+  );
   const resp1 = await client.request({
     url: uri,
-    method: "POST",
-    headers:{
+    method: 'POST',
+    headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({data})
-
-  })
+    body: JSON.stringify({ data }),
+  });
   if (resp1.status > 200) {
     throw Error(resp1.statusText);
   }
