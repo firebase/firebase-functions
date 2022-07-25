@@ -22,6 +22,7 @@ on: [push]
 
 env:
   CI: true
+  PROJECT_ID: ${{ secrets.CF3_INTEGRATION_TEST_PROJECT_ID }}
 
 jobs:
   postmerge:
@@ -35,4 +36,5 @@ jobs:
         with:
           credentials_json: '${{ secrets.CF3_INTEGRATION_TEST_GOOGLE_CREDENTIALS }}'
           create_credentials_file: true
-      - run: npm run test:postmerge
+      - run: |
+          npm run test:postmerge -- '${PROJECT_ID}'
