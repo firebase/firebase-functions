@@ -74,8 +74,6 @@ function delete_all_functions {
 }
 
 function deploy {
-  cd "${DIR}"
-  ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore. If the deploy fails, retry twice
   if [[ "${TOKEN}" == "" ]]; then
     for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --only functions,database,firestore && break; done
@@ -97,7 +95,7 @@ function run_tests {
   TEST_URL="https://${FIREBASE_FUNCTIONS_TEST_REGION}-${PROJECT_ID}.${TEST_DOMAIN}/integrationTests"
   echo "${TEST_URL}"
 
-  curl --fail "${TEST_URL}"
+  curl --fail -H "Authorization: Bearer $(gcloud auth print-identity-token)" "${TEST_URL}"
 }
 
 function cleanup {

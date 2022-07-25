@@ -1,4 +1,5 @@
 import { PubSub } from '@google-cloud/pubsub';
+import  { GoogleAuth } from "google-auth-library";
 import { Request, Response } from 'express';
 import * as admin from 'firebase-admin';
 import * as functions from 'firebase-functions';
@@ -22,17 +23,18 @@ const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
 
 async function callHttpsTrigger(name: string, data: any) {
-  const resp = await fetch(
-    `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ data }),
-    }
-  );
-  if (!resp.ok) {
+  const url = `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`;
+  const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
+  const resp = await client.request({
+    url,
+    method: "POST",
+    headers:{
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({data})
+
+  })
+  if (resp.status > 200) {
     throw Error(resp.statusText);
   }
 }
@@ -42,7 +44,7 @@ async function callV2HttpsTrigger(
   data: any,
   accessToken: string
 ) {
-  let resp = await fetch(
+  const resp0 = await fetch(
     `https://cloudfunctions.googleapis.com/v2beta/projects/${firebaseConfig.projectId}/locations/${REGION}/functions/${name}`,
     {
       headers: {
@@ -50,23 +52,27 @@ async function callV2HttpsTrigger(
       },
     }
   );
-  if (!resp.ok) {
-    throw new Error(resp.statusText);
+  if (!resp0.ok) {
+    throw new Error(resp0.statusText);
   }
-  const fn = await resp.json();
+  const fn = await resp0.json();
   const uri = fn.serviceConfig?.uri;
   if (!uri) {
     throw new Error(`Cannot call v2 https trigger ${name} - no uri found`);
   }
-  resp = await fetch(uri, {
-    method: 'POST',
-    headers: {
+
+  const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
+  const resp1 = await client.request({
+    url: uri,
+    method: "POST",
+    headers:{
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ data }),
-  });
-  if (!resp.ok) {
-    throw new Error(resp.statusText);
+    body: JSON.stringify({data})
+
+  })
+  if (resp1.status > 200) {
+    throw Error(resp1.statusText);
   }
 }
 
