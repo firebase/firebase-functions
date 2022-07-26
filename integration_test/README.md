@@ -17,5 +17,6 @@ Integration test is triggered by invoking HTTP function integrationTest which in
 by issuing actions necessary to trigger it (e.g. write to storage bucket).
 
 ### Debugging
+
 The status and result of each test is stored in RTDB of the project used for testing. You can also inspect Cloud Logging
 for more clues.
