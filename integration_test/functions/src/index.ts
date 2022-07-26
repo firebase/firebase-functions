@@ -178,6 +178,7 @@ export const integrationTests: any = functions
   .region(REGION)
   .runWith({
     timeoutSeconds: 540,
+    invoker: 'private',
   })
   .https.onRequest(async (req: Request, resp: Response) => {
     const testId = admin
