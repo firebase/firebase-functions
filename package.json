@@ -169,7 +169,7 @@
     "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2/markdown --output docgen/v2/markdown/toc --path /docs/functions/beta/reference",
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
-    "build:pack": "rm -rf lib && npm install --production && tsc -p tsconfig.release.json && npm pack",
+    "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
     "build:release": "npm ci --production && npm install --no-save typescript firebase-admin && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "build:watch": "npm run build -- -w",

@@ -1,7 +1,7 @@
 import { onCall } from 'firebase-functions/v2/https';
 import { expectEq, TestSuite } from '../testing';
 
-export const callabletests = onCall((req) => {
+export const callabletests = onCall({ invoker: 'private' }, (req) => {
   return new TestSuite('v2 https onCall')
     .it('should have the correct data', (data: any) =>
       expectEq(data?.foo, 'bar')

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "lib": ["es6", "dom"],
     "module": "commonjs",
-    "target": "es6",
+    "target": "es2020",
     "noImplicitAny": false,
     "outDir": "lib",
     "declaration": true,
