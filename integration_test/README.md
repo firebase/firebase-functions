@@ -8,6 +8,15 @@ Run the integration test as follows:
 ./run_tests.sh <project_id> [<project_id2>]
 ```
 
-If just one project_id is provided, the both the node6 and node8 tests will be run on that project, in series. If two project_ids are provided, the node6 tests will be run on the first project and the node8 tests will be run on the second one, in parallel.
+Test runs cycles of testing, once for Node.js 14 and another for Node.js 16.
 
-The tests run fully automatically, and will print the result on standard out. The integration test for HTTPS is that it properly kicks off other integration tests and returns a result. From there the other integration test suites will write their results back to the database, where you can check the detailed results if you'd like.
+Test uses locally installed firebase to invoke commands for deploying function. The test also requires that you have
+gcloud CLI installed and authenticated (`gcloud auth login`).
+
+Integration test is triggered by invoking HTTP function integrationTest which in turns invokes each function trigger
+by issuing actions necessary to trigger it (e.g. write to storage bucket).
+
+### Debugging
+
+The status and result of each test is stored in RTDB of the project used for testing. You can also inspect Cloud Logging
+for more clues.

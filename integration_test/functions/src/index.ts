@@ -45,7 +45,7 @@ async function callV2HttpsTrigger(
   data: any,
   accessToken: string
 ) {
-  const resp0 = await fetch(
+  const getFnResp = await fetch(
     `https://cloudfunctions.googleapis.com/v2beta/projects/${firebaseConfig.projectId}/locations/${REGION}/functions/${name}`,
     {
       headers: {
@@ -53,10 +53,10 @@ async function callV2HttpsTrigger(
       },
     }
   );
-  if (!resp0.ok) {
-    throw new Error(resp0.statusText);
+  if (!getFnResp.ok) {
+    throw new Error(getFnResp.statusText);
   }
-  const fn = await resp0.json();
+  const fn = await getFnResp.json();
   const uri = fn.serviceConfig?.uri;
   if (!uri) {
     throw new Error(`Cannot call v2 https trigger ${name} - no uri found`);
@@ -65,7 +65,7 @@ async function callV2HttpsTrigger(
   const client = await new GoogleAuth().getIdTokenClient(
     '32555940559.apps.googleusercontent.com'
   );
-  const resp1 = await client.request({
+  const invokeFnREsp = await client.request({
     url: uri,
     method: 'POST',
     headers: {
@@ -73,8 +73,8 @@ async function callV2HttpsTrigger(
     },
     body: JSON.stringify({ data }),
   });
-  if (resp1.status > 200) {
-    throw Error(resp1.statusText);
+  if (invokeFnREsp.status > 200) {
+    throw Error(invokeFnREsp.statusText);
   }
 }
 
