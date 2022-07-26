@@ -63,7 +63,7 @@ describe('schedule', () => {
 
   describe('onSchedule', () => {
     it('should create a schedule function given a schedule', () => {
-      const schfn = schedule.onSchedule('* * * * *', (req) => 1);
+      const schfn = schedule.onSchedule('* * * * *', (req) => console.log(1));
 
       expect(schfn.__endpoint).to.deep.eq({
         platform: 'gcfv2',
@@ -79,7 +79,6 @@ describe('schedule', () => {
           reason: 'Needed for scheduled functions.',
         },
       ]);
-      expect(schfn.run({} as any)).to.eq(1);
     });
 
     it('should create a schedule function given options', () => {
@@ -95,7 +94,7 @@ describe('schedule', () => {
           region: 'us-central1',
           labels: { key: 'val' },
         },
-        (req) => 1
+        (req) => console.log(1)
       );
 
       expect(schfn.__endpoint).to.deep.eq({
@@ -120,7 +119,6 @@ describe('schedule', () => {
           reason: 'Needed for scheduled functions.',
         },
       ]);
-      expect(schfn.run({} as any)).to.eq(1);
     });
   });
 });

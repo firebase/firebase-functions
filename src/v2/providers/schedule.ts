@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import * as express from 'express';
-import { logger } from '../..';
 import { copyIfPresent } from '../../common/encoding';
 import { timezone } from '../../common/timezone';
+import * as logger from '../../logger';
 import { ManifestEndpoint, ManifestRequiredAPI } from '../../runtime/manifest';
 import * as options from '../options';
 import { HttpsFunction } from './https';
@@ -109,7 +109,7 @@ export interface ScheduleOptions extends options.GlobalOptions {
  */
 export function onSchedule(
   schedule: string,
-  handler: (req: express.Request) => any | Promise<any>
+  handler: (req: express.Request) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -121,7 +121,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (req: express.Request) => any | Promise<any>
+  handler: (req: express.Request) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -133,7 +133,7 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (req: express.Request) => any | Promise<any>
+  handler: (req: express.Request) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
@@ -144,10 +144,9 @@ export function onSchedule(
     try {
       await handler(req);
     } catch (err) {
-      logger.warn((err as Error).message);
+      logger.error((err as Error).message);
     }
 
-    res.setHeader('Content-Type', 'application/json');
     res.status(200).send();
   };
   func.run = handler;
