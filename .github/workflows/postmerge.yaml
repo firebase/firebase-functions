@@ -32,9 +32,18 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - uses: 'google-github-actions/auth@v0'
+
+      - id: 'gcloud auth'
+        uses: 'google-github-actions/auth@v0'
         with:
           credentials_json: '${{ secrets.CF3_INTEGRATION_TEST_GOOGLE_CREDENTIALS }}'
           create_credentials_file: true
-      - run: |
-          npm run test:postmerge -- '${PROJECT_ID}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+
+      - name: 'Setup Firebase CLI'
+        run: 'npm i -g firebase-tools'
+
+      - name: 'Run integration test'
+        run: 'npm run test:postmerge -- "${PROJECT_ID}"'
