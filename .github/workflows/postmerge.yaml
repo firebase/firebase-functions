@@ -20,6 +20,10 @@ name: Post-merge tests
 
 on: [push]
 
+concurrency:
+  group: postmerge-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CI: true
   PROJECT_ID: ${{ secrets.CF3_INTEGRATION_TEST_PROJECT_ID }}
