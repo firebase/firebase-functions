@@ -13,16 +13,12 @@
 # limitations under the License.
 name: Post-merge tests
 
-#on:
-#  workflow_dispatch
-#  workflow_run:
-#    workflows: ["CI Tests"]
-#    types: [completed]
-#    branches: [master]
-
 on:
   workflow_dispatch:
-  push:
+  workflow_run:
+    workflows: ["CI Tests"]
+    types: [completed]
+    branches: [master]
 
 concurrency:
   group: postmerge-${{ github.ref }}
