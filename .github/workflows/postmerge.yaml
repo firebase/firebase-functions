@@ -26,7 +26,6 @@ concurrency:
 
 env:
   CI: true
-  PROJECT_ID: ${{ secrets.CF3_INTEGRATION_TEST_PROJECT_ID }}
 
 jobs:
   postmerge:
