@@ -638,7 +638,7 @@ export async function checkAuthToken(
   if (!authorization) {
     return 'MISSING';
   }
-  const match = authorization.match(/^Bearer (.*)$/);
+  const match = authorization.match(/^Bearer (.*)$/i);
   if (match) {
     const idToken = match[1];
     try {
@@ -660,6 +660,7 @@ export async function checkAuthToken(
       return 'INVALID';
     }
   }
+  return 'INVALID';
 }
 
 /** @internal */
