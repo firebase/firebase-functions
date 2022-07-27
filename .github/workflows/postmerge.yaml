@@ -14,11 +14,15 @@
 name: Post-merge tests
 
 #on:
-#  push:
-#    branches:
-#      - master
+#  workflow_dispatch
+#  workflow_run:
+#    workflows: ["CI Tests"]
+#    types: [completed]
+#    branches: [master]
 
-on: [push]
+on:
+  workflow_dispatch:
+  push:
 
 concurrency:
   group: postmerge-${{ github.ref }}
