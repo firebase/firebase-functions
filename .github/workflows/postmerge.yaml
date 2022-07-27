@@ -48,4 +48,4 @@ jobs:
         run: 'npm i -g firebase-tools'
 
       - name: 'Run integration test'
-        run: 'npm run test:postmerge -- "${PROJECT_ID}"'
+        run: 'npm run test:postmerge'
