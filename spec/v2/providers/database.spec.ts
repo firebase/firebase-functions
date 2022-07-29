@@ -110,13 +110,12 @@ describe('database', () => {
         database.makeParams(
           event,
           new PathPattern('something/{path=**}/else/{a}/hello/{b}/world'),
-          new PathPattern('{inst}')
+          new PathPattern('*')
         )
       ).to.deep.equal({
         path: 'is/a/thing',
         a: 'match_a',
         b: 'match_b',
-        inst: 'my-instance',
       });
     });
   });
@@ -134,12 +133,11 @@ describe('database', () => {
       expect(
         database.getOpts({
           ref: '/foo/{bar}/',
-          instance: '{inst}',
           region: 'us-central1',
         })
       ).to.deep.equal({
         path: 'foo/{bar}',
-        instance: '{inst}',
+        instance: '*',
         opts: {
           region: 'us-central1',
         },
@@ -156,7 +154,7 @@ describe('database', () => {
           labels: { 1: '2' },
         },
         new PathPattern('foo/bar'),
-        new PathPattern('{inst}')
+        new PathPattern('*')
       );
 
       expect(ep).to.deep.equal({
@@ -170,7 +168,7 @@ describe('database', () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: 'foo/bar',
-            instance: '{inst}',
+            instance: '*',
           },
           retry: false,
         },
@@ -444,7 +442,7 @@ describe('database', () => {
       const func = database.onValueCreated(
         {
           ref: '/foo/{path=**}/{bar}/',
-          instance: '{instance}',
+          instance: 'instance',
           region: 'us-central1',
           cpu: 'gcf_gen1',
           minInstances: 2,
@@ -453,7 +451,6 @@ describe('database', () => {
           expectType<{
             path: string;
             bar: string;
-            instance: string;
           }>(event.params);
         }
       );
@@ -466,10 +463,11 @@ describe('database', () => {
         labels: {},
         eventTrigger: {
           eventType: database.createdEventType,
-          eventFilters: {},
+          eventFilters: {
+            instance: 'instance',
+          },
           eventFilterPathPatterns: {
             ref: 'foo/{path=**}/{bar}',
-            instance: '{instance}',
           },
           retry: false,
         },
