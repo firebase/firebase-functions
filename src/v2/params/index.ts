@@ -34,6 +34,7 @@ import {
   Param,
   ParamOptions,
   StringParam,
+  SecretParam
 } from './types';
 
 export { ParamOptions };
@@ -52,6 +53,15 @@ function registerParam(param: Param) {
     }
   }
   declaredParams.push(param);
+}
+
+export function defineSecretParam(
+  name: string,
+  options: ParamOptions<string> = {}
+): SecretParam {
+  const param = new SecretParam(name, options);
+  registerParam(param);
+  return param;
 }
 
 /**

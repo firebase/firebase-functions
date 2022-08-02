@@ -1,3 +1,5 @@
+import { Field } from "./v2";
+
 /**
  * List of all regions supported by Cloud Functions.
  */
@@ -72,11 +74,11 @@ export const INGRESS_SETTINGS_OPTIONS = [
  * Scheduler retry options. Applies only to scheduled functions.
  */
 export interface ScheduleRetryConfig {
-  retryCount?: number;
-  maxRetryDuration?: string;
-  minBackoffDuration?: string;
-  maxBackoffDuration?: string;
-  maxDoublings?: number;
+  retryCount?: Field<number>;
+  maxRetryDuration?: Field<string>;
+  minBackoffDuration?: Field<string>;
+  maxBackoffDuration?: Field<string>;
+  maxDoublings?: Field<number>;
 }
 
 /**

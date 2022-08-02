@@ -21,14 +21,31 @@
 // SOFTWARE.
 
 /** @hidden */
-type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json';
+type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json' | 'secret';
+type ParamInput<T> = TextInput<T> | SelectInput<T>;
+
+export interface TextInput<T = unknown> {
+ type: "text"; 
+}
+
+export interface SelectInput<T = unknown> {
+  type: "select";
+  select: Array<SelectOptions<T>>;
+}
+
+export interface SelectOptions<T = unknown> {
+  label?: string;
+  value: T;
+}
 
 export interface ParamSpec<T = unknown> {
   name: string;
   default?: T;
   label?: string;
+  as?: string;
   description?: string;
   type: ParamValueType;
+  input?: ParamInput<T>;
 }
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
@@ -54,19 +71,41 @@ export class Param<T = unknown> {
     return this.toString();
   }
 
-  toSpec(): ParamSpec<string> {
+  toSpec(): ParamSpec<T> {
+    if (this.options.as) {
+      throw new Error(
+        `Param "${this.name}" has an "as" field, which is only valid for secret params.`
+      );
+    }
     const out: ParamSpec = {
       name: this.name,
       ...this.options,
       type: (this.constructor as typeof Param).type,
     };
-    if (this.options.default && typeof this.options.default !== 'string') {
-      out.default = (this.options.default as
-        | { toString?: () => string }
-        | undefined)?.toString?.();
-    }
 
-    return out as ParamSpec<string>;
+    return out as ParamSpec<T>;
+  }
+}
+
+export class SecretParam extends Param<string> {
+  static type: ParamValueType = 'secret';
+
+  toSpec(): ParamSpec<string> {
+    if (this.options.default) {
+      throw new Error(
+        `Secret params such as "${this.name}" cannot have a default value.`
+      );
+    }
+    if (this.options.input) {
+      throw new Error(
+        `Secret params such as "${this.name}" cannot have a custom input.`
+      );
+    }
+    return {
+      type: "secret",
+      name: this.name,
+      ...this.options,
+    };
   }
 }
 
@@ -142,7 +181,7 @@ export class ListParam extends Param<string[]> {
       : this.options.default || [];
   }
 
-  toSpec(): ParamSpec<string> {
+  toSpec(): ParamSpec<string[]> {
     const out: ParamSpec = {
       name: this.name,
       type: 'list',
@@ -152,7 +191,7 @@ export class ListParam extends Param<string[]> {
       out.default = this.options.default.join(',');
     }
 
-    return out as ParamSpec<string>;
+    return out as ParamSpec<string[]>;
   }
 }
 
