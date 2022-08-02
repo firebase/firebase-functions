@@ -3,25 +3,13 @@
 # Exit immediately if a command exits with a non-zero status.
 set -e
 
-function usage {
-  echo "Usage: ${0} <project_id> [<token>]"
-  exit 1
-}
-
-# This script takes in one required argument specifying a project_id and an
-# optional arguement for a CI token that can be obtained by running
-# `firebase login:ci`
-# Example usage (from root dir) without token:
-# ./integration_test/run_tests.sh chenky-test-proj
-# Example usage (from root dir) with token:
-# ./integration_test/run_tests.sh chenky-test-proj $TOKEN
-if [[ "${1}" == "" ]]; then
-  usage
-fi
-
-PROJECT_ID="${1}"
+PROJECT_ID="${GCLOUD_PROJECT}"
 TIMESTAMP=$(date +%s)
-TOKEN="${2}"
+
+if [[ "${PROJECT_ID}" == "" ]]; then
+  echo "process.env.GCLOUD_PROJECT cannot be empty"
+  exit 1
+fi
 
 # Directory where this script lives.
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -64,24 +52,14 @@ function delete_all_functions {
   cd "${DIR}"
   # Try to delete, if there are errors it is because the project is already empty,
   # in that case do nothing.
-  if [[ "${TOKEN}" == "" ]]; then
-    firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID || : &
-  else
-    firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID --token=$TOKEN || : &
-  fi
+  firebase functions:delete integrationTests v1 v2 --force --project=$PROJECT_ID || : &
   wait
   announce "Project emptied."
 }
 
 function deploy {
-  cd "${DIR}"
-  ./functions/node_modules/.bin/tsc -p functions/
   # Deploy functions, and security rules for database and Firestore. If the deploy fails, retry twice
-  if [[ "${TOKEN}" == "" ]]; then
-    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --only functions,database,firestore && break; done
-  else
-    for i in 1 2 3; do firebase deploy --project="${PROJECT_ID}" --token="${TOKEN}" --only functions,database,firestore && break; done
-  fi
+  for i in 1 2; do firebase deploy --project="${PROJECT_ID}" --only functions,database,firestore && break; done
 }
 
 function run_tests {
@@ -97,7 +75,7 @@ function run_tests {
   TEST_URL="https://${FIREBASE_FUNCTIONS_TEST_REGION}-${PROJECT_ID}.${TEST_DOMAIN}/integrationTests"
   echo "${TEST_URL}"
 
-  curl --fail "${TEST_URL}"
+  curl --fail -H "Authorization: Bearer $(gcloud auth print-identity-token)" "${TEST_URL}"
 }
 
 function cleanup {
