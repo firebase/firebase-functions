@@ -21,15 +21,34 @@
 // SOFTWARE.
 
 /** @hidden */
-type ParamValueType = 'string' | 'list' | 'boolean' | 'int' | 'float' | 'json' | 'secret';
+type ParamValueType =
+  | 'string'
+  | 'list'
+  | 'boolean'
+  | 'int'
+  | 'float'
+  | 'json'
+  | 'secret';
 type ParamInput<T> = TextInput<T> | SelectInput<T>;
 
+/**
+ * Specifies that a Param's value should be determined by prompting the user
+ * to type it in interactively at deploy-time. Input that does not match the
+ * provided validationRegex, if present, will be retried.
+ */
 export interface TextInput<T = unknown> {
- type: "text"; 
+  type: 'text';
+  example?: string;
+  validationRegex?: string;
+  validationErrorMessage?: string;
 }
 
+/**
+ * Specifies that a Param's value should be determined by having the user select
+ * from a list of pre-canned options interactively at deploy-time.
+ */
 export interface SelectInput<T = unknown> {
-  type: "select";
+  type: 'select';
   select: Array<SelectOptions<T>>;
 }
 
@@ -102,7 +121,7 @@ export class SecretParam extends Param<string> {
       );
     }
     return {
-      type: "secret",
+      type: 'secret',
       name: this.name,
       ...this.options,
     };

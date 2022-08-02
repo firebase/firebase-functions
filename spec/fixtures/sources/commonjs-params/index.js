@@ -2,7 +2,8 @@ const functions = require("../../../../src/index");
 const functionsv2 = require("../../../../src/v2/index");
 const params = require("../../../../src/v2/params");
 
-params.defineString("FOO");
+params.defineString("BORING");
+params.defineString("FOO", {input: {type: "text", validationRegex:"\w+"}})
 params.defineString("BAR", {default: "{{ params.FOO }}", label: "asdf"});
 params.defineString("BAZ", {input: {type: "select", select: [{value: "a"}, {value: "b"}]}})
 

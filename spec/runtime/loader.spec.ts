@@ -313,14 +313,44 @@ describe('loadStack', () => {
       {
         name: 'has params',
         modulePath: './spec/fixtures/sources/commonjs-params',
-        expected: { ...expected, params: [
-          { name: 'FOO', type: 'string' },
-          { name: 'BAR', type: 'string', default: '{{ params.FOO }}', label: 'asdf'},
-          { name: 'BAZ', type: 'string', input: {type: 'select', select: [{value: 'a'}, {value: 'b'}]}},
-          { name: 'AN_INT', type: 'int', default: 22},
-          { name: 'ANOTHER_INT', type: 'int', input: {type: 'select', select: [{label: 'a', value: -2}, {label: 'b', value: 2}]}},
-          { name: 'SUPER_SECRET_FLAG', type: 'secret', as: 'boolean'}
-        ] },
+        expected: {
+          ...expected,
+          params: [
+            { name: 'BORING', type: 'string' },
+            {
+              name: 'FOO',
+              type: 'string',
+              input: { type: 'text', validationRegex: 'w+' },
+            },
+            {
+              name: 'BAR',
+              type: 'string',
+              default: '{{ params.FOO }}',
+              label: 'asdf',
+            },
+            {
+              name: 'BAZ',
+              type: 'string',
+              input: {
+                type: 'select',
+                select: [{ value: 'a' }, { value: 'b' }],
+              },
+            },
+            { name: 'AN_INT', type: 'int', default: 22 },
+            {
+              name: 'ANOTHER_INT',
+              type: 'int',
+              input: {
+                type: 'select',
+                select: [
+                  { label: 'a', value: -2 },
+                  { label: 'b', value: 2 },
+                ],
+              },
+            },
+            { name: 'SUPER_SECRET_FLAG', type: 'secret', as: 'boolean' },
+          ],
+        },
       },
     ];
 

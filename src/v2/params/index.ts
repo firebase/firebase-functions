@@ -34,7 +34,7 @@ import {
   Param,
   ParamOptions,
   StringParam,
-  SecretParam
+  SecretParam,
 } from './types';
 
 export { ParamOptions };
@@ -55,6 +55,15 @@ function registerParam(param: Param) {
   declaredParams.push(param);
 }
 
+/**
+ * Declare a secret param, that will persist values only in Cloud Secret Manager.
+ * Secrets are stored interally as bytestrings. Use ParamOptions.`as` to provide type
+ * hinting during parameter resolution.
+ *
+ * @param name The name of the environment variable to use to load the param.
+ * @param options Configuration options for the param.
+ * @returns A Param with a `string` return type for `.value`.
+ */
 export function defineSecretParam(
   name: string,
   options: ParamOptions<string> = {}

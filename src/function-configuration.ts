@@ -1,4 +1,4 @@
-import { Field } from "./v2";
+import { Field } from './v2';
 
 /**
  * List of all regions supported by Cloud Functions.
