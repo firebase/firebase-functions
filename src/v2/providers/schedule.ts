@@ -33,9 +33,9 @@ interface ScheduleArgs {
   schedule: string;
   timeZone?: timezone;
   retryCount?: number;
-  maxRetryDuration?: string;
-  minBackoffDuration?: string;
-  maxBackoffDuration?: string;
+  maxRetrySeconds?: number;
+  minBackoffSeconds?: number;
+  maxBackoffSeconds?: number;
   maxDoublings?: number;
   opts: options.GlobalOptions;
 }
@@ -45,35 +45,25 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
   if (typeof args === 'string') {
     return {
       schedule: args,
-      opts: {},
+      opts: {} as options.GlobalOptions,
     };
   }
-  const scheduleArgs: Partial<ScheduleArgs> = {
+  return {
     schedule: args.schedule,
     timeZone: args.timeZone,
     retryCount: args.retryCount,
-    maxRetryDuration: args.maxRetryDuration,
-    minBackoffDuration: args.minBackoffDuration,
-    maxBackoffDuration: args.maxBackoffDuration,
+    maxRetrySeconds: args.maxRetrySeconds,
+    minBackoffSeconds: args.minBackoffSeconds,
+    maxBackoffSeconds: args.maxBackoffSeconds,
     maxDoublings: args.maxDoublings,
+    opts: args as options.GlobalOptions,
   };
-  const opts = { ...args };
-  delete (opts as any).schedule;
-  delete (opts as any).timeZone;
-  delete (opts as any).retryCount;
-  delete (opts as any).maxRetryDuration;
-  delete (opts as any).minBackoffDuration;
-  delete (opts as any).maxBackoffDuration;
-  delete (opts as any).maxDoublings;
-
-  scheduleArgs.opts = opts;
-  return scheduleArgs as ScheduleArgs;
 }
 
 /** The Cloud Function type for Schedule triggers. */
 export interface ScheduleFunction extends HttpsFunction {
   __requiredAPIs?: ManifestRequiredAPI[];
-  run(data: express.Request): any | Promise<any>;
+  run(data: express.Request): void | Promise<void>;
 }
 
 /** Options that can be set on a Schedule trigger. */
@@ -88,13 +78,13 @@ export interface ScheduleOptions extends options.GlobalOptions {
   retryCount?: number;
 
   /** The time limit for retrying. */
-  maxRetryDuration?: string;
+  maxRetrySeconds?: number;
 
   /** The minimum time to wait before retying. */
-  minBackoffDuration?: string;
+  minBackoffSeconds?: number;
 
   /** The maximum time to wait before retrying. */
-  maxBackoffDuration?: string;
+  maxBackoffSeconds?: number;
 
   /** The time between will double max doublings times. */
   maxDoublings?: number;
@@ -143,11 +133,11 @@ export function onSchedule(
   ): Promise<any> => {
     try {
       await handler(req);
+      res.status(200).send();
     } catch (err) {
       logger.error((err as Error).message);
+      res.status(500).send();
     }
-
-    res.status(200).send();
   };
   func.run = handler;
 
@@ -174,16 +164,11 @@ export function onSchedule(
     ep.scheduleTrigger.retryConfig,
     separatedOpts,
     'retryCount',
-    'maxRetryDuration',
-    'minBackoffDuration',
-    'maxBackoffDuration',
+    'maxRetrySeconds',
+    'minBackoffSeconds',
+    'maxBackoffSeconds',
     'maxDoublings'
   );
-  // TODO(colerogers): add invoker to scheduleTrigger
-  // and the container contract if we want to
-  // support enterprise customers and change the
-  // behavior of using the default compute service agent as
-  // the function invoker from cloud scheduler.
   func.__endpoint = ep;
 
   func.__requiredAPIs = [

@@ -66,9 +66,9 @@ export interface ManifestEndpoint {
     timeZone?: string;
     retryConfig?: {
       retryCount?: number;
-      maxRetryDuration?: string;
-      minBackoffDuration?: string;
-      maxBackoffDuration?: string;
+      maxRetrySeconds?: number;
+      minBackoffSeconds?: number;
+      maxBackoffSeconds?: number;
       maxDoublings?: number;
     };
   };

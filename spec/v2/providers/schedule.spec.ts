@@ -33,27 +33,28 @@ describe('schedule', () => {
     });
 
     it('should handle full options', () => {
-      expect(
-        schedule.getOpts({
-          schedule: '* * * * *',
-          timeZone: 'utc',
-          retryCount: 3,
-          maxRetryDuration: '1',
-          minBackoffDuration: '2',
-          maxBackoffDuration: '3',
-          maxDoublings: 4,
-          memory: '128MiB',
-          region: 'us-central1',
-        })
-      ).to.deep.eq({
+      const options: schedule.ScheduleOptions = {
         schedule: '* * * * *',
         timeZone: 'utc',
         retryCount: 3,
-        maxRetryDuration: '1',
-        minBackoffDuration: '2',
-        maxBackoffDuration: '3',
+        maxRetrySeconds: 1,
+        minBackoffSeconds: 2,
+        maxBackoffSeconds: 3,
+        maxDoublings: 4,
+        memory: '128MiB',
+        region: 'us-central1',
+      };
+
+      expect(schedule.getOpts(options)).to.deep.eq({
+        schedule: '* * * * *',
+        timeZone: 'utc',
+        retryCount: 3,
+        maxRetrySeconds: 1,
+        minBackoffSeconds: 2,
+        maxBackoffSeconds: 3,
         maxDoublings: 4,
         opts: {
+          ...options,
           memory: '128MiB',
           region: 'us-central1',
         },
@@ -87,14 +88,14 @@ describe('schedule', () => {
           schedule: '* * * * *',
           timeZone: 'utc',
           retryCount: 3,
-          maxRetryDuration: '10',
-          minBackoffDuration: '11',
-          maxBackoffDuration: '12',
+          maxRetrySeconds: 10,
+          minBackoffSeconds: 11,
+          maxBackoffSeconds: 12,
           maxDoublings: 2,
           region: 'us-central1',
           labels: { key: 'val' },
         },
-        (req) => console.log(1)
+        (req) => {}
       );
 
       expect(schfn.__endpoint).to.deep.eq({
@@ -106,9 +107,9 @@ describe('schedule', () => {
           timeZone: 'utc',
           retryConfig: {
             retryCount: 3,
-            maxRetryDuration: '10',
-            minBackoffDuration: '11',
-            maxBackoffDuration: '12',
+            maxRetrySeconds: 10,
+            minBackoffSeconds: 11,
+            maxBackoffSeconds: 12,
             maxDoublings: 2,
           },
         },
@@ -119,6 +120,21 @@ describe('schedule', () => {
           reason: 'Needed for scheduled functions.',
         },
       ]);
+    });
+
+    it('should have a .run method', () => {
+      const testObj = {
+        foo: 'bar',
+      };
+      const schfn = schedule.onSchedule('* * * * *', (req) => {
+        testObj.foo = 'newBar';
+      });
+
+      schfn.run('input' as any);
+
+      expect(testObj).to.deep.eq({
+        foo: 'newBar',
+      });
     });
   });
 });
