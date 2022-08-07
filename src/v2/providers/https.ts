@@ -37,6 +37,7 @@ import {
   onCallHandler,
   Request,
 } from '../../common/providers/https';
+import { traceContext, getTraceParent } from '../../common/trace';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
 import { GlobalOptions, SupportedRegion } from '../options';
@@ -242,6 +243,12 @@ export function onRequest(
       });
     };
   }
+
+  const prevHandler = handler;
+  handler = async (req: Request, res: express.Response): Promise<void> => {
+    const traceParent = getTraceParent(req.headers);
+    await traceContext.run(traceParent, () => prevHandler(req, res));
+  };
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,

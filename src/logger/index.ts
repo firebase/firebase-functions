@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { format } from 'util';
+import { traceContext } from '../common/trace';
 
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from './common';
 
@@ -148,10 +149,19 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   if (lastArg && typeof lastArg == 'object' && lastArg.constructor == Object) {
     entry = args.pop();
   }
+  const ctx = traceContext.getStore();
+
   // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
   let message = format.apply(null, args);
   if (severity === 'ERROR' && !args.find((arg) => arg instanceof Error)) {
     message = new Error(message).stack || message;
   }
-  return { ...entry, severity, message };
+  return {
+    'logging.googleapis.com/trace': ctx?.traceId
+        ? `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`
+        : undefined,
+    ...entry,
+    severity,
+    message,
+  };
 }
