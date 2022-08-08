@@ -53,6 +53,8 @@ export interface InAppFeedbackPayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload';
   /** Resource name. Format: `projects/{project_number}/apps/{app_id}/releases/{release_id}/feedbackReports/{feedback_id}` */
   feedbackReport: string;
+  /** Deep link back to the Firebase console. */
+  feedbackConsoleUri: string;
   /** Name of the tester */
   testerName?: string;
   /** Email of the tester */
@@ -71,7 +73,7 @@ export interface InAppFeedbackPayload {
   buildVersion: string;
   /** Text entered by the tester */
   text: string;
-  /** URIs to download screenshot(s) */
+  /** URIs to download screenshot(s). These URIs are fast expiring. */
   screenshotUris: string[];
 }
 
