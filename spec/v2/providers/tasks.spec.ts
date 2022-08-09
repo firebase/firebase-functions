@@ -22,8 +22,8 @@
 
 import { expect } from 'chai';
 
-import * as options from '../../../src/v2/options';
 import { FromParam } from '../../../src/v2';
+import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
@@ -132,24 +132,6 @@ describe('onTaskDispatched', () => {
       },
       () => {}
     );
-
-    expect(result.__trigger).to.deep.equal({
-      ...FULL_TRIGGER,
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: FromParam<number>('MAXATTEMPTS'),
-          maxRetrySeconds: FromParam<number>('MAXRETRYSECONDS'),
-          maxDoublings: FromParam<number>('MAXDOUBLINGS'),
-          minBackoffSeconds: FromParam<number>('MINBACKOFFSECONDS'),
-          maxBackoffSeconds: FromParam<number>('MAXBACKOFFSECONDS'),
-        },
-        rateLimits: {
-          maxConcurrentDispatches: FromParam<number>('MAXCONCURRENTDISPATCHES'),
-          maxDispatchesPerSecond: FromParam<number>('MAXDISPATCHESPERSECOND'),
-        },
-        invoker: ['private'],
-      },
-    });
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
