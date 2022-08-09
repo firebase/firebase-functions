@@ -43,6 +43,18 @@ export interface TextInput<T = unknown> {
   validationErrorMessage?: string;
 }
 
+/** 
+ * Specifies that a Param's value should be determined by having the user
+ * select from a list containing all the project's resources of a certain
+ * type. Currently, only type:"storage.googleapis.com/Bucket" is supported.
+ */
+export interface ResourceInput {
+  type: 'resource';
+  resource: {
+    type: string;
+  }
+}
+
 /**
  * Specifies that a Param's value should be determined by having the user select
  * from a list of pre-canned options interactively at deploy-time.
