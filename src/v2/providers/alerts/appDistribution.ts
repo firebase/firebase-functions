@@ -72,7 +72,7 @@ export interface InAppFeedbackPayload {
   /** Text entered by the tester */
   text: string;
   /** URIs to download screenshot(s) */
-  screenshotUris?: string[];
+  screenshotUris: string[];
 }
 
 /**
@@ -330,7 +330,10 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as AppDistributionEvent<InAppFeedbackPayload>);
+    const event = raw as AppDistributionEvent<InAppFeedbackPayload>;
+    // Consolidate the case of empty array and null array
+    event.data.payload.screenshotUris = event.data.payload.screenshotUris || [];
+    return handler(event);
   };
 
   func.run = handler;
