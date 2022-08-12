@@ -220,7 +220,7 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
+  if (opts.cors !== false && (isDebugFeatureEnabled('enableCors') || 'cors' in opts)) {
     const origin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {

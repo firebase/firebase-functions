@@ -28,7 +28,7 @@ import * as options from '../../../src/v2/options';
 import * as https from '../../../src/v2/providers/https';
 import {
   expectedResponseHeaders,
-  MockRequest,
+  MockRequest
 } from '../../fixtures/mockrequest';
 import { runHandler } from '../../helper';
 import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
@@ -215,6 +215,36 @@ describe('onRequest', () => {
       'Content-Length': '0',
       Vary: 'Origin, Access-Control-Request-Headers',
     });
+
+    sinon.restore();
+  });
+
+  it('should NOT add CORS headers if debug feature is enabled and cors has value false', async () => {
+    sinon
+      .stub(debug, 'isDebugFeatureEnabled')
+      .withArgs('enableCors')
+      .returns(true);
+
+    const func = https.onRequest({ cors: false }, (req, res) => {
+      res.status(200).send('Good')
+    });
+
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        'Access-Control-Request-Method': 'POST',
+        'Access-Control-Request-Headers': 'origin',
+        origin: 'example.com',
+      }
+    );
+    req.method = 'OPTIONS';
+
+    const resp = await runHandler(func, req as any);
+    expect(resp.status).to.equal(200);
+    expect(resp.body).to.be.equal('Good');
+    expect(resp.headers).to.deep.equal({});
 
     sinon.restore();
   });
