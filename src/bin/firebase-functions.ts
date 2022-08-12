@@ -24,6 +24,7 @@
 
 import * as express from 'express';
 import { loadStack } from '../runtime/loader';
+import { toWireStack } from '../runtime/manifest';
 
 function printUsageAndExit() {
   console.error(
@@ -62,8 +63,9 @@ if (process.env.FUNCTIONS_CONTROL_API === 'true') {
   app.get('/__/functions.yaml', async (req, res) => {
     try {
       const stack = await loadStack(functionsDir);
+      const wireStack = toWireStack(stack);
       res.setHeader('content-type', 'text/yaml');
-      res.send(JSON.stringify(stack));
+      res.send(JSON.stringify(wireStack));
     } catch (e) {
       res
         .status(400)

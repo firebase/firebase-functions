@@ -37,7 +37,7 @@ import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
 import { HttpsOptions } from './providers/https';
-import { Expression, Field, ExprString } from './expressions';
+import { Expression, ExprString } from './expressions';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -80,7 +80,7 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
 function isMemoryOption(
   arg: MemoryOption | Expression<number>
 ): arg is MemoryOption {
-  return arg in MemoryOptionToMB;
+  return typeof arg === "object" || arg in MemoryOptionToMB;
 }
 
 /**
@@ -123,7 +123,7 @@ export interface GlobalOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: Field<number>;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -131,13 +131,13 @@ export interface GlobalOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: Field<number>;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: Field<number>;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -146,7 +146,7 @@ export interface GlobalOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: Field<number>;
+  concurrency?: number | Expression<number> | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -230,10 +230,11 @@ export interface EventHandlerOptions extends GlobalOptions {
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
-  retry?: Field<boolean>;
+  retry?: boolean | Expression<boolean> | null;
 
   /** Region of the EventArc trigger. */
-  region?: Field<string>;
+  //region?: string | Expression<string> | null;
+  region?: string;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
   serviceAccount?: string | null;

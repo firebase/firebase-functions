@@ -29,7 +29,7 @@ import { PathPattern } from '../../utilities/path-pattern';
 import { applyChange } from '../../utils';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
-import { Expression, Field } from '../expressions';
+import { Expression } from '../expressions';
 
 export { DataSnapshot };
 
@@ -115,7 +115,7 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: Field<number>;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -123,13 +123,13 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: Field<number>;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: Field<number>;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -138,7 +138,7 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: Field<number>;
+  concurrency?: number | Expression<number> | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -185,7 +185,7 @@ export interface ReferenceOptions extends options.EventHandlerOptions {
   secrets?: string[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: Field<boolean>;
+  retry?: boolean | Expression<boolean> | null;
 }
 
 /**

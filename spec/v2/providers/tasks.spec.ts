@@ -22,7 +22,8 @@
 
 import { expect } from 'chai';
 
-import { FromParam } from '../../../src/v2';
+import { ParamExpression } from '../../../src/v2';
+import { ParamRef } from '../../../src/v2/expressions';
 import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
@@ -118,15 +119,15 @@ describe('onTaskDispatched', () => {
       {
         ...FULL_OPTIONS,
         retryConfig: {
-          maxAttempts: FromParam<number>('MAXATTEMPTS'),
-          maxRetrySeconds: FromParam<number>('MAXRETRYSECONDS'),
-          maxDoublings: FromParam<number>('MAXDOUBLINGS'),
-          minBackoffSeconds: FromParam<number>('MINBACKOFFSECONDS'),
-          maxBackoffSeconds: FromParam<number>('MAXBACKOFFSECONDS'),
+          maxAttempts: new ParamExpression(new ParamRef('MAXATTEMPTS')),
+          maxRetrySeconds: new ParamExpression(new ParamRef('MAXRETRYSECONDS')),
+          maxDoublings: new ParamExpression(new ParamRef('MAXDOUBLINGS')),
+          minBackoffSeconds: new ParamExpression(new ParamRef('MINBACKOFFSECONDS')),
+          maxBackoffSeconds: new ParamExpression(new ParamRef('MAXBACKOFFSECONDS')),
         },
         rateLimits: {
-          maxConcurrentDispatches: FromParam<number>('MAXCONCURRENTDISPATCHES'),
-          maxDispatchesPerSecond: FromParam<number>('MAXDISPATCHESPERSECOND'),
+          maxConcurrentDispatches: new ParamExpression(new ParamRef('MAXCONCURRENTDISPATCHES')),
+          maxDispatchesPerSecond: new ParamExpression(new ParamRef('MAXDISPATCHESPERSECOND')),
         },
         invoker: 'private',
       },
@@ -138,15 +139,15 @@ describe('onTaskDispatched', () => {
       platform: 'gcfv2',
       taskQueueTrigger: {
         retryConfig: {
-          maxAttempts: FromParam<number>('MAXATTEMPTS'),
-          maxRetrySeconds: FromParam<number>('MAXRETRYSECONDS'),
-          maxDoublings: FromParam<number>('MAXDOUBLINGS'),
-          minBackoffSeconds: FromParam<number>('MINBACKOFFSECONDS'),
-          maxBackoffSeconds: FromParam<number>('MAXBACKOFFSECONDS'),
+          maxAttempts: new ParamExpression(new ParamRef('MAXATTEMPTS')),
+          maxRetrySeconds: new ParamExpression(new ParamRef('MAXRETRYSECONDS')),
+          maxDoublings: new ParamExpression(new ParamRef('MAXDOUBLINGS')),
+          minBackoffSeconds: new ParamExpression(new ParamRef('MINBACKOFFSECONDS')),
+          maxBackoffSeconds: new ParamExpression(new ParamRef('MAXBACKOFFSECONDS')),
         },
         rateLimits: {
-          maxConcurrentDispatches: FromParam<number>('MAXCONCURRENTDISPATCHES'),
-          maxDispatchesPerSecond: FromParam<number>('MAXDISPATCHESPERSECOND'),
+          maxConcurrentDispatches: new ParamExpression(new ParamRef('MAXCONCURRENTDISPATCHES')),
+          maxDispatchesPerSecond: new ParamExpression(new ParamRef('MAXDISPATCHESPERSECOND')),
         },
         invoker: ['private'],
       },

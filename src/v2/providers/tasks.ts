@@ -37,7 +37,7 @@ import {
 } from '../../common/providers/tasks';
 import * as options from '../options';
 import { HttpsFunction } from './https';
-import { Expression, Field } from '../expressions';
+import { Expression } from '../expressions';
 
 export { AuthData, Request };
 
@@ -47,13 +47,13 @@ export interface ParameterizedRateLimits {
    * The maximum number of requests that can be outstanding at a time.
    * If left unspecified, will default to 1000.
    */
-  maxConcurrentDispatches?: Field<number>;
+  maxConcurrentDispatches?: number | Expression<number> | null;
 
   /**
    * The maximum number of requests that can be invoked per second.
    * If left unspecified, will default to 500.
    */
-  maxDispatchesPerSecond?: Field<number>;
+  maxDispatchesPerSecond?: number | Expression<number> | null;
 }
 
 /** How a task should be retried in the event of a non-2xx return. */
@@ -62,31 +62,31 @@ export interface ParameterizedRetryConfig {
    * Maximum number of times a request should be attempted.
    * If left unspecified, will default to 3.
    */
-  maxAttempts?: Field<number>;
+  maxAttempts?: number | Expression<number> | null;
 
   /**
    * Maximum amount of time for retrying failed task.
    * If left unspecified will retry indefinitely.
    */
-  maxRetrySeconds?: Field<number>;
+  maxRetrySeconds?: number | Expression<number> | null;
 
   /**
    * The maximum amount of time to wait between attempts.
    * If left unspecified will default to 1hr.
    */
-  maxBackoffSeconds?: Field<number>;
+  maxBackoffSeconds?: number | Expression<number> | null;
 
   /**
    * The maximum number of times to double the backoff between
    * retries. If left unspecified will default to 16.
    */
-  maxDoublings?: Field<number>;
+  maxDoublings?: number | Expression<number> | null;
 
   /**
    * The minimum time to wait between attempts. If left unspecified
    * will default to 100ms.
    */
-  minBackoffSeconds?: Field<number>;
+  minBackoffSeconds?: number | Expression<number> | null;
 }
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
@@ -125,7 +125,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: Field<number>;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -133,13 +133,13 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: Field<number>;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: Field<number>;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -148,7 +148,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: Field<number>;
+  concurrency?: number | Expression<number> | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.

@@ -3,7 +3,7 @@
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
-abstract class Expression<T extends string | number | boolean> {
+export abstract class Expression<T extends string | number | boolean> {
   rawValue: string;
 
   constructor(celLiteral: string) {
@@ -15,7 +15,7 @@ abstract class Expression<T extends string | number | boolean> {
   }
 
   toString() {
-    return this.val();
+    return this.rawValue;
   }
 
   toJSON() {
@@ -86,11 +86,6 @@ export class TernaryExpression<T extends string | number | boolean> extends Expr
 // nightmare Java hellscape
 //const foo:TernaryExpression<number> = new TernaryExpression(new BooleanExpression(new ParamRef('someSecret'), 0), 24, new ParamExpression(new ParamRef('myIntParam')));
 // {{ params.someSecret == 0 ? 24 : params.myIntParam }}
-
-export type Field<T extends string | number | boolean> =
-  | T
-  | Expression<T>
-  | null;
 
 /**
  * Casts an Expression to its literal string value, for use by __getSpec()
