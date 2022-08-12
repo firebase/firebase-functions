@@ -28,8 +28,8 @@
 import { BlockingFunction } from '../../cloud-functions';
 import {
   AuthBlockingEvent,
-  AuthUserRecord,
   AuthBlockingEventType,
+  AuthUserRecord,
   BeforeCreateResponse,
   BeforeSignInResponse,
   HttpsError,

@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as schedule from '../../../src/v2/providers/schedule';
+import * as schedule from '../../../src/v2/providers/scheduler';
 
 describe('schedule', () => {
   describe('getOpts', () => {
@@ -64,7 +64,7 @@ describe('schedule', () => {
 
   describe('onSchedule', () => {
     it('should create a schedule function given a schedule', () => {
-      const schfn = schedule.onSchedule('* * * * *', (req) => console.log(1));
+      const schfn = schedule.onSchedule('* * * * *', (event) => console.log(1));
 
       expect(schfn.__endpoint).to.deep.eq({
         platform: 'gcfv2',
@@ -95,7 +95,7 @@ describe('schedule', () => {
           region: 'us-central1',
           labels: { key: 'val' },
         },
-        (req) => {}
+        (event) => {}
       );
 
       expect(schfn.__endpoint).to.deep.eq({
@@ -126,7 +126,7 @@ describe('schedule', () => {
       const testObj = {
         foo: 'bar',
       };
-      const schfn = schedule.onSchedule('* * * * *', (req) => {
+      const schfn = schedule.onSchedule('* * * * *', (event) => {
         testObj.foo = 'newBar';
       });
 

@@ -60,10 +60,28 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
   };
 }
 
+/**
+ * Interface representing a ScheduleEvent that is passed to the function handler.
+ */
+export interface ScheduleEvent {
+  /**
+   * The Cloud Scheduler job name.
+   * Populated via the X-CloudScheduler-JobName header.
+   */
+  jobName: string;
+
+  /**
+   * For Cloud Scheduler jobs specified in the unix-cron format,
+   * this is the job schedule time in RFC3339 UTC "Zulu" format.
+   * Populated via the X-CloudScheduler-ScheduleTime header.
+   */
+  scheduleTime: string;
+}
+
 /** The Cloud Function type for Schedule triggers. */
 export interface ScheduleFunction extends HttpsFunction {
   __requiredAPIs?: ManifestRequiredAPI[];
-  run(data: express.Request): void | Promise<void>;
+  run(data: ScheduleEvent): void | Promise<void>;
 }
 
 /** Options that can be set on a Schedule trigger. */
@@ -99,7 +117,7 @@ export interface ScheduleOptions extends options.GlobalOptions {
  */
 export function onSchedule(
   schedule: string,
-  handler: (req: express.Request) => void | Promise<void>
+  handler: (req: ScheduleEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -111,7 +129,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (req: express.Request) => void | Promise<void>
+  handler: (req: ScheduleEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -123,7 +141,7 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (req: express.Request) => void | Promise<void>
+  handler: (req: ScheduleEvent) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
@@ -131,8 +149,12 @@ export function onSchedule(
     req: express.Request,
     res: express.Response
   ): Promise<any> => {
+    const event: ScheduleEvent = {
+      jobName: req.header('X-CloudScheduler-JobName') || '',
+      scheduleTime: req.header('X-CloudScheduler-ScheduleTime') || '',
+    };
     try {
-      await handler(req);
+      await handler(event);
       res.status(200).send();
     } catch (err) {
       logger.error((err as Error).message);
