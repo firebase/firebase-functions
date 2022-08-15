@@ -26,7 +26,7 @@ import { ParamSpec } from '../v2/params/types';
 /**
  * An definition of a function as appears in the Manifest.
  */
-export interface ManifestEndpoint {
+export type ManifestEndpoint = {
   entryPoint?: string;
   region?: string[];
   platform?: string;
@@ -78,64 +78,7 @@ export interface ManifestEndpoint {
     eventType: string;
     options?: Record<string, unknown>;
   };
-}
-
-/**
- * A ManifestEndpoint with its Expression fields converted to raw CEL for the CLI to use.
- */
-export interface WireEndpoint {
-  entryPoint?: string;
-  region?: string[];
-  platform?: string;
-  availableMemoryMb?: number | string;
-  maxInstances?: number | string;
-  minInstances?: number | string;
-  concurrency?: number | string;
-  serviceAccountEmail?: string;
-  timeoutSeconds?: number | string;
-  cpu?: number | 'gcf_gen1';
-  vpc?: {
-    connector: string;
-    egressSettings?: string;
-  };
-  labels?: Record<string, string>;
-  ingressSettings?: string;
-  environmentVariables?: Record<string, string>;
-  secretEnvironmentVariables?: Array<{ key: string; secret?: string }>;
-
-  httpsTrigger?: {
-    invoker?: string[];
-  };
-
-  callableTrigger?: {};
-
-  eventTrigger?: {
-    eventFilters: Record<string, string>;
-    eventFilterPathPatterns?: Record<string, string>;
-    channel?: string;
-    eventType: string;
-    retry: boolean | string;
-    region?: string;
-    serviceAccountEmail?: string;
-  };
-
-  scheduleTrigger?: {
-    schedule?: string;
-    timezone?: string;
-    retryConfig?: {
-      retryCount?: number | string;
-      maxRetryDuration?: string;
-      minBackoffDuration?: string;
-      maxBackoffDuration?: string;
-      maxDoublings?: number | string;
-    };
-  };
-
-  blockingTrigger?: {
-    eventType: string;
-    options?: Record<string, unknown>;
-  };
-}
+};
 
 export interface ManifestRequiredAPI {
   api: string;
@@ -153,29 +96,19 @@ export interface ManifestStack {
 }
 
 /**
- * A ManifestStack whose ManifestEndpoints have been converted to WireEndpoints.
- */
-export interface WireStack {
-  specVersion: 'v1alpha1';
-  params?: ParamSpec[];
-  requiredAPIs: ManifestRequiredAPI[];
-  endpoints: Record<string, WireEndpoint>;
-}
-
-/**
- * Converts a ManifestStack, which has CEL expressions in its options as
- * object types, into a WireStack, which has those expressions as string
- * literals containing the actual CEL expression.
+ * Returns the JSON representation of a ManifestStack, which has CEL
+ * expressions in its options as object types, with its expressions
+ * transformed into the actual CEL strings.
  * @internal
  */
-export function toWireStack(stack: ManifestStack): WireStack {
+export function stackToWire(stack: ManifestStack): Object {
   let wireStack = stack as any;
   let traverse = function traverse(obj: Object) {
     for (const [key, val] of Object.entries(obj)) {
       if (val instanceof Expression) {
-        obj[key] = val.toString();
-      } else if (typeof val === "object") {
-        traverse(val)
+        obj[key] = val.toCEL();
+      } else if (typeof val === 'object') {
+        traverse(val);
       }
     }
   };

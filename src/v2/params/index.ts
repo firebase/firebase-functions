@@ -29,7 +29,6 @@ import {
   BooleanParam,
   FloatParam,
   IntParam,
-  JSONParam,
   ListParam,
   Param,
   ParamOptions,
@@ -39,20 +38,30 @@ import {
 
 export { ParamOptions };
 
-export const declaredParams: Param[] = [];
+export const declaredParams: Param<any>[] = [];
 
 /**
  * Use a helper to manage the list such that params are uniquely
  * registered once only but order is preserved.
  * @internal
  */
-function registerParam(param: Param) {
+function registerParam(param: Param<any>) {
   for (let i = 0; i < declaredParams.length; i++) {
     if (declaredParams[i].name === param.name) {
       declaredParams.splice(i, 1);
     }
   }
   declaredParams.push(param);
+}
+
+/**
+ * For testing.
+ * @internal
+ */
+export function clearParams() {
+  while (declaredParams.length > 0) {
+    declaredParams.pop();
+  }
 }
 
 /**
@@ -149,23 +158,6 @@ export function defineList(
   options: ParamOptions<string[]> = {}
 ): ListParam {
   const param = new ListParam(name, options);
-  registerParam(param);
-  return param;
-}
-
-/**
- * Declare a JSON param. The associated environment variable will be treated
- * as a JSON string when loading its value.
- *
- * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
- * @returns A Param with a specifiable return type for `.value`.
- */
-export function defineJSON<T = any>(
-  name: string,
-  options: ParamOptions<T> = {}
-): JSONParam {
-  const param = new JSONParam<T>(name, options);
   registerParam(param);
   return param;
 }

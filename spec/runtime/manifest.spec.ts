@@ -1,68 +1,43 @@
+import { stackToWire, ManifestStack } from '../../src/runtime/manifest';
 import { expect } from 'chai';
-import * as manifest from '../../src/runtime/manifest';
-import { ParamExpression, ParamRef } from '../../src/v2';
+import * as params from '../../src/v2/params';
 
-describe('toWireStack', () => {
-  it('does not affect stacks with only literal fields', () => {
-    const basicStack: manifest.ManifestStack = {
-      endpoints: {
-        v1http: {
-          platform: 'gcfv1',
-          entryPoint: 'v1http',
-          httpsTrigger: {},
-        },
-        v2http: {
-          platform: 'gcfv2',
-          entryPoint: 'v2http',
-          labels: {},
-          httpsTrigger: {},
-        },
-      },
-      requiredAPIs: [],
-      specVersion: 'v1alpha1',
-    };
-    expect(manifest.toWireStack(basicStack)).to.be.deep.equal(basicStack);
+const intParam = params.defineInt('asdf', { default: 11 });
+
+describe('stackToWire', () => {
+  afterEach(() => {
+    params.clearParams();
   });
 
-  it('converts Expression properties of the endpoints into CEL literals', () => {
-    const withExpressions: manifest.ManifestStack = {
+  it('converts Expression types in endpoint options to CEL', () => {
+    const stack: ManifestStack = {
       endpoints: {
-        v1http: {
-          platform: 'gcfv1',
-          entryPoint: 'v1http',
-          httpsTrigger: {},
-          availableMemoryMb: new ParamExpression<number>(new ParamRef("MEMORY")),
-        },
         v2http: {
           platform: 'gcfv2',
           entryPoint: 'v2http',
           labels: {},
           httpsTrigger: {},
-          availableMemoryMb: new ParamExpression<number>(new ParamRef("MEMORY")),
+          concurrency: intParam.expr(),
+          maxInstances: intParam.equals(24).then(-1, 1),
         },
       },
       requiredAPIs: [],
       specVersion: 'v1alpha1',
     };
-    const expected:manifest.WireStack = {
+    const expected = {
       endpoints: {
-        v1http: {
-          platform: 'gcfv1',
-          entryPoint: 'v1http',
-          httpsTrigger: {},
-          availableMemoryMb: '{{ params.MEMORY }}',
-        },
         v2http: {
           platform: 'gcfv2',
           entryPoint: 'v2http',
           labels: {},
           httpsTrigger: {},
-          availableMemoryMb: '{{ params.MEMORY }}',
+          concurrency: '{{ asdf }}',
+          maxInstances: '{{ asdf == 24 ? -1 : 1 }}',
         },
       },
       requiredAPIs: [],
       specVersion: 'v1alpha1',
     };
-    expect(manifest.toWireStack(withExpressions)).to.be.deep.equal(expected);
+    expect(stackToWire(stack)).to.deep.equal(expected);
   });
-})
+});

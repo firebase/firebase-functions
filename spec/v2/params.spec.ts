@@ -4,7 +4,6 @@ import {
   defineBoolean,
   defineFloat,
   defineInt,
-  defineJSON,
   defineList,
   defineString,
 } from '../../src/v2/params';
@@ -18,7 +17,7 @@ describe('params', () => {
   });
 
   const VALUE_TESTS: Array<{
-    method: (name: string, options: ParamOptions<any>) => Param;
+    method: (name: string, options: ParamOptions<any>) => Param<any>;
     tests: Array<{
       title: string;
       env?: string;
@@ -181,35 +180,6 @@ describe('params', () => {
           title: 'should return a matching default value',
           options: { default: ['a', 'b', 'c'] },
           expect: ['a', 'b', 'c'],
-        },
-      ],
-    },
-    {
-      method: defineJSON,
-      tests: [
-        {
-          title: 'should return {} zero value',
-          expect: {},
-        },
-        {
-          title: 'should coerce objects from JSON',
-          env: '{"test":123}',
-          expect: { test: 123 },
-        },
-        {
-          title: 'should coerce arrays from JSON',
-          env: '["test",123]',
-          expect: ['test', 123],
-        },
-        {
-          title: 'should return a matching default value',
-          options: { default: { test: 123 } },
-          expect: { test: 123 },
-        },
-        {
-          title: 'should throw with invalid JSON',
-          env: '{"invalid":json',
-          throws: true,
         },
       ],
     },

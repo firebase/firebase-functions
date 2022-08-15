@@ -8,6 +8,7 @@ import {
   ManifestRequiredAPI,
   ManifestStack,
 } from '../../src/runtime/manifest';
+import { clearParams } from '../../src/v2/params';
 
 describe('extractStack', () => {
   const httpFn = functions.https.onRequest(() => {});
@@ -104,6 +105,7 @@ describe('extractStack', () => {
 
     afterEach(() => {
       process.env.GCLOUD_PROJECT = prev;
+      clearParams();
     });
 
     it('extracts stack from a simple module', () => {
@@ -320,7 +322,7 @@ describe('loadStack', () => {
             {
               name: 'FOO',
               type: 'string',
-              input: { type: 'text', validationRegex: 'w+' },
+              textInput: { validationRegex: 'w+' },
             },
             {
               name: 'BAR',
@@ -331,8 +333,7 @@ describe('loadStack', () => {
             {
               name: 'BAZ',
               type: 'string',
-              input: {
-                type: 'select',
+              selectInput: {
                 select: [{ value: 'a' }, { value: 'b' }],
               },
             },
@@ -340,15 +341,14 @@ describe('loadStack', () => {
             {
               name: 'ANOTHER_INT',
               type: 'int',
-              input: {
-                type: 'select',
+              selectInput: {
                 select: [
                   { label: 'a', value: -2 },
                   { label: 'b', value: 2 },
                 ],
               },
             },
-            { name: 'SUPER_SECRET_FLAG', type: 'secret', as: 'boolean' },
+            { name: 'SUPER_SECRET_FLAG', type: 'secret' },
           ],
         },
       },

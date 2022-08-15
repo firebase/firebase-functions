@@ -22,8 +22,8 @@
 
 import { expect } from 'chai';
 
-import { ParamExpression } from '../../../src/v2';
-import { ParamRef } from '../../../src/v2/expressions';
+// import { ParamExpression } from '../../../src/v2';
+import {} from '../../../src/v2/expressions';
 import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';
@@ -113,7 +113,7 @@ describe('onTaskDispatched', () => {
       },
     });
   });
-
+  /*
   it('should accept Expression<number> for the values of retryConfig and rateLimits', () => {
     const result = onTaskDispatched(
       {
@@ -153,6 +153,7 @@ describe('onTaskDispatched', () => {
       },
     });
   });
+  */
 
   it('should merge options and globalOptions', () => {
     options.setGlobalOptions({

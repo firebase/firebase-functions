@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { ParamExpression, CompareExpression } from '../expressions';
+
 /** @hidden */
 type ParamValueType =
   | 'string'
@@ -29,7 +31,12 @@ type ParamValueType =
   | 'float'
   | 'json'
   | 'secret';
-type ParamInput<T> = TextInput<T> | SelectInput<T>;
+
+type HasAtMostOneInput<T> =
+  | {}
+  | { textInput: TextInput<T> }
+  | { selectInput: SelectInput<T> }
+  | { resourceInput: ResourceInput };
 
 /**
  * Specifies that a Param's value should be determined by prompting the user
@@ -37,22 +44,20 @@ type ParamInput<T> = TextInput<T> | SelectInput<T>;
  * provided validationRegex, if present, will be retried.
  */
 export interface TextInput<T = unknown> {
-  type: 'text';
   example?: string;
   validationRegex?: string;
   validationErrorMessage?: string;
 }
 
-/** 
+/**
  * Specifies that a Param's value should be determined by having the user
  * select from a list containing all the project's resources of a certain
  * type. Currently, only type:"storage.googleapis.com/Bucket" is supported.
  */
 export interface ResourceInput {
-  type: 'resource';
   resource: {
     type: string;
-  }
+  };
 }
 
 /**
@@ -60,7 +65,6 @@ export interface ResourceInput {
  * from a list of pre-canned options interactively at deploy-time.
  */
 export interface SelectInput<T = unknown> {
-  type: 'select';
   select: Array<SelectOptions<T>>;
 }
 
@@ -69,19 +73,17 @@ export interface SelectOptions<T = unknown> {
   value: T;
 }
 
-export interface ParamSpec<T = unknown> {
+export type ParamSpec<T = unknown> = {
   name: string;
   default?: T;
   label?: string;
-  as?: string;
   description?: string;
   type: ParamValueType;
-  input?: ParamInput<T>;
-}
+} & HasAtMostOneInput<T>;
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 
-export class Param<T = unknown> {
+export class Param<T extends string | number | boolean | string[]> {
   static type: ParamValueType = 'string';
 
   constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {}
@@ -94,6 +96,17 @@ export class Param<T = unknown> {
     return this.rawValue || this.options.default || '';
   }
 
+  expr() {
+    return new ParamExpression<T>(this);
+  }
+
+  cmp(cmp: '==' | '>' | '>=' | '<' | '<=', rhs: T) {
+    return new CompareExpression<T>(cmp, this.expr(), rhs);
+  }
+
+  equals(rhs: T) {
+    return this.cmp('==', rhs);
+  }
   toString() {
     return `{{params.${this.name}}}`;
   }
@@ -103,11 +116,6 @@ export class Param<T = unknown> {
   }
 
   toSpec(): ParamSpec<T> {
-    if (this.options.as) {
-      throw new Error(
-        `Param "${this.name}" has an "as" field, which is only valid for secret params.`
-      );
-    }
     const out: ParamSpec = {
       name: this.name,
       ...this.options,
@@ -125,11 +133,6 @@ export class SecretParam extends Param<string> {
     if (this.options.default) {
       throw new Error(
         `Secret params such as "${this.name}" cannot have a default value.`
-      );
-    }
-    if (this.options.input) {
-      throw new Error(
-        `Secret params such as "${this.name}" cannot have a custom input.`
       );
     }
     return {
@@ -181,7 +184,7 @@ export class FloatParam extends Param<number> {
   }
 }
 
-export class BooleanParam extends Param {
+export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = 'boolean';
 
   get value(): boolean {
@@ -223,24 +226,5 @@ export class ListParam extends Param<string[]> {
     }
 
     return out as ParamSpec<string[]>;
-  }
-}
-
-export class JSONParam<T = any> extends Param<T> {
-  static type: ParamValueType = 'json';
-
-  get value(): T {
-    if (this.rawValue) {
-      try {
-        return JSON.parse(this.rawValue!) as T;
-      } catch (e) {
-        throw new Error(
-          `unable to load param "${this.name}", value ${this.rawValue} could not be parsed as JSON: ${e.message}`
-        );
-      }
-    } else if (this.options?.hasOwnProperty('default')) {
-      return this.options.default;
-    }
-    return {} as T;
   }
 }

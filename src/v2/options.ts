@@ -37,7 +37,7 @@ import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
 import { HttpsOptions } from './providers/https';
-import { Expression, ExprString } from './expressions';
+import { Expression } from './expressions';
 
 /**
  * List of all regions supported by Cloud Functions v2
@@ -76,12 +76,6 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
   '16GiB': 16384,
   '32GiB': 32768,
 };
-
-function isMemoryOption(
-  arg: MemoryOption | Expression<number>
-): arg is MemoryOption {
-  return typeof arg === "object" || arg in MemoryOptionToMB;
-}
 
 /**
  * List of available options for VpcConnectorEgressSettings.
@@ -268,8 +262,8 @@ export function optionsToTriggerAnnotations(
     opts,
     'availableMemoryMb',
     'memory',
-    (mem: MemoryOption | Expression<number>): number | string => {
-      return isMemoryOption(mem) ? MemoryOptionToMB[mem] : ExprString(mem);
+    (mem: MemoryOption | Expression<number>): number | Expression<number> => {
+      return typeof mem === 'object' ? mem : MemoryOptionToMB[mem];
     }
   );
   convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
@@ -335,8 +329,8 @@ export function optionsToEndpoint(
     opts,
     'availableMemoryMb',
     'memory',
-    (mem: MemoryOption | Expression<number>): number | string => {
-      return isMemoryOption(mem) ? MemoryOptionToMB[mem] : ExprString(mem);
+    (mem: MemoryOption | Expression<number>): number | Expression<number> => {
+      return typeof mem === 'object' ? mem : MemoryOptionToMB[mem];
     }
   );
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
