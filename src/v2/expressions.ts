@@ -8,10 +8,8 @@ import { Param } from './params/types';
 export abstract class Expression<
   T extends string | number | boolean | string[]
 > {
-  rawValue: string;
-
-  get val(): any {
-    return this.rawValue;
+  get value(): T {
+    throw new Error('Not implemented');
   }
 
   toCEL() {
@@ -19,7 +17,7 @@ export abstract class Expression<
   }
 }
 
-export class IfElseExpression<
+export class TernaryExpression<
   T extends string | number | boolean | string[]
 > extends Expression<T> {
   test: Expression<boolean>;
@@ -31,6 +29,10 @@ export class IfElseExpression<
     this.test = test;
     this.ifTrue = ifTrue;
     this.ifFalse = ifFalse;
+  }
+
+  get value(): T {
+    return !!this.test.value ? this.ifTrue : this.ifFalse;
   }
 
   toString() {
@@ -52,12 +54,28 @@ export class CompareExpression<
     this.rhs = rhs;
   }
 
+  get value(): boolean {
+    const left = this.lhs.value;
+    switch (this.cmp) {
+      case '==':
+        return left === this.rhs;
+      case '>':
+        return left > this.rhs;
+      case '>=':
+        return left >= this.rhs;
+      case '<':
+        return left < this.rhs;
+      case '<=':
+        return left <= this.rhs;
+    }
+  }
+
   toString() {
     return `${this.lhs} ${this.cmp} ${this.rhs}`;
   }
 
   then(ifTrue: T, ifFalse: T) {
-    return new IfElseExpression(this, ifTrue, ifFalse);
+    return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
 
@@ -74,6 +92,10 @@ export class ParamExpression<
   constructor(param: Param<T>) {
     super();
     this.paramRef = param;
+  }
+
+  get value(): T {
+    return this.paramRef.value;
   }
 
   toString() {

@@ -29,7 +29,6 @@ type ParamValueType =
   | 'boolean'
   | 'int'
   | 'float'
-  | 'json'
   | 'secret';
 
 type HasAtMostOneInput<T> =
@@ -83,17 +82,13 @@ export type ParamSpec<T = unknown> = {
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 
-export class Param<T extends string | number | boolean | string[]> {
+export abstract class Param<T extends string | number | boolean | string[]> {
   static type: ParamValueType = 'string';
 
   constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {}
 
-  get rawValue(): string | undefined {
-    return process.env[this.name];
-  }
-
-  get value(): any {
-    return this.rawValue || this.options.default || '';
+  get value(): T {
+    throw new Error('Not implemented');
   }
 
   expr() {
@@ -129,6 +124,10 @@ export class Param<T extends string | number | boolean | string[]> {
 export class SecretParam extends Param<string> {
   static type: ParamValueType = 'secret';
 
+  get value(): string {
+    return process.env[this.name] || '';
+  }
+
   toSpec(): ParamSpec<string> {
     if (this.options.default) {
       throw new Error(
@@ -144,25 +143,16 @@ export class SecretParam extends Param<string> {
 }
 
 export class StringParam extends Param<string> {
-  // identical to the abstract class, just explicitly a string
+  get value(): string {
+    return process.env[this.name] || '';
+  }
 }
 
 export class IntParam extends Param<number> {
   static type: ParamValueType = 'int';
 
   get value(): number {
-    const intVal = parseInt(
-      this.rawValue || this.options.default?.toString() || '0',
-      10
-    );
-    if (Number.isNaN(intVal)) {
-      throw new Error(
-        `unable to load param "${this.name}", value ${JSON.stringify(
-          this.rawValue
-        )} could not be parsed as integer`
-      );
-    }
-    return intVal;
+    return parseInt(process.env[this.name] || '0', 10) || 0;
   }
 }
 
@@ -170,17 +160,7 @@ export class FloatParam extends Param<number> {
   static type: ParamValueType = 'float';
 
   get value(): number {
-    const floatVal = parseFloat(
-      this.rawValue || this.options.default?.toString() || '0'
-    );
-    if (Number.isNaN(floatVal)) {
-      throw new Error(
-        `unable to load param "${this.name}", value ${JSON.stringify(
-          this.rawValue
-        )} could not be parsed as float`
-      );
-    }
-    return floatVal;
+    return parseFloat(process.env[this.name] || '0') || 0;
   }
 }
 
@@ -188,21 +168,7 @@ export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = 'boolean';
 
   get value(): boolean {
-    const lowerVal = (
-      this.rawValue ||
-      this.options.default?.toString() ||
-      'false'
-    ).toLowerCase();
-    if (
-      !['true', 'y', 'yes', '1', 'false', 'n', 'no', '0'].includes(lowerVal)
-    ) {
-      throw new Error(
-        `unable to load param "${this.name}", value ${JSON.stringify(
-          this.rawValue
-        )} could not be parsed as boolean`
-      );
-    }
-    return ['true', 'y', 'yes', '1'].includes(lowerVal);
+    return !!process.env[this.name];
   }
 }
 
@@ -210,9 +176,7 @@ export class ListParam extends Param<string[]> {
   static type: ParamValueType = 'list';
 
   get value(): string[] {
-    return typeof this.rawValue === 'string'
-      ? this.rawValue.split(/, ?/)
-      : this.options.default || [];
+    throw new Error('Not implemented');
   }
 
   toSpec(): ParamSpec<string[]> {
