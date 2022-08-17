@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ParamExpression, CompareExpression } from '../expressions';
+import { Expression, CompareExpression } from '../expressions';
 
 /** @hidden */
 type ParamValueType =
@@ -82,32 +82,29 @@ export type ParamSpec<T = unknown> = {
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 
-export abstract class Param<T extends string | number | boolean | string[]> {
+export abstract class Param<
+  T extends string | number | boolean | string[]
+> extends Expression<T> {
   static type: ParamValueType = 'string';
 
-  constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {}
+  constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {
+    super();
+  }
 
-  get value(): T {
+  value(): T {
     throw new Error('Not implemented');
   }
 
-  expr() {
-    return new ParamExpression<T>(this);
-  }
-
   cmp(cmp: '==' | '>' | '>=' | '<' | '<=', rhs: T) {
-    return new CompareExpression<T>(cmp, this.expr(), rhs);
+    return new CompareExpression<T>(cmp, this, rhs);
   }
 
   equals(rhs: T) {
     return this.cmp('==', rhs);
   }
-  toString() {
-    return `{{params.${this.name}}}`;
-  }
 
-  toJSON() {
-    return this.toString();
+  toString(): string {
+    return `params.${this.name}`;
   }
 
   toSpec(): ParamSpec<T> {
@@ -121,29 +118,28 @@ export abstract class Param<T extends string | number | boolean | string[]> {
   }
 }
 
-export class SecretParam extends Param<string> {
+export class SecretParam {
+  name: string;
   static type: ParamValueType = 'secret';
 
-  get value(): string {
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  value(): string {
     return process.env[this.name] || '';
   }
 
   toSpec(): ParamSpec<string> {
-    if (this.options.default) {
-      throw new Error(
-        `Secret params such as "${this.name}" cannot have a default value.`
-      );
-    }
     return {
       type: 'secret',
       name: this.name,
-      ...this.options,
     };
   }
 }
 
 export class StringParam extends Param<string> {
-  get value(): string {
+  value(): string {
     return process.env[this.name] || '';
   }
 }
@@ -151,7 +147,7 @@ export class StringParam extends Param<string> {
 export class IntParam extends Param<number> {
   static type: ParamValueType = 'int';
 
-  get value(): number {
+  value(): number {
     return parseInt(process.env[this.name] || '0', 10) || 0;
   }
 }
@@ -159,7 +155,7 @@ export class IntParam extends Param<number> {
 export class FloatParam extends Param<number> {
   static type: ParamValueType = 'float';
 
-  get value(): number {
+  value(): number {
     return parseFloat(process.env[this.name] || '0') || 0;
   }
 }
@@ -167,7 +163,7 @@ export class FloatParam extends Param<number> {
 export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = 'boolean';
 
-  get value(): boolean {
+  value(): boolean {
     return !!process.env[this.name];
   }
 }
@@ -175,7 +171,7 @@ export class BooleanParam extends Param<boolean> {
 export class ListParam extends Param<string[]> {
   static type: ParamValueType = 'list';
 
-  get value(): string[] {
+  value(): string[] {
     throw new Error('Not implemented');
   }
 

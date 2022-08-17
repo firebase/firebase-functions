@@ -2,14 +2,17 @@ import { stackToWire, ManifestStack } from '../../src/runtime/manifest';
 import { expect } from 'chai';
 import * as params from '../../src/v2/params';
 
-const intParam = params.defineInt('asdf', { default: 11 });
-
 describe('stackToWire', () => {
   afterEach(() => {
     params.clearParams();
   });
 
   it('converts Expression types in endpoint options to CEL', () => {
+    const intParam = params.defineInt('foo', { default: 11 });
+    const stringParam = params.defineString('bar', {
+      default: 'America/Los_Angeles',
+    });
+
     const stack: ManifestStack = {
       endpoints: {
         v2http: {
@@ -17,8 +20,19 @@ describe('stackToWire', () => {
           entryPoint: 'v2http',
           labels: {},
           httpsTrigger: {},
-          concurrency: intParam.expr(),
+          concurrency: intParam,
           maxInstances: intParam.equals(24).then(-1, 1),
+        },
+        v2schedule: {
+          platform: 'gcfv2',
+          entryPoint: 'v2callable',
+          labels: {},
+          scheduleTrigger: {
+            schedule: stringParam
+              .equals('America/Mexico_City')
+              .then('mexico', 'usa'),
+            timezone: stringParam,
+          },
         },
       },
       requiredAPIs: [],
@@ -31,8 +45,18 @@ describe('stackToWire', () => {
           entryPoint: 'v2http',
           labels: {},
           httpsTrigger: {},
-          concurrency: '{{ asdf }}',
-          maxInstances: '{{ asdf == 24 ? -1 : 1 }}',
+          concurrency: '{{ params.foo }}',
+          maxInstances: '{{ params.foo == 24 ? -1 : 1 }}',
+        },
+        v2schedule: {
+          platform: 'gcfv2',
+          entryPoint: 'v2callable',
+          labels: {},
+          scheduleTrigger: {
+            schedule:
+              '{{ params.bar == "America/Mexico_City" ? "mexico" : "usa" }}',
+            timezone: '{{ params.bar }}',
+          },
         },
       },
       requiredAPIs: [],

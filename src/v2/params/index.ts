@@ -38,14 +38,15 @@ import {
 
 export { ParamOptions };
 
-export const declaredParams: Param<any>[] = [];
+type SecretOrExpr = Param<any> | SecretParam;
+export const declaredParams: SecretOrExpr[] = [];
 
 /**
  * Use a helper to manage the list such that params are uniquely
  * registered once only but order is preserved.
  * @internal
  */
-function registerParam(param: Param<any>) {
+function registerParam(param: SecretOrExpr) {
   for (let i = 0; i < declaredParams.length; i++) {
     if (declaredParams[i].name === param.name) {
       declaredParams.splice(i, 1);
@@ -74,10 +75,10 @@ export function clearParams() {
  * @returns A Param with a `string` return type for `.value`.
  */
 export function defineSecretParam(
-  name: string,
-  options: ParamOptions<string> = {}
+  name: string
+  //options: ParamOptions<string> = {}
 ): SecretParam {
-  const param = new SecretParam(name, options);
+  const param = new SecretParam(name);
   registerParam(param);
   return param;
 }

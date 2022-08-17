@@ -1,5 +1,3 @@
-import { Param } from './params/types';
-
 /*
  * A CEL expression which can be evaulated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
@@ -8,13 +6,24 @@ import { Param } from './params/types';
 export abstract class Expression<
   T extends string | number | boolean | string[]
 > {
-  get value(): T {
+  value(): T {
     throw new Error('Not implemented');
   }
 
   toCEL() {
     return `{{ ${this.toString()} }}`;
   }
+
+  toJSON(): string {
+    return this.toString();
+  }
+}
+
+function quoteIfString<T extends string | number | boolean | string[]>(
+  literal: T
+): T {
+  //TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
+  return typeof literal === 'string' ? (`"${literal}"` as T) : literal;
 }
 
 export class TernaryExpression<
@@ -31,12 +40,14 @@ export class TernaryExpression<
     this.ifFalse = ifFalse;
   }
 
-  get value(): T {
+  value(): T {
     return !!this.test.value ? this.ifTrue : this.ifFalse;
   }
 
   toString() {
-    return `${this.test} ? ${this.ifTrue} : ${this.ifFalse}`;
+    return `${this.test} ? ${quoteIfString(this.ifTrue)} : ${quoteIfString(
+      this.ifFalse
+    )}`;
   }
 }
 
@@ -54,8 +65,8 @@ export class CompareExpression<
     this.rhs = rhs;
   }
 
-  get value(): boolean {
-    const left = this.lhs.value;
+  value(): boolean {
+    const left = this.lhs.value();
     switch (this.cmp) {
       case '==':
         return left === this.rhs;
@@ -71,34 +82,10 @@ export class CompareExpression<
   }
 
   toString() {
-    return `${this.lhs} ${this.cmp} ${this.rhs}`;
+    return `${this.lhs} ${this.cmp} ${quoteIfString(this.rhs)}`;
   }
 
   then(ifTrue: T, ifFalse: T) {
     return new TernaryExpression(this, ifTrue, ifFalse);
-  }
-}
-
-/**
- * Creates an Expression that will cause an Options field to take on a runtime-defined
- * value based on the value of a CF3 Param defined via the helpers in the v2/params
- * namespace.
- */
-export class ParamExpression<
-  T extends string | number | boolean | string[]
-> extends Expression<T> {
-  paramRef: Param<T>;
-
-  constructor(param: Param<T>) {
-    super();
-    this.paramRef = param;
-  }
-
-  get value(): T {
-    return this.paramRef.value;
-  }
-
-  toString() {
-    return this.paramRef.name;
   }
 }

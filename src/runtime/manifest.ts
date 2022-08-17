@@ -105,7 +105,8 @@ export function stackToWire(stack: ManifestStack): Object {
   let wireStack = stack as any;
   let traverse = function traverse(obj: Object) {
     for (const [key, val] of Object.entries(obj)) {
-      if (val instanceof Expression) {
+      //if (val instanceof Expression) {
+      if (typeof val.toCEL === 'function') {
         obj[key] = val.toCEL();
       } else if (typeof val === 'object') {
         traverse(val);
