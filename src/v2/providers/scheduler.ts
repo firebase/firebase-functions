@@ -63,7 +63,7 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
 /**
  * Interface representing a ScheduleEvent that is passed to the function handler.
  */
-export interface ScheduleEvent {
+export interface ScheduledEvent {
   /**
    * The Cloud Scheduler job name.
    * Populated via the X-CloudScheduler-JobName header.
@@ -81,7 +81,7 @@ export interface ScheduleEvent {
 /** The Cloud Function type for Schedule triggers. */
 export interface ScheduleFunction extends HttpsFunction {
   __requiredAPIs?: ManifestRequiredAPI[];
-  run(data: ScheduleEvent): void | Promise<void>;
+  run(data: ScheduledEvent): void | Promise<void>;
 }
 
 /** Options that can be set on a Schedule trigger. */
@@ -117,7 +117,7 @@ export interface ScheduleOptions extends options.GlobalOptions {
  */
 export function onSchedule(
   schedule: string,
-  handler: (req: ScheduleEvent) => void | Promise<void>
+  handler: (req: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -129,7 +129,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (req: ScheduleEvent) => void | Promise<void>
+  handler: (req: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -141,7 +141,7 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (req: ScheduleEvent) => void | Promise<void>
+  handler: (req: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
@@ -149,7 +149,7 @@ export function onSchedule(
     req: express.Request,
     res: express.Response
   ): Promise<any> => {
-    const event: ScheduleEvent = {
+    const event: ScheduledEvent = {
       jobName: req.header('X-CloudScheduler-JobName') || '',
       scheduleTime: req.header('X-CloudScheduler-ScheduleTime') || '',
     };
