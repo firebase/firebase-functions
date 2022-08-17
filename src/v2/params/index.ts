@@ -60,9 +60,7 @@ function registerParam(param: SecretOrExpr) {
  * @internal
  */
 export function clearParams() {
-  while (declaredParams.length > 0) {
-    declaredParams.pop();
-  }
+  declaredParams.splice(0, declaredParams.length);
 }
 
 /**

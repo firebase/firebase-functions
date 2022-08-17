@@ -1,16 +1,18 @@
 /*
- * A CEL expression which can be evaulated during function deployment, and
+ * A CEL expression which can be evaluated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
 export abstract class Expression<
   T extends string | number | boolean | string[]
 > {
+  // Returns the Expression's runtime value, based on the CLI's resolution of params.
   value(): T {
     throw new Error('Not implemented');
   }
 
-  toCEL() {
+  // Returns the Expression's representation as a braced CEL expression.
+  toCEL(): string {
     return `{{ ${this.toString()} }}`;
   }
 
@@ -26,6 +28,9 @@ function quoteIfString<T extends string | number | boolean | string[]>(
   return typeof literal === 'string' ? (`"${literal}"` as T) : literal;
 }
 
+/**
+ * A CEL expression corresponding to a ternary operator, e.g {{ cond ? ifTrue : ifFalse }}
+ */
 export class TernaryExpression<
   T extends string | number | boolean | string[]
 > extends Expression<T> {
@@ -51,6 +56,10 @@ export class TernaryExpression<
   }
 }
 
+/**
+ * A CEL expression that evaluates to boolean true or false based on a comparison
+ * between the value of another expression and a literal of that same type.
+ */
 export class CompareExpression<
   T extends string | number | boolean | string[]
 > extends Expression<boolean> {

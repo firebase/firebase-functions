@@ -20,7 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Expression, CompareExpression } from '../expressions';
+import {
+  Expression,
+  CompareExpression,
+  TernaryExpression,
+} from '../expressions';
 
 /** @hidden */
 type ParamValueType =
@@ -165,6 +169,10 @@ export class BooleanParam extends Param<boolean> {
 
   value(): boolean {
     return !!process.env[this.name];
+  }
+
+  then<T extends string | number | boolean>(ifTrue: T, ifFalse: T) {
+    return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
 

@@ -12,7 +12,7 @@ params.defineInt("ANOTHER_INT", {selectInput: {select: [{label: "a", value: -2},
 
 params.defineSecretParam("SUPER_SECRET_FLAG")
 
-exports.v1http = functions.https.onRequest({}, (req, resp) => {
+exports.v1http = functions.https.onRequest((req, resp) => {
     resp.status(200).send("PASS");
 });
 
@@ -20,7 +20,7 @@ exports.v1callable = functions.https.onCall(() => {
     return "PASS";
 });
 
-exports.v2http = functionsv2.https.onRequest({}, (req, resp) => {
+exports.v2http = functionsv2.https.onRequest((req, resp) => {
     resp.status(200).send("PASS");
 });
 
