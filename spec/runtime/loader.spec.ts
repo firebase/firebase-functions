@@ -310,6 +310,11 @@ describe('loadStack', () => {
           },
         },
       },
+      {
+        name: 'has params',
+        modulePath: './spec/fixtures/sources/commonjs-params',
+        expected: { ...expected, params: [{ name: 'FOO', type: 'string' }] },
+      },
     ];
 
     for (const tc of testcases) {

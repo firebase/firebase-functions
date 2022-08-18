@@ -361,7 +361,7 @@ describe('onCallHandler', () => {
         body: { result: null },
       },
     });
-    mock.done();
+    expect(mock.isDone()).to.be.true;
   });
 
   it('should reject bad AppCheck token', async () => {

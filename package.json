@@ -147,7 +147,8 @@
   "scripts": {
     "apidocs": "node docgen/generate-docs.js",
     "docgen:v1:extract": "api-extractor run -c docgen/api-extractor.v1.json --local",
-    "docgen:v1:gen": "api-documenter-fire markdown -i docgen/v1 -o docgen/v1/markdown && api-documenter-fire toc -i docgen/v1 -o docgen/v1/markdown/toc -p /docs/reference/functions",
+    "docgen:v1:toc": "ts-node docgen/toc.ts --input docgen/v1/markdown --output docgen/v1/markdown/toc --path /docs/reference/functions",
+    "docgen:v1:gen": "api-documenter-fire markdown -i docgen/v1 -o docgen/v1/markdown --project functions && npm run docgen:v1:toc",
     "docgen:v1": "npm run build && npm run docgen:v1:extract && npm run docgen:v1:gen",
     "docgen:v2:extract": "api-extractor run -c docgen/api-extractor.v2.json --local",
     "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2/markdown --output docgen/v2/markdown/toc --path /docs/functions/beta/reference",
@@ -162,7 +163,8 @@
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
     "test": "mocha --file ./mocha/setup.ts \"spec/**/*.spec.ts\"",
-    "test:bin": "./scripts/bin-test/run.sh"
+    "test:bin": "./scripts/bin-test/run.sh",
+    "test:postmerge": "./integration_test/run_tests.sh"
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
@@ -172,7 +174,7 @@
     "node-fetch": "^2.6.7"
   },
   "devDependencies": {
-    "@firebase/api-documenter": "^0.1.2",
+    "@firebase/api-documenter": "^0.2.0",
     "@microsoft/api-documenter": "^7.13.45",
     "@microsoft/api-extractor": "^7.18.7",
     "@types/chai": "^4.1.7",
@@ -188,7 +190,7 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "child-process-promise": "^2.2.1",
-    "firebase-admin": "^10.1.0",
+    "firebase-admin": "^10.3.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^8.5.1",
@@ -207,8 +209,8 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "^0.22.17",
-    "typescript": "^4.6.3",
+    "typedoc": "0.23.7",
+    "typescript": "^4.3.5",
     "yargs": "^15.3.1"
   },
   "peerDependencies": {

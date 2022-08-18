@@ -28,16 +28,13 @@ export interface ParamSpec<T = unknown> {
   default?: T;
   label?: string;
   description?: string;
-  valueType?: ParamValueType;
+  type: ParamValueType;
 }
 
-export type ParamOptions<T = unknown> = Omit<
-  ParamSpec<T>,
-  'name' | 'valueType'
->;
+export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 
 export class Param<T = unknown> {
-  static valueType: ParamValueType = 'string';
+  static type: ParamValueType = 'string';
 
   constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {}
 
@@ -61,7 +58,7 @@ export class Param<T = unknown> {
     const out: ParamSpec = {
       name: this.name,
       ...this.options,
-      valueType: (this.constructor as typeof Param).valueType,
+      type: (this.constructor as typeof Param).type,
     };
     if (this.options.default && typeof this.options.default !== 'string') {
       out.default = (
@@ -78,7 +75,7 @@ export class StringParam extends Param<string> {
 }
 
 export class IntParam extends Param<number> {
-  static valueType: ParamValueType = 'int';
+  static type: ParamValueType = 'int';
 
   get value(): number {
     const intVal = parseInt(
@@ -97,7 +94,7 @@ export class IntParam extends Param<number> {
 }
 
 export class FloatParam extends Param<number> {
-  static valueType: ParamValueType = 'float';
+  static type: ParamValueType = 'float';
 
   get value(): number {
     const floatVal = parseFloat(
@@ -115,7 +112,7 @@ export class FloatParam extends Param<number> {
 }
 
 export class BooleanParam extends Param {
-  static valueType: ParamValueType = 'boolean';
+  static type: ParamValueType = 'boolean';
 
   get value(): boolean {
     const lowerVal = (
@@ -137,7 +134,7 @@ export class BooleanParam extends Param {
 }
 
 export class ListParam extends Param<string[]> {
-  static valueType: ParamValueType = 'list';
+  static type: ParamValueType = 'list';
 
   get value(): string[] {
     return typeof this.rawValue === 'string'
@@ -148,7 +145,7 @@ export class ListParam extends Param<string[]> {
   toSpec(): ParamSpec<string> {
     const out: ParamSpec = {
       name: this.name,
-      valueType: 'list',
+      type: 'list',
       ...this.options,
     };
     if (this.options.default && this.options.default.length > 0) {
@@ -160,7 +157,7 @@ export class ListParam extends Param<string[]> {
 }
 
 export class JSONParam<T = any> extends Param<T> {
-  static valueType: ParamValueType = 'json';
+  static type: ParamValueType = 'json';
 
   get value(): T {
     if (this.rawValue) {
