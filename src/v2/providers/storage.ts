@@ -29,6 +29,7 @@ import { firebaseConfig } from '../../common/config';
 import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../core';
+import { wrapTraceContext } from '../trace';
 import * as options from '../options';
 
 /**
@@ -564,7 +565,7 @@ export function onOperation(
   );
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as StorageEvent);
+    return wrapTraceContext(handler)(raw as StorageEvent);
   };
 
   func.run = handler;

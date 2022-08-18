@@ -26,8 +26,9 @@
  */
 
 import { CloudEvent, CloudFunction } from '../../core';
-import * as options from '../../options';
 import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
+import { wrapTraceContext } from '../../trace';
+import * as options from '../../options';
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
@@ -335,7 +336,7 @@ export function onInAppFeedbackPublished(
     const event = raw as AppDistributionEvent<InAppFeedbackPayload>;
     // Consolidate the case of empty array and null array
     event.data.payload.screenshotUris = event.data.payload.screenshotUris || [];
-    return handler(event);
+    return wrapTraceContext(handler)(event);
   };
 
   func.run = handler;

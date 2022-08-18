@@ -27,6 +27,7 @@
 
 import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
+import { wrapTraceContext } from '../../trace';
 import * as options from '../../options';
 
 /** Generic Crashlytics issue interface */
@@ -630,7 +631,7 @@ export function onOperation<T>(
   );
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as CrashlyticsEvent<T>);
+    return wrapTraceContext(handler)(raw as CrashlyticsEvent<T>);
   };
 
   func.run = handler;

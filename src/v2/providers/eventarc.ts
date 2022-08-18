@@ -28,6 +28,7 @@
 import { convertIfPresent, copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../core';
+import { wrapTraceContext } from '../trace';
 import * as options from '../options';
 
 /** Options that can be set on an Eventarc trigger. */
@@ -185,7 +186,7 @@ export function onCustomEventPublished<T = any>(
     opts = eventTypeOrOpts as EventarcTriggerOptions;
   }
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as CloudEvent<T>);
+    return wrapTraceContext(handler)(raw as CloudEvent<T>);
   };
 
   func.run = handler;

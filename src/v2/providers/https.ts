@@ -28,7 +28,7 @@
 import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
-
+import { wrapTraceContext } from '../trace';
 import { isDebugFeatureEnabled } from '../../common/debug';
 import {
   CallableRequest,
@@ -37,7 +37,6 @@ import {
   onCallHandler,
   Request,
 } from '../../common/providers/https';
-import { traceContext, getTraceParent } from '../../common/trace';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
 import { GlobalOptions, SupportedRegion } from '../options';
@@ -244,11 +243,7 @@ export function onRequest(
     };
   }
 
-  const prevHandler = handler;
-  handler = async (req: Request, res: express.Response): Promise<void> => {
-    const traceParent = getTraceParent(req.headers);
-    await traceContext.run(traceParent, () => prevHandler(req, res));
-  };
+  handler = wrapTraceContext(handler);
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
@@ -315,13 +310,15 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
-  const func: any = onCallHandler(
-    {
-      cors: { origin, methods: 'POST' },
-      enforceAppCheck:
-        opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
-    },
-    fixedLen
+  const func: any = wrapTraceContext(
+    onCallHandler(
+      {
+        cors: { origin, methods: 'POST' },
+        enforceAppCheck:
+          opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+      },
+      fixedLen
+    )
   );
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
