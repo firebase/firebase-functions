@@ -26,7 +26,7 @@ import { ParamSpec } from '../v2/params/types';
 /**
  * An definition of a function as appears in the Manifest.
  */
-export type ManifestEndpoint = {
+export interface ManifestEndpoint {
   entryPoint?: string;
   region?: string[];
   platform?: string;
@@ -105,8 +105,7 @@ export function stackToWire(stack: ManifestStack): Object {
   let wireStack = stack as any;
   let traverse = function traverse(obj: Object) {
     for (const [key, val] of Object.entries(obj)) {
-      //if (val instanceof Expression) {
-      if (typeof val.toCEL === 'function') {
+      if (val instanceof Expression) {
         obj[key] = val.toCEL();
       } else if (typeof val === 'object') {
         traverse(val);
