@@ -19,7 +19,9 @@ export const pubsubtests: any = onMessagePublished<Message>(
       /* Ignored. Covered in another test case that `event.data.json` works. */
     }
 
-    return new TestSuite<CloudEvent<MessagePublishedData>>('pubsub onPublish')
+    return new TestSuite<CloudEvent<MessagePublishedData>>(
+      'v2 pubsub onMessagePublished'
+    )
       .it('should have a topic as resource', (event) =>
         expectEq(
           event.source,
