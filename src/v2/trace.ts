@@ -1,22 +1,19 @@
-import * as express from 'express';
+import * as express from "express";
 
-import { TraceParent, getTraceParent, traceContext } from '../common/trace';
-import { CloudEvent } from './core';
+import { TraceParent, getTraceParent, traceContext } from "../common/trace";
+import { CloudEvent } from "./core";
 
-type HttpsFunction = (
-  req: express.Request,
-  res: express.Response
-) => void | Promise<void>;
+type HttpsFunction = (req: express.Request, res: express.Response) => void | Promise<void>;
 type CloudEventFunction<T> = (raw: CloudEvent<T>) => any | Promise<any>;
 
 /**
  * Wraps v2 handler with trace context.
  * @param handler
+ *
+ * @internal
  */
 export function wrapTraceContext(handler: HttpsFunction): HttpsFunction;
-export function wrapTraceContext<T>(
-  handler: CloudEventFunction<T>
-): CloudEventFunction<T>;
+export function wrapTraceContext<T>(handler: CloudEventFunction<T>): CloudEventFunction<T>;
 export function wrapTraceContext(
   handler: HttpsFunction | CloudEventFunction<unknown>
 ): HttpsFunction | CloudEventFunction<unknown> {
