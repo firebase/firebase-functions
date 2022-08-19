@@ -158,8 +158,8 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   }
   return {
     'logging.googleapis.com/trace': ctx?.traceId
-        ? `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`
-        : undefined,
+      ? `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`
+      : undefined,
     ...entry,
     severity,
     message,
