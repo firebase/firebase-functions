@@ -1,5 +1,5 @@
-import * as firebase from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import * as firebase from "firebase-admin";
+import * as functions from "firebase-functions";
 
 export type TestCase<T> = (data: T, context?: functions.EventContext) => any;
 export interface TestCaseMap<T> {
@@ -31,7 +31,7 @@ export class TestSuite<T> {
         .then(
           (result) => {
             functions.logger.info(
-              `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`
+              `${result ? "Passed" : "Failed with successful op"}: ${testName}`
             );
             return { name: testName, passed: !!result };
           },
@@ -49,10 +49,7 @@ export class TestSuite<T> {
       const passed = sum === running.length;
       functions.logger.info(summary);
       const result = { passed, summary, tests: results };
-      return firebase
-        .database()
-        .ref(`testRuns/${testId}/${this.name}`)
-        .set(result);
+      return firebase.database().ref(`testRuns/${testId}/${this.name}`).set(result);
     });
   }
 }
@@ -73,10 +70,7 @@ export function evaluate(value: boolean, errMsg: string) {
 }
 
 export function expectEq(left: any, right: any) {
-  return evaluate(
-    left == right,
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
-  );
+  return evaluate(left == right, JSON.stringify(left) + " does not equal " + JSON.stringify(right));
 }
 
 function deepEq(left: any, right: any) {
@@ -128,7 +122,7 @@ export function expectReject<EventType>(f: (e: EventType) => Promise<void>) {
     }
 
     if (!rejected) {
-      throw new Error('Test should have returned a rejected promise');
+      throw new Error("Test should have returned a rejected promise");
     }
   };
 }

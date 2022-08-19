@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as express from 'express';
+import { expect } from "chai";
+import * as express from "express";
 
-import * as https from '../src/common/providers/https';
-import * as tasks from '../src/common/providers/tasks';
+import * as https from "../src/common/providers/https";
+import * as tasks from "../src/common/providers/tasks";
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -81,8 +81,8 @@ export function runHandler(
       }
 
       public on(event: string, callback: Function) {
-        if (event !== 'finish') {
-          throw new Error('MockResponse only implements the finish event');
+        if (event !== "finish") {
+          throw new Error("MockResponse only implements the finish event");
         }
         this.callback = callback;
       }
@@ -106,7 +106,7 @@ export function checkAuthContext(
   expect(context.auth.token.aud).to.equal(projectId);
 
   // TaskContext & TaskRequest don't have instanceIdToken
-  if ({}.hasOwnProperty.call(context, 'instanceIdToken')) {
+  if ({}.hasOwnProperty.call(context, "instanceIdToken")) {
     expect((context as https.CallableContext).instanceIdToken).to.be.undefined;
   }
 }

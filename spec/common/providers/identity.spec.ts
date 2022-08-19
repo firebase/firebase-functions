@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as express from 'express';
-import * as identity from '../../../src/common/providers/identity';
+import { expect } from "chai";
+import * as express from "express";
+import * as identity from "../../../src/common/providers/identity";
 
-const EVENT = 'EVENT_TYPE';
+const EVENT = "EVENT_TYPE";
 const now = new Date();
 
-describe('identity', () => {
-  describe('userRecordConstructor', () => {
-    it('will provide falsey values for fields that are not in raw wire data', () => {
-      const record = identity.userRecordConstructor({ uid: '123' });
+describe("identity", () => {
+  describe("userRecordConstructor", () => {
+    it("will provide falsey values for fields that are not in raw wire data", () => {
+      const record = identity.userRecordConstructor({ uid: "123" });
       expect(record.toJSON()).to.deep.equal({
-        uid: '123',
+        uid: "123",
         email: null,
         emailVerified: false,
         displayName: null,
@@ -51,66 +51,66 @@ describe('identity', () => {
       });
     });
 
-    it('will not interfere with fields that are in raw wire data', () => {
+    it("will not interfere with fields that are in raw wire data", () => {
       const raw: any = {
-        uid: '123',
-        email: 'email@gmail.com',
+        uid: "123",
+        email: "email@gmail.com",
         emailVerified: true,
-        displayName: 'User',
-        photoURL: 'url',
-        phoneNumber: '1233332222',
+        displayName: "User",
+        photoURL: "url",
+        phoneNumber: "1233332222",
         disabled: true,
         providerData: [],
         customClaims: {},
-        passwordSalt: 'abc',
-        passwordHash: 'def',
-        tokensValidAfterTime: '2027-02-02T23:01:19.797Z',
+        passwordSalt: "abc",
+        passwordHash: "def",
+        tokensValidAfterTime: "2027-02-02T23:01:19.797Z",
         metadata: {
-          creationTime: '2017-02-02T23:06:26.124Z',
-          lastSignInTime: '2017-02-02T23:01:19.797Z',
+          creationTime: "2017-02-02T23:06:26.124Z",
+          lastSignInTime: "2017-02-02T23:01:19.797Z",
         },
       };
       const record = identity.userRecordConstructor(raw);
       expect(record.toJSON()).to.deep.equal(raw);
     });
 
-    it('will convert raw wire fields createdAt and lastSignedInAt to creationTime and lastSignInTime', () => {
+    it("will convert raw wire fields createdAt and lastSignedInAt to creationTime and lastSignInTime", () => {
       const raw: any = {
-        uid: '123',
+        uid: "123",
         metadata: {
-          createdAt: '2017-02-02T23:06:26.124Z',
-          lastSignedInAt: '2017-02-02T23:01:19.797Z',
+          createdAt: "2017-02-02T23:06:26.124Z",
+          lastSignedInAt: "2017-02-02T23:01:19.797Z",
         },
       };
       const record = identity.userRecordConstructor(raw);
       expect(record.metadata).to.deep.equal({
-        creationTime: '2017-02-02T23:06:26.124Z',
-        lastSignInTime: '2017-02-02T23:01:19.797Z',
+        creationTime: "2017-02-02T23:06:26.124Z",
+        lastSignInTime: "2017-02-02T23:01:19.797Z",
       });
     });
 
-    it('should stringify the record', () => {
+    it("should stringify the record", () => {
       const raw: any = {
-        uid: '123',
-        email: 'email@gmail.com',
+        uid: "123",
+        email: "email@gmail.com",
         emailVerified: true,
-        displayName: 'User',
-        photoURL: 'url',
-        phoneNumber: '1233332222',
+        displayName: "User",
+        photoURL: "url",
+        phoneNumber: "1233332222",
         disabled: true,
-        providerData: ['something'],
+        providerData: ["something"],
         customClaims: {
-          claim: 'value',
+          claim: "value",
           another: {
-            inner: 'value',
+            inner: "value",
           },
         },
-        passwordSalt: 'abc',
-        passwordHash: 'def',
-        tokensValidAfterTime: '2027-02-02T23:01:19.797Z',
+        passwordSalt: "abc",
+        passwordHash: "def",
+        tokensValidAfterTime: "2027-02-02T23:01:19.797Z",
         metadata: {
-          creationTime: '2017-02-02T23:06:26.124Z',
-          lastSignInTime: '2017-02-02T23:01:19.797Z',
+          creationTime: "2017-02-02T23:06:26.124Z",
+          lastSignInTime: "2017-02-02T23:01:19.797Z",
         },
       };
       const record = identity.userRecordConstructor(raw);
@@ -118,16 +118,16 @@ describe('identity', () => {
     });
   });
 
-  describe('isValidRequest', () => {
-    it('should error on non-post', () => {
+  describe("isValidRequest", () => {
+    it("should error on non-post", () => {
       const req = {
-        method: 'GET',
+        method: "GET",
         header: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: {
           data: {
-            jwt: '1.2.3',
+            jwt: "1.2.3",
           },
         },
       } as unknown as express.Request;
@@ -135,15 +135,15 @@ describe('identity', () => {
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
-    it('should error on bad Content-Type', () => {
+    it("should error on bad Content-Type", () => {
       const req = {
-        method: 'POST',
+        method: "POST",
         header(val: string) {
-          return 'text/css';
+          return "text/css";
         },
         body: {
           data: {
-            jwt: '1.2.3',
+            jwt: "1.2.3",
           },
         },
       } as unknown as express.Request;
@@ -151,22 +151,22 @@ describe('identity', () => {
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
-    it('should error without req body', () => {
+    it("should error without req body", () => {
       const req = {
-        method: 'POST',
+        method: "POST",
         header(val: string) {
-          return 'application/json';
+          return "application/json";
         },
       } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
-    it('should error without req body data', () => {
+    it("should error without req body data", () => {
       const req = {
-        method: 'POST',
+        method: "POST",
         header(val: string) {
-          return 'application/json';
+          return "application/json";
         },
         body: {},
       } as unknown as express.Request;
@@ -174,11 +174,11 @@ describe('identity', () => {
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
-    it('should error without req body', () => {
+    it("should error without req body", () => {
       const req = {
-        method: 'POST',
+        method: "POST",
         header(val: string) {
-          return 'application/json';
+          return "application/json";
         },
         body: {
           data: {},
@@ -188,15 +188,15 @@ describe('identity', () => {
       expect(identity.isValidRequest(req)).to.be.false;
     });
 
-    it('should not error on valid request', () => {
+    it("should not error on valid request", () => {
       const req = {
-        method: 'POST',
+        method: "POST",
         header(val: string) {
-          return 'application/json';
+          return "application/json";
         },
         body: {
           data: {
-            jwt: '1.2.3',
+            jwt: "1.2.3",
           },
         },
       } as unknown as express.Request;
@@ -205,7 +205,7 @@ describe('identity', () => {
     });
   });
 
-  describe('parseMetadata', () => {
+  describe("parseMetadata", () => {
     const decodedMetadata = {
       last_sign_in_time: 1476235905,
       creation_time: 1476136676,
@@ -215,86 +215,80 @@ describe('identity', () => {
       creationTime: new Date(1476136676000).toUTCString(),
     };
 
-    it('should parse an undefined object', () => {
+    it("should parse an undefined object", () => {
       expect(identity.parseMetadata({})).to.deep.equal({
         creationTime: null,
         lastSignInTime: null,
       });
     });
 
-    it('should parse a decoded metadata object', () => {
+    it("should parse a decoded metadata object", () => {
       const md = identity.parseMetadata(decodedMetadata);
 
       expect(md).to.deep.equal(metadata);
     });
   });
 
-  describe('parseProviderData', () => {
+  describe("parseProviderData", () => {
     const decodedUserInfo = {
-      provider_id: 'google.com',
-      display_name: 'John Doe',
-      photo_url: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
-      uid: '1234567890',
-      email: 'user@gmail.com',
+      provider_id: "google.com",
+      display_name: "John Doe",
+      photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
+      uid: "1234567890",
+      email: "user@gmail.com",
     };
     const userInfo = {
-      providerId: 'google.com',
-      displayName: 'John Doe',
-      photoURL: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
-      uid: '1234567890',
-      email: 'user@gmail.com',
+      providerId: "google.com",
+      displayName: "John Doe",
+      photoURL: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
+      uid: "1234567890",
+      email: "user@gmail.com",
       phoneNumber: undefined,
     };
     const decodedUserInfoPhone = {
-      provider_id: 'phone',
-      phone_number: '+11234567890',
-      uid: '+11234567890',
+      provider_id: "phone",
+      phone_number: "+11234567890",
+      uid: "+11234567890",
     };
     const userInfoPhone = {
-      providerId: 'phone',
+      providerId: "phone",
       displayName: undefined,
       photoURL: undefined,
-      uid: '+11234567890',
+      uid: "+11234567890",
       email: undefined,
-      phoneNumber: '+11234567890',
+      phoneNumber: "+11234567890",
     };
 
-    it('should parse the user info', () => {
-      expect(identity.parseProviderData([decodedUserInfo])).to.deep.equal([
-        userInfo,
-      ]);
+    it("should parse the user info", () => {
+      expect(identity.parseProviderData([decodedUserInfo])).to.deep.equal([userInfo]);
     });
 
-    it('should parse the user info with phone', () => {
-      expect(identity.parseProviderData([decodedUserInfoPhone])).to.deep.equal([
-        userInfoPhone,
-      ]);
+    it("should parse the user info with phone", () => {
+      expect(identity.parseProviderData([decodedUserInfoPhone])).to.deep.equal([userInfoPhone]);
     });
   });
 
-  describe('parseDate', () => {
-    it('should return null if tokens undefined', () => {
+  describe("parseDate", () => {
+    it("should return null if tokens undefined", () => {
       expect(identity.parseDate()).to.be.null;
     });
 
-    it('should parse the date', () => {
-      expect(identity.parseDate(1476136676)).to.equal(
-        new Date(1476136676000).toUTCString()
-      );
+    it("should parse the date", () => {
+      expect(identity.parseDate(1476136676)).to.equal(new Date(1476136676000).toUTCString());
     });
   });
 
-  describe('parseMultiFactor', () => {
+  describe("parseMultiFactor", () => {
     const decodedMultiFactors = {
       enrolled_factors: [
         {
-          uid: 'enrollmentId1',
-          display_name: 'displayName1',
+          uid: "enrollmentId1",
+          display_name: "displayName1",
           enrollment_time: now.toISOString(),
-          phone_number: '+16505551234',
+          phone_number: "+16505551234",
         },
         {
-          uid: 'enrollmentId2',
+          uid: "enrollmentId2",
           enrollment_time: now.toISOString(),
         },
       ],
@@ -302,14 +296,14 @@ describe('identity', () => {
     const multiFactors = {
       enrolledFactors: [
         {
-          uid: 'enrollmentId1',
-          displayName: 'displayName1',
+          uid: "enrollmentId1",
+          displayName: "displayName1",
           enrollmentTime: now.toUTCString(),
-          phoneNumber: '+16505551234',
-          factorId: 'phone',
+          phoneNumber: "+16505551234",
+          factorId: "phone",
         },
         {
-          uid: 'enrollmentId2',
+          uid: "enrollmentId2",
           displayName: undefined,
           enrollmentTime: now.toUTCString(),
           factorId: undefined,
@@ -318,68 +312,66 @@ describe('identity', () => {
       ],
     };
 
-    it('should return null on undefined factor', () => {
+    it("should return null on undefined factor", () => {
       expect(identity.parseMultiFactor()).to.be.null;
     });
 
-    it('should return null without enrolled factors', () => {
+    it("should return null without enrolled factors", () => {
       expect(identity.parseMultiFactor({})).to.be.null;
     });
 
-    it('should error on an invalid factor', () => {
+    it("should error on an invalid factor", () => {
       const factors = {
         enrolled_factors: [{} as identity.DecodedPayloadMfaInfo],
       };
 
       expect(() => identity.parseMultiFactor(factors)).to.throw(
-        'INTERNAL ASSERT FAILED: Invalid multi-factor info response'
+        "INTERNAL ASSERT FAILED: Invalid multi-factor info response"
       );
     });
 
-    it('should correctly parse factors', () => {
-      expect(identity.parseMultiFactor(decodedMultiFactors)).to.deep.equal(
-        multiFactors
-      );
+    it("should correctly parse factors", () => {
+      expect(identity.parseMultiFactor(decodedMultiFactors)).to.deep.equal(multiFactors);
     });
   });
 
-  describe('parseUserRecord', () => {
+  describe("parseUserRecord", () => {
     const decodedUserRecord = {
-      uid: 'abcdefghijklmnopqrstuvwxyz',
-      email: 'user@gmail.com',
+      uid: "abcdefghijklmnopqrstuvwxyz",
+      email: "user@gmail.com",
       email_verified: true,
-      display_name: 'John Doe',
-      phone_number: '+11234567890',
+      display_name: "John Doe",
+      phone_number: "+11234567890",
       provider_data: [
         {
-          provider_id: 'google.com',
-          display_name: 'John Doe',
-          photo_url: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
-          email: 'user@gmail.com',
-          uid: '1234567890',
+          provider_id: "google.com",
+          display_name: "John Doe",
+          photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
+          email: "user@gmail.com",
+          uid: "1234567890",
         },
         {
-          provider_id: 'facebook.com',
-          display_name: 'John Smith',
-          photo_url: 'https://facebook.com/0987654321/photo.jpg',
-          email: 'user@facebook.com',
-          uid: '0987654321',
+          provider_id: "facebook.com",
+          display_name: "John Smith",
+          photo_url: "https://facebook.com/0987654321/photo.jpg",
+          email: "user@facebook.com",
+          uid: "0987654321",
         },
         {
-          provider_id: 'phone',
-          uid: '+11234567890',
-          phone_number: '+11234567890',
+          provider_id: "phone",
+          uid: "+11234567890",
+          phone_number: "+11234567890",
         },
         {
-          provider_id: 'password',
-          email: 'user@gmail.com',
-          uid: 'user@gmail.com',
-          display_name: 'John Doe',
+          provider_id: "password",
+          email: "user@gmail.com",
+          uid: "user@gmail.com",
+          display_name: "John Doe",
         },
       ],
-      password_hash: 'passwordHash',
-      password_salt: 'passwordSalt',
-      photo_url: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
+      password_hash: "passwordHash",
+      password_salt: "passwordSalt",
+      photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
       tokens_valid_after_time: 1476136676,
       metadata: {
         last_sign_in_time: 1476235905,
@@ -387,154 +379,154 @@ describe('identity', () => {
       },
       custom_claims: {
         admin: true,
-        group_id: 'group123',
+        group_id: "group123",
       },
-      tenant_id: 'TENANT_ID',
+      tenant_id: "TENANT_ID",
       multi_factor: {
         enrolled_factors: [
           {
-            uid: 'enrollmentId1',
-            display_name: 'displayName1',
+            uid: "enrollmentId1",
+            display_name: "displayName1",
             enrollment_time: now.toISOString(),
-            phone_number: '+16505551234',
-            factor_id: 'phone',
+            phone_number: "+16505551234",
+            factor_id: "phone",
           },
           {
-            uid: 'enrollmentId2',
+            uid: "enrollmentId2",
             enrollment_time: now.toISOString(),
-            phone_number: '+16505556789',
-            factor_id: 'phone',
+            phone_number: "+16505556789",
+            factor_id: "phone",
           },
         ],
       },
     };
 
     const userRecord = {
-      uid: 'abcdefghijklmnopqrstuvwxyz',
-      email: 'user@gmail.com',
-      phoneNumber: '+11234567890',
+      uid: "abcdefghijklmnopqrstuvwxyz",
+      email: "user@gmail.com",
+      phoneNumber: "+11234567890",
       emailVerified: true,
       disabled: false,
-      displayName: 'John Doe',
+      displayName: "John Doe",
       providerData: [
         {
-          providerId: 'google.com',
-          displayName: 'John Doe',
-          photoURL: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
-          email: 'user@gmail.com',
-          uid: '1234567890',
+          providerId: "google.com",
+          displayName: "John Doe",
+          photoURL: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
+          email: "user@gmail.com",
+          uid: "1234567890",
           phoneNumber: undefined,
         },
         {
-          providerId: 'facebook.com',
-          displayName: 'John Smith',
-          photoURL: 'https://facebook.com/0987654321/photo.jpg',
-          email: 'user@facebook.com',
-          uid: '0987654321',
+          providerId: "facebook.com",
+          displayName: "John Smith",
+          photoURL: "https://facebook.com/0987654321/photo.jpg",
+          email: "user@facebook.com",
+          uid: "0987654321",
           phoneNumber: undefined,
         },
         {
-          providerId: 'phone',
+          providerId: "phone",
           displayName: undefined,
           photoURL: undefined,
           email: undefined,
-          uid: '+11234567890',
-          phoneNumber: '+11234567890',
+          uid: "+11234567890",
+          phoneNumber: "+11234567890",
         },
         {
-          providerId: 'password',
-          displayName: 'John Doe',
+          providerId: "password",
+          displayName: "John Doe",
           photoURL: undefined,
-          email: 'user@gmail.com',
-          uid: 'user@gmail.com',
+          email: "user@gmail.com",
+          uid: "user@gmail.com",
           phoneNumber: undefined,
         },
       ],
-      passwordHash: 'passwordHash',
-      passwordSalt: 'passwordSalt',
-      photoURL: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
+      passwordHash: "passwordHash",
+      passwordSalt: "passwordSalt",
+      photoURL: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
       metadata: {
         lastSignInTime: new Date(1476235905000).toUTCString(),
         creationTime: new Date(1476136676000).toUTCString(),
       },
       customClaims: {
         admin: true,
-        group_id: 'group123',
+        group_id: "group123",
       },
       tokensValidAfterTime: new Date(1476136676000).toUTCString(),
-      tenantId: 'TENANT_ID',
+      tenantId: "TENANT_ID",
       multiFactor: {
         enrolledFactors: [
           {
-            uid: 'enrollmentId1',
-            displayName: 'displayName1',
+            uid: "enrollmentId1",
+            displayName: "displayName1",
             enrollmentTime: now.toUTCString(),
-            phoneNumber: '+16505551234',
-            factorId: 'phone',
+            phoneNumber: "+16505551234",
+            factorId: "phone",
           },
           {
-            uid: 'enrollmentId2',
+            uid: "enrollmentId2",
             displayName: undefined,
             enrollmentTime: now.toUTCString(),
-            phoneNumber: '+16505556789',
-            factorId: 'phone',
+            phoneNumber: "+16505556789",
+            factorId: "phone",
           },
         ],
       },
     };
 
-    it('should error if decoded does not have uid', () => {
-      expect(() =>
-        identity.parseAuthUserRecord({} as identity.DecodedPayloadUserRecord)
-      ).to.throw('INTERNAL ASSERT FAILED: Invalid user response');
+    it("should error if decoded does not have uid", () => {
+      expect(() => identity.parseAuthUserRecord({} as identity.DecodedPayloadUserRecord)).to.throw(
+        "INTERNAL ASSERT FAILED: Invalid user response"
+      );
     });
 
-    it('should parse user record', () => {
+    it("should parse user record", () => {
       const ur = identity.parseAuthUserRecord(decodedUserRecord);
 
       expect(ur).to.deep.equal(userRecord);
     });
   });
 
-  describe('parseAuthEventContext', () => {
+  describe("parseAuthEventContext", () => {
     const rawUserInfo = {
-      name: 'John Doe',
+      name: "John Doe",
       granted_scopes:
-        'openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
-      id: '123456789',
+        "openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+      id: "123456789",
       verified_email: true,
-      given_name: 'John',
-      locale: 'en',
-      family_name: 'Doe',
-      email: 'johndoe@gmail.com',
-      picture: 'https://lh3.googleusercontent.com/1233456789/mo/photo.jpg',
+      given_name: "John",
+      locale: "en",
+      family_name: "Doe",
+      email: "johndoe@gmail.com",
+      picture: "https://lh3.googleusercontent.com/1233456789/mo/photo.jpg",
     };
 
-    it('should parse an unknown event', () => {
+    it("should parse an unknown event", () => {
       const decodedJwt = {
-        aud: 'https://us-east1-project_id.cloudfunctions.net/function-1',
+        aud: "https://us-east1-project_id.cloudfunctions.net/function-1",
         exp: 60 * 60 + 1,
         iat: 1,
-        iss: 'https://securetoken.google.com/project_id',
-        sub: 'someUid',
-        uid: 'someUid',
-        event_id: 'EVENT_ID',
+        iss: "https://securetoken.google.com/project_id",
+        sub: "someUid",
+        uid: "someUid",
+        event_id: "EVENT_ID",
         event_type: EVENT,
-        ip_address: '1.2.3.4',
-        user_agent: 'USER_AGENT',
-        locale: 'en',
+        ip_address: "1.2.3.4",
+        user_agent: "USER_AGENT",
+        locale: "en",
         raw_user_info: JSON.stringify(rawUserInfo),
       };
       const context = {
-        locale: 'en',
-        ipAddress: '1.2.3.4',
-        userAgent: 'USER_AGENT',
-        eventId: 'EVENT_ID',
+        locale: "en",
+        ipAddress: "1.2.3.4",
+        userAgent: "USER_AGENT",
+        eventId: "EVENT_ID",
         eventType: EVENT,
-        authType: 'UNAUTHENTICATED',
+        authType: "UNAUTHENTICATED",
         resource: {
-          service: 'identitytoolkit.googleapis.com',
-          name: 'projects/project-id',
+          service: "identitytoolkit.googleapis.com",
+          name: "projects/project-id",
         },
         timestamp: new Date(1000).toUTCString(),
         additionalUserInfo: {
@@ -547,101 +539,97 @@ describe('identity', () => {
         params: {},
       };
 
-      expect(
-        identity.parseAuthEventContext(decodedJwt, 'project-id')
-      ).to.deep.equal(context);
+      expect(identity.parseAuthEventContext(decodedJwt, "project-id")).to.deep.equal(context);
     });
 
-    it('should parse a beforeSignIn event', () => {
+    it("should parse a beforeSignIn event", () => {
       const time = now.getTime();
       const decodedJwt = {
-        aud: 'https://us-east1-project_id.cloudfunctions.net/function-1',
+        aud: "https://us-east1-project_id.cloudfunctions.net/function-1",
         exp: 60 * 60 + 1,
         iat: 1,
-        iss: 'https://securetoken.google.com/project_id',
-        sub: 'someUid',
-        uid: 'someUid',
-        event_id: 'EVENT_ID',
-        event_type: 'beforeSignIn',
-        ip_address: '1.2.3.4',
-        user_agent: 'USER_AGENT',
-        locale: 'en',
-        sign_in_method: 'password',
+        iss: "https://securetoken.google.com/project_id",
+        sub: "someUid",
+        uid: "someUid",
+        event_id: "EVENT_ID",
+        event_type: "beforeSignIn",
+        ip_address: "1.2.3.4",
+        user_agent: "USER_AGENT",
+        locale: "en",
+        sign_in_method: "password",
         raw_user_info: JSON.stringify(rawUserInfo),
-        oauth_id_token: 'ID_TOKEN',
-        oauth_access_token: 'ACCESS_TOKEN',
-        oauth_refresh_token: 'REFRESH_TOKEN',
-        oauth_token_secret: 'OAUTH_TOKEN_SECRET',
+        oauth_id_token: "ID_TOKEN",
+        oauth_access_token: "ACCESS_TOKEN",
+        oauth_refresh_token: "REFRESH_TOKEN",
+        oauth_token_secret: "OAUTH_TOKEN_SECRET",
         oauth_expires_in: 3600,
       };
       const context = {
-        locale: 'en',
-        ipAddress: '1.2.3.4',
-        userAgent: 'USER_AGENT',
-        eventId: 'EVENT_ID',
-        eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn:password',
-        authType: 'UNAUTHENTICATED',
+        locale: "en",
+        ipAddress: "1.2.3.4",
+        userAgent: "USER_AGENT",
+        eventId: "EVENT_ID",
+        eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn:password",
+        authType: "UNAUTHENTICATED",
         resource: {
-          service: 'identitytoolkit.googleapis.com',
-          name: 'projects/project-id',
+          service: "identitytoolkit.googleapis.com",
+          name: "projects/project-id",
         },
         timestamp: new Date(1000).toUTCString(),
         additionalUserInfo: {
-          providerId: 'password',
+          providerId: "password",
           profile: rawUserInfo,
           username: undefined,
           isNewUser: false,
         },
         credential: {
           claims: undefined,
-          idToken: 'ID_TOKEN',
-          accessToken: 'ACCESS_TOKEN',
-          refreshToken: 'REFRESH_TOKEN',
+          idToken: "ID_TOKEN",
+          accessToken: "ACCESS_TOKEN",
+          refreshToken: "REFRESH_TOKEN",
           expirationTime: new Date(time + 3600 * 1000).toUTCString(),
-          secret: 'OAUTH_TOKEN_SECRET',
-          providerId: 'password',
-          signInMethod: 'password',
+          secret: "OAUTH_TOKEN_SECRET",
+          providerId: "password",
+          signInMethod: "password",
         },
         params: {},
       };
 
-      expect(
-        identity.parseAuthEventContext(decodedJwt, 'project-id', time)
-      ).to.deep.equal(context);
+      expect(identity.parseAuthEventContext(decodedJwt, "project-id", time)).to.deep.equal(context);
     });
 
-    it('should parse a beforeCreate event', () => {
+    it("should parse a beforeCreate event", () => {
       const time = now.getTime();
       // beforeCreate
       const decodedJwt = {
-        aud: 'https://us-east1-project_id.cloudfunctions.net/beforeCreate',
+        aud: "https://us-east1-project_id.cloudfunctions.net/beforeCreate",
         exp: 60 * 60 + 1,
         iat: 1,
-        iss: 'https://securetoken.google.com/project_id',
-        sub: 'abcdefghijklmnopqrstuvwxyz',
-        uid: 'abcdefghijklmnopqrstuvwxyz',
-        event_id: 'EVENT_ID',
-        event_type: 'beforeCreate',
-        ip_address: '1.2.3.4',
-        user_agent: 'USER_AGENT',
-        locale: 'en',
-        sign_in_method: 'oidc.provider',
-        tenant_id: 'TENANT_ID',
+        iss: "https://securetoken.google.com/project_id",
+        sub: "abcdefghijklmnopqrstuvwxyz",
+        uid: "abcdefghijklmnopqrstuvwxyz",
+        event_id: "EVENT_ID",
+        event_type: "beforeCreate",
+        ip_address: "1.2.3.4",
+        user_agent: "USER_AGENT",
+        locale: "en",
+        sign_in_method: "oidc.provider",
+        tenant_id: "TENANT_ID",
         user_record: {
-          uid: 'abcdefghijklmnopqrstuvwxyz',
-          email: 'user@gmail.com',
+          uid: "abcdefghijklmnopqrstuvwxyz",
+          email: "user@gmail.com",
           email_verified: true,
-          display_name: 'John Doe',
-          phone_number: '+11234567890',
+          display_name: "John Doe",
+          phone_number: "+11234567890",
           provider_data: [
             {
-              provider_id: 'oidc.provider',
-              email: 'user@gmail.com',
-              uid: 'user@gmail.com',
-              display_name: 'John Doe',
+              provider_id: "oidc.provider",
+              email: "user@gmail.com",
+              uid: "user@gmail.com",
+              display_name: "John Doe",
             },
           ],
-          photo_url: 'https://lh3.googleusercontent.com/1234567890/photo.jpg',
+          photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
           tokens_valid_after_time: 1476136676,
           metadata: {
             last_sign_in_time: 1476235905,
@@ -649,152 +637,140 @@ describe('identity', () => {
           },
           custom_claims: {
             admin: true,
-            group_id: 'group123',
+            group_id: "group123",
           },
-          tenant_id: 'TENANT_ID',
+          tenant_id: "TENANT_ID",
         },
-        oauth_id_token: 'ID_TOKEN',
-        oauth_access_token: 'ACCESS_TOKEN',
-        oauth_refresh_token: 'REFRESH_TOKEN',
-        oauth_token_secret: 'OAUTH_TOKEN_SECRET',
+        oauth_id_token: "ID_TOKEN",
+        oauth_access_token: "ACCESS_TOKEN",
+        oauth_refresh_token: "REFRESH_TOKEN",
+        oauth_token_secret: "OAUTH_TOKEN_SECRET",
         oauth_expires_in: 3600,
         raw_user_info: JSON.stringify(rawUserInfo),
       };
       const context = {
-        locale: 'en',
-        ipAddress: '1.2.3.4',
-        userAgent: 'USER_AGENT',
-        eventId: 'EVENT_ID',
-        eventType:
-          'providers/cloud.auth/eventTypes/user.beforeCreate:oidc.provider',
-        authType: 'USER',
+        locale: "en",
+        ipAddress: "1.2.3.4",
+        userAgent: "USER_AGENT",
+        eventId: "EVENT_ID",
+        eventType: "providers/cloud.auth/eventTypes/user.beforeCreate:oidc.provider",
+        authType: "USER",
         resource: {
-          service: 'identitytoolkit.googleapis.com',
-          name: 'projects/project-id/tenants/TENANT_ID',
+          service: "identitytoolkit.googleapis.com",
+          name: "projects/project-id/tenants/TENANT_ID",
         },
         timestamp: new Date(1000).toUTCString(),
         additionalUserInfo: {
           username: undefined,
-          providerId: 'oidc.provider',
+          providerId: "oidc.provider",
           profile: rawUserInfo,
           isNewUser: true,
         },
         credential: {
           claims: undefined,
-          accessToken: 'ACCESS_TOKEN',
+          accessToken: "ACCESS_TOKEN",
           expirationTime: new Date(time + 3600 * 1000).toUTCString(),
-          idToken: 'ID_TOKEN',
-          providerId: 'oidc.provider',
-          refreshToken: 'REFRESH_TOKEN',
-          secret: 'OAUTH_TOKEN_SECRET',
-          signInMethod: 'oidc.provider',
+          idToken: "ID_TOKEN",
+          providerId: "oidc.provider",
+          refreshToken: "REFRESH_TOKEN",
+          secret: "OAUTH_TOKEN_SECRET",
+          signInMethod: "oidc.provider",
         },
         params: {},
       };
 
-      expect(
-        identity.parseAuthEventContext(decodedJwt, 'project-id', time)
-      ).to.deep.equal(context);
+      expect(identity.parseAuthEventContext(decodedJwt, "project-id", time)).to.deep.equal(context);
     });
   });
 
-  describe('validateAuthResponse', () => {
-    it('should not throw on undefined request', () => {
-      expect(() => identity.validateAuthResponse('event', undefined)).to.not
-        .throw;
+  describe("validateAuthResponse", () => {
+    it("should not throw on undefined request", () => {
+      expect(() => identity.validateAuthResponse("event", undefined)).to.not.throw;
     });
 
-    it('should throw an error if customClaims have a blocked claim', () => {
+    it("should throw an error if customClaims have a blocked claim", () => {
       expect(() =>
-        identity.validateAuthResponse('beforeCreate', {
-          customClaims: { acr: 'something' },
+        identity.validateAuthResponse("beforeCreate", {
+          customClaims: { acr: "something" },
         })
-      ).to.throw(
-        'The customClaims claims "acr" are reserved and cannot be specified.'
-      );
+      ).to.throw('The customClaims claims "acr" are reserved and cannot be specified.');
     });
 
-    it('should throw an error if customClaims size is too big', () => {
-      const str = 'x'.repeat(1000);
+    it("should throw an error if customClaims size is too big", () => {
+      const str = "x".repeat(1000);
 
       expect(() =>
-        identity.validateAuthResponse('beforeCreate', {
+        identity.validateAuthResponse("beforeCreate", {
           customClaims: { idk: str },
         })
-      ).to.throw('The customClaims payload should not exceed 1000 characters.');
+      ).to.throw("The customClaims payload should not exceed 1000 characters.");
     });
 
-    it('should throw an error if sessionClaims have a blocked claim', () => {
+    it("should throw an error if sessionClaims have a blocked claim", () => {
       expect(() =>
-        identity.validateAuthResponse('beforeSignIn', {
-          sessionClaims: { acr: 'something' },
+        identity.validateAuthResponse("beforeSignIn", {
+          sessionClaims: { acr: "something" },
         })
-      ).to.throw(
-        'The sessionClaims claims "acr" are reserved and cannot be specified.'
-      );
+      ).to.throw('The sessionClaims claims "acr" are reserved and cannot be specified.');
     });
 
-    it('should throw an error if sessionClaims size is too big', () => {
-      const str = 'x'.repeat(1000);
+    it("should throw an error if sessionClaims size is too big", () => {
+      const str = "x".repeat(1000);
 
       expect(() =>
-        identity.validateAuthResponse('beforeSignIn', {
+        identity.validateAuthResponse("beforeSignIn", {
           sessionClaims: { idk: str },
         })
-      ).to.throw(
-        'The sessionClaims payload should not exceed 1000 characters.'
-      );
+      ).to.throw("The sessionClaims payload should not exceed 1000 characters.");
     });
 
-    it('should throw an error if the combined customClaims & sessionClaims size is too big', () => {
-      const str = 'x'.repeat(501);
+    it("should throw an error if the combined customClaims & sessionClaims size is too big", () => {
+      const str = "x".repeat(501);
 
       expect(() =>
-        identity.validateAuthResponse('beforeSignIn', {
+        identity.validateAuthResponse("beforeSignIn", {
           customClaims: { cc: str },
           sessionClaims: { sc: str },
         })
       ).to.throw(
-        'The customClaims and sessionClaims payloads should not exceed 1000 characters combined.'
+        "The customClaims and sessionClaims payloads should not exceed 1000 characters combined."
       );
     });
   });
 
-  describe('getUpdateMask', () => {
-    it('should return empty string on undefined response', () => {
-      expect(identity.getUpdateMask()).to.eq('');
+  describe("getUpdateMask", () => {
+    it("should return empty string on undefined response", () => {
+      expect(identity.getUpdateMask()).to.eq("");
     });
 
-    it('should return empty on only customClaims and sessionClaims', () => {
+    it("should return empty on only customClaims and sessionClaims", () => {
       const response = {
         customClaims: {
-          claim1: 'abc',
+          claim1: "abc",
         },
         sessionClaims: {
-          claim2: 'def',
+          claim2: "def",
         },
       };
 
-      expect(identity.getUpdateMask(response)).to.eq('');
+      expect(identity.getUpdateMask(response)).to.eq("");
     });
 
-    it('should return the right claims on a response', () => {
+    it("should return the right claims on a response", () => {
       const response = {
-        displayName: 'john',
+        displayName: "john",
         disabled: false,
         emailVerified: true,
-        photoURL: 'google.com',
+        photoURL: "google.com",
         customClaims: {
-          claim1: 'abc',
+          claim1: "abc",
         },
         sessionClaims: {
-          claim2: 'def',
+          claim2: "def",
         },
       };
 
-      expect(identity.getUpdateMask(response)).to.eq(
-        'displayName,disabled,emailVerified,photoURL'
-      );
+      expect(identity.getUpdateMask(response)).to.eq("displayName,disabled,emailVerified,photoURL");
     });
   });
 });

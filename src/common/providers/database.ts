@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { App } from 'firebase-admin/app';
-import * as database from 'firebase-admin/database';
-import { firebaseConfig } from '../../common/config';
-import { joinPath, pathParts } from '../../common/utilities/path';
+import { App } from "firebase-admin/app";
+import * as database from "firebase-admin/database";
+import { firebaseConfig } from "../../common/config";
+import { joinPath, pathParts } from "../../common/utilities/path";
 
 /**
  * Interface representing a Firebase Realtime database data snapshot.
@@ -50,7 +50,7 @@ export class DataSnapshot implements database.DataSnapshot {
     instance?: string
   ) {
     const config = firebaseConfig();
-    if (app?.options?.databaseURL?.startsWith('http:')) {
+    if (app?.options?.databaseURL?.startsWith("http:")) {
       // In this case we're dealing with an emulator
       this.instance = app.options.databaseURL;
     } else if (instance) {
@@ -61,10 +61,7 @@ export class DataSnapshot implements database.DataSnapshot {
     } else if (config.databaseURL) {
       this.instance = config.databaseURL;
     } else if (process.env.GCLOUD_PROJECT) {
-      this.instance =
-        'https://' +
-        process.env.GCLOUD_PROJECT +
-        '-default-rtdb.firebaseio.com';
+      this.instance = "https://" + process.env.GCLOUD_PROJECT + "-default-rtdb.firebaseio.com";
     }
 
     this._path = path;
@@ -80,8 +77,8 @@ export class DataSnapshot implements database.DataSnapshot {
     if (!this.app) {
       // may be unpopulated in user's unit tests
       throw new Error(
-        'Please supply a Firebase app in the constructor for DataSnapshot' +
-          ' in order to use the .ref method.'
+        "Please supply a Firebase app in the constructor for DataSnapshot" +
+          " in order to use the .ref method."
       );
     }
     if (!this._ref) {
@@ -107,7 +104,7 @@ export class DataSnapshot implements database.DataSnapshot {
   get key(): string | null {
     const segments = pathParts(this._fullPath());
     const last = segments[segments.length - 1];
-    return !last || last === '' ? null : last;
+    return !last || last === "" ? null : last;
   }
 
   /**
@@ -168,7 +165,7 @@ export class DataSnapshot implements database.DataSnapshot {
     if (!val || val === null) {
       return false;
     }
-    if (typeof val === 'object' && Object.keys(val).length === 0) {
+    if (typeof val === "object" && Object.keys(val).length === 0) {
       return false;
     }
     return true;
@@ -212,7 +209,7 @@ export class DataSnapshot implements database.DataSnapshot {
    */
   forEach(action: (a: DataSnapshot) => boolean | void): boolean {
     const val = this.val() || {};
-    if (typeof val === 'object') {
+    if (typeof val === "object") {
       return Object.keys(val).some((key) => action(this.child(key)) === true);
     }
     return false;
@@ -243,9 +240,7 @@ export class DataSnapshot implements database.DataSnapshot {
    */
   hasChildren(): boolean {
     const val = this.val();
-    return (
-      val !== null && typeof val === 'object' && Object.keys(val).length > 0
-    );
+    return val !== null && typeof val === "object" && Object.keys(val).length > 0;
   }
 
   /**
@@ -255,9 +250,7 @@ export class DataSnapshot implements database.DataSnapshot {
    */
   numChildren(): number {
     const val = this.val();
-    return val !== null && typeof val === 'object'
-      ? Object.keys(val).length
-      : 0;
+    return val !== null && typeof val === "object" ? Object.keys(val).length : 0;
   }
 
   /**
@@ -274,10 +267,10 @@ export class DataSnapshot implements database.DataSnapshot {
    * @hidden
    */
   private _checkAndConvertToArray(node: any): any {
-    if (node === null || typeof node === 'undefined') {
+    if (node === null || typeof node === "undefined") {
       return null;
     }
-    if (typeof node !== 'object') {
+    if (typeof node !== "object") {
       return node;
     }
     const obj: any = {};
@@ -323,12 +316,7 @@ export class DataSnapshot implements database.DataSnapshot {
 
   /** @hidden */
   private _dup(childPath?: string): DataSnapshot {
-    const dup = new DataSnapshot(
-      this._data,
-      undefined,
-      this.app,
-      this.instance
-    );
+    const dup = new DataSnapshot(this._data, undefined, this.app, this.instance);
     [dup._path, dup._childPath] = [this._path, this._childPath];
 
     if (childPath) {
@@ -340,6 +328,6 @@ export class DataSnapshot implements database.DataSnapshot {
 
   /** @hidden */
   private _fullPath(): string {
-    return (this._path || '') + '/' + (this._childPath || '');
+    return (this._path || "") + "/" + (this._childPath || "");
   }
 }

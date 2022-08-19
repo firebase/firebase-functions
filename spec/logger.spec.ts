@@ -1,8 +1,8 @@
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import * as logger from '../src/logger';
+import * as logger from "../src/logger";
 
-describe('logger', () => {
+describe("logger", () => {
   const stdoutWrite = process.stdout.write.bind(process.stdout);
   const stderrWrite = process.stderr.write.bind(process.stderr);
   let lastOut: string;
@@ -36,124 +36,118 @@ describe('logger', () => {
     return expectOutput(lastErr, entry);
   }
 
-  describe('logging methods', () => {
-    it('should coalesce arguments into the message', () => {
-      logger.log('hello', { middle: 'obj' }, 'end message');
+  describe("logging methods", () => {
+    it("should coalesce arguments into the message", () => {
+      logger.log("hello", { middle: "obj" }, "end message");
       expectStdout({
-        severity: 'INFO',
+        severity: "INFO",
         message: "hello { middle: 'obj' } end message",
       });
     });
 
-    it('should merge structured data from the last argument', () => {
-      logger.log('hello', 'world', { additional: 'context' });
+    it("should merge structured data from the last argument", () => {
+      logger.log("hello", "world", { additional: "context" });
       expectStdout({
-        severity: 'INFO',
-        message: 'hello world',
-        additional: 'context',
+        severity: "INFO",
+        message: "hello world",
+        additional: "context",
       });
     });
 
-    it('should not recognize null as a structured logging object', () => {
-      logger.log('hello', 'world', null);
+    it("should not recognize null as a structured logging object", () => {
+      logger.log("hello", "world", null);
       expectStdout({
-        severity: 'INFO',
-        message: 'hello world null',
+        severity: "INFO",
+        message: "hello world null",
       });
     });
   });
 
-  describe('write', () => {
-    describe('structured logging', () => {
-      describe('write', () => {
-        it('should remove circular references', () => {
-          const circ: any = { b: 'foo' };
+  describe("write", () => {
+    describe("structured logging", () => {
+      describe("write", () => {
+        it("should remove circular references", () => {
+          const circ: any = { b: "foo" };
           circ.circ = circ;
 
           const entry: logger.LogEntry = {
-            severity: 'ERROR',
-            message: 'testing circular',
+            severity: "ERROR",
+            message: "testing circular",
             circ,
           };
           logger.write(entry);
           expectStderr({
-            severity: 'ERROR',
-            message: 'testing circular',
-            circ: { b: 'foo', circ: '[Circular]' },
+            severity: "ERROR",
+            message: "testing circular",
+            circ: { b: "foo", circ: "[Circular]" },
           });
         });
 
-        it('should remove circular references in arrays', () => {
-          const circ: any = { b: 'foo' };
+        it("should remove circular references in arrays", () => {
+          const circ: any = { b: "foo" };
           circ.circ = [circ];
 
           const entry: logger.LogEntry = {
-            severity: 'ERROR',
-            message: 'testing circular',
+            severity: "ERROR",
+            message: "testing circular",
             circ,
           };
           logger.write(entry);
           expectStderr({
-            severity: 'ERROR',
-            message: 'testing circular',
-            circ: { b: 'foo', circ: ['[Circular]'] },
+            severity: "ERROR",
+            message: "testing circular",
+            circ: { b: "foo", circ: ["[Circular]"] },
           });
         });
 
-        it('should not break on objects that override toJSON', () => {
-          const obj: any = { a: new Date('August 26, 1994 12:24:00Z') };
+        it("should not break on objects that override toJSON", () => {
+          const obj: any = { a: new Date("August 26, 1994 12:24:00Z") };
 
           const entry: logger.LogEntry = {
-            severity: 'ERROR',
-            message: 'testing toJSON',
+            severity: "ERROR",
+            message: "testing toJSON",
             obj,
           };
           logger.write(entry);
           expectStderr({
-            severity: 'ERROR',
-            message: 'testing toJSON',
-            obj: { a: '1994-08-26T12:24:00.000Z' },
+            severity: "ERROR",
+            message: "testing toJSON",
+            obj: { a: "1994-08-26T12:24:00.000Z" },
           });
         });
 
-        it('should not alter parameters that are logged', () => {
-          const circ: any = { b: 'foo' };
+        it("should not alter parameters that are logged", () => {
+          const circ: any = { b: "foo" };
           circ.array = [circ];
           circ.object = circ;
           const entry: logger.LogEntry = {
-            severity: 'ERROR',
-            message: 'testing circular',
+            severity: "ERROR",
+            message: "testing circular",
             circ,
           };
           logger.write(entry);
 
-          expect(circ.array[0].b).to.equal('foo');
-          expect(circ.object.b).to.equal('foo');
-          expect(circ.object.array[0].object.array[0].b).to.equal('foo');
+          expect(circ.array[0].b).to.equal("foo");
+          expect(circ.object.b).to.equal("foo");
+          expect(circ.object.array[0].object.array[0].b).to.equal("foo");
         });
 
-        for (const severity of ['DEBUG', 'INFO', 'NOTICE']) {
+        for (const severity of ["DEBUG", "INFO", "NOTICE"]) {
           it(`should output ${severity} severity to stdout`, () => {
             const entry: logger.LogEntry = {
               severity: severity as logger.LogSeverity,
-              message: 'test',
+              message: "test",
             };
             logger.write(entry);
             expectStdout(entry);
           });
         }
 
-        for (const severity of [
-          'WARNING',
-          'ERROR',
-          'CRITICAL',
-          'ALERT',
-          'EMERGENCY',
-        ]) {
+        for (const severity of ["WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]) {
           it(`should output ${severity} severity to stderr`, () => {
             const entry: logger.LogEntry = {
               severity: severity as logger.LogSeverity,
-              message: 'test',
+              message: "test",
             };
             logger.write(entry);
             expectStderr(entry);

@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
-import { DecodedIdToken } from 'firebase-admin/auth';
+import * as express from "express";
+import { DecodedIdToken } from "firebase-admin/auth";
 
-import * as logger from '../../logger';
-import * as https from './https';
+import * as logger from "../../logger";
+import * as https from "./https";
 
 /** How a task should be retried in the event of a non-2xx return. */
 export interface RetryConfig {
@@ -113,17 +113,17 @@ export function onDispatchHandler<Req = any>(
   return async (req: https.Request, res: express.Response): Promise<void> => {
     try {
       if (!https.isValidRequest(req)) {
-        logger.error('Invalid request, unable to process.');
-        throw new https.HttpsError('invalid-argument', 'Bad Request');
+        logger.error("Invalid request, unable to process.");
+        throw new https.HttpsError("invalid-argument", "Bad Request");
       }
 
       const context: TaskContext = {};
       if (!process.env.FUNCTIONS_EMULATOR) {
-        const authHeader = req.header('Authorization') || '';
+        const authHeader = req.header("Authorization") || "";
         const token = authHeader.match(/^Bearer (.*)$/)?.[1];
         // Note: this should never happen since task queue functions are guarded by IAM.
         if (!token) {
-          throw new https.HttpsError('unauthenticated', 'Unauthenticated');
+          throw new https.HttpsError("unauthenticated", "Unauthenticated");
         }
         // We skip authenticating the token since tq functions are guarded by IAM.
         const authToken = await https.unsafeDecodeIdToken(token);
@@ -150,8 +150,8 @@ export function onDispatchHandler<Req = any>(
     } catch (err) {
       if (!(err instanceof https.HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        logger.error('Unhandled error', err);
-        err = new https.HttpsError('internal', 'INTERNAL');
+        logger.error("Unhandled error", err);
+        err = new https.HttpsError("internal", "INTERNAL");
       }
 
       const { status } = err.httpErrorCode;

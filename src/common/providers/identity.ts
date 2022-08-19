@@ -20,32 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
-import * as auth from 'firebase-admin/auth';
-import * as logger from '../../logger';
-import { EventContext } from '../../v1/cloud-functions';
-import { getApp } from '../app';
-import { isDebugFeatureEnabled } from '../debug';
-import { HttpsError, unsafeDecodeToken } from './https';
+import * as express from "express";
+import * as auth from "firebase-admin/auth";
+import * as logger from "../../logger";
+import { EventContext } from "../../v1/cloud-functions";
+import { getApp } from "../app";
+import { isDebugFeatureEnabled } from "../debug";
+import { HttpsError, unsafeDecodeToken } from "./https";
 
 export { HttpsError };
 
 const DISALLOWED_CUSTOM_CLAIMS = [
-  'acr',
-  'amr',
-  'at_hash',
-  'aud',
-  'auth_time',
-  'azp',
-  'cnf',
-  'c_hash',
-  'exp',
-  'iat',
-  'iss',
-  'jti',
-  'nbf',
-  'nonce',
-  'firebase',
+  "acr",
+  "amr",
+  "at_hash",
+  "aud",
+  "auth_time",
+  "azp",
+  "cnf",
+  "c_hash",
+  "exp",
+  "iat",
+  "iss",
+  "jti",
+  "nbf",
+  "nonce",
+  "firebase",
 ];
 
 const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
@@ -55,11 +55,11 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = 'beforeCreate' | 'beforeSignIn';
+export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn";
 
 const EVENT_MAPPING: Record<string, string> = {
-  beforeCreate: 'providers/cloud.auth/eventTypes/user.beforeCreate',
-  beforeSignIn: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+  beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
+  beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
 };
 
 /**
@@ -452,19 +452,19 @@ type HandlerV2 = (
  * @internal
  */
 export function isValidRequest(req: express.Request): boolean {
-  if (req.method !== 'POST') {
+  if (req.method !== "POST") {
     logger.warn(`Request has invalid method "${req.method}".`);
     return false;
   }
 
-  const contentType: string = (req.header('Content-Type') || '').toLowerCase();
-  if (!contentType.includes('application/json')) {
-    logger.warn('Request has invalid header Content-Type.');
+  const contentType: string = (req.header("Content-Type") || "").toLowerCase();
+  if (!contentType.includes("application/json")) {
+    logger.warn("Request has invalid header Content-Type.");
     return false;
   }
 
   if (!req.body?.data?.jwt) {
-    logger.warn('Request has an invalid body.');
+    logger.warn("Request has an invalid body.");
     return false;
   }
   return true;
@@ -487,14 +487,12 @@ function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
  * Helper function to parse the decoded metadata object into a UserMetaData object
  * @internal
  */
-export function parseMetadata(
-  metadata: DecodedPayloadUserRecordMetadata
-): AuthUserMetadata {
+export function parseMetadata(metadata: DecodedPayloadUserRecordMetadata): AuthUserMetadata {
   const creationTime = metadata?.creation_time
-    ? new Date((metadata.creation_time as number) * 1000).toUTCString()
+    ? new Date(metadata.creation_time * 1000).toUTCString()
     : null;
   const lastSignInTime = metadata?.last_sign_in_time
-    ? new Date((metadata.last_sign_in_time as number) * 1000).toUTCString()
+    ? new Date(metadata.last_sign_in_time * 1000).toUTCString()
     : null;
   return {
     creationTime,
@@ -555,8 +553,8 @@ export function parseMultiFactor(
   for (const factor of multiFactor.enrolled_factors || []) {
     if (!factor.uid) {
       throw new HttpsError(
-        'internal',
-        'INTERNAL ASSERT FAILED: Invalid multi-factor info response'
+        "internal",
+        "INTERNAL ASSERT FAILED: Invalid multi-factor info response"
       );
     }
     const enrollmentTime = factor.enrollment_time
@@ -564,9 +562,7 @@ export function parseMultiFactor(
       : null;
     parsedEnrolledFactors.push({
       uid: factor.uid,
-      factorId: factor.phone_number
-        ? factor.factor_id || 'phone'
-        : factor.factor_id,
+      factorId: factor.phone_number ? factor.factor_id || "phone" : factor.factor_id,
       displayName: factor.display_name,
       enrollmentTime,
       phoneNumber: factor.phone_number,
@@ -589,18 +585,13 @@ export function parseAuthUserRecord(
   decodedJWTUserRecord: DecodedPayloadUserRecord
 ): AuthUserRecord {
   if (!decodedJWTUserRecord.uid) {
-    throw new HttpsError(
-      'internal',
-      'INTERNAL ASSERT FAILED: Invalid user response'
-    );
+    throw new HttpsError("internal", "INTERNAL ASSERT FAILED: Invalid user response");
   }
 
   const disabled = decodedJWTUserRecord.disabled || false;
   const metadata = parseMetadata(decodedJWTUserRecord.metadata);
   const providerData = parseProviderData(decodedJWTUserRecord.provider_data);
-  const tokensValidAfterTime = parseDate(
-    decodedJWTUserRecord.tokens_valid_after_time
-  );
+  const tokensValidAfterTime = parseDate(decodedJWTUserRecord.tokens_valid_after_time);
   const multiFactor = parseMultiFactor(decodedJWTUserRecord.multi_factor);
 
   return {
@@ -623,10 +614,9 @@ export function parseAuthUserRecord(
 }
 
 /** Helper to get the AdditionalUserInfo from the decoded jwt */
-function parseAdditionalUserInfo(
-  decodedJWT: DecodedPayload
-): AdditionalUserInfo {
-  let profile, username;
+function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo {
+  let profile;
+  let username;
   if (decodedJWT.raw_user_info) {
     try {
       profile = JSON.parse(decodedJWT.raw_user_info);
@@ -635,30 +625,24 @@ function parseAdditionalUserInfo(
     }
   }
   if (profile) {
-    if (decodedJWT.sign_in_method === 'github.com') {
+    if (decodedJWT.sign_in_method === "github.com") {
       username = profile.login;
     }
-    if (decodedJWT.sign_in_method === 'twitter.com') {
+    if (decodedJWT.sign_in_method === "twitter.com") {
       username = profile.screen_name;
     }
   }
 
   return {
-    providerId:
-      decodedJWT.sign_in_method === 'emailLink'
-        ? 'password'
-        : decodedJWT.sign_in_method,
+    providerId: decodedJWT.sign_in_method === "emailLink" ? "password" : decodedJWT.sign_in_method,
     profile,
     username,
-    isNewUser: decodedJWT.event_type === 'beforeCreate' ? true : false,
+    isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
   };
 }
 
 /** Helper to get the Credential from the decoded jwt */
-function parseAuthCredential(
-  decodedJWT: DecodedPayload,
-  time: number
-): Credential {
+function parseAuthCredential(decodedJWT: DecodedPayload, time: number): Credential {
   if (
     !decodedJWT.sign_in_attributes &&
     !decodedJWT.oauth_id_token &&
@@ -676,10 +660,7 @@ function parseAuthCredential(
       ? new Date(time + decodedJWT.oauth_expires_in * 1000).toUTCString()
       : undefined,
     secret: decodedJWT.oauth_token_secret,
-    providerId:
-      decodedJWT.sign_in_method === 'emailLink'
-        ? 'password'
-        : decodedJWT.sign_in_method,
+    providerId: decodedJWT.sign_in_method === "emailLink" ? "password" : decodedJWT.sign_in_method,
     signInMethod: decodedJWT.sign_in_method,
   };
 }
@@ -695,7 +676,7 @@ export function parseAuthEventContext(
 ): AuthEventContext {
   const eventType =
     (EVENT_MAPPING[decodedJWT.event_type] || decodedJWT.event_type) +
-    (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : '');
+    (decodedJWT.sign_in_method ? `:${decodedJWT.sign_in_method}` : "");
 
   return {
     locale: decodedJWT.locale,
@@ -703,11 +684,11 @@ export function parseAuthEventContext(
     userAgent: decodedJWT.user_agent,
     eventId: decodedJWT.event_id,
     eventType,
-    authType: !!decodedJWT.user_record ? 'USER' : 'UNAUTHENTICATED',
+    authType: decodedJWT.user_record ? "USER" : "UNAUTHENTICATED",
     resource: {
       // TODO(colerogers): figure out the correct service
-      service: 'identitytoolkit.googleapis.com',
-      name: !!decodedJWT.tenant_id
+      service: "identitytoolkit.googleapis.com",
+      name: decodedJWT.tenant_id
         ? `projects/${projectId}/tenants/${decodedJWT.tenant_id}`
         : `projects/${projectId}`,
     },
@@ -735,42 +716,35 @@ export function validateAuthResponse(
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
-        'invalid-argument',
-        `The customClaims claims "${invalidClaims.join(
-          ','
-        )}" are reserved and cannot be specified.`
+        "invalid-argument",
+        `The customClaims claims "${invalidClaims.join(",")}" are reserved and cannot be specified.`
       );
     }
-    if (
-      JSON.stringify(authRequest.customClaims).length > CLAIMS_MAX_PAYLOAD_SIZE
-    ) {
+    if (JSON.stringify(authRequest.customClaims).length > CLAIMS_MAX_PAYLOAD_SIZE) {
       throw new HttpsError(
-        'invalid-argument',
+        "invalid-argument",
         `The customClaims payload should not exceed ${CLAIMS_MAX_PAYLOAD_SIZE} characters.`
       );
     }
   }
-  if (
-    eventType === 'beforeSignIn' &&
-    (authRequest as BeforeSignInResponse).sessionClaims
-  ) {
+  if (eventType === "beforeSignIn" && (authRequest as BeforeSignInResponse).sessionClaims) {
     const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
       (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
-        'invalid-argument',
+        "invalid-argument",
         `The sessionClaims claims "${invalidClaims.join(
-          ','
+          ","
         )}" are reserved and cannot be specified.`
       );
     }
     if (
-      JSON.stringify((authRequest as BeforeSignInResponse).sessionClaims)
-        .length > CLAIMS_MAX_PAYLOAD_SIZE
+      JSON.stringify((authRequest as BeforeSignInResponse).sessionClaims).length >
+      CLAIMS_MAX_PAYLOAD_SIZE
     ) {
       throw new HttpsError(
-        'invalid-argument',
+        "invalid-argument",
         `The sessionClaims payload should not exceed ${CLAIMS_MAX_PAYLOAD_SIZE} characters.`
       );
     }
@@ -780,7 +754,7 @@ export function validateAuthResponse(
     };
     if (JSON.stringify(combinedClaims).length > CLAIMS_MAX_PAYLOAD_SIZE) {
       throw new HttpsError(
-        'invalid-argument',
+        "invalid-argument",
         `The customClaims and sessionClaims payloads should not exceed ${CLAIMS_MAX_PAYLOAD_SIZE} characters combined.`
       );
     }
@@ -791,57 +765,43 @@ export function validateAuthResponse(
  * Helper function to generate the update mask for the identity platform changed values
  * @internal
  */
-export function getUpdateMask(
-  authResponse?: BeforeCreateResponse | BeforeSignInResponse
-): string {
+export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignInResponse): string {
   if (!authResponse) {
-    return '';
+    return "";
   }
   const updateMask: string[] = [];
   for (const key in authResponse) {
-    if (key === 'customClaims' || key === 'sessionClaims') {
+    if (key === "customClaims" || key === "sessionClaims") {
       continue;
     }
-    if (
-      authResponse.hasOwnProperty(key) &&
-      typeof authResponse[key] !== 'undefined'
-    ) {
+    if (authResponse.hasOwnProperty(key) && typeof authResponse[key] !== "undefined") {
       updateMask.push(key);
     }
   }
-  return updateMask.join(',');
+  return updateMask.join(",");
 }
 
 /** @internal */
-export function wrapHandler(
-  eventType: AuthBlockingEventType,
-  handler: HandlerV1 | HandlerV2
-) {
+export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1 | HandlerV2) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const projectId = process.env.GCLOUD_PROJECT;
       if (!isValidRequest(req)) {
-        logger.error('Invalid request, unable to process');
-        throw new HttpsError('invalid-argument', 'Bad Request');
+        logger.error("Invalid request, unable to process");
+        throw new HttpsError("invalid-argument", "Bad Request");
       }
 
       if (!auth.getAuth(getApp())._verifyAuthBlockingToken) {
         throw new Error(
-          'Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.1.0'
+          "Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.1.0"
         );
       }
 
-      const decodedPayload: DecodedPayload = isDebugFeatureEnabled(
-        'skipTokenVerification'
-      )
+      const decodedPayload: DecodedPayload = isDebugFeatureEnabled("skipTokenVerification")
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
         : handler.length === 2
-        ? await auth
-            .getAuth(getApp())
-            ._verifyAuthBlockingToken(req.body.data.jwt)
-        : await auth
-            .getAuth(getApp())
-            ._verifyAuthBlockingToken(req.body.data.jwt, 'run.app');
+        ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
+        : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
 
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
@@ -849,8 +809,7 @@ export function wrapHandler(
       let authResponse;
       if (handler.length === 2) {
         authResponse =
-          (await (handler as HandlerV1)(authUserRecord, authEventContext)) ||
-          undefined;
+          (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined;
       } else {
         authResponse =
           (await (handler as HandlerV2)({
@@ -872,18 +831,18 @@ export function wrapHandler(
             };
 
       res.status(200);
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader("Content-Type", "application/json");
       res.send(JSON.stringify(result));
     } catch (err) {
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        logger.error('Unhandled error', err);
-        err = new HttpsError('internal', 'An unexpected error occurred.');
+        logger.error("Unhandled error", err);
+        err = new HttpsError("internal", "An unexpected error occurred.");
       }
 
       const { status } = err.httpErrorCode;
       const body = { error: err.toJSON() };
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader("Content-Type", "application/json");
       res.status(status).send(body);
     }
   };
