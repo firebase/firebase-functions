@@ -160,10 +160,14 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
   ];
 }
 
-function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
+function v2Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
   return [
     // Invoke a callable HTTPS trigger.
     callV2HttpsTrigger('v2-callabletests', { foo: 'bar', testId }, accessToken),
+    // A Pub/Sub publish to trigger the Cloud Pub/Sub tests.
+    new PubSub()
+      .topic('pubsubV2Tests')
+      .publish(Buffer.from(JSON.stringify({ testId }))),
   ];
 }
 
