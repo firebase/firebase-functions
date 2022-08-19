@@ -36,16 +36,16 @@ export function getApp(): App {
   if (typeof cache === "undefined") {
     try {
       cache = getAppNamed(/* default */);
-    } catch {}
-  }
-  if (typeof cache === "undefined") {
-    cache = initializeApp(
-      {
-        ...firebaseConfig(),
-        credential: applicationDefault(),
-      },
-      APP_NAME
-    );
+    } catch {
+      // Default app does not exist. Initialize app.
+      cache = initializeApp(
+        {
+          ...firebaseConfig(),
+          credential: applicationDefault(),
+        },
+        APP_NAME
+      );
+    }
   }
   return cache;
 }
@@ -63,7 +63,8 @@ export function getApp(): App {
  */
 export function setApp(app?: App) {
   if (cache?.name === APP_NAME) {
-    deleteApp(cache);
+    // eslint-disable @typescript-eslint/no-floating-promises
+    void deleteApp(cache);
   }
   cache = app;
 }

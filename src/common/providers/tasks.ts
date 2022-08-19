@@ -126,7 +126,7 @@ export function onDispatchHandler<Req = any>(
           throw new https.HttpsError("unauthenticated", "Unauthenticated");
         }
         // We skip authenticating the token since tq functions are guarded by IAM.
-        const authToken = await https.unsafeDecodeIdToken(token);
+        const authToken = https.unsafeDecodeIdToken(token);
         context.auth = {
           uid: authToken.uid,
           token: authToken,
@@ -148,14 +148,15 @@ export function onDispatchHandler<Req = any>(
 
       res.status(204).end();
     } catch (err) {
+      let httpErr = err;
       if (!(err instanceof https.HttpsError)) {
         // This doesn't count as an 'explicit' error.
         logger.error("Unhandled error", err);
-        err = new https.HttpsError("internal", "INTERNAL");
+        httpErr = new https.HttpsError("internal", "INTERNAL");
       }
 
-      const { status } = err.httpErrorCode;
-      const body = { error: err.toJSON() };
+      const { status } = httpErr.httpErrorCode;
+      const body = { error: httpErr.toJSON() };
 
       res.status(status).send(body);
     }

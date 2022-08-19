@@ -138,7 +138,7 @@ describe("identity", () => {
     it("should error on bad Content-Type", () => {
       const req = {
         method: "POST",
-        header(val: string) {
+        header() {
           return "text/css";
         },
         body: {
@@ -154,7 +154,7 @@ describe("identity", () => {
     it("should error without req body", () => {
       const req = {
         method: "POST",
-        header(val: string) {
+        header() {
           return "application/json";
         },
       } as unknown as express.Request;
@@ -165,7 +165,7 @@ describe("identity", () => {
     it("should error without req body data", () => {
       const req = {
         method: "POST",
-        header(val: string) {
+        header() {
           return "application/json";
         },
         body: {},
@@ -177,7 +177,7 @@ describe("identity", () => {
     it("should error without req body", () => {
       const req = {
         method: "POST",
-        header(val: string) {
+        header() {
           return "application/json";
         },
         body: {
@@ -191,7 +191,7 @@ describe("identity", () => {
     it("should not error on valid request", () => {
       const req = {
         method: "POST",
-        header(val: string) {
+        header() {
           return "application/json";
         },
         body: {

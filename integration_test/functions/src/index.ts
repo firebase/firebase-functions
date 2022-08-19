@@ -120,9 +120,9 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
         password: "secret",
         displayName: `${testId}`,
       })
-      .then((userRecord) => {
+      .then(async (userRecord) => {
         // A user deletion to trigger the Firebase Auth user deletion tests.
-        admin.auth().deleteUser(userRecord.uid);
+        await admin.auth().deleteUser(userRecord.uid);
       }),
     // A firestore write to trigger the Cloud Firestore tests.
     admin.firestore().collection("tests").doc(testId).set({ test: testId }),
@@ -156,10 +156,10 @@ export const integrationTests: any = functions
   })
   .https.onRequest(async (req: Request, resp: Response) => {
     const testId = admin.database().ref().push().key;
-    admin.database().ref(`testRuns/${testId}/timestamp`).set(Date.now());
+    await admin.database().ref(`testRuns/${testId}/timestamp`).set(Date.now());
     const testIdRef = admin.database().ref(`testRuns/${testId}`);
     functions.logger.info("testId is: ", testId);
-    fs.writeFile("/tmp/" + testId + ".txt", "test", () => {});
+    fs.writeFile("/tmp/" + testId + ".txt", "test", () => undefined);
     try {
       const accessToken = await admin.credential.applicationDefault().getAccessToken();
       await Promise.all([

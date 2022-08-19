@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { App, deleteApp, initializeApp } from "firebase-admin/app";
+import { App, initializeApp } from "firebase-admin/app";
 import * as sinon from "sinon";
 
 import { getApp, setApp } from "../../../src/common/app";
@@ -87,15 +87,17 @@ describe("onCallHandler", () => {
         };
       },
     };
-    app = initializeApp({
-      projectId: "aProjectId",
-      credential,
-    });
+    app = initializeApp(
+      {
+        projectId: "aProjectId",
+        credential,
+      },
+      "test-app"
+    );
     setApp(app);
   });
 
   after(() => {
-    deleteApp(app);
     setApp(undefined);
   });
 
@@ -103,8 +105,8 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest({ foo: "bar" }),
       expectedData: { foo: "bar" },
-      callableFunction: (data, context) => ({ baz: "qux" }),
-      callableFunction2: (request) => ({ baz: "qux" }),
+      callableFunction: () => ({ baz: "qux" }),
+      callableFunction2: () => ({ baz: "qux" }),
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -117,8 +119,8 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => null,
-      callableFunction2: (request) => null,
+      callableFunction: () => null,
+      callableFunction2: () => null,
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -131,10 +133,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -151,10 +153,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: req,
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -171,10 +173,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null, "application/json; charset=utf-8"),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -189,10 +191,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null, "text/plain"),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -211,10 +213,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: req,
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -231,10 +233,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         throw new Error(`ceci n'est pas une error`);
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         throw new Error(`cece n'est pas une error`);
       },
       expectedHttpResponse: {
@@ -249,10 +251,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
       expectedHttpResponse: {
@@ -267,10 +269,10 @@ describe("onCallHandler", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         throw new https.HttpsError("not-found", "i am error");
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         throw new https.HttpsError("not-found", "i am error");
       },
       expectedHttpResponse: {
@@ -315,10 +317,10 @@ describe("onCallHandler", () => {
         authorization: "Bearer " + idToken,
       }),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -370,10 +372,10 @@ describe("onCallHandler", () => {
         enforceAppCheck: true,
       },
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -395,10 +397,10 @@ describe("onCallHandler", () => {
         appCheckToken: "FAKE",
       }),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       callableOption: {
@@ -419,10 +421,10 @@ describe("onCallHandler", () => {
         appCheckToken: "FAKE",
       }),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       callableOption: {
@@ -448,10 +450,10 @@ describe("onCallHandler", () => {
         appCheckToken: "MISSING",
       }),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       callableOption: {
@@ -588,7 +590,7 @@ describe("encoding/decoding", () => {
     // a user passes one in. There's no reason not to support it, and we don't
     // want to unintentionally encode them as {}.
     // tslint:disable-next-line
-    expect(https.encode(new Number(1))).to.equal(1);
+    expect(https.encode(Number(1))).to.equal(1);
   });
 
   it("decodes int", () => {

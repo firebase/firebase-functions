@@ -99,7 +99,10 @@ class MultiCaptureSegment implements PathSegment {
  */
 export class PathPattern {
   /** @throws on validation error */
-  static compile(rawPath: string) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static compile(rawPath: string) {
+    return undefined;
+  }
   private segments: PathSegment[];
 
   constructor(private raw: string) {
@@ -120,7 +123,7 @@ export class PathPattern {
 
   hasCaptures(): boolean {
     return this.segments.some(
-      (segment) => segment.name == "single-capture" || segment.name === "multi-capture"
+      (segment) => segment.name === "single-capture" || segment.name === "multi-capture"
     );
   }
 

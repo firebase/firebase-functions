@@ -535,7 +535,9 @@ export function parseDate(tokensValidAfterTime?: number): string | null {
     if (!isNaN(date.getTime())) {
       return date.toUTCString();
     }
-  } catch {}
+  } catch {
+    // ignore error
+  }
   return null;
 }
 
@@ -834,14 +836,15 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
       res.setHeader("Content-Type", "application/json");
       res.send(JSON.stringify(result));
     } catch (err) {
-      if (!(err instanceof HttpsError)) {
+      let httpErr: HttpsError = err;
+      if (!(httpErr instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
         logger.error("Unhandled error", err);
-        err = new HttpsError("internal", "An unexpected error occurred.");
+        httpErr = new HttpsError("internal", "An unexpected error occurred.");
       }
 
-      const { status } = err.httpErrorCode;
-      const body = { error: err.toJSON() };
+      const { status } = httpErr.httpErrorCode;
+      const body = { error: httpErr.toJSON() };
       res.setHeader("Content-Type", "application/json");
       res.status(status).send(body);
     }

@@ -87,7 +87,7 @@ async function startBin(
     env: {
       PATH: process.env.PATH,
       GLCOUD_PROJECT: "test-project",
-      PORT: port,
+      PORT: port.toString(),
       FUNCTIONS_CONTROL_API: "true",
     },
   });
@@ -110,11 +110,11 @@ async function startBin(
 
   if (debug) {
     proc.stdout?.on("data", (data: unknown) => {
-      console.log(`[${tc.name} stdout] ` + data);
+      console.log(`[${tc.name} stdout] ${data}`);
     });
 
     proc.stderr?.on("data", (data: unknown) => {
-      console.log(`[${tc.name} stderr] ` + data);
+      console.log(`[${tc.name} stderr] ${data}`);
     });
   }
 
@@ -127,16 +127,16 @@ async function startBin(
           process.kill(proc.pid, 0);
         } catch {
           // process.kill w/ signal 0 will throw an error if the pid no longer exists.
-          return true;
+          return Promise.resolve(true);
         }
-        return false;
+        return Promise.resolve(false);
       }, TIMEOUT_M);
     },
   };
 }
 
 describe("functions.yaml", () => {
-  async function runTests(tc: Testcase) {
+  function runTests(tc: Testcase) {
     let port: number;
     let cleanup: () => Promise<void>;
 
@@ -157,7 +157,7 @@ describe("functions.yaml", () => {
       try {
         parsed = yaml.load(text);
       } catch (err) {
-        throw new Error("Failed to parse functions.yaml " + err);
+        throw new Error(`Failed to parse functions.yaml: ${err}`);
       }
       expect(parsed).to.be.deep.equal(tc.expected);
     });
@@ -199,8 +199,8 @@ describe("functions.yaml", () => {
     ];
 
     for (const tc of testcases) {
-      describe(tc.name, async () => {
-        await runTests(tc);
+      describe(tc.name, () => {
+        runTests(tc);
       });
     }
   }).timeout(TIMEOUT_L);
@@ -227,8 +227,8 @@ describe("functions.yaml", () => {
       ];
 
       for (const tc of testcases) {
-        describe(tc.name, async () => {
-          await runTests(tc);
+        describe(tc.name, () => {
+          runTests(tc);
         });
       }
     }).timeout(TIMEOUT_L);

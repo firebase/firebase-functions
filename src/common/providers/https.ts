@@ -410,7 +410,7 @@ export function encode(data: any): any {
   }
   // If we got this far, the data is not encodable.
   logger.error("Data cannot be encoded in JSON.", data);
-  throw new Error("Data cannot be encoded in JSON: " + data);
+  throw new Error(`Data cannot be encoded in JSON: ${data}`);
 }
 
 /**
@@ -433,13 +433,13 @@ export function decode(data: any): any {
         const value = parseFloat(data.value);
         if (isNaN(value)) {
           logger.error("Data cannot be decoded from JSON.", data);
-          throw new Error("Data cannot be decoded from JSON: " + data);
+          throw new Error(`Data cannot be decoded from JSON: ${data}`);
         }
         return value;
       }
       default: {
         logger.error("Data cannot be decoded from JSON.", data);
-        throw new Error("Data cannot be decoded from JSON: " + data);
+        throw new Error(`Data cannot be decoded from JSON: ${data}`);
       }
     }
   }
@@ -486,7 +486,9 @@ export function unsafeDecodeToken(token: string): unknown {
       if (typeof obj === "object") {
         payload = obj;
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore error
+    }
   }
   return payload;
 }
@@ -558,7 +560,7 @@ async function checkTokens(req: Request, ctx: CallableContext): Promise<Callable
     errs.push("Auth token was rejected.");
   }
 
-  if (errs.length == 0) {
+  if (errs.length === 0) {
     logger.debug("Callable request verification passed", logPayload);
   } else {
     logger.warn(`Callable request verification failed: ${errs.join(" ")}`, logPayload);
@@ -705,14 +707,15 @@ function wrapOnCallHandler<Req = any, Res = any>(
       const responseBody: HttpResponseBody = { result };
       res.status(200).send(responseBody);
     } catch (err) {
+      let httpErr = err;
       if (!(err instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
         logger.error("Unhandled error", err);
-        err = new HttpsError("internal", "INTERNAL");
+        httpErr = new HttpsError("internal", "INTERNAL");
       }
 
-      const { status } = err.httpErrorCode;
-      const body = { error: err.toJSON() };
+      const { status } = httpErr.httpErrorCode;
+      const body = { error: httpErr.toJSON() };
 
       res.status(status).send(body);
     }

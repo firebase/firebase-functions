@@ -44,7 +44,6 @@ module.exports = {
         camelcase: ["error", { properties: "never" }], // snake_case allowed in properties iif to satisfy an external contract / style
 
         // Ideally, all these warning should be error - let's fix them in  the future.
-        "@typescript-eslint/no-empty-function": "warn",
         "@typescript-eslint/ban-types": "warn",
         "@typescript-eslint/no-misused-promises": "warn",
         "@typescript-eslint/no-unsafe-argument": "warn",

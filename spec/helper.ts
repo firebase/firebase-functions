@@ -43,7 +43,7 @@ export function runHandler(
   handler: express.Handler,
   request: https.Request
 ): Promise<RunHandlerResult> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {

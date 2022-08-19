@@ -22,6 +22,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as http from "http";
 import * as express from "express";
 import { loadStack } from "../runtime/loader";
 
@@ -47,10 +48,10 @@ if (args.length > 1) {
   functionsDir = args[0];
 }
 
-let server;
+let server: http.Server = undefined;
 const app = express();
 
-async function handleQuitquitquit(req: express.Request, res: express.Response) {
+function handleQuitquitquit(req: express.Request, res: express.Response) {
   res.send("ok");
   server.close(() => console.log("shutdown requested via /__/quitquitquit"));
 }

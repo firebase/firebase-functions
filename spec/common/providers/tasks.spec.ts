@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { App, deleteApp, initializeApp } from "firebase-admin/app";
+import { App, initializeApp } from "firebase-admin/app";
 
 import { getApp, setApp } from "../../../src/common/app";
 import * as https from "../../../src/common/providers/https";
@@ -48,20 +48,20 @@ interface TaskTest {
 
 // Runs a TaskTest test.
 export async function runTaskTest(test: TaskTest): Promise<any> {
-  const taskQueueFunctionV1 = onDispatchHandler((data, context) => {
+  const taskQueueFunctionV1 = onDispatchHandler(async (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     if (test.taskFunction) {
-      test.taskFunction(data, context);
+      await test.taskFunction(data, context);
     }
   });
 
   const responseV1 = await runHandler(taskQueueFunctionV1, test.httpRequest);
   expect(responseV1.status).to.equal(test.expectedStatus);
 
-  const taskQueueFunctionV2 = onDispatchHandler((request) => {
+  const taskQueueFunctionV2 = onDispatchHandler(async (request) => {
     expect(request.data).to.deep.equal(test.expectedData);
     if (test.taskFunction2) {
-      test.taskFunction2(request);
+      await test.taskFunction2(request);
     }
   });
 
@@ -94,15 +94,17 @@ describe("onEnqueueHandler", () => {
         };
       },
     };
-    app = initializeApp({
-      projectId: "aProjectId",
-      credential,
-    });
+    app = initializeApp(
+      {
+        projectId: "aProjectId",
+        credential,
+      },
+      "tq-test-app"
+    );
     setApp(app);
   });
 
   after(() => {
-    deleteApp(app);
     setApp(undefined);
   });
 
@@ -154,10 +156,10 @@ describe("onEnqueueHandler", () => {
     return runTaskTest({
       httpRequest: mockEnqueueRequest(null),
       expectedData: null,
-      taskFunction: (data, context) => {
+      taskFunction: () => {
         throw new Error(`ceci n'est pas une error`);
       },
-      taskFunction2: (request) => {
+      taskFunction2: () => {
         throw new Error(`cece n'est pas une error`);
       },
       expectedStatus: 500,
@@ -168,10 +170,10 @@ describe("onEnqueueHandler", () => {
     return runTaskTest({
       httpRequest: mockEnqueueRequest(null),
       expectedData: null,
-      taskFunction: (data, context) => {
+      taskFunction: () => {
         throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
-      taskFunction2: (request) => {
+      taskFunction2: () => {
         throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
       expectedStatus: 500,
@@ -182,10 +184,10 @@ describe("onEnqueueHandler", () => {
     return runTaskTest({
       httpRequest: mockEnqueueRequest(null),
       expectedData: null,
-      taskFunction: (data, context) => {
+      taskFunction: () => {
         throw new https.HttpsError("not-found", "i am error");
       },
-      taskFunction2: (request) => {
+      taskFunction2: () => {
         throw new https.HttpsError("not-found", "i am error");
       },
       expectedStatus: 404,

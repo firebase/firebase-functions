@@ -31,7 +31,9 @@ import * as params from "../v2/params";
  * transpiling into a require.
  *
  * See https://github.com/microsoft/TypeScript/issues/43329.
+ *
  */
+// eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function("modulePath", "return import(modulePath)") as (
   modulePath: string
 ) => Promise<any>;
@@ -45,8 +47,6 @@ async function loadModule(functionsDir: string) {
       // This is an ESM package!
       const modulePath = require.resolve(absolutePath);
       // Resolve module path to file:// URL. Required for windows support.
-      // @ts-ignore pathToFileURL exists for Node.js v10 and up. Since ESM support exists for Node.js v13 and up, we
-      // can be sure that this function exists here.
       const moduleURL = url.pathToFileURL(modulePath).href;
       return await dynamicImport(moduleURL);
     }

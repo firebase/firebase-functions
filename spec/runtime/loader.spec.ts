@@ -6,13 +6,13 @@ import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "../../src/
 import * as functions from "../../src/v1";
 
 describe("extractStack", () => {
-  const httpFn = functions.https.onRequest(() => {});
+  const httpFn = functions.https.onRequest(() => undefined);
   const httpEndpoint = {
     platform: "gcfv1",
     httpsTrigger: {},
   };
 
-  const callableFn = functions.https.onCall(() => {});
+  const callableFn = functions.https.onCall(() => undefined);
   const callableEndpoint = {
     platform: "gcfv1",
     labels: {}, // TODO: empty labels?
@@ -40,7 +40,7 @@ describe("extractStack", () => {
 
   it("extracts stack with required APIs", () => {
     const module = {
-      taskq: functions.tasks.taskQueue().onDispatch(() => {}),
+      taskq: functions.tasks.taskQueue().onDispatch(() => undefined),
     };
 
     const endpoints: Record<string, ManifestEndpoint> = {};
@@ -104,7 +104,7 @@ describe("extractStack", () => {
 
     it("extracts stack from a simple module", () => {
       const module = {
-        fn: functions.pubsub.topic("my-topic").onPublish(() => {}),
+        fn: functions.pubsub.topic("my-topic").onPublish(() => undefined),
       };
 
       const endpoints: Record<string, ManifestEndpoint> = {};
@@ -130,7 +130,7 @@ describe("extractStack", () => {
 
     it("extracts stack with required APIs", () => {
       const module = {
-        scheduled: functions.pubsub.schedule("every 5 minutes").onRun(() => {}),
+        scheduled: functions.pubsub.schedule("every 5 minutes").onRun(() => undefined),
       };
 
       const endpoints: Record<string, ManifestEndpoint> = {};
