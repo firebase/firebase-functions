@@ -22,10 +22,10 @@ export function wrapTraceContext(
 ): HttpsFunction | CloudEventFunction<unknown> {
   return (...args) => {
     let traceParent: TraceParent | undefined;
-    if (args.length == 1) {
-      traceParent = getTraceParent(arguments[0]);
+    if (args.length === 1) {
+      traceParent = getTraceParent(args[0]);
     } else {
-      traceParent = getTraceParent(arguments[0].headers);
+      traceParent = getTraceParent(args[0].headers);
     }
     if (!traceParent) {
       return handler.apply(null, args);
