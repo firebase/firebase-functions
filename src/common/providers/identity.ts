@@ -93,7 +93,7 @@ export class UserRecordMetadata implements auth.UserMetadata {
  * @param wireData data sent over the wire
  * @returns an instance of UserRecord with correct toJSON functions
  */
-export function userRecordConstructor(wireData: Object): UserRecord {
+export function userRecordConstructor(wireData: Record<string, unknown>): UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
   const falseyValues: any = {
     email: null,

@@ -38,14 +38,13 @@ module.exports = {
 
         "@typescript-eslint/no-invalid-this": "error",
         "@typescript-eslint/no-unused-vars": "error", // Unused vars should not exist.
+        "@typescript-eslint/no-misused-promises": "warn", // rule does not work with async handlers for express.
         "no-invalid-this": "off", // Turned off in favor of @typescript-eslint/no-invalid-this.
         "no-unused-vars": "off", // Off in favor of @typescript-eslint/no-unused-vars.
         eqeqeq: ["error", "always", { null: "ignore" }],
         camelcase: ["error", { properties: "never" }], // snake_case allowed in properties iif to satisfy an external contract / style
 
         // Ideally, all these warning should be error - let's fix them in  the future.
-        "@typescript-eslint/ban-types": "warn",
-        "@typescript-eslint/no-misused-promises": "warn",
         "@typescript-eslint/no-unsafe-argument": "warn",
         "@typescript-eslint/no-unsafe-assignment": "warn",
         "@typescript-eslint/no-unsafe-call": "warn",

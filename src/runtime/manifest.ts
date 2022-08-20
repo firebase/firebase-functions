@@ -49,7 +49,7 @@ export interface ManifestEndpoint {
     invoker?: string[];
   };
 
-  callableTrigger?: {};
+  callableTrigger?: Record<string, never>;
 
   eventTrigger?: {
     eventFilters: Record<string, string>;

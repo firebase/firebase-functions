@@ -258,7 +258,7 @@ export class DataSnapshot implements database.DataSnapshot {
    *
    * @return A JSON-serializable representation of this object.
    */
-  toJSON(): Object {
+  toJSON(): Record<string, unknown> {
     return this.val();
   }
 
