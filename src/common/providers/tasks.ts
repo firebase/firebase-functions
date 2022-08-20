@@ -143,12 +143,12 @@ export function onDispatchHandler<Req = any>(
         };
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
-        await (handler as any)(arg);
+        await (handler as v2TaskHandler<Req>)(arg);
       }
 
       res.status(204).end();
     } catch (err) {
-      let httpErr = err;
+      let httpErr: https.HttpsError = err;
       if (!(err instanceof https.HttpsError)) {
         // This doesn't count as an 'explicit' error.
         logger.error("Unhandled error", err);

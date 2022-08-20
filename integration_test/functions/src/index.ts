@@ -159,7 +159,7 @@ export const integrationTests: any = functions
     await admin.database().ref(`testRuns/${testId}/timestamp`).set(Date.now());
     const testIdRef = admin.database().ref(`testRuns/${testId}`);
     functions.logger.info("testId is: ", testId);
-    fs.writeFile("/tmp/" + testId + ".txt", "test", () => undefined);
+    fs.writeFile(`/tmp/${testId}.txt`, "test", () => undefined);
     try {
       const accessToken = await admin.credential.applicationDefault().getAccessToken();
       await Promise.all([

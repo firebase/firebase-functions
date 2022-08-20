@@ -65,7 +65,7 @@ async function retryUntil(
     }, timeoutMs);
   });
   const retry = (async () => {
-    while (true) {
+    for (;;) {
       if (await fn()) {
         break;
       }
