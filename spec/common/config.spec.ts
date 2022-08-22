@@ -20,22 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as fs from 'fs';
-import * as process from 'process';
-import Sinon = require('sinon');
+import { expect } from "chai";
+import * as fs from "fs";
+import * as process from "process";
+import Sinon = require("sinon");
 
-import { firebaseConfig, resetCache } from '../../src/common/config';
+import { firebaseConfig, resetCache } from "../../src/common/config";
 
-describe('firebaseConfig()', () => {
+describe("firebaseConfig()", () => {
   let readFileSync: Sinon.SinonStub;
   let cwdStub: Sinon.SinonStub;
 
   before(() => {
-    readFileSync = Sinon.stub(fs, 'readFileSync');
-    readFileSync.throws('Unexpected call');
-    cwdStub = Sinon.stub(process, 'cwd');
-    cwdStub.returns('/srv');
+    readFileSync = Sinon.stub(fs, "readFileSync");
+    readFileSync.throws("Unexpected call");
+    cwdStub = Sinon.stub(process, "cwd");
+    cwdStub.returns("/srv");
   });
 
   after(() => {
@@ -49,30 +49,22 @@ describe('firebaseConfig()', () => {
     delete process.env.K_CONFIGURATION;
   });
 
-  it('loads Firebase configs from FIREBASE_CONFIG env variable', () => {
+  it("loads Firebase configs from FIREBASE_CONFIG env variable", () => {
     process.env.FIREBASE_CONFIG = JSON.stringify({
-      databaseURL: 'foo@firebaseio.com',
+      databaseURL: "foo@firebaseio.com",
     });
-    expect(firebaseConfig()).to.have.property(
-      'databaseURL',
-      'foo@firebaseio.com'
-    );
+    expect(firebaseConfig()).to.have.property("databaseURL", "foo@firebaseio.com");
   });
 
-  it('loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file', () => {
+  it("loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file", () => {
     const oldEnv = process.env;
     (process as any).env = {
       ...oldEnv,
-      FIREBASE_CONFIG: '.firebaseconfig.json',
+      FIREBASE_CONFIG: ".firebaseconfig.json",
     };
     try {
-      readFileSync.returns(
-        Buffer.from('{"databaseURL": "foo@firebaseio.com"}')
-      );
-      expect(firebaseConfig()).to.have.property(
-        'databaseURL',
-        'foo@firebaseio.com'
-      );
+      readFileSync.returns(Buffer.from('{"databaseURL": "foo@firebaseio.com"}'));
+      expect(firebaseConfig()).to.have.property("databaseURL", "foo@firebaseio.com");
     } finally {
       (process as any).env = oldEnv;
     }

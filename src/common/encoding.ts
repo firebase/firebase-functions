@@ -62,22 +62,19 @@ export function convertIfPresent<Src, Dest>(
 }
 
 export function convertInvoker(invoker: string | string[]): string[] {
-  if (typeof invoker === 'string') {
+  if (typeof invoker === "string") {
     invoker = [invoker];
   }
 
   if (invoker.length === 0) {
-    throw new Error('Invalid option for invoker: Must be a non-empty array.');
+    throw new Error("Invalid option for invoker: Must be a non-empty array.");
   }
 
   if (invoker.find((inv) => inv.length === 0)) {
-    throw new Error('Invalid option for invoker: Must be a non-empty string.');
+    throw new Error("Invalid option for invoker: Must be a non-empty string.");
   }
 
-  if (
-    invoker.length > 1 &&
-    invoker.find((inv) => inv === 'public' || inv === 'private')
-  ) {
+  if (invoker.length > 1 && invoker.find((inv) => inv === "public" || inv === "private")) {
     throw new Error(
       "Invalid option for invoker: Cannot have 'public' or 'private' in an array of service accounts."
     );

@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 // Do NOT turn on a debug feature in production.
-const debugMode = process.env.FIREBASE_DEBUG_MODE === 'true';
+const debugMode = process.env.FIREBASE_DEBUG_MODE === "true";
 
 interface DebugFeatures {
   skipTokenVerification?: boolean;
@@ -34,7 +34,7 @@ function loadDebugFeatures(): DebugFeatures {
   }
   try {
     const obj = JSON.parse(process.env.FIREBASE_DEBUG_FEATURES);
-    if (typeof obj !== 'object') {
+    if (typeof obj !== "object") {
       return {};
     }
     return obj as DebugFeatures;

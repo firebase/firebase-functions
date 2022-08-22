@@ -19,39 +19,34 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import * as path from 'path';
-import * as url from 'url';
+import * as path from "path";
+import * as url from "url";
 
-import {
-  ManifestEndpoint,
-  ManifestRequiredAPI,
-  ManifestStack,
-} from './manifest';
+import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "./manifest";
 
-import * as params from '../v2/params';
+import * as params from "../v2/params";
 
 /**
  * Dynamically load import function to prevent TypeScript from
  * transpiling into a require.
  *
  * See https://github.com/microsoft/TypeScript/issues/43329.
+ *
  */
-const dynamicImport = new Function(
-  'modulePath',
-  'return import(modulePath)'
-) as (modulePath: string) => Promise<any>;
+// eslint-disable-next-line @typescript-eslint/no-implied-eval
+const dynamicImport = new Function("modulePath", "return import(modulePath)") as (
+  modulePath: string
+) => Promise<any>;
 
 async function loadModule(functionsDir: string) {
   const absolutePath = path.resolve(functionsDir);
   try {
     return require(path.resolve(absolutePath));
   } catch (e) {
-    if (e.code === 'ERR_REQUIRE_ESM') {
+    if (e.code === "ERR_REQUIRE_ESM") {
       // This is an ESM package!
       const modulePath = require.resolve(absolutePath);
       // Resolve module path to file:// URL. Required for windows support.
-      // @ts-ignore pathToFileURL exists for Node.js v10 and up. Since ESM support exists for Node.js v13 and up, we
-      // can be sure that this function exists here.
       const moduleURL = url.pathToFileURL(modulePath).href;
       return await dynamicImport(moduleURL);
     }
@@ -64,34 +59,28 @@ export function extractStack(
   module,
   endpoints: Record<string, ManifestEndpoint>,
   requiredAPIs: ManifestRequiredAPI[],
-  prefix = ''
+  prefix = ""
 ) {
   for (const [name, valAsUnknown] of Object.entries(module)) {
     // We're introspecting untrusted code here. Any is appropraite
     const val: any = valAsUnknown;
-    if (
-      typeof val === 'function' &&
-      val.__endpoint &&
-      typeof val.__endpoint === 'object'
-    ) {
+    if (typeof val === "function" && val.__endpoint && typeof val.__endpoint === "object") {
       const funcName = prefix + name;
       endpoints[funcName] = {
         ...val.__endpoint,
-        entryPoint: funcName.replace(/-/g, '.'),
+        entryPoint: funcName.replace(/-/g, "."),
       };
       if (val.__requiredAPIs && Array.isArray(val.__requiredAPIs)) {
         requiredAPIs.push(...val.__requiredAPIs);
       }
-    } else if (typeof val === 'object' && val !== null) {
-      extractStack(val, endpoints, requiredAPIs, prefix + name + '-');
+    } else if (typeof val === "object" && val !== null) {
+      extractStack(val, endpoints, requiredAPIs, prefix + name + "-");
     }
   }
 }
 
 /* @internal */
-export function mergeRequiredAPIs(
-  requiredAPIs: ManifestRequiredAPI[]
-): ManifestRequiredAPI[] {
+export function mergeRequiredAPIs(requiredAPIs: ManifestRequiredAPI[]): ManifestRequiredAPI[] {
   const apiToReasons: Record<string, Set<string>> = {};
   for (const { api, reason } of requiredAPIs) {
     const reasons = apiToReasons[api] || new Set();
@@ -101,7 +90,7 @@ export function mergeRequiredAPIs(
 
   const merged: ManifestRequiredAPI[] = [];
   for (const [api, reasons] of Object.entries(apiToReasons)) {
-    merged.push({ api, reason: Array.from(reasons).join(' ') });
+    merged.push({ api, reason: Array.from(reasons).join(" ") });
   }
   return merged;
 }
@@ -116,7 +105,7 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
 
   const stack: ManifestStack = {
     endpoints,
-    specVersion: 'v1alpha1',
+    specVersion: "v1alpha1",
     requiredAPIs: mergeRequiredAPIs(requiredAPIs),
   };
   if (params.declaredParams.length > 0) {
