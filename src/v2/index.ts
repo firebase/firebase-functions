@@ -60,6 +60,5 @@ export {
   EventHandlerOptions,
 } from './options';
 
+export { CloudFunction, CloudEvent, ParamsOf } from './core';
 export { Change } from '../common/change';
-
-export { CloudFunction, CloudEvent } from './core';

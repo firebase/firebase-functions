@@ -20,11 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as express from 'express';
+import { expect } from "chai";
+import * as express from "express";
 
-import * as https from '../src/common/providers/https';
-import * as tasks from '../src/common/providers/tasks';
+import * as https from "../src/common/providers/https";
+import * as tasks from "../src/common/providers/tasks";
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -43,13 +43,13 @@ export function runHandler(
   handler: express.Handler,
   request: https.Request
 ): Promise<RunHandlerResult> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {
       private statusCode = 0;
       private headers: { [name: string]: string } = {};
-      private callback: Function;
+      private callback: () => void;
 
       public status(code: number) {
         this.statusCode = code;
@@ -80,14 +80,13 @@ export function runHandler(
         this.send(undefined);
       }
 
-      public on(event: string, callback: Function) {
-        if (event !== 'finish') {
-          throw new Error('MockResponse only implements the finish event');
+      public on(event: string, callback: () => void) {
+        if (event !== "finish") {
+          throw new Error("MockResponse only implements the finish event");
         }
         this.callback = callback;
       }
     }
-
     const response = new MockResponse();
     handler(request, response as any, () => undefined);
   });
@@ -106,7 +105,7 @@ export function checkAuthContext(
   expect(context.auth.token.aud).to.equal(projectId);
 
   // TaskContext & TaskRequest don't have instanceIdToken
-  if ({}.hasOwnProperty.call(context, 'instanceIdToken')) {
+  if ({}.hasOwnProperty.call(context, "instanceIdToken")) {
     expect((context as https.CallableContext).instanceIdToken).to.be.undefined;
   }
 }

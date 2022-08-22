@@ -4,5 +4,5 @@ extension:
 package: ./package.json
 reporter: spec
 require:
-  - 'ts-node/register'
-  - 'source-map-support/register'
+  - "ts-node/register"
+  - "source-map-support/register"

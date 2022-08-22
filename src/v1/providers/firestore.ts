@@ -25,6 +25,7 @@ import * as firestore from 'firebase-admin/firestore';
 import { posix } from 'path';
 import { getApp } from '../../common/app';
 import { Change } from '../../common/change';
+import { ParamsOf } from '../../common/params';
 import { dateToTimestampProto } from '../../common/utilities/encoder';
 import * as logger from '../../logger';
 import {
@@ -52,14 +53,16 @@ export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
  * collection is named "users" and the document is named "Ada", then the
  * path is "/users/Ada".
  */
-export function document(path: string) {
+export function document<Path extends string>(path: Path) {
   return _documentWithOptions(path, {});
 }
+
 /** @hidden */
 // Multiple namespaces are not yet supported by Firestore.
 export function namespace(namespace: string) {
   return _namespaceWithOptions(namespace, {});
 }
+
 /** @hidden */
 // Multiple databases are not yet supported by Firestore.
 export function database(database: string) {
@@ -83,7 +86,10 @@ export function _namespaceWithOptions(
 }
 
 /** @hidden */
-export function _documentWithOptions(path: string, options: DeploymentOptions) {
+export function _documentWithOptions<Path extends string>(
+  path: Path,
+  options: DeploymentOptions
+) {
   return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
@@ -95,7 +101,7 @@ export class DatabaseBuilder {
     return new NamespaceBuilder(this.database, this.options, namespace);
   }
 
-  document(path: string) {
+  document<Path extends string>(path: Path) {
     return new NamespaceBuilder(this.database, this.options).document(path);
   }
 }
@@ -108,8 +114,8 @@ export class NamespaceBuilder {
     private namespace?: string
   ) {}
 
-  document(path: string) {
-    return new DocumentBuilder(() => {
+  document<Path extends string>(path: Path) {
+    return new DocumentBuilder<Path>(() => {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error('process.env.GCLOUD_PROJECT is not set.');
       }
@@ -191,7 +197,7 @@ function changeConstructor(raw: Event) {
   );
 }
 
-export class DocumentBuilder {
+export class DocumentBuilder<Path extends string> {
   /** @hidden */
   constructor(
     private triggerResource: () => string,
@@ -204,7 +210,7 @@ export class DocumentBuilder {
   onWrite(
     handler: (
       change: Change<DocumentSnapshot>,
-      context: EventContext
+      context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
@@ -214,7 +220,7 @@ export class DocumentBuilder {
   onUpdate(
     handler: (
       change: Change<QueryDocumentSnapshot>,
-      context: EventContext
+      context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<QueryDocumentSnapshot>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
@@ -224,7 +230,7 @@ export class DocumentBuilder {
   onCreate(
     handler: (
       snapshot: QueryDocumentSnapshot,
-      context: EventContext
+      context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<QueryDocumentSnapshot> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
@@ -234,7 +240,7 @@ export class DocumentBuilder {
   onDelete(
     handler: (
       snapshot: QueryDocumentSnapshot,
-      context: EventContext
+      context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<QueryDocumentSnapshot> {
     return this.onOperation(
@@ -245,7 +251,10 @@ export class DocumentBuilder {
   }
 
   private onOperation<T>(
-    handler: (data: T, context: EventContext) => PromiseLike<any> | any,
+    handler: (
+      data: T,
+      context: EventContext<ParamsOf<Path>>
+    ) => PromiseLike<any> | any,
     eventType: string,
     dataConstructor: (raw: Event) => any
   ): CloudFunction<T> {
