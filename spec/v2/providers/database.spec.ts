@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { PathPattern } from '../../../src/utilities/path-pattern';
+import { PathPattern } from '../../../src/common/utilities/path-pattern';
 import * as database from '../../../src/v2/providers/database';
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {

@@ -22,20 +22,15 @@
 
 import * as express from 'express';
 
-import {
-  HttpsFunction,
-  optionsToEndpoint,
-  optionsToTrigger,
-  Runnable,
-} from '../cloud-functions';
-import { convertIfPresent, convertInvoker } from '../common/encoding';
+import { convertIfPresent, convertInvoker } from '../../common/encoding';
 import {
   CallableContext,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-} from '../common/providers/https';
+} from '../../common/providers/https';
+import { HttpsFunction, optionsToEndpoint, Runnable } from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };
@@ -66,21 +61,10 @@ export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void | Promise<void>,
   options: DeploymentOptions
 ): HttpsFunction {
-  // lets us add __trigger without altering handler:
+  // lets us add __endpoint without altering handler:
   const cloudFunction: any = (req: Request, res: express.Response) => {
     return handler(req, res);
   };
-  cloudFunction.__trigger = {
-    ...optionsToTrigger(options),
-    httpsTrigger: {},
-  };
-  convertIfPresent(
-    cloudFunction.__trigger.httpsTrigger,
-    options,
-    'invoker',
-    'invoker',
-    convertInvoker
-  );
   // TODO parse the options
 
   cloudFunction.__endpoint = {
@@ -110,18 +94,11 @@ export function _onCallWithOptions(
     handler(data, context);
   const func: any = onCallHandler(
     {
-      allowInvalidAppCheckToken: options.allowInvalidAppCheckToken,
+      enforceAppCheck: options.enforceAppCheck,
       cors: { origin: true, methods: 'POST' },
     },
     fixedLen
   );
-
-  func.__trigger = {
-    labels: {},
-    ...optionsToTrigger(options),
-    httpsTrigger: {},
-  };
-  func.__trigger.labels['deployment-callable'] = 'true';
 
   func.__endpoint = {
     platform: 'gcfv1',

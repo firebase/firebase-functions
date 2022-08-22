@@ -21,23 +21,13 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { Event, EventContext } from '../../../src';
-import * as functions from '../../../src';
-import * as config from '../../../src/config';
-import * as storage from '../../../src/providers/storage';
+import * as config from '../../../src/common/config';
+import { Event, EventContext } from '../../../src/v1';
+import * as functions from '../../../src/v1';
+import * as storage from '../../../src/v1/providers/storage';
 
 describe('Storage Functions', () => {
   describe('ObjectBuilder', () => {
-    function expectedTrigger(bucket: string, eventType: string) {
-      return {
-        eventTrigger: {
-          resource: `projects/_/buckets/${bucket}`,
-          eventType: `google.storage.object.${eventType}`,
-          service: 'storage.googleapis.com',
-        },
-      };
-    }
-
     function expectedEndpoint(bucket: string, eventType: string) {
       return {
         platform: 'gcfv1',
@@ -55,13 +45,13 @@ describe('Storage Functions', () => {
     const defaultBucket = 'bucket';
 
     before(() => {
-      (config as any).firebaseConfigCache = {
+      config.resetCache({
         storageBucket: defaultBucket,
-      };
+      });
     });
 
     after(() => {
-      (config as any).firebaseConfigcache = null;
+      config.resetCache();
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -73,10 +63,6 @@ describe('Storage Functions', () => {
         })
         .storage.object()
         .onArchive(() => null);
-
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -90,10 +76,6 @@ describe('Storage Functions', () => {
           .object()
           .onArchive(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'archive')
-        );
-
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'archive')
         );
@@ -101,10 +83,6 @@ describe('Storage Functions', () => {
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onArchive(() => null);
-
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(defaultBucket, 'archive')
-        );
 
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(defaultBucket, 'archive')
@@ -118,24 +96,12 @@ describe('Storage Functions', () => {
         );
         const result = subjectQualified.onArchive(() => null);
 
-        expect(result.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'archive')
-        );
-
         expect(result.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'archive')
         );
       });
 
       it('should throw with improperly formatted buckets', () => {
-        expect(
-          () =>
-            storage
-              .bucket('bad/bucket/format')
-              .object()
-              .onArchive(() => null).__trigger
-        ).to.throw(Error);
-
         expect(
           () =>
             storage
@@ -181,10 +147,6 @@ describe('Storage Functions', () => {
           .object()
           .onDelete(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'delete')
-        );
-
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'delete')
         );
@@ -192,10 +154,6 @@ describe('Storage Functions', () => {
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onDelete(() => null);
-
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(defaultBucket, 'delete')
-        );
 
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(defaultBucket, 'delete')
@@ -209,10 +167,6 @@ describe('Storage Functions', () => {
         );
         const result = subjectQualified.onDelete(() => null);
 
-        expect(result.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'delete')
-        );
-
         expect(result.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'delete')
         );
@@ -223,8 +177,6 @@ describe('Storage Functions', () => {
           .bucket('bad/bucket/format')
           .object()
           .onDelete(() => null);
-
-        expect(() => fn.__trigger).to.throw(Error);
 
         expect(() => fn.__endpoint).to.throw(Error);
       });
@@ -265,10 +217,6 @@ describe('Storage Functions', () => {
           .object()
           .onFinalize(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'finalize')
-        );
-
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'finalize')
         );
@@ -276,10 +224,6 @@ describe('Storage Functions', () => {
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onFinalize(() => null);
-
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(defaultBucket, 'finalize')
-        );
 
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(defaultBucket, 'finalize')
@@ -293,10 +237,6 @@ describe('Storage Functions', () => {
         );
         const result = subjectQualified.onFinalize(() => null);
 
-        expect(result.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'finalize')
-        );
-
         expect(result.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'finalize')
         );
@@ -307,8 +247,6 @@ describe('Storage Functions', () => {
           .bucket('bad/bucket/format')
           .object()
           .onFinalize(() => null);
-
-        expect(() => fn.__trigger).to.throw(Error);
 
         expect(() => fn.__endpoint).to.throw(Error);
       });
@@ -349,10 +287,6 @@ describe('Storage Functions', () => {
           .object()
           .onMetadataUpdate(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'metadataUpdate')
-        );
-
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'metadataUpdate')
         );
@@ -360,10 +294,6 @@ describe('Storage Functions', () => {
 
       it('should use the default bucket when none is provided', () => {
         const cloudFunction = storage.object().onMetadataUpdate(() => null);
-
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(defaultBucket, 'metadataUpdate')
-        );
 
         expect(cloudFunction.__endpoint).to.deep.equal(
           expectedEndpoint(defaultBucket, 'metadataUpdate')
@@ -377,10 +307,6 @@ describe('Storage Functions', () => {
         );
         const result = subjectQualified.onMetadataUpdate(() => null);
 
-        expect(result.__trigger).to.deep.equal(
-          expectedTrigger('bucky', 'metadataUpdate')
-        );
-
         expect(result.__endpoint).to.deep.equal(
           expectedEndpoint('bucky', 'metadataUpdate')
         );
@@ -392,7 +318,6 @@ describe('Storage Functions', () => {
           .object()
           .onMetadataUpdate(() => null);
 
-        expect(() => fn.__trigger).to.throw(Error);
         expect(() => fn.__endpoint).to.throw(Error);
       });
 
@@ -443,7 +368,6 @@ describe('Storage Functions', () => {
           () => null
         );
 
-        expect(cloudFunction.__trigger).to.deep.equal({});
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
@@ -484,7 +408,6 @@ describe('Storage Functions', () => {
           () => null
         );
 
-        expect(cloudFunction.__trigger).to.deep.equal({});
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
@@ -525,7 +448,6 @@ describe('Storage Functions', () => {
           () => null
         );
 
-        expect(cloudFunction.__trigger).to.deep.equal({});
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
@@ -566,7 +488,6 @@ describe('Storage Functions', () => {
           () => null
         );
 
-        expect(cloudFunction.__trigger).to.deep.equal({});
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
@@ -608,14 +529,8 @@ describe('Storage Functions', () => {
       delete process.env.FIREBASE_CONFIG;
     });
 
-    it('should not throw if __trigger is not accessed', () => {
+    it('should not throw if __endpoint is not accessed', () => {
       expect(() => storage.object().onArchive(() => null)).to.not.throw(Error);
-    });
-
-    it('should throw when trigger is accessed', () => {
-      expect(() => storage.object().onArchive(() => null).__trigger).to.throw(
-        Error
-      );
     });
 
     it('should throw when endpoint is accessed', () => {

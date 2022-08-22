@@ -22,13 +22,15 @@
 
 import * as cors from 'cors';
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
+import { DecodedAppCheckToken } from 'firebase-admin/app-check';
 
 import * as logger from '../../logger';
 
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
-import { apps } from '../../apps';
+import { getAppCheck } from 'firebase-admin/app-check';
+import { DecodedIdToken, getAuth } from 'firebase-admin/auth';
+import { getApp } from '../app';
 import { isDebugFeatureEnabled } from '../debug';
 import { TaskContext } from './tasks';
 
@@ -38,60 +40,6 @@ const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 export interface Request extends express.Request {
   /** The wire format representation of the request body. */
   rawBody: Buffer;
-}
-
-// This is actually a firebase.appCheck.DecodedAppCheckToken, but
-// that type may not be available in some supported SDK versions.
-// Declare as an inline type, which DecodedAppCheckToken will be
-// able to merge with.
-// TODO: Replace with the real type once we bump the min-version of
-// the admin SDK
-interface DecodedAppCheckToken {
-  /**
-   * The issuer identifier for the issuer of the response.
-   *
-   * This value is a URL with the format
-   * `https://firebaseappcheck.googleapis.com/<PROJECT_NUMBER>`, where `<PROJECT_NUMBER>` is the
-   * same project number specified in the [`aud`](#aud) property.
-   */
-  iss: string;
-
-  /**
-   * The Firebase App ID corresponding to the app the token belonged to.
-   *
-   * As a convenience, this value is copied over to the [`app_id`](#app_id) property.
-   */
-  sub: string;
-
-  /**
-   * The audience for which this token is intended.
-   *
-   * This value is a JSON array of two strings, the first is the project number of your
-   * Firebase project, and the second is the project ID of the same project.
-   */
-  aud: string[];
-
-  /**
-   * The App Check token's expiration time, in seconds since the Unix epoch. That is, the
-   * time at which this App Check token expires and should no longer be considered valid.
-   */
-  exp: number;
-
-  /**
-   * The App Check token's issued-at time, in seconds since the Unix epoch. That is, the
-   * time at which this App Check token was issued and should start to be considered
-   * valid.;
-   */
-  iat: number;
-
-  /**
-   * The App ID corresponding to the App the App Check token belonged to.
-   *
-   * This value is not actually one of the JWT token claims. It is added as a
-   * convenience, and is set as the value of the [`sub`](#sub) property.
-   */
-  app_id: string;
-  [key: string]: any;
 }
 
 /**
@@ -107,7 +55,7 @@ export interface AppCheckData {
  */
 export interface AuthData {
   uid: string;
-  token: firebase.auth.DecodedIdToken;
+  token: DecodedIdToken;
 }
 
 // This type is the direct v1 callable interface and is also an interface
@@ -553,10 +501,8 @@ export function unsafeDecodeToken(token: string): unknown {
  * This is exposed only for testing.
  */
 /** @internal */
-export function unsafeDecodeIdToken(
-  token: string
-): firebase.auth.DecodedIdToken {
-  const decoded = unsafeDecodeToken(token) as firebase.auth.DecodedIdToken;
+export function unsafeDecodeIdToken(token: string): DecodedIdToken {
+  const decoded = unsafeDecodeToken(token) as DecodedIdToken;
   decoded.uid = decoded.sub;
   return decoded;
 }
@@ -618,7 +564,7 @@ async function checkTokens(
   }
 
   if (errs.length == 0) {
-    logger.info('Callable request verification passed', logPayload);
+    logger.debug('Callable request verification passed', logPayload);
   } else {
     logger.warn(
       `Callable request verification failed: ${errs.join(' ')}`,
@@ -642,13 +588,11 @@ export async function checkAuthToken(
   if (match) {
     const idToken = match[1];
     try {
-      let authToken: firebase.auth.DecodedIdToken;
+      let authToken: DecodedIdToken;
       if (isDebugFeatureEnabled('skipTokenVerification')) {
         authToken = unsafeDecodeIdToken(idToken);
       } else {
-        authToken = await apps()
-          .admin.auth()
-          .verifyIdToken(idToken);
+        authToken = await getAuth(getApp()).verifyIdToken(idToken);
       }
       ctx.auth = {
         uid: authToken.uid,
@@ -673,19 +617,12 @@ async function checkAppCheckToken(
     return 'MISSING';
   }
   try {
-    if (!apps().admin.appCheck) {
-      throw new Error(
-        'Cannot validate AppCheck token. Please update Firebase Admin SDK to >= v9.8.0'
-      );
-    }
     let appCheckData;
     if (isDebugFeatureEnabled('skipTokenVerification')) {
       const decodedToken = unsafeDecodeAppCheckToken(appCheck);
       appCheckData = { appId: decodedToken.app_id, token: decodedToken };
     } else {
-      appCheckData = await apps()
-        .admin.appCheck()
-        .verifyToken(appCheck);
+      appCheckData = await getAppCheck(getApp()).verifyToken(appCheck);
     }
     ctx.app = appCheckData;
     return 'VALID';
@@ -704,7 +641,7 @@ type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
 /** @internal **/
 export interface CallableOptions {
   cors: cors.CorsOptions;
-  allowInvalidAppCheckToken?: boolean;
+  enforceAppCheck?: boolean;
 }
 
 /** @internal */
@@ -740,7 +677,16 @@ function wrapOnCallHandler<Req = any, Res = any>(
       if (tokenStatus.auth === 'INVALID') {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
-      if (tokenStatus.app === 'INVALID' && !options.allowInvalidAppCheckToken) {
+      if (tokenStatus.app === 'INVALID') {
+        if (options.enforceAppCheck) {
+          throw new HttpsError('unauthenticated', 'Unauthenticated');
+        } else {
+          logger.warn(
+            'Allowing request with invalid AppCheck token because enforcement is disabled'
+          );
+        }
+      }
+      if (tokenStatus.app === 'MISSING' && options.enforceAppCheck) {
         throw new HttpsError('unauthenticated', 'Unauthenticated');
       }
 

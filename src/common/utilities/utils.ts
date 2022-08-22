@@ -20,45 +20,36 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Providers:
-import * as analytics from './providers/analytics';
-import * as auth from './providers/auth';
-import * as database from './providers/database';
-import * as firestore from './providers/firestore';
-import * as https from './providers/https';
-import * as pubsub from './providers/pubsub';
-import * as remoteConfig from './providers/remoteConfig';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
-import * as testLab from './providers/testLab';
+function isObject(obj: any): boolean {
+  return typeof obj === 'object' && !!obj;
+}
 
-import * as apps from './apps';
-import { handler } from './handler-builder';
-import * as logger from './logger';
-import { setup } from './setup';
+/** @hidden */
+export function applyChange(src: any, dest: any) {
+  // if not mergeable, don't merge
+  if (!isObject(dest) || !isObject(src)) {
+    return dest;
+  }
 
-const app = apps.apps();
+  return merge(src, dest);
+}
 
-export {
-  analytics,
-  app,
-  auth,
-  database,
-  firestore,
-  handler,
-  https,
-  pubsub,
-  remoteConfig,
-  storage,
-  tasks,
-  testLab,
-  logger,
-};
+function merge(
+  src: Record<string, any>,
+  dest: Record<string, any>
+): Record<string, any> {
+  const res: Record<string, any> = {};
+  const keys = new Set([...Object.keys(src), ...Object.keys(dest)]);
 
-// Exported root types:
-export * from './cloud-functions';
-export * from './config';
-export * from './function-builder';
-export * from './function-configuration';
-
-setup();
+  for (const key of keys.values()) {
+    if (key in dest) {
+      if (dest[key] === null) {
+        continue;
+      }
+      res[key] = applyChange(src[key], dest[key]);
+    } else if (src[key] !== null) {
+      res[key] = src[key];
+    }
+  }
+  return res;
+}

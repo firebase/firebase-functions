@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import * as express from 'express';
-import * as firebase from 'firebase-admin';
-import { logger } from '../..';
-import { apps } from '../../apps';
-import { EventContext } from '../../cloud-functions';
+import * as auth from 'firebase-admin/auth';
+import * as logger from '../../logger';
+import { EventContext } from '../../v1/cloud-functions';
+import { getApp } from '../app';
 import { isDebugFeatureEnabled } from '../debug';
 import { HttpsError, unsafeDecodeToken } from './https';
 
@@ -66,17 +66,17 @@ const EVENT_MAPPING: Record<string, string> = {
  * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
  * SDK.
  */
-export type UserRecord = firebase.auth.UserRecord;
+export type UserRecord = auth.UserRecord;
 
 /**
  * UserInfo that is part of the UserRecord
  */
-export type UserInfo = firebase.auth.UserInfo;
+export type UserInfo = auth.UserInfo;
 
 /**
  * Helper class to create the user metadata in a UserRecord object
  */
-export class UserRecordMetadata implements firebase.auth.UserMetadata {
+export class UserRecordMetadata implements auth.UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
@@ -825,7 +825,7 @@ export function wrapHandler(
         throw new HttpsError('invalid-argument', 'Bad Request');
       }
 
-      if (!apps().admin.auth()._verifyAuthBlockingToken) {
+      if (!auth.getAuth(getApp())._verifyAuthBlockingToken) {
         throw new Error(
           'Cannot validate Auth Blocking token. Please update Firebase Admin SDK to >= v10.1.0'
         );
@@ -836,11 +836,11 @@ export function wrapHandler(
       )
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
         : handler.length === 2
-        ? await apps()
-            .admin.auth()
+        ? await auth
+            .getAuth(getApp())
             ._verifyAuthBlockingToken(req.body.data.jwt)
-        : await apps()
-            .admin.auth()
+        : await auth
+            .getAuth(getApp())
             ._verifyAuthBlockingToken(req.body.data.jwt, 'run.app');
 
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);

@@ -25,15 +25,9 @@
  * @packageDocumentation
  */
 
-import {
-  convertIfPresent,
-  copyIfPresent,
-  durationFromSeconds,
-  serviceAccountFromShorthand,
-} from '../common/encoding';
+import { convertIfPresent, copyIfPresent } from '../common/encoding';
 import * as logger from '../logger';
 import { ManifestEndpoint } from '../runtime/manifest';
-import { TriggerAnnotation } from './core';
 import { declaredParams } from './params';
 import { ParamSpec } from './params/types';
 import { HttpsOptions } from './providers/https';
@@ -189,6 +183,14 @@ export interface GlobalOptions {
    * Secrets to bind to a function.
    */
   secrets?: string[];
+
+  /**
+   * Determines whether Firebase AppCheck is enforced.
+   * When true, requests with invalid tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set event.app to undefiend.
+   */
+  enforceAppCheck?: boolean;
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -216,71 +218,10 @@ export function getGlobalOptions(): GlobalOptions {
 /**
  * Additional fields that can be set on any event-handling Cloud Function.
  */
-export interface EventHandlerOptions extends GlobalOptions {
+export interface EventHandlerOptions
+  extends Omit<GlobalOptions, 'enforceAppCheck'> {
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
-}
-
-/**
- * Apply GlobalOptions to trigger definitions.
- * @internal
- */
-export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
-): TriggerAnnotation {
-  const annotation: TriggerAnnotation = {};
-  copyIfPresent(
-    annotation,
-    opts,
-    'concurrency',
-    'minInstances',
-    'maxInstances',
-    'ingressSettings',
-    'labels',
-    'vpcConnector',
-    'vpcConnectorEgressSettings',
-    'secrets'
-  );
-  convertIfPresent(
-    annotation,
-    opts,
-    'availableMemoryMb',
-    'memory',
-    (mem: MemoryOption) => {
-      return MemoryOptionToMB[mem];
-    }
-  );
-  convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
-    if (typeof region === 'string') {
-      return [region];
-    }
-    return region;
-  });
-  convertIfPresent(
-    annotation,
-    opts,
-    'serviceAccountEmail',
-    'serviceAccount',
-    serviceAccountFromShorthand
-  );
-  convertIfPresent(
-    annotation,
-    opts,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
-  );
-  convertIfPresent(
-    annotation,
-    (opts as any) as EventHandlerOptions,
-    'failurePolicy',
-    'retry',
-    (retry: boolean) => {
-      return retry ? { retry: true } : null;
-    }
-  );
-
-  return annotation;
 }
 
 /**

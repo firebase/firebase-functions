@@ -1,6 +1,5 @@
 import * as jwt from 'jsonwebtoken';
 import * as jwkToPem from 'jwk-to-pem';
-import * as _ from 'lodash';
 import * as nock from 'nock';
 import * as mockJWK from '../fixtures/credential/jwk.json';
 import * as mockKey from '../fixtures/credential/key.json';
@@ -32,7 +31,7 @@ export function mockRequest(
   } = {}
 ) {
   const body: any = {};
-  if (!_.isUndefined(data)) {
+  if (typeof data !== 'undefined') {
     body.data = data;
   }
 

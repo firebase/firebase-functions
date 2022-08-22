@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import * as firebase from 'firebase-admin';
+import { App, deleteApp, initializeApp } from 'firebase-admin/app';
 
-import { apps as appsNamespace } from '../../../src/apps';
+import { getApp, setApp } from '../../../src/common/app';
 import * as https from '../../../src/common/providers/https';
 import {
   onDispatchHandler,
@@ -78,7 +78,7 @@ export async function runTaskTest(test: TaskTest): Promise<any> {
 }
 
 describe('onEnqueueHandler', () => {
-  let app: firebase.app.App;
+  let app: App;
 
   function mockEnqueueRequest(
     data: unknown,
@@ -102,16 +102,16 @@ describe('onEnqueueHandler', () => {
         };
       },
     };
-    app = firebase.initializeApp({
+    app = initializeApp({
       projectId: 'aProjectId',
       credential,
     });
-    Object.defineProperty(appsNamespace(), 'admin', { get: () => app });
+    setApp(app);
   });
 
   after(() => {
-    app.delete();
-    delete appsNamespace.singleton;
+    deleteApp(app);
+    setApp(undefined);
   });
 
   it('should handle success', () => {
@@ -201,7 +201,7 @@ describe('onEnqueueHandler', () => {
   });
 
   it('should handle auth', async () => {
-    const projectId = appsNamespace().admin.options.projectId;
+    const projectId = getApp().options.projectId;
     const idToken = generateIdToken(projectId);
     await runTaskTest({
       httpRequest: mockEnqueueRequest(null, 'application/json', {
@@ -221,7 +221,7 @@ describe('onEnqueueHandler', () => {
   });
 
   it('should accept unsigned auth too', async () => {
-    const projectId = appsNamespace().admin.options.projectId;
+    const projectId = getApp().options.projectId;
     const idToken = generateUnsignedIdToken(projectId);
     await runTaskTest({
       httpRequest: mockEnqueueRequest(null, 'application/json', {

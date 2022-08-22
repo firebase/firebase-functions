@@ -22,11 +22,7 @@
 
 import { format } from 'util';
 
-import {
-  CONSOLE_SEVERITY,
-  SUPPORTS_STRUCTURED_LOGS,
-  UNPATCHED_CONSOLE,
-} from './common';
+import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from './common';
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).
@@ -90,30 +86,9 @@ function removeCircular(obj: any, refs: any[] = []): any {
  * @public
  */
 export function write(entry: LogEntry) {
-  if (SUPPORTS_STRUCTURED_LOGS) {
-    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](
-      JSON.stringify(removeCircular(entry))
-    );
-    return;
-  }
-
-  let message = entry.message || '';
-  const jsonPayload: { [key: string]: any } = {};
-  let jsonKeyCount = 0;
-  for (const k in entry) {
-    if (!['severity', 'message'].includes(k)) {
-      jsonKeyCount++;
-      jsonPayload[k] = entry[k];
-    }
-  }
-  if (jsonKeyCount > 0) {
-    message = `${message} ${JSON.stringify(
-      removeCircular(jsonPayload),
-      null,
-      2
-    )}`;
-  }
-  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](message);
+  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](
+    JSON.stringify(removeCircular(entry))
+  );
 }
 
 /**
@@ -173,9 +148,10 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   if (lastArg && typeof lastArg == 'object' && lastArg.constructor == Object) {
     entry = args.pop();
   }
-  return Object.assign({}, entry, {
-    severity,
-    // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
-    message: format.apply(null, args),
-  });
+  // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
+  let message = format.apply(null, args);
+  if (severity === 'ERROR' && !args.find((arg) => arg instanceof Error)) {
+    message = new Error(message).stack || message;
+  }
+  return { ...entry, severity, message };
 }

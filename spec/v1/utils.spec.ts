@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { applyChange } from '../../src/utils';
+import { applyChange } from '../../src/common/utilities/utils';
 
 describe('utils', () => {
   describe('.applyChange(from: any, to: any): any', () => {

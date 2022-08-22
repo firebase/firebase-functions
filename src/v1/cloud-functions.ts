@@ -21,33 +21,22 @@
 // SOFTWARE.
 
 import { Request, Response } from 'express';
-import * as _ from 'lodash';
-import {
-  DEFAULT_FAILURE_POLICY,
-  DeploymentOptions,
-  FailurePolicy,
-  Schedule,
-} from './function-configuration';
-import { warn } from './logger';
+import { warn } from '../logger';
+import { DeploymentOptions } from './function-configuration';
 export { Request, Response };
-import {
-  convertIfPresent,
-  copyIfPresent,
-  Duration,
-  durationFromSeconds,
-  serviceAccountFromShorthand,
-} from './common/encoding';
-import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
+import { convertIfPresent, copyIfPresent } from '../common/encoding';
+import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
 
-export { Change } from './common/change';
+export { Change } from '../common/change';
 
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
 /**
- * @hidden
- *
  * Wire format for an event.
+
+ * @hidden
+ * @alpha
  */
 export interface Event {
   context: {
@@ -56,6 +45,13 @@ export interface Event {
     eventType: string;
     resource: Resource;
     domain?: string;
+    auth?: {
+      variable?: {
+        uid?: string;
+        token?: string;
+      };
+      admin: boolean;
+    };
   };
   data: any;
 }
@@ -170,36 +166,6 @@ export interface Resource {
 }
 
 /**
- * TriggerAnnotion is used internally by the firebase CLI to understand what
- * type of Cloud Function to deploy.
- */
-interface TriggerAnnotation {
-  availableMemoryMb?: number;
-  blockingTrigger?: {
-    eventType: string;
-    options?: Record<string, unknown>;
-  };
-  eventTrigger?: {
-    eventType: string;
-    resource: string;
-    service: string;
-  };
-  failurePolicy?: FailurePolicy;
-  httpsTrigger?: {
-    invoker?: string[];
-  };
-  labels?: { [key: string]: string };
-  regions?: string[];
-  schedule?: Schedule;
-  timeout?: Duration;
-  vpcConnector?: string;
-  vpcConnectorEgressSettings?: string;
-  serviceAccountEmail?: string;
-  ingressSettings?: string;
-  secrets?: string[];
-}
-
-/**
  * A Runnable has a `run` method which directly invokes the user-defined
  * function - useful for unit testing.
  */
@@ -220,9 +186,6 @@ export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
-  __trigger: TriggerAnnotation;
-
-  /** @alpha */
   __endpoint: ManifestEndpoint;
 
   /** @alpha */
@@ -234,9 +197,6 @@ export interface HttpsFunction {
  */
 export interface BlockingFunction {
   (req: Request, resp: Response): void | Promise<void>;
-
-  /** @alpha */
-  __trigger: TriggerAnnotation;
 
   /** @alpha */
   __endpoint: ManifestEndpoint;
@@ -254,9 +214,6 @@ export interface BlockingFunction {
  */
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
-
-  /** @alpha */
-  __trigger: TriggerAnnotation;
 
   /** @alpha */
   __endpoint: ManifestEndpoint;
@@ -287,8 +244,6 @@ export interface MakeCloudFunctionArgs<EventData> {
 
 /** @hidden */
 export function makeCloudFunction<EventData>({
-  after = () => {},
-  before = () => {},
   contextOnlyHandler,
   dataConstructor = (raw: Event) => raw.data,
   eventType,
@@ -339,8 +294,6 @@ export function makeCloudFunction<EventData>({
       context.params = context.params || _makeParams(context, triggerResource);
     }
 
-    before(event);
-
     let promise;
     if (labels && labels['deployment-scheduled']) {
       // Scheduled function do not have meaningful data, so exclude it
@@ -352,36 +305,8 @@ export function makeCloudFunction<EventData>({
     if (typeof promise === 'undefined') {
       warn('Function returned undefined, expected Promise or value');
     }
-    return Promise.resolve(promise)
-      .then((result) => {
-        after(event);
-        return result;
-      })
-      .catch((err) => {
-        after(event);
-        return Promise.reject(err);
-      });
+    return Promise.resolve(promise);
   };
-
-  Object.defineProperty(cloudFunction, '__trigger', {
-    get: () => {
-      if (triggerResource() == null) {
-        return {};
-      }
-
-      const trigger: any = _.assign(optionsToTrigger(options), {
-        eventTrigger: {
-          resource: triggerResource(),
-          eventType: legacyEventType || provider + '.' + eventType,
-          service,
-        },
-      });
-      if (!_.isEmpty(labels)) {
-        trigger.labels = { ...trigger.labels, ...labels };
-      }
-      return trigger;
-    },
-  });
 
   Object.defineProperty(cloudFunction, '__endpoint', {
     get: () => {
@@ -432,7 +357,7 @@ export function makeCloudFunction<EventData>({
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
-): { [option: string]: any } {
+): Record<string, string> {
   if (context.params) {
     // In unit testing, user may directly provide `context.params`.
     return context.params;
@@ -444,14 +369,16 @@ function _makeParams(
   const triggerResource = triggerResourceGetter();
   const wildcards = triggerResource.match(WILDCARD_REGEX);
   const params: { [option: string]: any } = {};
-  if (wildcards) {
-    const triggerResourceParts = _.split(triggerResource, '/');
-    const eventResourceParts = _.split(context.resource.name, '/');
-    _.forEach(wildcards, (wildcard) => {
+
+  // Note: some tests don't set context.resource.name
+  const eventResourceParts = context?.resource?.name?.split?.('/');
+  if (wildcards && eventResourceParts) {
+    const triggerResourceParts = triggerResource.split('/');
+    for (const wildcard of wildcards) {
       const wildcardNoBraces = wildcard.slice(1, -1);
-      const position = _.indexOf(triggerResourceParts, wildcard);
+      const position = triggerResourceParts.indexOf(wildcard);
       params[wildcardNoBraces] = eventResourceParts[position];
-    });
+    }
   }
   return params;
 }
@@ -462,81 +389,20 @@ function _makeAuth(event: Event, authType: string) {
     return null;
   }
   return {
-    uid: _.get(event, 'context.auth.variable.uid'),
-    token: _.get(event, 'context.auth.variable.token'),
+    uid: event.context?.auth?.variable?.uid,
+    token: event.context?.auth?.variable?.token,
   };
 }
 
 /** @hidden */
 function _detectAuthType(event: Event) {
-  if (_.get(event, 'context.auth.admin')) {
+  if (event.context?.auth?.admin) {
     return 'ADMIN';
   }
-  if (_.has(event, 'context.auth.variable')) {
+  if (event.context?.auth?.variable) {
     return 'USER';
   }
   return 'UNAUTHENTICATED';
-}
-
-/** @hidden */
-export function optionsToTrigger(options: DeploymentOptions) {
-  const trigger: any = {};
-  copyIfPresent(
-    trigger,
-    options,
-    'regions',
-    'schedule',
-    'minInstances',
-    'maxInstances',
-    'ingressSettings',
-    'vpcConnectorEgressSettings',
-    'vpcConnector',
-    'labels',
-    'secrets'
-  );
-  convertIfPresent(
-    trigger,
-    options,
-    'failurePolicy',
-    'failurePolicy',
-    (policy) => {
-      if (policy === false) {
-        return undefined;
-      } else if (policy === true) {
-        return DEFAULT_FAILURE_POLICY;
-      } else {
-        return policy;
-      }
-    }
-  );
-  convertIfPresent(
-    trigger,
-    options,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
-  );
-  convertIfPresent(trigger, options, 'availableMemoryMb', 'memory', (mem) => {
-    const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-      '4GB': 4096,
-      '8GB': 8192,
-    };
-    return memoryLookup[mem];
-  });
-  convertIfPresent(
-    trigger,
-    options,
-    'serviceAccountEmail',
-    'serviceAccount',
-    serviceAccountFromShorthand
-  );
-
-  return trigger;
 }
 
 export function optionsToEndpoint(

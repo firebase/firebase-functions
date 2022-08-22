@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { CloudEvent } from '../../../src/v2/core';
 import * as options from '../../../src/v2/options';
 import * as pubsub from '../../../src/v2/providers/pubsub';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import { FULL_ENDPOINT, FULL_OPTIONS } from './fixtures';
 
 const EVENT_TRIGGER = {
   eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
@@ -31,12 +31,6 @@ describe('onMessagePublished', () => {
   it('should return a minimal trigger/endpoint with appropriate values', () => {
     const result = pubsub.onMessagePublished('topic', () => 42);
 
-    expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
-      eventTrigger: EVENT_TRIGGER,
-      labels: {},
-    });
-
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
       eventTrigger: ENDPOINT_EVENT_TRIGGER,
@@ -49,11 +43,6 @@ describe('onMessagePublished', () => {
       { ...FULL_OPTIONS, topic: 'topic' },
       () => 42
     );
-
-    expect(result.__trigger).to.deep.equal({
-      ...FULL_TRIGGER,
-      eventTrigger: EVENT_TRIGGER,
-    });
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
@@ -77,15 +66,6 @@ describe('onMessagePublished', () => {
       () => 42
     );
 
-    expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
-      concurrency: 20,
-      minInstances: 3,
-      regions: ['us-west1'],
-      labels: {},
-      eventTrigger: EVENT_TRIGGER,
-    });
-
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',
       concurrency: 20,
@@ -106,15 +86,6 @@ describe('onMessagePublished', () => {
       },
       () => 42
     );
-
-    expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
-      minInstances: 3,
-      regions: ['us-west1'],
-      labels: {},
-      eventTrigger: EVENT_TRIGGER,
-      failurePolicy: { retry: true },
-    });
 
     expect(result.__endpoint).to.deep.equal({
       platform: 'gcfv2',

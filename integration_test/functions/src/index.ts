@@ -126,10 +126,7 @@ async function updateRemoteConfig(
 function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
-    admin
-      .database()
-      .ref(`dbTests/${testId}/start`)
-      .set({ '.sv': 'timestamp' }),
+    admin.database().ref(`dbTests/${testId}/start`).set({ '.sv': 'timestamp' }),
     // A Pub/Sub publish to trigger the Cloud Pub/Sub tests.
     new PubSub()
       .topic('pubsubTests')
@@ -147,11 +144,7 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
         admin.auth().deleteUser(userRecord.uid);
       }),
     // A firestore write to trigger the Cloud Firestore tests.
-    admin
-      .firestore()
-      .collection('tests')
-      .doc(testId)
-      .set({ test: testId }),
+    admin.firestore().collection('tests').doc(testId).set({ test: testId }),
     // Invoke a callable HTTPS trigger.
     callHttpsTrigger('v1-callableTests', { foo: 'bar', testId }),
     // A Remote Config update to trigger the Remote Config tests.
@@ -181,14 +174,8 @@ export const integrationTests: any = functions
     invoker: 'private',
   })
   .https.onRequest(async (req: Request, resp: Response) => {
-    const testId = admin
-      .database()
-      .ref()
-      .push().key;
-    admin
-      .database()
-      .ref(`testRuns/${testId}/timestamp`)
-      .set(Date.now());
+    const testId = admin.database().ref().push().key;
+    admin.database().ref(`testRuns/${testId}/timestamp`).set(Date.now());
     const testIdRef = admin.database().ref(`testRuns/${testId}`);
     functions.logger.info('testId is: ', testId);
     fs.writeFile('/tmp/' + testId + '.txt', 'test', () => {});

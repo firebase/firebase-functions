@@ -1,13 +1,13 @@
 import { expect } from 'chai';
 import * as path from 'path';
 
-import * as functions from '../../src/index';
 import * as loader from '../../src/runtime/loader';
 import {
   ManifestEndpoint,
   ManifestRequiredAPI,
   ManifestStack,
 } from '../../src/runtime/manifest';
+import * as functions from '../../src/v1';
 
 describe('extractStack', () => {
   const httpFn = functions.https.onRequest(() => {});

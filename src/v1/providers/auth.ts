@@ -21,15 +21,6 @@
 // SOFTWARE.
 
 import {
-  BlockingFunction,
-  CloudFunction,
-  Event,
-  EventContext,
-  makeCloudFunction,
-  optionsToEndpoint,
-  optionsToTrigger,
-} from '../cloud-functions';
-import {
   AuthBlockingEventType,
   AuthEventContext,
   AuthUserRecord,
@@ -41,7 +32,15 @@ import {
   userRecordConstructor,
   UserRecordMetadata,
   wrapHandler,
-} from '../common/providers/identity';
+} from '../../common/providers/identity';
+import {
+  BlockingFunction,
+  CloudFunction,
+  Event,
+  EventContext,
+  makeCloudFunction,
+  optionsToEndpoint,
+} from '../cloud-functions';
 import { DeploymentOptions } from '../function-configuration';
 
 // TODO: yank in next breaking change release
@@ -207,19 +206,6 @@ export class UserBuilder {
     const func: any = wrapHandler(eventType, wrappedHandler);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
-
-    func.__trigger = {
-      labels: {},
-      ...optionsToTrigger(this.options),
-      blockingTrigger: {
-        eventType: legacyEventType,
-        options: {
-          accessToken,
-          idToken,
-          refreshToken,
-        },
-      },
-    };
 
     func.__endpoint = {
       platform: 'gcfv1',

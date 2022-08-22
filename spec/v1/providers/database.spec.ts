@@ -21,25 +21,15 @@
 // SOFTWARE.
 
 import { expect } from 'chai';
-import { apps as appsNamespace } from '../../../src/apps';
-import * as config from '../../../src/config';
-import * as functions from '../../../src/index';
-import * as database from '../../../src/providers/database';
-import { applyChange } from '../../../src/utils';
+import { getApp, setApp } from '../../../src/common/app';
+import * as config from '../../../src/common/config';
+import { applyChange } from '../../../src/common/utilities/utils';
+import * as functions from '../../../src/v1';
+import * as database from '../../../src/v1/providers/database';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
     // TODO add tests for building a data or change based on the type of operation
-
-    function expectedTrigger(resource: string, eventType: string) {
-      return {
-        eventTrigger: {
-          resource,
-          eventType: `providers/google.firebase.database/eventTypes/${eventType}`,
-          service: 'firebaseio.com',
-        },
-      };
-    }
 
     function expectedEndpoint(resource: string, eventType: string) {
       return {
@@ -56,15 +46,14 @@ describe('Database Functions', () => {
     }
 
     before(() => {
-      (config as any).firebaseConfigCache = {
+      config.resetCache({
         databaseURL: 'https://subdomain.apse.firebasedatabase.app',
-      };
-      appsNamespace.init();
+      });
     });
 
     after(() => {
-      (config as any).firebaseConfigCache = null;
-      delete appsNamespace.singleton;
+      config.resetCache(undefined);
+      setApp(undefined);
     });
 
     it('should allow both region and runtime options to be set', () => {
@@ -77,9 +66,9 @@ describe('Database Functions', () => {
         .database.ref('/')
         .onCreate((snap) => snap);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
 
       expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -87,15 +76,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onWrite()', () => {
-      it('should return a trigger/endpoint with appropriate values', () => {
+      it('should return a endpoint with appropriate values', () => {
         const func = database.ref('foo').onWrite(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.write'
-          )
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
@@ -110,10 +92,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onWrite(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.write')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.write')
@@ -148,13 +126,6 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onCreate(() => null);
 
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.create'
-          )
-        );
-
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
             'projects/_/instances/subdomain/refs/foo',
@@ -168,10 +139,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onCreate(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.create')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.create')
@@ -207,13 +174,6 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onUpdate(() => null);
 
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.update'
-          )
-        );
-
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
             'projects/_/instances/subdomain/refs/foo',
@@ -227,10 +187,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onUpdate(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.update')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.update')
@@ -266,13 +222,6 @@ describe('Database Functions', () => {
       it('should return a trigger/endpoint with appropriate values', () => {
         const func = database.ref('foo').onDelete(() => null);
 
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger(
-            'projects/_/instances/subdomain/refs/foo',
-            'ref.delete'
-          )
-        );
-
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint(
             'projects/_/instances/subdomain/refs/foo',
@@ -286,10 +235,6 @@ describe('Database Functions', () => {
           .instance('custom')
           .ref('foo')
           .onDelete(() => null);
-
-        expect(func.__trigger).to.deep.equal(
-          expectedTrigger('projects/_/instances/custom/refs/foo', 'ref.delete')
-        );
 
         expect(func.__endpoint).to.deep.equal(
           expectedEndpoint('projects/_/instances/custom/refs/foo', 'ref.delete')
@@ -324,9 +269,8 @@ describe('Database Functions', () => {
 
   describe('handler namespace', () => {
     describe('#onWrite()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets __endpoint to undefind', () => {
         const cf = functions.handler.database.ref.onWrite(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -334,7 +278,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onWrite(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -364,9 +307,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onCreate()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets endpoint to undefined', () => {
         const cf = functions.handler.database.ref.onCreate(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -374,7 +316,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onCreate(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -403,9 +344,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onUpdate()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets endpoint to undefined', () => {
         const cf = functions.handler.database.ref.onUpdate(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -413,7 +353,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onUpdate(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -442,9 +381,8 @@ describe('Database Functions', () => {
     });
 
     describe('#onDelete()', () => {
-      it('correctly sets trigger to {}', () => {
+      it('correctly sets endpoint to undefined', () => {
         const cf = functions.handler.database.ref.onDelete(() => null);
-        expect(cf.__trigger).to.deep.equal({});
         expect(cf.__endpoint).to.be.undefined;
       });
 
@@ -452,7 +390,6 @@ describe('Database Functions', () => {
         const func = functions.handler.database.instance.ref.onDelete(
           () => null
         );
-        expect(func.__trigger).to.deep.equal({});
         expect(func.__endpoint).to.be.undefined;
       });
 
@@ -483,16 +420,10 @@ describe('Database Functions', () => {
   });
 
   describe('process.env.FIREBASE_CONFIG not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
+    it('should not throw if __endpoint is not accessed', () => {
       expect(() => database.ref('/path').onWrite(() => null)).to.not.throw(
         Error
       );
-    });
-
-    it('should throw when trigger is accessed', () => {
-      expect(
-        () => database.ref('/path').onWrite(() => null).__trigger
-      ).to.throw(Error);
     });
 
     it('should throw when endpoint is accessed', () => {
@@ -586,14 +517,13 @@ describe('Database Functions', () => {
 
   describe('DataSnapshot', () => {
     let subject: any;
-    const apps = new appsNamespace.Apps();
 
     const populate = (data: any) => {
       const [instance, path] = database.extractInstanceAndPath(
         'projects/_/instances/other-subdomain/refs/foo',
         'firebaseio-staging.com'
       );
-      subject = new database.DataSnapshot(data, path, apps.admin, instance);
+      subject = new database.DataSnapshot(data, path, getApp(), instance);
     };
 
     describe('#ref: firebase.database.Reference', () => {
@@ -639,10 +569,6 @@ describe('Database Functions', () => {
         expect(subject.val()).to.equal(0);
         populate({ myKey: 0 });
         expect(subject.val()).to.deep.equal({ myKey: 0 });
-
-        // Null values are still reported as null.
-        populate({ myKey: null });
-        expect(subject.val()).to.deep.equal({ myKey: null });
       });
 
       // Regression test: .val() was returning array of nulls when there's a property called length (BUG#37683995)
@@ -650,17 +576,51 @@ describe('Database Functions', () => {
         populate({ length: 3, foo: 'bar' });
         expect(subject.val()).to.deep.equal({ length: 3, foo: 'bar' });
       });
+
+      it('should deal with null-values appropriately', () => {
+        populate(null);
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: null });
+        expect(subject.val()).to.be.null;
+      });
+
+      it('should deal with empty object values appropriately', () => {
+        populate({});
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: {} });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: { child: null } });
+        expect(subject.val()).to.be.null;
+      });
+
+      it('should deal with empty array values appropriately', () => {
+        populate([]);
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [null] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [{}] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [{ myKey: null }] });
+        expect(subject.val()).to.be.null;
+
+        populate({ myKey: [{ myKey: {} }] });
+        expect(subject.val()).to.be.null;
+      });
     });
 
     describe('#child(): DataSnapshot', () => {
       it('should work with multiple calls', () => {
         populate({ a: { b: { c: 'd' } } });
-        expect(
-          subject
-            .child('a')
-            .child('b/c')
-            .val()
-        ).to.equal('d');
+        expect(subject.child('a').child('b/c').val()).to.equal('d');
       });
     });
 
@@ -676,13 +636,36 @@ describe('Database Functions', () => {
       });
 
       it('should be false for a non-existent value', () => {
-        populate({ a: { b: 'c' } });
+        populate({ a: { b: 'c', nullChild: null } });
         expect(subject.child('d').exists()).to.be.false;
+        expect(subject.child('nullChild').exists()).to.be.false;
       });
 
       it('should be false for a value pathed beyond a leaf', () => {
         populate({ a: { b: 'c' } });
         expect(subject.child('a/b/c').exists()).to.be.false;
+      });
+
+      it('should be false for an empty object value', () => {
+        populate({ a: {} });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: { child: null } });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: { child: {} } });
+        expect(subject.child('a').exists()).to.be.false;
+      });
+
+      it('should be false for an empty array value', () => {
+        populate({ a: [] });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: [null] });
+        expect(subject.child('a').exists()).to.be.false;
+
+        populate({ a: [{}] });
+        expect(subject.child('a').exists()).to.be.false;
       });
     });
 
@@ -712,6 +695,17 @@ describe('Database Functions', () => {
 
         expect(subject.forEach(counter)).to.equal(false);
         expect(count).to.eq(0);
+
+        populate({
+          a: 'foo',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        count = 0;
+
+        expect(subject.forEach(counter)).to.equal(false);
+        expect(count).to.eq(1);
       });
 
       it('should cancel further enumeration if callback returns true', () => {
@@ -751,13 +745,51 @@ describe('Database Functions', () => {
 
     describe('#numChildren()', () => {
       it('should be key count for objects', () => {
-        populate({ a: 'b', c: 'd' });
+        populate({
+          a: 'b',
+          c: 'd',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(subject.numChildren()).to.eq(2);
       });
 
       it('should be 0 for non-objects', () => {
         populate(23);
         expect(subject.numChildren()).to.eq(0);
+
+        populate({
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.numChildren()).to.eq(0);
+      });
+    });
+
+    describe('#hasChildren()', () => {
+      it('should true for objects', () => {
+        populate({
+          a: 'b',
+          c: 'd',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.hasChildren()).to.be.true;
+      });
+
+      it('should be false for non-objects', () => {
+        populate(23);
+        expect(subject.hasChildren()).to.be.false;
+
+        populate({
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.hasChildren()).to.be.false;
       });
     });
 
@@ -769,7 +801,17 @@ describe('Database Functions', () => {
       });
 
       it('should return false if a child is missing', () => {
-        populate({ a: 'b' });
+        populate({
+          a: 'b',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
+        expect(subject.hasChild('c')).to.be.false;
+        expect(subject.hasChild('a/b')).to.be.false;
+        expect(subject.hasChild('nullChild')).to.be.false;
+        expect(subject.hasChild('emptyObjectChild')).to.be.false;
+        expect(subject.hasChild('emptyArrayChild')).to.be.false;
         expect(subject.hasChild('c')).to.be.false;
         expect(subject.hasChild('a/b')).to.be.false;
       });
@@ -788,7 +830,7 @@ describe('Database Functions', () => {
         const snapshot = new database.DataSnapshot(
           null,
           path,
-          apps.admin,
+          getApp(),
           instance
         );
         expect(snapshot.key).to.be.null;
@@ -801,11 +843,22 @@ describe('Database Functions', () => {
 
     describe('#toJSON(): Object', () => {
       it('should return the current value', () => {
-        populate({ a: 'b' });
+        populate({
+          a: 'b',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(subject.toJSON()).to.deep.equal(subject.val());
       });
+
       it('should be stringifyable', () => {
-        populate({ a: 'b' });
+        populate({
+          a: 'b',
+          nullChild: null,
+          emptyObjectChild: {},
+          emptyArrayChild: [],
+        });
         expect(JSON.stringify(subject)).to.deep.equal('{"a":"b"}');
       });
     });
