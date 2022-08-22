@@ -14,7 +14,7 @@ import {
   ApiModel,
 } from 'api-extractor-model-me';
 import { ModuleSource } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
-import {FileSystem, PackageName} from '@rushstack/node-core-library';
+import { FileSystem, PackageName } from '@rushstack/node-core-library';
 import yargs from 'yargs';
 import { writeFileSync } from 'fs';
 import { resolve, join } from 'path';
@@ -102,7 +102,7 @@ export function generateToc({
   const apiModel: ApiModel = new ApiModel();
 
   for (const filename of FileSystem.readFolder(inputFolder)) {
-    console.log(filename)
+    console.log(filename);
     if (filename.match(/\.api\.json$/i)) {
       console.log(`Reading ${filename}`);
       const filenamePath = join(inputFolder, filename);
@@ -149,7 +149,8 @@ function generateTocRecursively(
         member.kind === ApiItemKind.Namespace
       ) {
         const fileName = getFilenameForApiItem(member, addFileNameSuffix);
-        const title = member.displayName[0].toUpperCase() + member.displayName.slice(1);
+        const title =
+          member.displayName[0].toUpperCase() + member.displayName.slice(1);
         entryPointToc.section!.push({
           title,
           path: `${g3Path}/${fileName}`,
@@ -167,22 +168,27 @@ function generateTocRecursively(
 }
 
 const { input, output, path } = yargs(process.argv.slice(2))
-    .option('input', {
-      alias: 'i',
-      describe: 'input folder containing the *.api.json files to be processed.',
-      default: './input',
-    })
-    .option('output', {
-      alias: 'o',
-      describe: 'destination for the generated toc content.',
-      default: './toc',
-    })
-    .option('path', {
-      alias: 'p',
-      describe: 'specifies the path where the reference docs resides (e.g. g3)',
-      default: '/',
-    })
-    .help().argv;
+  .option('input', {
+    alias: 'i',
+    describe: 'input folder containing the *.api.json files to be processed.',
+    default: './input',
+  })
+  .option('output', {
+    alias: 'o',
+    describe: 'destination for the generated toc content.',
+    default: './toc',
+  })
+  .option('path', {
+    alias: 'p',
+    describe: 'specifies the path where the reference docs resides (e.g. g3)',
+    default: '/',
+  })
+  .help().argv;
 
 FileSystem.ensureFolder(output);
-generateToc({ inputFolder: input, g3Path: path, outputFolder: output, addFileNameSuffix: false });
+generateToc({
+  inputFolder: input,
+  g3Path: path,
+  outputFolder: output,
+  addFileNameSuffix: false,
+});
