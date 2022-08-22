@@ -102,9 +102,7 @@ export function generateToc({
   const apiModel: ApiModel = new ApiModel();
 
   for (const filename of FileSystem.readFolder(inputFolder)) {
-    console.log(filename);
     if (filename.match(/\.api\.json$/i)) {
-      console.log(`Reading ${filename}`);
       const filenamePath = join(inputFolder, filename);
       apiModel.loadPackage(filenamePath);
     }
