@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 export function dateToTimestampProto(timeString?: string) {
-  if (typeof timeString === 'undefined') {
+  if (typeof timeString === "undefined") {
     return;
   }
   const date = new Date(timeString);

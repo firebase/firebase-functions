@@ -8,6 +8,7 @@
   },
   "functions": {
     "source": "functions",
-    "codebase": "integration-tests"
+    "codebase": "integration-tests",
+    "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
   }
 }

@@ -10,7 +10,5 @@
  * @param x A value of type `never`.
  */
 export function assertNever(x: never): never {
-  throw new Error(
-    `Unhandled discriminated union member: ${JSON.stringify(x)}.`
-  );
+  throw new Error(`Unhandled discriminated union member: ${JSON.stringify(x)}.`);
 }

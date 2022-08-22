@@ -20,24 +20,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { pathParts } from './path';
+import { pathParts } from "./path";
 
 /** https://cloud.google.com/eventarc/docs/path-patterns */
 
 /** @hidden */
-const WILDCARD_CAPTURE_REGEX = new RegExp('{[^/{}]+}', 'g');
+const WILDCARD_CAPTURE_REGEX = new RegExp("{[^/{}]+}", "g");
 
 /** @internal */
 export function trimParam(param: string) {
   const paramNoBraces = param.slice(1, -1);
-  if (paramNoBraces.includes('=')) {
-    return paramNoBraces.slice(0, paramNoBraces.indexOf('='));
+  if (paramNoBraces.includes("=")) {
+    return paramNoBraces.slice(0, paramNoBraces.indexOf("="));
   }
   return paramNoBraces;
 }
 
 /** @hidden */
-type SegmentName = 'segment' | 'single-capture' | 'multi-capture';
+type SegmentName = "segment" | "single-capture" | "multi-capture";
 
 /** @hidden */
 interface PathSegment {
@@ -50,22 +50,22 @@ interface PathSegment {
 
 /** @hidden */
 class Segment implements PathSegment {
-  readonly name = 'segment';
+  readonly name = "segment";
   readonly trimmed: string;
   constructor(readonly value: string) {
     this.trimmed = value;
   }
   isSingleSegmentWildcard(): boolean {
-    return this.value.includes('*') && !this.isMultiSegmentWildcard();
+    return this.value.includes("*") && !this.isMultiSegmentWildcard();
   }
   isMultiSegmentWildcard(): boolean {
-    return this.value.includes('**');
+    return this.value.includes("**");
   }
 }
 
 /** @hidden */
 class SingleCaptureSegment implements PathSegment {
-  readonly name = 'single-capture';
+  readonly name = "single-capture";
   readonly trimmed: string;
   constructor(readonly value: string) {
     this.trimmed = trimParam(value);
@@ -80,7 +80,7 @@ class SingleCaptureSegment implements PathSegment {
 
 /** @hidden */
 class MultiCaptureSegment implements PathSegment {
-  readonly name = 'multi-capture';
+  readonly name = "multi-capture";
   readonly trimmed: string;
   constructor(readonly value: string) {
     this.trimmed = trimParam(value);
@@ -99,7 +99,10 @@ class MultiCaptureSegment implements PathSegment {
  */
 export class PathPattern {
   /** @throws on validation error */
-  static compile(rawPath: string) {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  static compile(rawPath: string) {
+    return undefined;
+  }
   private segments: PathSegment[];
 
   constructor(private raw: string) {
@@ -114,15 +117,13 @@ export class PathPattern {
   // If false, we don't need to use pathPattern as our eventarc match type.
   hasWildcards(): boolean {
     return this.segments.some(
-      (segment) =>
-        segment.isSingleSegmentWildcard() || segment.isMultiSegmentWildcard()
+      (segment) => segment.isSingleSegmentWildcard() || segment.isMultiSegmentWildcard()
     );
   }
 
   hasCaptures(): boolean {
     return this.segments.some(
-      (segment) =>
-        segment.name == 'single-capture' || segment.name === 'multi-capture'
+      (segment) => segment.name === "single-capture" || segment.name === "multi-capture"
     );
   }
 
@@ -142,12 +143,10 @@ export class PathPattern {
       const segment = this.segments[segmentNdx];
       const remainingSegments = this.segments.length - 1 - segmentNdx;
       const nextPathNdx = pathSegments.length - remainingSegments;
-      if (segment.name === 'single-capture') {
+      if (segment.name === "single-capture") {
         matches[segment.trimmed] = pathSegments[pathNdx];
-      } else if (segment.name === 'multi-capture') {
-        matches[segment.trimmed] = pathSegments
-          .slice(pathNdx, nextPathNdx)
-          .join('/');
+      } else if (segment.name === "multi-capture") {
+        matches[segment.trimmed] = pathSegments.slice(pathNdx, nextPathNdx).join("/");
       }
       pathNdx = segment.isMultiSegmentWildcard() ? nextPathNdx : pathNdx + 1;
     }
@@ -161,7 +160,7 @@ export class PathPattern {
       let segment: PathSegment;
       const capture = part.match(WILDCARD_CAPTURE_REGEX);
       if (capture && capture.length === 1) {
-        segment = part.includes('**')
+        segment = part.includes("**")
           ? new MultiCaptureSegment(part)
           : new SingleCaptureSegment(part);
       } else {

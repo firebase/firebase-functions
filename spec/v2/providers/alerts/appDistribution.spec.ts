@@ -97,6 +97,89 @@ describe('appDistribution', () => {
     });
   });
 
+  describe('onInAppfeedbackPublished', () => {
+    it('should create a function with alertType & appId', () => {
+      const func = appDistribution.onInAppFeedbackPublished(APPID, myHandler);
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: alerts.eventType,
+          eventFilters: {
+            ...APP_EVENT_FILTER,
+            alerttype: appDistribution.inAppFeedbackAlert,
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with opts', () => {
+      const func = appDistribution.onInAppFeedbackPublished(
+        { ...FULL_OPTIONS },
+        myHandler
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        ...FULL_ENDPOINT,
+        eventTrigger: {
+          eventType: alerts.eventType,
+          eventFilters: {
+            alerttype: appDistribution.inAppFeedbackAlert,
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with appid in opts', () => {
+      const func = appDistribution.onInAppFeedbackPublished(
+        { ...FULL_OPTIONS, appId: APPID },
+        myHandler
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        ...FULL_ENDPOINT,
+        eventTrigger: {
+          eventType: alerts.eventType,
+          eventFilters: {
+            ...APP_EVENT_FILTER,
+            alerttype: appDistribution.inAppFeedbackAlert,
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function without opts or appId', () => {
+      const func = appDistribution.onInAppFeedbackPublished(myHandler);
+
+      expect(func.__endpoint).to.deep.equal({
+        platform: 'gcfv2',
+        labels: {},
+        eventTrigger: {
+          eventType: alerts.eventType,
+          eventFilters: {
+            alerttype: appDistribution.inAppFeedbackAlert,
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it('should create a function with a run method', () => {
+      const func = appDistribution.onInAppFeedbackPublished(
+        APPID,
+        (event) => event
+      );
+
+      const res = func.run('input' as any);
+
+      expect(res).to.equal('input');
+    });
+  });
+
   describe('getOptsAndApp', () => {
     it('should parse a string', () => {
       const [opts, appId] = appDistribution.getOptsAndApp(APPID);

@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 function isObject(obj: any): boolean {
-  return typeof obj === 'object' && !!obj;
+  return typeof obj === "object" && !!obj;
 }
 
 /** @hidden */
@@ -34,10 +34,7 @@ export function applyChange(src: any, dest: any) {
   return merge(src, dest);
 }
 
-function merge(
-  src: Record<string, any>,
-  dest: Record<string, any>
-): Record<string, any> {
+function merge(src: Record<string, any>, dest: Record<string, any>): Record<string, any> {
   const res: Record<string, any> = {};
   const keys = new Set([...Object.keys(src), ...Object.keys(dest)]);
 

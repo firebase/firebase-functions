@@ -20,13 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as change from '../../src/common/change';
+import { expect } from "chai";
+import * as change from "../../src/common/change";
 
-describe('Change', () => {
-  describe('applyFieldMask', () => {
+describe("Change", () => {
+  describe("applyFieldMask", () => {
     const after = {
-      foo: 'bar',
+      foo: "bar",
       num: 2,
       obj: {
         a: 1,
@@ -34,47 +34,41 @@ describe('Change', () => {
       },
     };
 
-    it('should handle deleted values', () => {
-      const sparseBefore = { baz: 'qux' };
-      const fieldMask = 'baz';
-      expect(
-        change.applyFieldMask(sparseBefore, after, fieldMask)
-      ).to.deep.equal({
-        foo: 'bar',
+    it("should handle deleted values", () => {
+      const sparseBefore = { baz: "qux" };
+      const fieldMask = "baz";
+      expect(change.applyFieldMask(sparseBefore, after, fieldMask)).to.deep.equal({
+        foo: "bar",
         num: 2,
         obj: {
           a: 1,
           b: 2,
         },
-        baz: 'qux',
+        baz: "qux",
       });
     });
 
-    it('should handle created values', () => {
+    it("should handle created values", () => {
       const sparseBefore = {};
-      const fieldMask = 'num,obj.a';
-      expect(
-        change.applyFieldMask(sparseBefore, after, fieldMask)
-      ).to.deep.equal({
-        foo: 'bar',
+      const fieldMask = "num,obj.a";
+      expect(change.applyFieldMask(sparseBefore, after, fieldMask)).to.deep.equal({
+        foo: "bar",
         obj: {
           b: 2,
         },
       });
     });
 
-    it('should handle mutated values', () => {
+    it("should handle mutated values", () => {
       const sparseBefore = {
         num: 3,
         obj: {
           a: 3,
         },
       };
-      const fieldMask = 'num,obj.a';
-      expect(
-        change.applyFieldMask(sparseBefore, after, fieldMask)
-      ).to.deep.equal({
-        foo: 'bar',
+      const fieldMask = "num,obj.a";
+      expect(change.applyFieldMask(sparseBefore, after, fieldMask)).to.deep.equal({
+        foo: "bar",
         num: 3,
         obj: {
           a: 3,
@@ -84,36 +78,36 @@ describe('Change', () => {
     });
   });
 
-  describe('fromJSON', () => {
-    it('should create a Change object with a `before` and `after`', () => {
+  describe("fromJSON", () => {
+    it("should create a Change object with a `before` and `after`", () => {
       const created = change.Change.fromJSON<any>({
-        before: { foo: 'bar' },
-        after: { foo: 'faz' },
+        before: { foo: "bar" },
+        after: { foo: "faz" },
       });
       expect(created instanceof change.Change).to.equal(true);
-      expect(created.before).to.deep.equal({ foo: 'bar' });
-      expect(created.after).to.deep.equal({ foo: 'faz' });
+      expect(created.before).to.deep.equal({ foo: "bar" });
+      expect(created.after).to.deep.equal({ foo: "faz" });
     });
 
-    it('should apply the customizer function to `before` and `after`', () => {
+    it("should apply the customizer function to `before` and `after`", () => {
       function customizer<T>(input: any) {
-        input.another = 'value';
+        input.another = "value";
         return input as T;
       }
       const created = change.Change.fromJSON<object>(
         {
-          before: { foo: 'bar' },
-          after: { foo: 'faz' },
+          before: { foo: "bar" },
+          after: { foo: "faz" },
         },
         customizer
       );
       expect(created.before).to.deep.equal({
-        foo: 'bar',
-        another: 'value',
+        foo: "bar",
+        another: "value",
       });
       expect(created.after).to.deep.equal({
-        foo: 'faz',
-        another: 'value',
+        foo: "faz",
+        another: "value",
       });
     });
   });
