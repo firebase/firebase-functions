@@ -1,0 +1,11 @@
+coverage
+dev
+lib
+node_modules
+docgen
+v1
+v2
+logger
+dist
+spec/fixtures
+scripts/**/*.js

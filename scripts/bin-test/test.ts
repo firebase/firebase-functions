@@ -1,12 +1,12 @@
-import * as subprocess from 'child_process';
-import * as path from 'path';
-import { promisify } from 'util';
+import * as subprocess from "child_process";
+import * as path from "path";
+import { promisify } from "util";
 
-import { expect } from 'chai';
-import * as yaml from 'js-yaml';
-import fetch from 'node-fetch';
-import * as portfinder from 'portfinder';
-import * as semver from 'semver';
+import { expect } from "chai";
+import * as yaml from "js-yaml";
+import fetch from "node-fetch";
+import * as portfinder from "portfinder";
+import * as semver from "semver";
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
@@ -16,31 +16,31 @@ const TIMEOUT_S = 1_000;
 const BASE_STACK = {
   endpoints: {
     v1http: {
-      platform: 'gcfv1',
-      entryPoint: 'v1http',
+      platform: "gcfv1",
+      entryPoint: "v1http",
       httpsTrigger: {},
     },
     v1callable: {
-      platform: 'gcfv1',
-      entryPoint: 'v1callable',
+      platform: "gcfv1",
+      entryPoint: "v1callable",
       labels: {},
       callableTrigger: {},
     },
     v2http: {
-      platform: 'gcfv2',
-      entryPoint: 'v2http',
+      platform: "gcfv2",
+      entryPoint: "v2http",
       labels: {},
       httpsTrigger: {},
     },
     v2callable: {
-      platform: 'gcfv2',
-      entryPoint: 'v2callable',
+      platform: "gcfv2",
+      entryPoint: "v2callable",
       labels: {},
       callableTrigger: {},
     },
   },
   requiredAPIs: [],
-  specVersion: 'v1alpha1',
+  specVersion: "v1alpha1",
 };
 
 interface Testcase {
@@ -61,11 +61,11 @@ async function retryUntil(
   };
   const timedOut = new Promise<never>((resolve, reject) => {
     setTimeout(() => {
-      reject(new Error('retry timeout'));
+      reject(new Error("retry timeout"));
     }, timeoutMs);
   });
   const retry = (async () => {
-    while (true) {
+    for (;;) {
       if (await fn()) {
         break;
       }
@@ -82,25 +82,25 @@ async function startBin(
   const getPort = promisify(portfinder.getPort) as () => Promise<number>;
   const port = await getPort();
 
-  const proc = subprocess.spawn('./node_modules/.bin/firebase-functions', [], {
+  const proc = subprocess.spawn("./node_modules/.bin/firebase-functions", [], {
     cwd: path.resolve(tc.modulePath),
     env: {
       PATH: process.env.PATH,
-      GLCOUD_PROJECT: 'test-project',
-      PORT: port,
-      FUNCTIONS_CONTROL_API: 'true',
+      GLCOUD_PROJECT: "test-project",
+      PORT: port.toString(),
+      FUNCTIONS_CONTROL_API: "true",
     },
   });
 
   if (!proc) {
-    throw new Error('Failed to start firebase functions');
+    throw new Error("Failed to start firebase functions");
   }
 
   await retryUntil(async () => {
     try {
       await fetch(`http://localhost:${port}/__/functions.yaml`);
     } catch (e) {
-      if (e?.code === 'ECONNREFUSED') {
+      if (e?.code === "ECONNREFUSED") {
         return false;
       }
       throw e;
@@ -109,12 +109,12 @@ async function startBin(
   }, TIMEOUT_M);
 
   if (debug) {
-    proc.stdout?.on('data', (data: unknown) => {
-      console.log(`[${tc.name} stdout] ` + data);
+    proc.stdout?.on("data", (data: unknown) => {
+      console.log(`[${tc.name} stdout] ${data}`);
     });
 
-    proc.stderr?.on('data', (data: unknown) => {
-      console.log(`[${tc.name} stderr] ` + data);
+    proc.stderr?.on("data", (data: unknown) => {
+      console.log(`[${tc.name} stderr] ${data}`);
     });
   }
 
@@ -127,16 +127,16 @@ async function startBin(
           process.kill(proc.pid, 0);
         } catch {
           // process.kill w/ signal 0 will throw an error if the pid no longer exists.
-          return true;
+          return Promise.resolve(true);
         }
-        return false;
+        return Promise.resolve(false);
       }, TIMEOUT_M);
     },
   };
 }
 
-describe('functions.yaml', () => {
-  async function runTests(tc: Testcase) {
+describe("functions.yaml", () => {
+  function runTests(tc: Testcase) {
     let port: number;
     let cleanup: () => Promise<void>;
 
@@ -150,46 +150,46 @@ describe('functions.yaml', () => {
       await cleanup?.();
     });
 
-    it('functions.yaml returns expected Manifest', async () => {
+    it("functions.yaml returns expected Manifest", async () => {
       const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
       const text = await res.text();
       let parsed: any;
       try {
         parsed = yaml.load(text);
       } catch (err) {
-        throw new Error('Failed to parse functions.yaml ' + err);
+        throw new Error(`Failed to parse functions.yaml: ${err}`);
       }
       expect(parsed).to.be.deep.equal(tc.expected);
     });
   }
 
-  describe('commonjs', () => {
+  describe("commonjs", () => {
     const testcases: Testcase[] = [
       {
-        name: 'basic',
-        modulePath: './scripts/bin-test/sources/commonjs',
+        name: "basic",
+        modulePath: "./scripts/bin-test/sources/commonjs",
         expected: BASE_STACK,
       },
       {
-        name: 'has main',
-        modulePath: './scripts/bin-test/sources/commonjs-main',
+        name: "has main",
+        modulePath: "./scripts/bin-test/sources/commonjs-main",
         expected: BASE_STACK,
       },
       {
-        name: 'grouped',
-        modulePath: './scripts/bin-test/sources/commonjs-grouped',
+        name: "grouped",
+        modulePath: "./scripts/bin-test/sources/commonjs-grouped",
         expected: {
           ...BASE_STACK,
           endpoints: {
             ...BASE_STACK.endpoints,
-            'g1-groupedhttp': {
-              platform: 'gcfv1',
-              entryPoint: 'g1.groupedhttp',
+            "g1-groupedhttp": {
+              platform: "gcfv1",
+              entryPoint: "g1.groupedhttp",
               httpsTrigger: {},
             },
-            'g1-groupedcallable': {
-              platform: 'gcfv1',
-              entryPoint: 'g1.groupedcallable',
+            "g1-groupedcallable": {
+              platform: "gcfv1",
+              entryPoint: "g1.groupedcallable",
               labels: {},
               callableTrigger: {},
             },
@@ -199,36 +199,36 @@ describe('functions.yaml', () => {
     ];
 
     for (const tc of testcases) {
-      describe(tc.name, async () => {
-        await runTests(tc);
+      describe(tc.name, () => {
+        runTests(tc);
       });
     }
   }).timeout(TIMEOUT_L);
 
-  if (semver.gt(process.versions.node, '13.2.0')) {
-    describe('esm', () => {
+  if (semver.gt(process.versions.node, "13.2.0")) {
+    describe("esm", () => {
       const testcases: Testcase[] = [
         {
-          name: 'basic',
-          modulePath: './scripts/bin-test/sources/esm',
+          name: "basic",
+          modulePath: "./scripts/bin-test/sources/esm",
           expected: BASE_STACK,
         },
         {
-          name: 'with main',
+          name: "with main",
 
-          modulePath: './scripts/bin-test/sources/esm-main',
+          modulePath: "./scripts/bin-test/sources/esm-main",
           expected: BASE_STACK,
         },
         {
-          name: 'with .m extension',
-          modulePath: './scripts/bin-test/sources/esm-ext',
+          name: "with .m extension",
+          modulePath: "./scripts/bin-test/sources/esm-ext",
           expected: BASE_STACK,
         },
       ];
 
       for (const tc of testcases) {
-        describe(tc.name, async () => {
-          await runTests(tc);
+        describe(tc.name, () => {
+          runTests(tc);
         });
       }
     }).timeout(TIMEOUT_L);

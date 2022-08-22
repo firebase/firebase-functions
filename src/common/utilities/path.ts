@@ -5,9 +5,9 @@
  */
 export function normalizePath(path: string): string {
   if (!path) {
-    return '';
+    return "";
   }
-  return path.replace(/^\//, '').replace(/\/$/, '');
+  return path.replace(/^\//, "").replace(/\/$/, "");
 }
 
 /**
@@ -16,10 +16,10 @@ export function normalizePath(path: string): string {
  * @param path A path to split, in POSIX format.
  */
 export function pathParts(path: string): string[] {
-  if (!path || path === '' || path === '/') {
+  if (!path || path === "" || path === "/") {
     return [];
   }
-  return normalizePath(path).split('/');
+  return normalizePath(path).split("/");
 }
 
 /**
@@ -29,5 +29,5 @@ export function pathParts(path: string): string[] {
  * @param child A second path segment, in POSIX format.
  */
 export function joinPath(base: string, child: string) {
-  return pathParts(base).concat(pathParts(child)).join('/');
+  return pathParts(base).concat(pathParts(child)).join("/");
 }
