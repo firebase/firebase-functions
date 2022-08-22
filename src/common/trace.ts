@@ -1,13 +1,13 @@
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from "async_hooks";
 
 /* @internal */
 export const traceContext = new AsyncLocalStorage<TraceParent>();
 
 const TRACE_PARENT_REGEX = new RegExp(
-  '^(?<version>[\\da-f]{2})-' +
-    '(?<traceId>[\\da-f]{32})-' +
-    '(?<parentId>[\\da-f]{16})-' +
-    '(?<flag>[\\da-f]{2})$'
+  "^(?<version>[\\da-f]{2})-" +
+    "(?<traceId>[\\da-f]{32})-" +
+    "(?<parentId>[\\da-f]{16})-" +
+    "(?<flag>[\\da-f]{2})$"
 );
 
 /* @internal */
@@ -20,7 +20,7 @@ export interface TraceParent {
 
 /* @internal */
 export function getTraceParent(carrier: any): TraceParent | undefined {
-  const traceParent = carrier?.['traceparent'];
+  const traceParent = carrier?.["traceparent"];
   if (!traceParent) {
     return;
   }
