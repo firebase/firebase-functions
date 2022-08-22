@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { App, initializeApp } from "firebase-admin/app";
 import * as sinon from "sinon";
+import * as nock from "nock";
 
 import { getApp, setApp } from "../../../src/common/app";
 import * as debug from "../../../src/common/debug";
@@ -283,255 +284,20 @@ describe("onCallHandler", () => {
     });
   });
 
-  it("should handle auth", async () => {
-    const mock = mockFetchPublicKeys();
-    const projectId = getApp().options.projectId;
-    const idToken = generateIdToken(projectId);
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", {
-        authorization: "Bearer " + idToken,
-      }),
-      expectedData: null,
-      callableFunction: (data, context) => {
-        checkAuthContext(context, projectId, mocks.user_id);
-        return null;
-      },
-      callableFunction2: (request) => {
-        checkAuthContext(request, projectId, mocks.user_id);
-        return null;
-      },
-      expectedHttpResponse: {
-        status: 200,
-        headers: expectedResponseHeaders,
-        body: { result: null },
-      },
-    });
-    mock.done();
-  });
+  describe("auth", () => {
+    let mock: nock.Scope;
 
-  it("should reject bad auth", async () => {
-    const projectId = getApp().options.projectId;
-    const idToken = generateUnsignedIdToken(projectId);
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", {
-        authorization: "Bearer " + idToken,
-      }),
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      expectedHttpResponse: {
-        status: 401,
-        headers: expectedResponseHeaders,
-        body: {
-          error: {
-            status: "UNAUTHENTICATED",
-            message: "Unauthenticated",
-          },
-        },
-      },
-    });
-  });
-
-  it("should handle AppCheck token", async () => {
-    const mock = mockFetchAppCheckPublicJwks();
-    const projectId = getApp().options.projectId;
-    const appId = "123:web:abc";
-    const appCheckToken = generateAppCheckToken(projectId, appId);
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", { appCheckToken }),
-      expectedData: null,
-      callableFunction: (data, context) => {
-        checkAppCheckContext(context, projectId, appId);
-        return null;
-      },
-      callableFunction2: (request) => {
-        checkAppCheckContext(request, projectId, appId);
-        return null;
-      },
-      expectedHttpResponse: {
-        status: 200,
-        headers: expectedResponseHeaders,
-        body: { result: null },
-      },
-    });
-    expect(mock.isDone()).to.be.true;
-  });
-
-  it("should reject bad AppCheck token", async () => {
-    const projectId = getApp().options.projectId;
-    const appId = "123:web:abc";
-    const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", { appCheckToken }),
-      callableOption: {
-        cors: { origin: true, methods: "POST" },
-        enforceAppCheck: true,
-      },
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      expectedHttpResponse: {
-        status: 401,
-        headers: expectedResponseHeaders,
-        body: {
-          error: {
-            status: "UNAUTHENTICATED",
-            message: "Unauthenticated",
-          },
-        },
-      },
-    });
-  });
-
-  it("should handle bad AppCheck token with enforcement disabled", async () => {
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", {
-        appCheckToken: "FAKE",
-      }),
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      callableOption: {
-        cors: { origin: true, methods: "POST" },
-        enforceAppCheck: false,
-      },
-      expectedHttpResponse: {
-        status: 200,
-        headers: expectedResponseHeaders,
-        body: { result: null },
-      },
-    });
-  });
-
-  it("should handle bad AppCheck token with enforcement enabled", async () => {
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", {
-        appCheckToken: "FAKE",
-      }),
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      callableOption: {
-        cors: { origin: true, methods: "POST" },
-        enforceAppCheck: true,
-      },
-      expectedHttpResponse: {
-        status: 401,
-        headers: expectedResponseHeaders,
-        body: {
-          error: {
-            message: "Unauthenticated",
-            status: "UNAUTHENTICATED",
-          },
-        },
-      },
-    });
-  });
-
-  it("should handle no AppCheck token with enforcement enabled", async () => {
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", {
-        appCheckToken: "MISSING",
-      }),
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      callableOption: {
-        cors: { origin: true, methods: "POST" },
-        enforceAppCheck: true,
-      },
-      expectedHttpResponse: {
-        status: 401,
-        headers: expectedResponseHeaders,
-        body: {
-          error: {
-            message: "Unauthenticated",
-            status: "UNAUTHENTICATED",
-          },
-        },
-      },
-    });
-  });
-
-  it("should handle instance id", async () => {
-    await runCallableTest({
-      httpRequest: mockRequest(null, "application/json", {
-        instanceIdToken: "iid-token",
-      }),
-      expectedData: null,
-      callableFunction: (data, context) => {
-        expect(context.auth).to.be.undefined;
-        expect(context.instanceIdToken).to.equal("iid-token");
-        return null;
-      },
-      callableFunction2: (request) => {
-        expect(request.auth).to.be.undefined;
-        expect(request.instanceIdToken).to.equal("iid-token");
-        return null;
-      },
-      expectedHttpResponse: {
-        status: 200,
-        headers: expectedResponseHeaders,
-        body: { result: null },
-      },
-    });
-  });
-
-  it("should expose raw request", async () => {
-    const mockReq = mockRequest(null, "application/json", {});
-    await runCallableTest({
-      httpRequest: mockReq,
-      expectedData: null,
-      callableFunction: (data, context) => {
-        expect(context.rawRequest).to.not.be.undefined;
-        expect(context.rawRequest).to.equal(mockReq);
-        return null;
-      },
-      callableFunction2: (request) => {
-        expect(request.rawRequest).to.not.be.undefined;
-        expect(request.rawRequest).to.equal(mockReq);
-        return null;
-      },
-      expectedHttpResponse: {
-        status: 200,
-        headers: expectedResponseHeaders,
-        body: { result: null },
-      },
-    });
-  });
-
-  describe("skip token verification debug mode support", () => {
     before(() => {
-      sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
+      mock = mockFetchPublicKeys();
     });
 
     after(() => {
-      sinon.verifyAndRestore();
+      mock.done();
     });
 
-    it("should skip auth token verification", async () => {
+    it("should handle auth", async () => {
       const projectId = getApp().options.projectId;
-      const idToken = generateUnsignedIdToken(projectId);
+      const idToken = generateIdToken(projectId);
       await runCallableTest({
         httpRequest: mockRequest(null, "application/json", {
           authorization: "Bearer " + idToken,
@@ -553,13 +319,108 @@ describe("onCallHandler", () => {
       });
     });
 
-    it("should skip app check token verification", async () => {
+    it("should handle auth - case insensitive", async () => {
+      const projectId = getApp().options.projectId;
+      const idToken = generateIdToken(projectId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "bearer " + idToken,
+        }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          checkAuthContext(context, projectId, mocks.user_id);
+          return null;
+        },
+        callableFunction2: (request) => {
+          checkAuthContext(request, projectId, mocks.user_id);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should reject auth with incorrect authorization header", async () => {
+      const projectId = getApp().options.projectId;
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Beaver heyyall",
+        }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          checkAuthContext(context, projectId, mocks.user_id);
+          return null;
+        },
+        callableFunction2: (request) => {
+          checkAuthContext(request, projectId, mocks.user_id);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              status: "UNAUTHENTICATED",
+              message: "Unauthenticated",
+            },
+          },
+        },
+      });
+    });
+
+    it("should reject bad auth with bad signature", async () => {
+      const projectId = getApp().options.projectId;
+      const idToken = generateUnsignedIdToken(projectId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
+        }),
+        expectedData: null,
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              status: "UNAUTHENTICATED",
+              message: "Unauthenticated",
+            },
+          },
+        },
+      });
+    });
+  });
+
+  describe("AppCheck", () => {
+    let mock: nock.Scope;
+
+    before(() => {
+      mock = mockFetchAppCheckPublicJwks();
+    });
+
+    after(() => {
+      mock.done();
+    });
+
+    it("should handle AppCheck token", async () => {
       const projectId = getApp().options.projectId;
       const appId = "123:web:abc";
-      const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
+      const appCheckToken = generateAppCheckToken(projectId, appId);
       await runCallableTest({
         httpRequest: mockRequest(null, "application/json", { appCheckToken }),
         expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAppCheck: true,
+        },
         callableFunction: (data, context) => {
           checkAppCheckContext(context, projectId, appId);
           return null;
@@ -573,6 +434,224 @@ describe("onCallHandler", () => {
           headers: expectedResponseHeaders,
           body: { result: null },
         },
+      });
+    });
+
+    it("should reject bad AppCheck token", async () => {
+      const projectId = getApp().options.projectId;
+      const appId = "123:web:abc";
+      const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", { appCheckToken }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAppCheck: true,
+        },
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              status: "UNAUTHENTICATED",
+              message: "Unauthenticated",
+            },
+          },
+        },
+      });
+    });
+
+    it("should handle bad AppCheck token with enforcement disabled", async () => {
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          appCheckToken: "FAKE",
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAppCheck: false,
+        },
+        callableFunction: (data, context) => {
+          expect(context.app).to.be.undefined;
+          return;
+        },
+        callableFunction2: (request) => {
+          expect(request.app).to.be.undefined;
+          return;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should handle bad AppCheck token with enforcement enabled", async () => {
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          appCheckToken: "FAKE",
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAppCheck: true,
+        },
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
+            },
+          },
+        },
+      });
+    });
+
+    it("should handle no AppCheck token with enforcement enabled", async () => {
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          appCheckToken: "MISSING",
+        }),
+        expectedData: null,
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAppCheck: true,
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
+            },
+          },
+        },
+      });
+    });
+
+    it("should handle instance id", async () => {
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          instanceIdToken: "iid-token",
+        }),
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.auth).to.be.undefined;
+          expect(context.instanceIdToken).to.equal("iid-token");
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.auth).to.be.undefined;
+          expect(request.instanceIdToken).to.equal("iid-token");
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should expose raw request", async () => {
+      const mockReq = mockRequest(null, "application/json", {});
+      await runCallableTest({
+        httpRequest: mockReq,
+        expectedData: null,
+        callableFunction: (data, context) => {
+          expect(context.rawRequest).to.not.be.undefined;
+          expect(context.rawRequest).to.equal(mockReq);
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.rawRequest).to.not.be.undefined;
+          expect(request.rawRequest).to.equal(mockReq);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    describe("skip token verification debug mode support", () => {
+      before(() => {
+        sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
+      });
+
+      after(() => {
+        sinon.verifyAndRestore();
+      });
+
+      it("should skip auth token verification", async () => {
+        const projectId = getApp().options.projectId;
+        const idToken = generateUnsignedIdToken(projectId);
+        await runCallableTest({
+          httpRequest: mockRequest(null, "application/json", {
+            authorization: "Bearer " + idToken,
+          }),
+          expectedData: null,
+          callableFunction: (data, context) => {
+            checkAuthContext(context, projectId, mocks.user_id);
+            return null;
+          },
+          callableFunction2: (request) => {
+            checkAuthContext(request, projectId, mocks.user_id);
+            return null;
+          },
+          expectedHttpResponse: {
+            status: 200,
+            headers: expectedResponseHeaders,
+            body: { result: null },
+          },
+        });
+      });
+
+      it("should skip app check token verification", async () => {
+        const projectId = getApp().options.projectId;
+        const appId = "123:web:abc";
+        const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
+        await runCallableTest({
+          httpRequest: mockRequest(null, "application/json", { appCheckToken }),
+          expectedData: null,
+          callableFunction: (data, context) => {
+            checkAppCheckContext(context, projectId, appId);
+            return null;
+          },
+          callableFunction2: (request) => {
+            checkAppCheckContext(request, projectId, appId);
+            return null;
+          },
+          expectedHttpResponse: {
+            status: 200,
+            headers: expectedResponseHeaders,
+            body: { result: null },
+          },
+        });
       });
     });
   });

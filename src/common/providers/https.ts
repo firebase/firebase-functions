@@ -578,25 +578,26 @@ export async function checkAuthToken(
   if (!authorization) {
     return "MISSING";
   }
-  const match = authorization.match(/^Bearer (.*)$/);
-  if (match) {
-    const idToken = match[1];
-    try {
-      let authToken: DecodedIdToken;
-      if (isDebugFeatureEnabled("skipTokenVerification")) {
-        authToken = unsafeDecodeIdToken(idToken);
-      } else {
-        authToken = await getAuth(getApp()).verifyIdToken(idToken);
-      }
-      ctx.auth = {
-        uid: authToken.uid,
-        token: authToken,
-      };
-      return "VALID";
-    } catch (err) {
-      logger.warn("Failed to validate auth token.", err);
-      return "INVALID";
+  const match = authorization.match(/^Bearer (.*)$/i);
+  if (!match) {
+    return "INVALID";
+  }
+  const idToken = match[1];
+  try {
+    let authToken: DecodedIdToken;
+    if (isDebugFeatureEnabled("skipTokenVerification")) {
+      authToken = unsafeDecodeIdToken(idToken);
+    } else {
+      authToken = await getAuth(getApp()).verifyIdToken(idToken);
     }
+    ctx.auth = {
+      uid: authToken.uid,
+      token: authToken,
+    };
+    return "VALID";
+  } catch (err) {
+    logger.warn("Failed to validate auth token.", err);
+    return "INVALID";
   }
 }
 
