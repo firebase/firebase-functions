@@ -26,7 +26,7 @@ export type Split<S extends string, D extends string> =
   string extends S
     ? string[]
     : // A literal empty string turns into a zero-tuple
-    S extends ''
+    S extends ""
     ? []
     : // Split the string; Head may be the empty string
     S extends `${D}${infer Tail}`
@@ -67,5 +67,5 @@ export type ParamsOf<PathPattern extends string> =
   string extends PathPattern
     ? Record<string, string>
     : {
-        [Key in Extract<Split<NullSafe<PathPattern>, '/'>[number]>]: string;
+        [Key in Extract<Split<NullSafe<PathPattern>, "/">[number]>]: string;
       };

@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
 // This method will fail to compile if value is not of the explicit parameter type.
+/* eslint-disable @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function */
 export function expectType<Type>(value: Type) {}
 export function expectNever<Type extends never>() {}
