@@ -23,15 +23,13 @@ _Please avoid double posting across multiple channels!_
 
 ```js
 // functions/index.js
-const functions = require('firebase-functions');
-const notifyUsers = require('./notify-users');
+const functions = require("firebase-functions");
+const notifyUsers = require("./notify-users");
 
-exports.newPost = functions.database
-  .ref('/posts/{postId}')
-  .onCreate((snapshot, context) => {
-    functions.logger.info('Received new post with ID:', context.params.postId);
-    return notifyUsers(snapshot.val());
-  });
+exports.newPost = functions.database.ref("/posts/{postId}").onCreate((snapshot, context) => {
+  functions.logger.info("Received new post with ID:", context.params.postId);
+  return notifyUsers(snapshot.val());
+});
 ```
 
 ## Contributing

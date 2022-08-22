@@ -1,12 +1,12 @@
-import { expect } from 'chai';
-import { App, deleteApp, initializeApp } from 'firebase-admin/app';
-import * as sinon from 'sinon';
-import * as nock from 'nock';
+import { expect } from "chai";
+import { App, initializeApp } from "firebase-admin/app";
+import * as sinon from "sinon";
+import * as nock from "nock";
 
-import { getApp, setApp } from '../../../src/common/app';
-import * as debug from '../../../src/common/debug';
-import * as https from '../../../src/common/providers/https';
-import * as mocks from '../../fixtures/credential/key.json';
+import { getApp, setApp } from "../../../src/common/app";
+import * as debug from "../../../src/common/debug";
+import * as https from "../../../src/common/providers/https";
+import * as mocks from "../../fixtures/credential/key.json";
 import {
   expectedResponseHeaders,
   generateAppCheckToken,
@@ -16,13 +16,8 @@ import {
   mockFetchAppCheckPublicJwks,
   mockFetchPublicKeys,
   mockRequest,
-} from '../../fixtures/mockrequest';
-import {
-  checkAppCheckContext,
-  checkAuthContext,
-  runHandler,
-  RunHandlerResult,
-} from '../../helper';
+} from "../../fixtures/mockrequest";
+import { checkAppCheckContext, checkAuthContext, runHandler, RunHandlerResult } from "../../helper";
 
 /**
  * A CallTest is a specification for a test of a callable function that
@@ -50,7 +45,7 @@ interface CallTest {
 // Runs a CallTest test.
 async function runCallableTest(test: CallTest): Promise<any> {
   const opts = {
-    cors: { origin: true, methods: 'POST' },
+    cors: { origin: true, methods: "POST" },
     ...test.callableOption,
   };
   const callableFunctionV1 = https.onCallHandler(opts, (data, context) => {
@@ -76,7 +71,7 @@ async function runCallableTest(test: CallTest): Promise<any> {
   expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
 }
 
-describe('onCallHandler', () => {
+describe("onCallHandler", () => {
   let app: App;
 
   before(() => {
@@ -84,47 +79,49 @@ describe('onCallHandler', () => {
       getAccessToken: () => {
         return Promise.resolve({
           expires_in: 1000,
-          access_token: 'fake',
+          access_token: "fake",
         });
       },
       getCertificate: () => {
         return {
-          projectId: 'aProjectId',
+          projectId: "aProjectId",
         };
       },
     };
-    app = initializeApp({
-      projectId: 'aProjectId',
-      credential,
-    });
+    app = initializeApp(
+      {
+        projectId: "aProjectId",
+        credential,
+      },
+      "test-app"
+    );
     setApp(app);
   });
 
   after(() => {
-    deleteApp(app);
     setApp(undefined);
   });
 
-  it('should handle success', () => {
+  it("should handle success", () => {
     return runCallableTest({
-      httpRequest: mockRequest({ foo: 'bar' }),
-      expectedData: { foo: 'bar' },
-      callableFunction: (data, context) => ({ baz: 'qux' }),
-      callableFunction2: (request) => ({ baz: 'qux' }),
+      httpRequest: mockRequest({ foo: "bar" }),
+      expectedData: { foo: "bar" },
+      callableFunction: () => ({ baz: "qux" }),
+      callableFunction2: () => ({ baz: "qux" }),
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
-        body: { result: { baz: 'qux' } },
+        body: { result: { baz: "qux" } },
       },
     });
   });
 
-  it('should handle null data and return', () => {
+  it("should handle null data and return", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => null,
-      callableFunction2: (request) => null,
+      callableFunction: () => null,
+      callableFunction2: () => null,
       expectedHttpResponse: {
         status: 200,
         headers: expectedResponseHeaders,
@@ -133,14 +130,14 @@ describe('onCallHandler', () => {
     });
   });
 
-  it('should handle void return', () => {
+  it("should handle void return", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -151,36 +148,36 @@ describe('onCallHandler', () => {
     });
   });
 
-  it('should reject bad method', () => {
+  it("should reject bad method", () => {
     const req = mockRequest(null);
-    req.method = 'GET';
+    req.method = "GET";
     return runCallableTest({
       httpRequest: req,
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
         status: 400,
         headers: expectedResponseHeaders,
         body: {
-          error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
+          error: { status: "INVALID_ARGUMENT", message: "Bad Request" },
         },
       },
     });
   });
 
-  it('should ignore charset', () => {
+  it("should ignore charset", () => {
     return runCallableTest({
-      httpRequest: mockRequest(null, 'application/json; charset=utf-8'),
+      httpRequest: mockRequest(null, "application/json; charset=utf-8"),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
@@ -191,103 +188,103 @@ describe('onCallHandler', () => {
     });
   });
 
-  it('should reject bad content type', () => {
+  it("should reject bad content type", () => {
     return runCallableTest({
-      httpRequest: mockRequest(null, 'text/plain'),
+      httpRequest: mockRequest(null, "text/plain"),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
         status: 400,
         headers: expectedResponseHeaders,
         body: {
-          error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
+          error: { status: "INVALID_ARGUMENT", message: "Bad Request" },
         },
       },
     });
   });
 
-  it('should reject extra body fields', () => {
+  it("should reject extra body fields", () => {
     const req = mockRequest(null);
-    req.body.extra = 'bad';
+    req.body.extra = "bad";
     return runCallableTest({
       httpRequest: req,
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         return;
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         return;
       },
       expectedHttpResponse: {
         status: 400,
         headers: expectedResponseHeaders,
         body: {
-          error: { status: 'INVALID_ARGUMENT', message: 'Bad Request' },
+          error: { status: "INVALID_ARGUMENT", message: "Bad Request" },
         },
       },
     });
   });
 
-  it('should handle unhandled error', () => {
+  it("should handle unhandled error", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
+      callableFunction: () => {
         throw new Error(`ceci n'est pas une error`);
       },
-      callableFunction2: (request) => {
+      callableFunction2: () => {
         throw new Error(`cece n'est pas une error`);
       },
       expectedHttpResponse: {
         status: 500,
         headers: expectedResponseHeaders,
-        body: { error: { status: 'INTERNAL', message: 'INTERNAL' } },
+        body: { error: { status: "INTERNAL", message: "INTERNAL" } },
       },
     });
   });
 
-  it('should handle unknown error status', () => {
+  it("should handle unknown error status", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
-        throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
+      callableFunction: () => {
+        throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
-      callableFunction2: (request) => {
-        throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
+      callableFunction2: () => {
+        throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
       expectedHttpResponse: {
         status: 500,
         headers: expectedResponseHeaders,
-        body: { error: { status: 'INTERNAL', message: 'INTERNAL' } },
+        body: { error: { status: "INTERNAL", message: "INTERNAL" } },
       },
     });
   });
 
-  it('should handle well-formed error', () => {
+  it("should handle well-formed error", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
       expectedData: null,
-      callableFunction: (data, context) => {
-        throw new https.HttpsError('not-found', 'i am error');
+      callableFunction: () => {
+        throw new https.HttpsError("not-found", "i am error");
       },
-      callableFunction2: (request) => {
-        throw new https.HttpsError('not-found', 'i am error');
+      callableFunction2: () => {
+        throw new https.HttpsError("not-found", "i am error");
       },
       expectedHttpResponse: {
         status: 404,
         headers: expectedResponseHeaders,
-        body: { error: { status: 'NOT_FOUND', message: 'i am error' } },
+        body: { error: { status: "NOT_FOUND", message: "i am error" } },
       },
     });
   });
 
-  describe('auth', () => {
+  describe("auth", () => {
     let mock: nock.Scope;
 
     before(() => {
@@ -298,12 +295,12 @@ describe('onCallHandler', () => {
       mock.done();
     });
 
-    it('should handle auth', async () => {
+    it("should handle auth", async () => {
       const projectId = getApp().options.projectId;
       const idToken = generateIdToken(projectId);
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          authorization: 'Bearer ' + idToken,
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
         }),
         expectedData: null,
         callableFunction: (data, context) => {
@@ -322,12 +319,12 @@ describe('onCallHandler', () => {
       });
     });
 
-    it('should handle auth - case insensitive', async () => {
+    it("should handle auth - case insensitive", async () => {
       const projectId = getApp().options.projectId;
       const idToken = generateIdToken(projectId);
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          authorization: 'bearer ' + idToken,
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "bearer " + idToken,
         }),
         expectedData: null,
         callableFunction: (data, context) => {
@@ -346,11 +343,11 @@ describe('onCallHandler', () => {
       });
     });
 
-    it('should reject auth with incorrect authorization header', async () => {
+    it("should reject auth with incorrect authorization header", async () => {
       const projectId = getApp().options.projectId;
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          authorization: 'Beaver heyyall',
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Beaver heyyall",
         }),
         expectedData: null,
         callableFunction: (data, context) => {
@@ -366,26 +363,26 @@ describe('onCallHandler', () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              status: 'UNAUTHENTICATED',
-              message: 'Unauthenticated',
+              status: "UNAUTHENTICATED",
+              message: "Unauthenticated",
             },
           },
         },
       });
     });
 
-    it('should reject bad auth with bad signature', async () => {
+    it("should reject bad auth with bad signature", async () => {
       const projectId = getApp().options.projectId;
       const idToken = generateUnsignedIdToken(projectId);
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          authorization: 'Bearer ' + idToken,
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
         }),
         expectedData: null,
-        callableFunction: (data, context) => {
+        callableFunction: () => {
           return;
         },
-        callableFunction2: (request) => {
+        callableFunction2: () => {
           return;
         },
         expectedHttpResponse: {
@@ -393,8 +390,8 @@ describe('onCallHandler', () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              status: 'UNAUTHENTICATED',
-              message: 'Unauthenticated',
+              status: "UNAUTHENTICATED",
+              message: "Unauthenticated",
             },
           },
         },
@@ -402,7 +399,7 @@ describe('onCallHandler', () => {
     });
   });
 
-  describe('AppCheck', () => {
+  describe("AppCheck", () => {
     let mock: nock.Scope;
 
     before(() => {
@@ -413,15 +410,15 @@ describe('onCallHandler', () => {
       mock.done();
     });
 
-    it('should handle AppCheck token', async () => {
+    it("should handle AppCheck token", async () => {
       const projectId = getApp().options.projectId;
-      const appId = '123:web:abc';
+      const appId = "123:web:abc";
       const appCheckToken = generateAppCheckToken(projectId, appId);
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
+        httpRequest: mockRequest(null, "application/json", { appCheckToken }),
         expectedData: null,
         callableOption: {
-          cors: { origin: true, methods: 'POST' },
+          cors: { origin: true, methods: "POST" },
           enforceAppCheck: true,
         },
         callableFunction: (data, context) => {
@@ -440,21 +437,21 @@ describe('onCallHandler', () => {
       });
     });
 
-    it('should reject bad AppCheck token', async () => {
+    it("should reject bad AppCheck token", async () => {
       const projectId = getApp().options.projectId;
-      const appId = '123:web:abc';
+      const appId = "123:web:abc";
       const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
+        httpRequest: mockRequest(null, "application/json", { appCheckToken }),
         expectedData: null,
         callableOption: {
-          cors: { origin: true, methods: 'POST' },
+          cors: { origin: true, methods: "POST" },
           enforceAppCheck: true,
         },
-        callableFunction: (data, context) => {
+        callableFunction: () => {
           return;
         },
-        callableFunction2: (request) => {
+        callableFunction2: () => {
           return;
         },
         expectedHttpResponse: {
@@ -462,22 +459,22 @@ describe('onCallHandler', () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              status: 'UNAUTHENTICATED',
-              message: 'Unauthenticated',
+              status: "UNAUTHENTICATED",
+              message: "Unauthenticated",
             },
           },
         },
       });
     });
 
-    it('should handle bad AppCheck token with enforcement disabled', async () => {
+    it("should handle bad AppCheck token with enforcement disabled", async () => {
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          appCheckToken: 'FAKE',
+        httpRequest: mockRequest(null, "application/json", {
+          appCheckToken: "FAKE",
         }),
         expectedData: null,
         callableOption: {
-          cors: { origin: true, methods: 'POST' },
+          cors: { origin: true, methods: "POST" },
           enforceAppCheck: false,
         },
         callableFunction: (data, context) => {
@@ -496,20 +493,20 @@ describe('onCallHandler', () => {
       });
     });
 
-    it('should handle bad AppCheck token with enforcement enabled', async () => {
+    it("should handle bad AppCheck token with enforcement enabled", async () => {
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          appCheckToken: 'FAKE',
+        httpRequest: mockRequest(null, "application/json", {
+          appCheckToken: "FAKE",
         }),
         expectedData: null,
         callableOption: {
-          cors: { origin: true, methods: 'POST' },
+          cors: { origin: true, methods: "POST" },
           enforceAppCheck: true,
         },
-        callableFunction: (data, context) => {
+        callableFunction: () => {
           return;
         },
-        callableFunction2: (request) => {
+        callableFunction2: () => {
           return;
         },
         expectedHttpResponse: {
@@ -517,28 +514,28 @@ describe('onCallHandler', () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              message: 'Unauthenticated',
-              status: 'UNAUTHENTICATED',
+              message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
             },
           },
         },
       });
     });
 
-    it('should handle no AppCheck token with enforcement enabled', async () => {
+    it("should handle no AppCheck token with enforcement enabled", async () => {
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          appCheckToken: 'MISSING',
+        httpRequest: mockRequest(null, "application/json", {
+          appCheckToken: "MISSING",
         }),
         expectedData: null,
-        callableFunction: (data, context) => {
+        callableFunction: () => {
           return;
         },
-        callableFunction2: (request) => {
+        callableFunction2: () => {
           return;
         },
         callableOption: {
-          cors: { origin: true, methods: 'POST' },
+          cors: { origin: true, methods: "POST" },
           enforceAppCheck: true,
         },
         expectedHttpResponse: {
@@ -546,28 +543,28 @@ describe('onCallHandler', () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              message: 'Unauthenticated',
-              status: 'UNAUTHENTICATED',
+              message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
             },
           },
         },
       });
     });
 
-    it('should handle instance id', async () => {
+    it("should handle instance id", async () => {
       await runCallableTest({
-        httpRequest: mockRequest(null, 'application/json', {
-          instanceIdToken: 'iid-token',
+        httpRequest: mockRequest(null, "application/json", {
+          instanceIdToken: "iid-token",
         }),
         expectedData: null,
         callableFunction: (data, context) => {
           expect(context.auth).to.be.undefined;
-          expect(context.instanceIdToken).to.equal('iid-token');
+          expect(context.instanceIdToken).to.equal("iid-token");
           return null;
         },
         callableFunction2: (request) => {
           expect(request.auth).to.be.undefined;
-          expect(request.instanceIdToken).to.equal('iid-token');
+          expect(request.instanceIdToken).to.equal("iid-token");
           return null;
         },
         expectedHttpResponse: {
@@ -578,8 +575,8 @@ describe('onCallHandler', () => {
       });
     });
 
-    it('should expose raw request', async () => {
-      const mockReq = mockRequest(null, 'application/json', {});
+    it("should expose raw request", async () => {
+      const mockReq = mockRequest(null, "application/json", {});
       await runCallableTest({
         httpRequest: mockReq,
         expectedData: null,
@@ -601,24 +598,21 @@ describe('onCallHandler', () => {
       });
     });
 
-    describe('skip token verification debug mode support', () => {
+    describe("skip token verification debug mode support", () => {
       before(() => {
-        sinon
-          .stub(debug, 'isDebugFeatureEnabled')
-          .withArgs('skipTokenVerification')
-          .returns(true);
+        sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
       });
 
       after(() => {
         sinon.verifyAndRestore();
       });
 
-      it('should skip auth token verification', async () => {
+      it("should skip auth token verification", async () => {
         const projectId = getApp().options.projectId;
         const idToken = generateUnsignedIdToken(projectId);
         await runCallableTest({
-          httpRequest: mockRequest(null, 'application/json', {
-            authorization: 'Bearer ' + idToken,
+          httpRequest: mockRequest(null, "application/json", {
+            authorization: "Bearer " + idToken,
           }),
           expectedData: null,
           callableFunction: (data, context) => {
@@ -637,12 +631,12 @@ describe('onCallHandler', () => {
         });
       });
 
-      it('should skip app check token verification', async () => {
+      it("should skip app check token verification", async () => {
         const projectId = getApp().options.projectId;
-        const appId = '123:web:abc';
+        const appId = "123:web:abc";
         const appCheckToken = generateUnsignedAppCheckToken(projectId, appId);
         await runCallableTest({
-          httpRequest: mockRequest(null, 'application/json', { appCheckToken }),
+          httpRequest: mockRequest(null, "application/json", { appCheckToken }),
           expectedData: null,
           callableFunction: (data, context) => {
             checkAppCheckContext(context, projectId, appId);
@@ -663,157 +657,153 @@ describe('onCallHandler', () => {
   });
 });
 
-describe('encoding/decoding', () => {
-  it('encodes null', () => {
+describe("encoding/decoding", () => {
+  it("encodes null", () => {
     expect(https.encode(null)).to.be.null;
     expect(https.encode(undefined)).to.be.null;
   });
 
-  it('encodes int', () => {
+  it("encodes int", () => {
     expect(https.encode(1)).to.equal(1);
     // Number isn't allowed in our own codebase, but we need to test it, in case
     // a user passes one in. There's no reason not to support it, and we don't
     // want to unintentionally encode them as {}.
     // tslint:disable-next-line
-    expect(https.encode(new Number(1))).to.equal(1);
+    expect(https.encode(Number(1))).to.equal(1);
   });
 
-  it('decodes int', () => {
+  it("decodes int", () => {
     expect(https.decode(1)).to.equal(1);
   });
 
-  it('encodes long', () => {
+  it("encodes long", () => {
     expect(https.encode(-9223372036854775000)).to.equal(-9223372036854775000);
   });
 
-  it('decodes long', () => {
+  it("decodes long", () => {
     expect(
       https.decode({
-        '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-        value: '-9223372036854775000',
+        "@type": "type.googleapis.com/google.protobuf.Int64Value",
+        value: "-9223372036854775000",
       })
     ).to.equal(-9223372036854775000);
   });
 
-  it('encodes unsigned long', () => {
+  it("encodes unsigned long", () => {
     expect(https.encode(9223372036854800000)).to.equal(9223372036854800000);
   });
 
-  it('decodes unsigned long', () => {
+  it("decodes unsigned long", () => {
     expect(
       https.decode({
-        '@type': 'type.googleapis.com/google.protobuf.UInt64Value',
-        value: '9223372036854800000',
+        "@type": "type.googleapis.com/google.protobuf.UInt64Value",
+        value: "9223372036854800000",
       })
     ).to.equal(9223372036854800000);
   });
 
-  it('encodes double', () => {
+  it("encodes double", () => {
     expect(https.encode(1.2)).to.equal(1.2);
   });
-  it('decodes double', () => {
+  it("decodes double", () => {
     expect(https.decode(1.2)).to.equal(1.2);
   });
 
-  it('encodes string', () => {
-    expect(https.encode('hello')).to.equal('hello');
+  it("encodes string", () => {
+    expect(https.encode("hello")).to.equal("hello");
   });
 
-  it('decodes string', () => {
-    expect(https.decode('hello')).to.equal('hello');
+  it("decodes string", () => {
+    expect(https.decode("hello")).to.equal("hello");
   });
 
-  it('encodes array', () => {
+  it("encodes array", () => {
     // TODO(klimt): Make this test more interesting once there's some type
     // that needs encoding that can be created from JavaScript.
-    expect(https.encode([1, '2', [3, 4]])).to.deep.equal([1, '2', [3, 4]]);
+    expect(https.encode([1, "2", [3, 4]])).to.deep.equal([1, "2", [3, 4]]);
   });
 
-  it('decodes array', () => {
+  it("decodes array", () => {
     expect(
       https.decode([
         1,
-        '2',
+        "2",
         [
           3,
           {
-            value: '1099511627776',
-            '@type': 'type.googleapis.com/google.protobuf.Int64Value',
+            value: "1099511627776",
+            "@type": "type.googleapis.com/google.protobuf.Int64Value",
           },
         ],
       ])
-    ).to.deep.equal([1, '2', [3, 1099511627776]]);
+    ).to.deep.equal([1, "2", [3, 1099511627776]]);
   });
 
-  it('encodes object', () => {
+  it("encodes object", () => {
     // TODO(klimt): Make this test more interesting once there's some type
     // that needs encoding that can be created from JavaScript.
     expect(
       https.encode({
         foo: 1,
-        bar: 'hello',
+        bar: "hello",
         baz: [1, 2, 3],
       })
     ).to.deep.equal({
       foo: 1,
-      bar: 'hello',
+      bar: "hello",
       baz: [1, 2, 3],
     });
   });
 
-  it('decodes object', () => {
+  it("decodes object", () => {
     expect(
       https.decode({
         foo: 1,
-        bar: 'hello',
+        bar: "hello",
         baz: [
           1,
           2,
           {
-            value: '1099511627776',
-            '@type': 'type.googleapis.com/google.protobuf.Int64Value',
+            value: "1099511627776",
+            "@type": "type.googleapis.com/google.protobuf.Int64Value",
           },
         ],
       })
     ).to.deep.equal({
       foo: 1,
-      bar: 'hello',
+      bar: "hello",
       baz: [1, 2, 1099511627776],
     });
   });
 
-  it('encodes function as an empty object', () => {
-    expect(https.encode(() => 'foo')).to.deep.equal({});
+  it("encodes function as an empty object", () => {
+    expect(https.encode(() => "foo")).to.deep.equal({});
   });
 });
 
-describe('decode tokens', () => {
-  const projectId = 'myproject';
-  const appId = '123:web:abc';
+describe("decode tokens", () => {
+  const projectId = "myproject";
+  const appId = "123:web:abc";
 
-  it('decodes valid Auth ID Token', () => {
+  it("decodes valid Auth ID Token", () => {
     const idToken = https.unsafeDecodeIdToken(generateIdToken(projectId));
     expect(idToken.uid).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });
 
-  it('decodes invalid Auth ID Token', () => {
-    const idToken = https.unsafeDecodeIdToken(
-      generateUnsignedIdToken(projectId)
-    );
+  it("decodes invalid Auth ID Token", () => {
+    const idToken = https.unsafeDecodeIdToken(generateUnsignedIdToken(projectId));
     expect(idToken.uid).to.equal(mocks.user_id);
     expect(idToken.sub).to.equal(mocks.user_id);
   });
 
-  it('decodes valid App Check Token', () => {
-    const idToken = https.unsafeDecodeAppCheckToken(
-      generateAppCheckToken(projectId, appId)
-    );
+  it("decodes valid App Check Token", () => {
+    const idToken = https.unsafeDecodeAppCheckToken(generateAppCheckToken(projectId, appId));
     expect(idToken.app_id).to.equal(appId);
     expect(idToken.sub).to.equal(appId);
   });
 
-  it('decodes invalid App Check Token', () => {
+  it("decodes invalid App Check Token", () => {
     const idToken = https.unsafeDecodeAppCheckToken(
       generateUnsignedAppCheckToken(projectId, appId)
     );

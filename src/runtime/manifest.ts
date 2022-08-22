@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ParamSpec } from '../v2/params/types';
+import { ParamSpec } from "../v2/params/types";
 
 /**
  * An definition of a function as appears in the Manifest.
@@ -35,7 +35,7 @@ export interface ManifestEndpoint {
   concurrency?: number;
   serviceAccountEmail?: string;
   timeoutSeconds?: number;
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
   vpc?: {
     connector: string;
     egressSettings?: string;
@@ -49,7 +49,7 @@ export interface ManifestEndpoint {
     invoker?: string[];
   };
 
-  callableTrigger?: {};
+  callableTrigger?: Record<string, never>;
 
   eventTrigger?: {
     eventFilters: Record<string, string>;
@@ -88,7 +88,7 @@ export interface ManifestRequiredAPI {
  * An definition of a function deployment as appears in the Manifest.
  */
 export interface ManifestStack {
-  specVersion: 'v1alpha1';
+  specVersion: "v1alpha1";
   params?: ParamSpec[];
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
