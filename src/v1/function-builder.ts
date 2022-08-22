@@ -424,7 +424,8 @@ export class FunctionBuilder {
        *    information about the user who triggered the Cloud Function.
        * @param ref Path of the database to listen to.
        */
-      ref: (path: string) => database._refWithOptions(path, this.options),
+      ref: <Ref extends string>(path: Ref) =>
+        database._refWithOptions(path, this.options),
     };
   }
 
@@ -437,7 +438,7 @@ export class FunctionBuilder {
        * collection is named "users" and the document is named "Ada", then the
        * path is "/users/Ada".
        */
-      document: (path: string) =>
+      document: <Path extends string>(path: Path) =>
         firestore._documentWithOptions(path, this.options),
 
       /** @hidden */

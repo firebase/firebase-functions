@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2021 Firebase
+// Copyright (c) 2022 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,46 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
-/**
- * The V2 API for Cloud Functions for Firebase.
- * This SDK also supports deep imports. For example, the namespace
- * 'pubsub' is available at 'firebase-functions/v2' or is directly importable
- * from 'firebase-functions/v2/pubsub'.
- * @packageDocumentation
- */
-
-import * as logger from '../logger';
-import * as alerts from './providers/alerts';
-import * as database from './providers/database';
-import * as eventarc from './providers/eventarc';
-import * as https from './providers/https';
-import * as identity from './providers/identity';
-import * as pubsub from './providers/pubsub';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
-
-export {
-  alerts,
-  database,
-  storage,
-  https,
-  identity,
-  pubsub,
-  logger,
-  tasks,
-  eventarc,
-};
-
-export {
-  setGlobalOptions,
-  GlobalOptions,
-  SupportedRegion,
-  MemoryOption,
-  VpcEgressSetting,
-  IngressSetting,
-  EventHandlerOptions,
-} from './options';
-
-export { CloudFunction, CloudEvent, ParamsOf } from './core';
-export { Change } from '../common/change';
+// This method will fail to compile if value is not of the explicit parameter type.
+/* eslint-disable @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function */
+export function expectType<Type>(value: Type) {}
+export function expectNever<Type extends never>() {}

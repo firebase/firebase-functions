@@ -26,6 +26,7 @@ import * as config from '../../../src/common/config';
 import { applyChange } from '../../../src/common/utilities/utils';
 import * as functions from '../../../src/v1';
 import * as database from '../../../src/v1/providers/database';
+import { expectType } from '../../common/metaprogramming';
 
 describe('Database Functions', () => {
   describe('DatabaseBuilder', () => {
@@ -120,6 +121,18 @@ describe('Database Functions', () => {
 
         return handler(event.data, event.context);
       });
+
+      it('Should have params of the correct type', () => {
+        database.ref('foo').onWrite((event, context) => {
+          expectType<Record<string, never>>(context.params);
+        });
+        database.ref('foo/{bar}').onWrite((event, context) => {
+          expectType<{ bar: string }>(context.params);
+        });
+        database.ref('foo/{bar}/{baz}').onWrite((event, context) => {
+          expectType<{ bar: string; baz: string }>(context.params);
+        });
+      });
     });
 
     describe('#onCreate()', () => {
@@ -167,6 +180,18 @@ describe('Database Functions', () => {
           });
 
         return handler(event.data, event.context);
+      });
+
+      it('Should have params of the correct type', () => {
+        database.ref('foo').onCreate((event, context) => {
+          expectType<Record<string, never>>(context.params);
+        });
+        database.ref('foo/{bar}').onCreate((event, context) => {
+          expectType<{ bar: string }>(context.params);
+        });
+        database.ref('foo/{bar}/{baz}').onCreate((event, context) => {
+          expectType<{ bar: string; baz: string }>(context.params);
+        });
       });
     });
 
@@ -216,6 +241,18 @@ describe('Database Functions', () => {
 
         return handler(event.data, event.context);
       });
+
+      it('Should have params of the correct type', () => {
+        database.ref('foo').onUpdate((event, context) => {
+          expectType<Record<string, never>>(context.params);
+        });
+        database.ref('foo/{bar}').onUpdate((event, context) => {
+          expectType<{ bar: string }>(context.params);
+        });
+        database.ref('foo/{bar}/{baz}').onUpdate((event, context) => {
+          expectType<{ bar: string; baz: string }>(context.params);
+        });
+      });
     });
 
     describe('#onDelete()', () => {
@@ -263,6 +300,18 @@ describe('Database Functions', () => {
           });
 
         return handler(event.data, event.context);
+      });
+    });
+
+    it('Should have params of the correct type', () => {
+      database.ref('foo').onDelete((event, context) => {
+        expectType<Record<string, never>>(context.params);
+      });
+      database.ref('foo/{bar}').onDelete((event, context) => {
+        expectType<{ bar: string }>(context.params);
+      });
+      database.ref('foo/{bar}/{baz}').onDelete((event, context) => {
+        expectType<{ bar: string; baz: string }>(context.params);
       });
     });
   });
