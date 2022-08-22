@@ -145,7 +145,6 @@
     "registry": "https://wombat-dressing-room.appspot.com"
   },
   "scripts": {
-    "apidocs": "node docgen/generate-docs.js",
     "docgen:v1:extract": "api-extractor run -c docgen/api-extractor.v1.json --local",
     "docgen:v1:toc": "ts-node docgen/toc.ts --input docgen/v1/markdown --output docgen/v1/markdown/toc --path /docs/reference/functions",
     "docgen:v1:gen": "api-documenter-fire markdown -i docgen/v1 -o docgen/v1/markdown --project functions && npm run docgen:v1:toc",
@@ -209,7 +208,6 @@
     "tslint-config-prettier": "^1.18.0",
     "tslint-no-unused-expression-chai": "^0.1.4",
     "tslint-plugin-prettier": "^2.0.1",
-    "typedoc": "0.23.7",
     "typescript": "^4.3.5",
     "yargs": "^15.3.1"
   },
