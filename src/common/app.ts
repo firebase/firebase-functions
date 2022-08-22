@@ -63,7 +63,6 @@ export function getApp(): App {
  */
 export function setApp(app?: App) {
   if (cache?.name === APP_NAME) {
-    // eslint-disable @typescript-eslint/no-floating-promises
     void deleteApp(cache);
   }
   cache = app;
