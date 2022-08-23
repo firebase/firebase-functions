@@ -1,10 +1,10 @@
 import { AsyncLocalStorage } from "async_hooks";
 
 /* @internal */
-export const traceContext = new AsyncLocalStorage<TraceParent>();
+export const traceContext = new AsyncLocalStorage<TraceContext>();
 
 /* @internal */
-export interface TraceParent {
+export interface TraceContext {
   version: string;
   traceId: string;
   parentId: string;
@@ -18,18 +18,28 @@ export interface TraceParent {
  *   - (?:;o=([0-3])): The trace mask, 1-3 denote it should be traced.
  */
 const CLOUD_TRACE_REGEX = new RegExp(
-  "^(?<traceId>[A-Fa-f0-9]{32})/" + "(?<parentId>[0-9]+)" + "(?<traceMask>?:;o=([0-3]))?$"
+  "^(?<traceId>[A-Fa-f0-9]{32})/" + "(?<parentIdInt>[0-9]+)" + "(?:;o=(?<traceMask>[0-3]))?$"
 );
-const CLOUD_TRACE_HEADER = "x-cloud-trace-context";
+const CLOUD_TRACE_HEADER = "X-Cloud-Trace-Context";
 
-function matchCloudTraceHeader(carrier: unknown): TraceParent | undefined {
-  const header: unknown = carrier?.[CLOUD_TRACE_HEADER];
+function matchCloudTraceHeader(carrier: unknown): TraceContext | undefined {
+  let header: unknown = carrier?.[CLOUD_TRACE_HEADER];
+  if (!header) {
+    // try lowercase header
+    header = carrier?.[CLOUD_TRACE_HEADER.toLowerCase()];
+  }
   if (header && typeof header === "string") {
     const matches = CLOUD_TRACE_REGEX.exec(header);
-    if (matches || matches.groups) {
-      const { traceId, parentId, traceMask } = matches.groups;
-      const sample = traceMask && traceMask !== "0";
-      return { traceId, parentId, sample, version: "00" };
+    if (matches && matches.groups) {
+      const { traceId, parentIdInt, traceMask } = matches.groups;
+      // Convert parentId from unsigned int to hex
+      const parentId = parseInt(parentIdInt);
+      if (isNaN(parentId)) {
+        // Ignore traces with invalid parentIds
+        return;
+      }
+      const sample = !!traceMask && traceMask !== "0";
+      return { traceId, parentId: parentId.toString(16), sample, version: "00" };
     }
   }
 }
@@ -38,7 +48,7 @@ function matchCloudTraceHeader(carrier: unknown): TraceParent | undefined {
  * A regex to match the traceparent header.
  *   - ^([a-f0-9]{2}): The specification version (e.g. 00)
  *   - ([a-f0-9]{32}): The trace id, a 16-byte array. (e.g. 4bf92f3577b34da6a3ce929d0e0e4736)
- *   - ([a-f0-9]{16}): The trace id, an 8-byte array. (e.g. 00f067aa0ba902b7)
+ *   - ([a-f0-9]{16}): The parent span id, an 8-byte array. (e.g. 00f067aa0ba902b7)
  *   - ([a-f0-9]{2}: The sampled flag. (e.g. 00)
  */
 const TRACEPARENT_REGEX = new RegExp(
@@ -49,11 +59,11 @@ const TRACEPARENT_REGEX = new RegExp(
 );
 const TRACEPARENT_HEADER = "traceparent";
 
-function matchTraceparentHeader(carrier: unknown): TraceParent | undefined {
+function matchTraceparentHeader(carrier: unknown): TraceContext | undefined {
   const header: unknown = carrier?.[TRACEPARENT_HEADER];
   if (header && typeof header === "string") {
     const matches = TRACEPARENT_REGEX.exec(header);
-    if (matches || matches.groups) {
+    if (matches && matches.groups) {
       const { version, traceId, parentId, flag } = matches.groups;
       const sample = flag === "01";
       return { traceId, parentId, sample, version };
@@ -62,6 +72,6 @@ function matchTraceparentHeader(carrier: unknown): TraceParent | undefined {
 }
 
 /* @internal */
-export function getTraceParent(carrier: unknown): TraceParent | undefined {
+export function getTraceContext(carrier: unknown): TraceContext | undefined {
   return matchCloudTraceHeader(carrier) || matchTraceparentHeader(carrier);
 }
