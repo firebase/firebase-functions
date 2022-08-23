@@ -20,7 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/** @internal */
+/**
+ * A type that splits literal string S with delimiter D.
+ *
+ * For example Split<"a/b/c", "/"> is ['a' | "b" | "c"]
+ */
 export type Split<S extends string, D extends string> =
   // A non-literal string splits into a string[]
   string extends S
@@ -36,7 +40,9 @@ export type Split<S extends string, D extends string> =
     : // A string without delimiters splits into an array of itself
       [S];
 
-/** @internal */
+/**
+ * A type that ensure that type S is not null or undefined.
+ */
 export type NullSafe<S extends null | undefined | string> = S extends null
   ? never
   : S extends undefined
@@ -45,7 +51,14 @@ export type NullSafe<S extends null | undefined | string> = S extends null
   ? S
   : never;
 
-/** @internal */
+/**
+ * A type that extracts parameter name enclosed in bracket as string.
+ * Ignore wildcard matches
+ *
+ * For example, Extract<"{uid}"> is "uid".
+ * For example, Extract<"{uid=*}"> is "uid".
+ * For example, Extract<"{uid=**}"> is "uid".
+ */
 export type Extract<Part extends string> = Part extends `{${infer Param}=**}`
   ? Param
   : Part extends `{${infer Param}=*}`
