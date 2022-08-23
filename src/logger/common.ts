@@ -23,16 +23,16 @@
 // Map LogSeverity types to their equivalent `console.*` method.
 /** @hidden */
 export const CONSOLE_SEVERITY: {
-  [severity: string]: 'debug' | 'info' | 'warn' | 'error';
+  [severity: string]: "debug" | "info" | "warn" | "error";
 } = {
-  DEBUG: 'debug',
-  INFO: 'info',
-  NOTICE: 'info',
-  WARNING: 'warn',
-  ERROR: 'error',
-  CRITICAL: 'error',
-  ALERT: 'error',
-  EMERGENCY: 'error',
+  DEBUG: "debug",
+  INFO: "info",
+  NOTICE: "info",
+  WARNING: "warn",
+  ERROR: "error",
+  CRITICAL: "error",
+  ALERT: "error",
+  EMERGENCY: "error",
 };
 
 // safely preserve unpatched console.* methods in case of compat require

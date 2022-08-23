@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import * as functions from '../../../src/v1';
-import { taskQueue } from '../../../src/v1/providers/tasks';
-import { MockRequest } from '../../fixtures/mockrequest';
-import { runHandler } from '../../helper';
+import * as functions from "../../../src/v1";
+import { taskQueue } from "../../../src/v1/providers/tasks";
+import { MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
 
-describe('#onDispatch', () => {
-  it('should return a trigger/endpoint with appropriate values', () => {
+describe("#onDispatch", () => {
+  it("should return a trigger/endpoint with appropriate values", () => {
     const result = taskQueue({
       rateLimits: {
         maxConcurrentDispatches: 30,
@@ -41,11 +41,11 @@ describe('#onDispatch', () => {
         maxDoublings: 3,
         minBackoffSeconds: 5,
       },
-      invoker: 'private',
-    }).onDispatch(() => {});
+      invoker: "private",
+    }).onDispatch(() => undefined);
 
     expect(result.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      platform: "gcfv1",
       taskQueueTrigger: {
         rateLimits: {
           maxConcurrentDispatches: 30,
@@ -58,24 +58,24 @@ describe('#onDispatch', () => {
           maxDoublings: 3,
           minBackoffSeconds: 5,
         },
-        invoker: ['private'],
+        invoker: ["private"],
       },
     });
   });
 
-  it('should allow both region and runtime options to be set', () => {
+  it("should allow both region and runtime options to be set", () => {
     const fn = functions
-      .region('us-east1')
+      .region("us-east1")
       .runWith({
         timeoutSeconds: 90,
-        memory: '256MB',
+        memory: "256MB",
       })
       .tasks.taskQueue({ retryConfig: { maxAttempts: 5 } })
       .onDispatch(() => null);
 
     expect(fn.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
-      region: ['us-east1'],
+      platform: "gcfv1",
+      region: ["us-east1"],
       availableMemoryMb: 256,
       timeoutSeconds: 90,
       taskQueueTrigger: {
@@ -86,12 +86,12 @@ describe('#onDispatch', () => {
     });
   });
 
-  it('has a .run method', async () => {
-    const data = 'data';
+  it("has a .run method", async () => {
+    const data = "data";
     const context = {
       auth: {
-        uid: 'abc',
-        token: 'token' as any,
+        uid: "abc",
+        token: "token" as any,
       },
     };
     let done = false;
@@ -106,7 +106,7 @@ describe('#onDispatch', () => {
   });
 
   // Regression test for firebase-functions#947
-  it('should lock to the v1 API even with function.length == 1', async () => {
+  it("should lock to the v1 API even with function.length == 1", async () => {
     let gotData: Record<string, any>;
     const func = taskQueue().onDispatch((data) => {
       gotData = data;
@@ -114,23 +114,23 @@ describe('#onDispatch', () => {
 
     const req = new MockRequest(
       {
-        data: { foo: 'bar' },
+        data: { foo: "bar" },
       },
       {
-        'content-type': 'application/json',
-        authorization: 'Bearer abc',
+        "content-type": "application/json",
+        authorization: "Bearer abc",
       }
     );
-    req.method = 'POST';
+    req.method = "POST";
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(204);
-    expect(gotData).to.deep.equal({ foo: 'bar' });
+    expect(gotData).to.deep.equal({ foo: "bar" });
   });
 });
 
-describe('handler namespace', () => {
-  it('should return an empty trigger', () => {
+describe("handler namespace", () => {
+  it("should return an empty trigger", () => {
     const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
     expect(result.__endpoint).to.be.undefined;
   });

@@ -20,20 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  CloudFunction,
-  Event,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
-export const PROVIDER = 'google.testing';
+export const PROVIDER = "google.testing";
 /** @internal */
-export const SERVICE = 'testing.googleapis.com';
+export const SERVICE = "testing.googleapis.com";
 /** @internal */
-export const TEST_MATRIX_COMPLETE_EVENT_TYPE = 'testMatrix.complete';
+export const TEST_MATRIX_COMPLETE_EVENT_TYPE = "testMatrix.complete";
 
 /** Handle events related to Test Lab test matrices. */
 export function testMatrix() {
@@ -44,26 +39,20 @@ export function testMatrix() {
 export function _testMatrixWithOpts(opts: DeploymentOptions) {
   return new TestMatrixBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
-      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
-    return 'projects/' + process.env.GCLOUD_PROJECT + '/testMatrices/{matrix}';
+    return "projects/" + process.env.GCLOUD_PROJECT + "/testMatrices/{matrix}";
   }, opts);
 }
 
 /** Builder used to create Cloud Functions for Test Lab test matrices events. */
 export class TestMatrixBuilder {
   /** @internal */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /** Handle a TestMatrix that reached a final test state. */
   onComplete(
-    handler: (
-      testMatrix: TestMatrix,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (testMatrix: TestMatrix, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<TestMatrix> {
     const dataConstructor = (raw: Event) => {
       return new TestMatrix(raw.data);
@@ -127,14 +116,11 @@ export class ClientInfo {
   details: { [key: string]: string };
 
   /** @internal */
-  constructor(data?: {
-    name: string;
-    clientInfoDetails?: Array<{ key: string; value?: string }>;
-  }) {
-    this.name = data?.name || '';
+  constructor(data?: { name: string; clientInfoDetails?: Array<{ key: string; value?: string }> }) {
+    this.name = data?.name || "";
     this.details = {};
     for (const detail of data?.clientInfoDetails || []) {
-      this.details[detail.key] = detail.value || '';
+      this.details[detail.key] = detail.value || "";
     }
   }
 }
@@ -222,36 +208,36 @@ export class ResultStorage {
  *   unsupported.
  */
 export type InvalidMatrixDetails =
-  | 'DETAILS_UNAVAILABLE'
-  | 'MALFORMED_APK'
-  | 'MALFORMED_TEST_APK'
-  | 'NO_MANIFEST'
-  | 'NO_PACKAGE_NAME'
-  | 'INVALID_PACKAGE_NAME'
-  | 'TEST_SAME_AS_APP'
-  | 'NO_INSTRUMENTATION'
-  | 'NO_SIGNATURE'
-  | 'INSTRUMENTATION_ORCHESTRATOR_INCOMPATIBLE'
-  | 'NO_TEST_RUNNER_CLASS'
-  | 'NO_LAUNCHER_ACTIVITY'
-  | 'FORBIDDEN_PERMISSIONS'
-  | 'INVALID_ROBO_DIRECTIVES'
-  | 'INVALID_RESOURCE_NAME'
-  | 'INVALID_DIRECTIVE_ACTION'
-  | 'TEST_LOOP_INTENT_FILTER_NOT_FOUND'
-  | 'SCENARIO_LABEL_NOT_DECLARED'
-  | 'SCENARIO_LABEL_MALFORMED'
-  | 'SCENARIO_NOT_DECLARED'
-  | 'DEVICE_ADMIN_RECEIVER'
-  | 'MALFORMED_XC_TEST_ZIP'
-  | 'BUILT_FOR_IOS_SIMULATOR'
-  | 'NO_TESTS_IN_XC_TEST_ZIP'
-  | 'USE_DESTINATION_ARTIFACTS'
-  | 'TEST_NOT_APP_HOSTED'
-  | 'PLIST_CANNOT_BE_PARSED'
-  | 'NO_CODE_APK'
-  | 'INVALID_INPUT_APK'
-  | 'INVALID_APK_PREVIEW_SDK';
+  | "DETAILS_UNAVAILABLE"
+  | "MALFORMED_APK"
+  | "MALFORMED_TEST_APK"
+  | "NO_MANIFEST"
+  | "NO_PACKAGE_NAME"
+  | "INVALID_PACKAGE_NAME"
+  | "TEST_SAME_AS_APP"
+  | "NO_INSTRUMENTATION"
+  | "NO_SIGNATURE"
+  | "INSTRUMENTATION_ORCHESTRATOR_INCOMPATIBLE"
+  | "NO_TEST_RUNNER_CLASS"
+  | "NO_LAUNCHER_ACTIVITY"
+  | "FORBIDDEN_PERMISSIONS"
+  | "INVALID_ROBO_DIRECTIVES"
+  | "INVALID_RESOURCE_NAME"
+  | "INVALID_DIRECTIVE_ACTION"
+  | "TEST_LOOP_INTENT_FILTER_NOT_FOUND"
+  | "SCENARIO_LABEL_NOT_DECLARED"
+  | "SCENARIO_LABEL_MALFORMED"
+  | "SCENARIO_NOT_DECLARED"
+  | "DEVICE_ADMIN_RECEIVER"
+  | "MALFORMED_XC_TEST_ZIP"
+  | "BUILT_FOR_IOS_SIMULATOR"
+  | "NO_TESTS_IN_XC_TEST_ZIP"
+  | "USE_DESTINATION_ARTIFACTS"
+  | "TEST_NOT_APP_HOSTED"
+  | "PLIST_CANNOT_BE_PARSED"
+  | "NO_CODE_APK"
+  | "INVALID_INPUT_APK"
+  | "INVALID_APK_PREVIEW_SDK";
 
 /**
  * The state (i.e. progress) of a TestMatrix.
@@ -268,12 +254,7 @@ export type InvalidMatrixDetails =
  *   valid. E.g. the input file is not of the expected type, or is
  *   malformed/corrupt.
  */
-export type TestState =
-  | 'VALIDATING'
-  | 'PENDING'
-  | 'FINISHED'
-  | 'ERROR'
-  | 'INVALID';
+export type TestState = "VALIDATING" | "PENDING" | "FINISHED" | "ERROR" | "INVALID";
 
 /**
  * Outcome summary for a finished TestMatrix.
@@ -292,4 +273,4 @@ export type TestState =
  * - 'SKIPPED': All tests were skipped, for instance:
  *   - All device configurations were incompatible.
  */
-export type OutcomeSummary = 'SUCCESS' | 'FAILURE' | 'INCONCLUSIVE' | 'SKIPPED';
+export type OutcomeSummary = "SUCCESS" | "FAILURE" | "INCONCLUSIVE" | "SKIPPED";

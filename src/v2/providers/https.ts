@@ -25,28 +25,28 @@
  * @packageDocumentation
  */
 
-import * as cors from 'cors';
-import * as express from 'express';
-import { convertIfPresent, convertInvoker } from '../../common/encoding';
+import * as cors from "cors";
+import * as express from "express";
+import { convertIfPresent, convertInvoker } from "../../common/encoding";
 
-import { isDebugFeatureEnabled } from '../../common/debug';
+import { isDebugFeatureEnabled } from "../../common/debug";
 import {
   CallableRequest,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-} from '../../common/providers/https';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import * as options from '../options';
-import { GlobalOptions, SupportedRegion } from '../options';
+} from "../../common/providers/https";
+import { ManifestEndpoint } from "../../runtime/manifest";
+import * as options from "../options";
+import { GlobalOptions, SupportedRegion } from "../options";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
  */
-export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
+export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?: SupportedRegion | string | Array<SupportedRegion | string>;
   /** If true, allows CORS on requests to this function.
@@ -105,7 +105,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -139,7 +139,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
   /**
    * Invoker to set access control on https functions.
    */
-  invoker?: 'public' | 'private' | string | string[];
+  invoker?: "public" | "private" | string | string[];
 
   /*
    * Secrets to bind to a function.
@@ -194,10 +194,7 @@ export interface CallableFunction<T, Return> extends HttpsFunction {
  */
 export function onRequest(
   opts: HttpsOptions,
-  handler: (
-    request: Request,
-    response: express.Response
-  ) => void | Promise<void>
+  handler: (request: Request, response: express.Response) => void | Promise<void>
 ): HttpsFunction;
 /**
  * Handles HTTPS requests.
@@ -205,19 +202,13 @@ export function onRequest(
  * @returns A function that you can export and deploy.
  */
 export function onRequest(
-  handler: (
-    request: Request,
-    response: express.Response
-  ) => void | Promise<void>
+  handler: (request: Request, response: express.Response) => void | Promise<void>
 ): HttpsFunction;
 export function onRequest(
   optsOrHandler:
     | HttpsOptions
     | ((request: Request, response: express.Response) => void | Promise<void>),
-  handler?: (
-    request: Request,
-    response: express.Response
-  ) => void | Promise<void>
+  handler?: (request: Request, response: express.Response) => void | Promise<void>
 ): HttpsFunction {
   let opts: HttpsOptions;
   if (arguments.length === 1) {
@@ -230,12 +221,12 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
-    const origin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
+  if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
+    const origin = isDebugFeatureEnabled("enableCors") ? true : opts.cors;
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
-        res.on('finish', resolve);
+        res.on("finish", resolve);
         cors({ origin })(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
@@ -248,7 +239,7 @@ export function onRequest(
   // but optionsToTriggerAnnotations handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
   const endpoint: Partial<ManifestEndpoint> = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -257,13 +248,7 @@ export function onRequest(
     },
     httpsTrigger: {},
   };
-  convertIfPresent(
-    endpoint.httpsTrigger,
-    opts,
-    'invoker',
-    'invoker',
-    convertInvoker
-  );
+  convertIfPresent(endpoint.httpsTrigger, opts, "invoker", "invoker", convertInvoker);
   (handler as HttpsFunction).__endpoint = endpoint;
 
   return handler as HttpsFunction;
@@ -292,27 +277,22 @@ export function onCall<T = any, Return = any | Promise<any>>(
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
   let opts: CallableOptions;
-  if (arguments.length == 1) {
+  if (arguments.length === 1) {
     opts = {};
     handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
     opts = optsOrHandler as CallableOptions;
   }
 
-  const origin = isDebugFeatureEnabled('enableCors')
-    ? true
-    : 'cors' in opts
-    ? opts.cors
-    : true;
+  const origin = isDebugFeatureEnabled("enableCors") ? true : "cors" in opts ? opts.cors : true;
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
   const func: any = onCallHandler(
     {
-      cors: { origin, methods: 'POST' },
-      enforceAppCheck:
-        opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+      cors: { origin, methods: "POST" },
+      enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
     },
     fixedLen
   );
@@ -322,7 +302,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // but optionsToEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {

@@ -32,7 +32,7 @@ import {
   userRecordConstructor,
   UserRecordMetadata,
   wrapHandler,
-} from '../../common/providers/identity';
+} from "../../common/providers/identity";
 import {
   BlockingFunction,
   CloudFunction,
@@ -40,8 +40,8 @@ import {
   EventContext,
   makeCloudFunction,
   optionsToEndpoint,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+} from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 // TODO: yank in next breaking change release
 export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
@@ -49,9 +49,9 @@ export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
 export { HttpsError };
 
 /** @hidden */
-export const provider = 'google.firebase.auth';
+export const provider = "google.firebase.auth";
 /** @hidden */
-export const service = 'firebaseauth.googleapis.com';
+export const service = "firebaseauth.googleapis.com";
 
 /**
  * Resource level options
@@ -82,16 +82,13 @@ export function user(userOptions?: UserOptions): UserBuilder {
 }
 
 /** @hidden */
-export function _userWithOptions(
-  options: DeploymentOptions,
-  userOptions: UserOptions
-) {
+export function _userWithOptions(options: DeploymentOptions, userOptions: UserOptions) {
   return new UserBuilder(
     () => {
       if (!process.env.GCLOUD_PROJECT) {
-        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+        throw new Error("process.env.GCLOUD_PROJECT is not set.");
       }
-      return 'projects/' + process.env.GCLOUD_PROJECT;
+      return "projects/" + process.env.GCLOUD_PROJECT;
     },
     options,
     userOptions
@@ -121,7 +118,7 @@ export class UserBuilder {
   onCreate(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
-    return this.onOperation(handler, 'user.create');
+    return this.onOperation(handler, "user.create");
   }
 
   /**
@@ -131,41 +128,30 @@ export class UserBuilder {
   onDelete(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<UserRecord> {
-    return this.onOperation(handler, 'user.delete');
+    return this.onOperation(handler, "user.delete");
   }
 
   beforeCreate(
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) =>
-      | BeforeCreateResponse
-      | void
-      | Promise<BeforeCreateResponse>
-      | Promise<void>
+    ) => BeforeCreateResponse | void | Promise<BeforeCreateResponse> | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(handler, 'beforeCreate');
+    return this.beforeOperation(handler, "beforeCreate");
   }
 
   beforeSignIn(
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) =>
-      | BeforeSignInResponse
-      | void
-      | Promise<BeforeSignInResponse>
-      | Promise<void>
+    ) => BeforeSignInResponse | void | Promise<BeforeSignInResponse> | Promise<void>
   ): BlockingFunction {
-    return this.beforeOperation(handler, 'beforeSignIn');
+    return this.beforeOperation(handler, "beforeSignIn");
   }
 
   /** @hidden */
   private onOperation(
-    handler: (
-      user: UserRecord,
-      context: EventContext
-    ) => PromiseLike<any> | any,
+    handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any,
     eventType: string
   ): CloudFunction<UserRecord> {
     return makeCloudFunction({
@@ -174,6 +160,7 @@ export class UserBuilder {
       eventType,
       service,
       triggerResource: this.triggerResource,
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       dataConstructor: UserBuilder.dataConstructor,
       legacyEventType: `providers/firebase.auth/eventTypes/${eventType}`,
       options: this.options,
@@ -196,8 +183,7 @@ export class UserBuilder {
   ): BlockingFunction {
     const accessToken = this.userOptions?.blockingOptions?.accessToken || false;
     const idToken = this.userOptions?.blockingOptions?.idToken || false;
-    const refreshToken =
-      this.userOptions?.blockingOptions?.refreshToken || false;
+    const refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
     // Create our own function that just calls the provided function so we know for sure that
     // handler takes two arguments. This is something common/providers/identity depends on.
@@ -208,7 +194,7 @@ export class UserBuilder {
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
     func.__endpoint = {
-      platform: 'gcfv1',
+      platform: "gcfv1",
       labels: {},
       ...optionsToEndpoint(this.options),
       blockingTrigger: {
@@ -223,8 +209,8 @@ export class UserBuilder {
 
     func.__requiredAPIs = [
       {
-        api: 'identitytoolkit.googleapis.com',
-        reason: 'Needed for auth blocking functions',
+        api: "identitytoolkit.googleapis.com",
+        reason: "Needed for auth blocking functions",
       },
     ];
 

@@ -25,63 +25,60 @@
  * @packageDocumentation
  */
 
-import { convertIfPresent, copyIfPresent } from '../common/encoding';
-import * as logger from '../logger';
-import { ManifestEndpoint } from '../runtime/manifest';
-import { declaredParams } from './params';
-import { ParamSpec } from './params/types';
-import { HttpsOptions } from './providers/https';
+import { convertIfPresent, copyIfPresent } from "../common/encoding";
+import * as logger from "../logger";
+import { ManifestEndpoint } from "../runtime/manifest";
+import { declaredParams } from "./params";
+import { ParamSpec } from "./params/types";
+import { HttpsOptions } from "./providers/https";
 
 /**
  * List of all regions supported by Cloud Functions v2
  */
 export type SupportedRegion =
-  | 'asia-northeast1'
-  | 'europe-north1'
-  | 'europe-west1'
-  | 'europe-west4'
-  | 'us-central1'
-  | 'us-east1'
-  | 'us-west1';
+  | "asia-northeast1"
+  | "europe-north1"
+  | "europe-west1"
+  | "europe-west4"
+  | "us-central1"
+  | "us-east1"
+  | "us-west1";
 
 /**
  * List of available memory options supported by Cloud Functions.
  */
 export type MemoryOption =
-  | '128MiB'
-  | '256MiB'
-  | '512MiB'
-  | '1GiB'
-  | '2GiB'
-  | '4GiB'
-  | '8GiB'
-  | '16GiB'
-  | '32GiB';
+  | "128MiB"
+  | "256MiB"
+  | "512MiB"
+  | "1GiB"
+  | "2GiB"
+  | "4GiB"
+  | "8GiB"
+  | "16GiB"
+  | "32GiB";
 
 const MemoryOptionToMB: Record<MemoryOption, number> = {
-  '128MiB': 128,
-  '256MiB': 256,
-  '512MiB': 512,
-  '1GiB': 1024,
-  '2GiB': 2048,
-  '4GiB': 4096,
-  '8GiB': 8192,
-  '16GiB': 16384,
-  '32GiB': 32768,
+  "128MiB": 128,
+  "256MiB": 256,
+  "512MiB": 512,
+  "1GiB": 1024,
+  "2GiB": 2048,
+  "4GiB": 4096,
+  "8GiB": 8192,
+  "16GiB": 16384,
+  "32GiB": 32768,
 };
 
 /**
  * List of available options for VpcConnectorEgressSettings.
  */
-export type VpcEgressSetting = 'PRIVATE_RANGES_ONLY' | 'ALL_TRAFFIC';
+export type VpcEgressSetting = "PRIVATE_RANGES_ONLY" | "ALL_TRAFFIC";
 
 /**
  * List of available options for IngressSettings.
  */
-export type IngressSetting =
-  | 'ALLOW_ALL'
-  | 'ALLOW_INTERNAL_ONLY'
-  | 'ALLOW_INTERNAL_AND_GCLB';
+export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERNAL_AND_GCLB";
 
 /**
  * GlobalOptions are options that can be set across an entire project.
@@ -143,7 +140,7 @@ export interface GlobalOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -177,7 +174,7 @@ export interface GlobalOptions {
   /**
    * Invoker to set access control on https functions.
    */
-  invoker?: 'public' | 'private' | string | string[];
+  invoker?: "public" | "private" | string | string[];
 
   /*
    * Secrets to bind to a function.
@@ -201,7 +198,7 @@ let globalOptions: GlobalOptions | undefined;
  */
 export function setGlobalOptions(options: GlobalOptions) {
   if (globalOptions) {
-    logger.warn('Calling setGlobalOptions twice leads to undefined behavior');
+    logger.warn("Calling setGlobalOptions twice leads to undefined behavior");
   }
   globalOptions = options;
 }
@@ -218,8 +215,7 @@ export function getGlobalOptions(): GlobalOptions {
 /**
  * Additional fields that can be set on any event-handling Cloud Function.
  */
-export interface EventHandlerOptions
-  extends Omit<GlobalOptions, 'enforceAppCheck'> {
+export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck"> {
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
 }
@@ -235,35 +231,31 @@ export function optionsToEndpoint(
   copyIfPresent(
     endpoint,
     opts,
-    'concurrency',
-    'minInstances',
-    'maxInstances',
-    'ingressSettings',
-    'labels',
-    'timeoutSeconds',
-    'cpu'
+    "concurrency",
+    "minInstances",
+    "maxInstances",
+    "ingressSettings",
+    "labels",
+    "timeoutSeconds",
+    "cpu"
   );
-  convertIfPresent(endpoint, opts, 'serviceAccountEmail', 'serviceAccount');
+  convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
   if (opts.vpcConnector) {
-    const vpc: ManifestEndpoint['vpc'] = { connector: opts.vpcConnector };
-    convertIfPresent(vpc, opts, 'egressSettings', 'vpcConnectorEgressSettings');
+    const vpc: ManifestEndpoint["vpc"] = { connector: opts.vpcConnector };
+    convertIfPresent(vpc, opts, "egressSettings", "vpcConnectorEgressSettings");
     endpoint.vpc = vpc;
   }
-  convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
+  convertIfPresent(endpoint, opts, "availableMemoryMb", "memory", (mem) => {
     return MemoryOptionToMB[mem];
   });
-  convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
-    if (typeof region === 'string') {
+  convertIfPresent(endpoint, opts, "region", "region", (region) => {
+    if (typeof region === "string") {
       return [region];
     }
     return region;
   });
-  convertIfPresent(
-    endpoint,
-    opts,
-    'secretEnvironmentVariables',
-    'secrets',
-    (secrets) => secrets.map((secret) => ({ key: secret }))
+  convertIfPresent(endpoint, opts, "secretEnvironmentVariables", "secrets", (secrets) =>
+    secrets.map((secret) => ({ key: secret }))
   );
 
   return endpoint;
