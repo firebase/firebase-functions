@@ -290,48 +290,6 @@ describe("Analytics Functions", () => {
     });
   });
 
-  describe("handler namespace", () => {
-    describe("#onLog", () => {
-      it("should return an empty endpoint", () => {
-        const cloudFunction = functions.handler.analytics.event.onLog(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-
-      it("should handle an event with the appropriate fields", () => {
-        const cloudFunction = functions.handler.analytics.event.onLog(
-          (data: analytics.AnalyticsEvent) => data
-        );
-
-        // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
-        // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        const event: Event = {
-          data: {
-            userDim: {
-              userId: "hi!",
-            },
-          },
-          context: {
-            eventId: "70172329041928",
-            timestamp: "2018-04-09T07:56:12.975Z",
-            eventType: "providers/google.firebase.analytics/eventTypes/event.log",
-            resource: {
-              service: "app-measurement.com",
-              name: "projects/project1/events/first_open",
-            },
-          },
-        };
-
-        return expect(cloudFunction(event.data, event.context)).to.eventually.deep.equal({
-          params: {},
-          user: {
-            userId: "hi!",
-            userProperties: {},
-          },
-        });
-      });
-    });
-  });
-
   describe("process.env.GCLOUD_PROJECT not set", () => {
     it("should not throw if __endpoint is not accessed", () => {
       expect(() => analytics.event("event").onLog(() => null)).to.not.throw(Error);

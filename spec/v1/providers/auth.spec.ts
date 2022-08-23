@@ -251,33 +251,6 @@ describe("Auth Functions", () => {
     });
   });
 
-  describe("handler namespace", () => {
-    describe("#onCreate", () => {
-      it("should return an empty endpoint", () => {
-        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-    });
-
-    describe("#onDelete", () => {
-      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
-        (data: UserRecord) => data
-      );
-
-      it("should return an empty endpoint", () => {
-        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-
-      it("should handle wire format as of v5.0.0 of firebase-admin", () => {
-        return cloudFunctionDelete(event.data, event.context).then((data: any) => {
-          expect(data.metadata.creationTime).to.equal("2016-12-15T19:37:37.059Z");
-          expect(data.metadata.lastSignInTime).to.equal("2017-01-01T00:00:00.000Z");
-        });
-      });
-    });
-  });
-
   describe("process.env.GCLOUD_PROJECT not set", () => {
     it("should not throw if __endpoint is not accessed", () => {
       expect(() => auth.user().onCreate(() => null)).to.not.throw(Error);

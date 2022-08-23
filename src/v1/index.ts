@@ -34,14 +34,12 @@ import * as tasks from "./providers/tasks";
 import * as testLab from "./providers/testLab";
 
 import { setApp as setEmulatedAdminApp } from "../common/app";
-import { handler } from "./handler-builder";
 
 export {
   analytics,
   auth,
   database,
   firestore,
-  handler,
   https,
   pubsub,
   remoteConfig,
