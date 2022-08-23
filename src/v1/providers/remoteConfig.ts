@@ -20,17 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  CloudFunction,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 /** @hidden */
-export const provider = 'google.firebase.remoteconfig';
+export const provider = "google.firebase.remoteconfig";
 /** @hidden */
-export const service = 'firebaseremoteconfig.googleapis.com';
+export const service = "firebaseremoteconfig.googleapis.com";
 
 /**
  * Registers a function that triggers on Firebase Remote Config template
@@ -42,25 +38,19 @@ export const service = 'firebaseremoteconfig.googleapis.com';
  * @return A Cloud Function that you can export and deploy.
  */
 export function onUpdate(
-  handler: (
-    version: TemplateVersion,
-    context: EventContext
-  ) => PromiseLike<any> | any
+  handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any
 ): CloudFunction<TemplateVersion> {
   return _onUpdateWithOptions(handler, {});
 }
 
 /** @hidden */
 export function _onUpdateWithOptions(
-  handler: (
-    version: TemplateVersion,
-    context: EventContext
-  ) => PromiseLike<any> | any,
+  handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any,
   options: DeploymentOptions
 ): CloudFunction<TemplateVersion> {
   const triggerResource = () => {
     if (!process.env.GCLOUD_PROJECT) {
-      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
     return `projects/${process.env.GCLOUD_PROJECT}`;
   };
@@ -70,10 +60,7 @@ export function _onUpdateWithOptions(
 /** Builder used to create Cloud Functions for Remote Config. */
 export class UpdateBuilder {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
    * Handle all updates (including rollbacks) that affect a Remote Config
@@ -82,17 +69,14 @@ export class UpdateBuilder {
    * version metadata as an argument.
    */
   onUpdate(
-    handler: (
-      version: TemplateVersion,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<TemplateVersion> {
     return makeCloudFunction({
       handler,
       provider,
       service,
       triggerResource: this.triggerResource,
-      eventType: 'update',
+      eventType: "update",
       options: this.options,
     });
   }

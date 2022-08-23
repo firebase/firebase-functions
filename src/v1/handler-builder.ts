@@ -20,19 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
+import * as express from "express";
 
-import { CloudFunction, EventContext, HttpsFunction } from './cloud-functions';
-import * as analytics from './providers/analytics';
-import * as auth from './providers/auth';
-import * as database from './providers/database';
-import * as firestore from './providers/firestore';
-import * as https from './providers/https';
-import * as pubsub from './providers/pubsub';
-import * as remoteConfig from './providers/remoteConfig';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
-import * as testLab from './providers/testLab';
+import { CloudFunction, EventContext, HttpsFunction } from "./cloud-functions";
+import * as analytics from "./providers/analytics";
+import * as auth from "./providers/auth";
+import * as database from "./providers/database";
+import * as firestore from "./providers/firestore";
+import * as https from "./providers/https";
+import * as pubsub from "./providers/pubsub";
+import * as remoteConfig from "./providers/remoteConfig";
+import * as storage from "./providers/storage";
+import * as tasks from "./providers/tasks";
+import * as testLab from "./providers/testLab";
 
 /**
  * The `HandlerBuilder` class facilitates the writing of functions by developers
@@ -44,7 +44,9 @@ import * as testLab from './providers/testLab';
  * [`FunctionBuilder`](/docs/reference/functions/function_builder_.functionbuilder).
  */
 export class HandlerBuilder {
-  constructor() {}
+  constructor() {
+    // do nothing
+  }
 
   /**
    * Create a handler for HTTPS events.
@@ -74,10 +76,7 @@ export class HandlerBuilder {
         return func;
       },
       onCall: (
-        handler: (
-          data: any,
-          context: https.CallableContext
-        ) => any | Promise<any>
+        handler: (data: any, context: https.CallableContext) => any | Promise<any>
       ): HttpsFunction => {
         const func = https._onCallWithOptions(handler, {});
         func.__endpoint = undefined;
@@ -101,10 +100,7 @@ export class HandlerBuilder {
       get taskQueue() {
         return {
           onDispatch: (
-            handler: (
-              data: any,
-              context: tasks.TaskContext
-            ) => void | Promise<void>
+            handler: (data: any, context: tasks.TaskContext) => void | Promise<void>
           ): HttpsFunction => {
             const builder = new tasks.TaskQueueBuilder();
             const func = builder.onDispatch(handler);
@@ -372,4 +368,4 @@ export class HandlerBuilder {
   }
 }
 
-export let handler = new HandlerBuilder();
+export const handler = new HandlerBuilder();

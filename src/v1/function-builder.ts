@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
+import * as express from "express";
 
-import { CloudFunction, EventContext } from './cloud-functions';
+import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
   INGRESS_SETTINGS_OPTIONS,
@@ -32,17 +32,17 @@ import {
   SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
   VPC_EGRESS_SETTINGS_OPTIONS,
-} from './function-configuration';
-import * as analytics from './providers/analytics';
-import * as auth from './providers/auth';
-import * as database from './providers/database';
-import * as firestore from './providers/firestore';
-import * as https from './providers/https';
-import * as pubsub from './providers/pubsub';
-import * as remoteConfig from './providers/remoteConfig';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
-import * as testLab from './providers/testLab';
+} from "./function-configuration";
+import * as analytics from "./providers/analytics";
+import * as auth from "./providers/auth";
+import * as database from "./providers/database";
+import * as firestore from "./providers/firestore";
+import * as https from "./providers/https";
+import * as pubsub from "./providers/pubsub";
+import * as remoteConfig from "./providers/remoteConfig";
+import * as storage from "./providers/storage";
+import * as tasks from "./providers/tasks";
+import * as testLab from "./providers/testLab";
 
 /**
  * Assert that the runtime options passed in are valid.
@@ -50,23 +50,13 @@ import * as testLab from './providers/testLab';
  * @throws { Error } Memory and TimeoutSeconds values must be valid.
  */
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
-  if (
-    runtimeOptions.memory &&
-    !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)
-  ) {
+  if (runtimeOptions.memory && !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)) {
     throw new Error(
-      `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(
-        ', '
-      )}`
+      `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
   }
-  if (
-    runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS ||
-    runtimeOptions.timeoutSeconds < 0
-  ) {
-    throw new Error(
-      `TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`
-    );
+  if (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0) {
+    throw new Error(`TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`);
   }
 
   if (
@@ -74,21 +64,17 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     !INGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.ingressSettings)
   ) {
     throw new Error(
-      `The only valid ingressSettings values are: ${INGRESS_SETTINGS_OPTIONS.join(
-        ','
-      )}`
+      `The only valid ingressSettings values are: ${INGRESS_SETTINGS_OPTIONS.join(",")}`
     );
   }
 
   if (
     runtimeOptions.vpcConnectorEgressSettings &&
-    !VPC_EGRESS_SETTINGS_OPTIONS.includes(
-      runtimeOptions.vpcConnectorEgressSettings
-    )
+    !VPC_EGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.vpcConnectorEgressSettings)
   ) {
     throw new Error(
       `The only valid vpcConnectorEgressSettings values are: ${VPC_EGRESS_SETTINGS_OPTIONS.join(
-        ','
+        ","
       )}`
     );
   }
@@ -96,8 +82,8 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   validateFailurePolicy(runtimeOptions.failurePolicy);
   if (
     runtimeOptions.serviceAccount &&
-    runtimeOptions.serviceAccount !== 'default' &&
-    !runtimeOptions.serviceAccount.includes('@')
+    runtimeOptions.serviceAccount !== "default" &&
+    !runtimeOptions.serviceAccount.includes("@")
   ) {
     throw new Error(
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
@@ -116,12 +102,12 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
     // We reserve the 'deployment' and 'firebase' namespaces for future feature development.
     const reservedKeys = Object.keys(runtimeOptions.labels).filter(
-      (key) => key.startsWith('deployment') || key.startsWith('firebase')
+      (key) => key.startsWith("deployment") || key.startsWith("firebase")
     );
     if (reservedKeys.length) {
       throw new Error(
         `Invalid labels: ${reservedKeys.join(
-          ', '
+          ", "
         )}. Labels may not start with reserved names 'deployment' or 'firebase'`
       );
     }
@@ -132,7 +118,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     if (invalidLengthKeys.length > 0) {
       throw new Error(
         `Invalid labels: ${invalidLengthKeys.join(
-          ', '
+          ", "
         )}. Label keys must be between 1 and 63 characters in length.`
       );
     }
@@ -143,7 +129,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     if (invalidLengthValues.length > 0) {
       throw new Error(
         `Invalid labels: ${invalidLengthValues.join(
-          ', '
+          ", "
         )}. Label values must be less than 64 charcters.`
       );
     }
@@ -156,7 +142,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     if (invalidKeys.length > 0) {
       throw new Error(
         `Invalid labels: ${invalidKeys.join(
-          ', '
+          ", "
         )}. Label keys can only contain lowercase letters, international characters, numbers, _ or -, and must start with a letter.`
       );
     }
@@ -169,41 +155,29 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     if (invalidValues.length > 0) {
       throw new Error(
         `Invalid labels: ${invalidValues.join(
-          ', '
+          ", "
         )}. Label values can only contain lowercase letters, international characters, numbers, _ or -.`
       );
     }
   }
 
-  if (
-    typeof runtimeOptions.invoker === 'string' &&
-    runtimeOptions.invoker.length === 0
-  ) {
-    throw new Error(
-      'Invalid service account for function invoker, must be a non-empty string'
-    );
+  if (typeof runtimeOptions.invoker === "string" && runtimeOptions.invoker.length === 0) {
+    throw new Error("Invalid service account for function invoker, must be a non-empty string");
   }
-  if (
-    runtimeOptions.invoker !== undefined &&
-    Array.isArray(runtimeOptions.invoker)
-  ) {
+  if (runtimeOptions.invoker !== undefined && Array.isArray(runtimeOptions.invoker)) {
     if (runtimeOptions.invoker.length === 0) {
-      throw new Error(
-        'Invalid invoker array, must contain at least 1 service account entry'
-      );
+      throw new Error("Invalid invoker array, must contain at least 1 service account entry");
     }
     for (const serviceAccount of runtimeOptions.invoker) {
       if (serviceAccount.length === 0) {
-        throw new Error(
-          'Invalid invoker array, a service account must be a non-empty string'
-        );
+        throw new Error("Invalid invoker array, a service account must be a non-empty string");
       }
-      if (serviceAccount === 'public') {
+      if (serviceAccount === "public") {
         throw new Error(
           "Invalid invoker array, a service account cannot be set to the 'public' identifier"
         );
       }
-      if (serviceAccount === 'private') {
+      if (serviceAccount === "private") {
         throw new Error(
           "Invalid invoker array, a service account cannot be set to the 'private' identifier"
         );
@@ -212,18 +186,16 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   if (runtimeOptions.secrets !== undefined) {
-    const invalidSecrets = runtimeOptions.secrets.filter(
-      (s) => !/^[A-Za-z\d\-_]+$/.test(s)
-    );
+    const invalidSecrets = runtimeOptions.secrets.filter((s) => !/^[A-Za-z\d\-_]+$/.test(s));
     if (invalidSecrets.length > 0) {
       throw new Error(
-        `Invalid secrets: ${invalidSecrets.join(',')}. ` +
-          'Secret must be configured using the resource id (e.g. API_KEY)'
+        `Invalid secrets: ${invalidSecrets.join(",")}. ` +
+          "Secret must be configured using the resource id (e.g. API_KEY)"
       );
     }
   }
 
-  if ('allowInvalidAppCheckToken' in runtimeOptions) {
+  if ("allowInvalidAppCheckToken" in runtimeOptions) {
     throw new Error(
       'runWith option "allowInvalidAppCheckToken" has been inverted and ' +
         'renamed "enforceAppCheck"'
@@ -234,16 +206,16 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 }
 
 function validateFailurePolicy(policy: any) {
-  if (typeof policy === 'boolean' || typeof policy === 'undefined') {
+  if (typeof policy === "boolean" || typeof policy === "undefined") {
     return;
   }
-  if (typeof policy !== 'object') {
+  if (typeof policy !== "object") {
     throw new Error(`failurePolicy must be a boolean or an object.`);
   }
 
   const retry = policy.retry;
-  if (typeof retry !== 'object' || Object.keys(retry).length) {
-    throw new Error('failurePolicy.retry must be an empty object.');
+  if (typeof retry !== "object" || Object.keys(retry).length) {
+    throw new Error("failurePolicy.retry must be an empty object.");
   }
 }
 
@@ -254,7 +226,7 @@ function validateFailurePolicy(policy: any) {
  */
 function assertRegionsAreValid(regions: string[]): boolean {
   if (!regions.length) {
-    throw new Error('You must specify at least one region');
+    throw new Error("You must specify at least one region");
   }
   return true;
 }
@@ -310,9 +282,7 @@ export class FunctionBuilder {
    * @example
    * functions.region('us-east1', 'us-central1')
    */
-  region(
-    ...regions: Array<typeof SUPPORTED_REGIONS[number] | string>
-  ): FunctionBuilder {
+  region(...regions: Array<typeof SUPPORTED_REGIONS[number] | string>): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;
@@ -346,9 +316,7 @@ export class FunctionBuilder {
 
   get https() {
     if (this.options.failurePolicy !== undefined) {
-      console.warn(
-        'RuntimeOptions.failurePolicy is not supported in https functions.'
-      );
+      console.warn("RuntimeOptions.failurePolicy is not supported in https functions.");
     }
 
     return {
@@ -357,22 +325,14 @@ export class FunctionBuilder {
        * @param handler A function that takes a request and response object,
        * same signature as an Express app.
        */
-      onRequest: (
-        handler: (
-          req: https.Request,
-          resp: express.Response
-        ) => void | Promise<void>
-      ) => https._onRequestWithOptions(handler, this.options),
+      onRequest: (handler: (req: https.Request, resp: express.Response) => void | Promise<void>) =>
+        https._onRequestWithOptions(handler, this.options),
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
        */
-      onCall: (
-        handler: (
-          data: any,
-          context: https.CallableContext
-        ) => any | Promise<any>
-      ) => https._onCallWithOptions(handler, this.options),
+      onCall: (handler: (data: any, context: https.CallableContext) => any | Promise<any>) =>
+        https._onCallWithOptions(handler, this.options),
     };
   }
 
@@ -396,8 +356,7 @@ export class FunctionBuilder {
        * will pick the default database for your project.
        * @param instance The Realtime Database instance to use.
        */
-      instance: (instance: string) =>
-        database._instanceWithOptions(instance, this.options),
+      instance: (instance: string) => database._instanceWithOptions(instance, this.options),
 
       /**
        * Select Firebase Realtime Database Reference to listen to.
@@ -424,8 +383,7 @@ export class FunctionBuilder {
        *    information about the user who triggered the Cloud Function.
        * @param ref Path of the database to listen to.
        */
-      ref: <Ref extends string>(path: Ref) =>
-        database._refWithOptions(path, this.options),
+      ref: <Ref extends string>(path: Ref) => database._refWithOptions(path, this.options),
     };
   }
 
@@ -442,12 +400,10 @@ export class FunctionBuilder {
         firestore._documentWithOptions(path, this.options),
 
       /** @hidden */
-      namespace: (namespace: string) =>
-        firestore._namespaceWithOptions(namespace, this.options),
+      namespace: (namespace: string) => firestore._namespaceWithOptions(namespace, this.options),
 
       /** @hidden */
-      database: (database: string) =>
-        firestore._databaseWithOptions(database, this.options),
+      database: (database: string) => firestore._databaseWithOptions(database, this.options),
     };
   }
 
@@ -475,11 +431,7 @@ export class FunctionBuilder {
           version: remoteConfig.TemplateVersion,
           context: EventContext
         ) => PromiseLike<any> | any
-      ) =>
-        remoteConfig._onUpdateWithOptions(
-          handler,
-          this.options
-        ) as CloudFunction<remoteConfig.TemplateVersion>,
+      ) => remoteConfig._onUpdateWithOptions(handler, this.options),
     };
   }
 
@@ -491,8 +443,7 @@ export class FunctionBuilder {
        * which will use the default Cloud Storage for Firebase bucket.
        * @param bucket Name of the Google Cloud Storage bucket to listen to.
        */
-      bucket: (bucket?: string) =>
-        storage._bucketWithOptions(this.options, bucket),
+      bucket: (bucket?: string) => storage._bucketWithOptions(this.options, bucket),
 
       /**
        * Handle events related to Cloud Storage objects.
@@ -509,8 +460,7 @@ export class FunctionBuilder {
        * the function.
        */
       topic: (topic: string) => pubsub._topicWithOptions(topic, this.options),
-      schedule: (schedule: string) =>
-        pubsub._scheduleWithOptions(schedule, this.options),
+      schedule: (schedule: string) => pubsub._scheduleWithOptions(schedule, this.options),
     };
   }
 
@@ -519,8 +469,7 @@ export class FunctionBuilder {
       /**
        * Handle events related to Firebase authentication users.
        */
-      user: (userOptions?: auth.UserOptions) =>
-        auth._userWithOptions(this.options, userOptions),
+      user: (userOptions?: auth.UserOptions) => auth._userWithOptions(this.options, userOptions),
     };
   }
 

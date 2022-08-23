@@ -33,9 +33,9 @@ import {
   BeforeSignInResponse,
   HttpsError,
   wrapHandler,
-} from '../../common/providers/identity';
-import { BlockingFunction } from '../../v1/cloud-functions';
-import * as options from '../options';
+} from "../../common/providers/identity";
+import { BlockingFunction } from "../../v1/cloud-functions";
+import * as options from "../options";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
@@ -114,7 +114,7 @@ export interface BlockingOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -158,11 +158,7 @@ export interface BlockingOptions {
 export function beforeUserCreated(
   handler: (
     event: AuthBlockingEvent
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | void
-    | Promise<void>
+  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
 ): BlockingFunction;
 
 /**
@@ -174,11 +170,7 @@ export function beforeUserCreated(
   opts: BlockingOptions,
   handler: (
     event: AuthBlockingEvent
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | void
-    | Promise<void>
+  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
 ): BlockingFunction;
 
 /**
@@ -191,20 +183,12 @@ export function beforeUserCreated(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) =>
-        | BeforeCreateResponse
-        | Promise<BeforeCreateResponse>
-        | void
-        | Promise<void>),
+      ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>),
   handler?: (
     event: AuthBlockingEvent
-  ) =>
-    | BeforeCreateResponse
-    | Promise<BeforeCreateResponse>
-    | void
-    | Promise<void>
+  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
 ): BlockingFunction {
-  return beforeOperation('beforeCreate', optsOrHandler, handler);
+  return beforeOperation("beforeCreate", optsOrHandler, handler);
 }
 
 /**
@@ -214,11 +198,7 @@ export function beforeUserCreated(
 export function beforeUserSignedIn(
   handler: (
     event: AuthBlockingEvent
-  ) =>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>
+  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
 ): BlockingFunction;
 
 /**
@@ -230,11 +210,7 @@ export function beforeUserSignedIn(
   opts: BlockingOptions,
   handler: (
     event: AuthBlockingEvent
-  ) =>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>
+  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
 ): BlockingFunction;
 
 /**
@@ -247,20 +223,12 @@ export function beforeUserSignedIn(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) =>
-        | BeforeSignInResponse
-        | Promise<BeforeSignInResponse>
-        | void
-        | Promise<void>),
+      ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>),
   handler?: (
     event: AuthBlockingEvent
-  ) =>
-    | BeforeSignInResponse
-    | Promise<BeforeSignInResponse>
-    | void
-    | Promise<void>
+  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
 ): BlockingFunction {
-  return beforeOperation('beforeSignIn', optsOrHandler, handler);
+  return beforeOperation("beforeSignIn", optsOrHandler, handler);
 }
 
 /** @hidden */
@@ -287,7 +255,7 @@ export function beforeOperation(
     | Promise<BeforeSignInResponse>
     | Promise<void>
 ): BlockingFunction {
-  if (!handler || typeof optsOrHandler === 'function') {
+  if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
     ) =>
@@ -300,9 +268,7 @@ export function beforeOperation(
     optsOrHandler = {};
   }
 
-  const { opts, accessToken, idToken, refreshToken } = getOpts(
-    optsOrHandler as BlockingOptions
-  );
+  const { opts, accessToken, idToken, refreshToken } = getOpts(optsOrHandler);
 
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
@@ -312,12 +278,10 @@ export function beforeOperation(
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
   /** Endpoint */
-  const baseOptsEndpoint = options.optionsToEndpoint(
-    options.getGlobalOptions()
-  );
+  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(opts);
   func.__endpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOptsEndpoint,
     ...specificOptsEndpoint,
     labels: {
@@ -336,8 +300,8 @@ export function beforeOperation(
 
   func.__requiredAPIs = [
     {
-      api: 'identitytoolkit.googleapis.com',
-      reason: 'Needed for auth blocking functions',
+      api: "identitytoolkit.googleapis.com",
+      reason: "Needed for auth blocking functions",
     },
   ];
 

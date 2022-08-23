@@ -34,7 +34,7 @@ import {
   Param,
   ParamOptions,
   StringParam,
-} from './types';
+} from "./types";
 
 export { ParamOptions };
 
@@ -61,10 +61,7 @@ function registerParam(param: Param) {
  * @param options Configuration options for the param.
  * @returns A Param with a `string` return type for `.value`.
  */
-export function defineString(
-  name: string,
-  options: ParamOptions<string> = {}
-): StringParam {
+export function defineString(name: string, options: ParamOptions<string> = {}): StringParam {
   const param = new StringParam(name, options);
   registerParam(param);
   return param;
@@ -77,10 +74,7 @@ export function defineString(
  * @param options Configuration options for the param.
  * @returns A Param with a `boolean` return type for `.value`.
  */
-export function defineBoolean(
-  name: string,
-  options: ParamOptions<boolean> = {}
-): BooleanParam {
+export function defineBoolean(name: string, options: ParamOptions<boolean> = {}): BooleanParam {
   const param = new BooleanParam(name, options);
   registerParam(param);
   return param;
@@ -93,10 +87,7 @@ export function defineBoolean(
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
  */
-export function defineInt(
-  name: string,
-  options: ParamOptions<number> = {}
-): IntParam {
+export function defineInt(name: string, options: ParamOptions<number> = {}): IntParam {
   const param = new IntParam(name, options);
   registerParam(param);
   return param;
@@ -109,10 +100,7 @@ export function defineInt(
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
  */
-export function defineFloat(
-  name: string,
-  options: ParamOptions<number> = {}
-): FloatParam {
+export function defineFloat(name: string, options: ParamOptions<number> = {}): FloatParam {
   const param = new FloatParam(name, options);
   registerParam(param);
   return param;
@@ -125,10 +113,7 @@ export function defineFloat(
  * @param options Configuration options for the param.
  * @returns A Param with a `string[]` return type for `.value`.
  */
-export function defineList(
-  name: string,
-  options: ParamOptions<string[]> = {}
-): ListParam {
+export function defineList(name: string, options: ParamOptions<string[]> = {}): ListParam {
   const param = new ListParam(name, options);
   registerParam(param);
   return param;
@@ -142,10 +127,7 @@ export function defineList(
  * @param options Configuration options for the param.
  * @returns A Param with a specifiable return type for `.value`.
  */
-export function defineJSON<T = any>(
-  name: string,
-  options: ParamOptions<T> = {}
-): JSONParam {
+export function defineJSON<T = any>(name: string, options: ParamOptions<T> = {}): JSONParam {
   const param = new JSONParam<T>(name, options);
   registerParam(param);
   return param;

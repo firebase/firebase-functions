@@ -25,16 +25,16 @@
  * @packageDocumentation
  */
 
-import { CloudEvent, CloudFunction } from '../../core';
-import * as options from '../../options';
-import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
+import { CloudEvent, CloudFunction } from "../../core";
+import * as options from "../../options";
+import { FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewTesterDevicePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroNewTesterIosDevicePayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroNewTesterIosDevicePayload";
   /** Name of the tester */
   testerName: string;
   /** Email of the tester */
@@ -50,7 +50,7 @@ export interface NewTesterDevicePayload {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface InAppFeedbackPayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload";
   /** Resource name. Format: `projects/{project_number}/apps/{app_id}/releases/{release_id}/feedbackReports/{feedback_id}` */
   feedbackReport: string;
   /** Deep link back to the Firebase console. */
@@ -81,8 +81,7 @@ export interface InAppFeedbackPayload {
  * A custom CloudEvent for Firebase Alerts (with custom extension attributes).
  * @typeParam T - the data type for app distribution alerts that is wrapped in a `FirebaseAlertData` object.
  */
-export interface AppDistributionEvent<T>
-  extends CloudEvent<FirebaseAlertData<T>> {
+export interface AppDistributionEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
   /** The type of the alerts that got triggered. */
   alertType: string;
   /** The Firebase App ID that’s associated with the alert. */
@@ -90,9 +89,9 @@ export interface AppDistributionEvent<T>
 }
 
 /** @internal */
-export const newTesterIosDeviceAlert = 'appDistribution.newTesterIosDevice';
+export const newTesterIosDeviceAlert = "appDistribution.newTesterIosDevice";
 /** @internal */
-export const inAppFeedbackAlert = 'appDistribution.inAppFeedback';
+export const inAppFeedbackAlert = "appDistribution.inAppFeedback";
 
 /**
  * Configuration for app distribution functions.
@@ -155,7 +154,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -201,9 +200,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
  * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
-  handler: (
-    event: AppDistributionEvent<NewTesterDevicePayload>
-  ) => any | Promise<any>
+  handler: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 
 /**
@@ -214,9 +211,7 @@ export function onNewTesterIosDevicePublished(
  */
 export function onNewTesterIosDevicePublished(
   appId: string,
-  handler: (
-    event: AppDistributionEvent<NewTesterDevicePayload>
-  ) => any | Promise<any>
+  handler: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 
 /**
@@ -227,9 +222,7 @@ export function onNewTesterIosDevicePublished(
  */
 export function onNewTesterIosDevicePublished(
   opts: AppDistributionOptions,
-  handler: (
-    event: AppDistributionEvent<NewTesterDevicePayload>
-  ) => any | Promise<any>
+  handler: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 
 /**
@@ -242,14 +235,10 @@ export function onNewTesterIosDevicePublished(
   appIdOrOptsOrHandler:
     | string
     | AppDistributionOptions
-    | ((
-        event: AppDistributionEvent<NewTesterDevicePayload>
-      ) => any | Promise<any>),
-  handler?: (
-    event: AppDistributionEvent<NewTesterDevicePayload>
-  ) => any | Promise<any>
+    | ((event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>),
+  handler?: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>> {
-  if (typeof appIdOrOptsOrHandler === 'function') {
+  if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (
       event: AppDistributionEvent<NewTesterDevicePayload>
     ) => any | Promise<any>;
@@ -274,9 +263,7 @@ export function onNewTesterIosDevicePublished(
  * @returns A function that you can export and deploy.
  */
 export function onInAppFeedbackPublished(
-  handler: (
-    event: AppDistributionEvent<InAppFeedbackPayload>
-  ) => any | Promise<any>
+  handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
 
 /**
@@ -287,9 +274,7 @@ export function onInAppFeedbackPublished(
  */
 export function onInAppFeedbackPublished(
   appId: string,
-  handler: (
-    event: AppDistributionEvent<InAppFeedbackPayload>
-  ) => any | Promise<any>
+  handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
 
 /**
@@ -300,9 +285,7 @@ export function onInAppFeedbackPublished(
  */
 export function onInAppFeedbackPublished(
   opts: AppDistributionOptions,
-  handler: (
-    event: AppDistributionEvent<InAppFeedbackPayload>
-  ) => any | Promise<any>
+  handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
 
 /**
@@ -315,14 +298,10 @@ export function onInAppFeedbackPublished(
   appIdOrOptsOrHandler:
     | string
     | AppDistributionOptions
-    | ((
-        event: AppDistributionEvent<InAppFeedbackPayload>
-      ) => any | Promise<any>),
-  handler?: (
-    event: AppDistributionEvent<InAppFeedbackPayload>
-  ) => any | Promise<any>
+    | ((event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>),
+  handler?: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>> {
-  if (typeof appIdOrOptsOrHandler === 'function') {
+  if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (
       event: AppDistributionEvent<InAppFeedbackPayload>
     ) => any | Promise<any>;
@@ -353,7 +332,7 @@ export function getOptsAndApp(
 ): [options.EventHandlerOptions, string | undefined] {
   let opts: options.EventHandlerOptions;
   let appId: string | undefined;
-  if (typeof appIdOrOpts === 'string') {
+  if (typeof appIdOrOpts === "string") {
     opts = {};
     appId = appIdOrOpts;
   } else {

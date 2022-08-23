@@ -20,28 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firestore from 'firebase-admin/firestore';
+import * as firestore from "firebase-admin/firestore";
 
-import { posix } from 'path';
-import { getApp } from '../../common/app';
-import { Change } from '../../common/change';
-import { ParamsOf } from '../../common/params';
-import { dateToTimestampProto } from '../../common/utilities/encoder';
-import * as logger from '../../logger';
-import {
-  CloudFunction,
-  Event,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+import { posix } from "path";
+import { getApp } from "../../common/app";
+import { Change } from "../../common/change";
+import { ParamsOf } from "../../common/params";
+import { dateToTimestampProto } from "../../common/utilities/encoder";
+import * as logger from "../../logger";
+import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 /** @hidden */
-export const provider = 'google.firestore';
+export const provider = "google.firestore";
 /** @hidden */
-export const service = 'firestore.googleapis.com';
+export const service = "firestore.googleapis.com";
 /** @hidden */
-export const defaultDatabase = '(default)';
+export const defaultDatabase = "(default)";
 let firestoreInstance: any;
 export type DocumentSnapshot = firestore.DocumentSnapshot;
 export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
@@ -78,18 +73,12 @@ export function _databaseWithOptions(
 }
 
 /** @hidden */
-export function _namespaceWithOptions(
-  namespace: string,
-  options: DeploymentOptions
-) {
+export function _namespaceWithOptions(namespace: string, options: DeploymentOptions) {
   return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
 /** @hidden */
-export function _documentWithOptions<Path extends string>(
-  path: Path,
-  options: DeploymentOptions
-) {
+export function _documentWithOptions<Path extends string>(path: Path, options: DeploymentOptions) {
   return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
@@ -117,17 +106,17 @@ export class NamespaceBuilder {
   document<Path extends string>(path: Path) {
     return new DocumentBuilder<Path>(() => {
       if (!process.env.GCLOUD_PROJECT) {
-        throw new Error('process.env.GCLOUD_PROJECT is not set.');
+        throw new Error("process.env.GCLOUD_PROJECT is not set.");
       }
       const database = posix.join(
-        'projects',
+        "projects",
         process.env.GCLOUD_PROJECT,
-        'databases',
+        "databases",
         this.database
       );
       return posix.join(
         database,
-        this.namespace ? `documents@${this.namespace}` : 'documents',
+        this.namespace ? `documents@${this.namespace}` : "documents",
         path
       );
     }, this.options);
@@ -137,9 +126,9 @@ export class NamespaceBuilder {
 function _getValueProto(data: any, resource: string, valueFieldName: string) {
   const value = data?.[valueFieldName];
   if (
-    typeof value === 'undefined' ||
+    typeof value === "undefined" ||
     value === null ||
-    (typeof value === 'object' && !Object.keys(value).length)
+    (typeof value === "object" && !Object.keys(value).length)
   ) {
     // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
     return resource;
@@ -158,21 +147,16 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
   }
-  const valueProto = _getValueProto(
-    event.data,
-    event.context.resource.name,
-    'value'
-  );
-  let timeString =
-    event?.data?.value?.readTime ?? event?.data?.value?.updateTime;
+  const valueProto = _getValueProto(event.data, event.context.resource.name, "value");
+  let timeString = event?.data?.value?.readTime ?? event?.data?.value?.updateTime;
 
   if (!timeString) {
-    logger.warn('Snapshot has no readTime. Using now()');
+    logger.warn("Snapshot has no readTime. Using now()");
     timeString = new Date().toISOString();
   }
 
   const readTime = dateToTimestampProto(timeString);
-  return firestoreInstance.snapshot_(valueProto, readTime, 'json');
+  return firestoreInstance.snapshot_(valueProto, readTime, "json");
 }
 
 /** @hidden */
@@ -181,28 +165,18 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
   }
-  const oldValueProto = _getValueProto(
-    event.data,
-    event.context.resource.name,
-    'oldValue'
-  );
+  const oldValueProto = _getValueProto(event.data, event.context.resource.name, "oldValue");
   const oldReadTime = dateToTimestampProto(event?.data?.oldValue?.readTime);
-  return firestoreInstance.snapshot_(oldValueProto, oldReadTime, 'json');
+  return firestoreInstance.snapshot_(oldValueProto, oldReadTime, "json");
 }
 
 function changeConstructor(raw: Event) {
-  return Change.fromObjects(
-    beforeSnapshotConstructor(raw),
-    snapshotConstructor(raw)
-  );
+  return Change.fromObjects(beforeSnapshotConstructor(raw), snapshotConstructor(raw));
 }
 
 export class DocumentBuilder<Path extends string> {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {
     // TODO what validation do we want to do here?
   }
 
@@ -213,7 +187,7 @@ export class DocumentBuilder<Path extends string> {
       context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DocumentSnapshot>> {
-    return this.onOperation(handler, 'document.write', changeConstructor);
+    return this.onOperation(handler, "document.write", changeConstructor);
   }
 
   /** Respond only to document updates. */
@@ -223,7 +197,7 @@ export class DocumentBuilder<Path extends string> {
       context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<QueryDocumentSnapshot>> {
-    return this.onOperation(handler, 'document.update', changeConstructor);
+    return this.onOperation(handler, "document.update", changeConstructor);
   }
 
   /** Respond only to document creations. */
@@ -233,7 +207,7 @@ export class DocumentBuilder<Path extends string> {
       context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<QueryDocumentSnapshot> {
-    return this.onOperation(handler, 'document.create', snapshotConstructor);
+    return this.onOperation(handler, "document.create", snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
@@ -243,18 +217,11 @@ export class DocumentBuilder<Path extends string> {
       context: EventContext<ParamsOf<Path>>
     ) => PromiseLike<any> | any
   ): CloudFunction<QueryDocumentSnapshot> {
-    return this.onOperation(
-      handler,
-      'document.delete',
-      beforeSnapshotConstructor
-    );
+    return this.onOperation(handler, "document.delete", beforeSnapshotConstructor);
   }
 
   private onOperation<T>(
-    handler: (
-      data: T,
-      context: EventContext<ParamsOf<Path>>
-    ) => PromiseLike<any> | any,
+    handler: (data: T, context: EventContext<ParamsOf<Path>>) => PromiseLike<any> | any,
     eventType: string,
     dataConstructor: (raw: Event) => any
   ): CloudFunction<T> {

@@ -20,18 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  CloudFunction,
-  Event,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 /** @hidden */
-export const provider = 'google.analytics';
+export const provider = "google.analytics";
 /** @hidden */
-export const service = 'app-measurement.com';
+export const service = "app-measurement.com";
 
 /**
  * Registers a function to handle analytics events.
@@ -46,17 +41,12 @@ export function event(analyticsEventType: string) {
 }
 
 /** @hidden */
-export function _eventWithOptions(
-  analyticsEventType: string,
-  options: DeploymentOptions
-) {
+export function _eventWithOptions(analyticsEventType: string, options: DeploymentOptions) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
-      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
-    return (
-      'projects/' + process.env.GCLOUD_PROJECT + '/events/' + analyticsEventType
-    );
+    return "projects/" + process.env.GCLOUD_PROJECT + "/events/" + analyticsEventType;
   }, options);
 }
 
@@ -67,10 +57,7 @@ export function _eventWithOptions(
  */
 export class AnalyticsEventBuilder {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
@@ -81,10 +68,7 @@ export class AnalyticsEventBuilder {
    * @return A function that you can export and deploy.
    */
   onLog(
-    handler: (
-      event: AnalyticsEvent,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<AnalyticsEvent> {
     const dataConstructor = (raw: Event) => {
       return new AnalyticsEvent(raw.data);
@@ -92,7 +76,7 @@ export class AnalyticsEventBuilder {
     return makeCloudFunction({
       handler,
       provider,
-      eventType: 'event.log',
+      eventType: "event.log",
       service,
       legacyEventType: `providers/google.firebase.analytics/eventTypes/event.log`,
       triggerResource: this.triggerResource,
@@ -140,25 +124,14 @@ export class AnalyticsEvent {
     if (wireFormat.eventDim && wireFormat.eventDim.length > 0) {
       // If there's an eventDim, there'll always be exactly one.
       const eventDim = wireFormat.eventDim[0];
-      copyField(eventDim, this, 'name');
-      copyField(eventDim, this, 'params', (p) => mapKeys(p, unwrapValue));
-      copyFieldTo(eventDim, this, 'valueInUsd', 'valueInUSD');
-      copyFieldTo(eventDim, this, 'date', 'reportingDate');
-      copyTimestampToString(eventDim, this, 'timestampMicros', 'logTime');
-      copyTimestampToString(
-        eventDim,
-        this,
-        'previousTimestampMicros',
-        'previousLogTime'
-      );
+      copyField(eventDim, this, "name");
+      copyField(eventDim, this, "params", (p) => mapKeys(p, unwrapValue));
+      copyFieldTo(eventDim, this, "valueInUsd", "valueInUSD");
+      copyFieldTo(eventDim, this, "date", "reportingDate");
+      copyTimestampToString(eventDim, this, "timestampMicros", "logTime");
+      copyTimestampToString(eventDim, this, "previousTimestampMicros", "previousLogTime");
     }
-    copyFieldTo(
-      wireFormat,
-      this,
-      'userDim',
-      'user',
-      (dim) => new UserDimensions(dim)
-    );
+    copyFieldTo(wireFormat, this, "userDim", "user", (dim) => new UserDimensions(dim));
   }
 }
 
@@ -201,39 +174,21 @@ export class UserDimensions {
   /** @hidden */
   constructor(wireFormat: any) {
     // These are interfaces or primitives, no transformation needed.
-    copyFields(wireFormat, this, [
-      'userId',
-      'deviceInfo',
-      'geoInfo',
-      'appInfo',
-    ]);
+    copyFields(wireFormat, this, ["userId", "deviceInfo", "geoInfo", "appInfo"]);
 
     // The following fields do need transformations of some sort.
-    copyTimestampToString(
-      wireFormat,
-      this,
-      'firstOpenTimestampMicros',
-      'firstOpenTime'
-    );
+    copyTimestampToString(wireFormat, this, "firstOpenTimestampMicros", "firstOpenTime");
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, 'userProperties', (r) => {
-      const entries = Object.entries(r).map(([k, v]) => [
-        k,
-        new UserPropertyValue(v),
-      ]);
+    copyField(wireFormat, this, "userProperties", (r) => {
+      const entries = Object.entries(r).map(([k, v]) => [k, new UserPropertyValue(v)]);
       return Object.fromEntries(entries);
     });
-    copyField(
-      wireFormat,
-      this,
-      'bundleInfo',
-      (r) => new ExportBundleInfo(r) as any
-    );
+    copyField(wireFormat, this, "bundleInfo", (r) => new ExportBundleInfo(r) as any);
 
     // BUG(36000368) Remove when no longer necessary
     /* tslint:disable:no-string-literal */
-    if (!this.userId && this.userProperties['user_id']) {
-      this.userId = this.userProperties['user_id'].value;
+    if (!this.userId && this.userProperties["user_id"]) {
+      this.userId = this.userProperties["user_id"].value;
     }
     /* tslint:enable:no-string-literal */
   }
@@ -249,8 +204,8 @@ export class UserPropertyValue {
 
   /** @hidden */
   constructor(wireFormat: any) {
-    copyField(wireFormat, this, 'value', unwrapValueAsString as any);
-    copyTimestampToString(wireFormat, this, 'setTimestampUsec', 'setTime');
+    copyField(wireFormat, this, "value", unwrapValueAsString as any);
+    copyTimestampToString(wireFormat, this, "setTimestampUsec", "setTime");
   }
 }
 
@@ -414,30 +369,20 @@ export class ExportBundleInfo {
 
   /** @hidden */
   constructor(wireFormat: any) {
-    copyField(wireFormat, this, 'bundleSequenceId');
-    copyTimestampToMillis(
-      wireFormat,
-      this,
-      'serverTimestampOffsetMicros',
-      'serverTimestampOffset'
-    );
+    copyField(wireFormat, this, "bundleSequenceId");
+    copyTimestampToMillis(wireFormat, this, "serverTimestampOffsetMicros", "serverTimestampOffset");
   }
 }
 
 /** @hidden */
-function copyFieldTo<
-  From extends object,
-  FromKey extends keyof From,
-  To extends object,
-  ToKey extends keyof To
->(
+function copyFieldTo<From extends object, FromKey extends keyof From, To, ToKey extends keyof To>(
   from: From,
   to: To,
   fromField: FromKey,
   toField: ToKey,
   transform?: (val: Required<From>[FromKey]) => Required<To>[ToKey]
 ): void {
-  if (typeof from[fromField] === 'undefined') {
+  if (typeof from[fromField] === "undefined") {
     return;
   }
   if (transform) {
@@ -448,36 +393,30 @@ function copyFieldTo<
 }
 
 /** @hidden */
-function copyField<
-  From extends object,
-  To extends Object,
-  Key extends keyof From & keyof To
->(
+function copyField<From extends object, To, Key extends keyof From & keyof To>(
   from: From,
   to: To,
   field: Key,
-  transform: (val: Required<From>[Key]) => Required<To>[Key] = (from) =>
-    from as any
+  transform: (val: Required<From>[Key]) => Required<To>[Key] = (from) => from as any
 ): void {
   copyFieldTo(from, to, field, field, transform);
 }
 
 /** @hidden */
-function copyFields<
-  From extends object,
-  To extends object,
-  Key extends keyof From & keyof To
->(from: From, to: To, fields: Key[]): void {
+function copyFields<From extends object, To, Key extends keyof From & keyof To>(
+  from: From,
+  to: To,
+  fields: Key[]
+): void {
   for (const field of fields) {
     copyField(from, to, field);
   }
 }
 
-type TransformedObject<
-  Obj extends Object,
-  Transform extends (key: keyof Obj) => any
-> = { [key in keyof Obj]: ReturnType<Transform> };
-function mapKeys<Obj extends Object, Transform extends (key: keyof Obj) => any>(
+type TransformedObject<Obj, Transform extends (key: keyof Obj) => any> = {
+  [key in keyof Obj]: ReturnType<Transform>;
+};
+function mapKeys<Obj, Transform extends (key: keyof Obj) => any>(
   obj: Obj,
   transform: Transform
 ): TransformedObject<Obj, Transform> {
@@ -534,7 +473,7 @@ function unwrapValueAsString(wrapped: any): string {
 // JavaScript's 'number' type, since we prefer using idiomatic types. Note that this may lead to loss
 // in precision for int64 fields, so use with care.
 /** @hidden */
-const xValueNumberFields = ['intValue', 'floatValue', 'doubleValue'];
+const xValueNumberFields = ["intValue", "floatValue", "doubleValue"];
 
 /** @hidden */
 function unwrapValue(wrapped: any): any {

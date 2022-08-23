@@ -25,11 +25,11 @@
  * @packageDocumentation
  */
 
-import { firebaseConfig } from '../../common/config';
-import { copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
+import { firebaseConfig } from "../../common/config";
+import { copyIfPresent } from "../../common/encoding";
+import { ManifestEndpoint } from "../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../core";
+import * as options from "../options";
 
 /**
  * An object within Google Cloud Storage.
@@ -186,14 +186,13 @@ export interface StorageEvent extends CloudEvent<StorageObjectData> {
 }
 
 /** @internal */
-export const archivedEvent = 'google.cloud.storage.object.v1.archived';
+export const archivedEvent = "google.cloud.storage.object.v1.archived";
 /** @internal */
-export const finalizedEvent = 'google.cloud.storage.object.v1.finalized';
+export const finalizedEvent = "google.cloud.storage.object.v1.finalized";
 /** @internal */
-export const deletedEvent = 'google.cloud.storage.object.v1.deleted';
+export const deletedEvent = "google.cloud.storage.object.v1.deleted";
 /** @internal */
-export const metadataUpdatedEvent =
-  'google.cloud.storage.object.v1.metadataUpdated';
+export const metadataUpdatedEvent = "google.cloud.storage.object.v1.metadataUpdated";
 
 /** StorageOptions extend EventHandlerOptions with a bucket name  */
 export interface StorageOptions extends options.EventHandlerOptions {
@@ -254,7 +253,7 @@ export interface StorageOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -344,10 +343,7 @@ export function onObjectArchived(
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(archivedEvent, bucketOrOptsOrHandler, handler);
@@ -411,10 +407,7 @@ export function onObjectFinalized(
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(finalizedEvent, bucketOrOptsOrHandler, handler);
@@ -482,10 +475,7 @@ export function onObjectDeleted(
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(deletedEvent, bucketOrOptsOrHandler, handler);
@@ -534,10 +524,7 @@ export function onObjectMetadataUpdated(
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(metadataUpdatedEvent, bucketOrOptsOrHandler, handler);
@@ -546,22 +533,15 @@ export function onObjectMetadataUpdated(
 /** @internal */
 export function onOperation(
   eventType: string,
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
-  if (typeof bucketOrOptsOrHandler === 'function') {
-    handler = bucketOrOptsOrHandler as (
-      event: StorageEvent
-    ) => any | Promise<any>;
+  if (typeof bucketOrOptsOrHandler === "function") {
+    handler = bucketOrOptsOrHandler as (event: StorageEvent) => any | Promise<any>;
     bucketOrOptsOrHandler = {};
   }
 
-  const [opts, bucket] = getOptsAndBucket(
-    bucketOrOptsOrHandler as string | StorageOptions
-  );
+  const [opts, bucket] = getOptsAndBucket(bucketOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
     return handler(raw as StorageEvent);
@@ -576,13 +556,13 @@ export function onOperation(
 
   // SDK may attempt to read FIREBASE_CONFIG env var to fetch the default bucket name.
   // To prevent runtime errors when FIREBASE_CONFIG env var is missing, we use getters.
-  Object.defineProperty(func, '__endpoint', {
+  Object.defineProperty(func, "__endpoint", {
     get: () => {
       const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
       const specificOpts = options.optionsToEndpoint(opts);
 
       const endpoint: ManifestEndpoint = {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {
@@ -595,7 +575,7 @@ export function onOperation(
           retry: false,
         },
       };
-      copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+      copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
       return endpoint;
     },
   });
@@ -609,7 +589,7 @@ export function getOptsAndBucket(
 ): [options.EventHandlerOptions, string] {
   let bucket: string;
   let opts: options.EventHandlerOptions;
-  if (typeof bucketOrOpts === 'string') {
+  if (typeof bucketOrOpts === "string") {
     bucket = bucketOrOpts;
     opts = {};
   } else {
@@ -620,8 +600,8 @@ export function getOptsAndBucket(
 
   if (!bucket) {
     throw new Error(
-      'Missing bucket name. If you are unit testing, please provide a bucket name' +
-        ' by providing bucket name directly in the event handler or by setting process.env.FIREBASE_CONFIG.'
+      "Missing bucket name. If you are unit testing, please provide a bucket name" +
+        " by providing bucket name directly in the event handler or by setting process.env.FIREBASE_CONFIG."
     );
   }
   if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
