@@ -20,6 +20,8 @@ import * as testLab from "./v1/testLab-utils";
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
 
+// Re-enable no-unused-var check once callable functions are testable again.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function callHttpsTrigger(name: string, data: any) {
   const url = `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`;
   const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
@@ -36,6 +38,8 @@ async function callHttpsTrigger(name: string, data: any) {
   }
 }
 
+// Re-enable no-unused-var check once callable functions are testable again.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function callV2HttpsTrigger(name: string, data: any, accessToken: string) {
   const getFnResp = await fetch(
     `https://cloudfunctions.googleapis.com/v2beta/projects/${firebaseConfig.projectId}/locations/${REGION}/functions/${name}`,
