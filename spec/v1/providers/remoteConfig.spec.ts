@@ -116,38 +116,4 @@ describe("RemoteConfig Functions", () => {
       ]);
     });
   });
-
-  describe("handler namespace", () => {
-    describe("#onUpdate", () => {
-      it("should have an empty trigger", () => {
-        const cloudFunction = functions.handler.remoteConfig.onUpdate(() => null);
-
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-
-      it("should correctly unwrap the event", () => {
-        const cloudFunctionUpdate = functions.handler.remoteConfig.onUpdate(
-          (version: remoteConfig.TemplateVersion) => version
-        );
-        const event: Event = {
-          data: constructVersion(),
-          context: {
-            eventId: "70172329041928",
-            timestamp: "2018-04-09T07:56:12.975Z",
-            eventType: "google.firebase.remoteconfig.update",
-            resource: {
-              service: "firebaseremoteconfig.googleapis.com",
-              name: "projects/project1",
-            },
-          },
-        };
-
-        return Promise.all([
-          cloudFunctionUpdate(event.data, event.context).then((data: any) => {
-            expect(data).to.deep.equal(constructVersion());
-          }),
-        ]);
-      });
-    });
-  });
 });

@@ -128,10 +128,3 @@ describe("#onDispatch", () => {
     expect(gotData).to.deep.equal({ foo: "bar" });
   });
 });
-
-describe("handler namespace", () => {
-  it("should return an empty trigger", () => {
-    const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
-    expect(result.__endpoint).to.be.undefined;
-  });
-});
