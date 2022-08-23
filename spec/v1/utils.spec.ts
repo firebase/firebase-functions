@@ -20,21 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import { applyChange } from '../../src/common/utilities/utils';
+import { expect } from "chai";
+import { applyChange } from "../../src/common/utilities/utils";
 
-describe('utils', () => {
-  describe('.applyChange(from: any, to: any): any', () => {
-    it('should return the to value for non-object values of from and to', () => {
-      expect(applyChange({ a: 'b' }, null)).to.eq(null);
-      expect(applyChange(null, { a: 'b' })).to.deep.equal({ a: 'b' });
+describe("utils", () => {
+  describe(".applyChange(from: any, to: any): any", () => {
+    it("should return the to value for non-object values of from and to", () => {
+      expect(applyChange({ a: "b" }, null)).to.eq(null);
+      expect(applyChange(null, { a: "b" })).to.deep.equal({ a: "b" });
       expect(applyChange(23, null)).to.be.null;
     });
 
-    it('should return the merged value of two objects', () => {
-      const from = { a: { b: 'foo', c: 23, d: 444 }, d: { e: 42 } };
-      const to: any = { a: { b: 'bar', c: null }, d: null, e: { f: 'g' } };
-      const result = { a: { b: 'bar', d: 444 }, e: { f: 'g' } };
+    it("should return the merged value of two objects", () => {
+      const from = { a: { b: "foo", c: 23, d: 444 }, d: { e: 42 } };
+      const to: any = { a: { b: "bar", c: null }, d: null, e: { f: "g" } };
+      const result = { a: { b: "bar", d: 444 }, e: { f: "g" } };
       expect(applyChange(from, to)).to.deep.equal(result);
     });
   });

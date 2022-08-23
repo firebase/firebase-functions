@@ -1,30 +1,23 @@
-import * as functions from 'firebase-functions';
-import { REGION } from '../region';
-import { expectEq, TestSuite } from '../testing';
+import * as functions from "firebase-functions";
+import { REGION } from "../region";
+import { expectEq, TestSuite } from "../testing";
 import TemplateVersion = functions.remoteConfig.TemplateVersion;
 
-export const remoteConfigTests: any = functions
-  .region(REGION)
-  .remoteConfig.onUpdate((v, c) => {
-    return new TestSuite<TemplateVersion>('remoteConfig onUpdate')
-      .it('should have a project as resource', (version, context) =>
-        expectEq(
-          context.resource.name,
-          `projects/${process.env.GCLOUD_PROJECT}`
-        )
-      )
+export const remoteConfigTests: any = functions.region(REGION).remoteConfig.onUpdate((v, c) => {
+  return new TestSuite<TemplateVersion>("remoteConfig onUpdate")
+    .it("should have a project as resource", (version, context) =>
+      expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
+    )
 
-      .it('should have the correct eventType', (version, context) =>
-        expectEq(context.eventType, 'google.firebase.remoteconfig.update')
-      )
+    .it("should have the correct eventType", (version, context) =>
+      expectEq(context.eventType, "google.firebase.remoteconfig.update")
+    )
 
-      .it('should have an eventId', (version, context) => context.eventId)
+    .it("should have an eventId", (version, context) => context.eventId)
 
-      .it('should have a timestamp', (version, context) => context.timestamp)
+    .it("should have a timestamp", (version, context) => context.timestamp)
 
-      .it('should not have auth', (version, context) =>
-        expectEq((context as any).auth, undefined)
-      )
+    .it("should not have auth", (version, context) => expectEq((context as any).auth, undefined))
 
-      .run(v.description, v, c);
-  });
+    .run(v.description, v, c);
+});

@@ -25,12 +25,12 @@
  * @packageDocumentation
  */
 
-import { Change } from '../common/change';
-import { ManifestEndpoint } from '../runtime/manifest';
+import { Change } from "../common/change";
+import { ManifestEndpoint } from "../runtime/manifest";
 
 export { Change };
 
-export { ParamsOf } from '../common/params';
+export { ParamsOf } from "../common/params";
 
 /**
  * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
@@ -40,7 +40,7 @@ export { ParamsOf } from '../common/params';
  */
 export interface CloudEvent<T> {
   /** Version of the CloudEvents spec for this event. */
-  readonly specversion: '1.0';
+  readonly specversion: "1.0";
 
   /** A globally unique ID for this event. */
   id: string;

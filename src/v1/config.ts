@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from "fs";
+import * as path from "path";
 
-export { firebaseConfig } from '../common/config';
+export { firebaseConfig } from "../common/config";
 
 let singleton: Record<string, any>;
 
@@ -45,12 +45,12 @@ export function config(): Record<string, any> {
   // K_CONFIGURATION is only set in GCFv2
   if (process.env.K_CONFIGURATION) {
     throw new Error(
-      'functions.config() is no longer available in Cloud Functions for ' +
-        'Firebase v2. Please see the latest documentation for information ' +
-        'on how to transition to using environment variables'
+      "functions.config() is no longer available in Cloud Functions for " +
+        "Firebase v2. Please see the latest documentation for information " +
+        "on how to transition to using environment variables"
     );
   }
-  if (typeof singleton === 'undefined') {
+  if (typeof singleton === "undefined") {
     init();
   }
   return singleton;
@@ -68,10 +68,9 @@ function init() {
 
   try {
     const configPath =
-      process.env.CLOUD_RUNTIME_CONFIG ||
-      path.join(process.cwd(), '.runtimeconfig.json');
+      process.env.CLOUD_RUNTIME_CONFIG || path.join(process.cwd(), ".runtimeconfig.json");
     const contents = fs.readFileSync(configPath);
-    const parsed = JSON.parse(contents.toString('utf8'));
+    const parsed = JSON.parse(contents.toString("utf8"));
     delete parsed.firebase;
     singleton = parsed;
     return;
