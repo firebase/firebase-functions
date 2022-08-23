@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2017 Firebase
+// Copyright (c) 2022 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,25 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-
-import { format } from "util";
-import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
-
-/** @hidden */
-function patchedConsole(severity: string): (data: any, ...args: any[]) => void {
-  return function (data: any, ...args: any[]): void {
-    let message = format(data, ...args);
-    if (severity === "ERROR") {
-      message = new Error(message).stack || message;
-    }
-
-    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[severity]](JSON.stringify({ severity, message }));
-  };
-}
-
-// IMPORTANT -- "../logger" must be imported before monkeypatching!
-console.debug = patchedConsole("DEBUG");
-console.info = patchedConsole("INFO");
-console.log = patchedConsole("INFO");
-console.warn = patchedConsole("WARNING");
-console.error = patchedConsole("ERROR");
+// This method will fail to compile if value is not of the explicit parameter type.
+/* eslint-disable @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function */
+export function expectType<Type>(value: Type) {}
+export function expectNever<Type extends never>() {}

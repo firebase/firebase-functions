@@ -20,29 +20,25 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { getApp } from '../../common/app';
-import { Change } from '../../common/change';
-import { firebaseConfig } from '../../common/config';
-import { DataSnapshot } from '../../common/providers/database';
-import { normalizePath } from '../../common/utilities/path';
-import { applyChange } from '../../common/utilities/utils';
-import {
-  CloudFunction,
-  Event,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+import { getApp } from "../../common/app";
+import { Change } from "../../common/change";
+import { firebaseConfig } from "../../common/config";
+import { ParamsOf } from "../../common/params";
+import { DataSnapshot } from "../../common/providers/database";
+import { normalizePath } from "../../common/utilities/path";
+import { applyChange } from "../../common/utilities/utils";
+import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 export { DataSnapshot };
 
 /** @hidden */
-export const provider = 'google.firebase.database';
+export const provider = "google.firebase.database";
 /** @hidden */
-export const service = 'firebaseio.com';
+export const service = "firebaseio.com";
 
-const databaseURLRegex = new RegExp('^https://([^.]+).');
-const emulatorDatabaseURLRegex = new RegExp('^http://.*ns=([^&]+)');
+const databaseURLRegex = new RegExp("^https://([^.]+).");
+const emulatorDatabaseURLRegex = new RegExp("^http://.*ns=([^&]+)");
 
 /**
  * Registers a function that triggers on events from a specific
@@ -90,7 +86,7 @@ export function instance(instance: string) {
  * @param path The path within the Database to watch for write events.
  * @return Firebase Realtime Database builder interface.
  */
-export function ref(path: string) {
+export function ref<Ref extends string>(path: Ref) {
   return _refWithOptions(path, {});
 }
 
@@ -114,9 +110,9 @@ export class InstanceBuilder {
   /**
    * @return Firebase Realtime Database reference builder interface.
    */
-  ref(path: string): RefBuilder {
+  ref<Ref extends string>(path: Ref): RefBuilder<Ref> {
     const normalized = normalizePath(path);
-    return new RefBuilder(
+    return new RefBuilder<Ref>(
       () => `projects/_/instances/${this.instance}/refs/${normalized}`,
       this.options
     );
@@ -124,19 +120,19 @@ export class InstanceBuilder {
 }
 
 /** @hidden */
-export function _refWithOptions(
-  path: string,
+export function _refWithOptions<Ref extends string>(
+  path: Ref,
   options: DeploymentOptions
-): RefBuilder {
+): RefBuilder<Ref> {
   const resourceGetter = () => {
     const normalized = normalizePath(path);
     const databaseURL = firebaseConfig().databaseURL;
     if (!databaseURL) {
       throw new Error(
-        'Missing expected firebase config value databaseURL, ' +
-          'config is actually' +
+        "Missing expected firebase config value databaseURL, " +
+          "config is actually" +
           JSON.stringify(firebaseConfig()) +
-          '\n If you are unit testing, please set process.env.FIREBASE_CONFIG'
+          "\n If you are unit testing, please set process.env.FIREBASE_CONFIG"
       );
     }
 
@@ -152,15 +148,13 @@ export function _refWithOptions(
     }
 
     if (!instance) {
-      throw new Error(
-        'Invalid value for config firebase.databaseURL: ' + databaseURL
-      );
+      throw new Error("Invalid value for config firebase.databaseURL: " + databaseURL);
     }
 
     return `projects/_/instances/${instance}/refs/${normalized}`;
   };
 
-  return new RefBuilder(resourceGetter, options);
+  return new RefBuilder<Ref>(resourceGetter, options);
 }
 
 /**
@@ -168,12 +162,9 @@ export function _refWithOptions(
  *
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
-export class RefBuilder {
+export class RefBuilder<Ref extends string> {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
    * Event handler that fires every time a Firebase Realtime Database write
@@ -186,10 +177,10 @@ export class RefBuilder {
   onWrite(
     handler: (
       change: Change<DataSnapshot>,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DataSnapshot>> {
-    return this.onOperation(handler, 'ref.write', this.changeConstructor);
+    return this.onOperation(handler, "ref.write", this.changeConstructor);
   }
 
   /**
@@ -204,10 +195,10 @@ export class RefBuilder {
   onUpdate(
     handler: (
       change: Change<DataSnapshot>,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<Change<DataSnapshot>> {
-    return this.onOperation(handler, 'ref.update', this.changeConstructor);
+    return this.onOperation(handler, "ref.update", this.changeConstructor);
   }
 
   /**
@@ -221,7 +212,7 @@ export class RefBuilder {
   onCreate(
     handler: (
       snapshot: DataSnapshot,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
@@ -231,7 +222,7 @@ export class RefBuilder {
       );
       return new DataSnapshot(raw.data.delta, path, getApp(), dbInstance);
     };
-    return this.onOperation(handler, 'ref.create', dataConstructor);
+    return this.onOperation(handler, "ref.create", dataConstructor);
   }
 
   /**
@@ -245,7 +236,7 @@ export class RefBuilder {
   onDelete(
     handler: (
       snapshot: DataSnapshot,
-      context: EventContext
+      context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: Event) => {
@@ -255,7 +246,7 @@ export class RefBuilder {
       );
       return new DataSnapshot(raw.data.data, path, getApp(), dbInstance);
     };
-    return this.onOperation(handler, 'ref.delete', dataConstructor);
+    return this.onOperation(handler, "ref.delete", dataConstructor);
   }
 
   private onOperation<T>(
@@ -294,8 +285,7 @@ export class RefBuilder {
   };
 }
 
-const resourceRegex =
-  /^projects\/([^/]+)\/instances\/([a-zA-Z0-9-]+)\/refs(\/.+)?/;
+const resourceRegex = /^projects\/([^/]+)\/instances\/([a-zA-Z0-9-]+)\/refs(\/.+)?/;
 
 /**
  * Utility function to extract database reference from resource string
@@ -306,10 +296,7 @@ const resourceRegex =
  *    Since region is not part of the resource name, it is provided through context.
  */
 /** @hidden */
-export function extractInstanceAndPath(
-  resource: string,
-  domain = 'firebaseio.com'
-) {
+export function extractInstanceAndPath(resource: string, domain = "firebaseio.com") {
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {
     throw new Error(
@@ -318,10 +305,8 @@ export function extractInstanceAndPath(
     );
   }
   const [, project, dbInstanceName, path] = match;
-  if (project !== '_') {
-    throw new Error(
-      `Expect project to be '_' in a Firebase Realtime Database event`
-    );
+  if (project !== "_") {
+    throw new Error(`Expect project to be '_' in a Firebase Realtime Database event`);
   }
 
   const emuHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST;
@@ -329,7 +314,7 @@ export function extractInstanceAndPath(
     const dbInstance = `http://${emuHost}/?ns=${dbInstanceName}`;
     return [dbInstance, path];
   } else {
-    const dbInstance = 'https://' + dbInstanceName + '.' + domain;
+    const dbInstance = "https://" + dbInstanceName + "." + domain;
     return [dbInstance, path];
   }
 }

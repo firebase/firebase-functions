@@ -4,5 +4,9 @@
     "sourceMap": true
   },
   "extends": "./tsconfig.release.json",
-  "include": ["**/*.ts", ".eslintrc.js"]
+  "include": [
+    "**/*.ts",
+    ".eslintrc.js",
+    "integration_test/**/*"
+  ]
 }

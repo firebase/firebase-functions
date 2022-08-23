@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from '../../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../../core';
-import { wrapTraceContext } from '../../trace';
-import * as options from '../../options';
+import { ManifestEndpoint } from "../../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../../core";
+import { wrapTraceContext } from "../../trace";
+import * as options from "../../options";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
@@ -56,20 +56,20 @@ export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
 }
 
 /** @internal */
-export const eventType = 'google.firebase.firebasealerts.alerts.v1.published';
+export const eventType = "google.firebase.firebasealerts.alerts.v1.published";
 
 /** The underlying alert type of the Firebase Alerts provider. */
 export type AlertType =
-  | 'crashlytics.newFatalIssue'
-  | 'crashlytics.newNonfatalIssue'
-  | 'crashlytics.regression'
-  | 'crashlytics.stabilityDigest'
-  | 'crashlytics.velocity'
-  | 'crashlytics.newAnrIssue'
-  | 'billing.planUpdate'
-  | 'billing.automatedPlanUpdate'
-  | 'appDistribution.newTesterIosDevice'
-  | 'appDistribution.inAppFeedback'
+  | "crashlytics.newFatalIssue"
+  | "crashlytics.newNonfatalIssue"
+  | "crashlytics.regression"
+  | "crashlytics.stabilityDigest"
+  | "crashlytics.velocity"
+  | "crashlytics.newAnrIssue"
+  | "billing.planUpdate"
+  | "billing.automatedPlanUpdate"
+  | "appDistribution.newTesterIosDevice"
+  | "appDistribution.inAppFeedback"
   | string;
 
 /**
@@ -136,7 +136,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -183,7 +183,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
  * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
  * @returns A function that you can export and deploy.
  */
-export function onAlertPublished<T extends { ['@type']: string } = any>(
+export function onAlertPublished<T extends { ["@type"]: string } = any>(
   alertType: AlertType,
   handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<AlertEvent<T>>;
@@ -194,12 +194,12 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
  * @param options - the alert type and other options for this cloud function.
  * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
  */
-export function onAlertPublished<T extends { ['@type']: string } = any>(
+export function onAlertPublished<T extends { ["@type"]: string } = any>(
   options: FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<AlertEvent<T>>;
 
-export function onAlertPublished<T extends { ['@type']: string } = any>(
+export function onAlertPublished<T extends { ["@type"]: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<AlertEvent<T>> {
@@ -227,7 +227,7 @@ export function getEndpointAnnotation(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -258,7 +258,7 @@ export function getOptsAndAlertTypeAndApp(
   let opts: options.EventHandlerOptions;
   let alertType: AlertType;
   let appId: string | undefined;
-  if (typeof alertTypeOrOpts === 'string') {
+  if (typeof alertTypeOrOpts === "string") {
     alertType = alertTypeOrOpts;
     opts = {};
   } else {

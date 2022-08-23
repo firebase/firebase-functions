@@ -20,17 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Request, Response } from 'express';
-import { warn } from '../logger';
-import { DeploymentOptions } from './function-configuration';
+import { Request, Response } from "express";
+import { warn } from "../logger";
+import { DeploymentOptions } from "./function-configuration";
 export { Request, Response };
-import { convertIfPresent, copyIfPresent } from '../common/encoding';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../runtime/manifest';
+import { convertIfPresent, copyIfPresent } from "../common/encoding";
+import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
 
-export { Change } from '../common/change';
+export { Change } from "../common/change";
 
 /** @hidden */
-const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
+const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 
 /**
  * Wire format for an event.
@@ -66,7 +66,7 @@ export interface Event {
  * - Authorization of the request that triggered the event, if applicable and
  *   available.
  */
-export interface EventContext {
+export interface EventContext<Params = Record<string, string>> {
   /**
    * Authentication information for the user that triggered the function.
    * This object contains `uid` and `token` properties for authenticated users.
@@ -92,7 +92,7 @@ export interface EventContext {
    * * `null` For event types that do not provide user information (all except
    *   Realtime Database).
    */
-  authType?: 'ADMIN' | 'USER' | 'UNAUTHENTICATED';
+  authType?: "ADMIN" | "USER" | "UNAUTHENTICATED";
 
   /**
    * The event’s unique identifier.
@@ -128,7 +128,7 @@ export interface EventContext {
    * provided to the [`ref()`](providers_database_.html#ref) method for a Realtime
    * Database trigger. Cannot be accessed while inside the handler namespace.
    */
-  params: { [option: string]: any };
+  params: Params;
 
   /**
    * The resource that emitted the event. Valid values are:
@@ -261,7 +261,7 @@ export function makeCloudFunction<EventData>({
        * v1beta1 event flow has different format for context, transform them to
        * new format.
        */
-      context.eventType = provider + '.' + eventType;
+      context.eventType = provider + "." + eventType;
       context.resource = {
         service,
         name: context.resource,
@@ -273,9 +273,9 @@ export function makeCloudFunction<EventData>({
       context,
     };
 
-    if (provider === 'google.firebase.database') {
+    if (provider === "google.firebase.database") {
       context.authType = _detectAuthType(event);
-      if (context.authType !== 'ADMIN') {
+      if (context.authType !== "ADMIN") {
         context.auth = _makeAuth(event, context.authType);
       } else {
         delete context.auth;
@@ -283,11 +283,9 @@ export function makeCloudFunction<EventData>({
     }
 
     if (triggerResource() == null) {
-      Object.defineProperty(context, 'params', {
+      Object.defineProperty(context, "params", {
         get: () => {
-          throw new Error(
-            'context.params is not available when using the handler namespace.'
-          );
+          throw new Error("context.params is not available when using the handler namespace.");
         },
       });
     } else {
@@ -295,27 +293,27 @@ export function makeCloudFunction<EventData>({
     }
 
     let promise;
-    if (labels && labels['deployment-scheduled']) {
+    if (labels && labels["deployment-scheduled"]) {
       // Scheduled function do not have meaningful data, so exclude it
       promise = contextOnlyHandler(context);
     } else {
       const dataOrChange = dataConstructor(event);
       promise = handler(dataOrChange, context);
     }
-    if (typeof promise === 'undefined') {
-      warn('Function returned undefined, expected Promise or value');
+    if (typeof promise === "undefined") {
+      warn("Function returned undefined, expected Promise or value");
     }
     return Promise.resolve(promise);
   };
 
-  Object.defineProperty(cloudFunction, '__endpoint', {
+  Object.defineProperty(cloudFunction, "__endpoint", {
     get: () => {
       if (triggerResource() == null) {
         return undefined;
       }
 
       const endpoint: ManifestEndpoint = {
-        platform: 'gcfv1',
+        platform: "gcfv1",
         ...optionsToEndpoint(options),
       };
 
@@ -323,7 +321,7 @@ export function makeCloudFunction<EventData>({
         endpoint.scheduleTrigger = options.schedule;
       } else {
         endpoint.eventTrigger = {
-          eventType: legacyEventType || provider + '.' + eventType,
+          eventType: legacyEventType || provider + "." + eventType,
           eventFilters: {
             resource: triggerResource(),
           },
@@ -343,8 +341,8 @@ export function makeCloudFunction<EventData>({
   if (options.schedule) {
     cloudFunction.__requiredAPIs = [
       {
-        api: 'cloudscheduler.googleapis.com',
-        reason: 'Needed for scheduled functions.',
+        api: "cloudscheduler.googleapis.com",
+        reason: "Needed for scheduled functions.",
       },
     ];
   }
@@ -371,9 +369,9 @@ function _makeParams(
   const params: { [option: string]: any } = {};
 
   // Note: some tests don't set context.resource.name
-  const eventResourceParts = context?.resource?.name?.split?.('/');
+  const eventResourceParts = context?.resource?.name?.split?.("/");
   if (wildcards && eventResourceParts) {
-    const triggerResourceParts = triggerResource.split('/');
+    const triggerResourceParts = triggerResource.split("/");
     for (const wildcard of wildcards) {
       const wildcardNoBraces = wildcard.slice(1, -1);
       const position = triggerResourceParts.indexOf(wildcard);
@@ -385,7 +383,7 @@ function _makeParams(
 
 /** @hidden */
 function _makeAuth(event: Event, authType: string) {
-  if (authType === 'UNAUTHENTICATED') {
+  if (authType === "UNAUTHENTICATED") {
     return null;
   }
   return {
@@ -397,60 +395,43 @@ function _makeAuth(event: Event, authType: string) {
 /** @hidden */
 function _detectAuthType(event: Event) {
   if (event.context?.auth?.admin) {
-    return 'ADMIN';
+    return "ADMIN";
   }
   if (event.context?.auth?.variable) {
-    return 'USER';
+    return "USER";
   }
-  return 'UNAUTHENTICATED';
+  return "UNAUTHENTICATED";
 }
 
-export function optionsToEndpoint(
-  options: DeploymentOptions
-): ManifestEndpoint {
+export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
     options,
-    'minInstances',
-    'maxInstances',
-    'ingressSettings',
-    'labels',
-    'timeoutSeconds'
+    "minInstances",
+    "maxInstances",
+    "ingressSettings",
+    "labels",
+    "timeoutSeconds"
   );
-  convertIfPresent(endpoint, options, 'region', 'regions');
-  convertIfPresent(
-    endpoint,
-    options,
-    'serviceAccountEmail',
-    'serviceAccount',
-    (sa) => sa
-  );
-  convertIfPresent(
-    endpoint,
-    options,
-    'secretEnvironmentVariables',
-    'secrets',
-    (secrets) => secrets.map((secret) => ({ key: secret }))
+  convertIfPresent(endpoint, options, "region", "regions");
+  convertIfPresent(endpoint, options, "serviceAccountEmail", "serviceAccount", (sa) => sa);
+  convertIfPresent(endpoint, options, "secretEnvironmentVariables", "secrets", (secrets) =>
+    secrets.map((secret) => ({ key: secret }))
   );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };
-    convertIfPresent(
-      endpoint.vpc,
-      options,
-      'egressSettings',
-      'vpcConnectorEgressSettings'
-    );
+    convertIfPresent(endpoint.vpc, options, "egressSettings", "vpcConnectorEgressSettings");
   }
-  convertIfPresent(endpoint, options, 'availableMemoryMb', 'memory', (mem) => {
+  convertIfPresent(endpoint, options, "availableMemoryMb", "memory", (mem) => {
     const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-      '4GB': 4096,
-      '8GB': 8192,
+      "128MB": 128,
+      "256MB": 256,
+      "512MB": 512,
+      "1GB": 1024,
+      "2GB": 2048,
+      "4GB": 4096,
+      "8GB": 8192,
     };
     return memoryLookup[mem];
   });

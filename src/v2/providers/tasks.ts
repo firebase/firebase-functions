@@ -25,21 +25,17 @@
  * @packageDocumentation
  */
 
-import {
-  convertIfPresent,
-  convertInvoker,
-  copyIfPresent,
-} from '../../common/encoding';
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import {
   AuthData,
   onDispatchHandler,
   RateLimits,
   Request,
   RetryConfig,
-} from '../../common/providers/tasks';
-import { HttpsFunction } from './https';
-import { wrapTraceContext } from '../trace';
-import * as options from '../options';
+} from "../../common/providers/tasks";
+import * as options from "../options";
+import { wrapTraceContext } from "../trace";
+import { HttpsFunction } from "./https";
 
 export { AuthData, RateLimits, Request, RetryConfig };
 
@@ -56,7 +52,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * `roles/cloudtasks.enqueuer` and `roles/cloudfunctions.invoker`
    * will have permissions.
    */
-  invoker?: 'private' | string | string[];
+  invoker?: "private" | string | string[];
 
   /**
    * Region where functions should be deployed.
@@ -112,7 +108,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -189,13 +185,11 @@ export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 export function onTaskDispatched<Args = any>(
-  optsOrHandler:
-    | TaskQueueOptions
-    | ((request: Request<Args>) => void | Promise<void>),
+  optsOrHandler: TaskQueueOptions | ((request: Request<Args>) => void | Promise<void>),
   handler?: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args> {
   let opts: TaskQueueOptions;
-  if (arguments.length == 1) {
+  if (arguments.length === 1) {
     opts = {};
     handler = optsOrHandler as (request: Request<Args>) => void | Promise<void>;
   } else {
@@ -212,7 +206,7 @@ export function onTaskDispatched<Args = any>(
   // but optionsToManifestEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
   func.__endpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -221,20 +215,14 @@ export function onTaskDispatched<Args = any>(
     },
     taskQueueTrigger: {},
   };
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, 'retryConfig');
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, 'rateLimits');
-  convertIfPresent(
-    func.__endpoint.taskQueueTrigger,
-    opts,
-    'invoker',
-    'invoker',
-    convertInvoker
-  );
+  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
+  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
+  convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
 
   func.__requiredAPIs = [
     {
-      api: 'cloudtasks.googleapis.com',
-      reason: 'Needed for task queue functions',
+      api: "cloudtasks.googleapis.com",
+      reason: "Needed for task queue functions",
     },
   ];
 

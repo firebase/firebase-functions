@@ -20,70 +20,70 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import * as functions from '../../src/v1';
+import * as functions from "../../src/v1";
 
-describe('FunctionBuilder', () => {
+describe("FunctionBuilder", () => {
   before(() => {
-    process.env.GCLOUD_PROJECT = 'not-a-project';
+    process.env.GCLOUD_PROJECT = "not-a-project";
   });
 
   after(() => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should allow supported region to be set', () => {
+  it("should allow supported region to be set", () => {
     const fn = functions
-      .region('us-east1')
+      .region("us-east1")
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+    expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
   });
 
-  it('should allow multiple supported regions to be set', () => {
+  it("should allow multiple supported regions to be set", () => {
     const fn = functions
-      .region('us-east1', 'us-central1')
+      .region("us-east1", "us-central1")
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.region).to.deep.equal(['us-east1', 'us-central1']);
+    expect(fn.__endpoint.region).to.deep.equal(["us-east1", "us-central1"]);
   });
 
-  it('should allow all supported regions to be set', () => {
+  it("should allow all supported regions to be set", () => {
     const fn = functions
       .region(
-        'us-central1',
-        'us-east1',
-        'us-east4',
-        'europe-west1',
-        'europe-west2',
-        'europe-west3',
-        'asia-east2',
-        'asia-northeast1'
+        "us-central1",
+        "us-east1",
+        "us-east4",
+        "europe-west1",
+        "europe-west2",
+        "europe-west3",
+        "asia-east2",
+        "asia-northeast1"
       )
       .auth.user()
       .onCreate((user) => user);
 
     expect(fn.__endpoint.region).to.deep.equal([
-      'us-central1',
-      'us-east1',
-      'us-east4',
-      'europe-west1',
-      'europe-west2',
-      'europe-west3',
-      'asia-east2',
-      'asia-northeast1',
+      "us-central1",
+      "us-east1",
+      "us-east4",
+      "europe-west1",
+      "europe-west2",
+      "europe-west3",
+      "asia-east2",
+      "asia-northeast1",
     ]);
   });
 
-  it('should allow valid runtime options to be set', () => {
+  it("should allow valid runtime options to be set", () => {
     const fn = functions
       .runWith({
         timeoutSeconds: 90,
         failurePolicy: { retry: {} },
-        memory: '256MB',
+        memory: "256MB",
       })
       .auth.user()
       .onCreate((user) => user);
@@ -97,7 +97,7 @@ describe('FunctionBuilder', () => {
     const fn = functions
       .runWith({
         failurePolicy: true,
-        memory: '256MB',
+        memory: "256MB",
         timeoutSeconds: 90,
       })
       .auth.user()
@@ -106,161 +106,156 @@ describe('FunctionBuilder', () => {
     expect(fn.__endpoint.eventTrigger.retry).to.deep.equal(true);
   });
 
-  it('should allow both supported region and valid runtime options to be set', () => {
+  it("should allow both supported region and valid runtime options to be set", () => {
     const fn = functions
-      .region('europe-west2')
+      .region("europe-west2")
       .runWith({
         timeoutSeconds: 90,
-        memory: '256MB',
+        memory: "256MB",
       })
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.region).to.deep.equal(['europe-west2']);
+    expect(fn.__endpoint.region).to.deep.equal(["europe-west2"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
-  it('should allow both valid runtime options and supported region to be set in reverse order', () => {
+  it("should allow both valid runtime options and supported region to be set in reverse order", () => {
     const fn = functions
       .runWith({
         timeoutSeconds: 90,
-        memory: '256MB',
+        memory: "256MB",
       })
-      .region('europe-west1')
+      .region("europe-west1")
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.region).to.deep.equal(['europe-west1']);
+    expect(fn.__endpoint.region).to.deep.equal(["europe-west1"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
-  it('should fail if supported region but invalid runtime options are set (reverse order)', () => {
+  it("should fail if supported region but invalid runtime options are set (reverse order)", () => {
     expect(() => {
-      functions
-        .region('asia-northeast1')
-        .runWith({ timeoutSeconds: 600, memory: '256MB' });
-    }).to.throw(Error, 'TimeoutSeconds');
+      functions.region("asia-northeast1").runWith({ timeoutSeconds: 600, memory: "256MB" });
+    }).to.throw(Error, "TimeoutSeconds");
   });
 
-  it('should throw an error if user chooses a failurePolicy which is neither an object nor a boolean', () => {
+  it("should throw an error if user chooses a failurePolicy which is neither an object nor a boolean", () => {
     expect(() =>
       functions.runWith({
-        failurePolicy:
-          1234 as unknown as functions.RuntimeOptions['failurePolicy'],
+        failurePolicy: 1234 as unknown as functions.RuntimeOptions["failurePolicy"],
       })
-    ).to.throw(Error, 'failurePolicy must be a boolean or an object');
+    ).to.throw(Error, "failurePolicy must be a boolean or an object");
   });
 
-  it('should throw an error if user chooses a failurePolicy.retry which is not an object', () => {
+  it("should throw an error if user chooses a failurePolicy.retry which is not an object", () => {
     expect(() =>
       functions.runWith({
-        failurePolicy: { retry: 1234 as unknown as object },
+        failurePolicy: { retry: 1234 as unknown as never },
       })
-    ).to.throw(Error, 'failurePolicy.retry');
+    ).to.throw(Error, "failurePolicy.retry");
   });
 
-  it('should throw an error if user chooses an invalid memory allocation', () => {
+  it("should throw an error if user chooses an invalid memory allocation", () => {
     expect(() => {
       return functions.runWith({
-        memory: 'unsupported',
+        memory: "unsupported",
       } as any);
-    }).to.throw(Error, 'memory');
+    }).to.throw(Error, "memory");
 
     expect(() => {
-      return functions.region('us-east1').runWith({
-        memory: 'unsupported',
+      return functions.region("us-east1").runWith({
+        memory: "unsupported",
       } as any);
-    }).to.throw(Error, 'memory');
+    }).to.throw(Error, "memory");
   });
 
-  it('should throw an error if user chooses an invalid timeoutSeconds', () => {
+  it("should throw an error if user chooses an invalid timeoutSeconds", () => {
     expect(() => {
       return functions.runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'TimeoutSeconds');
+    }).to.throw(Error, "TimeoutSeconds");
 
     expect(() => {
-      return functions.region('asia-east2').runWith({
+      return functions.region("asia-east2").runWith({
         timeoutSeconds: 1000000,
       } as any);
-    }).to.throw(Error, 'TimeoutSeconds');
+    }).to.throw(Error, "TimeoutSeconds");
   });
 
-  it('should throw an error if user chooses no region when using .region()', () => {
+  it("should throw an error if user chooses no region when using .region()", () => {
     expect(() => {
       return functions.region();
-    }).to.throw(Error, 'at least one region');
+    }).to.throw(Error, "at least one region");
 
     expect(() => {
       return functions.region().runWith({
         timeoutSeconds: 500,
       } as any);
-    }).to.throw(Error, 'at least one region');
+    }).to.throw(Error, "at least one region");
   });
 
-  it('should allow a ingressSettings to be set', () => {
+  it("should allow a ingressSettings to be set", () => {
     const fn = functions
-      .runWith({ ingressSettings: 'ALLOW_INTERNAL_ONLY' })
-      .https.onRequest(() => {});
+      .runWith({ ingressSettings: "ALLOW_INTERNAL_ONLY" })
+      .https.onRequest(() => undefined);
 
-    expect(fn.__endpoint.ingressSettings).to.equal('ALLOW_INTERNAL_ONLY');
+    expect(fn.__endpoint.ingressSettings).to.equal("ALLOW_INTERNAL_ONLY");
   });
 
-  it('should throw an error if user chooses an invalid ingressSettings', () => {
+  it("should throw an error if user chooses an invalid ingressSettings", () => {
     expect(() => {
       return functions.runWith({
-        ingressSettings: 'INVALID_OPTION',
+        ingressSettings: "INVALID_OPTION",
       } as any);
     }).to.throw(
       Error,
-      `The only valid ingressSettings values are: ${functions.INGRESS_SETTINGS_OPTIONS.join(
-        ','
-      )}`
+      `The only valid ingressSettings values are: ${functions.INGRESS_SETTINGS_OPTIONS.join(",")}`
     );
   });
 
-  it('should allow a vpcConnector to be set', () => {
+  it("should allow a vpcConnector to be set", () => {
     const fn = functions
       .runWith({
-        vpcConnector: 'test-connector',
+        vpcConnector: "test-connector",
       })
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.vpc.connector).to.equal('test-connector');
+    expect(fn.__endpoint.vpc.connector).to.equal("test-connector");
   });
 
-  it('should allow a vpcConnectorEgressSettings to be set', () => {
+  it("should allow a vpcConnectorEgressSettings to be set", () => {
     const fn = functions
       .runWith({
-        vpcConnector: 'test-connector',
-        vpcConnectorEgressSettings: 'PRIVATE_RANGES_ONLY',
+        vpcConnector: "test-connector",
+        vpcConnectorEgressSettings: "PRIVATE_RANGES_ONLY",
       })
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.vpc.egressSettings).to.equal('PRIVATE_RANGES_ONLY');
+    expect(fn.__endpoint.vpc.egressSettings).to.equal("PRIVATE_RANGES_ONLY");
   });
 
-  it('should throw an error if user chooses an invalid vpcConnectorEgressSettings', () => {
+  it("should throw an error if user chooses an invalid vpcConnectorEgressSettings", () => {
     expect(() => {
       return functions.runWith({
-        vpcConnector: 'test-connector',
-        vpcConnectorEgressSettings: 'INCORRECT_OPTION',
+        vpcConnector: "test-connector",
+        vpcConnectorEgressSettings: "INCORRECT_OPTION",
       } as any);
     }).to.throw(
       Error,
       `The only valid vpcConnectorEgressSettings values are: ${functions.VPC_EGRESS_SETTINGS_OPTIONS.join(
-        ','
+        ","
       )}`
     );
   });
 
-  it('should allow a serviceAccount to be set as-is', () => {
-    const serviceAccount = 'test-service-account@test.iam.gserviceaccount.com';
+  it("should allow a serviceAccount to be set as-is", () => {
+    const serviceAccount = "test-service-account@test.iam.gserviceaccount.com";
     const fn = functions
       .runWith({
         serviceAccount,
@@ -271,8 +266,8 @@ describe('FunctionBuilder', () => {
     expect(fn.__endpoint.serviceAccountEmail).to.equal(serviceAccount);
   });
 
-  it('should allow a serviceAccount to be set with generated service account email', () => {
-    const serviceAccount = 'test-service-account@';
+  it("should allow a serviceAccount to be set with generated service account email", () => {
+    const serviceAccount = "test-service-account@";
     const fn = functions
       .runWith({
         serviceAccount,
@@ -283,8 +278,8 @@ describe('FunctionBuilder', () => {
     expect(fn.__endpoint.serviceAccountEmail).to.equal(`test-service-account@`);
   });
 
-  it('should set a null serviceAccountEmail if service account is set to `default`', () => {
-    const serviceAccount = 'default';
+  it("should set a null serviceAccountEmail if service account is set to `default`", () => {
+    const serviceAccount = "default";
     const fn = functions
       .runWith({
         serviceAccount,
@@ -292,11 +287,11 @@ describe('FunctionBuilder', () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.serviceAccountEmail).to.equal('default');
+    expect(fn.__endpoint.serviceAccountEmail).to.equal("default");
   });
 
-  it('should throw an error if serviceAccount is set to an invalid value', () => {
-    const serviceAccount = 'test-service-account';
+  it("should throw an error if serviceAccount is set to an invalid value", () => {
+    const serviceAccount = "test-service-account";
     expect(() => {
       functions.runWith({
         serviceAccount,
@@ -304,37 +299,37 @@ describe('FunctionBuilder', () => {
     }).to.throw();
   });
 
-  it('should allow setting 4GB memory option', () => {
+  it("should allow setting 4GB memory option", () => {
     const fn = functions
       .runWith({
-        memory: '4GB',
+        memory: "4GB",
       })
-      .region('europe-west1')
+      .region("europe-west1")
       .auth.user()
       .onCreate((user) => user);
 
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(4096);
   });
 
-  it('should allow labels to be set', () => {
+  it("should allow labels to be set", () => {
     const fn = functions
       .runWith({
         labels: {
-          'valid-key': 'valid-value',
+          "valid-key": "valid-value",
         },
       })
       .auth.user()
       .onCreate((user) => user);
 
     expect(fn.__endpoint.labels).to.deep.equal({
-      'valid-key': 'valid-value',
+      "valid-key": "valid-value",
     });
   });
 
-  it('should throw an error if more than 58 labels are set', () => {
+  it("should throw an error if more than 58 labels are set", () => {
     const labels = {};
     for (let i = 0; i < 59; i++) {
-      labels[`label${i}`] = 'value';
+      labels[`label${i}`] = "value";
     }
 
     expect(() =>
@@ -344,48 +339,39 @@ describe('FunctionBuilder', () => {
     ).to.throw();
   });
 
-  it('should throw an error if labels has a key that is too long', () => {
+  it("should throw an error if labels has a key that is too long", () => {
     expect(() =>
       functions.runWith({
         labels: {
-          'a-very-long-key-that-is-more-than-the-maximum-allowed-length-for-keys':
-            'value',
+          "a-very-long-key-that-is-more-than-the-maximum-allowed-length-for-keys": "value",
         },
       })
     ).to.throw();
   });
 
-  it('should throw an error if labels has key that is too short', () => {
+  it("should throw an error if labels has key that is too short", () => {
     expect(() =>
       functions.runWith({
-        labels: { '': 'value' },
+        labels: { "": "value" },
       })
     ).to.throw();
   });
 
-  it('should throw an error if labels has a value that is too long', () => {
+  it("should throw an error if labels has a value that is too long", () => {
     expect(() =>
       functions.runWith({
         labels: {
-          key: 'a-very-long-value-that-is-more-than-the-maximum-allowed-length-for-values',
+          key: "a-very-long-value-that-is-more-than-the-maximum-allowed-length-for-values",
         },
       })
     ).to.throw();
   });
 
-  it('should throw an error if labels has a key that contains invalid characters', () => {
+  it("should throw an error if labels has a key that contains invalid characters", () => {
     expect(() =>
       functions.runWith({
         labels: {
-          Key: 'value',
-        },
-      })
-    ).to.throw();
-
-    expect(() =>
-      functions.runWith({
-        labels: {
-          'key ': 'value',
+          Key: "value",
         },
       })
     ).to.throw();
@@ -393,17 +379,7 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         labels: {
-          '1key': 'value',
-        },
-      })
-    ).to.throw();
-  });
-
-  it('should throw an error if labels has a value that contains invalid characters', () => {
-    expect(() =>
-      functions.runWith({
-        labels: {
-          key: 'Value',
+          "key ": "value",
         },
       })
     ).to.throw();
@@ -411,17 +387,17 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         labels: {
-          'key ': 'va lue',
+          "1key": "value",
         },
       })
     ).to.throw();
   });
 
-  it('should throw an error if a label key starts with a reserved namespace', () => {
+  it("should throw an error if labels has a value that contains invalid characters", () => {
     expect(() =>
       functions.runWith({
         labels: {
-          'firebase-foo': 'value',
+          key: "Value",
         },
       })
     ).to.throw();
@@ -429,54 +405,72 @@ describe('FunctionBuilder', () => {
     expect(() =>
       functions.runWith({
         labels: {
-          'deployment-bar': 'value',
+          "key ": "va lue",
         },
       })
     ).to.throw();
   });
 
-  it('should throw an error if invoker is an empty string', () => {
+  it("should throw an error if a label key starts with a reserved namespace", () => {
     expect(() =>
       functions.runWith({
-        invoker: '',
+        labels: {
+          "firebase-foo": "value",
+        },
+      })
+    ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        labels: {
+          "deployment-bar": "value",
+        },
       })
     ).to.throw();
   });
 
-  it('should throw an error if invoker is an empty array', () => {
+  it("should throw an error if invoker is an empty string", () => {
     expect(() =>
       functions.runWith({
-        invoker: [''],
+        invoker: "",
       })
     ).to.throw();
   });
 
-  it('should throw an error if invoker has an empty string', () => {
+  it("should throw an error if invoker is an empty array", () => {
     expect(() =>
       functions.runWith({
-        invoker: ['service-account1', '', 'service-account2'],
+        invoker: [""],
       })
     ).to.throw();
   });
 
-  it('should throw an error if public identifier is in the invoker array', () => {
+  it("should throw an error if invoker has an empty string", () => {
     expect(() =>
       functions.runWith({
-        invoker: ['service-account1', 'public', 'service-account2'],
+        invoker: ["service-account1", "", "service-account2"],
       })
     ).to.throw();
   });
 
-  it('should throw an error if private identifier is in the invoker array', () => {
+  it("should throw an error if public identifier is in the invoker array", () => {
     expect(() =>
       functions.runWith({
-        invoker: ['service-account1', 'private', 'service-account2'],
+        invoker: ["service-account1", "public", "service-account2"],
       })
     ).to.throw();
   });
 
-  it('should allow valid secret config expressed using short form', () => {
-    const secrets = ['API_KEY'];
+  it("should throw an error if private identifier is in the invoker array", () => {
+    expect(() =>
+      functions.runWith({
+        invoker: ["service-account1", "private", "service-account2"],
+      })
+    ).to.throw();
+  });
+
+  it("should allow valid secret config expressed using short form", () => {
+    const secrets = ["API_KEY"];
     const fn = functions
       .runWith({ secrets })
       .auth.user()
@@ -484,31 +478,31 @@ describe('FunctionBuilder', () => {
 
     expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
       {
-        key: 'API_KEY',
+        key: "API_KEY",
       },
     ]);
   });
 
-  it('should throw error given secrets expressed with full resource name', () => {
+  it("should throw error given secrets expressed with full resource name", () => {
     expect(() =>
       functions.runWith({
-        secrets: ['projects/my-project/secrets/API_KEY'],
+        secrets: ["projects/my-project/secrets/API_KEY"],
       })
     ).to.throw();
   });
 
-  it('should throw error given invalid secret config', () => {
+  it("should throw error given invalid secret config", () => {
     expect(() =>
       functions.runWith({
-        secrets: ['ABC/efg'],
+        secrets: ["ABC/efg"],
       })
     ).to.throw();
   });
 
-  it('should throw error given invalid secret with versions', () => {
+  it("should throw error given invalid secret with versions", () => {
     expect(() =>
       functions.runWith({
-        secrets: ['ABC@3'],
+        secrets: ["ABC@3"],
       })
     ).to.throw();
   });

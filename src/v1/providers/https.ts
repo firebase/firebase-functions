@@ -20,18 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
+import * as express from "express";
 
-import { convertIfPresent, convertInvoker } from '../../common/encoding';
+import { convertIfPresent, convertInvoker } from "../../common/encoding";
 import {
   CallableContext,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-} from '../../common/providers/https';
-import { HttpsFunction, optionsToEndpoint, Runnable } from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+} from "../../common/providers/https";
+import { HttpsFunction, optionsToEndpoint, Runnable } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };
 
@@ -68,15 +68,15 @@ export function _onRequestWithOptions(
   // TODO parse the options
 
   cloudFunction.__endpoint = {
-    platform: 'gcfv1',
+    platform: "gcfv1",
     ...optionsToEndpoint(options),
     httpsTrigger: {},
   };
   convertIfPresent(
     cloudFunction.__endpoint.httpsTrigger,
     options,
-    'invoker',
-    'invoker',
+    "invoker",
+    "invoker",
     convertInvoker
   );
   return cloudFunction;
@@ -90,18 +90,17 @@ export function _onCallWithOptions(
   // onCallHandler sniffs the function length of the passed-in callback
   // and the user could have only tried to listen to data. Wrap their handler
   // in another handler to avoid accidentally triggering the v2 API
-  const fixedLen = (data: any, context: CallableContext) =>
-    handler(data, context);
+  const fixedLen = (data: any, context: CallableContext) => handler(data, context);
   const func: any = onCallHandler(
     {
       enforceAppCheck: options.enforceAppCheck,
-      cors: { origin: true, methods: 'POST' },
+      cors: { origin: true, methods: "POST" },
     },
     fixedLen
   );
 
   func.__endpoint = {
-    platform: 'gcfv1',
+    platform: "gcfv1",
     labels: {},
     ...optionsToEndpoint(options),
     callableTrigger: {},

@@ -20,40 +20,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import {
-  Event,
-  EventContext,
-  makeCloudFunction,
-  MakeCloudFunctionArgs,
-} from '../../src/v1';
+import { Event, EventContext, makeCloudFunction, MakeCloudFunctionArgs } from "../../src/v1";
 
-describe('makeCloudFunction', () => {
+describe("makeCloudFunction", () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
-    provider: 'mock.provider',
-    eventType: 'mock.event',
-    service: 'service',
-    triggerResource: () => 'resource',
+    provider: "mock.provider",
+    eventType: "mock.event",
+    service: "service",
+    triggerResource: () => "resource",
     handler: () => null,
-    legacyEventType: 'providers/provider/eventTypes/event',
+    legacyEventType: "providers/provider/eventTypes/event",
   };
 
-  it('should put a __endpoint on the returned CloudFunction', () => {
+  it("should put a __endpoint on the returned CloudFunction", () => {
     const cf = makeCloudFunction({
-      provider: 'mock.provider',
-      eventType: 'mock.event',
-      service: 'service',
-      triggerResource: () => 'resource',
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
       handler: () => null,
     });
 
     expect(cf.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      platform: "gcfv1",
       eventTrigger: {
-        eventType: 'mock.provider.mock.event',
+        eventType: "mock.provider.mock.event",
         eventFilters: {
-          resource: 'resource',
+          resource: "resource",
         },
         retry: false,
       },
@@ -61,15 +56,15 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should have legacy event type in __endpoint if provided', () => {
+  it("should have legacy event type in __endpoint if provided", () => {
     const cf = makeCloudFunction(cloudFunctionArgs);
 
     expect(cf.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      platform: "gcfv1",
       eventTrigger: {
-        eventType: 'providers/provider/eventTypes/event',
+        eventType: "providers/provider/eventTypes/event",
         eventFilters: {
-          resource: 'resource',
+          resource: "resource",
         },
         retry: false,
       },
@@ -77,56 +72,56 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should include converted options in __endpoint', () => {
+  it("should include converted options in __endpoint", () => {
     const cf = makeCloudFunction({
-      provider: 'mock.provider',
-      eventType: 'mock.event',
-      service: 'service',
-      triggerResource: () => 'resource',
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
       handler: () => null,
       options: {
         timeoutSeconds: 10,
-        regions: ['us-central1'],
-        memory: '128MB',
-        serviceAccount: 'foo@google.com',
-        secrets: ['MY_SECRET'],
+        regions: ["us-central1"],
+        memory: "128MB",
+        serviceAccount: "foo@google.com",
+        secrets: ["MY_SECRET"],
       },
     });
 
     expect(cf.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      platform: "gcfv1",
       timeoutSeconds: 10,
-      region: ['us-central1'],
+      region: ["us-central1"],
       availableMemoryMb: 128,
-      serviceAccountEmail: 'foo@google.com',
+      serviceAccountEmail: "foo@google.com",
       eventTrigger: {
-        eventType: 'mock.provider.mock.event',
+        eventType: "mock.provider.mock.event",
         eventFilters: {
-          resource: 'resource',
+          resource: "resource",
         },
         retry: false,
       },
-      secretEnvironmentVariables: [{ key: 'MY_SECRET' }],
+      secretEnvironmentVariables: [{ key: "MY_SECRET" }],
       labels: {},
     });
   });
 
-  it('should set retry given failure policy in __endpoint', () => {
+  it("should set retry given failure policy in __endpoint", () => {
     const cf = makeCloudFunction({
-      provider: 'mock.provider',
-      eventType: 'mock.event',
-      service: 'service',
-      triggerResource: () => 'resource',
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
       handler: () => null,
       options: { failurePolicy: { retry: {} } },
     });
 
     expect(cf.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      platform: "gcfv1",
       eventTrigger: {
-        eventType: 'mock.provider.mock.event',
+        eventType: "mock.provider.mock.event",
         eventFilters: {
-          resource: 'resource',
+          resource: "resource",
         },
         retry: true,
       },
@@ -134,30 +129,30 @@ describe('makeCloudFunction', () => {
     });
   });
 
-  it('should setup a scheduleTrigger in __endpoint given a schedule', () => {
+  it("should setup a scheduleTrigger in __endpoint given a schedule", () => {
     const schedule = {
-      schedule: 'every 5 minutes',
+      schedule: "every 5 minutes",
       retryConfig: { retryCount: 3 },
-      timeZone: 'America/New_York',
+      timeZone: "America/New_York",
     };
     const cf = makeCloudFunction({
-      provider: 'mock.provider',
-      eventType: 'mock.event',
-      service: 'service',
-      triggerResource: () => 'resource',
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
       handler: () => null,
       options: {
         schedule,
       },
     });
     expect(cf.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      platform: "gcfv1",
       scheduleTrigger: schedule,
       labels: {},
     });
   });
 
-  it('should construct the right context for event', () => {
+  it("should construct the right context for event", () => {
     const args: any = {
       ...cloudFunctionArgs,
       handler: (data: any, context: EventContext) => context,
@@ -165,30 +160,30 @@ describe('makeCloudFunction', () => {
     const cf = makeCloudFunction(args);
     const test: Event = {
       context: {
-        eventId: '00000',
-        timestamp: '2016-11-04T21:29:03.496Z',
-        eventType: 'provider.event',
+        eventId: "00000",
+        timestamp: "2016-11-04T21:29:03.496Z",
+        eventType: "provider.event",
         resource: {
-          service: 'provider',
-          name: 'resource',
+          service: "provider",
+          name: "resource",
         },
       },
-      data: 'data',
+      data: "data",
     };
 
     return expect(cf(test.data, test.context)).to.eventually.deep.equal({
-      eventId: '00000',
-      timestamp: '2016-11-04T21:29:03.496Z',
-      eventType: 'provider.event',
+      eventId: "00000",
+      timestamp: "2016-11-04T21:29:03.496Z",
+      eventType: "provider.event",
       resource: {
-        service: 'provider',
-        name: 'resource',
+        service: "provider",
+        name: "resource",
       },
       params: {},
     });
   });
 
-  it('should throw error when context.params accessed in handler environment', () => {
+  it("should throw error when context.params accessed in handler environment", () => {
     const args: any = {
       ...cloudFunctionArgs,
       handler: (data: any, context: EventContext) => context,
@@ -197,25 +192,25 @@ describe('makeCloudFunction', () => {
     const cf = makeCloudFunction(args);
     const test: Event = {
       context: {
-        eventId: '00000',
-        timestamp: '2016-11-04T21:29:03.496Z',
-        eventType: 'provider.event',
+        eventId: "00000",
+        timestamp: "2016-11-04T21:29:03.496Z",
+        eventType: "provider.event",
         resource: {
-          service: 'provider',
-          name: 'resource',
+          service: "provider",
+          name: "resource",
         },
       },
-      data: 'test data',
+      data: "test data",
     };
 
     return cf(test.data, test.context).then((result) => {
       expect(result).to.deep.equal({
-        eventId: '00000',
-        timestamp: '2016-11-04T21:29:03.496Z',
-        eventType: 'provider.event',
+        eventId: "00000",
+        timestamp: "2016-11-04T21:29:03.496Z",
+        eventType: "provider.event",
         resource: {
-          service: 'provider',
-          name: 'resource',
+          service: "provider",
+          name: "resource",
         },
       });
       expect(() => result.params).to.throw(Error);
@@ -223,46 +218,44 @@ describe('makeCloudFunction', () => {
   });
 });
 
-describe('makeParams', () => {
+describe("makeParams", () => {
   const args: MakeCloudFunctionArgs<any> = {
-    provider: 'provider',
-    eventType: 'event',
-    service: 'service',
-    triggerResource: () => 'projects/_/instances/pid/ref/{foo}/nested/{bar}',
+    provider: "provider",
+    eventType: "event",
+    service: "service",
+    triggerResource: () => "projects/_/instances/pid/ref/{foo}/nested/{bar}",
     handler: (data, context) => context.params,
-    legacyEventType: 'legacyEvent',
+    legacyEventType: "legacyEvent",
   };
   const cf = makeCloudFunction(args);
 
-  it('should construct params from the event resource of events', () => {
+  it("should construct params from the event resource of events", () => {
     const testEvent: Event = {
       context: {
-        eventId: '111',
-        timestamp: '2016-11-04T21:29:03.496Z',
+        eventId: "111",
+        timestamp: "2016-11-04T21:29:03.496Z",
         resource: {
-          service: 'service',
-          name: 'projects/_/instances/pid/ref/a/nested/b',
+          service: "service",
+          name: "projects/_/instances/pid/ref/a/nested/b",
         },
-        eventType: 'event',
+        eventType: "event",
       },
-      data: 'data',
+      data: "data",
     };
 
-    return expect(
-      cf(testEvent.data, testEvent.context)
-    ).to.eventually.deep.equal({
-      foo: 'a',
-      bar: 'b',
+    return expect(cf(testEvent.data, testEvent.context)).to.eventually.deep.equal({
+      foo: "a",
+      bar: "b",
     });
   });
 });
 
-describe('makeAuth and makeAuthType', () => {
+describe("makeAuth and makeAuthType", () => {
   const args: MakeCloudFunctionArgs<any> = {
-    provider: 'google.firebase.database',
-    eventType: 'event',
-    service: 'service',
-    triggerResource: () => 'projects/_/instances/pid/ref/{foo}/nested/{bar}',
+    provider: "google.firebase.database",
+    eventType: "event",
+    service: "service",
+    triggerResource: () => "projects/_/instances/pid/ref/{foo}/nested/{bar}",
     handler: (data, context) => {
       return {
         auth: context.auth,
@@ -272,9 +265,9 @@ describe('makeAuth and makeAuthType', () => {
   };
   const cf = makeCloudFunction(args);
 
-  it('should construct correct auth and authType for admin user', () => {
+  it("should construct correct auth and authType for admin user", () => {
     const testEvent = {
-      data: 'data',
+      data: "data",
       context: {
         auth: {
           admin: true,
@@ -282,17 +275,15 @@ describe('makeAuth and makeAuthType', () => {
       },
     };
 
-    return expect(
-      cf(testEvent.data, testEvent.context)
-    ).to.eventually.deep.equal({
+    return expect(cf(testEvent.data, testEvent.context)).to.eventually.deep.equal({
       auth: undefined,
-      authType: 'ADMIN',
+      authType: "ADMIN",
     });
   });
 
-  it('should construct correct auth and authType for unauthenticated user', () => {
+  it("should construct correct auth and authType for unauthenticated user", () => {
     const testEvent = {
-      data: 'data',
+      data: "data",
       context: {
         auth: {
           admin: false,
@@ -300,41 +291,37 @@ describe('makeAuth and makeAuthType', () => {
       },
     };
 
-    return expect(
-      cf(testEvent.data, testEvent.context)
-    ).to.eventually.deep.equal({
+    return expect(cf(testEvent.data, testEvent.context)).to.eventually.deep.equal({
       auth: null,
-      authType: 'UNAUTHENTICATED',
+      authType: "UNAUTHENTICATED",
     });
   });
 
-  it('should construct correct auth and authType for a user', () => {
+  it("should construct correct auth and authType for a user", () => {
     const testEvent = {
-      data: 'data',
+      data: "data",
       context: {
         auth: {
           admin: false,
           variable: {
-            uid: 'user',
-            provider: 'google',
+            uid: "user",
+            provider: "google",
             token: {
-              sub: 'user',
+              sub: "user",
             },
           },
         },
       },
     };
 
-    return expect(
-      cf(testEvent.data, testEvent.context)
-    ).to.eventually.deep.equal({
+    return expect(cf(testEvent.data, testEvent.context)).to.eventually.deep.equal({
       auth: {
-        uid: 'user',
+        uid: "user",
         token: {
-          sub: 'user',
+          sub: "user",
         },
       },
-      authType: 'USER',
+      authType: "USER",
     });
   });
 });

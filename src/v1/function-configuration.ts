@@ -2,28 +2,28 @@
  * List of all regions supported by Cloud Functions.
  */
 export const SUPPORTED_REGIONS = [
-  'us-central1',
-  'us-east1',
-  'us-east4',
-  'us-west2',
-  'us-west3',
-  'us-west4',
-  'europe-central2',
-  'europe-west1',
-  'europe-west2',
-  'europe-west3',
-  'europe-west6',
-  'asia-east1',
-  'asia-east2',
-  'asia-northeast1',
-  'asia-northeast2',
-  'asia-northeast3',
-  'asia-south1',
-  'asia-southeast1',
-  'asia-southeast2',
-  'northamerica-northeast1',
-  'southamerica-east1',
-  'australia-southeast1',
+  "us-central1",
+  "us-east1",
+  "us-east4",
+  "us-west2",
+  "us-west3",
+  "us-west4",
+  "europe-central2",
+  "europe-west1",
+  "europe-west2",
+  "europe-west3",
+  "europe-west6",
+  "asia-east1",
+  "asia-east2",
+  "asia-northeast1",
+  "asia-northeast2",
+  "asia-northeast3",
+  "asia-south1",
+  "asia-southeast1",
+  "asia-southeast2",
+  "northamerica-northeast1",
+  "southamerica-east1",
+  "australia-southeast1",
 ] as const;
 
 /**
@@ -40,32 +40,32 @@ export const MAX_TIMEOUT_SECONDS = 540;
  * List of available memory options supported by Cloud Functions.
  */
 export const VALID_MEMORY_OPTIONS = [
-  '128MB',
-  '256MB',
-  '512MB',
-  '1GB',
-  '2GB',
-  '4GB',
-  '8GB',
+  "128MB",
+  "256MB",
+  "512MB",
+  "1GB",
+  "2GB",
+  "4GB",
+  "8GB",
 ] as const;
 
 /**
  * List of available options for VpcConnectorEgressSettings.
  */
 export const VPC_EGRESS_SETTINGS_OPTIONS = [
-  'VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED',
-  'PRIVATE_RANGES_ONLY',
-  'ALL_TRAFFIC',
+  "VPC_CONNECTOR_EGRESS_SETTINGS_UNSPECIFIED",
+  "PRIVATE_RANGES_ONLY",
+  "ALL_TRAFFIC",
 ] as const;
 
 /**
  * List of available options for IngressSettings.
  */
 export const INGRESS_SETTINGS_OPTIONS = [
-  'INGRESS_SETTINGS_UNSPECIFIED',
-  'ALLOW_ALL',
-  'ALLOW_INTERNAL_ONLY',
-  'ALLOW_INTERNAL_AND_GCLB',
+  "INGRESS_SETTINGS_UNSPECIFIED",
+  "ALLOW_ALL",
+  "ALLOW_INTERNAL_ONLY",
+  "ALLOW_INTERNAL_AND_GCLB",
 ] as const;
 
 /**
@@ -89,7 +89,7 @@ export interface Schedule {
 }
 
 export interface FailurePolicy {
-  retry: {};
+  retry: Record<string, never>;
 }
 
 export const MAX_NUMBER_USER_LABELS = 58;
@@ -99,7 +99,7 @@ export interface RuntimeOptions {
    * Which platform should host the backend. Valid options are "gcfv1"
    * @hidden
    */
-  platform?: 'gcfv1';
+  platform?: "gcfv1";
 
   /**
    * Failure policy of the function, with boolean `true` being equivalent to
@@ -140,7 +140,7 @@ export interface RuntimeOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: 'default' | string;
+  serviceAccount?: "default" | string;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -155,7 +155,7 @@ export interface RuntimeOptions {
   /**
    * Invoker to set access control on https functions.
    */
-  invoker?: 'public' | 'private' | string | string[];
+  invoker?: "public" | "private" | string | string[];
 
   /*
    * Secrets to bind to a function instance.

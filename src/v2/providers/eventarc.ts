@@ -25,11 +25,11 @@
  * @packageDocumentation
  */
 
-import { convertIfPresent, copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../core';
-import { wrapTraceContext } from '../trace';
-import * as options from '../options';
+import { convertIfPresent, copyIfPresent } from "../../common/encoding";
+import { ManifestEndpoint } from "../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../core";
+import { wrapTraceContext } from "../trace";
+import * as options from "../options";
 
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
@@ -113,7 +113,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -178,12 +178,12 @@ export function onCustomEventPublished<T = any>(
   handler: (event: CloudEvent<T>) => any | Promise<any>
 ): CloudFunction<CloudEvent<T>> {
   let opts: EventarcTriggerOptions;
-  if (typeof eventTypeOrOpts === 'string') {
+  if (typeof eventTypeOrOpts === "string") {
     opts = {
-      eventType: eventTypeOrOpts as string,
+      eventType: eventTypeOrOpts,
     };
-  } else if (typeof eventTypeOrOpts === 'object') {
-    opts = eventTypeOrOpts as EventarcTriggerOptions;
+  } else if (typeof eventTypeOrOpts === "object") {
+    opts = eventTypeOrOpts;
   }
   const func = (raw: CloudEvent<unknown>) => {
     return wrapTraceContext(handler)(raw as CloudEvent<T>);
@@ -191,13 +191,13 @@ export function onCustomEventPublished<T = any>(
 
   func.run = handler;
 
-  const channel = opts.channel ?? 'locations/us-central1/channels/firebase';
+  const channel = opts.channel ?? "locations/us-central1/channels/firebase";
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
 
   const endpoint: ManifestEndpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -211,8 +211,8 @@ export function onCustomEventPublished<T = any>(
       channel,
     },
   };
-  convertIfPresent(endpoint.eventTrigger, opts, 'eventFilters', 'filters');
-  copyIfPresent(endpoint.eventTrigger, opts, 'retry');
+  convertIfPresent(endpoint.eventTrigger, opts, "eventFilters", "filters");
+  copyIfPresent(endpoint.eventTrigger, opts, "retry");
 
   func.__endpoint = endpoint;
 
