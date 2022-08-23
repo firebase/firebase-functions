@@ -3,7 +3,6 @@ import { AsyncLocalStorage } from "async_hooks";
 /* @internal */
 export const traceContext = new AsyncLocalStorage<TraceContext>();
 
-/* @internal */
 export interface TraceContext {
   version: string;
   traceId: string;
@@ -71,7 +70,13 @@ function matchTraceparentHeader(carrier: unknown): TraceContext | undefined {
   }
 }
 
-/* @internal */
-export function getTraceContext(carrier: unknown): TraceContext | undefined {
+/**
+ * Extracts trace context from given carrier object, if any.
+ *
+ * Supports Cloud Trace and traceparent format.
+ *
+ * @param carrier
+ */
+export function extractTraceContext(carrier: unknown): TraceContext | undefined {
   return matchCloudTraceHeader(carrier) || matchTraceparentHeader(carrier);
 }

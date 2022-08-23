@@ -295,9 +295,7 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return wrapTraceContext(handler)(
-      raw as CloudEvent<MessagePublishedData<T>>
-    );
+    return wrapTraceContext(handler)(raw as CloudEvent<MessagePublishedData<T>>);
   };
 
   func.run = handler;
