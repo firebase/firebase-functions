@@ -109,7 +109,7 @@ describe("Database Functions", () => {
             resource: "projects/_/instances/subdomains/refs/users",
           },
         };
-        const handler = database.ref("/users/{id}").onWrite((change, context) => {
+        const handler = database.ref("/users/{id}").onWrite((change) => {
           expect(change.after.val()).to.deep.equal({ foo: "bar" });
         });
 
@@ -163,7 +163,7 @@ describe("Database Functions", () => {
           },
         };
 
-        const handler = database.ref("/users/{id}").onCreate((data, context) => {
+        const handler = database.ref("/users/{id}").onCreate((data) => {
           expect(data.val()).to.deep.equal({ foo: "bar" });
         });
 
@@ -217,7 +217,7 @@ describe("Database Functions", () => {
           },
         };
 
-        const handler = database.ref("/users/{id}").onUpdate((change, context) => {
+        const handler = database.ref("/users/{id}").onUpdate((change) => {
           expect(change.after.val()).to.deep.equal({ foo: "bar" });
         });
 
@@ -271,7 +271,7 @@ describe("Database Functions", () => {
           },
         };
 
-        const handler = database.ref("/users/{id}").onDelete((data, context) => {
+        const handler = database.ref("/users/{id}").onDelete((data) => {
           expect(data.val()).to.deep.equal({ foo: "bar" });
         });
 
@@ -422,7 +422,7 @@ describe("Database Functions", () => {
         populate({ 0: "a", 1: "b", 2: { c: "d" } });
         expect(subject.val()).to.deep.equal(["a", "b", { c: "d" }]);
         populate({ 0: "a", 2: "b", 3: { c: "d" } });
-        expect(subject.val()).to.deep.equal(["a", , "b", { c: "d" }]);
+        expect(subject.val()).to.deep.equal(["a", undefined, "b", { c: "d" }]);
         populate({ foo: { 0: "a", 1: "b" } });
         expect(subject.val()).to.deep.equal({ foo: ["a", "b"] });
       });
@@ -555,7 +555,7 @@ describe("Database Functions", () => {
       it("should not execute for leaf or null nodes", () => {
         populate(23);
         let count = 0;
-        const counter = (snap: any) => count++;
+        const counter = () => count++;
 
         expect(subject.forEach(counter)).to.equal(false);
         expect(count).to.eq(0);

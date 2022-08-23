@@ -25,10 +25,10 @@
  * @packageDocumentation
  */
 
-import { copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
+import { copyIfPresent } from "../../common/encoding";
+import { ManifestEndpoint } from "../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../core";
+import * as options from "../options";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -94,7 +94,7 @@ export class Message<T> {
     this.messageId = data.messageId;
     this.data = data.data;
     this.attributes = data.attributes || {};
-    this.orderingKey = data.orderingKey || '';
+    this.orderingKey = data.orderingKey || "";
     this.publishTime = data.publishTime || new Date().toISOString();
     this._json = data.json;
   }
@@ -103,15 +103,11 @@ export class Message<T> {
    * The JSON data payload of this message object, if any.
    */
   get json(): T {
-    if (typeof this._json === 'undefined') {
+    if (typeof this._json === "undefined") {
       try {
-        this._json = JSON.parse(
-          Buffer.from(this.data, 'base64').toString('utf8')
-        );
+        this._json = JSON.parse(Buffer.from(this.data, "base64").toString("utf8"));
       } catch (err) {
-        throw new Error(
-          `Unable to parse Pub/Sub message data as JSON: ${err.message}`
-        );
+        throw new Error(`Unable to parse Pub/Sub message data as JSON: ${err.message}`);
       }
     }
 
@@ -209,7 +205,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -283,7 +279,7 @@ export function onMessagePublished<T = any>(
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
-  if (typeof topicOrOptions === 'string') {
+  if (typeof topicOrOptions === "string") {
     topic = topicOrOptions;
     opts = {};
   } else {
@@ -307,7 +303,7 @@ export function onMessagePublished<T = any>(
   const specificOpts = options.optionsToEndpoint(opts);
 
   const endpoint: ManifestEndpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -315,12 +311,12 @@ export function onMessagePublished<T = any>(
       ...specificOpts?.labels,
     },
     eventTrigger: {
-      eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
+      eventType: "google.cloud.pubsub.topic.v1.messagePublished",
       eventFilters: { topic },
       retry: false,
     },
   };
-  copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+  copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
   func.__endpoint = endpoint;
 
   return func;

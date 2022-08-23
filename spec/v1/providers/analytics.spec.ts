@@ -23,9 +23,9 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { Event, EventContext } from "../../../src/v1/cloud-functions";
+import { Event } from "../../../src/v1/cloud-functions";
 import * as analytics from "../../../src/v1/providers/analytics";
-import * as analytics_spec_input from "./analytics.spec.input";
+import * as analyticsSpecInput from "./analytics.spec.input";
 
 describe("Analytics Functions", () => {
   describe("EventBuilder", () => {
@@ -74,7 +74,7 @@ describe("Analytics Functions", () => {
       it("should handle an event with the appropriate fields", () => {
         const cloudFunction = analytics
           .event("first_open")
-          .onLog((data: analytics.AnalyticsEvent, context: EventContext) => data);
+          .onLog((data: analytics.AnalyticsEvent) => data);
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
@@ -107,7 +107,7 @@ describe("Analytics Functions", () => {
       it("should remove xValues", () => {
         const cloudFunction = analytics
           .event("first_open")
-          .onLog((data: analytics.AnalyticsEvent, context: EventContext) => data);
+          .onLog((data: analytics.AnalyticsEvent) => data);
 
         // Incoming events will have four kinds of "xValue" fields: "intValue",
         // "stringValue", "doubleValue" and "floatValue". We expect those to get
@@ -280,11 +280,11 @@ describe("Analytics Functions", () => {
           .event("first_open")
           .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        const payloadData = analytics_spec_input.fullPayload.data;
-        const payloadContext = analytics_spec_input.fullPayload.context;
+        const payloadData = analyticsSpecInput.fullPayload.data;
+        const payloadContext = analyticsSpecInput.fullPayload.context;
 
         return expect(cloudFunction(payloadData, payloadContext)).to.eventually.deep.equal(
-          analytics_spec_input.data
+          analyticsSpecInput.data
         );
       });
     });

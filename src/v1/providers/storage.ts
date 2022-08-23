@@ -20,18 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { firebaseConfig } from '../../common/config';
-import {
-  CloudFunction,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+import { firebaseConfig } from "../../common/config";
+import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 /** @hidden */
-export const provider = 'google.storage';
+export const provider = "google.storage";
 /** @hidden */
-export const service = 'storage.googleapis.com';
+export const service = "storage.googleapis.com";
 
 /**
  * Registers a Cloud Function scoped to a specific storage bucket.
@@ -56,16 +52,13 @@ export function object() {
 }
 
 /** @hidden */
-export function _bucketWithOptions(
-  options: DeploymentOptions,
-  bucket?: string
-): BucketBuilder {
+export function _bucketWithOptions(options: DeploymentOptions, bucket?: string): BucketBuilder {
   const resourceGetter = () => {
     bucket = bucket || firebaseConfig().storageBucket;
     if (!bucket) {
       throw new Error(
-        'Missing bucket name. If you are unit testing, please provide a bucket name' +
-          ' through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG.'
+        "Missing bucket name. If you are unit testing, please provide a bucket name" +
+          " through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG."
       );
     }
     if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
@@ -88,10 +81,7 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
  */
 export class BucketBuilder {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
    * Event handler which fires every time a Google Cloud Storage change occurs.
@@ -111,13 +101,10 @@ export class BucketBuilder {
  */
 export class ObjectBuilder {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /** @hidden */
-  onChange(handler: any): Error {
+  onChange(): Error {
     throw new Error(
       '"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
         '"onFinalize", or "onMetadataUpdate".'
@@ -136,12 +123,9 @@ export class ObjectBuilder {
    * @return A Cloud Function which you can export and deploy.
    */
   onArchive(
-    handler: (
-      object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
-    return this.onOperation(handler, 'object.archive');
+    return this.onOperation(handler, "object.archive");
   }
 
   /**
@@ -159,12 +143,9 @@ export class ObjectBuilder {
    * @return A Cloud Function which you can export and deploy.
    */
   onDelete(
-    handler: (
-      object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
-    return this.onOperation(handler, 'object.delete');
+    return this.onOperation(handler, "object.delete");
   }
 
   /**
@@ -181,12 +162,9 @@ export class ObjectBuilder {
    * @return A Cloud Function which you can export and deploy.
    */
   onFinalize(
-    handler: (
-      object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
-    return this.onOperation(handler, 'object.finalize');
+    return this.onOperation(handler, "object.finalize");
   }
 
   /**
@@ -199,20 +177,14 @@ export class ObjectBuilder {
    * @return A Cloud Function which you can export and deploy.
    */
   onMetadataUpdate(
-    handler: (
-      object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any
+    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<ObjectMetadata> {
-    return this.onOperation(handler, 'object.metadataUpdate');
+    return this.onOperation(handler, "object.metadataUpdate");
   }
 
   /** @hidden */
   private onOperation(
-    handler: (
-      object: ObjectMetadata,
-      context: EventContext
-    ) => PromiseLike<any> | any,
+    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any,
     eventType: string
   ): CloudFunction<ObjectMetadata> {
     return makeCloudFunction({
@@ -260,7 +232,7 @@ export interface ObjectMetadata {
   /** Link to access the object, assuming you have sufficient permissions. */
   selfLink?: string;
 
-  /**The object's name. */
+  /** The object's name. */
   name?: string;
 
   /**

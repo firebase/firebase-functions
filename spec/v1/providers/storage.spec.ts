@@ -22,7 +22,7 @@
 
 import { expect } from "chai";
 import * as config from "../../../src/common/config";
-import { Event, EventContext } from "../../../src/v1";
+import { Event } from "../../../src/v1";
 import * as functions from "../../../src/v1";
 import * as storage from "../../../src/v1/providers/storage";
 
@@ -123,7 +123,7 @@ describe("Storage Functions", () => {
           },
         };
         return cloudFunction(goodMediaLinkEvent.data, goodMediaLinkEvent.context).then(
-          (result: any, context: EventContext) => {
+          (result: any) => {
             expect(result).equals(goodMediaLinkEvent.data.mediaLink);
           }
         );
@@ -183,7 +183,7 @@ describe("Storage Functions", () => {
           },
         };
         return cloudFunction(goodMediaLinkEvent.data, goodMediaLinkEvent.context).then(
-          (result: any, context: EventContext) => {
+          (result: any) => {
             expect(result).equals(goodMediaLinkEvent.data.mediaLink);
           }
         );
@@ -243,7 +243,7 @@ describe("Storage Functions", () => {
           },
         };
         return cloudFunction(goodMediaLinkEvent.data, goodMediaLinkEvent.context).then(
-          (result: any, context: EventContext) => {
+          (result: any) => {
             expect(result).equals(goodMediaLinkEvent.data.mediaLink);
           }
         );
@@ -305,7 +305,7 @@ describe("Storage Functions", () => {
           },
         };
         return cloudFunction(goodMediaLinkEvent.data, goodMediaLinkEvent.context).then(
-          (result: any, context: EventContext) => {
+          (result: any) => {
             expect(result).equals(goodMediaLinkEvent.data.mediaLink);
           }
         );

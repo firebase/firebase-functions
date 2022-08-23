@@ -22,7 +22,7 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event, EventContext } from "../../../src/v1/cloud-functions";
+import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
 import * as remoteConfig from "../../../src/v1/providers/remoteConfig";
 
 describe("RemoteConfig Functions", () => {
@@ -87,7 +87,7 @@ describe("RemoteConfig Functions", () => {
     before(() => {
       process.env.GCLOUD_PROJECT = "project1";
       cloudFunctionUpdate = remoteConfig.onUpdate(
-        (version: remoteConfig.TemplateVersion, context: EventContext) => version
+        (version: remoteConfig.TemplateVersion) => version
       );
 
       event = {
@@ -110,7 +110,7 @@ describe("RemoteConfig Functions", () => {
 
     it("should unwrap the version in the event", () => {
       return Promise.all([
-        cloudFunctionUpdate(event.data, event.context).then((data: any, context: any) => {
+        cloudFunctionUpdate(event.data, event.context).then((data: any) => {
           expect(data).to.deep.equal(constructVersion());
         }),
       ]);

@@ -20,22 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as fs from 'fs';
-import * as process from 'process';
-import Sinon = require('sinon');
+import { expect } from "chai";
+import * as fs from "fs";
+import * as process from "process";
+import Sinon = require("sinon");
 
-import { config, resetCache } from '../../src/v1/config';
+import { config, resetCache } from "../../src/v1/config";
 
-describe('config()', () => {
+describe("config()", () => {
   let readFileSync: Sinon.SinonStub;
   let cwdStub: Sinon.SinonStub;
 
   before(() => {
-    readFileSync = Sinon.stub(fs, 'readFileSync');
-    readFileSync.throws('Unexpected call');
-    cwdStub = Sinon.stub(process, 'cwd');
-    cwdStub.returns('/srv');
+    readFileSync = Sinon.stub(fs, "readFileSync");
+    readFileSync.throws("Unexpected call");
+    cwdStub = Sinon.stub(process, "cwd");
+    cwdStub.returns("/srv");
   });
 
   after(() => {
@@ -49,29 +49,25 @@ describe('config()', () => {
     delete process.env.K_CONFIGURATION;
   });
 
-  it('will never load in GCFv2', () => {
+  it("will never load in GCFv2", () => {
     const json = JSON.stringify({
-      foo: 'bar',
+      foo: "bar",
       firebase: {},
     });
-    readFileSync
-      .withArgs('/srv/.runtimeconfig.json')
-      .returns(Buffer.from(json));
+    readFileSync.withArgs("/srv/.runtimeconfig.json").returns(Buffer.from(json));
 
-    process.env.K_CONFIGURATION = 'my-service';
+    process.env.K_CONFIGURATION = "my-service";
     expect(config).to.throw(Error, /transition to using environment variables/);
   });
 
-  it('loads config values from .runtimeconfig.json', () => {
+  it("loads config values from .runtimeconfig.json", () => {
     const json = JSON.stringify({
-      foo: 'bar',
+      foo: "bar",
       firebase: {},
     });
-    readFileSync
-      .withArgs('/srv/.runtimeconfig.json')
-      .returns(Buffer.from(json));
+    readFileSync.withArgs("/srv/.runtimeconfig.json").returns(Buffer.from(json));
     const loaded = config();
-    expect(loaded).to.not.have.property('firebase');
-    expect(loaded).to.have.property('foo', 'bar');
+    expect(loaded).to.not.have.property("firebase");
+    expect(loaded).to.have.property("foo", "bar");
   });
 });

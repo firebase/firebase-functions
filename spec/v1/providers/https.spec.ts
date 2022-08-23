@@ -59,7 +59,7 @@ describe("CloudHttpsBuilder", () => {
 
 describe("#onCall", () => {
   it("should return a trigger/endpoint with appropriate values", () => {
-    const result = https.onCall((data) => {
+    const result = https.onCall(() => {
       return "response";
     });
 
@@ -125,7 +125,7 @@ describe("#onCall", () => {
 
 describe("callable CORS", () => {
   it("handles OPTIONS preflight", async () => {
-    const func = https.onCall((data, context) => {
+    const func = https.onCall(() => {
       throw new Error(`This shouldn't have gotten called for an OPTIONS preflight.`);
     });
 
@@ -151,7 +151,7 @@ describe("callable CORS", () => {
   });
 
   it("adds CORS headers", async () => {
-    const func = https.onCall((data, context) => 42);
+    const func = https.onCall(() => 42);
     const req = new MockRequest(
       {
         data: {},

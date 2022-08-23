@@ -127,7 +127,7 @@ describe("Pubsub Functions", () => {
           },
         };
 
-        const result = pubsub.topic("toppy").onPublish((data, context) => {
+        const result = pubsub.topic("toppy").onPublish((data) => {
           return {
             raw: data.data,
             json: data.json,
@@ -145,7 +145,7 @@ describe("Pubsub Functions", () => {
 
     describe("#schedule", () => {
       it("should return a trigger/endpoint with schedule", () => {
-        const result = pubsub.schedule("every 5 minutes").onRun((context) => null);
+        const result = pubsub.schedule("every 5 minutes").onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           schedule: "every 5 minutes",
@@ -156,7 +156,7 @@ describe("Pubsub Functions", () => {
         const result = pubsub
           .schedule("every 5 minutes")
           .timeZone("America/New_York")
-          .onRun((context) => null);
+          .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           schedule: "every 5 minutes",

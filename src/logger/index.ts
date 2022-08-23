@@ -20,23 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { format } from 'util';
+import { format } from "util";
 
-import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from './common';
+import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).
  * @public
  */
 export type LogSeverity =
-  | 'DEBUG'
-  | 'INFO'
-  | 'NOTICE'
-  | 'WARNING'
-  | 'ERROR'
-  | 'CRITICAL'
-  | 'ALERT'
-  | 'EMERGENCY';
+  | "DEBUG"
+  | "INFO"
+  | "NOTICE"
+  | "WARNING"
+  | "ERROR"
+  | "CRITICAL"
+  | "ALERT"
+  | "EMERGENCY";
 
 /**
  * `LogEntry` represents a [structured Cloud Logging](https://cloud.google.com/logging/docs/structured-logging)
@@ -52,7 +52,7 @@ export interface LogEntry {
 
 /** @internal */
 function removeCircular(obj: any, refs: any[] = []): any {
-  if (typeof obj !== 'object' || !obj) {
+  if (typeof obj !== "object" || !obj) {
     return obj;
   }
   // If the object defines its own toJSON, prefer that.
@@ -60,7 +60,7 @@ function removeCircular(obj: any, refs: any[] = []): any {
     return obj.toJSON();
   }
   if (refs.includes(obj)) {
-    return '[Circular]';
+    return "[Circular]";
   } else {
     refs.push(obj);
   }
@@ -72,7 +72,7 @@ function removeCircular(obj: any, refs: any[] = []): any {
   }
   for (const k in obj) {
     if (refs.includes(obj[k])) {
-      returnObj[k] = '[Circular]';
+      returnObj[k] = "[Circular]";
     } else {
       returnObj[k] = removeCircular(obj[k], refs);
     }
@@ -86,9 +86,7 @@ function removeCircular(obj: any, refs: any[] = []): any {
  * @public
  */
 export function write(entry: LogEntry) {
-  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](
-    JSON.stringify(removeCircular(entry))
-  );
+  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(removeCircular(entry)));
 }
 
 /**
@@ -98,7 +96,7 @@ export function write(entry: LogEntry) {
  * @public
  */
 export function debug(...args: any[]) {
-  write(entryFromArgs('DEBUG', args));
+  write(entryFromArgs("DEBUG", args));
 }
 
 /**
@@ -108,7 +106,7 @@ export function debug(...args: any[]) {
  * @public
  */
 export function log(...args: any[]) {
-  write(entryFromArgs('INFO', args));
+  write(entryFromArgs("INFO", args));
 }
 
 /**
@@ -118,7 +116,7 @@ export function log(...args: any[]) {
  * @public
  */
 export function info(...args: any[]) {
-  write(entryFromArgs('INFO', args));
+  write(entryFromArgs("INFO", args));
 }
 
 /**
@@ -128,7 +126,7 @@ export function info(...args: any[]) {
  * @public
  */
 export function warn(...args: any[]) {
-  write(entryFromArgs('WARNING', args));
+  write(entryFromArgs("WARNING", args));
 }
 
 /**
@@ -138,19 +136,19 @@ export function warn(...args: any[]) {
  * @public
  */
 export function error(...args: any[]) {
-  write(entryFromArgs('ERROR', args));
+  write(entryFromArgs("ERROR", args));
 }
 
 /** @hidden */
 function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];
-  if (lastArg && typeof lastArg == 'object' && lastArg.constructor == Object) {
+  if (lastArg && typeof lastArg === "object" && lastArg.constructor === Object) {
     entry = args.pop();
   }
   // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
-  let message = format.apply(null, args);
-  if (severity === 'ERROR' && !args.find((arg) => arg instanceof Error)) {
+  let message = format(...args);
+  if (severity === "ERROR" && !args.find((arg) => arg instanceof Error)) {
     message = new Error(message).stack || message;
   }
   return { ...entry, severity, message };

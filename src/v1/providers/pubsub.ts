@@ -20,20 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {
-  CloudFunction,
-  EventContext,
-  makeCloudFunction,
-} from '../cloud-functions';
-import {
-  DeploymentOptions,
-  ScheduleRetryConfig,
-} from '../function-configuration';
+import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
+import { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
 
 /** @hidden */
-export const provider = 'google.pubsub';
+export const provider = "google.pubsub";
 /** @hidden */
-export const service = 'pubsub.googleapis.com';
+export const service = "pubsub.googleapis.com";
 
 /**
  * Registers a Cloud Function triggered when a Google Cloud Pub/Sub message
@@ -47,17 +40,14 @@ export function topic(topic: string) {
 }
 
 /** @hidden */
-export function _topicWithOptions(
-  topic: string,
-  options: DeploymentOptions
-): TopicBuilder {
-  if (topic.indexOf('/') !== -1) {
-    throw new Error('Topic name may not have a /');
+export function _topicWithOptions(topic: string, options: DeploymentOptions): TopicBuilder {
+  if (topic.indexOf("/") !== -1) {
+    throw new Error("Topic name may not have a /");
   }
 
   return new TopicBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
-      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
     return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
   }, options);
@@ -70,10 +60,7 @@ export function _topicWithOptions(
  */
 export class TopicBuilder {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
    * Event handler that fires every time a Cloud Pub/Sub message is
@@ -91,7 +78,7 @@ export class TopicBuilder {
       provider,
       service,
       triggerResource: this.triggerResource,
-      eventType: 'topic.publish',
+      eventType: "topic.publish",
       dataConstructor: (raw) => new Message(raw.data),
       options: this.options,
     });
@@ -115,7 +102,7 @@ export function _scheduleWithOptions(
 ): ScheduleBuilder {
   const triggerResource = () => {
     if (!process.env.GCLOUD_PROJECT) {
-      throw new Error('process.env.GCLOUD_PROJECT is not set.');
+      throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
     // The CLI will append the correct topic name based on region and function name
     return `projects/${process.env.GCLOUD_PROJECT}/topics`;
@@ -137,10 +124,7 @@ export function _scheduleWithOptions(
  */
 export class ScheduleBuilder {
   /** @hidden */
-  constructor(
-    private triggerResource: () => string,
-    private options: DeploymentOptions
-  ) {}
+  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
     this.options.schedule.retryConfig = config;
@@ -166,9 +150,9 @@ export class ScheduleBuilder {
       provider,
       service,
       triggerResource: this.triggerResource,
-      eventType: 'topic.publish',
+      eventType: "topic.publish",
       options: this.options,
-      labels: { 'deployment-scheduled': 'true' },
+      labels: { "deployment-scheduled": "true" },
     });
     return cloudFunction;
   }
@@ -194,21 +178,15 @@ export class Message {
   private _json: any;
 
   constructor(data: any) {
-    [this.data, this.attributes, this._json] = [
-      data.data,
-      data.attributes || {},
-      data.json,
-    ];
+    [this.data, this.attributes, this._json] = [data.data, data.attributes || {}, data.json];
   }
 
   /**
    * The JSON data payload of this message object, if any.
    */
   get json(): any {
-    if (typeof this._json === 'undefined') {
-      this._json = JSON.parse(
-        Buffer.from(this.data, 'base64').toString('utf8')
-      );
+    if (typeof this._json === "undefined") {
+      this._json = JSON.parse(Buffer.from(this.data, "base64").toString("utf8"));
     }
 
     return this._json;

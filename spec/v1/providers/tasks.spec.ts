@@ -42,7 +42,7 @@ describe("#onDispatch", () => {
         minBackoffSeconds: 5,
       },
       invoker: "private",
-    }).onDispatch(() => {});
+    }).onDispatch(() => undefined);
 
     expect(result.__endpoint).to.deep.equal({
       platform: "gcfv1",

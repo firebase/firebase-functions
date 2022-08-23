@@ -20,23 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
+import * as express from "express";
 
-import {
-  convertIfPresent,
-  convertInvoker,
-  copyIfPresent,
-} from '../../common/encoding';
-import { Request } from '../../common/providers/https';
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
+import { Request } from "../../common/providers/https";
 import {
   onDispatchHandler,
   RateLimits,
   RetryConfig,
   TaskContext,
-} from '../../common/providers/tasks';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../../runtime/manifest';
-import { optionsToEndpoint } from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+} from "../../common/providers/tasks";
+import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import { optionsToEndpoint } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 
 export { RetryConfig, RateLimits, TaskContext };
 
@@ -55,7 +51,7 @@ export interface TaskQueueOptions {
    * `roles/cloudtasks.enqueuer` and `roles/cloudfunctions.invoker`
    * will have permissions.
    */
-  invoker?: 'private' | string | string[];
+  invoker?: "private" | string | string[];
 }
 
 /**
@@ -102,29 +98,28 @@ export class TaskQueueBuilder {
     // onEnqueueHandler sniffs the function length of the passed-in callback
     // and the user could have only tried to listen to data. Wrap their handler
     // in another handler to avoid accidentally triggering the v2 API
-    const fixedLen = (data: any, context: TaskContext) =>
-      handler(data, context);
+    const fixedLen = (data: any, context: TaskContext) => handler(data, context);
     const func: any = onDispatchHandler(fixedLen);
 
     func.__endpoint = {
-      platform: 'gcfv1',
+      platform: "gcfv1",
       ...optionsToEndpoint(this.depOpts),
       taskQueueTrigger: {},
     };
-    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'retryConfig');
-    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, 'rateLimits');
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "retryConfig");
+    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "rateLimits");
     convertIfPresent(
       func.__endpoint.taskQueueTrigger,
       this.tqOpts,
-      'invoker',
-      'invoker',
+      "invoker",
+      "invoker",
       convertInvoker
     );
 
     func.__requiredAPIs = [
       {
-        api: 'cloudtasks.googleapis.com',
-        reason: 'Needed for task queue functions',
+        api: "cloudtasks.googleapis.com",
+        reason: "Needed for task queue functions",
       },
     ];
 

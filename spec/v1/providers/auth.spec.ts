@@ -23,7 +23,7 @@
 import { expect } from "chai";
 import { UserRecord } from "../../../src/common/providers/identity";
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event, EventContext } from "../../../src/v1/cloud-functions";
+import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
 import * as auth from "../../../src/v1/providers/auth";
 
 describe("Auth Functions", () => {
@@ -60,7 +60,7 @@ describe("Auth Functions", () => {
       };
     }
 
-    const handler = (user: UserRecord) => {
+    const handler = () => {
       return Promise.resolve();
     };
 
@@ -111,7 +111,7 @@ describe("Auth Functions", () => {
 
     describe("beforeCreate", () => {
       it("should create the function without options", () => {
-        const fn = auth.user().beforeCreate((u, c) => Promise.resolve());
+        const fn = auth.user().beforeCreate(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
           platform: "gcfv1",
@@ -146,7 +146,7 @@ describe("Auth Functions", () => {
               refreshToken: false,
             },
           })
-          .beforeCreate((u, c) => Promise.resolve());
+          .beforeCreate(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
           platform: "gcfv1",
@@ -174,7 +174,7 @@ describe("Auth Functions", () => {
 
     describe("beforeSignIn", () => {
       it("should create the function without options", () => {
-        const fn = auth.user().beforeSignIn((u, c) => Promise.resolve());
+        const fn = auth.user().beforeSignIn(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
           platform: "gcfv1",
@@ -209,7 +209,7 @@ describe("Auth Functions", () => {
               refreshToken: false,
             },
           })
-          .beforeSignIn((u, c) => Promise.resolve());
+          .beforeSignIn(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
           platform: "gcfv1",
@@ -239,9 +239,7 @@ describe("Auth Functions", () => {
       let cloudFunctionDelete: CloudFunction<UserRecord>;
 
       before(() => {
-        cloudFunctionDelete = auth
-          .user()
-          .onDelete((data: UserRecord, context: EventContext) => data);
+        cloudFunctionDelete = auth.user().onDelete((data: UserRecord) => data);
       });
 
       it("should handle wire format as of v5.0.0 of firebase-admin", () => {
