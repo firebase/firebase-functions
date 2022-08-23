@@ -1,0 +1,1 @@
+- Fixes a bug that disallowed setting customClaims and/or sessionClaims in blocking functions (#1199).
