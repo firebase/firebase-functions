@@ -113,44 +113,44 @@ export interface EventContext<Params = Record<string, string>> {
 
   /**
    * Type of event.
-   * 
+   *
    * @remarks
    * Possible values are:
    *
    * - `google.analytics.event.log`
-   * 
+   *
    * - `google.firebase.auth.user.create`
-   * 
+   *
    * - `google.firebase.auth.user.delete`
-   * 
+   *
    * - `google.firebase.database.ref.write`
-   * 
+   *
    * - `google.firebase.database.ref.create`
-   * 
+   *
    * - `google.firebase.database.ref.update`
-   * 
+   *
    * - `google.firebase.database.ref.delete`
-   * 
+   *
    * - `google.firestore.document.write`
-   * 
+   *
    * - `google.firestore.document.create`
-   * 
+   *
    * - `google.firestore.document.update`
-   * 
+   *
    * - `google.firestore.document.delete`
-   * 
+   *
    * - `google.pubsub.topic.publish`
-   * 
+   *
    * - `google.firebase.remoteconfig.update`
-   * 
+   *
    * - `google.storage.object.finalize`
-   * 
+   *
    * - `google.storage.object.archive`
-   * 
+   *
    * - `google.storage.object.delete`
-   * 
+   *
    * - `google.storage.object.metadataUpdate`
-   * 
+   *
    * - `google.testing.testMatrix.complete`
    */
   eventType: string;
