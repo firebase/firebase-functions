@@ -95,13 +95,13 @@ export interface EventContext<Params = Record<string, string>> {
    * @remarks
    * Valid values are:
    *
-   *`ADMIN`: Developer user or user authenticated via a service account.
+   * - `ADMIN`: Developer user or user authenticated via a service account.
    *
-   *`USER`: Known user.
+   * - `USER`: Known user.
    *
-   *`UNAUTHENTICATED`: Unauthenticated action
+   * - `UNAUTHENTICATED`: Unauthenticated action
    *
-   * `null`: For event types that do not provide user information (all except
+   * - `null`: For event types that do not provide user information (all except
    *   Realtime Database).
    */
   authType?: "ADMIN" | "USER" | "UNAUTHENTICATED";
@@ -113,6 +113,45 @@ export interface EventContext<Params = Record<string, string>> {
 
   /**
    * Type of event.
+   * 
+   * @remarks
+   * Possible values are:
+   *
+   * - `google.analytics.event.log`
+   * 
+   * - `google.firebase.auth.user.create`
+   * 
+   * - `google.firebase.auth.user.delete`
+   * 
+   * - `google.firebase.database.ref.write`
+   * 
+   * - `google.firebase.database.ref.create`
+   * 
+   * - `google.firebase.database.ref.update`
+   * 
+   * - `google.firebase.database.ref.delete`
+   * 
+   * - `google.firestore.document.write`
+   * 
+   * - `google.firestore.document.create`
+   * 
+   * - `google.firestore.document.update`
+   * 
+   * - `google.firestore.document.delete`
+   * 
+   * - `google.pubsub.topic.publish`
+   * 
+   * - `google.firebase.remoteconfig.update`
+   * 
+   * - `google.storage.object.finalize`
+   * 
+   * - `google.storage.object.archive`
+   * 
+   * - `google.storage.object.delete`
+   * 
+   * - `google.storage.object.metadataUpdate`
+   * 
+   * - `google.testing.testMatrix.complete`
    */
   eventType: string;
 
