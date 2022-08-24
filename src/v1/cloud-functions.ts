@@ -221,10 +221,10 @@ export interface Runnable<T> {
 export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /* @internal */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
-  /* @internal */
+  /** @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -234,10 +234,10 @@ export interface HttpsFunction {
 export interface BlockingFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /* @internal */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
-  /* @internal */
+  /** @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
