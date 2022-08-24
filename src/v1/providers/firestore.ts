@@ -31,11 +31,8 @@ import * as logger from "../../logger";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-/** @hidden */
 export const provider = "google.firestore";
-/** @hidden */
 export const service = "firestore.googleapis.com";
-/** @hidden */
 export const defaultDatabase = "(default)";
 let firestoreInstance: any;
 export type DocumentSnapshot = firestore.DocumentSnapshot;
@@ -52,19 +49,16 @@ export function document<Path extends string>(path: Path) {
   return _documentWithOptions(path, {});
 }
 
-/** @hidden */
 // Multiple namespaces are not yet supported by Firestore.
 export function namespace(namespace: string) {
   return _namespaceWithOptions(namespace, {});
 }
 
-/** @hidden */
 // Multiple databases are not yet supported by Firestore.
 export function database(database: string) {
   return _databaseWithOptions(database, {});
 }
 
-/** @hidden */
 export function _databaseWithOptions(
   database: string = defaultDatabase,
   options: DeploymentOptions
@@ -72,18 +66,15 @@ export function _databaseWithOptions(
   return new DatabaseBuilder(database, options);
 }
 
-/** @hidden */
 export function _namespaceWithOptions(namespace: string, options: DeploymentOptions) {
   return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
-/** @hidden */
 export function _documentWithOptions<Path extends string>(path: Path, options: DeploymentOptions) {
   return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
 export class DatabaseBuilder {
-  /** @hidden */
   constructor(private database: string, private options: DeploymentOptions) {}
 
   namespace(namespace: string) {
@@ -96,7 +87,6 @@ export class DatabaseBuilder {
 }
 
 export class NamespaceBuilder {
-  /** @hidden */
   constructor(
     private database: string,
     private options: DeploymentOptions,
@@ -142,7 +132,6 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
   return proto;
 }
 
-/** @hidden */
 export function snapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
@@ -159,7 +148,6 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
   return firestoreInstance.snapshot_(valueProto, readTime, "json");
 }
 
-/** @hidden */
 // TODO remove this function when wire format changes to new format
 export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   if (!firestoreInstance) {
@@ -175,7 +163,6 @@ function changeConstructor(raw: Event) {
 }
 
 export class DocumentBuilder<Path extends string> {
-  /** @hidden */
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {
     // TODO what validation do we want to do here?
   }
