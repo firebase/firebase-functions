@@ -36,7 +36,7 @@ import { TaskContext } from "./tasks";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
-/** @hidden */
+/** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
   /** The wire format representation of the request body. */
   rawBody: Buffer;
@@ -124,6 +124,7 @@ export interface CallableRequest<T = any> {
  * ones exposed by gRPC here:
  * https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
  *
+ * @remarks
  * Possible values:
  *
  * - `cancelled`: The operation was cancelled (typically by the caller).

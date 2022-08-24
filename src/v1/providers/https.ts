@@ -56,7 +56,7 @@ export function onCall(
   return _onCallWithOptions(handler, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void | Promise<void>,
   options: DeploymentOptions
@@ -82,7 +82,7 @@ export function _onRequestWithOptions(
   return cloudFunction;
 }
 
-/** @hidden */
+/** @internal */
 export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
