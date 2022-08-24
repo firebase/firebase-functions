@@ -251,14 +251,14 @@ export interface BlockingFunction {
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
 
-  /* @internal */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
-  /* @internal */
+  /** @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
-/* @internal */
+/** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event) => void;
   before?: (raw: Event) => void;
@@ -278,7 +278,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
 }
 
-/* @internal */
+/** @internal */
 export function makeCloudFunction<EventData>({
   contextOnlyHandler,
   dataConstructor = (raw: Event) => raw.data,
@@ -436,7 +436,7 @@ function _detectAuthType(event: Event) {
   return "UNAUTHENTICATED";
 }
 
-/* @internal */
+/** @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
