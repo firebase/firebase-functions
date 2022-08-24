@@ -23,9 +23,9 @@
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-/** @hidden */
+/** @internal */
 export const provider = "google.analytics";
-/** @hidden */
+/** @internal */
 export const service = "app-measurement.com";
 
 /**
@@ -40,7 +40,7 @@ export function event(analyticsEventType: string) {
   return _eventWithOptions(analyticsEventType, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _eventWithOptions(analyticsEventType: string, options: DeploymentOptions) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
@@ -53,7 +53,7 @@ export function _eventWithOptions(analyticsEventType: string, options: Deploymen
 /**
  * The Firebase Analytics event builder interface.
  *
- * Access via [`functions.analytics.event()`](functions.analytics#.event).
+ * Access via `functions.analytics.event()`.
  */
 export class AnalyticsEventBuilder {
   /** @hidden */
