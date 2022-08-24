@@ -72,10 +72,37 @@ export const INGRESS_SETTINGS_OPTIONS = [
  * Scheduler retry options. Applies only to scheduled functions.
  */
 export interface ScheduleRetryConfig {
+  /**
+   * The number of attempts that the system will make to run a job using the exponential backoff procedure described by {@link ScheduleRetryConfig.maxDoublings}.
+   *
+   * @defaultValue 0 (infinite retry)
+   */
   retryCount?: number;
+  /**
+   * The time limit for retrying a failed job, measured from time when an execution was first attempted.
+   *
+   * If specified with {@link ScheduleRetryConfig.retryCount}, the job will be retried until both limits are reached.
+   *
+   * @defaultValue 0
+   */
   maxRetryDuration?: string;
+  /**
+   * The minimum amount of time to wait before retrying a job after it fails.
+   *
+   * @defaultValue 5 seconds
+   */
   minBackoffDuration?: string;
+  /**
+   * The maximum amount of time to wait before retrying a job after it fails.
+   *
+   * @defaultValue 1 hour
+   */
   maxBackoffDuration?: string;
+  /**
+   * The max number of backoff doubling applied at each retry.
+   *
+   * @defaultValue 5
+   */
   maxDoublings?: number;
 }
 
@@ -83,8 +110,33 @@ export interface ScheduleRetryConfig {
  * Configuration options for scheduled functions.
  */
 export interface Schedule {
+  /**
+   * Describes the schedule on which the job will be executed.
+   *
+   * The schedule can be either of the following types:
+   *
+   * 1. {@link https://en.wikipedia.org/wiki/Cron#Overview | Crontab}
+   *
+   * 2. English-like {@link https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules | schedule}
+   *
+   * @example
+   * ```
+   * // Crontab schedule
+   * schedule: "0 9 * * 1"` // Every Monday at 09:00 AM
+   * // Englihsh-like schedule
+   * schedule: "every 5 minutes"
+   * ```
+   */
   schedule: string;
+  /**
+   * Specifies the time zone to be used in interpreting {@link Schedule.schedule}.
+   *
+   * The value of this field must be a time zone name from the tz database.
+   */
   timeZone?: string;
+  /**
+   * Settings that determine the retry behavior.
+   */
   retryConfig?: ScheduleRetryConfig;
 }
 
