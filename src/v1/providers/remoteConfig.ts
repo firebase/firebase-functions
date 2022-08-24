@@ -23,9 +23,9 @@
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-/** @hidden */
+/** @internal */
 export const provider = "google.firebase.remoteconfig";
-/** @hidden */
+/** @internal */
 export const service = "firebaseremoteconfig.googleapis.com";
 
 /**
@@ -35,7 +35,7 @@ export const service = "firebaseremoteconfig.googleapis.com";
  * @param handler A function that takes the updated Remote Config
  *   template version metadata as an argument.
  *
- * @return A Cloud Function that you can export and deploy.
+ * @returns A Cloud Function that you can export and deploy.
  */
 export function onUpdate(
   handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any
@@ -43,7 +43,7 @@ export function onUpdate(
   return _onUpdateWithOptions(handler, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _onUpdateWithOptions(
   handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any,
   options: DeploymentOptions
@@ -59,7 +59,7 @@ export function _onUpdateWithOptions(
 
 /** Builder used to create Cloud Functions for Remote Config. */
 export class UpdateBuilder {
-  /** @hidden */
+  /** @internal */
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
