@@ -39,6 +39,7 @@ export interface ChangeJson {
   fieldMask?: string;
 }
 
+/** @internal */
 export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string) {
   const before = { ...after };
   const masks = fieldMask.split(",");
