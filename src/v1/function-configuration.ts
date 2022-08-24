@@ -89,9 +89,13 @@ export interface Schedule {
 }
 
 /**
- * Configuration option for failure policy on background functions. Must be an empty object.
+ * Configuration option for failure policy on background functions.
  */
 export interface FailurePolicy {
+  /**
+   * Retry configuration. Must be an empty object.
+   *
+   */
   retry: Record<string, never>;
 }
 
