@@ -29,14 +29,11 @@ import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
 
 export { Change } from "../common/change";
 
-/** @hidden */
+/* @internal */
 const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 
 /**
  * Wire format for an event.
-
- * @hidden
- * @alpha
  */
 export interface Event {
   context: {
@@ -185,10 +182,10 @@ export interface Runnable<T> {
 export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /** @alpha */
+  /* @internal */
   __endpoint: ManifestEndpoint;
 
-  /** @alpha */
+  /* @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -198,10 +195,10 @@ export interface HttpsFunction {
 export interface BlockingFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /** @alpha */
+  /* @internal */
   __endpoint: ManifestEndpoint;
 
-  /** @alpha */
+  /* @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -215,14 +212,14 @@ export interface BlockingFunction {
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
 
-  /** @alpha */
+  /* @internal */
   __endpoint: ManifestEndpoint;
 
-  /** @alpha */
+  /* @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
-/** @hidden */
+/* @internal */
 export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event) => void;
   before?: (raw: Event) => void;
@@ -242,7 +239,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
 }
 
-/** @hidden */
+/* @internal */
 export function makeCloudFunction<EventData>({
   contextOnlyHandler,
   dataConstructor = (raw: Event) => raw.data,
@@ -351,7 +348,6 @@ export function makeCloudFunction<EventData>({
   return cloudFunction;
 }
 
-/** @hidden */
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
@@ -381,7 +377,6 @@ function _makeParams(
   return params;
 }
 
-/** @hidden */
 function _makeAuth(event: Event, authType: string) {
   if (authType === "UNAUTHENTICATED") {
     return null;
@@ -392,7 +387,6 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
-/** @hidden */
 function _detectAuthType(event: Event) {
   if (event.context?.auth?.admin) {
     return "ADMIN";
@@ -403,6 +397,7 @@ function _detectAuthType(event: Event) {
   return "UNAUTHENTICATED";
 }
 
+/* @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
