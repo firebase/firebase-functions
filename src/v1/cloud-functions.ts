@@ -170,6 +170,7 @@ export interface Resource {
  * function - useful for unit testing.
  */
 export interface Runnable<T> {
+  /** Directly invoke the user defined function. */
   run: (data: T, context: any) => PromiseLike<any> | any;
 }
 

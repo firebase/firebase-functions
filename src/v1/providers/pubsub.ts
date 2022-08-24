@@ -23,9 +23,9 @@
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
 
-/** @hidden */
+/** @internal */
 export const provider = "google.pubsub";
-/** @hidden */
+/** @internal */
 export const service = "pubsub.googleapis.com";
 
 /**
@@ -39,7 +39,7 @@ export function topic(topic: string) {
   return _topicWithOptions(topic, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _topicWithOptions(topic: string, options: DeploymentOptions): TopicBuilder {
   if (topic.indexOf("/") !== -1) {
     throw new Error("Topic name may not have a /");
@@ -56,7 +56,7 @@ export function _topicWithOptions(topic: string, options: DeploymentOptions): To
 /**
  * The Google Cloud Pub/Sub topic builder.
  *
- * Access via [`functions.pubsub.topic()`](providers_pubsub_.html#topic).
+ * Access via `functions.pubsub.topic()`.
  */
 export class TopicBuilder {
   /** @hidden */
@@ -68,7 +68,7 @@ export class TopicBuilder {
    *
    * @param handler - Event handler that runs every time a Cloud Pub/Sub message
    *   is published.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onPublish(
     handler: (message: Message, context: EventContext) => PromiseLike<any> | any
@@ -89,13 +89,13 @@ export class TopicBuilder {
  * Registers a Cloud Function to run at specified times.
  *
  * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
- * @return ScheduleBuilder interface.
+ * @returns ScheduleBuilder interface.
  */
 export function schedule(schedule: string): ScheduleBuilder {
   return _scheduleWithOptions(schedule, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _scheduleWithOptions(
   schedule: string,
   options: DeploymentOptions
@@ -120,7 +120,7 @@ export function _scheduleWithOptions(
  * frequency. For more information, see
  * [Schedule functions](/docs/functions/schedule-functions).
  *
- * Access via [`functions.pubsub.schedule()`](providers_pubsub_.html#schedule).
+ * Access via `functions.pubsub.schedule()`.
  */
 export class ScheduleBuilder {
   /** @hidden */
@@ -142,7 +142,7 @@ export class ScheduleBuilder {
    *
    * @param handler - Handler that fires whenever the associated
    *   scheduler job sends a Pub/Sub message.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
     const cloudFunction = makeCloudFunction({
@@ -195,7 +195,7 @@ export class Message {
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @return A JSON-serializable representation of this object.
+   * @returns A JSON-serializable representation of this object.
    */
   toJSON(): any {
     return {
