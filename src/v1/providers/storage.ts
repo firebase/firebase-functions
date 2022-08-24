@@ -24,9 +24,9 @@ import { firebaseConfig } from "../../common/config";
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-/** @hidden */
+/** @internal */
 export const provider = "google.storage";
-/** @hidden */
+/** @internal */
 export const service = "storage.googleapis.com";
 
 /**
@@ -35,7 +35,7 @@ export const service = "storage.googleapis.com";
  * @param bucket Name of the bucket to which this Cloud Function is
  *   scoped.
  *
- * @return Storage bucket builder interface.
+ * @returns Storage bucket builder interface.
  */
 export function bucket(bucket?: string) {
   return _bucketWithOptions({}, bucket);
@@ -45,13 +45,13 @@ export function bucket(bucket?: string) {
  * Registers a Cloud Function scoped to the default storage bucket for the
  * project.
  *
- * @return Storage object builder interface.
+ * @returns Storage object builder interface.
  */
 export function object() {
   return _objectWithOptions({});
 }
 
-/** @hidden */
+/** @internal */
 export function _bucketWithOptions(options: DeploymentOptions, bucket?: string): BucketBuilder {
   const resourceGetter = () => {
     bucket = bucket || firebaseConfig().storageBucket;
@@ -69,7 +69,7 @@ export function _bucketWithOptions(options: DeploymentOptions, bucket?: string):
   return new BucketBuilder(resourceGetter, options);
 }
 
-/** @hidden */
+/** @internal */
 export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
   return _bucketWithOptions(options).object();
 }
@@ -77,16 +77,16 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
 /**
  * The Google Cloud Storage bucket builder interface.
  *
- * Access via [`functions.storage.bucket()`](providers_storage_.html#bucket).
+ * Access via `functions.storage.bucket()`.
  */
 export class BucketBuilder {
-  /** @hidden */
+  /** @internal */
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
    * Event handler which fires every time a Google Cloud Storage change occurs.
    *
-   * @return Storage object builder interface scoped to the specified storage
+   * @returns Storage object builder interface scoped to the specified storage
    *   bucket.
    */
   object() {
@@ -97,13 +97,13 @@ export class BucketBuilder {
 /**
  * The Google Cloud Storage object builder interface.
  *
- * Access via [`functions.storage.object()`](providers_storage_.html#object).
+ * Access via `functions.storage.object()`.
  */
 export class ObjectBuilder {
-  /** @hidden */
+  /** @internal */
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
-  /** @hidden */
+  /** @internal */
   onChange(): Error {
     throw new Error(
       '"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
@@ -120,7 +120,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   archival occurs.
    *
-   * @return A Cloud Function which you can export and deploy.
+   * @returns A Cloud Function which you can export and deploy.
    */
   onArchive(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
@@ -140,7 +140,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   deletion occurs.
    *
-   * @return A Cloud Function which you can export and deploy.
+   * @returns A Cloud Function which you can export and deploy.
    */
   onDelete(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
@@ -159,7 +159,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   object creation occurs.
    *
-   * @return A Cloud Function which you can export and deploy.
+   * @returns A Cloud Function which you can export and deploy.
    */
   onFinalize(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
@@ -174,7 +174,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   metadata update occurs.
    *
-   * @return A Cloud Function which you can export and deploy.
+   * @returns A Cloud Function which you can export and deploy.
    */
   onMetadataUpdate(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any

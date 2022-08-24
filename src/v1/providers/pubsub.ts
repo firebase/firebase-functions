@@ -56,7 +56,7 @@ export function _topicWithOptions(topic: string, options: DeploymentOptions): To
 /**
  * The Google Cloud Pub/Sub topic builder.
  *
- * Access via [`functions.pubsub.topic()`](providers_pubsub_.html#topic).
+ * Access via `functions.pubsub.topic()`.
  */
 export class TopicBuilder {
   /** @hidden */
@@ -120,7 +120,7 @@ export function _scheduleWithOptions(
  * frequency. For more information, see
  * [Schedule functions](/docs/functions/schedule-functions).
  *
- * Access via [`functions.pubsub.schedule()`](providers_pubsub_.html#schedule).
+ * Access via `functions.pubsub.schedule()`.
  */
 export class ScheduleBuilder {
   /** @hidden */
