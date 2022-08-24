@@ -172,9 +172,9 @@ export class ResultStorage {
  * - `TEST_SAME_AS_APP`: The test package and app package are the same.
  *
  * - `NO_INSTRUMENTATION`: The test apk does not declare an instrumentation.
- * 
+ *
  * - `NO_SIGNATURE`: The input app apk does not have a signature.
- * 
+ *
  * - `INSTRUMENTATION_ORCHESTRATOR_INCOMPATIBLE`: The test runner class specified by
  * user or in the test APK`s manifest file is not compatible with Android Test Orchestrator.
  *
