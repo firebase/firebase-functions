@@ -37,7 +37,7 @@ const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
  */
 export interface Event {
   /**
-   * Event context.
+   * Wire format for an event context.
    */
   context: {
     eventId: string;
@@ -54,7 +54,7 @@ export interface Event {
     };
   };
   /**
-   * Event data payload.
+   * Event data over wire.
    */
   data: any;
 }
