@@ -88,16 +88,22 @@ export interface Schedule {
   retryConfig?: ScheduleRetryConfig;
 }
 
+/**
+ * Configuration option for failure policy on background functions. Must be an empty object.
+ */
 export interface FailurePolicy {
   retry: Record<string, never>;
 }
 
 export const MAX_NUMBER_USER_LABELS = 58;
 
+/**
+ * Configuration options for a function that applicable at runtime.
+ */
 export interface RuntimeOptions {
   /**
    * Which platform should host the backend. Valid options are "gcfv1"
-   * @hidden
+   * @internal
    */
   platform?: "gcfv1";
 
@@ -171,6 +177,9 @@ export interface RuntimeOptions {
   enforceAppCheck?: boolean;
 }
 
+/**
+ * Configuration options for a function that applies during function deployment.
+ */
 export interface DeploymentOptions extends RuntimeOptions {
   regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
   schedule?: Schedule;
