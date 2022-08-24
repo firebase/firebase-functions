@@ -48,14 +48,13 @@ export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
 
 export { HttpsError };
 
-/** @hidden */
+/** @internal */
 export const provider = "google.firebase.auth";
-/** @hidden */
+/** @internal */
 export const service = "firebaseauth.googleapis.com";
 
 /**
- * Resource level options
- * @public
+ * Options for Auth blocking function.
  */
 export interface UserOptions {
   /** Options to set configuration at the resource level for blocking functions. */
@@ -81,7 +80,7 @@ export function user(userOptions?: UserOptions): UserBuilder {
   return _userWithOptions({}, userOptions || {});
 }
 
-/** @hidden */
+/** @internal */
 export function _userWithOptions(options: DeploymentOptions, userOptions: UserOptions) {
   return new UserBuilder(
     () => {
@@ -104,7 +103,6 @@ export class UserBuilder {
     return userRecordConstructor(raw.data);
   }
 
-  /** @hidden */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions,
@@ -149,7 +147,6 @@ export class UserBuilder {
     return this.beforeOperation(handler, "beforeSignIn");
   }
 
-  /** @hidden */
   private onOperation(
     handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any,
     eventType: string
@@ -167,7 +164,6 @@ export class UserBuilder {
     });
   }
 
-  /** @hidden */
   private beforeOperation(
     handler: (
       user: AuthUserRecord,
