@@ -29,7 +29,7 @@ import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
 
 export { Change } from "../common/change";
 
-/* @internal */
+/** @internal */
 const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 
 /**
