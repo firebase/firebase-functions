@@ -528,7 +528,7 @@ export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
  *
  * @param {Request} req - Request sent to the Callable function.
  * @param {CallableContext} ctx - Context to be sent to callable function handler.
- * @return {CallableTokenStatus} Status of the token verifications.
+ * @returns {CallableTokenStatus} Status of the token verifications.
  */
 /** @internal */
 async function checkTokens(req: Request, ctx: CallableContext): Promise<CallableTokenStatus> {

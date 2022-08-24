@@ -34,7 +34,7 @@ export const service = "app-measurement.com";
  * @param analyticsEventType Name of the analytics event type to which
  *   this Cloud Function is scoped.
  *
- * @return Analytics event builder interface.
+ * @returns Analytics event builder interface.
  */
 export function event(analyticsEventType: string) {
   return _eventWithOptions(analyticsEventType, {});
@@ -65,7 +65,7 @@ export class AnalyticsEventBuilder {
    * @param handler Event handler that fires every time a Firebase Analytics event
    *   occurs.
    *
-   * @return A function that you can export and deploy.
+   * @returns A function that you can export and deploy.
    */
   onLog(
     handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any

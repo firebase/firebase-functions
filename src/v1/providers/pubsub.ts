@@ -68,7 +68,7 @@ export class TopicBuilder {
    *
    * @param handler - Event handler that runs every time a Cloud Pub/Sub message
    *   is published.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onPublish(
     handler: (message: Message, context: EventContext) => PromiseLike<any> | any
@@ -89,7 +89,7 @@ export class TopicBuilder {
  * Registers a Cloud Function to run at specified times.
  *
  * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
- * @return ScheduleBuilder interface.
+ * @returns ScheduleBuilder interface.
  */
 export function schedule(schedule: string): ScheduleBuilder {
   return _scheduleWithOptions(schedule, {});
@@ -142,7 +142,7 @@ export class ScheduleBuilder {
    *
    * @param handler - Handler that fires whenever the associated
    *   scheduler job sends a Pub/Sub message.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
     const cloudFunction = makeCloudFunction({
@@ -195,7 +195,7 @@ export class Message {
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @return A JSON-serializable representation of this object.
+   * @returns A JSON-serializable representation of this object.
    */
   toJSON(): any {
     return {
