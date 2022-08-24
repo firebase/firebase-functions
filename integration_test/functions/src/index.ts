@@ -101,6 +101,29 @@ async function callScheduleTrigger(
   return;
 }
 
+async function callV2ScheduleTrigger(
+  functionName: string,
+  region: string,
+  accessToken: string
+) {
+  const response = await fetch(
+    `https://cloudscheduler.googleapis.com/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`Failed request with status ${response.status}!`);
+  }
+  const data = await response.text();
+  functions.logger.log(`Successfully scheduled v2 function ${functionName}`, data);
+  return;
+}
+
 async function updateRemoteConfig(
   testId: string,
   accessToken: string
@@ -171,6 +194,8 @@ function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
   return [
     // Invoke a callable HTTPS trigger.
     callV2HttpsTrigger('v2-callabletests', { foo: 'bar', testId }, accessToken),
+    // Invoke a scheduled trigger.
+    callV2ScheduleTrigger('v2-scheduler', 'us-central1', accessToken),
   ];
 }
 
