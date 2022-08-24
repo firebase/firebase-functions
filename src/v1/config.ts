@@ -25,7 +25,6 @@ import * as path from "path";
 
 export { firebaseConfig } from "../common/config";
 
-/** @internal */
 let singleton: Record<string, any>;
 
 /** @internal */
