@@ -31,9 +31,12 @@ import * as logger from "../../logger";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-export const provider = "google.firestore";
-export const service = "firestore.googleapis.com";
-export const defaultDatabase = "(default)";
+/** @internal */
+export const PROVIDER = "google.firestore";
+/** @internal */
+export const SERVICE = "firestore.googleapis.com";
+/** @internal */
+export const DEFAULT_DATABASE = "(default)";
 let firestoreInstance: any;
 export type DocumentSnapshot = firestore.DocumentSnapshot;
 export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
@@ -59,19 +62,22 @@ export function database(database: string) {
   return _databaseWithOptions(database, {});
 }
 
+/** @internal */
 export function _databaseWithOptions(
-  database: string = defaultDatabase,
+  database: string = DEFAULT_DATABASE,
   options: DeploymentOptions
 ) {
   return new DatabaseBuilder(database, options);
 }
 
+/** @internal */
 export function _namespaceWithOptions(namespace: string, options: DeploymentOptions) {
-  return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
+  return _databaseWithOptions(DEFAULT_DATABASE, options).namespace(namespace);
 }
 
+/** @internal */
 export function _documentWithOptions<Path extends string>(path: Path, options: DeploymentOptions) {
-  return _databaseWithOptions(defaultDatabase, options).document(path);
+  return _databaseWithOptions(DEFAULT_DATABASE, options).document(path);
 }
 
 export class DatabaseBuilder {
@@ -214,9 +220,9 @@ export class DocumentBuilder<Path extends string> {
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
-      provider,
+      provider: PROVIDER,
       eventType,
-      service,
+      service: SERVICE,
       triggerResource: this.triggerResource,
       legacyEventType: `providers/cloud.firestore/eventTypes/${eventType}`,
       dataConstructor,
