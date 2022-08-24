@@ -4,7 +4,7 @@ import { REGION } from '../region';
 import { success, TestSuite } from '../testing';
 
 export const schedule: any = onSchedule(
-  { 
+  {
     schedule: 'every 10 hours',
     region: REGION,
   },

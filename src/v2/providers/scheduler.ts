@@ -67,7 +67,7 @@ export interface ScheduledEvent {
   /**
    * The Cloud Scheduler job name.
    * Populated via the X-CloudScheduler-JobName header.
-   * 
+   *
    * If invoked manually, this field is undefined.
    */
   jobName?: string;
@@ -76,7 +76,7 @@ export interface ScheduledEvent {
    * For Cloud Scheduler jobs specified in the unix-cron format,
    * this is the job schedule time in RFC3339 UTC "Zulu" format.
    * Populated via the X-CloudScheduler-ScheduleTime header.
-   * 
+   *
    * If the schedule is manually triggered, this field will be
    * the function execution time.
    */
@@ -156,7 +156,8 @@ export function onSchedule(
   ): Promise<any> => {
     const event: ScheduledEvent = {
       jobName: req.header('X-CloudScheduler-JobName') || undefined,
-      scheduleTime: req.header('X-CloudScheduler-ScheduleTime') || new Date().toISOString(),
+      scheduleTime:
+        req.header('X-CloudScheduler-ScheduleTime') || new Date().toISOString(),
     };
     try {
       await handler(event);
