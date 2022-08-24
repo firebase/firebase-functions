@@ -23,9 +23,9 @@
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
 
-/** @hidden */
+/** @internal */
 export const provider = "google.pubsub";
-/** @hidden */
+/** @internal */
 export const service = "pubsub.googleapis.com";
 
 /**
@@ -39,7 +39,7 @@ export function topic(topic: string) {
   return _topicWithOptions(topic, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _topicWithOptions(topic: string, options: DeploymentOptions): TopicBuilder {
   if (topic.indexOf("/") !== -1) {
     throw new Error("Topic name may not have a /");
@@ -95,7 +95,7 @@ export function schedule(schedule: string): ScheduleBuilder {
   return _scheduleWithOptions(schedule, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _scheduleWithOptions(
   schedule: string,
   options: DeploymentOptions
