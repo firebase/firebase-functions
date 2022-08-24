@@ -123,7 +123,8 @@ export interface Schedule {
    * ```
    * // Crontab schedule
    * schedule: "0 9 * * 1"` // Every Monday at 09:00 AM
-   * // Englihsh-like schedule
+   *
+   * // English-like schedule
    * schedule: "every 5 minutes"
    * ```
    */
