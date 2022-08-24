@@ -121,8 +121,7 @@ export interface CallableRequest<T = any> {
 
 /**
  * The set of Firebase Functions status codes. The codes are the same at the
- * ones exposed by gRPC here:
- * https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
+ * ones exposed by {@link https://github.com/grpc/grpc/blob/master/doc/statuscodes.md | gRPC}.
  *
  * @remarks
  * Possible values:
