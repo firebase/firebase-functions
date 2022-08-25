@@ -3,3 +3,4 @@ import { REGION } from '../region';
 setGlobalOptions({ region: REGION });
 
 export * from './https-tests';
+export * from './scheduled-tests';

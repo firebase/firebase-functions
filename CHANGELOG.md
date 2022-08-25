@@ -1,1 +1,2 @@
 - Fixes a bug that disallowed setting customClaims and/or sessionClaims in blocking functions (#1199).
+- Add v2 Schedule Triggers (#1177).
