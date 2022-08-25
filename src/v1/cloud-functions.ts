@@ -194,9 +194,19 @@ export interface EventContext<Params = Record<string, string>> {
  * resource that triggered the function - such as a storage bucket.
  */
 export interface Resource {
+  /** The name of the service that this resource belongs to. */
   service: string;
+  /**
+   * The stable identifier (name) of a resource on the service.
+   * A resource can be logically identified as "//{resource.service}/{resource.name}"
+   */
   name: string;
+  /**
+   * The type of the resource. The syntax is platform-specific because different platforms define their resources differently.
+   * For Google APIs, the type format must be "{service}/{kind}"
+   */
   type?: string;
+  /** Map of Resource's labels. */
   labels?: { [tag: string]: string };
 }
 
