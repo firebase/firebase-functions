@@ -22,7 +22,6 @@
 
 import { expect } from 'chai';
 
-// import { ParamExpression } from '../../../src/v2';
 import {} from '../../../src/v2/expressions';
 import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
@@ -113,47 +112,6 @@ describe('onTaskDispatched', () => {
       },
     });
   });
-  /*
-  it('should accept Expression<number> for the values of retryConfig and rateLimits', () => {
-    const result = onTaskDispatched(
-      {
-        ...FULL_OPTIONS,
-        retryConfig: {
-          maxAttempts: new ParamExpression(new ParamRef('MAXATTEMPTS')),
-          maxRetrySeconds: new ParamExpression(new ParamRef('MAXRETRYSECONDS')),
-          maxDoublings: new ParamExpression(new ParamRef('MAXDOUBLINGS')),
-          minBackoffSeconds: new ParamExpression(new ParamRef('MINBACKOFFSECONDS')),
-          maxBackoffSeconds: new ParamExpression(new ParamRef('MAXBACKOFFSECONDS')),
-        },
-        rateLimits: {
-          maxConcurrentDispatches: new ParamExpression(new ParamRef('MAXCONCURRENTDISPATCHES')),
-          maxDispatchesPerSecond: new ParamExpression(new ParamRef('MAXDISPATCHESPERSECOND')),
-        },
-        invoker: 'private',
-      },
-      () => {}
-    );
-
-    expect(result.__endpoint).to.deep.equal({
-      ...FULL_ENDPOINT,
-      platform: 'gcfv2',
-      taskQueueTrigger: {
-        retryConfig: {
-          maxAttempts: new ParamExpression(new ParamRef('MAXATTEMPTS')),
-          maxRetrySeconds: new ParamExpression(new ParamRef('MAXRETRYSECONDS')),
-          maxDoublings: new ParamExpression(new ParamRef('MAXDOUBLINGS')),
-          minBackoffSeconds: new ParamExpression(new ParamRef('MINBACKOFFSECONDS')),
-          maxBackoffSeconds: new ParamExpression(new ParamRef('MAXBACKOFFSECONDS')),
-        },
-        rateLimits: {
-          maxConcurrentDispatches: new ParamExpression(new ParamRef('MAXCONCURRENTDISPATCHES')),
-          maxDispatchesPerSecond: new ParamExpression(new ParamRef('MAXDISPATCHESPERSECOND')),
-        },
-        invoker: ['private'],
-      },
-    });
-  });
-  */
 
   it('should merge options and globalOptions', () => {
     options.setGlobalOptions({

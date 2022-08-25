@@ -35,11 +35,10 @@ type ParamValueType =
   | 'float'
   | 'secret';
 
-type HasAtMostOneInput<T> =
-  | {}
-  | { textInput: TextInput<T> }
-  | { selectInput: SelectInput<T> }
-  | { resourceInput: ResourceInput };
+type ParamInput<T> =
+  | { text: TextInput<T> }
+  | { select: SelectInput<T> }
+  | { resource: ResourceInput };
 
 /**
  * Specifies that a Param's value should be determined by prompting the user
@@ -82,7 +81,8 @@ export type ParamSpec<T = unknown> = {
   label?: string;
   description?: string;
   type: ParamValueType;
-} & HasAtMostOneInput<T>;
+  input?: ParamInput<T>;
+};
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 

@@ -78,7 +78,7 @@ export interface ManifestEndpoint {
     eventType: string;
     options?: Record<string, unknown>;
   };
-};
+}
 
 export interface ManifestRequiredAPI {
   api: string;

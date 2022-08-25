@@ -34,13 +34,12 @@ function quoteIfString<T extends string | number | boolean | string[]>(
 export class TernaryExpression<
   T extends string | number | boolean | string[]
 > extends Expression<T> {
-  test: Expression<boolean>;
-  ifTrue: T;
-  ifFalse: T;
-
-  constructor(test: Expression<boolean>, ifTrue: T, ifFalse: T) {
+  constructor(
+    private readonly test: Expression<boolean>,
+    private readonly ifTrue: T,
+    private readonly ifFalse: T
+  ) {
     super();
-    this.test = test;
     this.ifTrue = ifTrue;
     this.ifFalse = ifFalse;
   }
@@ -87,6 +86,8 @@ export class CompareExpression<
         return left < this.rhs;
       case '<=':
         return left <= this.rhs;
+      default:
+        throw new Error('Unknown comparator ' + this.cmp);
     }
   }
 

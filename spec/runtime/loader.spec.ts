@@ -322,7 +322,7 @@ describe('loadStack', () => {
             {
               name: 'FOO',
               type: 'string',
-              textInput: { validationRegex: 'w+' },
+              input: { text: { validationRegex: 'w+' } },
             },
             {
               name: 'BAR',
@@ -333,19 +333,21 @@ describe('loadStack', () => {
             {
               name: 'BAZ',
               type: 'string',
-              selectInput: {
-                select: [{ value: 'a' }, { value: 'b' }],
+              input: {
+                select: { select: [{ value: 'a' }, { value: 'b' }] },
               },
             },
             { name: 'AN_INT', type: 'int', default: 22 },
             {
               name: 'ANOTHER_INT',
               type: 'int',
-              selectInput: {
-                select: [
-                  { label: 'a', value: -2 },
-                  { label: 'b', value: 2 },
-                ],
+              input: {
+                select: {
+                  select: [
+                    { label: 'a', value: -2 },
+                    { label: 'b', value: 2 },
+                  ],
+                },
               },
             },
             { name: 'SUPER_SECRET_FLAG', type: 'secret' },
