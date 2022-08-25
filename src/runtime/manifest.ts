@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Expression } from '../v2';
+import { Expression } from '../v2/params';
 import { ParamSpec } from '../v2/params/types';
 
 /**

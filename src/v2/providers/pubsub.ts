@@ -29,7 +29,7 @@ import { copyIfPresent } from '../../common/encoding';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
-import { Expression } from '../expressions';
+import { Expression } from '../params';
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.

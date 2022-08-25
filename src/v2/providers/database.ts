@@ -29,7 +29,7 @@ import { PathPattern } from '../../utilities/path-pattern';
 import { applyChange } from '../../utils';
 import { CloudEvent, CloudFunction } from '../core';
 import * as options from '../options';
-import { Expression } from '../expressions';
+import { Expression } from '../params';
 
 export { DataSnapshot };
 

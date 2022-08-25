@@ -35,7 +35,7 @@ import {
   wrapHandler,
 } from '../../common/providers/identity';
 import * as options from '../options';
-import { Expression } from '../expressions';
+import { Expression } from '../params';
 
 export { HttpsError };
 

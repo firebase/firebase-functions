@@ -1,4 +1,4 @@
-import { Expression } from './v2';
+import { Expression } from './v2/params';
 
 /**
  * List of all regions supported by Cloud Functions.

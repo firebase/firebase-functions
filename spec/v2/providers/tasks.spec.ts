@@ -22,7 +22,6 @@
 
 import { expect } from 'chai';
 
-import {} from '../../../src/v2/expressions';
 import * as options from '../../../src/v2/options';
 import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
 import { MockRequest } from '../../fixtures/mockrequest';

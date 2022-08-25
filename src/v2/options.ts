@@ -34,10 +34,9 @@ import {
 import * as logger from '../logger';
 import { ManifestEndpoint } from '../runtime/manifest';
 import { TriggerAnnotation } from './core';
-import { declaredParams } from './params';
+import { declaredParams, Expression } from './params';
 import { ParamSpec } from './params/types';
 import { HttpsOptions } from './providers/https';
-import { Expression } from './expressions';
 
 /**
  * List of all regions supported by Cloud Functions v2

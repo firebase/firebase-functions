@@ -24,7 +24,7 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 
 import * as logger from '../../logger';
-import { Expression } from '../../v2';
+import { Expression } from '../../v2/params';
 import * as https from './https';
 
 /** How a task should be retried in the event of a non-2xx return. */

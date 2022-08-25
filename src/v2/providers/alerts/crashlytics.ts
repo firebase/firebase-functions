@@ -28,7 +28,7 @@
 import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
-import { Expression } from '../../expressions';
+import { Expression } from '../../params';
 
 /** Generic Crashlytics issue interface */
 export interface Issue {

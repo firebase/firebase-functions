@@ -34,9 +34,10 @@ import {
   ParamOptions,
   StringParam,
   SecretParam,
+  Expression,
 } from './types';
 
-export { ParamOptions };
+export { ParamOptions, Expression };
 
 type SecretOrExpr = Param<any> | SecretParam;
 export const declaredParams: SecretOrExpr[] = [];
@@ -64,7 +65,7 @@ export function clearParams() {
 }
 
 /**
- * Declare a secret param, that will persist values only in Cloud Secret Manager.
+ * Declares a secret param, that will persist values only in Cloud Secret Manager.
  * Secrets are stored interally as bytestrings. Use ParamOptions.`as` to provide type
  * hinting during parameter resolution.
  *
