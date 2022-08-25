@@ -35,7 +35,7 @@ import {
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  Request,
+  Request
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
@@ -220,8 +220,13 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if (opts.cors !== false && (isDebugFeatureEnabled('enableCors') || 'cors' in opts)) {
-    const origin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
+  if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
+    let origin = opts.cors;
+    if (isDebugFeatureEnabled('enableCors')) {
+      // Respect `cors: false` to turn off cors even if debug feature is enabled.
+      origin = opts.cors === false ? false : true 
+    }
+
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
