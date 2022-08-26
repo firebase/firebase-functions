@@ -743,7 +743,7 @@ describe("identity", () => {
       expect(identity.getUpdateMask()).to.eq("");
     });
 
-    it('should return the right claims on a response', () => {
+    it("should return the right claims on a response", () => {
       const response = {
         displayName: "john",
         disabled: false,
@@ -758,7 +758,7 @@ describe("identity", () => {
       };
 
       expect(identity.getUpdateMask(response)).to.eq(
-        'displayName,disabled,emailVerified,photoURL,customClaims,sessionClaims'
+        "displayName,disabled,emailVerified,photoURL,customClaims,sessionClaims"
       );
     });
   });

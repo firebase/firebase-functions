@@ -91,17 +91,13 @@ async function callScheduleTrigger(functionName: string, region: string, accessT
   return;
 }
 
-async function callV2ScheduleTrigger(
-  functionName: string,
-  region: string,
-  accessToken: string
-) {
+async function callV2ScheduleTrigger(functionName: string, region: string, accessToken: string) {
   const response = await fetch(
     `https://cloudscheduler.googleapis.com/v1/projects/${firebaseConfig.projectId}/locations/us-central1/jobs/firebase-schedule-${functionName}-${region}:run`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
     }
@@ -110,10 +106,7 @@ async function callV2ScheduleTrigger(
     throw new Error(`Failed request with status ${response.status}!`);
   }
   const data = await response.text();
-  functions.logger.log(
-    `Successfully scheduled v2 function ${functionName}`,
-    data
-  );
+  functions.logger.log(`Successfully scheduled v2 function ${functionName}`, data);
   return;
 }
 
@@ -179,7 +172,7 @@ function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
     // TODO: Temporarily disable - doesn't work unless running on projects w/ permission to create public functions.
     // callV2HttpsTrigger("v2-callabletests", { foo: "bar", testId }, accessToken),
     // Invoke a scheduled trigger.
-    callV2ScheduleTrigger('v2-schedule', 'us-central1', accessToken),
+    callV2ScheduleTrigger("v2-schedule", "us-central1", accessToken),
   ];
 }
 

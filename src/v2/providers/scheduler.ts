@@ -20,13 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
-import { copyIfPresent } from '../../common/encoding';
-import { timezone } from '../../common/timezone';
-import * as logger from '../../logger';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../../runtime/manifest';
-import * as options from '../options';
-import { HttpsFunction } from './https';
+import * as express from "express";
+import { copyIfPresent } from "../../common/encoding";
+import { timezone } from "../../common/timezone";
+import * as logger from "../../logger";
+import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import * as options from "../options";
+import { HttpsFunction } from "./https";
 
 /** @hidden */
 interface ScheduleArgs {
@@ -42,7 +42,7 @@ interface ScheduleArgs {
 
 /** @internal */
 export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
-  if (typeof args === 'string') {
+  if (typeof args === "string") {
     return {
       schedule: args,
       opts: {} as options.GlobalOptions,
@@ -150,14 +150,10 @@ export function onSchedule(
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
-  const func: any = async (
-    req: express.Request,
-    res: express.Response
-  ): Promise<any> => {
+  const func: any = async (req: express.Request, res: express.Response): Promise<any> => {
     const event: ScheduledEvent = {
-      jobName: req.header('X-CloudScheduler-JobName') || undefined,
-      scheduleTime:
-        req.header('X-CloudScheduler-ScheduleTime') || new Date().toISOString(),
+      jobName: req.header("X-CloudScheduler-JobName") || undefined,
+      scheduleTime: req.header("X-CloudScheduler-ScheduleTime") || new Date().toISOString(),
     };
     try {
       await handler(event);
@@ -169,13 +165,11 @@ export function onSchedule(
   };
   func.run = handler;
 
-  const baseOptsEndpoint = options.optionsToEndpoint(
-    options.getGlobalOptions()
-  );
+  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
 
   const ep: ManifestEndpoint = {
-    platform: 'gcfv2',
+    platform: "gcfv2",
     ...baseOptsEndpoint,
     ...specificOptsEndpoint,
     labels: {
@@ -187,22 +181,22 @@ export function onSchedule(
       retryConfig: {},
     },
   };
-  copyIfPresent(ep.scheduleTrigger, separatedOpts, 'timeZone');
+  copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
     separatedOpts,
-    'retryCount',
-    'maxRetrySeconds',
-    'minBackoffSeconds',
-    'maxBackoffSeconds',
-    'maxDoublings'
+    "retryCount",
+    "maxRetrySeconds",
+    "minBackoffSeconds",
+    "maxBackoffSeconds",
+    "maxDoublings"
   );
   func.__endpoint = ep;
 
   func.__requiredAPIs = [
     {
-      api: 'cloudscheduler.googleapis.com',
-      reason: 'Needed for scheduled functions.',
+      api: "cloudscheduler.googleapis.com",
+      reason: "Needed for scheduled functions.",
     },
   ];
 
