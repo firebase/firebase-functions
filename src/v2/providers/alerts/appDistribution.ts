@@ -60,21 +60,14 @@ export interface InAppFeedbackPayload {
   /** Email of the tester */
   testerEmail: string;
   /**
-   * Display version of the release. For an Android release, the display version
-   * is the `versionName`. For an iOS release, the display version is the
-   * `CFBundleShortVersionString`.
+   * Version consisting of `versionName` and `versionCode` for Android and
+   * `CFBundleShortVersionString` and `CFBundleVersion` for iOS.
    */
-  displayVersion: string;
-  /**
-   * Build version of the release. For an Android release, the build version
-   * is the `versionCode`. For an iOS release, the build version is the
-   * `CFBundleVersion`.
-   */
-  buildVersion: string;
+  appVersion: string;
   /** Text entered by the tester */
   text: string;
-  /** URIs to download screenshot(s). These URIs are fast expiring. */
-  screenshotUris: string[];
+  /** URI to download screenshot. This URI is fast expiring. */
+  screenshotUri?: string;
 }
 
 /**
@@ -311,10 +304,7 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as AppDistributionEvent<InAppFeedbackPayload>;
-    // Consolidate the case of empty array and null array
-    event.data.payload.screenshotUris = event.data.payload.screenshotUris || [];
-    return handler(event);
+    return handler(raw as AppDistributionEvent<InAppFeedbackPayload>);
   };
 
   func.run = handler;

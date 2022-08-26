@@ -27,8 +27,8 @@
 
 import {
   AuthBlockingEvent,
-  AuthUserRecord,
   AuthBlockingEventType,
+  AuthUserRecord,
   BeforeCreateResponse,
   BeforeSignInResponse,
   HttpsError,

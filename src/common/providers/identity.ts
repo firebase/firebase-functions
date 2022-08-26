@@ -773,10 +773,10 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
   }
   const updateMask: string[] = [];
   for (const key in authResponse) {
-    if (key === "customClaims" || key === "sessionClaims") {
-      continue;
-    }
-    if (authResponse.hasOwnProperty(key) && typeof authResponse[key] !== "undefined") {
+    if (
+      authResponse.hasOwnProperty(key) &&
+      typeof authResponse[key] !== 'undefined'
+    ) {
       updateMask.push(key);
     }
   }
