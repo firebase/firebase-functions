@@ -66,7 +66,7 @@ export interface InAppFeedbackPayload {
   appVersion: string;
   /** Text entered by the tester */
   text: string;
-  /** URI to download screenshot. This URIs are is fast expiring. */
+  /** URI to download screenshot. This URI is fast expiring. */
   screenshotUri?: string;
 }
 
