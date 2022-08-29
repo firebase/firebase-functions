@@ -73,9 +73,8 @@ export function clearParams() {
  * @param options Configuration options for the param.
  * @returns A Param with a `string` return type for `.value`.
  */
-export function defineSecretParam(
+export function defineSecret(
   name: string
-  //options: ParamOptions<string> = {}
 ): SecretParam {
   const param = new SecretParam(name);
   registerParam(param);
