@@ -57,7 +57,7 @@ export interface ManifestEndpoint {
     eventFilterPathPatterns?: Record<string, string | Expression<string>>;
     channel?: string;
     eventType: string;
-    retry: boolean | Expression<string>;
+    retry: boolean | Expression<boolean>;
     region?: string;
     serviceAccountEmail?: string;
   };
