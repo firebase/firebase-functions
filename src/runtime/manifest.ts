@@ -67,9 +67,9 @@ export interface ManifestEndpoint {
     timezone?: string | Expression<string>;
     retryConfig?: {
       retryCount?: number | Expression<number>;
-      maxRetryDuration?: string | Expression<string>;
-      minBackoffDuration?: string | Expression<string>;
-      maxBackoffDuration?: string | Expression<string>;
+      maxRetrySeconds?: string | Expression<string>;
+      minBackoffSeconds?: string | Expression<string>;
+      maxBackoffSeconds?: string | Expression<string>;
       maxDoublings?: number | Expression<number>;
     };
   };

@@ -29,6 +29,7 @@ import { BlockingFunction } from '../../cloud-functions';
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
+  AuthUserRecord,
   BeforeCreateResponse,
   BeforeSignInResponse,
   HttpsError,
@@ -37,7 +38,7 @@ import {
 import * as options from '../options';
 import { Expression } from '../params';
 
-export { HttpsError };
+export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
 /** @hidden Internally used when parsing the options. */
 interface InternalOptions {

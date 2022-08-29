@@ -66,7 +66,8 @@
     "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
     "./v2/eventarc": "./lib/v2/providers/eventarc.js",
     "./v2/identity": "./lib/v2/providers/identity.js",
-    "./v2/database": "./lib/v2/providers/database.js"
+    "./v2/database": "./lib/v2/providers/database.js",
+    "./v2/scheduler": "./lib/v2/providers/scheduler.js"
   },
   "typesVersions": {
     "*": {
@@ -153,6 +154,9 @@
       ],
       "v2/tasks": [
         "lib/v2/providers/tasks"
+      ],
+      "v2/scheduler": [
+        "lib/v2/providers/scheduler"
       ]
     }
   },
@@ -178,7 +182,8 @@
     "lint": "tslint --config tslint.json --project tsconfig.json ",
     "lint:fix": "tslint --config tslint.json --fix --project tsconfig.json",
     "test": "mocha --file ./mocha/setup.ts \"spec/**/*.spec.ts\"",
-    "test:bin": "./scripts/bin-test/run.sh"
+    "test:bin": "./scripts/bin-test/run.sh",
+    "test:postmerge": "./integration_test/run_tests.sh"
   },
   "dependencies": {
     "@types/cors": "^2.8.5",

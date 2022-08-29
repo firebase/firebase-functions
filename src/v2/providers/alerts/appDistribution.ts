@@ -54,26 +54,21 @@ export interface InAppFeedbackPayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload';
   /** Resource name. Format: `projects/{project_number}/apps/{app_id}/releases/{release_id}/feedbackReports/{feedback_id}` */
   feedbackReport: string;
+  /** Deep link back to the Firebase console. */
+  feedbackConsoleUri: string;
   /** Name of the tester */
   testerName?: string;
   /** Email of the tester */
   testerEmail: string;
   /**
-   * Display version of the release. For an Android release, the display version
-   * is the `versionName`. For an iOS release, the display version is the
-   * `CFBundleShortVersionString`.
+   * Version consisting of `versionName` and `versionCode` for Android and
+   * `CFBundleShortVersionString` and `CFBundleVersion` for iOS.
    */
-  displayVersion: string;
-  /**
-   * Build version of the release. For an Android release, the build version
-   * is the `versionCode`. For an iOS release, the build version is the
-   * `CFBundleVersion`.
-   */
-  buildVersion: string;
+  appVersion: string;
   /** Text entered by the tester */
   text: string;
-  /** URIs to download screenshot(s) */
-  screenshotUris?: string[];
+  /** URI to download screenshot. This URI is fast expiring. */
+  screenshotUri?: string;
 }
 
 /**
