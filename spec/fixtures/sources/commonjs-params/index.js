@@ -5,12 +5,12 @@ const params = require("../../../../src/v2/params");
 params.defineString("BORING");
 params.defineString("FOO", {input: {text: {validationRegex:"\w+"}}});
 params.defineString("BAR", {default: "{{ params.FOO }}", label: "asdf"});
-params.defineString("BAZ", {input: {select: {select: [{value: "a"}, {value: "b"}]}}});
+params.defineString("BAZ", {input: {select: {options: [{value: "a"}, {value: "b"}]}}});
 
 params.defineInt("AN_INT", {default: 22});
-params.defineInt("ANOTHER_INT", {input: {select: {select:[{label: "a", value: -2}, {"label": "b", value: 2}]}}});
+params.defineInt("ANOTHER_INT", {input: {select: {options:[{label: "a", value: -2}, {"label": "b", value: 2}]}}});
 
-params.defineSecretParam("SUPER_SECRET_FLAG")
+params.defineSecret("SUPER_SECRET_FLAG")
 
 exports.v1http = functions.https.onRequest((req, resp) => {
     resp.status(200).send("PASS");

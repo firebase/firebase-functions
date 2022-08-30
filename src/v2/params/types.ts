@@ -163,7 +163,7 @@ export interface ResourceInput {
  * from a list of pre-canned options interactively at deploy-time.
  */
 export interface SelectInput<T = unknown> {
-  select: Array<SelectOptions<T>>;
+  options: Array<SelectOptions<T>>;
 }
 
 export interface SelectOptions<T = unknown> {

@@ -64,7 +64,7 @@ export interface ManifestEndpoint {
 
   scheduleTrigger?: {
     schedule?: string | Expression<string>;
-    timezone?: string | Expression<string>;
+    timeZone?: string | Expression<string>;
     retryConfig?: {
       retryCount?: number | Expression<number>;
       maxRetrySeconds?: string | Expression<string>;

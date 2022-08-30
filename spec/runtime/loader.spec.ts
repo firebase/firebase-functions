@@ -334,7 +334,7 @@ describe('loadStack', () => {
               name: 'BAZ',
               type: 'string',
               input: {
-                select: { select: [{ value: 'a' }, { value: 'b' }] },
+                select: { options: [{ value: 'a' }, { value: 'b' }] },
               },
             },
             { name: 'AN_INT', type: 'int', default: 22 },
@@ -343,7 +343,7 @@ describe('loadStack', () => {
               type: 'int',
               input: {
                 select: {
-                  select: [
+                  options: [
                     { label: 'a', value: -2 },
                     { label: 'b', value: 2 },
                   ],

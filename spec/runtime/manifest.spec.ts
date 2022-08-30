@@ -31,7 +31,7 @@ describe('stackToWire', () => {
             schedule: stringParam
               .equals('America/Mexico_City')
               .then('mexico', 'usa'),
-            timezone: stringParam,
+            timeZone: stringParam,
           },
         },
       },
@@ -55,7 +55,7 @@ describe('stackToWire', () => {
           scheduleTrigger: {
             schedule:
               '{{ params.bar == "America/Mexico_City" ? "mexico" : "usa" }}',
-            timezone: '{{ params.bar }}',
+            timeZone: '{{ params.bar }}',
           },
         },
       },
