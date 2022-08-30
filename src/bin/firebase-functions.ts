@@ -24,6 +24,7 @@
 
 import * as express from 'express';
 import { loadStack } from '../runtime/loader';
+import { stackToWire } from '../runtime/manifest';
 
 function printUsageAndExit() {
   console.error(
@@ -63,7 +64,7 @@ if (process.env.FUNCTIONS_CONTROL_API === 'true') {
     try {
       const stack = await loadStack(functionsDir);
       res.setHeader('content-type', 'text/yaml');
-      res.send(JSON.stringify(stack));
+      res.send(JSON.stringify(stackToWire(stack)));
     } catch (e) {
       res
         .status(400)
