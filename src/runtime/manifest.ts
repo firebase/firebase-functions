@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Expression } from "../v2/params";
-import { ParamSpec } from "../v2/params/types";
+import { Expression } from "../params";
+import { ParamSpec } from "../params/types";
 
 /**
  * An definition of a function as appears in the Manifest.

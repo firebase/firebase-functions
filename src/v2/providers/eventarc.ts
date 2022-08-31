@@ -29,7 +29,7 @@ import { convertIfPresent, copyIfPresent } from "../../common/encoding";
 import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import * as options from "../options";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {

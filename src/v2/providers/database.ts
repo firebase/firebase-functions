@@ -30,7 +30,7 @@ import { applyChange } from "../../common/utilities/utils";
 import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import * as options from "../options";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 
 export { DataSnapshot };
 

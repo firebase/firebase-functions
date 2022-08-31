@@ -40,7 +40,7 @@ import {
 import { ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { GlobalOptions, SupportedRegion } from "../options";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 

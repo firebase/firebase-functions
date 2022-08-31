@@ -34,7 +34,7 @@ import {
   HttpsError,
   wrapHandler,
 } from "../../common/providers/identity";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 import * as options from "../options";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };

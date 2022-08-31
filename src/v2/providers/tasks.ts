@@ -35,7 +35,7 @@ import {
 } from "../../common/providers/tasks";
 import * as options from "../options";
 import { HttpsFunction } from "./https";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 
 export { AuthData, Request };
 
