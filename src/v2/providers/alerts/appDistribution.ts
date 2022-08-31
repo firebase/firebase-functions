@@ -28,6 +28,7 @@
 import { CloudEvent, CloudFunction } from "../../core";
 import * as options from "../../options";
 import { FirebaseAlertData, getEndpointAnnotation } from "./alerts";
+import { Expression } from "../../params";
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
@@ -102,7 +103,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | null;
+  memory?: options.MemoryOption | Expression<number> | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -114,7 +115,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -122,13 +123,13 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -137,7 +138,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: number | Expression<number> | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.

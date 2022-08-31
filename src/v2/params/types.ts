@@ -20,144 +20,275 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-/** @hidden */
-type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "json";
+/*
+ * A CEL expression which can be evaluated during function deployment, and
+ * resolved to a value of the generic type parameter: i.e, you can pass
+ * an Expression<number> as the value of an option that normally accepts numbers.
+ */
+export abstract class Expression<
+  T extends string | number | boolean | string[]
+> {
+  // Returns the Expression's runtime value, based on the CLI's resolution of params.
+  value(): T {
+    throw new Error('Not implemented');
+  }
 
-export interface ParamSpec<T = unknown> {
+  // Returns the Expression's representation as a braced CEL expression.
+  toCEL(): string {
+    return `{{ ${this.toString()} }}`;
+  }
+
+  toJSON(): string {
+    return this.toString();
+  }
+}
+
+function quoteIfString<T extends string | number | boolean | string[]>(
+  literal: T
+): T {
+  //TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
+  return typeof literal === 'string' ? (`"${literal}"` as T) : literal;
+}
+
+/**
+ * A CEL expression corresponding to a ternary operator, e.g {{ cond ? ifTrue : ifFalse }}
+ */
+export class TernaryExpression<
+  T extends string | number | boolean | string[]
+> extends Expression<T> {
+  constructor(
+    private readonly test: Expression<boolean>,
+    private readonly ifTrue: T,
+    private readonly ifFalse: T
+  ) {
+    super();
+    this.ifTrue = ifTrue;
+    this.ifFalse = ifFalse;
+  }
+
+  value(): T {
+    return !!this.test.value ? this.ifTrue : this.ifFalse;
+  }
+
+  toString() {
+    return `${this.test} ? ${quoteIfString(this.ifTrue)} : ${quoteIfString(
+      this.ifFalse
+    )}`;
+  }
+}
+
+/**
+ * A CEL expression that evaluates to boolean true or false based on a comparison
+ * between the value of another expression and a literal of that same type.
+ */
+export class CompareExpression<
+  T extends string | number | boolean | string[]
+> extends Expression<boolean> {
+  cmp: '==' | '>' | '>=' | '<' | '<=';
+  lhs: Expression<T>;
+  rhs: T;
+
+  constructor(cmp: '==' | '>' | '>=' | '<' | '<=', lhs: Expression<T>, rhs: T) {
+    super();
+    this.cmp = cmp;
+    this.lhs = lhs;
+    this.rhs = rhs;
+  }
+
+  value(): boolean {
+    const left = this.lhs.value();
+    switch (this.cmp) {
+      case '==':
+        return left === this.rhs;
+      case '>':
+        return left > this.rhs;
+      case '>=':
+        return left >= this.rhs;
+      case '<':
+        return left < this.rhs;
+      case '<=':
+        return left <= this.rhs;
+      default:
+        throw new Error('Unknown comparator ' + this.cmp);
+    }
+  }
+
+  toString() {
+    return `${this.lhs} ${this.cmp} ${quoteIfString(this.rhs)}`;
+  }
+
+  then(ifTrue: T, ifFalse: T) {
+    return new TernaryExpression(this, ifTrue, ifFalse);
+  }
+}
+
+/** @hidden */
+type ParamValueType =
+  | 'string'
+  | 'list'
+  | 'boolean'
+  | 'int'
+  | 'float'
+  | 'secret';
+
+type ParamInput<T> =
+  | { text: TextInput<T> }
+  | { select: SelectInput<T> }
+  | { resource: ResourceInput };
+
+/**
+ * Specifies that a Param's value should be determined by prompting the user
+ * to type it in interactively at deploy-time. Input that does not match the
+ * provided validationRegex, if present, will be retried.
+ */
+export interface TextInput<T = unknown> {
+  example?: string;
+  validationRegex?: string;
+  validationErrorMessage?: string;
+}
+
+/**
+ * Specifies that a Param's value should be determined by having the user
+ * select from a list containing all the project's resources of a certain
+ * type. Currently, only type:"storage.googleapis.com/Bucket" is supported.
+ */
+export interface ResourceInput {
+  resource: {
+    type: string;
+  };
+}
+
+/**
+ * Specifies that a Param's value should be determined by having the user select
+ * from a list of pre-canned options interactively at deploy-time.
+ */
+export interface SelectInput<T = unknown> {
+  options: Array<SelectOptions<T>>;
+}
+
+export interface SelectOptions<T = unknown> {
+  label?: string;
+  value: T;
+}
+
+export type ParamSpec<T = unknown> = {
   name: string;
   default?: T;
   label?: string;
   description?: string;
   type: ParamValueType;
-}
+  input?: ParamInput<T>;
+};
 
-export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, "name" | "type">;
+export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 
-export class Param<T = unknown> {
-  static type: ParamValueType = "string";
+export abstract class Param<
+  T extends string | number | boolean | string[]
+> extends Expression<T> {
+  static type: ParamValueType = 'string';
 
-  constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {}
-
-  get rawValue(): string | undefined {
-    return process.env[this.name];
+  constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {
+    super();
   }
 
-  get value(): any {
-    return this.rawValue || this.options.default || "";
+  value(): T {
+    throw new Error('Not implemented');
   }
 
-  toString() {
-    return `{{params.${this.name}}}`;
+  cmp(cmp: '==' | '>' | '>=' | '<' | '<=', rhs: T) {
+    return new CompareExpression<T>(cmp, this, rhs);
   }
 
-  toJSON() {
-    return this.toString();
+  equals(rhs: T) {
+    return this.cmp('==', rhs);
   }
 
-  toSpec(): ParamSpec<string> {
+  toString(): string {
+    return `params.${this.name}`;
+  }
+
+  toSpec(): ParamSpec<T> {
     const out: ParamSpec = {
       name: this.name,
       ...this.options,
       type: (this.constructor as typeof Param).type,
     };
-    if (this.options.default && typeof this.options.default !== "string") {
-      out.default = (this.options.default as { toString?: () => string } | undefined)?.toString?.();
-    }
 
-    return out as ParamSpec<string>;
+    return out as ParamSpec<T>;
+  }
+}
+
+export class SecretParam {
+  name: string;
+  static type: ParamValueType = 'secret';
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  value(): string {
+    return process.env[this.name] || '';
+  }
+
+  toSpec(): ParamSpec<string> {
+    return {
+      type: 'secret',
+      name: this.name,
+    };
   }
 }
 
 export class StringParam extends Param<string> {
-  // identical to the abstract class, just explicitly a string
+  value(): string {
+    return process.env[this.name] || '';
+  }
 }
 
 export class IntParam extends Param<number> {
-  static type: ParamValueType = "int";
+  static type: ParamValueType = 'int';
 
-  get value(): number {
-    const intVal = parseInt(this.rawValue || this.options.default?.toString() || "0", 10);
-    if (Number.isNaN(intVal)) {
-      throw new Error(
-        `unable to load param "${this.name}", value ${JSON.stringify(
-          this.rawValue
-        )} could not be parsed as integer`
-      );
-    }
-    return intVal;
+  value(): number {
+    return parseInt(process.env[this.name] || '0', 10) || 0;
   }
 }
 
 export class FloatParam extends Param<number> {
-  static type: ParamValueType = "float";
+  static type: ParamValueType = 'float';
 
-  get value(): number {
-    const floatVal = parseFloat(this.rawValue || this.options.default?.toString() || "0");
-    if (Number.isNaN(floatVal)) {
-      throw new Error(
-        `unable to load param "${this.name}", value ${JSON.stringify(
-          this.rawValue
-        )} could not be parsed as float`
-      );
-    }
-    return floatVal;
+  value(): number {
+    return parseFloat(process.env[this.name] || '0') || 0;
   }
 }
 
-export class BooleanParam extends Param {
-  static type: ParamValueType = "boolean";
+export class BooleanParam extends Param<boolean> {
+  static type: ParamValueType = 'boolean';
 
-  get value(): boolean {
-    const lowerVal = (this.rawValue || this.options.default?.toString() || "false").toLowerCase();
-    if (!["true", "y", "yes", "1", "false", "n", "no", "0"].includes(lowerVal)) {
-      throw new Error(
-        `unable to load param "${this.name}", value ${JSON.stringify(
-          this.rawValue
-        )} could not be parsed as boolean`
-      );
-    }
-    return ["true", "y", "yes", "1"].includes(lowerVal);
+  value(): boolean {
+    return !!process.env[this.name];
+  }
+
+  then<T extends string | number | boolean>(ifTrue: T, ifFalse: T) {
+    return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
 
 export class ListParam extends Param<string[]> {
-  static type: ParamValueType = "list";
+  static type: ParamValueType = 'list';
 
-  get value(): string[] {
-    return typeof this.rawValue === "string"
-      ? this.rawValue.split(/, ?/)
-      : this.options.default || [];
+  value(): string[] {
+    throw new Error('Not implemented');
   }
 
-  toSpec(): ParamSpec<string> {
+  toSpec(): ParamSpec<string[]> {
     const out: ParamSpec = {
       name: this.name,
-      type: "list",
+      type: 'list',
       ...this.options,
     };
     if (this.options.default && this.options.default.length > 0) {
-      out.default = this.options.default.join(",");
+      out.default = this.options.default.join(',');
     }
 
-    return out as ParamSpec<string>;
-  }
-}
-
-export class JSONParam<T = any> extends Param<T> {
-  static type: ParamValueType = "json";
-
-  get value(): T {
-    if (this.rawValue) {
-      try {
-        return JSON.parse(this.rawValue) as T;
-      } catch (e) {
-        throw new Error(
-          `unable to load param "${this.name}", value ${this.rawValue} could not be parsed as JSON: ${e.message}`
-        );
-      }
-    } else if (this.options?.hasOwnProperty("default")) {
-      return this.options.default;
-    }
-    return {} as T;
+    return out as ParamSpec<string[]>;
   }
 }
