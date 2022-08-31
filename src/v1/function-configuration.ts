@@ -1,3 +1,5 @@
+import { Expression } from "../v2/params";
+
 /**
  * List of all regions supported by Cloud Functions.
  */
@@ -77,7 +79,7 @@ export interface ScheduleRetryConfig {
    *
    * @defaultValue 0 (infinite retry)
    */
-  retryCount?: number;
+  retryCount?: number | Expression<number> | null;
   /**
    * The time limit for retrying a failed job, measured from time when an execution was first attempted.
    *
@@ -85,25 +87,25 @@ export interface ScheduleRetryConfig {
    *
    * @defaultValue 0
    */
-  maxRetryDuration?: string;
+  maxRetryDuration?: string | Expression<string> | null;
   /**
    * The minimum amount of time to wait before retrying a job after it fails.
    *
    * @defaultValue 5 seconds
    */
-  minBackoffDuration?: string;
+  minBackoffDuration?: string | Expression<string> | null;
   /**
    * The maximum amount of time to wait before retrying a job after it fails.
    *
    * @defaultValue 1 hour
    */
-  maxBackoffDuration?: string;
+  maxBackoffDuration?: string | Expression<string> | null;
   /**
    * The max number of backoff doubling applied at each retry.
    *
    * @defaultValue 5
    */
-  maxDoublings?: number;
+  maxDoublings?: number | Expression<number> | null;
 }
 
 /**

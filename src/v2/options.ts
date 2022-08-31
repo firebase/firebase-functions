@@ -25,12 +25,7 @@
  * @packageDocumentation
  */
 
-import {
-  convertIfPresent,
-  copyIfPresent,
-  durationFromSeconds,
-  serviceAccountFromShorthand,
-} from "../common/encoding";
+import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import * as logger from "../logger";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "./params";
@@ -230,7 +225,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   retry?: boolean | Expression<boolean> | null;
 
   /** Region of the EventArc trigger. */
-  //region?: string | Expression<string> | null;
+  // region?: string | Expression<string> | null;
   region?: string;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
@@ -268,10 +263,10 @@ export function optionsToEndpoint(
   convertIfPresent(
     endpoint,
     opts,
-    'availableMemoryMb',
-    'memory',
+    "availableMemoryMb",
+    "memory",
     (mem: MemoryOption | Expression<number>): number | Expression<number> => {
-      return typeof mem === 'object' ? mem : MemoryOptionToMB[mem];
+      return typeof mem === "object" ? mem : MemoryOptionToMB[mem];
     }
   );
   convertIfPresent(endpoint, opts, "region", "region", (region) => {

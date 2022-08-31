@@ -30,7 +30,7 @@ import { copyIfPresent } from "../../common/encoding";
 import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import * as options from "../options";
-import { Expression } from '../params';
+import { Expression } from "../params";
 
 /**
  * An object within Google Cloud Storage.

@@ -101,14 +101,15 @@ export interface ManifestStack {
  * transformed into the actual CEL strings.
  * @internal
  */
-export function stackToWire(stack: ManifestStack): Object {
-  let wireStack = stack as any;
-  let traverse = function traverse(obj: Object) {
+export function stackToWire(stack: ManifestStack): Record<string, unknown> {
+  const wireStack = stack as any;
+  const traverse = function traverse(obj: Record<string, unknown>) {
     for (const [key, val] of Object.entries(obj)) {
       if (val instanceof Expression) {
         obj[key] = val.toCEL();
-      } else if (typeof val === 'object') {
-        traverse(val);
+      } else if (typeof val === "object") {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        traverse(val as any);
       }
     }
   };

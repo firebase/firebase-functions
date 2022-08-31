@@ -33,6 +33,7 @@ import {
   Param,
   ParamOptions,
   StringParam,
+  SecretParam,
   Expression,
 } from "./types";
 

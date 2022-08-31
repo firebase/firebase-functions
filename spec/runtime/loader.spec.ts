@@ -4,7 +4,7 @@ import * as path from "path";
 import * as functions from "../../src/v1";
 import * as loader from "../../src/runtime/loader";
 import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "../../src/runtime/manifest";
-import { clearParams } from '../../src/v2/params';
+import { clearParams } from "../../src/v2/params";
 
 describe("extractStack", () => {
   const httpFn = functions.https.onRequest(() => undefined);
@@ -307,44 +307,44 @@ describe("loadStack", () => {
         },
       },
       {
-        name: 'has params',
-        modulePath: './spec/fixtures/sources/commonjs-params',
+        name: "has params",
+        modulePath: "./spec/fixtures/sources/commonjs-params",
         expected: {
           ...expected,
           params: [
-            { name: 'BORING', type: 'string' },
+            { name: "BORING", type: "string" },
             {
-              name: 'FOO',
-              type: 'string',
-              input: { text: { validationRegex: 'w+' } },
+              name: "FOO",
+              type: "string",
+              input: { text: { validationRegex: "w+" } },
             },
             {
-              name: 'BAR',
-              type: 'string',
-              default: '{{ params.FOO }}',
-              label: 'asdf',
+              name: "BAR",
+              type: "string",
+              default: "{{ params.FOO }}",
+              label: "asdf",
             },
             {
-              name: 'BAZ',
-              type: 'string',
+              name: "BAZ",
+              type: "string",
               input: {
-                select: { options: [{ value: 'a' }, { value: 'b' }] },
+                select: { options: [{ value: "a" }, { value: "b" }] },
               },
             },
-            { name: 'AN_INT', type: 'int', default: 22 },
+            { name: "AN_INT", type: "int", default: 22 },
             {
-              name: 'ANOTHER_INT',
-              type: 'int',
+              name: "ANOTHER_INT",
+              type: "int",
               input: {
                 select: {
                   options: [
-                    { label: 'a', value: -2 },
-                    { label: 'b', value: 2 },
+                    { label: "a", value: -2 },
+                    { label: "b", value: 2 },
                   ],
                 },
               },
             },
-            { name: 'SUPER_SECRET_FLAG', type: 'secret' },
+            { name: "SUPER_SECRET_FLAG", type: "secret" },
           ],
         },
       },

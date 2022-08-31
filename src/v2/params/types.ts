@@ -25,12 +25,10 @@
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
-export abstract class Expression<
-  T extends string | number | boolean | string[]
-> {
+export abstract class Expression<T extends string | number | boolean | string[]> {
   // Returns the Expression's runtime value, based on the CLI's resolution of params.
   value(): T {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   // Returns the Expression's representation as a braced CEL expression.
@@ -43,11 +41,9 @@ export abstract class Expression<
   }
 }
 
-function quoteIfString<T extends string | number | boolean | string[]>(
-  literal: T
-): T {
-  //TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
-  return typeof literal === 'string' ? (`"${literal}"` as T) : literal;
+function quoteIfString<T extends string | number | boolean | string[]>(literal: T): T {
+  // TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
+  return typeof literal === "string" ? (`"${literal}"` as T) : literal;
 }
 
 /**
@@ -67,13 +63,11 @@ export class TernaryExpression<
   }
 
   value(): T {
-    return !!this.test.value ? this.ifTrue : this.ifFalse;
+    return this.test.value ? this.ifTrue : this.ifFalse;
   }
 
   toString() {
-    return `${this.test} ? ${quoteIfString(this.ifTrue)} : ${quoteIfString(
-      this.ifFalse
-    )}`;
+    return `${this.test} ? ${quoteIfString(this.ifTrue)} : ${quoteIfString(this.ifFalse)}`;
   }
 }
 
@@ -84,11 +78,11 @@ export class TernaryExpression<
 export class CompareExpression<
   T extends string | number | boolean | string[]
 > extends Expression<boolean> {
-  cmp: '==' | '>' | '>=' | '<' | '<=';
+  cmp: "==" | ">" | ">=" | "<" | "<=";
   lhs: Expression<T>;
   rhs: T;
 
-  constructor(cmp: '==' | '>' | '>=' | '<' | '<=', lhs: Expression<T>, rhs: T) {
+  constructor(cmp: "==" | ">" | ">=" | "<" | "<=", lhs: Expression<T>, rhs: T) {
     super();
     this.cmp = cmp;
     this.lhs = lhs;
@@ -98,18 +92,18 @@ export class CompareExpression<
   value(): boolean {
     const left = this.lhs.value();
     switch (this.cmp) {
-      case '==':
+      case "==":
         return left === this.rhs;
-      case '>':
+      case ">":
         return left > this.rhs;
-      case '>=':
+      case ">=":
         return left >= this.rhs;
-      case '<':
+      case "<":
         return left < this.rhs;
-      case '<=':
+      case "<=":
         return left <= this.rhs;
       default:
-        throw new Error('Unknown comparator ' + this.cmp);
+        throw new Error(`Unknown comparator ${this.cmp}`);
     }
   }
 
@@ -123,13 +117,7 @@ export class CompareExpression<
 }
 
 /** @hidden */
-type ParamValueType =
-  | 'string'
-  | 'list'
-  | 'boolean'
-  | 'int'
-  | 'float'
-  | 'secret';
+type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret";
 
 type ParamInput<T> =
   | { text: TextInput<T> }
@@ -140,7 +128,9 @@ type ParamInput<T> =
  * Specifies that a Param's value should be determined by prompting the user
  * to type it in interactively at deploy-time. Input that does not match the
  * provided validationRegex, if present, will be retried.
+ *
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
   example?: string;
   validationRegex?: string;
@@ -180,27 +170,25 @@ export type ParamSpec<T = unknown> = {
   input?: ParamInput<T>;
 };
 
-export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
+export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, "name" | "type">;
 
-export abstract class Param<
-  T extends string | number | boolean | string[]
-> extends Expression<T> {
-  static type: ParamValueType = 'string';
+export abstract class Param<T extends string | number | boolean | string[]> extends Expression<T> {
+  static type: ParamValueType = "string";
 
   constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {
     super();
   }
 
   value(): T {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
-  cmp(cmp: '==' | '>' | '>=' | '<' | '<=', rhs: T) {
+  cmp(cmp: "==" | ">" | ">=" | "<" | "<=", rhs: T) {
     return new CompareExpression<T>(cmp, this, rhs);
   }
 
   equals(rhs: T) {
-    return this.cmp('==', rhs);
+    return this.cmp("==", rhs);
   }
 
   toString(): string {
@@ -220,19 +208,19 @@ export abstract class Param<
 
 export class SecretParam {
   name: string;
-  static type: ParamValueType = 'secret';
+  static type: ParamValueType = "secret";
 
   constructor(name: string) {
     this.name = name;
   }
 
   value(): string {
-    return process.env[this.name] || '';
+    return process.env[this.name] || "";
   }
 
   toSpec(): ParamSpec<string> {
     return {
-      type: 'secret',
+      type: "secret",
       name: this.name,
     };
   }
@@ -240,28 +228,28 @@ export class SecretParam {
 
 export class StringParam extends Param<string> {
   value(): string {
-    return process.env[this.name] || '';
+    return process.env[this.name] || "";
   }
 }
 
 export class IntParam extends Param<number> {
-  static type: ParamValueType = 'int';
+  static type: ParamValueType = "int";
 
   value(): number {
-    return parseInt(process.env[this.name] || '0', 10) || 0;
+    return parseInt(process.env[this.name] || "0", 10) || 0;
   }
 }
 
 export class FloatParam extends Param<number> {
-  static type: ParamValueType = 'float';
+  static type: ParamValueType = "float";
 
   value(): number {
-    return parseFloat(process.env[this.name] || '0') || 0;
+    return parseFloat(process.env[this.name] || "0") || 0;
   }
 }
 
 export class BooleanParam extends Param<boolean> {
-  static type: ParamValueType = 'boolean';
+  static type: ParamValueType = "boolean";
 
   value(): boolean {
     return !!process.env[this.name];
@@ -273,20 +261,20 @@ export class BooleanParam extends Param<boolean> {
 }
 
 export class ListParam extends Param<string[]> {
-  static type: ParamValueType = 'list';
+  static type: ParamValueType = "list";
 
   value(): string[] {
-    throw new Error('Not implemented');
+    throw new Error("Not implemented");
   }
 
   toSpec(): ParamSpec<string[]> {
     const out: ParamSpec = {
       name: this.name,
-      type: 'list',
+      type: "list",
       ...this.options,
     };
     if (this.options.default && this.options.default.length > 0) {
-      out.default = this.options.default.join(',');
+      out.default = this.options.default.join(",");
     }
 
     return out as ParamSpec<string[]>;
