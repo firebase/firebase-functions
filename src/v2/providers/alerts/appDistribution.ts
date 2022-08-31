@@ -29,6 +29,7 @@ import { CloudEvent, CloudFunction } from "../../core";
 import * as options from "../../options";
 import { wrapTraceContext } from "../../trace";
 import { FirebaseAlertData, getEndpointAnnotation } from "./alerts";
+import { Expression } from "../../params";
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
@@ -61,21 +62,14 @@ export interface InAppFeedbackPayload {
   /** Email of the tester */
   testerEmail: string;
   /**
-   * Display version of the release. For an Android release, the display version
-   * is the `versionName`. For an iOS release, the display version is the
-   * `CFBundleShortVersionString`.
+   * Version consisting of `versionName` and `versionCode` for Android and
+   * `CFBundleShortVersionString` and `CFBundleVersion` for iOS.
    */
-  displayVersion: string;
-  /**
-   * Build version of the release. For an Android release, the build version
-   * is the `versionCode`. For an iOS release, the build version is the
-   * `CFBundleVersion`.
-   */
-  buildVersion: string;
+  appVersion: string;
   /** Text entered by the tester */
   text: string;
-  /** URIs to download screenshot(s). These URIs are fast expiring. */
-  screenshotUris: string[];
+  /** URI to download screenshot. This URI is fast expiring. */
+  screenshotUri?: string;
 }
 
 /**
@@ -110,7 +104,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | null;
+  memory?: options.MemoryOption | Expression<number> | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -122,7 +116,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -130,13 +124,13 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -145,7 +139,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: number | Expression<number> | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -312,10 +306,7 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as AppDistributionEvent<InAppFeedbackPayload>;
-    // Consolidate the case of empty array and null array
-    event.data.payload.screenshotUris = event.data.payload.screenshotUris || [];
-    return wrapTraceContext(handler)(event);
+    return wrapTraceContext(handler)(raw as AppDistributionEvent<InAppFeedbackPayload>);
   };
 
   func.run = handler;

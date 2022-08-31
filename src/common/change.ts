@@ -34,13 +34,12 @@ export interface ChangeJson {
    */
   before?: any;
   /**
-   * @hidden
    * Comma-separated string that represents names of fields that changed.
    */
   fieldMask?: string;
 }
 
-/** @hidden */
+/** @internal */
 export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string) {
   const before = { ...after };
   const masks = fieldMask.split(",");
@@ -74,7 +73,6 @@ export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string)
  */
 export class Change<T> {
   /**
-   * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
    * object.
    */
@@ -83,7 +81,6 @@ export class Change<T> {
   }
 
   /**
-   * @hidden
    * Factory method for creating a Change from a JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */

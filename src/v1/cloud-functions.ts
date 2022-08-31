@@ -29,16 +29,16 @@ import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
 
 export { Change } from "../common/change";
 
-/** @hidden */
+/** @internal */
 const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 
 /**
  * Wire format for an event.
-
- * @hidden
- * @alpha
  */
 export interface Event {
+  /**
+   * Wire format for an event context.
+   */
   context: {
     eventId: string;
     timestamp: string;
@@ -53,12 +53,16 @@ export interface Event {
       admin: boolean;
     };
   };
+  /**
+   * Event data over wire.
+   */
   data: any;
 }
 
 /**
  * The context in which an event occurred.
  *
+ * @remarks
  * An EventContext describes:
  * - The time an event occurred.
  * - A unique identifier of the event.
@@ -69,9 +73,11 @@ export interface Event {
 export interface EventContext<Params = Record<string, string>> {
   /**
    * Authentication information for the user that triggered the function.
+   *
+   * @remarks
    * This object contains `uid` and `token` properties for authenticated users.
    * For more detail including token keys, see the
-   * [security rules reference](/docs/firestore/reference/security/#properties).
+   * {@link https://firebase.google.com/docs/reference/rules/rules#properties | security rules reference}.
    *
    * This field is only populated for Realtime Database triggers and Callable
    * functions. For an unauthenticated user, this field is null. For Firebase
@@ -84,12 +90,18 @@ export interface EventContext<Params = Record<string, string>> {
   };
 
   /**
-   * The level of permissions for a user. Valid values are:
+   * The level of permissions for a user.
    *
-   * * `ADMIN` Developer user or user authenticated via a service account.
-   * * `USER` Known user.
-   * * `UNAUTHENTICATED` Unauthenticated action
-   * * `null` For event types that do not provide user information (all except
+   * @remarks
+   * Valid values are:
+   *
+   * - `ADMIN`: Developer user or user authenticated via a service account.
+   *
+   * - `USER`: Known user.
+   *
+   * - `UNAUTHENTICATED`: Unauthenticated action
+   *
+   * - `null`: For event types that do not provide user information (all except
    *   Realtime Database).
    */
   authType?: "ADMIN" | "USER" | "UNAUTHENTICATED";
@@ -100,46 +112,70 @@ export interface EventContext<Params = Record<string, string>> {
   eventId: string;
 
   /**
-   * Type of event. Possible values are:
+   * Type of event.
    *
-   * * `google.analytics.event.log`
-   * * `google.firebase.auth.user.create`
-   * * `google.firebase.auth.user.delete`
-   * * `google.firebase.database.ref.write`
-   * * `google.firebase.database.ref.create`
-   * * `google.firebase.database.ref.update`
-   * * `google.firebase.database.ref.delete`
-   * * `google.firestore.document.write`
-   * * `google.firestore.document.create`
-   * * `google.firestore.document.update`
-   * * `google.firestore.document.delete`
-   * * `google.pubsub.topic.publish`
-   * * `google.firebase.remoteconfig.update`
-   * * `google.storage.object.finalize`
-   * * `google.storage.object.archive`
-   * * `google.storage.object.delete`
-   * * `google.storage.object.metadataUpdate`
-   * * `google.testing.testMatrix.complete`
+   * @remarks
+   * Possible values are:
+   *
+   * - `google.analytics.event.log`
+   *
+   * - `google.firebase.auth.user.create`
+   *
+   * - `google.firebase.auth.user.delete`
+   *
+   * - `google.firebase.database.ref.write`
+   *
+   * - `google.firebase.database.ref.create`
+   *
+   * - `google.firebase.database.ref.update`
+   *
+   * - `google.firebase.database.ref.delete`
+   *
+   * - `google.firestore.document.write`
+   *
+   * - `google.firestore.document.create`
+   *
+   * - `google.firestore.document.update`
+   *
+   * - `google.firestore.document.delete`
+   *
+   * - `google.pubsub.topic.publish`
+   *
+   * - `google.firebase.remoteconfig.update`
+   *
+   * - `google.storage.object.finalize`
+   *
+   * - `google.storage.object.archive`
+   *
+   * - `google.storage.object.delete`
+   *
+   * - `google.storage.object.metadataUpdate`
+   *
+   * - `google.testing.testMatrix.complete`
    */
   eventType: string;
 
   /**
    * An object containing the values of the wildcards in the `path` parameter
-   * provided to the [`ref()`](providers_database_.html#ref) method for a Realtime
-   * Database trigger. Cannot be accessed while inside the handler namespace.
+   * provided to the {@link fireabase-functions.v1.database#ref | `ref()`} method for a Realtime Database trigger.
    */
   params: Params;
 
   /**
-   * The resource that emitted the event. Valid values are:
+   * The resource that emitted the event.
    *
-   * * Analytics &mdash; `projects/<projectId>/events/<analyticsEventType>`
-   * * Realtime Database &mdash;
-       `projects/_/instances/<databaseInstance>/refs/<databasePath>`
-   * * Storage &mdash;
-      `projects/_/buckets/<bucketName>/objects/<fileName>#<generation>`
-   * * Authentication &mdash; `projects/<projectId>`
-   * * Pub/Sub &mdash; `projects/<projectId>/topics/<topicName>`
+   * @remarks
+   * Valid values are:
+   *
+   * Analytics: `projects/<projectId>/events/<analyticsEventType>`
+   *
+   * Realtime Database: `projects/_/instances/<databaseInstance>/refs/<databasePath>`
+   *
+   * Storage: `projects/_/buckets/<bucketName>/objects/<fileName>#<generation>`
+   *
+   * Authentication: `projects/<projectId>`
+   *
+   * Pub/Sub: `projects/<projectId>/topics/<topicName>`
    *
    * Because Realtime Database instances and Cloud Storage buckets are globally
    * unique and not tied to the project, their resources start with `projects/_`.
@@ -147,8 +183,7 @@ export interface EventContext<Params = Record<string, string>> {
    */
   resource: Resource;
   /**
-   * Timestamp for the event as an
-   * [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) string.
+   * Timestamp for the event as an {@link https://www.ietf.org/rfc/rfc3339.txt | RFC 3339} string.
    */
   timestamp: string;
 }
@@ -159,9 +194,19 @@ export interface EventContext<Params = Record<string, string>> {
  * resource that triggered the function - such as a storage bucket.
  */
 export interface Resource {
+  /** The name of the service that this resource belongs to. */
   service: string;
+  /**
+   * The stable identifier (name) of a resource on the service.
+   * A resource can be logically identified as "//{resource.service}/{resource.name}"
+   */
   name: string;
+  /**
+   * The type of the resource. The syntax is platform-specific because different platforms define their resources differently.
+   * For Google APIs, the type format must be "{service}/{kind}"
+   */
   type?: string;
+  /** Map of Resource's labels. */
   labels?: { [tag: string]: string };
 }
 
@@ -170,6 +215,7 @@ export interface Resource {
  * function - useful for unit testing.
  */
 export interface Runnable<T> {
+  /** Directly invoke the user defined function. */
   run: (data: T, context: any) => PromiseLike<any> | any;
 }
 
@@ -177,18 +223,19 @@ export interface Runnable<T> {
  * The Cloud Function type for HTTPS triggers. This should be exported from your
  * JavaScript file to define a Cloud Function.
  *
+ * @remarks
  * This type is a special JavaScript function which takes Express
- * [`Request`](https://expressjs.com/en/api.html#req) and
- * [`Response`](https://expressjs.com/en/api.html#res) objects as its only
+ * {@link https://expressjs.com/en/api.html#req | `Request` } and
+ * {@link https://expressjs.com/en/api.html#res | `Response` } objects as its only
  * arguments.
  */
 export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /** @alpha */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
-  /** @alpha */
+  /** @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -198,10 +245,10 @@ export interface HttpsFunction {
 export interface BlockingFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /** @alpha */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
-  /** @alpha */
+  /** @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -215,14 +262,14 @@ export interface BlockingFunction {
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
 
-  /** @alpha */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
-  /** @alpha */
+  /** @internal */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
-/** @hidden */
+/** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
   after?: (raw: Event) => void;
   before?: (raw: Event) => void;
@@ -242,7 +289,7 @@ export interface MakeCloudFunctionArgs<EventData> {
   triggerResource: () => string;
 }
 
-/** @hidden */
+/** @internal */
 export function makeCloudFunction<EventData>({
   contextOnlyHandler,
   dataConstructor = (raw: Event) => raw.data,
@@ -351,7 +398,6 @@ export function makeCloudFunction<EventData>({
   return cloudFunction;
 }
 
-/** @hidden */
 function _makeParams(
   context: EventContext,
   triggerResourceGetter: () => string
@@ -381,7 +427,6 @@ function _makeParams(
   return params;
 }
 
-/** @hidden */
 function _makeAuth(event: Event, authType: string) {
   if (authType === "UNAUTHENTICATED") {
     return null;
@@ -392,7 +437,6 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
-/** @hidden */
 function _detectAuthType(event: Event) {
   if (event.context?.auth?.admin) {
     return "ADMIN";
@@ -403,6 +447,7 @@ function _detectAuthType(event: Event) {
   return "UNAUTHENTICATED";
 }
 
+/** @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(

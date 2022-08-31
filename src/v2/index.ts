@@ -35,10 +35,11 @@ import * as eventarc from "./providers/eventarc";
 import * as https from "./providers/https";
 import * as identity from "./providers/identity";
 import * as pubsub from "./providers/pubsub";
+import * as scheduler from "./providers/scheduler";
 import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
 
-export { alerts, database, storage, https, identity, pubsub, logger, tasks, eventarc };
+export { alerts, database, storage, https, identity, pubsub, logger, tasks, eventarc, scheduler };
 
 export {
   setGlobalOptions,

@@ -28,7 +28,7 @@
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import * as logger from "../logger";
 import { ManifestEndpoint } from "../runtime/manifest";
-import { declaredParams } from "./params";
+import { declaredParams, Expression } from "./params";
 import { ParamSpec } from "./params/types";
 import { HttpsOptions } from "./providers/https";
 
@@ -95,7 +95,7 @@ export interface GlobalOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: MemoryOption | null;
+  memory?: MemoryOption | Expression<number> | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -107,7 +107,7 @@ export interface GlobalOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -115,13 +115,13 @@ export interface GlobalOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -130,7 +130,7 @@ export interface GlobalOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: number | Expression<number> | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -216,8 +216,23 @@ export function getGlobalOptions(): GlobalOptions {
  * Additional fields that can be set on any event-handling Cloud Function.
  */
 export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck"> {
+  eventType?: string;
+
+  eventFilters?: Record<string, string | Expression<string>>;
+  eventFilterPathPatterns?: Record<string, string | Expression<string>>;
+
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | null;
+
+  /** Region of the EventArc trigger. */
+  // region?: string | Expression<string> | null;
+  region?: string;
+
+  /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
+  serviceAccount?: string | null;
+
+  /** The name of the channel where the function receives events. */
+  channel?: string;
 }
 
 /**
@@ -245,9 +260,15 @@ export function optionsToEndpoint(
     convertIfPresent(vpc, opts, "egressSettings", "vpcConnectorEgressSettings");
     endpoint.vpc = vpc;
   }
-  convertIfPresent(endpoint, opts, "availableMemoryMb", "memory", (mem) => {
-    return MemoryOptionToMB[mem];
-  });
+  convertIfPresent(
+    endpoint,
+    opts,
+    "availableMemoryMb",
+    "memory",
+    (mem: MemoryOption | Expression<number>): number | Expression<number> => {
+      return typeof mem === "object" ? mem : MemoryOptionToMB[mem];
+    }
+  );
   convertIfPresent(endpoint, opts, "region", "region", (region) => {
     if (typeof region === "string") {
       return [region];

@@ -27,10 +27,7 @@ export { firebaseConfig } from "../common/config";
 
 let singleton: Record<string, any>;
 
-/**
- * @hidden
- * @internal
- */
+/** @internal */
 export function resetCache(): void {
   singleton = undefined;
 }

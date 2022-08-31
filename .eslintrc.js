@@ -66,12 +66,5 @@ module.exports = {
     project: "tsconfig.json",
   },
   plugins: ["prettier", "@typescript-eslint", "jsdoc"],
-  settings: {
-    jsdoc: {
-      tagNamePreference: {
-        returns: "return",
-      },
-    },
-  },
   parser: "@typescript-eslint/parser",
 };

@@ -36,7 +36,7 @@ import { TaskContext } from "./tasks";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
-/** @hidden */
+/** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
   /** The wire format representation of the request body. */
   rawBody: Buffer;
@@ -121,9 +121,9 @@ export interface CallableRequest<T = any> {
 
 /**
  * The set of Firebase Functions status codes. The codes are the same at the
- * ones exposed by gRPC here:
- * https://github.com/grpc/grpc/blob/master/doc/statuscodes.md
+ * ones exposed by {@link https://github.com/grpc/grpc/blob/master/doc/statuscodes.md | gRPC}.
  *
+ * @remarks
  * Possible values:
  *
  * - `cancelled`: The operation was cancelled (typically by the caller).
@@ -527,7 +527,7 @@ export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
  *
  * @param {Request} req - Request sent to the Callable function.
  * @param {CallableContext} ctx - Context to be sent to callable function handler.
- * @return {CallableTokenStatus} Status of the token verifications.
+ * @returns {CallableTokenStatus} Status of the token verifications.
  */
 /** @internal */
 async function checkTokens(req: Request, ctx: CallableContext): Promise<CallableTokenStatus> {

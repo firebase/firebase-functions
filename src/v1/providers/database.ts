@@ -32,9 +32,9 @@ import { DeploymentOptions } from "../function-configuration";
 
 export { DataSnapshot };
 
-/** @hidden */
+/** @internal */
 export const provider = "google.firebase.database";
-/** @hidden */
+/** @internal */
 export const service = "firebaseio.com";
 
 const databaseURLRegex = new RegExp("^https://([^.]+).");
@@ -44,6 +44,7 @@ const emulatorDatabaseURLRegex = new RegExp("^http://.*ns=([^&]+)");
  * Registers a function that triggers on events from a specific
  * Firebase Realtime Database instance.
  *
+ * @remarks
  * Use this method together with `ref` to specify the instance on which to
  * watch for database events. For example: `firebase.database.instance('my-app-db-2').ref('/foo/bar')`
  *
@@ -52,7 +53,7 @@ const emulatorDatabaseURLRegex = new RegExp("^http://.*ns=([^&]+)");
  *
  * @param instance The instance name of the database instance
  *   to watch for write events.
- * @return Firebase Realtime Database instance builder interface.
+ * @returns Firebase Realtime Database instance builder interface.
  */
 export function instance(instance: string) {
   return _instanceWithOptions(instance, {});
@@ -62,6 +63,7 @@ export function instance(instance: string) {
  * Registers a function that triggers on Firebase Realtime Database write
  * events.
  *
+ * @remarks
  * This method behaves very similarly to the method of the same name in the
  * client and Admin Firebase SDKs. Any change to the Database that affects the
  * data at or below the provided `path` will fire an event in Cloud Functions.
@@ -69,6 +71,7 @@ export function instance(instance: string) {
  * There are three important differences between listening to a Realtime
  * Database event in Cloud Functions and using the Realtime Database in the
  * client and Admin SDKs:
+ *
  * 1. Cloud Functions allows wildcards in the `path` name. Any `path` component
  *    in curly brackets (`{}`) is a wildcard that matches all strings. The value
  *    that matched a certain invocation of a Cloud Function is returned as part
@@ -77,20 +80,22 @@ export function instance(instance: string) {
  *    `/messages/message1` or `/messages/message2`, resulting in
  *    `event.params.messageId` being set to `"message1"` or `"message2"`,
  *    respectively.
+ *
  * 2. Cloud Functions do not fire an event for data that already existed before
  *    the Cloud Function was deployed.
+ *
  * 3. Cloud Function events have access to more information, including a
  *    snapshot of the previous event data and information about the user who
  *    triggered the Cloud Function.
  *
  * @param path The path within the Database to watch for write events.
- * @return Firebase Realtime Database builder interface.
+ * @returns Firebase Realtime Database builder interface.
  */
 export function ref<Ref extends string>(path: Ref) {
   return _refWithOptions(path, {});
 }
 
-/** @hidden */
+/** @internal */
 export function _instanceWithOptions(
   instance: string,
   options: DeploymentOptions
@@ -104,11 +109,10 @@ export function _instanceWithOptions(
  * Access via [`database.instance()`](providers_database_.html#instance).
  */
 export class InstanceBuilder {
-  /** @hidden */
   constructor(private instance: string, private options: DeploymentOptions) {}
 
   /**
-   * @return Firebase Realtime Database reference builder interface.
+   * @returns Firebase Realtime Database reference builder interface.
    */
   ref<Ref extends string>(path: Ref): RefBuilder<Ref> {
     const normalized = normalizePath(path);
@@ -119,7 +123,7 @@ export class InstanceBuilder {
   }
 }
 
-/** @hidden */
+/** @internal */
 export function _refWithOptions<Ref extends string>(
   path: Ref,
   options: DeploymentOptions
@@ -163,7 +167,6 @@ export function _refWithOptions<Ref extends string>(
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
 export class RefBuilder<Ref extends string> {
-  /** @hidden */
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /**
@@ -172,7 +175,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler that runs every time a Firebase Realtime Database
    *   write occurs.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onWrite(
     handler: (
@@ -189,7 +192,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler which is run every time a Firebase Realtime Database
    *   write occurs.
-   * @return A Cloud
+   * @returns A Cloud
    *   Function which you can export and deploy.
    */
   onUpdate(
@@ -207,7 +210,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler that runs every time new data is created in
    *   Firebase Realtime Database.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onCreate(
     handler: (
@@ -231,7 +234,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler that runs every time data is deleted from
    *   Firebase Realtime Database.
-   * @return A Cloud Function that you can export and deploy.
+   * @returns A Cloud Function that you can export and deploy.
    */
   onDelete(
     handler: (
@@ -294,8 +297,9 @@ const resourceRegex = /^projects\/([^/]+)\/instances\/([a-zA-Z0-9-]+)\/refs(\/.+
  *    It defaults to `firebaseio.com`.
  *    Multi-region RTDB will be served from different domains.
  *    Since region is not part of the resource name, it is provided through context.
+ *
+ * @internal
  */
-/** @hidden */
 export function extractInstanceAndPath(resource: string, domain = "firebaseio.com") {
   const match = resource.match(new RegExp(resourceRegex));
   if (!match) {

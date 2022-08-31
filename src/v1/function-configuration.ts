@@ -1,3 +1,5 @@
+import { Expression } from "../v2/params";
+
 /**
  * List of all regions supported by Cloud Functions.
  */
@@ -72,32 +74,95 @@ export const INGRESS_SETTINGS_OPTIONS = [
  * Scheduler retry options. Applies only to scheduled functions.
  */
 export interface ScheduleRetryConfig {
-  retryCount?: number;
-  maxRetryDuration?: string;
-  minBackoffDuration?: string;
-  maxBackoffDuration?: string;
-  maxDoublings?: number;
+  /**
+   * The number of attempts that the system will make to run a job using the exponential backoff procedure described by {@link ScheduleRetryConfig.maxDoublings}.
+   *
+   * @defaultValue 0 (infinite retry)
+   */
+  retryCount?: number | Expression<number> | null;
+  /**
+   * The time limit for retrying a failed job, measured from time when an execution was first attempted.
+   *
+   * If specified with {@link ScheduleRetryConfig.retryCount}, the job will be retried until both limits are reached.
+   *
+   * @defaultValue 0
+   */
+  maxRetryDuration?: string | Expression<string> | null;
+  /**
+   * The minimum amount of time to wait before retrying a job after it fails.
+   *
+   * @defaultValue 5 seconds
+   */
+  minBackoffDuration?: string | Expression<string> | null;
+  /**
+   * The maximum amount of time to wait before retrying a job after it fails.
+   *
+   * @defaultValue 1 hour
+   */
+  maxBackoffDuration?: string | Expression<string> | null;
+  /**
+   * The max number of backoff doubling applied at each retry.
+   *
+   * @defaultValue 5
+   */
+  maxDoublings?: number | Expression<number> | null;
 }
 
 /**
  * Configuration options for scheduled functions.
  */
 export interface Schedule {
+  /**
+   * Describes the schedule on which the job will be executed.
+   *
+   * The schedule can be either of the following types:
+   *
+   * 1. {@link https://en.wikipedia.org/wiki/Cron#Overview | Crontab}
+   *
+   * 2. English-like {@link https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules | schedule}
+   *
+   * @example
+   * ```
+   * // Crontab schedule
+   * schedule: "0 9 * * 1"` // Every Monday at 09:00 AM
+   *
+   * // English-like schedule
+   * schedule: "every 5 minutes"
+   * ```
+   */
   schedule: string;
+  /**
+   * Specifies the time zone to be used in interpreting {@link Schedule.schedule}.
+   *
+   * The value of this field must be a time zone name from the tz database.
+   */
   timeZone?: string;
+  /**
+   * Settings that determine the retry behavior.
+   */
   retryConfig?: ScheduleRetryConfig;
 }
 
+/**
+ * Configuration option for failure policy on background functions.
+ */
 export interface FailurePolicy {
+  /**
+   * Retry configuration. Must be an empty object.
+   *
+   */
   retry: Record<string, never>;
 }
 
 export const MAX_NUMBER_USER_LABELS = 58;
 
+/**
+ * Configuration options for a function that applicable at runtime.
+ */
 export interface RuntimeOptions {
   /**
    * Which platform should host the backend. Valid options are "gcfv1"
-   * @hidden
+   * @internal
    */
   platform?: "gcfv1";
 
@@ -171,7 +236,16 @@ export interface RuntimeOptions {
   enforceAppCheck?: boolean;
 }
 
+/**
+ * Configuration options for a function that applies during function deployment.
+ */
 export interface DeploymentOptions extends RuntimeOptions {
+  /**
+   * Regions where function should be deployed.
+   */
   regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
+  /**
+   * Schedule for the scheduled function.
+   */
   schedule?: Schedule;
 }
