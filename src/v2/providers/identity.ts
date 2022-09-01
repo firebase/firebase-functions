@@ -24,7 +24,6 @@
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
-import { BlockingFunction } from "../../v1/cloud-functions";
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
@@ -34,6 +33,8 @@ import {
   HttpsError,
   wrapHandler,
 } from "../../common/providers/identity";
+import { BlockingFunction } from "../../v1/cloud-functions";
+import { wrapTraceContext } from "../trace";
 import { Expression } from "../params";
 import * as options from "../options";
 
@@ -273,7 +274,7 @@ export function beforeOperation(
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
   const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const func: any = wrapHandler(eventType, wrappedHandler);
+  const func: any = wrapTraceContext(wrapHandler(eventType, wrappedHandler));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

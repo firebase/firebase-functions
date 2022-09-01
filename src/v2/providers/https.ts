@@ -28,7 +28,7 @@
 import * as cors from "cors";
 import * as express from "express";
 import { convertIfPresent, convertInvoker } from "../../common/encoding";
-
+import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import {
   CallableRequest,
@@ -234,6 +234,8 @@ export function onRequest(
       });
     };
   }
+
+  handler = wrapTraceContext(handler);
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,

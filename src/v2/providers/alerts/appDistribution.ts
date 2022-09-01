@@ -27,6 +27,7 @@
 
 import { CloudEvent, CloudFunction } from "../../core";
 import * as options from "../../options";
+import { wrapTraceContext } from "../../trace";
 import { FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import { Expression } from "../../params";
 
@@ -305,7 +306,7 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as AppDistributionEvent<InAppFeedbackPayload>);
+    return wrapTraceContext(handler)(raw as AppDistributionEvent<InAppFeedbackPayload>);
   };
 
   func.run = handler;

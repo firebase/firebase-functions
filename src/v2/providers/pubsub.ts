@@ -28,6 +28,7 @@
 import { copyIfPresent } from "../../common/encoding";
 import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
+import { wrapTraceContext } from "../trace";
 import * as options from "../options";
 import { Expression } from "../params";
 
@@ -295,7 +296,7 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return handler(raw as CloudEvent<MessagePublishedData<T>>);
+    return wrapTraceContext(handler)(raw as CloudEvent<MessagePublishedData<T>>);
   };
 
   func.run = handler;
