@@ -29,6 +29,7 @@ import { PathPattern } from "../../common/utilities/path-pattern";
 import { applyChange } from "../../common/utilities/utils";
 import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
+import { wrapTraceContext } from "../trace";
 import * as options from "../options";
 import { Expression } from "../../params";
 
@@ -459,7 +460,7 @@ export function onChangedOperation<Ref extends string>(
     const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
-    return handler(databaseEvent);
+    return wrapTraceContext(handler)(databaseEvent);
   };
 
   func.run = handler;

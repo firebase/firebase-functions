@@ -34,6 +34,7 @@ import {
   RetryConfig,
 } from "../../common/providers/tasks";
 import * as options from "../options";
+import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
 
@@ -199,7 +200,7 @@ export function onTaskDispatched<Args = any>(
   // onDispatchHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: Request<Args>) => handler(req);
-  const func: any = onDispatchHandler(fixedLen);
+  const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
