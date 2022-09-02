@@ -30,7 +30,7 @@ import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
 import * as options from "../options";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.

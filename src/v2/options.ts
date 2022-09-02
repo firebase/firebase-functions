@@ -28,8 +28,8 @@
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import * as logger from "../logger";
 import { ManifestEndpoint } from "../runtime/manifest";
-import { declaredParams, Expression } from "./params";
-import { ParamSpec } from "./params/types";
+import { declaredParams, Expression } from "../params";
+import { ParamSpec } from "../params/types";
 import { HttpsOptions } from "./providers/https";
 
 /**

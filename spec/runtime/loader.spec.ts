@@ -4,7 +4,7 @@ import * as path from "path";
 import * as functions from "../../src/v1";
 import * as loader from "../../src/runtime/loader";
 import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "../../src/runtime/manifest";
-import { clearParams } from "../../src/v2/params";
+import { clearParams } from "../../src/params";
 
 describe("extractStack", () => {
   const httpFn = functions.https.onRequest(() => undefined);

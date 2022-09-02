@@ -36,7 +36,7 @@ import {
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 
 export { AuthData, Request };
 

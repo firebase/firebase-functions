@@ -1,6 +1,6 @@
 const functions = require("../../../../src/v1/index");
 const functionsv2 = require("../../../../src/v2/index");
-const params = require("../../../../src/v2/params");
+const params = require("../../../../src/params");
 
 params.defineString("BORING");
 params.defineString("FOO", { input: { text: { validationRegex: "w+" } } });

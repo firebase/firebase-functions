@@ -29,7 +29,7 @@ import { FirebaseAlertData, getEndpointAnnotation } from ".";
 import { CloudEvent, CloudFunction } from "../../core";
 import { wrapTraceContext } from "../../trace";
 import * as options from "../../options";
-import { Expression } from "../../params";
+import { Expression } from "../../../params";
 
 /** Generic Crashlytics issue interface */
 export interface Issue {
