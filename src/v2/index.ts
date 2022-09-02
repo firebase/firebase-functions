@@ -38,8 +38,21 @@ import * as pubsub from "./providers/pubsub";
 import * as scheduler from "./providers/scheduler";
 import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
+import * as remoteConfig from "./providers/remoteConfig";
 
-export { alerts, database, storage, https, identity, pubsub, logger, tasks, eventarc, scheduler };
+export {
+  alerts,
+  database,
+  storage,
+  https,
+  identity,
+  pubsub,
+  logger,
+  tasks,
+  eventarc,
+  scheduler,
+  remoteConfig,
+};
 
 export {
   setGlobalOptions,
