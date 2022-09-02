@@ -35,7 +35,7 @@ import {
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
-import { Expression } from "../params";
+import { Expression } from "../../params";
 import * as options from "../options";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
