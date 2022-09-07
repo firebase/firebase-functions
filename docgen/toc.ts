@@ -6,18 +6,12 @@
  * down the api model.
  */
 import * as yaml from 'js-yaml';
-import {
-  ApiPackage,
-  ApiItem,
-  ApiItemKind,
-  ApiParameterListMixin,
-  ApiModel,
-} from 'api-extractor-model-me';
-import { ModuleSource } from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
-import { FileSystem, PackageName } from '@rushstack/node-core-library';
+import {ApiItem, ApiItemKind, ApiModel, ApiPackage, ApiParameterListMixin,} from 'api-extractor-model-me';
+import {ModuleSource} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
+import {FileSystem, PackageName} from '@rushstack/node-core-library';
 import yargs from 'yargs';
-import { writeFileSync } from 'fs';
-import { resolve, join } from 'path';
+import {writeFileSync} from 'fs';
+import {join, resolve} from 'path';
 
 function getSafeFileName(f: string): string {
   return f.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
@@ -108,13 +102,33 @@ export function generateToc({
     }
   }
 
-  const toc = [];
-  generateTocRecursively(apiModel, g3Path, addFileNameSuffix, toc);
+  // Firebase Functions only have 1 entry point. Let's traverse the tree to find it.
+  const apiItems: ApiItem[] = [];
+  let cursor = apiModel as ApiItem;
+  while (cursor?.kind !== ApiItemKind.EntryPoint) {
+    apiItems.push(...cursor.members);
+    cursor = apiItems.pop();
+  }
+  if (!cursor) {
+    throw new Error("Couldn't find entry point from api model. Are you sure you've generated the api model?")
+  }
+
+  const entryPointName = (
+      cursor.canonicalReference.source! as ModuleSource
+  ).escapedPath.replace('@firebase/', '');
+
+  const entryPointToc: ITocItem = {
+    title: entryPointName,
+    path: `${g3Path}/${getFilenameForApiItem(cursor, addFileNameSuffix)}`,
+    section: [],
+  };
+
+  generateTocRecursively(cursor, g3Path, addFileNameSuffix, entryPointToc);
 
   writeFileSync(
     resolve(outputFolder, 'toc.yaml'),
     yaml.dump(
-      { toc },
+      { toc: entryPointToc },
       {
         quotingType: '"',
       }
@@ -126,43 +140,31 @@ function generateTocRecursively(
   apiItem: ApiItem,
   g3Path: string,
   addFileNameSuffix: boolean,
-  toc: ITocItem[]
+  toc: ITocItem
 ) {
-  // generate toc item only for entry points
-  if (apiItem.kind === ApiItemKind.EntryPoint) {
-    // Entry point
-    const entryPointName = (
-      apiItem.canonicalReference.source! as ModuleSource
-    ).escapedPath.replace('@firebase/', '');
-    const entryPointToc: ITocItem = {
-      title: entryPointName,
-      path: `${g3Path}/${getFilenameForApiItem(apiItem, addFileNameSuffix)}`,
-      section: [],
-    };
-
     for (const member of apiItem.members) {
-      // only classes and interfaces have dedicated pages
+      // only namespaces/classes gets included in ToC.
       if (
-        member.kind === ApiItemKind.Interface ||
-        member.kind === ApiItemKind.Namespace
+          [
+              ApiItemKind.Class,
+              ApiItemKind.Namespace,
+              ApiItemKind.Interface,
+          ].includes(member.kind)
       ) {
         const fileName = getFilenameForApiItem(member, addFileNameSuffix);
         const title =
           member.displayName[0].toUpperCase() + member.displayName.slice(1);
-        entryPointToc.section!.push({
+        const section: ITocItem = {
           title,
           path: `${g3Path}/${fileName}`,
-        });
+        }
+        if (!toc.section) {
+          toc.section = [];
+        }
+        toc.section.push(section);
+        generateTocRecursively(member, g3Path, addFileNameSuffix, section);
       }
     }
-
-    toc.push(entryPointToc);
-  } else {
-    // travel the api tree to find the next entry point
-    for (const member of apiItem.members) {
-      generateTocRecursively(member, g3Path, addFileNameSuffix, toc);
-    }
-  }
 }
 
 const { input, output, path } = yargs(process.argv.slice(2))
