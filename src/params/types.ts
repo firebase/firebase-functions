@@ -47,10 +47,10 @@ function quoteIfString<T extends string | number | boolean | string[]>(literal: 
 }
 
 function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
-  return (arg instanceof Expression) ? arg.value() : arg;
+  return arg instanceof Expression ? arg.value() : arg;
 }
 function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
-  return (arg instanceof Expression) ? arg.toString() : quoteIfString(arg).toString();
+  return arg instanceof Expression ? arg.toString() : quoteIfString(arg).toString();
 }
 
 /**
@@ -89,7 +89,11 @@ export class CompareExpression<
   lhs: Expression<T>;
   rhs: T | Expression<T>;
 
-  constructor(cmp: "==" | "!=" | ">" | ">=" | "<" | "<=", lhs: Expression<T>, rhs: T | Expression<T>) {
+  constructor(
+    cmp: "==" | "!=" | ">" | ">=" | "<" | "<=",
+    lhs: Expression<T>,
+    rhs: T | Expression<T>
+  ) {
     super();
     this.cmp = cmp;
     this.lhs = lhs;
@@ -122,7 +126,10 @@ export class CompareExpression<
     return `${this.lhs} ${this.cmp} ${rhsStr}`;
   }
 
-  then<retT extends string | number | boolean | string[]>(ifTrue: retT | Expression<retT>, ifFalse: retT | Expression<retT>) {
+  then<retT extends string | number | boolean | string[]>(
+    ifTrue: retT | Expression<retT>,
+    ifFalse: retT | Expression<retT>
+  ) {
     return new TernaryExpression<retT>(this, ifTrue, ifFalse);
   }
 }
