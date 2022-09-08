@@ -220,7 +220,7 @@ export interface Runnable<T> {
 }
 
 /**
- * The Cloud Function type for HTTPS triggers. This should be exported from your
+ * The function type for HTTPS triggers. This should be exported from your
  * JavaScript file to define a Cloud Function.
  *
  * @remarks
@@ -240,9 +240,16 @@ export interface HttpsFunction {
 }
 
 /**
- * The Cloud Function type for Blocking triggers.
+ * The function type for Auth Blocking triggers.
+ *
+ * @remarks
+ * This type is a special JavaScript function for Auth Blocking triggers which takes Express
+ * {@link https://expressjs.com/en/api.html#req | `Request` } and
+ * {@link https://expressjs.com/en/api.html#res | `Response` } objects as its only
+ * arguments.
  */
 export interface BlockingFunction {
+  /** @public */
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @internal */
@@ -253,7 +260,7 @@ export interface BlockingFunction {
 }
 
 /**
- * The Cloud Function type for all non-HTTPS triggers. This should be exported
+ * The function type for all non-HTTPS triggers. This should be exported
  * from your JavaScript file to define a Cloud Function.
  *
  * This type is a special JavaScript function which takes a templated
