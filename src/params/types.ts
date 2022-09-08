@@ -209,6 +209,26 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     return this.cmp("==", rhs);
   }
 
+  notEquals(rhs: T | Expression<T>) {
+    return this.cmp("!=", rhs);
+  }
+
+  greaterThan(rhs: T | Expression<T>) {
+    return this.cmp(">", rhs);
+  }
+
+  greaterThanOrEqualTo(rhs: T | Expression<T>) {
+    return this.cmp(">=", rhs);
+  }
+
+  lessThan(rhs: T | Expression<T>) {
+    return this.cmp("<", rhs);
+  }
+
+  lessThanorEqualTo(rhs: T | Expression<T>) {
+    return this.cmp("<=", rhs);
+  }
+
   toString(): string {
     return `params.${this.name}`;
   }
