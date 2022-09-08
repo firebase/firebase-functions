@@ -124,7 +124,7 @@ export interface ScheduleOptions extends options.GlobalOptions {
  */
 export function onSchedule(
   schedule: string,
-  handler: (req: ScheduledEvent) => void | Promise<void>
+  handler: (event: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -136,7 +136,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (req: ScheduledEvent) => void | Promise<void>
+  handler: (event: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -148,7 +148,7 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (req: ScheduledEvent) => void | Promise<void>
+  handler: (event: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
