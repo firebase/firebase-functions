@@ -72,8 +72,10 @@ export interface UserOptions {
 
 /**
  * Handles events related to Firebase authentication users.
+ *
  * @param userOptions - Resource level options
  * @returns UserBuilder - Builder used to create Cloud Functions for Firebase Auth user lifecycle events
+ *
  * @public
  */
 export function user(userOptions?: UserOptions): UserBuilder {
@@ -103,6 +105,7 @@ export class UserBuilder {
     return userRecordConstructor(raw.data);
   }
 
+  /* @internal */
   constructor(
     private triggerResource: () => string,
     private options: DeploymentOptions,
@@ -111,6 +114,9 @@ export class UserBuilder {
 
   /**
    * Responds to the creation of a Firebase Auth user.
+   *
+   * @param handler Event handler that resopnds to the creation of a Firebase Auth user.
+   *
    * @public
    */
   onCreate(
@@ -121,6 +127,9 @@ export class UserBuilder {
 
   /**
    * Responds to the deletion of a Firebase Auth user.
+   *
+   * @param handler Event handler that resopnds to the deletion of a Firebase Auth user.
+   *
    * @public
    */
   onDelete(
@@ -129,6 +138,13 @@ export class UserBuilder {
     return this.onOperation(handler, "user.delete");
   }
 
+  /**
+   * Blocks request to create a Firebase Auth user.
+   *
+   * @param handler Event handler that blocks creation of a Firebase Auth user.
+   *
+   * @public
+   */
   beforeCreate(
     handler: (
       user: AuthUserRecord,
@@ -138,6 +154,13 @@ export class UserBuilder {
     return this.beforeOperation(handler, "beforeCreate");
   }
 
+  /**
+   * Blocks request to sign in a Firebase Auth user.
+   *
+   * @param handler Event handler that blocks sign in of a Firebase Auth user.
+   *
+   * @public
+   */
   beforeSignIn(
     handler: (
       user: AuthUserRecord,

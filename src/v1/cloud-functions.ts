@@ -240,9 +240,16 @@ export interface HttpsFunction {
 }
 
 /**
- * The Cloud Function type for Blocking triggers.
+ * The Cloud Function type for Auth Blocking triggers.
+ *
+ * @remarks
+ * This type is a special JavaScript function for Auth Blocking triggers which takes Express
+ * {@link https://expressjs.com/en/api.html#req | `Request` } and
+ * {@link https://expressjs.com/en/api.html#res | `Response` } objects as its only
+ * arguments.
  */
 export interface BlockingFunction {
+  /** @public */
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @internal */
