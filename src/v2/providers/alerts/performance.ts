@@ -31,7 +31,7 @@ import { FirebaseAlertData, getEndpointAnnotation } from ".";
 
 /**
  * The internal payload object for a performance threshold alert.
- * Payload is wrapped inside a `FirebaseAlertData` object.
+ * Payload is wrapped inside a {@link FirebaseAlertData} object.
  */
 export interface ThresholdAlertPayload {
   /* Name of the trace or network request this alert is for (e.g. my_custom_trace, firebase.com/api/123) */
