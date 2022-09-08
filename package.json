@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.22.0",
+  "version": "3.23.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -30,6 +30,7 @@
     ".": "./lib/v1/index.js",
     "./logger/compat": "./lib/logger/compat.js",
     "./logger": "./lib/logger/index.js",
+    "./params": "./lib/params/index.js",
     "./v1": "./lib/v1/index.js",
     "./v1/analytics": "./lib/v1/providers/analytics.js",
     "./v1/auth": "./lib/v1/providers/auth.js",
@@ -44,7 +45,6 @@
     "./v2/core": "./lib/v2/core.js",
     "./v2/options": "./lib/v2/options.js",
     "./v2/https": "./lib/v2/providers/https.js",
-    "./v2/params": "./lib/v2/params/index.js",
     "./v2/pubsub": "./lib/v2/providers/pubsub.js",
     "./v2/storage": "./lib/v2/providers/storage.js",
     "./v2/tasks": "./lib/v2/providers/tasks.js",
@@ -65,6 +65,9 @@
       ],
       "logger/compat": [
         "lib/logger/compat"
+      ],
+      "params": [
+        "lib/params"
       ],
       "v1": [
         "lib/v1"
@@ -128,9 +131,6 @@
       ],
       "v2/https": [
         "lib/v2/providers/https"
-      ],
-      "v2/params": [
-        "lib/v2/params"
       ],
       "v2/pubsub": [
         "lib/v2/providers/pubsub"

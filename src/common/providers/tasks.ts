@@ -25,7 +25,7 @@ import { DecodedIdToken } from "firebase-admin/auth";
 
 import * as logger from "../../logger";
 import * as https from "./https";
-import { Expression } from "../../v2/params";
+import { Expression } from "../../params";
 
 /** How a task should be retried in the event of a non-2xx return. */
 export interface RetryConfig {

@@ -24,7 +24,7 @@ import * as url from "url";
 
 import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "./manifest";
 
-import * as params from "../v2/params";
+import * as params from "../params";
 
 /**
  * Dynamically load import function to prevent TypeScript from

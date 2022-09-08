@@ -21,12 +21,14 @@
 // SOFTWARE.
 
 import * as express from "express";
+
 import { copyIfPresent } from "../../common/encoding";
 import { timezone } from "../../common/timezone";
-import * as logger from "../../logger";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
-import * as options from "../options";
 import { HttpsFunction } from "./https";
+import { wrapTraceContext } from "../trace";
+import * as logger from "../../logger";
+import * as options from "../options";
 
 /** @hidden */
 interface ScheduleArgs {
@@ -150,7 +152,7 @@ export function onSchedule(
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
-  const func: any = async (req: express.Request, res: express.Response): Promise<any> => {
+  const httpFunc = async (req: express.Request, res: express.Response): Promise<any> => {
     const event: ScheduledEvent = {
       jobName: req.header("X-CloudScheduler-JobName") || undefined,
       scheduleTime: req.header("X-CloudScheduler-ScheduleTime") || new Date().toISOString(),
@@ -163,6 +165,7 @@ export function onSchedule(
       res.status(500).send();
     }
   };
+  const func: any = wrapTraceContext(httpFunc);
   func.run = handler;
 
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());

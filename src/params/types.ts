@@ -63,7 +63,7 @@ export class TernaryExpression<
   }
 
   value(): T {
-    return this.test.value ? this.ifTrue : this.ifFalse;
+    return this.test.value() ? this.ifTrue : this.ifFalse;
   }
 
   toString() {

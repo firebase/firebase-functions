@@ -1,6 +1,6 @@
 import { stackToWire, ManifestStack } from "../../src/runtime/manifest";
 import { expect } from "chai";
-import * as params from "../../src/v2/params";
+import * as params from "../../src/params";
 
 describe("stackToWire", () => {
   afterEach(() => {

@@ -103,14 +103,6 @@ export class ObjectBuilder {
   /** @internal */
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
-  /** @internal */
-  onChange(): Error {
-    throw new Error(
-      '"onChange" is now deprecated, please use "onArchive", "onDelete", ' +
-        '"onFinalize", or "onMetadataUpdate".'
-    );
-  }
-
   /**
    * Event handler sent only when a bucket has enabled object versioning.
    * This event indicates that the live version of an object has become an

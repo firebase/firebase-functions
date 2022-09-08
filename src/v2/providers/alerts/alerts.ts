@@ -24,7 +24,7 @@ import { ManifestEndpoint } from "../../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../../core";
 import { wrapTraceContext } from "../../trace";
 import * as options from "../../options";
-import { Expression } from "../../params";
+import { Expression } from "../../../params";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
