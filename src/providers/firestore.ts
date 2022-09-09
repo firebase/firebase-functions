@@ -43,8 +43,8 @@ export const service = 'firestore.googleapis.com';
 /** @hidden */
 export const defaultDatabase = '(default)';
 let firestoreInstance: any;
-export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
-export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+export type DocumentSnapshot<T = firebase.firestore.DocumentData> = firebase.firestore.DocumentSnapshot<T>;
+export type QueryDocumentSnapshot<T = firebase.firestore.DocumentData> = firebase.firestore.QueryDocumentSnapshot<T>;
 
 /**
  * Select the Firestore document to listen to for events.
