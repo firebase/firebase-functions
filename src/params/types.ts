@@ -179,16 +179,29 @@ export interface SelectOptions<T = unknown> {
   value: T;
 }
 
-export type ParamSpec<T = unknown> = {
+export type ParamSpec<T extends string | number | boolean | string[]> = {
   name: string;
-  default?: T;
+  default?: T | Expression<T>;
   label?: string;
   description?: string;
   type: ParamValueType;
   input?: ParamInput<T>;
 };
 
-export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, "name" | "type">;
+// N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
+export type WireParamSpec<T extends string | number | boolean | string[]> = {
+  name: string;
+  default?: T | string;
+  label?: string;
+  description?: string;
+  type: ParamValueType;
+  input?: ParamInput<T>;
+};
+
+export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
+  ParamSpec<T>,
+  "name" | "type"
+>;
 
 export abstract class Param<T extends string | number | boolean | string[]> extends Expression<T> {
   static type: ParamValueType = "string";
@@ -233,14 +246,22 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     return `params.${this.name}`;
   }
 
-  toSpec(): ParamSpec<T> {
-    const out: ParamSpec = {
+  toSpec(): WireParamSpec<T> {
+    const { default: paramDefault, ...otherOptions } = this.options;
+
+    const out: WireParamSpec<T> = {
       name: this.name,
-      ...this.options,
+      ...otherOptions,
       type: (this.constructor as typeof Param).type,
     };
 
-    return out as ParamSpec<T>;
+    if (paramDefault instanceof Expression) {
+      out.default = paramDefault.toCEL();
+    } else if (paramDefault) {
+      out.default = paramDefault;
+    }
+
+    return out;
   }
 }
 
@@ -305,16 +326,7 @@ export class ListParam extends Param<string[]> {
     throw new Error("Not implemented");
   }
 
-  toSpec(): ParamSpec<string[]> {
-    const out: ParamSpec = {
-      name: this.name,
-      type: "list",
-      ...this.options,
-    };
-    if (this.options.default && this.options.default.length > 0) {
-      out.default = this.options.default.join(",");
-    }
-
-    return out as ParamSpec<string[]>;
+  toSpec(): WireParamSpec<string[]> {
+    throw new Error("Not implemented");
   }
 }

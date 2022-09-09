@@ -1,6 +1,16 @@
 import { expect } from "chai";
 import * as params from "../../src/params";
 
+describe("Params spec extraction", () => {
+  it("converts Expressions in the param default to strings", () => {
+    const bar = params.defineInt("BAR");
+    expect(
+      params.defineString("FOO", { default: bar.notEquals(22).then("asdf", "jkl;") }).toSpec()
+        .default
+    ).to.equal(`{{ params.BAR != 22 ? "asdf" : "jkl;" }}`);
+  });
+});
+
 describe("Params value extraction", () => {
   beforeEach(() => {
     process.env.A_STRING = "asdf";
