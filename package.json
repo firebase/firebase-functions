@@ -55,7 +55,8 @@
     "./v2/eventarc": "./lib/v2/providers/eventarc.js",
     "./v2/identity": "./lib/v2/providers/identity.js",
     "./v2/database": "./lib/v2/providers/database.js",
-    "./v2/scheduler": "./lib/v2/providers/scheduler.js"
+    "./v2/scheduler": "./lib/v2/providers/scheduler.js",
+    "./v2/remoteConfig": "./lib/v2/providers/remoteConfig.js"
   },
   "typesVersions": {
     "*": {
@@ -142,6 +143,9 @@
       ],
       "v2/scheduler": [
         "lib/v2/providers/scheduler"
+      ],
+      "v2/remoteConfig": [
+        "lib/v2/providers/remoteConfig"
       ]
     }
   },
