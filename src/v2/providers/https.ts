@@ -35,7 +35,7 @@ import {
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  Request
+  Request,
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
 import * as options from '../options';
@@ -224,7 +224,7 @@ export function onRequest(
     let origin = opts.cors;
     if (isDebugFeatureEnabled('enableCors')) {
       // Respect `cors: false` to turn off cors even if debug feature is enabled.
-      origin = opts.cors === false ? false : true
+      origin = opts.cors === false ? false : true;
     }
 
     const userProvidedHandler = handler;
@@ -330,8 +330,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
   const origin = isDebugFeatureEnabled('enableCors')
     ? true
     : 'cors' in opts
-      ? opts.cors
-      : true;
+    ? opts.cors
+    : true;
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
