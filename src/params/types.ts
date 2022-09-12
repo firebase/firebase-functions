@@ -41,6 +41,33 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 }
 
+/**
+ * A CEL expression which represents an internal Firebase variable. This class
+ * cannot be instantiated by developers, but we provide several canned instances
+ * of it to make available params that will never have to be defined at
+ * deployment time, and can always be read from process.env.
+ */
+export class InternalExpression extends Expression<string> {
+  constructor(
+    private readonly name: string,
+    private readonly getter: (env: NodeJS.ProcessEnv) => string
+  ) {
+    super();
+  }
+
+  value(): string {
+    return this.getter(process.env) || "";
+  }
+
+  toString(): string {
+    return `params.${this.name}`;
+  }
+
+  toCEL(): string {
+    throw new Error("An InternalExpression should never be marshalled for wire transmission.");
+  }
+}
+
 function quoteIfString<T extends string | number | boolean | string[]>(literal: T): T {
   // TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
   return typeof literal === "string" ? (`"${literal}"` as T) : literal;

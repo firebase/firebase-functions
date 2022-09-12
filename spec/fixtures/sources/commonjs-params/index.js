@@ -21,18 +21,20 @@ params.defineInt("ANOTHER_INT", {
 
 params.defineSecret("SUPER_SECRET_FLAG");
 
+// N.B: invocation of the precanned internal params should not affect the manifest
+
 exports.v1http = functions.https.onRequest((req, resp) => {
-  resp.status(200).send("PASS");
+  resp.status(200).send(params.projectID);
 });
 
 exports.v1callable = functions.https.onCall(() => {
-  return "PASS";
+  return params.databaseURL;
 });
 
 exports.v2http = functionsv2.https.onRequest((req, resp) => {
-  resp.status(200).send("PASS");
+  resp.status(200).send(params.gcloudProject);
 });
 
 exports.v2callable = functionsv2.https.onCall(() => {
-  return "PASS";
+  return params.databaseURL;
 });

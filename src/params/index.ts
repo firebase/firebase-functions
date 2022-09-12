@@ -35,6 +35,7 @@ import {
   StringParam,
   SecretParam,
   Expression,
+  InternalExpression,
 } from "./types";
 
 export { ParamOptions, Expression };
@@ -63,6 +64,39 @@ function registerParam(param: SecretOrExpr) {
 export function clearParams() {
   declaredParams.splice(0, declaredParams.length);
 }
+
+/**
+ * A builtin param that resolves to the default RTDB database URL associated
+ * with the project, without prompting the deployer. Empty string if none exists.
+ */
+export const databaseURL = new InternalExpression(
+  "DATABASE_URL",
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.databaseURL
+);
+/**
+ * A builtin param that resolves to the Cloud project ID associated with
+ * the project, without prompting the deployer.
+ */
+export const projectID = new InternalExpression(
+  "PROJECT_ID",
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId
+);
+/**
+ * A builtin param that resolves to the Cloud project ID, without prompting
+ * the deployer.
+ */
+export const gcloudProject = new InternalExpression(
+  "GCLOUD_PROJECT",
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId
+);
+/**
+ * A builtin param that resolves to the Cloud storage bucket associated
+ * with the function, without prompting the deployer.
+ */
+export const storageBucket = new InternalExpression(
+  "STORAGE_BUCKET",
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.storageBucket
+);
 
 /**
  * Declares a secret param, that will persist values only in Cloud Secret Manager.
