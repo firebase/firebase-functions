@@ -331,7 +331,7 @@ describe("loadStack", () => {
                 select: { options: [{ value: "a" }, { value: "b" }] },
               },
             },
-            { name: "AN_INT", type: "int", default: 22 },
+            { name: "AN_INT", type: "int", default: `{{ params.BAR == "qux" ? 0 : 1 }}` },
             {
               name: "ANOTHER_INT",
               type: "int",

@@ -46,6 +46,13 @@ function quoteIfString<T extends string | number | boolean | string[]>(literal: 
   return typeof literal === "string" ? (`"${literal}"` as T) : literal;
 }
 
+function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
+  return arg instanceof Expression ? arg.value() : arg;
+}
+function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
+  return arg instanceof Expression ? arg.toString() : quoteIfString(arg).toString();
+}
+
 /**
  * A CEL expression corresponding to a ternary operator, e.g {{ cond ? ifTrue : ifFalse }}
  */
@@ -54,8 +61,8 @@ export class TernaryExpression<
 > extends Expression<T> {
   constructor(
     private readonly test: Expression<boolean>,
-    private readonly ifTrue: T,
-    private readonly ifFalse: T
+    private readonly ifTrue: T | Expression<T>,
+    private readonly ifFalse: T | Expression<T>
   ) {
     super();
     this.ifTrue = ifTrue;
@@ -63,11 +70,11 @@ export class TernaryExpression<
   }
 
   value(): T {
-    return this.test.value() ? this.ifTrue : this.ifFalse;
+    return this.test.value() ? valueOf(this.ifTrue) : valueOf(this.ifFalse);
   }
 
   toString() {
-    return `${this.test} ? ${quoteIfString(this.ifTrue)} : ${quoteIfString(this.ifFalse)}`;
+    return `${this.test} ? ${refOf(this.ifTrue)} : ${refOf(this.ifFalse)}`;
   }
 }
 
@@ -78,11 +85,15 @@ export class TernaryExpression<
 export class CompareExpression<
   T extends string | number | boolean | string[]
 > extends Expression<boolean> {
-  cmp: "==" | ">" | ">=" | "<" | "<=";
+  cmp: "==" | "!=" | ">" | ">=" | "<" | "<=";
   lhs: Expression<T>;
-  rhs: T;
+  rhs: T | Expression<T>;
 
-  constructor(cmp: "==" | ">" | ">=" | "<" | "<=", lhs: Expression<T>, rhs: T) {
+  constructor(
+    cmp: "==" | "!=" | ">" | ">=" | "<" | "<=",
+    lhs: Expression<T>,
+    rhs: T | Expression<T>
+  ) {
     super();
     this.cmp = cmp;
     this.lhs = lhs;
@@ -91,28 +102,35 @@ export class CompareExpression<
 
   value(): boolean {
     const left = this.lhs.value();
+    const right = valueOf(this.rhs);
     switch (this.cmp) {
       case "==":
-        return left === this.rhs;
+        return left === right;
+      case "!=":
+        return left !== right;
       case ">":
-        return left > this.rhs;
+        return left > right;
       case ">=":
-        return left >= this.rhs;
+        return left >= right;
       case "<":
-        return left < this.rhs;
+        return left < right;
       case "<=":
-        return left <= this.rhs;
+        return left <= right;
       default:
         throw new Error(`Unknown comparator ${this.cmp}`);
     }
   }
 
   toString() {
-    return `${this.lhs} ${this.cmp} ${quoteIfString(this.rhs)}`;
+    const rhsStr = refOf(this.rhs);
+    return `${this.lhs} ${this.cmp} ${rhsStr}`;
   }
 
-  then(ifTrue: T, ifFalse: T) {
-    return new TernaryExpression(this, ifTrue, ifFalse);
+  then<retT extends string | number | boolean | string[]>(
+    ifTrue: retT | Expression<retT>,
+    ifFalse: retT | Expression<retT>
+  ) {
+    return new TernaryExpression<retT>(this, ifTrue, ifFalse);
   }
 }
 
@@ -161,16 +179,29 @@ export interface SelectOptions<T = unknown> {
   value: T;
 }
 
-export type ParamSpec<T = unknown> = {
+export type ParamSpec<T extends string | number | boolean | string[]> = {
   name: string;
-  default?: T;
+  default?: T | Expression<T>;
   label?: string;
   description?: string;
   type: ParamValueType;
   input?: ParamInput<T>;
 };
 
-export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, "name" | "type">;
+// N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
+export type WireParamSpec<T extends string | number | boolean | string[]> = {
+  name: string;
+  default?: T | string;
+  label?: string;
+  description?: string;
+  type: ParamValueType;
+  input?: ParamInput<T>;
+};
+
+export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
+  ParamSpec<T>,
+  "name" | "type"
+>;
 
 export abstract class Param<T extends string | number | boolean | string[]> extends Expression<T> {
   static type: ParamValueType = "string";
@@ -183,26 +214,54 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     throw new Error("Not implemented");
   }
 
-  cmp(cmp: "==" | ">" | ">=" | "<" | "<=", rhs: T) {
+  cmp(cmp: "==" | "!=" | ">" | ">=" | "<" | "<=", rhs: T | Expression<T>) {
     return new CompareExpression<T>(cmp, this, rhs);
   }
 
-  equals(rhs: T) {
+  equals(rhs: T | Expression<T>) {
     return this.cmp("==", rhs);
+  }
+
+  notEquals(rhs: T | Expression<T>) {
+    return this.cmp("!=", rhs);
+  }
+
+  greaterThan(rhs: T | Expression<T>) {
+    return this.cmp(">", rhs);
+  }
+
+  greaterThanOrEqualTo(rhs: T | Expression<T>) {
+    return this.cmp(">=", rhs);
+  }
+
+  lessThan(rhs: T | Expression<T>) {
+    return this.cmp("<", rhs);
+  }
+
+  lessThanorEqualTo(rhs: T | Expression<T>) {
+    return this.cmp("<=", rhs);
   }
 
   toString(): string {
     return `params.${this.name}`;
   }
 
-  toSpec(): ParamSpec<T> {
-    const out: ParamSpec = {
+  toSpec(): WireParamSpec<T> {
+    const { default: paramDefault, ...otherOptions } = this.options;
+
+    const out: WireParamSpec<T> = {
       name: this.name,
-      ...this.options,
+      ...otherOptions,
       type: (this.constructor as typeof Param).type,
     };
 
-    return out as ParamSpec<T>;
+    if (paramDefault instanceof Expression) {
+      out.default = paramDefault.toCEL();
+    } else if (paramDefault !== undefined) {
+      out.default = paramDefault;
+    }
+
+    return out;
   }
 }
 
@@ -252,10 +311,10 @@ export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = "boolean";
 
   value(): boolean {
-    return !!process.env[this.name];
+    return !!process.env[this.name] && process.env[this.name] === "true";
   }
 
-  then<T extends string | number | boolean>(ifTrue: T, ifFalse: T) {
+  then<T extends string | number | boolean>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
     return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
@@ -267,16 +326,7 @@ export class ListParam extends Param<string[]> {
     throw new Error("Not implemented");
   }
 
-  toSpec(): ParamSpec<string[]> {
-    const out: ParamSpec = {
-      name: this.name,
-      type: "list",
-      ...this.options,
-    };
-    if (this.options.default && this.options.default.length > 0) {
-      out.default = this.options.default.join(",");
-    }
-
-    return out as ParamSpec<string[]>;
+  toSpec(): WireParamSpec<string[]> {
+    throw new Error("Not implemented");
   }
 }

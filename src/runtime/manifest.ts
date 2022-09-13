@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { Expression } from "../params";
-import { ParamSpec } from "../params/types";
+import { WireParamSpec } from "../params/types";
 
 /**
  * An definition of a function as appears in the Manifest.
@@ -90,7 +90,7 @@ export interface ManifestRequiredAPI {
  */
 export interface ManifestStack {
   specVersion: "v1alpha1";
-  params?: ParamSpec[];
+  params?: WireParamSpec<any>[];
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
 }
