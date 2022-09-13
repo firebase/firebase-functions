@@ -46,9 +46,9 @@ export interface ThresholdAlertPayload {
   thresholdValue: number;
   /* The unit for the alert threshold (e.g. "percent", "seconds") */
   thresholdUnit: string;
-  /* The percentile of the alert condition, can be 0 if percentile is not applicable to the alert condition; range: [0, 100] */
+  /* The percentile of the alert condition, can be 0 if percentile is not applicable to the alert condition and omitted; range: [1, 100] */
   conditionPercentile?: number;
-  /* The app version this alert was triggered for, can be empty if the alert is for a network request (because the alert was checked against data from all versions of app) or a web app (where the app is versionless) */
+  /* The app version this alert was triggered for, can be omitted if the alert is for a network request (because the alert was checked against data from all versions of app) or a web app (where the app is versionless) */
   appVersion?: string;
   /* The value that violated the alert condition (e.g. "76.5", "3") */
   violationValue: number;
