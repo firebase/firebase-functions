@@ -253,7 +253,7 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    handler(raw as AppDistributionEvent<NewTesterDevicePayload>);
+    return handler(raw as AppDistributionEvent<NewTesterDevicePayload>);
   };
 
   func.run = handler;
