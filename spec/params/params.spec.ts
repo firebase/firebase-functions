@@ -71,6 +71,16 @@ describe("Params value extraction", () => {
     expect(str.equals("asdf").value()).to.be.true;
     expect(str.equals(diffStr).value()).to.be.false;
     expect(str.equals("jkl;").value()).to.be.false;
+    expect(str.notEquals(diffStr).value()).to.be.true;
+    expect(str.notEquals("jkl;").value()).to.be.true;
+    expect(str.lessThan(diffStr).value()).to.be.true;
+    expect(str.lessThan("jkl;").value()).to.be.true;
+    expect(str.lessThanorEqualTo(diffStr).value()).to.be.true;
+    expect(str.lessThanorEqualTo("jkl;").value()).to.be.true;
+    expect(str.greaterThan(diffStr).value()).to.be.false;
+    expect(str.greaterThan("jkl;").value()).to.be.false;
+    expect(str.greaterThanOrEqualTo(diffStr).value()).to.be.false;
+    expect(str.greaterThanOrEqualTo("jkl;").value()).to.be.false;
 
     const int = params.defineInt("AN_INT");
     const sameInt = params.defineInt("SAME_INT");
@@ -79,6 +89,17 @@ describe("Params value extraction", () => {
     expect(int.equals(-11).value()).to.be.true;
     expect(int.equals(diffInt).value()).to.be.false;
     expect(int.equals(22).value()).to.be.false;
+
+    expect(int.notEquals(diffInt).value()).to.be.true;
+    expect(int.notEquals(22).value()).to.be.true;
+    expect(int.greaterThan(diffInt).value()).to.be.false;
+    expect(int.greaterThan(22).value()).to.be.false;
+    expect(int.greaterThanOrEqualTo(diffInt).value()).to.be.false;
+    expect(int.greaterThanOrEqualTo(22).value()).to.be.false;
+    expect(int.lessThan(diffInt).value()).to.be.true;
+    expect(int.lessThan(22).value()).to.be.true;
+    expect(int.lessThanorEqualTo(diffInt).value()).to.be.true;
+    expect(int.lessThanorEqualTo(22).value()).to.be.true;
   });
 
   it("can use all the comparison operators when explicitly requested", () => {

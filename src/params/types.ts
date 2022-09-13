@@ -257,7 +257,7 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
 
     if (paramDefault instanceof Expression) {
       out.default = paramDefault.toCEL();
-    } else if (paramDefault) {
+    } else if (paramDefault !== undefined) {
       out.default = paramDefault;
     }
 
