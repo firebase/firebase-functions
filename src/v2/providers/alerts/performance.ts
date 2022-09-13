@@ -158,15 +158,13 @@ export function onThresholdAlertPublished(
 export function getOptsAndApp(
   appIdOrOpts: string | PerformanceOptions
 ): [EventHandlerOptions, string | undefined] {
-  let opts: EventHandlerOptions;
-  let appId: string | undefined;
-  if (typeof appIdOrOpts === 'string') {
-    opts = {};
-    appId = appIdOrOpts;
-  } else {
-    appId = appIdOrOpts.appId;
-    opts = { ...appIdOrOpts };
-    delete (opts as any).appId;
+  if (typeof appIdOrOpts === "string") {
+    return [{}, appIdOrOpts];
   }
+
+  const opts: EventHandlerOptions = { ...appIdOrOpts };
+  const appId: string | undefined = appIdOrOpts.appId;
+  delete (opts as any).appId;
+
   return [opts, appId];
 }
