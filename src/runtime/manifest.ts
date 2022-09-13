@@ -102,8 +102,8 @@ export interface ManifestStack {
  * @internal
  */
 export function stackToWire(stack: ManifestStack): Object {
-  let wireStack = stack as any;
-  let traverse = function traverse(obj: Object) {
+  const wireStack = stack as any;
+  const traverse = function traverse(obj: Object) {
     for (const [key, val] of Object.entries(obj)) {
       if (val instanceof Expression) {
         obj[key] = val.toCEL();
