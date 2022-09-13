@@ -125,4 +125,44 @@ describe('performance', () => {
       expect(appId).to.equal(APPID);
     });
   });
+
+  describe('convertPayload', () => {
+    it('should return the same payload', () => {
+      const payload = {
+        a: 'b',
+        conditionPercentile: 23,
+        appVersion: '3',
+      };
+
+      const convertedPayload = performance.convertPayload(payload as any);
+
+      expect(convertedPayload).to.deep.eq(payload);
+    });
+
+    it('should return the same payload if the fields are undefined', () => {
+      const payload = {
+        a: 'b',
+      };
+
+      const convertedPayload = performance.convertPayload(payload as any);
+
+      expect(convertedPayload).to.deep.eq({
+        a: 'b',
+      });
+    });
+
+    it('should remove fields', () => {
+      const payload = {
+        a: 'b',
+        conditionPercentile: 0,
+        appVersion: '',
+      };
+
+      const convertedPayload = performance.convertPayload(payload as any);
+
+      expect(convertedPayload).to.deep.eq({
+        a: 'b',
+      });
+    });
+  });
 });

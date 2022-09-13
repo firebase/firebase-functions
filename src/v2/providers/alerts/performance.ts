@@ -47,9 +47,9 @@ export interface ThresholdAlertPayload {
   /* The unit for the alert threshold (e.g. "percent", "seconds") */
   thresholdUnit: string;
   /* The percentile of the alert condition, can be 0 if percentile is not applicable to the alert condition; range: [0, 100] */
-  conditionPercentile: number;
+  conditionPercentile?: number;
   /* The app version this alert was triggered for, can be empty if the alert is for a network request (because the alert was checked against data from all versions of app) or a web app (where the app is versionless) */
-  appVersion: string;
+  appVersion?: string;
   /* The value that violated the alert condition (e.g. "76.5", "3") */
   violationValue: number;
   /* The unit for the violation value (e.g. "percent", "seconds") */
@@ -142,7 +142,10 @@ export function onThresholdAlertPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as PerformanceEvent<ThresholdAlertPayload>);
+    const event = raw as PerformanceEvent<ThresholdAlertPayload>;
+    const convertedPayload = convertPayload(event.data.payload);
+    event.data.payload = convertedPayload;
+    return handler(event);
   };
 
   func.run = handler;
@@ -167,4 +170,28 @@ export function getOptsAndApp(
   delete (opts as any).appId;
 
   return [opts, appId];
+}
+
+/**
+ * Helper function to convert the raw payload of a {@link PerformanceEvent} to a {@link ThresholdAlertPayload}
+ * @internal
+ */
+export function convertPayload(
+  raw: ThresholdAlertPayload
+): ThresholdAlertPayload {
+  const payload: ThresholdAlertPayload = { ...raw };
+  if (
+    typeof payload.conditionPercentile !== 'undefined' &&
+    payload.conditionPercentile === 0
+  ) {
+    delete (payload as any).conditionPercentile;
+  }
+  if (
+    typeof payload.appVersion !== 'undefined' &&
+    payload.appVersion.length === 0
+  ) {
+    delete (payload as any).appVersion;
+  }
+
+  return payload;
 }
