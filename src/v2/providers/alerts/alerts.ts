@@ -60,17 +60,17 @@ export const eventType = 'google.firebase.firebasealerts.alerts.v1.published';
 
 /** The underlying alert type of the Firebase Alerts provider. */
 export type AlertType =
-  | "crashlytics.newFatalIssue"
-  | "crashlytics.newNonfatalIssue"
-  | "crashlytics.regression"
-  | "crashlytics.stabilityDigest"
-  | "crashlytics.velocity"
-  | "crashlytics.newAnrIssue"
-  | "billing.planUpdate"
-  | "billing.automatedPlanUpdate"
-  | "appDistribution.newTesterIosDevice"
-  | "appDistribution.inAppFeedback"
-  | "performance.threshold"
+  | 'crashlytics.newFatalIssue'
+  | 'crashlytics.newNonfatalIssue'
+  | 'crashlytics.regression'
+  | 'crashlytics.stabilityDigest'
+  | 'crashlytics.velocity'
+  | 'crashlytics.newAnrIssue'
+  | 'billing.planUpdate'
+  | 'billing.automatedPlanUpdate'
+  | 'appDistribution.newTesterIosDevice'
+  | 'appDistribution.inAppFeedback'
+  | 'performance.threshold'
   | string;
 
 /**

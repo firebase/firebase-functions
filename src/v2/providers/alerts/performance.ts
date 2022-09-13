@@ -25,9 +25,9 @@
  * @packageDocumentation
  */
 
-import { CloudEvent, CloudFunction } from "../../core";
-import { EventHandlerOptions } from "../../options";
-import { FirebaseAlertData, getEndpointAnnotation } from ".";
+import { FirebaseAlertData, getEndpointAnnotation } from '.';
+import { CloudEvent, CloudFunction } from '../../core';
+import { EventHandlerOptions } from '../../options';
 
 /**
  * The internal payload object for a performance threshold alert.
@@ -158,7 +158,7 @@ export function onThresholdAlertPublished(
 export function getOptsAndApp(
   appIdOrOpts: string | PerformanceOptions
 ): [EventHandlerOptions, string | undefined] {
-  if (typeof appIdOrOpts === "string") {
+  if (typeof appIdOrOpts === 'string') {
     return [{}, appIdOrOpts];
   }
 
