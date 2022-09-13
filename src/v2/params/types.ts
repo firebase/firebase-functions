@@ -46,7 +46,7 @@ export abstract class Expression<
 function quoteIfString<T extends string | number | boolean | string[]>(
   literal: T
 ): T {
-  // TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
+  //TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
   return typeof literal === 'string' ? (`"${literal}"` as T) : literal;
 }
 
@@ -171,14 +171,14 @@ export interface SelectOptions<T = unknown> {
   value: T;
 }
 
-export interface ParamSpec<T = unknown> {
+export type ParamSpec<T = unknown> = {
   name: string;
   default?: T;
   label?: string;
   description?: string;
   type: ParamValueType;
   input?: ParamInput<T>;
-}
+};
 
 export type ParamOptions<T = unknown> = Omit<ParamSpec<T>, 'name' | 'type'>;
 
@@ -219,8 +219,8 @@ export abstract class Param<
 }
 
 export class SecretParam {
-  static type: ParamValueType = 'secret';
   name: string;
+  static type: ParamValueType = 'secret';
 
   constructor(name: string) {
     this.name = name;

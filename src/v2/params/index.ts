@@ -27,14 +27,14 @@
 
 import {
   BooleanParam,
-  Expression,
   FloatParam,
   IntParam,
   ListParam,
   Param,
   ParamOptions,
-  SecretParam,
   StringParam,
+  SecretParam,
+  Expression,
 } from './types';
 
 export { ParamOptions, Expression };
