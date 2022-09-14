@@ -55,9 +55,8 @@ describe("Params value extraction", () => {
     expect(falseParam.value()).to.be.false;
   });
 
-
   it("extracts the special case internal params from env.FIREBASE_CONFIG", () => {
-    process.env.FIREBASE_CONFIG = JSON.stringify({  
+    process.env.FIREBASE_CONFIG = JSON.stringify({
       projectId: "foo",
       storageBucket: "foo.appspot.com",
       databaseURL: "https://foo.firebaseio.com",
@@ -66,8 +65,8 @@ describe("Params value extraction", () => {
     expect(params.gcloudProject.value()).to.equal("foo");
     expect(params.projectID.value()).to.equal("foo");
     expect(params.storageBucket.value()).to.equal("foo.appspot.com");
-    
-    process.env.FIREBASE_CONFIG = JSON.stringify({projectId: "foo"});
+
+    process.env.FIREBASE_CONFIG = JSON.stringify({ projectId: "foo" });
     expect(params.databaseURL.value()).to.equal("");
     expect(params.gcloudProject.value()).to.equal("foo");
     expect(params.projectID.value()).to.equal("foo");
