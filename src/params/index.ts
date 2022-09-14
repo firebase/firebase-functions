@@ -69,33 +69,34 @@ export function clearParams() {
  * A builtin param that resolves to the default RTDB database URL associated
  * with the project, without prompting the deployer. Empty string if none exists.
  */
-export const databaseURL = new InternalExpression(
+export const databaseURL: Expression<string> = new InternalExpression(
   "DATABASE_URL",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.databaseURL
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.databaseURL || ""
 );
 /**
  * A builtin param that resolves to the Cloud project ID associated with
  * the project, without prompting the deployer.
  */
-export const projectID = new InternalExpression(
+export const projectID: Expression<string> = new InternalExpression(
   "PROJECT_ID",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
 );
 /**
  * A builtin param that resolves to the Cloud project ID, without prompting
  * the deployer.
  */
-export const gcloudProject = new InternalExpression(
+export const gcloudProject: Expression<string> = new InternalExpression(
   "GCLOUD_PROJECT",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
 );
 /**
  * A builtin param that resolves to the Cloud storage bucket associated
- * with the function, without prompting the deployer.
+ * with the function, without prompting the deployer. Empty string if not
+ * defined.
  */
-export const storageBucket = new InternalExpression(
+export const storageBucket: Expression<string> = new InternalExpression(
   "STORAGE_BUCKET",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.storageBucket
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.storageBucket || ""
 );
 
 /**
