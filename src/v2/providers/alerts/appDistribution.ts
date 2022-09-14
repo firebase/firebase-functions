@@ -27,8 +27,8 @@
 
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
-import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
 import { Expression } from '../../params';
+import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
 
 /**
  * The internal payload object for adding a new tester device to app distribution.

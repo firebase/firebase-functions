@@ -38,8 +38,8 @@ import {
   RetryConfig,
 } from '../../common/providers/tasks';
 import * as options from '../options';
-import { HttpsFunction } from './https';
 import { Expression } from '../params';
+import { HttpsFunction } from './https';
 
 export { AuthData, Request };
 

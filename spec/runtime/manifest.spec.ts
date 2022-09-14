@@ -1,5 +1,5 @@
-import { stackToWire, ManifestStack } from '../../src/runtime/manifest';
 import { expect } from 'chai';
+import { ManifestStack, stackToWire } from '../../src/runtime/manifest';
 import * as params from '../../src/v2/params';
 
 describe('stackToWire', () => {

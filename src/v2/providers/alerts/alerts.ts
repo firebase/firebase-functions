@@ -70,6 +70,7 @@ export type AlertType =
   | 'billing.automatedPlanUpdate'
   | 'appDistribution.newTesterIosDevice'
   | 'appDistribution.inAppFeedback'
+  | 'performance.threshold'
   | string;
 
 /**
