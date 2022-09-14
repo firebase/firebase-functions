@@ -3,11 +3,11 @@ const functionsv2 = require("../../../../src/v2/index");
 const params = require("../../../../src/params");
 
 params.defineString("BORING");
-params.defineString("FOO", { input: { text: { validationRegex: "w+" } } });
-params.defineString("BAR", { default: "{{ params.FOO }}", label: "asdf" });
+const foo = params.defineString("FOO", { input: { text: { validationRegex: "w+" } } });
+const bar = params.defineString("BAR", { default: foo , label: "asdf" });
 params.defineString("BAZ", { input: { select: { options: [{ value: "a" }, { value: "b" }] } } });
 
-params.defineInt("AN_INT", { default: 22 });
+params.defineInt("AN_INT", { default: bar.equals("qux").then(0, 1) });
 params.defineInt("ANOTHER_INT", {
   input: {
     select: {

@@ -288,7 +288,7 @@ export function optionsToEndpoint(
  */
 export function __getSpec(): {
   globalOptions: GlobalOptions;
-  params: ParamSpec[];
+  params: ParamSpec<any>[];
 } {
   return {
     globalOptions: getGlobalOptions(),
