@@ -134,6 +134,7 @@ export function defineFloat(name: string, options: ParamOptions<number> = {}): F
 /**
  * Declare a list param (array of strings).
  *
+ * @hiddden
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `string[]` return type for `.value`.
