@@ -271,3 +271,24 @@ export function getOptsAndAlertTypeAndApp(
   }
   return [opts, alertType, appId];
 }
+
+/**
+ * Helper function to covert alert type & app id in the CloudEvent to camel case.
+ * @internal
+ */
+export function convertAlertAndApp(
+  raw: CloudEvent<unknown>
+): CloudEvent<unknown> {
+  const event = { ...raw };
+
+  if ('alerttype' in event) {
+    (event as any).alertType = (event as any).alerttype;
+    delete (event as any).alerttype;
+  }
+  if ('appid' in event) {
+    (event as any).appId = (event as any).appid;
+    delete (event as any).appid;
+  }
+
+  return event;
+}

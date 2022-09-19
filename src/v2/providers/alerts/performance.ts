@@ -25,9 +25,13 @@
  * @packageDocumentation
  */
 
-import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import { EventHandlerOptions } from '../../options';
+import {
+  convertAlertAndApp,
+  FirebaseAlertData,
+  getEndpointAnnotation,
+} from './alerts';
 
 /**
  * The internal payload object for a performance threshold alert.
@@ -142,7 +146,9 @@ export function onThresholdAlertPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as PerformanceEvent<ThresholdAlertPayload>;
+    const event = convertAlertAndApp(raw) as PerformanceEvent<
+      ThresholdAlertPayload
+    >;
     const convertedPayload = convertPayload(event.data.payload);
     event.data.payload = convertedPayload;
     return handler(event);

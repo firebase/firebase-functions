@@ -28,7 +28,11 @@
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 import { Expression } from '../../params';
-import { FirebaseAlertData, getEndpointAnnotation } from './alerts';
+import {
+  convertAlertAndApp,
+  FirebaseAlertData,
+  getEndpointAnnotation,
+} from './alerts';
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
@@ -253,7 +257,9 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as AppDistributionEvent<NewTesterDevicePayload>);
+    return handler(
+      convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>
+    );
   };
 
   func.run = handler;
@@ -326,7 +332,9 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as AppDistributionEvent<InAppFeedbackPayload>);
+    return handler(
+      convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>
+    );
   };
 
   func.run = handler;

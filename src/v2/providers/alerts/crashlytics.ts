@@ -25,10 +25,14 @@
  * @packageDocumentation
  */
 
-import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
 import { Expression } from '../../params';
+import {
+  convertAlertAndApp,
+  FirebaseAlertData,
+  getEndpointAnnotation,
+} from './alerts';
 
 /** Generic Crashlytics issue interface */
 export interface Issue {
@@ -631,7 +635,7 @@ export function onOperation<T>(
   );
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as CrashlyticsEvent<T>);
+    return handler(convertAlertAndApp(raw) as CrashlyticsEvent<T>);
   };
 
   func.run = handler;

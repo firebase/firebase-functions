@@ -25,9 +25,13 @@
  * @packageDocumentation
  */
 
-import { FirebaseAlertData, getEndpointAnnotation } from '.';
 import { CloudEvent, CloudFunction } from '../../core';
 import * as options from '../../options';
+import {
+  convertAlertAndApp,
+  FirebaseAlertData,
+  getEndpointAnnotation,
+} from './alerts';
 
 /**
  * The internal payload object for billing plan updates.
@@ -167,7 +171,7 @@ export function onOperation<T>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as BillingEvent<T>);
+    return handler(convertAlertAndApp(raw) as BillingEvent<T>);
   };
 
   func.run = handler;
