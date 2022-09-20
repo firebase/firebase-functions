@@ -207,7 +207,7 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as AlertEvent<T>);
+    return handler(convertAlertAndApp(raw) as AlertEvent<T>);
   };
 
   func.run = handler;
@@ -270,4 +270,25 @@ export function getOptsAndAlertTypeAndApp(
     delete (opts as any).appId;
   }
   return [opts, alertType, appId];
+}
+
+/**
+ * Helper function to covert alert type & app id in the CloudEvent to camel case.
+ * @internal
+ */
+export function convertAlertAndApp(
+  raw: CloudEvent<unknown>
+): CloudEvent<unknown> {
+  const event = { ...raw };
+
+  if ('alerttype' in event) {
+    (event as any).alertType = (event as any).alerttype;
+    delete (event as any).alerttype;
+  }
+  if ('appid' in event) {
+    (event as any).appId = (event as any).appid;
+    delete (event as any).appid;
+  }
+
+  return event;
 }
