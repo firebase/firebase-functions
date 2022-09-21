@@ -205,6 +205,8 @@ describe('alerts', () => {
 
       expect(converted).to.deep.eq({
         ...event,
+        alerttype: 'my-alert',
+        appid: 'my-app',
         alertType: 'my-alert',
         appId: 'my-app',
       });
