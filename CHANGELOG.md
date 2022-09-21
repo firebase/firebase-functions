@@ -1,0 +1,1 @@
+- Fix reference docs for performance monitoring.
