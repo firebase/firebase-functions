@@ -283,11 +283,9 @@ export function convertAlertAndApp(
 
   if ('alerttype' in event) {
     (event as any).alertType = (event as any).alerttype;
-    delete (event as any).alerttype;
   }
   if ('appid' in event) {
     (event as any).appId = (event as any).appid;
-    delete (event as any).appid;
   }
 
   return event;
