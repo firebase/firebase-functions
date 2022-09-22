@@ -266,8 +266,8 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
 }
 
 export class SecretParam {
-  name: string;
   static type: ParamValueType = "secret";
+  name: string;
 
   constructor(name: string) {
     this.name = name;

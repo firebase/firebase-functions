@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "3.23.0",
+  "version": "3.24.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -52,6 +52,7 @@
     "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
     "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
     "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
+    "./v2/alerts/performance": "./lib/v2/providers/alerts/performance.js",
     "./v2/eventarc": "./lib/v2/providers/eventarc.js",
     "./v2/identity": "./lib/v2/providers/identity.js",
     "./v2/database": "./lib/v2/providers/database.js",
@@ -113,6 +114,9 @@
       ],
       "v2/alerts/crashlytics": [
         "lib/v2/providers/alerts/crashlytics"
+      ],
+      "v2/alerts/performance": [
+        "lib/v2/providers/alerts/performance"
       ],
       "v2/base": [
         "lib/v2/base"

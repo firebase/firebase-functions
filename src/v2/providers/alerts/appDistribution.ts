@@ -28,7 +28,7 @@
 import { CloudEvent, CloudFunction } from "../../core";
 import * as options from "../../options";
 import { wrapTraceContext } from "../../trace";
-import { FirebaseAlertData, getEndpointAnnotation } from "./alerts";
+import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import { Expression } from "../../../params";
 
 /**
@@ -243,7 +243,9 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as AppDistributionEvent<NewTesterDevicePayload>);
+    return wrapTraceContext(
+      handler(convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>)
+    );
   };
 
   func.run = handler;
@@ -306,7 +308,9 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(raw as AppDistributionEvent<InAppFeedbackPayload>);
+    return wrapTraceContext(
+      handler(convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>)
+    );
   };
 
   func.run = handler;
