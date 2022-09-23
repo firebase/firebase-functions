@@ -36,7 +36,10 @@ export type Split<S extends string, D extends string> =
     S extends `${D}${infer Tail}`
     ? [...Split<Tail, D>]
     : S extends `${infer Head}${D}${infer Tail}`
-    ? [Head, ...Split<Tail, D>]
+    ? // Drop types that are exactly string; they'll eat up literal string types
+      string extends Head
+      ? [...Split<Tail, D>]
+      : [Head, ...Split<Tail, D>]
     : // A string without delimiters splits into an array of itself
       [S];
 

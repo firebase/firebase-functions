@@ -95,5 +95,15 @@ describe("Params namespace", () => {
         log: "world",
       } as const);
     });
+
+    it("extracts strings with params interpolated", () => {
+      // NOTE: be wary of this test. Hover over the types to see what they're
+      // parsing as. When doing TDD this test surprisingly passed. That's
+      // because ParamsOf was returning the empty interface because it did
+      // not special case for Record<string, never>. This meant that any input
+      // would pass the test. Fixing this issue in the test suite is as copmlex
+      // as fixing the bug to begin with and would probably share implementations.
+      expectType<ParamsOf<`${string}/{uid}`>>({ uid: "uid" });
+    });
   });
 });
