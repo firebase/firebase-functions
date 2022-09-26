@@ -25,9 +25,9 @@
  * @packageDocumentation
  */
 
-import { FirebaseAlertData, getEndpointAnnotation } from ".";
 import { CloudEvent, CloudFunction } from "../../core";
 import { wrapTraceContext } from "../../trace";
+import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
 
 /**
@@ -152,7 +152,7 @@ export function onOperation<T>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(raw as BillingEvent<T>);
+    return wrapTraceContext(handler(convertAlertAndApp(raw) as BillingEvent<T>));
   };
 
   func.run = handler;
