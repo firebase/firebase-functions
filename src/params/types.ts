@@ -46,6 +46,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
  * cannot be instantiated by developers, but we provide several canned instances
  * of it to make available params that will never have to be defined at
  * deployment time, and can always be read from process.env.
+ * @internal
  */
 export class InternalExpression extends Expression<string> {
   constructor(

@@ -182,6 +182,9 @@ describe("Params value extraction", () => {
 describe("Params as CEL", () => {
   it("does not allow you to reference internal parameters in the manifest", () => {
     expect(() => params.projectID.toCEL()).to.throw();
+    expect(() => params.gcloudProject.toCEL()).to.throw();
+    expect(() => params.databaseURL.toCEL()).to.throw();
+    expect(() => params.storageBucket.toCEL()).to.throw();
   });
 
   it("identity expressions", () => {
