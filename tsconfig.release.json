@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "declarationMap": true,
     "lib": ["es2018"],
     "module": "commonjs",
     "noImplicitAny": false,
