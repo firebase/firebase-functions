@@ -1,1 +1,1 @@
-- Improve authorization for tasks. (#1073)
+- Fix reference docs for performance monitoring.

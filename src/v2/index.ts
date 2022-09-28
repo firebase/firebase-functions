@@ -20,17 +20,48 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * The V2 API for Cloud Functions for Firebase.
+ * This SDK also supports deep imports. For example, the namespace
+ * 'pubsub' is available at 'firebase-functions/v2' or is directly importable
+ * from 'firebase-functions/v2/pubsub'.
+ * @packageDocumentation
+ */
+
 import * as logger from '../logger';
-import * as params from './params';
 import * as alerts from './providers/alerts';
+import * as database from './providers/database';
+import * as eventarc from './providers/eventarc';
 import * as https from './providers/https';
+import * as identity from './providers/identity';
 import * as pubsub from './providers/pubsub';
+import * as scheduler from './providers/scheduler';
 import * as storage from './providers/storage';
 import * as tasks from './providers/tasks';
-import * as eventarc from './providers/eventarc';
 
-export { alerts, https, pubsub, storage, logger, params, tasks, eventarc };
+export {
+  alerts,
+  database,
+  storage,
+  https,
+  identity,
+  pubsub,
+  logger,
+  tasks,
+  eventarc,
+  scheduler,
+};
 
-export { setGlobalOptions, GlobalOptions } from './options';
+export {
+  setGlobalOptions,
+  GlobalOptions,
+  SupportedRegion,
+  MemoryOption,
+  VpcEgressSetting,
+  IngressSetting,
+  EventHandlerOptions,
+} from './options';
+
+export { Change } from '../common/change';
 
 export { CloudFunction, CloudEvent } from './core';

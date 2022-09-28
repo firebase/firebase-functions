@@ -11,6 +11,7 @@
     "typeRoots": ["./node_modules/@types"]
   },
   "files": [
+    "./src/types/global.d.ts",
     "./src/index.ts",
     "./src/logger/index.ts",
     "./src/logger/compat.ts",

@@ -20,11 +20,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Cloud functions to handle HTTPS request or callable RPCs.
+ * @packageDocumentation
+ */
+
 import * as cors from 'cors';
 import * as express from 'express';
 import { convertIfPresent, convertInvoker } from '../../common/encoding';
 
-import * as options from '../options';
+import { isDebugFeatureEnabled } from '../../common/debug';
 import {
   CallableRequest,
   FunctionsErrorCode,
@@ -33,28 +38,150 @@ import {
   Request,
 } from '../../common/providers/https';
 import { ManifestEndpoint } from '../../runtime/manifest';
+import * as options from '../options';
+import { GlobalOptions, SupportedRegion } from '../options';
+import { Expression } from '../params';
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
-export interface HttpsOptions extends Omit<options.GlobalOptions, 'region'> {
-  region?:
-    | options.SupportedRegion
-    | string
-    | Array<options.SupportedRegion | string>;
+/**
+ * Options that can be set on an individual HTTPS function.
+ */
+export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
+  /** HTTP functions can override global options and can specify multiple regions to deploy to. */
+  region?: SupportedRegion | string | Array<SupportedRegion | string>;
+  /** If true, allows CORS on requests to this function.
+   * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
+   * If this is an `Array`, allows requests from domains matching at least one entry of the array.
+   * Defaults to true for {@link https.CallableFunction} and false otherwise.
+   */
   cors?: string | boolean | RegExp | Array<string | RegExp>;
+
+  /**
+   * Amount of memory to allocate to a function.
+   * A value of null restores the defaults of 256MB.
+   */
+  memory?: options.MemoryOption | Expression<number> | null;
+
+  /**
+   * Timeout for the function in sections, possible values are 0 to 540.
+   * HTTPS functions can specify a higher timeout.
+   * A value of null restores the default of 60s
+   * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
+   * function depends on the type of function: Event handling functions have a
+   * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
+   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * timeout of 1,800s (30 minutes)
+   */
+  timeoutSeconds?: number | Expression<number> | null;
+
+  /**
+   * Min number of actual instances to be running at a given time.
+   * Instances will be billed for memory allocation and 10% of CPU allocation
+   * while idle.
+   * A value of null restores the default min instances.
+   */
+  minInstances?: number | Expression<number> | null;
+
+  /**
+   * Max number of instances to be running in parallel.
+   * A value of null restores the default max instances.
+   */
+  maxInstances?: number | Expression<number> | null;
+
+  /**
+   * Number of requests a function can serve at once.
+   * Can only be applied to functions running on Cloud Functions v2.
+   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
+   * The maximum value for concurrency is 1,000.
+   */
+  concurrency?: number | Expression<number> | null;
+
+  /**
+   * Fractional number of CPUs to allocate to a function.
+   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * This is different from the defaults when using the gcloud utility and is different from
+   * the fixed amount assigned in Google Cloud Functions generation 1.
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * to the value "gcf_gen1"
+   */
+  cpu?: number | 'gcf_gen1';
+
+  /**
+   * Connect cloud function to specified VPC connector.
+   * A value of null removes the VPC connector
+   */
+  vpcConnector?: string | null;
+
+  /**
+   * Egress settings for VPC connector.
+   * A value of null turns off VPC connector egress settings
+   */
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+
+  /**
+   * Specific service account for the function to run as.
+   * A value of null restores the default service account.
+   */
+  serviceAccount?: string | null;
+
+  /**
+   * Ingress settings which control where this function can be called from.
+   * A value of null turns off ingress settings.
+   */
+  ingressSettings?: options.IngressSetting | null;
+
+  /**
+   * User labels to set on the function.
+   */
+  labels?: Record<string, string>;
+
+  /**
+   * Invoker to set access control on https functions.
+   */
+  invoker?: 'public' | 'private' | string | string[];
+
+  /*
+   * Secrets to bind to a function.
+   */
+  secrets?: string[];
+
+  /** Whether failed executions should be delivered again. */
+  retry?: boolean;
 }
 
+/**
+ * Handles HTTPS requests.
+ */
 export type HttpsFunction = ((
+  /** An Express request object representing the HTTPS call to the function. */
   req: Request,
+  /** An Express response object, for this function to respond to callers. */
   res: express.Response
 ) => void | Promise<void>) & {
+  /** @alpha */
   __trigger?: unknown;
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 };
+
+/**
+ * Creates a callable method for clients to call using a Firebase SDK.
+ */
 export interface CallableFunction<T, Return> extends HttpsFunction {
+  /** Executes the handler function with the provided data as input. Used for unit testing.
+   * @param data - An input for the handler function.
+   * @returns The output of the handler function.
+   */
   run(data: CallableRequest<T>): Return;
 }
-
+/**
+ * Handles HTTPS requests.
+ * @param opts - Options to set on this function
+ * @param handler - A function that takes a {@link https.Request} and response object, same signature as an Express app.
+ * @returns A function that you can export and deploy.
+ */
 export function onRequest(
   opts: HttpsOptions,
   handler: (
@@ -62,6 +189,11 @@ export function onRequest(
     response: express.Response
   ) => void | Promise<void>
 ): HttpsFunction;
+/**
+ * Handles HTTPS requests.
+ * @param handler - A function that takes a {@link https.Request} and response object, same signature as an Express app.
+ * @returns A function that you can export and deploy.
+ */
 export function onRequest(
   handler: (
     request: Request,
@@ -88,12 +220,13 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if ('cors' in opts) {
+  if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
+    const origin = isDebugFeatureEnabled('enableCors') ? true : opts.cors;
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
         res.on('finish', resolve);
-        cors({ origin: opts.cors })(req, res, () => {
+        cors({ origin })(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
       });
@@ -111,9 +244,6 @@ export function onRequest(
         opts as options.GlobalOptions
       );
       const trigger: any = {
-        // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
-        // has migrated to "platform".
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
@@ -162,10 +292,21 @@ export function onRequest(
   return handler as HttpsFunction;
 }
 
+/**
+ * Declares a callable method for clients to call using a Firebase SDK.
+ * @param opts - Options to set on this function.
+ * @param handler - A function that takes a {@link https.CallableRequest}.
+ * @returns A function that you can export and deploy.
+ */
 export function onCall<T = any, Return = any | Promise<any>>(
   opts: HttpsOptions,
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
+/**
+ * Declares a callable method for clients to call using a Firebase SDK.
+ * @param handler - A function that takes a {@link https.CallableRequest}.
+ * @returns A function that you can export and deploy.
+ */
 export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
@@ -181,7 +322,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  const origin = 'cors' in opts ? opts.cors : true;
+  const origin = isDebugFeatureEnabled('enableCors')
+    ? true
+    : 'cors' in opts
+    ? opts.cors
+    : true;
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
@@ -198,13 +343,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
       );
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts);
       return {
-        // TODO(inlined): Remove "apiVersion" once the latest version of the CLI
-        // has migrated to "platform".
-        apiVersion: 2,
         platform: 'gcfv2',
         ...baseOpts,
         ...specificOpts,
@@ -222,8 +362,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
-  // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  // but optionsToEndpoint handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
     platform: 'gcfv2',
     ...baseOpts,

@@ -14,6 +14,8 @@ toc:
         path: /docs/reference/functions/cloud_functions.change.html
       - title: 'ChangeJson'
         path: /docs/reference/functions/cloud_functions.changejson.html
+      - title: 'BlockingFunction'
+        path: /docs/reference/functions/cloud_functions.blockingfunction.html
 
   - title: 'functions.config'
     path: /docs/reference/functions/config.html
@@ -124,6 +126,8 @@ toc:
         path: /docs/reference/functions/providers_remoteconfig.remoteconfiguser.html
       - title: 'TemplateVersion'
         path: /docs/reference/functions/providers_remoteconfig.templateversion.html
+      - title: 'UpdateBuilder'
+        path: /docs/reference/functions/providers_remoteconfig.updatebuilder.html
 
   - title: 'functions.storage'
     path: /docs/reference/functions/providers_storage.html
@@ -134,6 +138,24 @@ toc:
         path: /docs/reference/functions/providers_storage.objectbuilder.html
       - title: 'ObjectMetadata'
         path: /docs/reference/functions/providers_storage.objectmetadata.html
+
+  - title: 'functions.tasks'
+    path: /docs/reference/functions/providers_tasks.html
+    section:
+      - title: AuthData
+        path: /docs/reference/functions/common_providers_tasks.authdata.html
+      - title: RateLimits
+        path: /docs/reference/functions/common_providers_tasks.ratelimits.html
+      - title: RetryConfig
+        path: /docs/reference/functions/common_providers_tasks.retryconfig.html
+      - title: TaskContext
+        path: /docs/reference/functions/common_providers_tasks.taskcontext.html
+      - title: TaskQueueBuilder
+        path: /docs/reference/functions/providers_tasks.taskqueuebuilder.html
+      - title: TaskQueueFunction
+        path: /docs/reference/functions/providers_tasks.taskqueuefunction.html
+      - title: TaskQueueOptions
+        path: /docs/reference/functions/providers_tasks.taskqueueoptions.html
 
   - title: 'functions.testLab'
     path: /docs/reference/functions/providers_testlab.html

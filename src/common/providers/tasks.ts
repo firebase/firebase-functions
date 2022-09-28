@@ -24,6 +24,7 @@ import * as express from 'express';
 import * as firebase from 'firebase-admin';
 
 import * as logger from '../../logger';
+import { Expression } from '../../v2/params';
 import * as https from './https';
 
 /** How a task should be retried in the event of a non-2xx return. */
@@ -32,42 +33,49 @@ export interface RetryConfig {
    * Maximum number of times a request should be attempted.
    * If left unspecified, will default to 3.
    */
-  maxAttempts?: number;
+  maxAttempts?: number | Expression<number> | null;
 
   /**
    * Maximum amount of time for retrying failed task.
    * If left unspecified will retry indefinitely.
    */
-  maxRetrySeconds?: number;
+  maxRetrySeconds?: number | Expression<number> | null;
 
   /**
    * The maximum amount of time to wait between attempts.
    * If left unspecified will default to 1hr.
    */
-  maxBackoffSeconds?: number;
+  maxBackoffSeconds?: number | Expression<number> | null;
 
   /**
    * The maximum number of times to double the backoff between
    * retries. If left unspecified will default to 16.
    */
-  maxDoublings?: number;
+  maxDoublings?: number | Expression<number> | null;
 
   /**
    * The minimum time to wait between attempts. If left unspecified
    * will default to 100ms.
    */
-  minBackoffSeconds?: number;
+  minBackoffSeconds?: number | Expression<number> | null;
 }
 
 /** How congestion control should be applied to the function. */
 export interface RateLimits {
-  // If left unspecified, wild default to 1000
-  maxConcurrentDispatches?: number;
+  /**
+   * The maximum number of requests that can be outstanding at a time.
+   * If left unspecified, will default to 1000.
+   */
+  maxConcurrentDispatches?: number | Expression<number> | null;
 
-  // If left unspecified, will default to 500
-  maxDispatchesPerSecond?: number;
+  /**
+   * The maximum number of requests that can be invoked per second.
+   * If left unspecified, will default to 500.
+   */
+  maxDispatchesPerSecond?: number | Expression<number> | null;
 }
 
+/** Metadata about the authorization used to invoke a function. */
 export interface AuthData {
   uid: string;
   token: firebase.auth.DecodedIdToken;
@@ -110,20 +118,21 @@ export function onDispatchHandler<Req = any>(
         throw new https.HttpsError('invalid-argument', 'Bad Request');
       }
 
-      const authHeader = req.header('Authorization') || '';
-      const token = authHeader.match(/^Bearer (.*)$/)?.[1];
-      // Note: this should never happen since task queue functions are guarded by IAM.
-      if (!token) {
-        throw new https.HttpsError('unauthenticated', 'Unauthenticated');
-      }
-      // We skip authenticating the token since tq functions are guarded by IAM.
-      const authToken = await https.unsafeDecodeIdToken(token);
-      const context: TaskContext = {
-        auth: {
+      const context: TaskContext = {};
+      if (!process.env.FUNCTIONS_EMULATOR) {
+        const authHeader = req.header('Authorization') || '';
+        const token = authHeader.match(/^Bearer (.*)$/)?.[1];
+        // Note: this should never happen since task queue functions are guarded by IAM.
+        if (!token) {
+          throw new https.HttpsError('unauthenticated', 'Unauthenticated');
+        }
+        // We skip authenticating the token since tq functions are guarded by IAM.
+        const authToken = await https.unsafeDecodeIdToken(token);
+        context.auth = {
           uid: authToken.uid,
           token: authToken,
-        },
-      };
+        };
+      }
 
       const data: Req = https.decode(req.body.data);
       if (handler.length === 2) {

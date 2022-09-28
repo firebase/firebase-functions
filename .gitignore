@@ -3,7 +3,12 @@
 .tmp
 .vscode/
 coverage
+dist/
 docgen/html
+docgen/*/temp
+docgen/*/markdown
+docgen/*/*.json
+docgen/*/*.md
 firebase-functions-*.tgz
 integration_test/.firebaserc
 integration_test/*.log

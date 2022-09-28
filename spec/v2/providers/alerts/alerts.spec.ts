@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { CloudEvent } from '../../../../src/v2';
 import * as options from '../../../../src/v2/options';
 import * as alerts from '../../../../src/v2/providers/alerts';
 import { FULL_ENDPOINT, FULL_OPTIONS } from '../fixtures';
@@ -172,6 +173,43 @@ describe('alerts', () => {
       expect(opts).to.deep.equal({ region: 'us-west1' });
       expect(alertType).to.equal(myOpts.alertType);
       expect(appId).to.be.equal(myOpts.appId);
+    });
+  });
+
+  describe('convertAlertAndApp', () => {
+    const event: CloudEvent<string> = {
+      specversion: '1.0',
+      id: 'id',
+      source: 'source',
+      type: 'type',
+      time: 'now',
+      data: 'data',
+    };
+
+    it('should leave event unchanged if alerttype & appid are missing', () => {
+      const raw = { ...event };
+
+      const converted = alerts.convertAlertAndApp(raw);
+
+      expect(raw).to.deep.eq(converted);
+    });
+
+    it('should convert alerttype & appid when present', () => {
+      const raw = {
+        ...event,
+        alerttype: 'my-alert',
+        appid: 'my-app',
+      };
+
+      const converted = alerts.convertAlertAndApp(raw);
+
+      expect(converted).to.deep.eq({
+        ...event,
+        alerttype: 'my-alert',
+        appid: 'my-app',
+        alertType: 'my-alert',
+        appId: 'my-app',
+      });
     });
   });
 });

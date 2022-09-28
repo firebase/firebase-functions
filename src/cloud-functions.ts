@@ -39,6 +39,8 @@ import {
 } from './common/encoding';
 import { ManifestEndpoint, ManifestRequiredAPI } from './runtime/manifest';
 
+export { Change } from './common/change';
+
 /** @hidden */
 const WILDCARD_REGEX = new RegExp('{[^/{}]*}', 'g');
 
@@ -156,95 +158,6 @@ export interface EventContext {
 }
 
 /**
- * The Functions interface for events that change state, such as
- * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
- *
- * For more information about the format used to construct `Change` objects, see
- * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
- *
- */
-export class Change<T> {
-  constructor(public before: T, public after: T) {}
-}
-
-/**
- * `ChangeJson` is the JSON format used to construct a Change object.
- */
-export interface ChangeJson {
-  /**
-   * Key-value pairs representing state of data after the change.
-   */
-  after?: any;
-  /**
-   * Key-value pairs representing state of data before the change. If
-   * `fieldMask` is set, then only fields that changed are present in `before`.
-   */
-  before?: any;
-  /**
-   * @hidden
-   * Comma-separated string that represents names of fields that changed.
-   */
-  fieldMask?: string;
-}
-
-export namespace Change {
-  /** @hidden */
-  function reinterpretCast<T>(x: any) {
-    return x as T;
-  }
-
-  /**
-   * @hidden
-   * Factory method for creating a Change from a `before` object and an `after`
-   * object.
-   */
-  export function fromObjects<T>(before: T, after: T) {
-    return new Change(before, after);
-  }
-
-  /**
-   * @hidden
-   * Factory method for creating a Change from a JSON and an optional customizer
-   * function to be applied to both the `before` and the `after` fields.
-   */
-  export function fromJSON<T>(
-    json: ChangeJson,
-    customizer: (x: any) => T = reinterpretCast
-  ): Change<T> {
-    let before = { ...json.before };
-    if (json.fieldMask) {
-      before = applyFieldMask(before, json.after, json.fieldMask);
-    }
-
-    return Change.fromObjects(
-      customizer(before || {}),
-      customizer(json.after || {})
-    );
-  }
-
-  /** @hidden */
-  export function applyFieldMask(
-    sparseBefore: any,
-    after: any,
-    fieldMask: string
-  ) {
-    const before = { ...after };
-    const masks = fieldMask.split(',');
-
-    masks.forEach((mask) => {
-      const val = _.get(sparseBefore, mask);
-      if (typeof val === 'undefined') {
-        _.unset(before, mask);
-      } else {
-        _.set(before, mask, val);
-      }
-    });
-
-    return before;
-  }
-}
-
-/**
  * Resource is a standard format for defining a resource
  * (google.rpc.context.AttributeContext.Resource). In Cloud Functions, it is the
  * resource that triggered the function - such as a storage bucket.
@@ -257,41 +170,33 @@ export interface Resource {
 }
 
 /**
- * @hidden
- * TriggerAnnotated is used internally by the firebase CLI to understand what
+ * TriggerAnnotion is used internally by the firebase CLI to understand what
  * type of Cloud Function to deploy.
  */
-export interface TriggerAnnotated {
-  __trigger: {
-    availableMemoryMb?: number;
-    eventTrigger?: {
-      eventType: string;
-      resource: string;
-      service: string;
-    };
-    failurePolicy?: FailurePolicy;
-    httpsTrigger?: {
-      invoker?: string[];
-    };
-    labels?: { [key: string]: string };
-    regions?: string[];
-    schedule?: Schedule;
-    timeout?: Duration;
-    vpcConnector?: string;
-    vpcConnectorEgressSettings?: string;
-    serviceAccountEmail?: string;
-    ingressSettings?: string;
-    secrets?: string[];
+interface TriggerAnnotation {
+  availableMemoryMb?: number;
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
   };
-}
-
-/**
- * @hidden
- * EndpointAnnotated is used to generate the manifest that conforms to the container contract.
- */
-export interface EndpointAnnotated {
-  __endpoint: ManifestEndpoint;
-  __requiredAPIs?: ManifestRequiredAPI[];
+  eventTrigger?: {
+    eventType: string;
+    resource: string;
+    service: string;
+  };
+  failurePolicy?: FailurePolicy;
+  httpsTrigger?: {
+    invoker?: string[];
+  };
+  labels?: { [key: string]: string };
+  regions?: string[];
+  schedule?: Schedule;
+  timeout?: Duration;
+  vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
+  serviceAccountEmail?: string;
+  ingressSettings?: string;
+  secrets?: string[];
 }
 
 /**
@@ -311,9 +216,34 @@ export interface Runnable<T> {
  * [`Response`](https://expressjs.com/en/api.html#res) objects as its only
  * arguments.
  */
-export type HttpsFunction = TriggerAnnotated &
-  EndpointAnnotated &
-  ((req: Request, resp: Response) => void | Promise<void>);
+export interface HttpsFunction {
+  (req: Request, resp: Response): void | Promise<void>;
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
+  __endpoint: ManifestEndpoint;
+
+  /** @alpha */
+  __requiredAPIs?: ManifestRequiredAPI[];
+}
+
+/**
+ * The Cloud Function type for Blocking triggers.
+ */
+export interface BlockingFunction {
+  (req: Request, resp: Response): void | Promise<void>;
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
+  __endpoint: ManifestEndpoint;
+
+  /** @alpha */
+  __requiredAPIs?: ManifestRequiredAPI[];
+}
 
 /**
  * The Cloud Function type for all non-HTTPS triggers. This should be exported
@@ -322,10 +252,18 @@ export type HttpsFunction = TriggerAnnotated &
  * This type is a special JavaScript function which takes a templated
  * `Event` object as its only argument.
  */
-export type CloudFunction<T> = Runnable<T> &
-  TriggerAnnotated &
-  EndpointAnnotated &
-  ((input: any, context?: any) => PromiseLike<any> | any);
+export interface CloudFunction<T> extends Runnable<T> {
+  (input: any, context?: any): PromiseLike<any> | any;
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
+  __endpoint: ManifestEndpoint;
+
+  /** @alpha */
+  __requiredAPIs?: ManifestRequiredAPI[];
+}
 
 /** @hidden */
 export interface MakeCloudFunctionArgs<EventData> {
@@ -627,7 +565,7 @@ export function optionsToEndpoint(
     options,
     'secretEnvironmentVariables',
     'secrets',
-    (secrets) => secrets.map((secret) => ({ secret, key: secret }))
+    (secrets) => secrets.map((secret) => ({ key: secret }))
   );
   if (options?.vpcConnector) {
     endpoint.vpc = { connector: options.vpcConnector };

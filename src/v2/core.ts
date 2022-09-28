@@ -20,10 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Core functionality of the Firebase Functions v2 SDK.
+ * @packageDocumentation
+ */
+
+import { Change } from '../common/change';
 import { ManifestEndpoint } from '../runtime/manifest';
+
+export { Change };
 
 /** @internal */
 export interface TriggerAnnotation {
+  platform?: string;
   concurrency?: number;
   minInstances?: number;
   maxInstances?: number;
@@ -44,15 +53,21 @@ export interface TriggerAnnotation {
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;
   ingressSettings?: string;
-
+  secrets?: string[];
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
   // TODO: schedule
 }
 
 /**
  * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
  * More information can be found in https://github.com/cloudevents/spec
+ * @typeParam T - The type of the event data.
+ * @beta
  */
-interface CloudEventBase<T> {
+export interface CloudEvent<T> {
   /** Version of the CloudEvents spec for this event. */
   readonly specversion: '1.0';
 
@@ -73,32 +88,30 @@ interface CloudEventBase<T> {
 
   /** Information about this specific event. */
   data: T;
-
-  /**
-   * A map of template parameter name to value for subject strings.
-   *
-   * This map is only available on some event types that allow templates
-   * in the subject string, such as Firestore. When listening to a document
-   * template "/users/{uid}", an event with subject "/documents/users/1234"
-   * would have a params of {"uid": "1234"}.
-   *
-   * Params are generated inside the firebase-functions SDK and are not
-   * part of the CloudEvents spec nor the payload that a Cloud Function
-   * actually receives.
-   */
-  params?: Record<string, string>;
 }
 
 /**
- * A CloudEvent with custom extension attributes
+ * A handler for CloudEvents.
+ * @typeParam EventType - The kind of event this function handles.
+ *            Always a subclass of CloudEvent<>
+ * @beta
  */
-export type CloudEvent<T = any, Ext = {}> = CloudEventBase<T> & Ext;
-/** A handler for CloudEvents. */
-export interface CloudFunction<T> {
+export interface CloudFunction<EventType extends CloudEvent<unknown>> {
   (raw: CloudEvent<unknown>): any | Promise<any>;
 
+  /** @alpha */
   __trigger?: unknown;
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
-  run(event: CloudEvent<T>): any | Promise<any>;
+  /**
+   * The callback passed to the CloudFunction constructor.
+   * Use run to test a CloudFunction
+   * @param event - The parsed event to handle.
+   * @returns Any return value. Google Cloud Functions awaits any promise
+   *          before shutting down your function. Resolved return values
+   *          are only used for unit testing purposes.
+   * @beta
+   */
+  run(event: EventType): any | Promise<any>;
 }

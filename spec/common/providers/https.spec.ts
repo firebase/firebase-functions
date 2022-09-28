@@ -3,12 +3,9 @@ import * as firebase from 'firebase-admin';
 import * as sinon from 'sinon';
 
 import { apps as appsNamespace } from '../../../src/apps';
-import {
-  checkAppCheckContext,
-  checkAuthContext,
-  runHandler,
-  RunHandlerResult,
-} from '../../helper';
+import * as debug from '../../../src/common/debug';
+import * as https from '../../../src/common/providers/https';
+import * as mocks from '../../fixtures/credential/key.json';
 import {
   expectedResponseHeaders,
   generateAppCheckToken,
@@ -19,9 +16,12 @@ import {
   mockFetchPublicKeys,
   mockRequest,
 } from '../../fixtures/mockrequest';
-import * as debug from '../../../src/common/debug';
-import * as https from '../../../src/common/providers/https';
-import * as mocks from '../../fixtures/credential/key.json';
+import {
+  checkAppCheckContext,
+  checkAuthContext,
+  runHandler,
+  RunHandlerResult,
+} from '../../helper';
 
 /**
  * A CallTest is a specification for a test of a callable function that
@@ -361,7 +361,7 @@ describe('onCallHandler', () => {
         body: { result: null },
       },
     });
-    mock.done();
+    expect(mock.isDone()).to.be.true;
   });
 
   it('should reject bad AppCheck token', async () => {

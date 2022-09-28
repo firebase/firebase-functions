@@ -352,7 +352,7 @@ export class HandlerBuilder {
   get auth() {
     return {
       get user() {
-        return new auth.UserBuilder(() => null, {});
+        return new auth.UserBuilder(() => null, {}, {});
       },
     };
   }

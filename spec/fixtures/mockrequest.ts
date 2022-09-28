@@ -80,6 +80,7 @@ export function generateIdToken(projectId: string): string {
     algorithm: 'RS256',
     header: {
       kid: mockKey.key_id,
+      alg: 'RS256',
     },
   };
   return jwt.sign(claims, mockKey.private_key, options);
@@ -110,7 +111,7 @@ export function mockFetchAppCheckPublicJwks(): nock.Scope {
   };
 
   return nock('https://firebaseappcheck.googleapis.com:443')
-    .get('/v1beta/jwks')
+    .get('/v1/jwks')
     .reply(200, mockedResponse);
 }
 

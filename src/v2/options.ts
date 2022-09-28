@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+/**
+ * Options to configure cloud functions.
+ * @packageDocumentation
+ */
+
 import {
   convertIfPresent,
   copyIfPresent,
@@ -27,104 +32,62 @@ import {
   serviceAccountFromShorthand,
 } from '../common/encoding';
 import * as logger from '../logger';
-import { TriggerAnnotation } from './core';
-import { declaredParams } from './params';
-import { ParamSpec } from './params/types';
 import { ManifestEndpoint } from '../runtime/manifest';
+import { TriggerAnnotation } from './core';
+import { declaredParams, Expression } from './params';
+import { ParamSpec } from './params/types';
+import { HttpsOptions } from './providers/https';
 
 /**
  * List of all regions supported by Cloud Functions v2
  */
-export const SUPPORTED_REGIONS = [
-  'asia-northeast1',
-  'europe-north1',
-  'europe-west1',
-  'europe-west4',
-  'us-central1',
-  'us-east1',
-  'us-west1',
-] as const;
-
-/**
- * A region known to be supported by CloudFunctions v2
- */
-export type SupportedRegion = typeof SUPPORTED_REGIONS[number];
-
-/**
- * Cloud Functions v2 min timeout value.
- */
-export const MIN_TIMEOUT_SECONDS = 1;
-
-/**
- * Cloud Functions v2 max timeout value for event handlers.
- */
-export const MAX_EVENT_TIMEOUT_SECONDS = 540;
-
-/**
- * Cloud Functions v2 max timeout for HTTPS functions.
- */
-export const MAX_HTTPS_TIMEOUT_SECONDS = 36_000;
-
-/**
- * Maximum number of requests to serve on a single instance.
- */
-export const MAX_CONCURRENCY = 1_000;
+export type SupportedRegion =
+  | 'asia-northeast1'
+  | 'europe-north1'
+  | 'europe-west1'
+  | 'europe-west4'
+  | 'us-central1'
+  | 'us-east1'
+  | 'us-west1';
 
 /**
  * List of available memory options supported by Cloud Functions.
  */
-export const SUPPORTED_MEMORY_OPTIONS = [
-  '128MB',
-  '256MB',
-  '512MB',
-  '1GB',
-  '2GB',
-  '4GB',
-  '8GB',
-  '16GB',
-  '32GB',
-] as const;
+export type MemoryOption =
+  | '128MiB'
+  | '256MiB'
+  | '512MiB'
+  | '1GiB'
+  | '2GiB'
+  | '4GiB'
+  | '8GiB'
+  | '16GiB'
+  | '32GiB';
 
 const MemoryOptionToMB: Record<MemoryOption, number> = {
-  '128MB': 128,
-  '256MB': 256,
-  '512MB': 512,
-  '1GB': 1024,
-  '2GB': 2048,
-  '4GB': 4096,
-  '8GB': 8192,
-  '16GB': 16384,
-  '32GB': 32768,
+  '128MiB': 128,
+  '256MiB': 256,
+  '512MiB': 512,
+  '1GiB': 1024,
+  '2GiB': 2048,
+  '4GiB': 4096,
+  '8GiB': 8192,
+  '16GiB': 16384,
+  '32GiB': 32768,
 };
-
-/**
- * A supported memory option.
- */
-export type MemoryOption = typeof SUPPORTED_MEMORY_OPTIONS[number];
 
 /**
  * List of available options for VpcConnectorEgressSettings.
  */
-export const SUPPORTED_VPC_EGRESS_SETTINGS = [
-  'PRIVATE_RANGES_ONLY',
-  'ALL_TRAFFIC',
-] as const;
-
-/**
- * A valid VPC Egress setting.
- */
-export type VpcEgressSetting = typeof SUPPORTED_VPC_EGRESS_SETTINGS[number];
+export type VpcEgressSetting = 'PRIVATE_RANGES_ONLY' | 'ALL_TRAFFIC';
 
 /**
  * List of available options for IngressSettings.
  */
-export const SUPPORTED_INGRESS_SETTINGS = [
-  'ALLOW_ALL',
-  'ALLOW_INTERNAL_ONLY',
-  'ALLOW_INTERNAL_AND_GCLB',
-] as const;
-
-export type IngressSetting = typeof SUPPORTED_INGRESS_SETTINGS[number];
+export type IngressSetting =
+  | 'ALLOW_ALL'
+  | 'ALLOW_INTERNAL_ONLY'
+  | 'ALLOW_INTERNAL_AND_GCLB';
 
 /**
  * GlobalOptions are options that can be set across an entire project.
@@ -141,14 +104,19 @@ export interface GlobalOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: MemoryOption | null;
+  memory?: MemoryOption | Expression<number> | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    * A value of null restores the default of 60s
+   * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
+   * function depends on the type of function: Event handling functions have a
+   * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
+   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | null;
+  timeoutSeconds?: number | Expression<number> | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -156,20 +124,33 @@ export interface GlobalOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | null;
+  minInstances?: number | Expression<number> | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | null;
+  maxInstances?: number | Expression<number> | null;
 
   /**
    * Number of requests a function can serve at once.
    * Can only be applied to functions running on Cloud Functions v2.
-   * A value of null restores the default concurrency.
+   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
+   * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | null;
+  concurrency?: number | Expression<number> | null;
+
+  /**
+   * Fractional number of CPUs to allocate to a function.
+   * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
+   * This is different from the defaults when using the gcloud utility and is different from
+   * the fixed amount assigned in Google Cloud Functions generation 1.
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * to the value "gcf_gen1"
+   */
+  cpu?: number | 'gcf_gen1';
+
   /**
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
@@ -203,6 +184,11 @@ export interface GlobalOptions {
    * Invoker to set access control on https functions.
    */
   invoker?: 'public' | 'private' | string | string[];
+
+  /*
+   * Secrets to bind to a function.
+   */
+  secrets?: string[];
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -228,10 +214,26 @@ export function getGlobalOptions(): GlobalOptions {
 }
 
 /**
- * Options that can be set on an individual event-handling Cloud Function.
+ * Additional fields that can be set on any event-handling Cloud Function.
  */
 export interface EventHandlerOptions extends GlobalOptions {
-  retry?: boolean;
+  eventType?: string;
+
+  eventFilters?: Record<string, string | Expression<string>>;
+  eventFilterPathPatterns?: Record<string, string | Expression<string>>;
+
+  /** Whether failed executions should be delivered again. */
+  retry?: boolean | Expression<boolean> | null;
+
+  /** Region of the EventArc trigger. */
+  //region?: string | Expression<string> | null;
+  region?: string;
+
+  /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
+  serviceAccount?: string | null;
+
+  /** The name of the channel where the function receives events. */
+  channel?: string;
 }
 
 /**
@@ -239,7 +241,7 @@ export interface EventHandlerOptions extends GlobalOptions {
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): TriggerAnnotation {
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
@@ -251,15 +253,16 @@ export function optionsToTriggerAnnotations(
     'ingressSettings',
     'labels',
     'vpcConnector',
-    'vpcConnectorEgressSettings'
+    'vpcConnectorEgressSettings',
+    'secrets'
   );
   convertIfPresent(
     annotation,
     opts,
     'availableMemoryMb',
     'memory',
-    (mem: MemoryOption) => {
-      return MemoryOptionToMB[mem];
+    (mem: MemoryOption | Expression<number>): number | Expression<number> => {
+      return typeof mem === 'object' ? mem : MemoryOptionToMB[mem];
     }
   );
   convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
@@ -300,7 +303,7 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
@@ -311,7 +314,8 @@ export function optionsToEndpoint(
     'maxInstances',
     'ingressSettings',
     'labels',
-    'timeoutSeconds'
+    'timeoutSeconds',
+    'cpu'
   );
   convertIfPresent(endpoint, opts, 'serviceAccountEmail', 'serviceAccount');
   if (opts.vpcConnector) {
@@ -319,30 +323,35 @@ export function optionsToEndpoint(
     convertIfPresent(vpc, opts, 'egressSettings', 'vpcConnectorEgressSettings');
     endpoint.vpc = vpc;
   }
-  convertIfPresent(endpoint, opts, 'availableMemoryMb', 'memory', (mem) => {
-    const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-      '4GB': 4096,
-      '8GB': 8192,
-    };
-    return memoryLookup[mem];
-  });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'availableMemoryMb',
+    'memory',
+    (mem: MemoryOption | Expression<number>): number | Expression<number> => {
+      return typeof mem === 'object' ? mem : MemoryOptionToMB[mem];
+    }
+  );
   convertIfPresent(endpoint, opts, 'region', 'region', (region) => {
     if (typeof region === 'string') {
       return [region];
     }
     return region;
   });
+  convertIfPresent(
+    endpoint,
+    opts,
+    'secretEnvironmentVariables',
+    'secrets',
+    (secrets) => secrets.map((secret) => ({ key: secret }))
+  );
 
   return endpoint;
 }
 
 /**
  * @hidden
+ * @alpha
  */
 export function __getSpec(): {
   globalOptions: GlobalOptions;

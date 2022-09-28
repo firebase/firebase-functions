@@ -20,6 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { Expression } from '../v2/params';
+import { ParamSpec } from '../v2/params/types';
+
 /**
  * An definition of a function as appears in the Manifest.
  */
@@ -27,14 +30,15 @@ export interface ManifestEndpoint {
   entryPoint?: string;
   region?: string[];
   platform?: string;
-  availableMemoryMb?: number;
-  maxInstances?: number;
-  minInstances?: number;
-  concurrency?: number;
+  availableMemoryMb?: number | Expression<number>;
+  maxInstances?: number | Expression<number>;
+  minInstances?: number | Expression<number>;
+  concurrency?: number | Expression<number>;
   serviceAccountEmail?: string;
-  timeoutSeconds?: number;
+  timeoutSeconds?: number | Expression<number>;
+  cpu?: number | 'gcf_gen1';
   vpc?: {
-    connector: string;
+    connector: string | Expression<string>;
     egressSettings?: string;
   };
   labels?: Record<string, string>;
@@ -49,25 +53,30 @@ export interface ManifestEndpoint {
   callableTrigger?: {};
 
   eventTrigger?: {
-    eventFilters: Record<string, string>;
-    eventFilterPathPatterns?: Record<string, string>;
+    eventFilters: Record<string, string | Expression<string>>;
+    eventFilterPathPatterns?: Record<string, string | Expression<string>>;
     channel?: string;
     eventType: string;
-    retry: boolean;
+    retry: boolean | Expression<boolean>;
     region?: string;
     serviceAccountEmail?: string;
   };
 
   scheduleTrigger?: {
-    schedule?: string;
-    timezone?: string;
+    schedule?: string | Expression<string>;
+    timeZone?: string | Expression<string>;
     retryConfig?: {
-      retryCount?: number;
-      maxRetryDuration?: string;
-      minBackoffDuration?: string;
-      maxBackoffDuration?: string;
-      maxDoublings?: number;
+      retryCount?: number | Expression<number>;
+      maxRetrySeconds?: string | Expression<string>;
+      minBackoffSeconds?: string | Expression<string>;
+      maxBackoffSeconds?: string | Expression<string>;
+      maxDoublings?: number | Expression<number>;
     };
+  };
+
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
   };
 }
 
@@ -81,6 +90,28 @@ export interface ManifestRequiredAPI {
  */
 export interface ManifestStack {
   specVersion: 'v1alpha1';
+  params?: ParamSpec[];
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
+}
+
+/**
+ * Returns the JSON representation of a ManifestStack, which has CEL
+ * expressions in its options as object types, with its expressions
+ * transformed into the actual CEL strings.
+ * @internal
+ */
+export function stackToWire(stack: ManifestStack): Object {
+  const wireStack = stack as any;
+  const traverse = function traverse(obj: Object) {
+    for (const [key, val] of Object.entries(obj)) {
+      if (val instanceof Expression) {
+        obj[key] = val.toCEL();
+      } else if (typeof val === 'object') {
+        traverse(val);
+      }
+    }
+  };
+  traverse(wireStack.endpoints);
+  return wireStack;
 }
