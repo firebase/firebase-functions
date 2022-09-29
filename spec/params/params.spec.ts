@@ -180,11 +180,33 @@ describe("Params value extraction", () => {
 });
 
 describe("Params as CEL", () => {
-  it("does not allow you to reference internal parameters in the manifest", () => {
-    expect(() => params.projectID.toCEL()).to.throw();
-    expect(() => params.gcloudProject.toCEL()).to.throw();
-    expect(() => params.databaseURL.toCEL()).to.throw();
-    expect(() => params.storageBucket.toCEL()).to.throw();
+  it("internal expressions behave like strings", () => {
+    const str = params.defineString("A_STRING");
+
+    expect(params.projectID.toCEL()).to.equal(`{{ params.PROJECT_ID }}`);
+    expect(params.projectID.equals("foo").toCEL()).to.equal(`{{ params.PROJECT_ID == "foo" }}`);
+    expect(params.projectID.equals(str).toCEL()).to.equal(
+      `{{ params.PROJECT_ID == params.A_STRING }}`
+    );
+    expect(params.gcloudProject.toCEL()).to.equal(`{{ params.GCLOUD_PROJECT }}`);
+    expect(params.gcloudProject.equals("foo").toCEL()).to.equal(
+      `{{ params.GCLOUD_PROJECT == "foo" }}`
+    );
+    expect(params.gcloudProject.equals(str).toCEL()).to.equal(
+      `{{ params.GCLOUD_PROJECT == params.A_STRING }}`
+    );
+    expect(params.databaseURL.toCEL()).to.equal(`{{ params.DATABASE_URL }}`);
+    expect(params.databaseURL.equals("foo").toCEL()).to.equal(`{{ params.DATABASE_URL == "foo" }}`);
+    expect(params.databaseURL.equals(str).toCEL()).to.equal(
+      `{{ params.DATABASE_URL == params.A_STRING }}`
+    );
+    expect(params.storageBucket.toCEL()).to.equal(`{{ params.STORAGE_BUCKET }}`);
+    expect(params.storageBucket.equals("foo").toCEL()).to.equal(
+      `{{ params.STORAGE_BUCKET == "foo" }}`
+    );
+    expect(params.storageBucket.equals(str).toCEL()).to.equal(
+      `{{ params.STORAGE_BUCKET == params.A_STRING }}`
+    );
   });
 
   it("identity expressions", () => {
