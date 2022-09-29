@@ -107,7 +107,7 @@ export function stackToWire(stack: ManifestStack): Object {
     for (const [key, val] of Object.entries(obj)) {
       if (val instanceof Expression) {
         obj[key] = val.toCEL();
-      } else if (typeof val === 'object') {
+      } else if (typeof val === 'object' && val !== null) {
         traverse(val);
       }
     }
