@@ -27,7 +27,7 @@ describe("stackToWire", () => {
           type: "string",
           input: {
             text: {
-              validationRegexp: "\\d{5}",
+              validationRegex: "\\d{5}",
             },
           },
         },
