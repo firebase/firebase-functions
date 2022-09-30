@@ -102,9 +102,11 @@ export interface ManifestStack {
  * @internal
  */
 export function stackToWire(stack: ManifestStack): Record<string, unknown> {
-  for (const param of stack.params) {
-    if ("text" in param.input && param.input.text.validationRegex instanceof RegExp) {
-      param.input.text.validationRegex = param.input.text.validationRegex.source;
+  if (stack.params) {
+    for (const param of stack.params) {
+      if ("text" in param.input && param.input.text.validationRegex instanceof RegExp) {
+        param.input.text.validationRegex = param.input.text.validationRegex.source;
+      }
     }
   }
 
