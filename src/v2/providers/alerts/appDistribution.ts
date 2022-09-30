@@ -50,6 +50,8 @@ export interface NewTesterDevicePayload {
 /**
  * The internal payload object for receiving in-app feedback from a tester.
  * Payload is wrapped inside a `FirebaseAlertData` object.
+ *
+ * @alpha
  */
 export interface InAppFeedbackPayload {
   ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload";
@@ -258,6 +260,8 @@ export function onNewTesterIosDevicePublished(
  * Declares a function that can handle receiving new in-app feedback from a tester.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
+ *
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
@@ -268,6 +272,8 @@ export function onInAppFeedbackPublished(
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
+ *
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   appId: string,
@@ -279,6 +285,8 @@ export function onInAppFeedbackPublished(
  * @param opts - Options that can be set on the function.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
+ *
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   opts: AppDistributionOptions,
@@ -290,6 +298,8 @@ export function onInAppFeedbackPublished(
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
+ *
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   appIdOrOptsOrHandler:

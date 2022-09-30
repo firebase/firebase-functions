@@ -7,6 +7,36 @@ describe("stackToWire", () => {
     params.clearParams();
   });
 
+  it("converts stack with null values values", () => {
+    const stack: ManifestStack = {
+      endpoints: {
+        v2http: {
+          platform: "gcfv2",
+          entryPoint: "v2http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: null,
+        },
+      },
+      requiredAPIs: [],
+      specVersion: "v1alpha1",
+    };
+    const expected = {
+      endpoints: {
+        v2http: {
+          platform: "gcfv2",
+          entryPoint: "v2http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: null,
+        },
+      },
+      requiredAPIs: [],
+      specVersion: "v1alpha1",
+    };
+    expect(stackToWire(stack)).to.deep.equal(expected);
+  });
+
   it("converts Expression types in endpoint options to CEL", () => {
     const intParam = params.defineInt("foo", { default: 11 });
     const stringParam = params.defineString("bar", {

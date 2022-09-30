@@ -107,7 +107,7 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
     for (const [key, val] of Object.entries(obj)) {
       if (val instanceof Expression) {
         obj[key] = val.toCEL();
-      } else if (typeof val === "object") {
+      } else if (typeof val === "object" && val !== null) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         traverse(val as any);
       }
