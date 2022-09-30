@@ -23,6 +23,7 @@
 import { ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
+import { wrapTraceContext } from "../trace";
 
 /** @internal */
 export const eventType = "google.firebase.testlab.testMatrix.v1.completed";
@@ -189,7 +190,7 @@ export function onTestMatrixCompleted(
   const specificOpts = optionsToEndpoint(optsOrHandler);
 
   const func: any = (raw: CloudEvent<unknown>) => {
-    return handler(raw as CloudEvent<TestMatrixCompletedData>);
+    return wrapTraceContext(handler(raw as CloudEvent<TestMatrixCompletedData>));
   };
   func.run = handler;
 
