@@ -54,7 +54,7 @@ export interface NewTesterDevicePayload {
  * The internal payload object for receiving in-app feedback from a tester.
  * Payload is wrapped inside a `FirebaseAlertData` object.
  *
- * @internal
+ * @alpha
  */
 export interface InAppFeedbackPayload {
   ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload';
@@ -275,7 +275,7 @@ export function onNewTesterIosDevicePublished(
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
  *
- * @internal
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   handler: (
@@ -289,7 +289,7 @@ export function onInAppFeedbackPublished(
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
  *
- * @internal
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   appId: string,
@@ -304,7 +304,7 @@ export function onInAppFeedbackPublished(
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
  *
- * @internal
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   opts: AppDistributionOptions,
@@ -319,7 +319,7 @@ export function onInAppFeedbackPublished(
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
  *
- * @internal
+ * @alpha
  */
 export function onInAppFeedbackPublished(
   appIdOrOptsOrHandler:
