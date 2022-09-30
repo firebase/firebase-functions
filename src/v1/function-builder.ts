@@ -50,7 +50,11 @@ import * as testLab from "./providers/testLab";
  * @throws { Error } Memory and TimeoutSeconds values must be valid.
  */
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
-  if (runtimeOptions.memory && !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)) {
+  if (
+    runtimeOptions.memory &&
+    typeof runtimeOptions.memory === "string" &&
+    !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)
+  ) {
     throw new Error(
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
