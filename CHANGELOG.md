@@ -1,1 +1,2 @@
 - Fix reference docs for performance monitoring.
+- Fix bug where function configuration wil null values couldn't be deployed. (#1246)
