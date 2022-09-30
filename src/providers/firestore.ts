@@ -45,6 +45,7 @@ export const defaultDatabase = '(default)';
 let firestoreInstance: any;
 export type DocumentSnapshot = firebase.firestore.DocumentSnapshot;
 export type QueryDocumentSnapshot = firebase.firestore.QueryDocumentSnapshot;
+export type DocumentData = firebase.firestore.DocumentSnapshot;
 
 /**
  * Select the Firestore document to listen to for events.
@@ -204,42 +205,42 @@ export class DocumentBuilder {
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite(
+  onWrite<T = DocumentData>(
     handler: (
-      change: Change<DocumentSnapshot>,
+      change: Change<DocumentSnapshot<T>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DocumentSnapshot>> {
+  ): CloudFunction<Change<DocumentSnapshot<T>>> {
     return this.onOperation(handler, 'document.write', changeConstructor);
   }
 
   /** Respond only to document updates. */
-  onUpdate(
+  onUpdate<T = DocumentData>(
     handler: (
-      change: Change<QueryDocumentSnapshot>,
+      change: Change<QueryDocumentSnapshot<T>>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<Change<QueryDocumentSnapshot>> {
+  ): CloudFunction<Change<QueryDocumentSnapshot<T>>> {
     return this.onOperation(handler, 'document.update', changeConstructor);
   }
 
   /** Respond only to document creations. */
-  onCreate(
+  onCreate<T = DocumentData>(
     handler: (
-      snapshot: QueryDocumentSnapshot,
+      snapshot: QueryDocumentSnapshot<T>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot<T>> {
     return this.onOperation(handler, 'document.create', snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
-  onDelete(
+  onDelete<T = DocumentData>(
     handler: (
-      snapshot: QueryDocumentSnapshot,
+      snapshot: QueryDocumentSnapshot<T>,
       context: EventContext
     ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  ): CloudFunction<QueryDocumentSnapshot<T>> {
     return this.onOperation(
       handler,
       'document.delete',
