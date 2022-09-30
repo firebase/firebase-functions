@@ -7,6 +7,36 @@ describe("stackToWire", () => {
     params.clearParams();
   });
 
+  it("converts regular expressions used in param inputs", () => {
+    const regExpParam = params.defineString("foo", {
+      input: { text: { validationRegex: /\d{5}/ } },
+    });
+
+    const stack: ManifestStack = {
+      endpoints: {},
+      requiredAPIs: [],
+      params: [regExpParam.toSpec()],
+      specVersion: "v1alpha1",
+    };
+    const expected = {
+      endpoints: {},
+      requiredAPIs: [],
+      params: [
+        {
+          name: "foo",
+          type: "string",
+          input: {
+            text: {
+              validationRegexp: "\\d{5}",
+            },
+          },
+        },
+      ],
+      specVersion: "v1alpha1",
+    };
+    expect(stackToWire(stack)).to.deep.equal(expected);
+  });
+
   it("converts Expression types in endpoint options to CEL", () => {
     const intParam = params.defineInt("foo", { default: 11 });
     const stringParam = params.defineString("bar", {

@@ -102,6 +102,12 @@ export interface ManifestStack {
  * @internal
  */
 export function stackToWire(stack: ManifestStack): Record<string, unknown> {
+  for (const param of stack.params) {
+    if ("text" in param.input && param.input.text.validationRegex instanceof RegExp) {
+      param.input.text.validationRegex = param.input.text.validationRegex.source;
+    }
+  }
+
   const wireStack = stack as any;
   const traverse = function traverse(obj: Record<string, unknown>) {
     for (const [key, val] of Object.entries(obj)) {

@@ -151,7 +151,7 @@ type ParamInput<T> =
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
   example?: string;
-  validationRegex?: string;
+  validationRegex?: string | RegExp;
   validationErrorMessage?: string;
 }
 
