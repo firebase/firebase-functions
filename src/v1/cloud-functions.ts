@@ -472,7 +472,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   convertIfPresent(endpoint, options, "secretEnvironmentVariables", "secrets", (secrets) =>
     secrets.map((secret) => ({ key: secret }))
   );
-  if (options.vpcConnector !== undefined) {
+  if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {
       endpoint.vpc = null;
     } else {
