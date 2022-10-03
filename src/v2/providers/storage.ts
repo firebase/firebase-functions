@@ -41,7 +41,7 @@ export interface StorageObjectData {
   /**
    * The name of the bucket containing this object.
    */
-  bucket?: string;
+  bucket: string;
   /**
    * Cache-Control directive for the object data, matching
    * [https://tools.ietf.org/html/rfc7234#section-5.2"][RFC 7234 §5.2].
@@ -96,12 +96,12 @@ export interface StorageObjectData {
    * The content generation of this object. Used for object versioning.
    * Attempting to set this field will result in an error.
    */
-  generation?: number;
+  generation: number;
   /**
    * The ID of the object, including the bucket name, object name, and
    * generation number.
    */
-  id?: string;
+  id: string;
   /**
    * The kind of item this is. For objects, this is always "storage#object".
    */
@@ -128,11 +128,11 @@ export interface StorageObjectData {
    * number is only meaningful in the context of a particular generation of a
    * particular object.
    */
-  metageneration?: number;
+  metageneration: number;
   /**
    * The name of the object.
    */
-  name?: string;
+  name: string;
   /**
    * The link to this object.
    */
@@ -141,11 +141,11 @@ export interface StorageObjectData {
    * Content-Length of the object data in bytes, matching
    * [https://tools.ietf.org/html/rfc7230#section-3.3.2][RFC 7230 §3.3.2].
    */
-  size?: number;
+  size: number;
   /**
    * Storage class of the object.
    */
-  storageClass?: string;
+  storageClass: string;
   /**
    * The creation time of the object.
    * Attempting to set this field will result in an error.
