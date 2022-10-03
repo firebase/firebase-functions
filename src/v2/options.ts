@@ -33,7 +33,7 @@ import { ParamSpec } from "../params/types";
 import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
 
-export { RESET_VALUE, ResetValue } from "../common/options";
+export { RESET_VALUE } from "../common/options";
 
 /**
  * List of all regions supported by Cloud Functions v2

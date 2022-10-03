@@ -22,15 +22,21 @@
 
 /**
  * Special configuration type to reset configuration to platform default.
+ *
  * @alpha
  */
 export class ResetValue {
   toJSON(): null {
     return null;
   }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {}
+  public static getInstance() {
+    return new ResetValue();
+  }
 }
 
 /**
  * Special configuration value to reset configuration to platform default.
  */
-export const RESET_VALUE = new ResetValue();
+export const RESET_VALUE = ResetValue.getInstance();
