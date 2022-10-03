@@ -175,7 +175,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler that runs every time a Firebase Realtime Database
    *   write occurs.
-   * @returns A Cloud Function that you can export and deploy.
+   * @returns A function that you can export and deploy.
    */
   onWrite(
     handler: (
@@ -192,8 +192,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler which is run every time a Firebase Realtime Database
    *   write occurs.
-   * @returns A Cloud
-   *   Function which you can export and deploy.
+   * @returns A function which you can export and deploy.
    */
   onUpdate(
     handler: (
@@ -210,7 +209,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler that runs every time new data is created in
    *   Firebase Realtime Database.
-   * @returns A Cloud Function that you can export and deploy.
+   * @returns A function that you can export and deploy.
    */
   onCreate(
     handler: (
@@ -234,7 +233,7 @@ export class RefBuilder<Ref extends string> {
    *
    * @param handler Event handler that runs every time data is deleted from
    *   Firebase Realtime Database.
-   * @returns A Cloud Function that you can export and deploy.
+   * @returns A function that you can export and deploy.
    */
   onDelete(
     handler: (

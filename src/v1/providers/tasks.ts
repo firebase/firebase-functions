@@ -90,7 +90,7 @@ export class TaskQueueBuilder {
   /**
    * Creates a handler for tasks sent to a Google Cloud Tasks queue.
    * @param handler - A callback to handle task requests.
-   * @returns A Cloud Function you can export and deploy.
+   * @returns A function you can export and deploy.
    */
   onDispatch(
     handler: (data: any, context: TaskContext) => void | Promise<void>

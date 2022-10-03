@@ -168,7 +168,7 @@ export interface TaskQueueFunction<T = any> extends HttpsFunction {
  * Creates a handler for tasks sent to a Google Cloud Tasks queue.
  * @param handler - A callback to handle task requests.
  * @typeParam Args - The interface for the request's `data` field.
- * @returns A Cloud Function you can export and deploy.
+ * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
@@ -179,7 +179,7 @@ export function onTaskDispatched<Args = any>(
  * @param options - Configuration for the task queue or Cloud Function.
  * @param handler - A callback to handle task requests.
  * @typeParam Args - The interface for the request's `data` field.
- * @returns A Cloud Function you can export and deploy.
+ * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
