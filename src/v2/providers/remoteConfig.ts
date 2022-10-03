@@ -89,7 +89,8 @@ export interface ConfigUpdateData {
  * Event handler which triggers when data is updated in a Remote Config.
  *
  * @param handler - Event handler which is run every time a Remote Config update occurs.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
+ * @alpha
  */
 export function onConfigUpdated(
   handler: (event: CloudEvent<ConfigUpdateData>) => any | Promise<any>
@@ -100,7 +101,8 @@ export function onConfigUpdated(
  *
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Remote Config update occurs.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
+ * @alpha
  */
 export function onConfigUpdated(
   opts: EventHandlerOptions,
@@ -112,7 +114,8 @@ export function onConfigUpdated(
  *
  * @param optsOrHandler - Options or an event handler.
  * @param handler - Event handler which is run every time a Remote Config update occurs.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
+ * @alpha
  */
 export function onConfigUpdated(
   optsOrHandler:

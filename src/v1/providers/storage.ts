@@ -112,7 +112,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   archival occurs.
    *
-   * @returns A Cloud Function which you can export and deploy.
+   * @returns A function which you can export and deploy.
    */
   onArchive(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
@@ -132,7 +132,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   deletion occurs.
    *
-   * @returns A Cloud Function which you can export and deploy.
+   * @returns A function which you can export and deploy.
    */
   onDelete(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
@@ -151,7 +151,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   object creation occurs.
    *
-   * @returns A Cloud Function which you can export and deploy.
+   * @returns A function which you can export and deploy.
    */
   onFinalize(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
@@ -166,7 +166,7 @@ export class ObjectBuilder {
    * @param handler Event handler which is run every time a Google Cloud Storage
    *   metadata update occurs.
    *
-   * @returns A Cloud Function which you can export and deploy.
+   * @returns A function which you can export and deploy.
    */
   onMetadataUpdate(
     handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
