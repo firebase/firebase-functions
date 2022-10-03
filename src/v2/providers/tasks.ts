@@ -147,9 +147,6 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * Secrets to bind to a function.
    */
   secrets?: string[];
-
-  /** Whether failed executions should be delivered again. */
-  retry?: boolean;
 }
 
 /**

@@ -188,7 +188,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   secrets?: string[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /**

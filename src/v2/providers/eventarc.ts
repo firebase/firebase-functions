@@ -152,7 +152,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   secrets?: string[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /** Handles an Eventarc event published on the default channel.

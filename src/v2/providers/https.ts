@@ -148,9 +148,6 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
    * Invoker to set access control on https functions.
    */
   invoker?: "public" | "private" | string | string[];
-
-  /** Whether failed executions should be delivered again. */
-  retry?: boolean;
 }
 
 /**

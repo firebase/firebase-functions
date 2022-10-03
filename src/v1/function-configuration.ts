@@ -143,7 +143,7 @@ export interface Schedule {
   /**
    * Settings that determine the retry behavior.
    */
-  retryConfig?: ScheduleRetryConfig | ResetValue;
+  retryConfig?: ScheduleRetryConfig;
 }
 
 /**
@@ -173,7 +173,7 @@ export interface RuntimeOptions {
    * Failure policy of the function, with boolean `true` being equivalent to
    * providing an empty retry object.
    */
-  failurePolicy?: FailurePolicy | boolean | ResetValue;
+  failurePolicy?: FailurePolicy | boolean;
   /**
    * Amount of memory to allocate to the function.
    */

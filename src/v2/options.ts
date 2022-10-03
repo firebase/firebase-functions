@@ -178,9 +178,6 @@ export interface GlobalOptions {
    */
   secrets?: string[];
 
-  /** Whether failed executions should be delivered again. */
-  retry?: boolean | Expression<boolean> | ResetValue;
-
   /**
    * Determines whether Firebase AppCheck is enforced.
    * When true, requests with invalid tokens autorespond with a 401

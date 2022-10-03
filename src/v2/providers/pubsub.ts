@@ -245,7 +245,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   secrets?: string[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /**
