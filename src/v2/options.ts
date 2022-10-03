@@ -90,53 +90,56 @@ export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERN
 export interface GlobalOptions {
   /**
    * Region where functions should be deployed.
-   * HTTP functions can override and specify more than one region.
    */
   region?: SupportedRegion | string;
 
   /**
    * Amount of memory to allocate to a function.
-   * A value of null restores the defaults of 256MB.
    */
-  memory?: MemoryOption | Expression<number> | ResetValue | null;
+  memory?: MemoryOption | Expression<number> | ResetValue;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   * A value of null restores the default of 60s
+   *
+   * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | ResetValue | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | ResetValue | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
-   * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | ResetValue | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
+   *
+   * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | ResetValue | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
+   * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
@@ -147,42 +150,36 @@ export interface GlobalOptions {
 
   /**
    * Connect cloud function to specified VPC connector.
-   * A value of null removes the VPC connector
    */
-  vpcConnector?: string | ResetValue | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
-   * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: VpcEgressSetting | ResetValue | null;
+  vpcConnectorEgressSettings?: VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
-   * A value of null restores the default service account.
    */
-  serviceAccount?: string | ResetValue | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
-   * A value of null turns off ingress settings.
    */
-  ingressSettings?: IngressSetting | ResetValue | null;
+  ingressSettings?: IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
    */
   labels?: Record<string, string>;
 
-  /**
-   * Invoker to set access control on https functions.
-   */
-  invoker?: "public" | "private" | string | string[];
-
   /*
    * Secrets to bind to a function.
    */
   secrets?: string[];
+
+  /** Whether failed executions should be delivered again. */
+  retry?: boolean | Expression<boolean> | ResetValue;
 
   /**
    * Determines whether Firebase AppCheck is enforced.
@@ -225,14 +222,14 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean | Expression<boolean> | ResetValue | null;
+  retry?: boolean | Expression<boolean> | ResetValue;
 
   /** Region of the EventArc trigger. */
   // region?: string | Expression<string> | null;
   region?: string;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
-  serviceAccount?: string | ResetValue | null;
+  serviceAccount?: string | ResetValue;
 
   /** The name of the channel where the function receives events. */
   channel?: string;
