@@ -1,4 +1,7 @@
 import { Expression } from "../params";
+import { ResetValue } from "../common/options";
+
+export { RESET_VALUE } from "../common/options";
 
 /**
  * List of all regions supported by Cloud Functions.
@@ -79,7 +82,7 @@ export interface ScheduleRetryConfig {
    *
    * @defaultValue 0 (infinite retry)
    */
-  retryCount?: number | Expression<number> | null;
+  retryCount?: number | Expression<number> | ResetValue | null;
   /**
    * The time limit for retrying a failed job, measured from time when an execution was first attempted.
    *
@@ -87,25 +90,25 @@ export interface ScheduleRetryConfig {
    *
    * @defaultValue 0
    */
-  maxRetryDuration?: string | Expression<string> | null;
+  maxRetryDuration?: string | Expression<string> | ResetValue | null;
   /**
    * The minimum amount of time to wait before retrying a job after it fails.
    *
    * @defaultValue 5 seconds
    */
-  minBackoffDuration?: string | Expression<string> | null;
+  minBackoffDuration?: string | Expression<string> | ResetValue | null;
   /**
    * The maximum amount of time to wait before retrying a job after it fails.
    *
    * @defaultValue 1 hour
    */
-  maxBackoffDuration?: string | Expression<string> | null;
+  maxBackoffDuration?: string | Expression<string> | ResetValue | null;
   /**
    * The max number of backoff doubling applied at each retry.
    *
    * @defaultValue 5
    */
-  maxDoublings?: number | Expression<number> | null;
+  maxDoublings?: number | Expression<number> | ResetValue | null;
 }
 
 /**
@@ -136,11 +139,11 @@ export interface Schedule {
    *
    * The value of this field must be a time zone name from the tz database.
    */
-  timeZone?: string;
+  timeZone?: string | ResetValue | null;
   /**
    * Settings that determine the retry behavior.
    */
-  retryConfig?: ScheduleRetryConfig;
+  retryConfig?: ScheduleRetryConfig | ResetValue | null;
 }
 
 /**
@@ -170,32 +173,32 @@ export interface RuntimeOptions {
    * Failure policy of the function, with boolean `true` being equivalent to
    * providing an empty retry object.
    */
-  failurePolicy?: FailurePolicy | boolean;
+  failurePolicy?: FailurePolicy | boolean | ResetValue | null;
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTIONS[number];
+  memory?: typeof VALID_MEMORY_OPTIONS[number] | ResetValue | null;
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
-  timeoutSeconds?: number;
+  timeoutSeconds?: number | ResetValue | null;
 
   /**
    * Min number of actual instances to be running at a given time.
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
    */
-  minInstances?: number;
+  minInstances?: number | ResetValue | null;
 
   /**
    * Max number of actual instances allowed to be running in parallel.
    */
-  maxInstances?: number;
+  maxInstances?: number | ResetValue | null;
 
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string;
+  vpcConnector?: string | ResetValue | null;
 
   /**
    * Egress settings for VPC connector.
@@ -205,7 +208,7 @@ export interface RuntimeOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: "default" | string;
+  serviceAccount?: "default" | string | ResetValue | null;
 
   /**
    * Ingress settings which control where this function can be called from.

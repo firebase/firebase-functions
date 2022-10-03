@@ -22,6 +22,7 @@
 
 import * as express from "express";
 
+import { ResetValue } from "../common/options";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -50,7 +51,8 @@ import * as testLab from "./providers/testLab";
  * @throws { Error } Memory and TimeoutSeconds values must be valid.
  */
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
-  if (runtimeOptions.memory && !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)) {
+  const mem = runtimeOptions.memory;
+  if (mem && !(mem instanceof ResetValue) && !VALID_MEMORY_OPTIONS.includes(mem)) {
     throw new Error(
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
@@ -80,10 +82,12 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   validateFailurePolicy(runtimeOptions.failurePolicy);
+  const serviceAccount = runtimeOptions.serviceAccount;
   if (
-    runtimeOptions.serviceAccount &&
-    runtimeOptions.serviceAccount !== "default" &&
-    !runtimeOptions.serviceAccount.includes("@")
+    serviceAccount &&
+    serviceAccount !== "default" &&
+    !(serviceAccount instanceof ResetValue) &&
+    !serviceAccount.includes("@")
   ) {
     throw new Error(
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
