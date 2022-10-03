@@ -27,13 +27,13 @@
 
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ResetValue } from "../common/options";
-import * as logger from "../logger";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec } from "../params/types";
 import { HttpsOptions } from "./providers/https";
+import * as logger from "../logger";
 
-export { RESET_VALUE } from "../common/options";
+export { RESET_VALUE, ResetValue } from "../common/options";
 
 /**
  * List of all regions supported by Cloud Functions v2

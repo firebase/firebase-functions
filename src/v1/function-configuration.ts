@@ -1,7 +1,7 @@
 import { Expression } from "../params";
 import { ResetValue } from "../common/options";
 
-export { RESET_VALUE } from "../common/options";
+export { RESET_VALUE, ResetValue } from "../common/options";
 
 /**
  * List of all regions supported by Cloud Functions.
