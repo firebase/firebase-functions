@@ -143,7 +143,7 @@ export interface GlobalOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | "gcf_gen1" | ResetValue;
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
@@ -225,14 +225,14 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean | Expression<boolean> | null;
+  retry?: boolean | Expression<boolean> | ResetValue | null;
 
   /** Region of the EventArc trigger. */
   // region?: string | Expression<string> | null;
   region?: string;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue | null;
 
   /** The name of the channel where the function receives events. */
   channel?: string;
@@ -273,7 +273,7 @@ export function optionsToEndpoint(
     "availableMemoryMb",
     "memory",
     (
-      mem: MemoryOption | Expression<number> | null | ResetValue
+      mem: MemoryOption | Expression<number> | ResetValue | null
     ): number | Expression<number> | null | ResetValue => {
       return typeof mem === "object" ? mem : MemoryOptionToMB[mem];
     }

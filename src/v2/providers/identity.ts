@@ -24,6 +24,7 @@
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
+import { ResetValue } from "../../common/options";
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
@@ -70,7 +71,7 @@ export interface BlockingOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue | null;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -82,7 +83,7 @@ export interface BlockingOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue | null;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -90,13 +91,13 @@ export interface BlockingOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue | null;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue | null;
 
   /**
    * Number of requests a function can serve at once.
@@ -105,7 +106,7 @@ export interface BlockingOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue | null;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -121,25 +122,25 @@ export interface BlockingOptions {
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue | null;
 
   /**
    * Egress settings for VPC connector.
    * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue | null;
 
   /**
    * Specific service account for the function to run as.
    * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue | null;
 
   /**
    * Ingress settings which control where this function can be called from.
    * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue | null;
 
   /**
    * User labels to set on the function.
