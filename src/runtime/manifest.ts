@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { ResetValue } from "../common/options";
 import { Expression } from "../params";
 import { WireParamSpec } from "../params/types";
 
@@ -30,19 +31,19 @@ export interface ManifestEndpoint {
   entryPoint?: string;
   region?: string[];
   platform?: string;
-  availableMemoryMb?: number | Expression<number>;
-  maxInstances?: number | Expression<number>;
-  minInstances?: number | Expression<number>;
-  concurrency?: number | Expression<number>;
-  serviceAccountEmail?: string;
-  timeoutSeconds?: number | Expression<number>;
-  cpu?: number | "gcf_gen1";
+  availableMemoryMb?: number | Expression<number> | ResetValue;
+  maxInstances?: number | Expression<number> | ResetValue;
+  minInstances?: number | Expression<number> | ResetValue;
+  concurrency?: number | Expression<number> | ResetValue;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
   vpc?: {
-    connector: string | Expression<string>;
+    connector: string | Expression<string> | ResetValue;
     egressSettings?: string;
   };
+  ingressSettings?: string | ResetValue;
+  serviceAccountEmail?: string;
+  cpu?: number | "gcf_gen1";
   labels?: Record<string, string>;
-  ingressSettings?: string;
   environmentVariables?: Record<string, string>;
   secretEnvironmentVariables?: Array<{ key: string; secret?: string }>;
 
@@ -57,20 +58,20 @@ export interface ManifestEndpoint {
     eventFilterPathPatterns?: Record<string, string | Expression<string>>;
     channel?: string;
     eventType: string;
-    retry: boolean | Expression<boolean>;
+    retry: boolean | Expression<boolean> | ResetValue;
     region?: string;
-    serviceAccountEmail?: string;
+    serviceAccountEmail?: string | ResetValue;
   };
 
   scheduleTrigger?: {
     schedule?: string | Expression<string>;
-    timeZone?: string | Expression<string>;
+    timeZone?: string | Expression<string> | ResetValue;
     retryConfig?: {
-      retryCount?: number | Expression<number>;
-      maxRetrySeconds?: string | Expression<string>;
-      minBackoffSeconds?: string | Expression<string>;
-      maxBackoffSeconds?: string | Expression<string>;
-      maxDoublings?: number | Expression<number>;
+      retryCount?: number | Expression<number> | ResetValue;
+      maxRetrySeconds?: string | Expression<string> | ResetValue;
+      minBackoffSeconds?: string | Expression<string> | ResetValue;
+      maxBackoffSeconds?: string | Expression<string> | ResetValue;
+      maxDoublings?: number | Expression<number> | ResetValue;
     };
   };
 
@@ -107,6 +108,8 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
     for (const [key, val] of Object.entries(obj)) {
       if (val instanceof Expression) {
         obj[key] = val.toCEL();
+      } else if (val instanceof ResetValue) {
+        obj[key] = val.toJSON();
       } else if (typeof val === "object" && val !== null) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         traverse(val as any);

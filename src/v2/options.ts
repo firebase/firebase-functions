@@ -169,6 +169,11 @@ export interface GlobalOptions {
   ingressSettings?: IngressSetting | ResetValue;
 
   /**
+   * Invoker to set access control on https functions.
+   */
+  invoker?: "public" | "private" | string | string[];
+
+  /**
    * User labels to set on the function.
    */
   labels?: Record<string, string>;
