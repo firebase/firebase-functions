@@ -477,12 +477,14 @@ function _detectAuthType(event: Event) {
 }
 
 const RESETTABLE_OPTIONS: ResettableKeys<DeploymentOptions> = {
-  memory: null,
-  timeoutSeconds: null,
-  minInstances: null,
+  ingressSettings: null,
   maxInstances: null,
-  vpcConnector: null,
+  memory: null,
+  minInstances: null,
   serviceAccount: null,
+  timeoutSeconds: null,
+  vpcConnector: null,
+  vpcConnectorEgressSettings: null,
 };
 
 /** @internal */
