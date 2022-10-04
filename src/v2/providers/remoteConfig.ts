@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from "../../runtime/manifest";
+import { initEndpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 
@@ -134,6 +134,7 @@ export function onConfigUpdated(
   func.run = handler;
 
   const ep: ManifestEndpoint = {
+    ...initEndpoint(getGlobalOptions(), optsOrHandler),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,

@@ -38,7 +38,7 @@ import {
   onCallHandler,
   Request,
 } from "../../common/providers/https";
-import { ManifestEndpoint } from "../../runtime/manifest";
+import { initEndpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { GlobalOptions, SupportedRegion } from "../options";
 import { Expression } from "../../params";
@@ -241,6 +241,7 @@ export function onRequest(
   // but optionsToTriggerAnnotations handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
   const endpoint: Partial<ManifestEndpoint> = {
+    ...initEndpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
@@ -304,6 +305,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // but optionsToEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
+    ...initEndpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,

@@ -143,7 +143,7 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
  */
 export function initEndpoint(...opts: { preserveExternalChanges?: boolean }[]): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
-  if (opts.every((opt) => !opt.preserveExternalChanges)) {
+  if (opts.every((opt) => !opt?.preserveExternalChanges)) {
     for (const key of Object.keys(RESETTABLE_OPTIONS)) {
       endpoint[key] = RESET_VALUE;
     }
@@ -180,7 +180,7 @@ export function initTaskQueueTrigger(
   ...opts: { preserveExternalChanges?: boolean }[]
 ): ManifestEndpoint["taskQueueTrigger"] {
   let taskQueueTrigger = {};
-  if (opts.every((opt) => !opt.preserveExternalChanges)) {
+  if (opts.every((opt) => !opt?.preserveExternalChanges)) {
     const retryConfig = {};
     for (const key of Object.keys(RESETTABLE_RETRY_CONFIG_OPTIONS)) {
       retryConfig[key] = RESET_VALUE;
@@ -222,7 +222,7 @@ function initScheduleTrigger(
   ...opts: { preserveExternalChanges?: boolean }[]
 ): ManifestEndpoint["scheduleTrigger"] {
   let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = { schedule };
-  if (opts.every((opt) => !opt.preserveExternalChanges)) {
+  if (opts.every((opt) => !opt?.preserveExternalChanges)) {
     const retryConfig = {};
     for (const key of Object.keys(resetOptions)) {
       retryConfig[key] = RESET_VALUE;
