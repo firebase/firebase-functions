@@ -26,7 +26,6 @@ import { DeploymentOptions } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
-import { Expression } from "../params";
 
 export { Change } from "../common/change";
 
@@ -476,26 +475,17 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
     endpoint.vpc = { connector: options.vpcConnector };
     convertIfPresent(endpoint.vpc, options, "egressSettings", "vpcConnectorEgressSettings");
   }
-  convertIfPresent(
-    endpoint,
-    options,
-    "availableMemoryMb",
-    "memory",
-    (mem: string | Expression<number>) => {
-      if (typeof mem === "string") {
-        const memoryLookup = {
-          "128MB": 128,
-          "256MB": 256,
-          "512MB": 512,
-          "1GB": 1024,
-          "2GB": 2048,
-          "4GB": 4096,
-          "8GB": 8192,
-        };
-        return memoryLookup[mem];
-      }
-      return mem;
-    }
-  );
+  convertIfPresent(endpoint, options, "availableMemoryMb", "memory", (mem) => {
+    const memoryLookup = {
+      "128MB": 128,
+      "256MB": 256,
+      "512MB": 512,
+      "1GB": 1024,
+      "2GB": 2048,
+      "4GB": 4096,
+      "8GB": 8192,
+    };
+    return memoryLookup[mem];
+  });
   return endpoint;
 }
