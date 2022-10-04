@@ -23,7 +23,7 @@
 import * as express from "express";
 
 import { copyIfPresent } from "../../common/encoding";
-import { ResetValue } from "../../common/options";
+import { ResettableKeys, ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
 import { HttpsFunction } from "./https";
@@ -117,13 +117,16 @@ export interface ScheduleOptions extends options.GlobalOptions {
   maxDoublings?: number | Expression<number> | ResetValue;
 }
 
-const RESETTABLE_SCHEDULE_OPTIONS: Array<keyof ScheduleOptions> = [
-  "retryCount",
-  "maxRetrySeconds",
-  "minBackoffSeconds",
-  "maxBackoffSeconds",
-  "maxDoublings",
-];
+const RESETTABLE_SCHEDULE_OPTIONS: Omit<
+  ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
+  "maxRetryDuration" | "maxBackoffDuration" | "minBackoffDuration"
+> = {
+  retryCount: null,
+  maxDoublings: null,
+  maxRetrySeconds: null,
+  minBackoffSeconds: null,
+  maxBackoffSeconds: null,
+};
 
 /**
  * Handler for scheduled functions. Triggered whenever the associated

@@ -1,5 +1,5 @@
 import { Expression } from "../params";
-import { ResettableKeys, ResetValue } from "../common/options";
+import { ResetValue } from "../common/options";
 
 export { RESET_VALUE } from "../common/options";
 
@@ -266,12 +266,3 @@ export interface DeploymentOptions extends RuntimeOptions {
    */
   preserveExternalChanges?: boolean;
 }
-
-/** @internal */
-export const RESETTABLE_SCHEDULE_OPTIONS: ResettableKeys<ScheduleRetryConfig> = {
-  retryCount: null,
-  maxBackoffDuration: null,
-  maxDoublings: null,
-  maxRetryDuration: null,
-  minBackoffDuration: null,
-};

@@ -26,12 +26,24 @@ import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
-import { RESETTABLE_OPTIONS, ResetValue } from "../common/options";
+import { RESETTABLE_OPTIONS, ResettableKeys, ResetValue } from "../common/options";
 
 export { Change } from "../common/change";
 
 /** @internal */
 const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
+
+/** @internal */
+export const RESETTABLE_SCHEDULE_OPTIONS: Omit<
+  ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
+  "maxBackoffSeconds" | "minBackoffSeconds" | "maxRetrySeconds"
+> = {
+  retryCount: null,
+  maxDoublings: null,
+  maxRetryDuration: null,
+  maxBackoffDuration: null,
+  minBackoffDuration: null,
+};
 
 /**
  * Wire format for an event.
