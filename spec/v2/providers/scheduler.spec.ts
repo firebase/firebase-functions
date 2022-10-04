@@ -21,7 +21,22 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import * as options from "../../../src/v2/options";
 import * as schedule from "../../../src/v2/providers/scheduler";
+import { MINIMAL_ENDPOINT } from "../../fixtures";
+
+const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
+  schedule: "",
+  timeZone: options.RESET_VALUE,
+  retryConfig: {
+    retryCount: options.RESET_VALUE,
+    maxRetrySeconds: options.RESET_VALUE,
+    minBackoffSeconds: options.RESET_VALUE,
+    maxBackoffSeconds: options.RESET_VALUE,
+    maxDoublings: options.RESET_VALUE,
+  },
+};
 
 describe("schedule", () => {
   describe("getOpts", () => {
@@ -67,11 +82,12 @@ describe("schedule", () => {
       const schfn = schedule.onSchedule("* * * * *", () => console.log(1));
 
       expect(schfn.__endpoint).to.deep.eq({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "* * * * *",
-          retryConfig: {},
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
@@ -99,6 +115,7 @@ describe("schedule", () => {
       );
 
       expect(schfn.__endpoint).to.deep.eq({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: { key: "val" },
         region: ["us-central1"],

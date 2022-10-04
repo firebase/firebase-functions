@@ -5,6 +5,8 @@ import * as functions from "../../src/v1";
 import * as loader from "../../src/runtime/loader";
 import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
+import { MINIMAL_ENDPOINT } from "../fixtures";
+import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
 
 describe("extractStack", () => {
   const httpFn = functions.https.onRequest(() => undefined);
@@ -32,8 +34,16 @@ describe("extractStack", () => {
     loader.extractStack(module, endpoints, requiredAPIs);
 
     expect(endpoints).to.be.deep.equal({
-      http: { entryPoint: "http", ...httpEndpoint },
-      callable: { entryPoint: "callable", ...callableEndpoint },
+      http: {
+        ...MINIMAL_ENDPOINT,
+        entryPoint: "http",
+        ...httpEndpoint,
+      },
+      callable: {
+        ...MINIMAL_ENDPOINT,
+        entryPoint: "callable",
+        ...callableEndpoint,
+      },
     });
 
     expect(requiredAPIs).to.be.empty;
@@ -51,9 +61,10 @@ describe("extractStack", () => {
 
     expect(endpoints).to.be.deep.equal({
       taskq: {
+        ...MINIMAL_ENDPOINT,
         entryPoint: "taskq",
         platform: "gcfv1",
-        taskQueueTrigger: {},
+        taskQueueTrigger: MINIMIAL_TASK_QUEUE_TRIGGER,
       },
     });
 
@@ -80,10 +91,12 @@ describe("extractStack", () => {
 
     expect(endpoints).to.be.deep.equal({
       fn1: {
+        ...MINIMAL_ENDPOINT,
         entryPoint: "fn1",
         ...httpEndpoint,
       },
       "g1-fn2": {
+        ...MINIMAL_ENDPOINT,
         entryPoint: "g1.fn2",
         ...httpEndpoint,
       },
@@ -116,6 +129,7 @@ describe("extractStack", () => {
 
       expect(endpoints).to.be.deep.equal({
         fn: {
+          ...MINIMAL_ENDPOINT,
           entryPoint: "fn",
           platform: "gcfv1",
           eventTrigger: {
@@ -142,11 +156,12 @@ describe("extractStack", () => {
 
       expect(endpoints).to.be.deep.equal({
         scheduled: {
+          ...MINIMAL_ENDPOINT,
           entryPoint: "scheduled",
           platform: "gcfv1",
           // TODO: This label should not exist?
           labels: {},
-          scheduleTrigger: { schedule: "every 5 minutes" },
+          scheduleTrigger: { ...MINIMAL_SCHEDULE_TRIGGER, schedule: "every 5 minutes" },
         },
       });
 
@@ -217,23 +232,27 @@ describe("loadStack", () => {
   const expected: ManifestStack = {
     endpoints: {
       v1http: {
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv1",
         entryPoint: "v1http",
         httpsTrigger: {},
       },
       v1callable: {
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv1",
         entryPoint: "v1callable",
         labels: {},
         callableTrigger: {},
       },
       v2http: {
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         entryPoint: "v2http",
         labels: {},
         httpsTrigger: {},
       },
       v2callable: {
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         entryPoint: "v2callable",
         labels: {},
@@ -293,11 +312,13 @@ describe("loadStack", () => {
           endpoints: {
             ...expected.endpoints,
             "g1-groupedhttp": {
+              ...MINIMAL_ENDPOINT,
               platform: "gcfv1",
               entryPoint: "g1.groupedhttp",
               httpsTrigger: {},
             },
             "g1-groupedcallable": {
+              ...MINIMAL_ENDPOINT,
               platform: "gcfv1",
               entryPoint: "g1.groupedcallable",
               labels: {},

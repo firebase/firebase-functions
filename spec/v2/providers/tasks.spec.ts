@@ -22,11 +22,27 @@
 
 import { expect } from "chai";
 
-import * as options from "../../../src/v2/options";
+import { ManifestEndpoint } from "../../../src/runtime/manifest";
 import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "./fixtures";
+import { FULL_OPTIONS } from "./fixtures";
+import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../fixtures";
+import * as options from "../../../src/v2/options";
+
+const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
+  rateLimits: {
+    maxConcurrentDispatches: options.RESET_VALUE,
+    maxDispatchesPerSecond: options.RESET_VALUE,
+  },
+  retryConfig: {
+    maxAttempts: options.RESET_VALUE,
+    maxBackoffSeconds: options.RESET_VALUE,
+    maxDoublings: options.RESET_VALUE,
+    maxRetrySeconds: options.RESET_VALUE,
+    minBackoffSeconds: options.RESET_VALUE,
+  },
+};
 
 describe("onTaskDispatched", () => {
   beforeEach(() => {
@@ -42,9 +58,10 @@ describe("onTaskDispatched", () => {
     const result = onTaskDispatched(() => undefined);
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_ENDPOINT,
       platform: "gcfv2",
-      taskQueueTrigger: {},
       labels: {},
+      taskQueueTrigger: MINIMIAL_TASK_QUEUE_TRIGGER,
     });
   });
 
@@ -104,12 +121,13 @@ describe("onTaskDispatched", () => {
     );
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_ENDPOINT,
       platform: "gcfv2",
-      taskQueueTrigger: {},
       concurrency: 20,
       minInstances: 3,
       region: ["us-west1"],
       labels: {},
+      taskQueueTrigger: MINIMIAL_TASK_QUEUE_TRIGGER,
     });
   });
 

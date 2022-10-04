@@ -21,7 +21,10 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { Event } from "../../../src/v1";
+
+import { Event, RESET_VALUE } from "../../../src/v1";
+import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_SCHEDULE_TRIGGER } from "./fixtures";
 import * as functions from "../../../src/v1";
 import * as pubsub from "../../../src/v1/providers/pubsub";
 
@@ -91,6 +94,7 @@ describe("Pubsub Functions", () => {
         const result = pubsub.topic("toppy").onPublish(() => null);
 
         expect(result.__endpoint).to.deep.equal({
+          ...MINIMAL_ENDPOINT,
           platform: "gcfv1",
           eventTrigger: {
             eventType: "google.pubsub.topic.publish",
@@ -148,6 +152,7 @@ describe("Pubsub Functions", () => {
         const result = pubsub.schedule("every 5 minutes").onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
         });
       });
@@ -159,6 +164,7 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
           timeZone: "America/New_York",
         });
@@ -178,6 +184,7 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
           retryConfig,
         });
@@ -202,6 +209,7 @@ describe("Pubsub Functions", () => {
             .onRun(() => null);
 
           expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+            ...MINIMAL_SCHEDULE_TRIGGER,
             schedule: "every 5 minutes",
             retryConfig,
             timeZone: "America/New_York",
@@ -221,6 +229,7 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
         });
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);
@@ -240,6 +249,7 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
           timeZone: "America/New_York",
         });
@@ -267,7 +277,9 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
+          timeZone: RESET_VALUE,
           retryConfig,
         });
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);
@@ -295,6 +307,7 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
           timeZone: "America/New_York",
           retryConfig,

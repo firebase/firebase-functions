@@ -26,6 +26,7 @@ import * as functions from "../../../src/v1";
 import { Event } from "../../../src/v1/cloud-functions";
 import * as analytics from "../../../src/v1/providers/analytics";
 import * as analyticsSpecInput from "./analytics.spec.input";
+import { MINIMAL_ENDPOINT } from "../../fixtures";
 
 describe("Analytics Functions", () => {
   describe("EventBuilder", () => {
@@ -57,6 +58,7 @@ describe("Analytics Functions", () => {
         const cloudFunction = analytics.event("first_open").onLog(() => null);
 
         expect(cloudFunction.__endpoint).to.deep.equal({
+          ...MINIMAL_ENDPOINT,
           platform: "gcfv1",
           eventTrigger: {
             eventFilters: {

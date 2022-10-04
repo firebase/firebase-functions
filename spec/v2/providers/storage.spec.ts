@@ -2,7 +2,8 @@ import { expect } from "chai";
 import * as config from "../../../src/common/config";
 import * as options from "../../../src/v2/options";
 import * as storage from "../../../src/v2/providers/storage";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "./fixtures";
+import { FULL_OPTIONS } from "./fixtures";
+import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../fixtures";
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: "event-type",
@@ -75,6 +76,7 @@ describe("v2/storage", () => {
       const result = storage.onOperation("event-type", "some-bucket", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: ENDPOINT_EVENT_TRIGGER,
@@ -87,6 +89,7 @@ describe("v2/storage", () => {
       const result = storage.onOperation("event-type", { region: "us-west1" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -101,6 +104,7 @@ describe("v2/storage", () => {
       const result = storage.onOperation("event-type", { bucket: "some-bucket" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: ENDPOINT_EVENT_TRIGGER,
@@ -119,6 +123,7 @@ describe("v2/storage", () => {
 
       expect(result.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: ENDPOINT_EVENT_TRIGGER,
       });
     });
@@ -141,6 +146,7 @@ describe("v2/storage", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         concurrency: 20,
         minInstances: 3,
@@ -167,6 +173,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectArchived(() => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -180,6 +187,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectArchived("my-bucket", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -196,6 +204,7 @@ describe("v2/storage", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -212,6 +221,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectArchived({ region: "us-west1" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -239,6 +249,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectFinalized(() => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -252,6 +263,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectFinalized("my-bucket", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -268,6 +280,7 @@ describe("v2/storage", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -284,6 +297,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectFinalized({ region: "us-west1" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -311,6 +325,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectDeleted(() => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -324,6 +339,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectDeleted("my-bucket", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -337,6 +353,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectDeleted({ bucket: "my-bucket", region: "us-west1" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -353,6 +370,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectDeleted({ region: "us-west1" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -380,6 +398,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectMetadataUpdated(() => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -393,6 +412,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectMetadataUpdated("my-bucket", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -409,6 +429,7 @@ describe("v2/storage", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -425,6 +446,7 @@ describe("v2/storage", () => {
       const result = storage.onObjectMetadataUpdated({ region: "us-west1" }, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {

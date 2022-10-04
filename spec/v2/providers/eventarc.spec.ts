@@ -23,7 +23,8 @@
 import { expect } from "chai";
 import * as options from "../../../src/v2/options";
 import * as eventarc from "../../../src/v2/providers/eventarc";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "./fixtures";
+import { FULL_OPTIONS } from "./fixtures";
+import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../fixtures";
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: "event-type",
@@ -46,6 +47,7 @@ describe("v2/eventarc", () => {
       const result = eventarc.onCustomEventPublished("event-type", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -62,6 +64,7 @@ describe("v2/eventarc", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -83,6 +86,7 @@ describe("v2/eventarc", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -107,6 +111,7 @@ describe("v2/eventarc", () => {
 
       expect(result.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
           channel: "locations/us-west1/channels/my-channel",
@@ -132,6 +137,7 @@ describe("v2/eventarc", () => {
       );
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         concurrency: 20,
         minInstances: 3,

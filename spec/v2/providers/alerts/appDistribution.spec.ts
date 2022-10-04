@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import * as appDistribution from "../../../../src/v2/providers/alerts/appDistribution";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "../fixtures";
+import { FULL_OPTIONS } from "../fixtures";
+import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../../fixtures";
 
 const APPID = "123456789";
 const myHandler = () => 42;
@@ -16,6 +17,7 @@ describe("appDistribution", () => {
       const func = appDistribution.onNewTesterIosDevicePublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -34,6 +36,7 @@ describe("appDistribution", () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -52,6 +55,7 @@ describe("appDistribution", () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -67,6 +71,7 @@ describe("appDistribution", () => {
       const func = appDistribution.onNewTesterIosDevicePublished(myHandler);
 
       expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -93,6 +98,7 @@ describe("appDistribution", () => {
       const func = appDistribution.onInAppFeedbackPublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -111,6 +117,7 @@ describe("appDistribution", () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -129,6 +136,7 @@ describe("appDistribution", () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -144,6 +152,7 @@ describe("appDistribution", () => {
       const func = appDistribution.onInAppFeedbackPublished(myHandler);
 
       expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {

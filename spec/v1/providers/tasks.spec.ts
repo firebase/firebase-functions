@@ -26,6 +26,8 @@ import * as functions from "../../../src/v1";
 import { taskQueue } from "../../../src/v1/providers/tasks";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
+import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMIAL_TASK_QUEUE_TRIGGER } from "./fixtures";
 
 describe("#onDispatch", () => {
   it("should return a trigger/endpoint with appropriate values", () => {
@@ -45,6 +47,7 @@ describe("#onDispatch", () => {
     }).onDispatch(() => undefined);
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_ENDPOINT,
       platform: "gcfv1",
       taskQueueTrigger: {
         rateLimits: {
@@ -74,11 +77,13 @@ describe("#onDispatch", () => {
       .onDispatch(() => null);
 
     expect(fn.__endpoint).to.deep.equal({
+      ...MINIMAL_ENDPOINT,
       platform: "gcfv1",
       region: ["us-east1"],
       availableMemoryMb: 256,
       timeoutSeconds: 90,
       taskQueueTrigger: {
+        ...MINIMIAL_TASK_QUEUE_TRIGGER,
         retryConfig: {
           maxAttempts: 5,
         },

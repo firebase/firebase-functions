@@ -1,7 +1,8 @@
 import { expect } from "chai";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import * as crashlytics from "../../../../src/v2/providers/alerts/crashlytics";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "../fixtures";
+import { FULL_OPTIONS } from "../fixtures";
+import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../../fixtures";
 
 const ALERT_TYPE = "new-alert-type";
 const APPID = "123456789";
@@ -50,6 +51,7 @@ describe("crashlytics", () => {
         const func = crashlytics[method](myHandler);
 
         expect(func.__endpoint).to.deep.equal({
+          ...MINIMAL_ENDPOINT,
           platform: "gcfv2",
           labels: {},
           eventTrigger: {
@@ -64,6 +66,7 @@ describe("crashlytics", () => {
         const func = crashlytics[method](APPID, myHandler);
 
         expect(func.__endpoint).to.deep.equal({
+          ...MINIMAL_ENDPOINT,
           platform: "gcfv2",
           labels: {},
           eventTrigger: {
@@ -79,6 +82,7 @@ describe("crashlytics", () => {
 
         expect(func.__endpoint).to.deep.equal({
           ...FULL_ENDPOINT,
+          platform: "gcfv2",
           eventTrigger: {
             eventType: alerts.eventType,
             eventFilters: ALERT_EVENT_FILTER,
@@ -92,6 +96,7 @@ describe("crashlytics", () => {
 
         expect(func.__endpoint).to.deep.equal({
           ...FULL_ENDPOINT,
+          platform: "gcfv2",
           eventTrigger: {
             eventType: alerts.eventType,
             eventFilters: ALERT_APP_EVENT_FILTER,
@@ -116,6 +121,7 @@ describe("crashlytics", () => {
       const func = crashlytics.onOperation(ALERT_TYPE, myHandler, undefined);
 
       expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -130,6 +136,7 @@ describe("crashlytics", () => {
       const func = crashlytics.onOperation(ALERT_TYPE, APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -145,6 +152,7 @@ describe("crashlytics", () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: ALERT_EVENT_FILTER,
@@ -162,6 +170,7 @@ describe("crashlytics", () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: ALERT_APP_EVENT_FILTER,
