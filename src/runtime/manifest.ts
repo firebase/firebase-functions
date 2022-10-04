@@ -194,7 +194,7 @@ export function initTaskQueueTrigger(
   return taskQueueTrigger;
 }
 
-export const RESETTABLE_V1_SCHEDULE_OPTIONS: Omit<
+const RESETTABLE_V1_SCHEDULE_OPTIONS: Omit<
   ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
   "maxBackoffSeconds" | "minBackoffSeconds" | "maxRetrySeconds"
 > = {
