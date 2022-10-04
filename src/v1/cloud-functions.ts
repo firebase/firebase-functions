@@ -473,7 +473,7 @@ function _detectAuthType(event: Event) {
 
 /** @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
-  const endpoint: ManifestEndpoint = initEndpoint(options);
+  const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
     options,
