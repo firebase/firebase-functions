@@ -26,7 +26,7 @@ import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
-import { ResettableKeys, ResetValue } from "../common/options";
+import { RESETTABLE_OPTIONS, ResetValue } from "../common/options";
 
 export { Change } from "../common/change";
 
@@ -475,17 +475,6 @@ function _detectAuthType(event: Event) {
   }
   return "UNAUTHENTICATED";
 }
-
-const RESETTABLE_OPTIONS: ResettableKeys<DeploymentOptions> = {
-  ingressSettings: null,
-  maxInstances: null,
-  memory: null,
-  minInstances: null,
-  serviceAccount: null,
-  timeoutSeconds: null,
-  vpcConnector: null,
-  vpcConnectorEgressSettings: null,
-};
 
 /** @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {

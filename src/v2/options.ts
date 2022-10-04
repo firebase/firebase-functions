@@ -26,7 +26,7 @@
  */
 
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
+import { RESET_VALUE, RESETTABLE_OPTIONS, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec } from "../params/types";
@@ -250,22 +250,10 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   channel?: string;
 }
 
-const RESETTABLE_CONFIGS: ResettableKeys<GlobalOptions> = {
-  memory: null,
-  timeoutSeconds: null,
-  minInstances: null,
-  maxInstances: null,
-  ingressSettings: null,
-  vpcConnector: null,
-  vpcConnectorEgressSettings: null,
-  serviceAccount: null,
-  concurrency: null,
-};
-
 function initEndpoint(opts: GlobalOptions | EventHandlerOptions | HttpsOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   if (!opts.preserveExternalChanges) {
-    for (const k of Object.keys(RESETTABLE_CONFIGS)) {
+    for (const k of Object.keys(RESETTABLE_OPTIONS)) {
       endpoint[k] = RESET_VALUE;
     }
   }
