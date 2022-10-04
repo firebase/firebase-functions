@@ -19,8 +19,6 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import { ManifestEndpoint } from "../runtime/manifest";
-
 /**
  * Special configuration type to reset configuration to platform default.
  *
@@ -48,16 +46,3 @@ export const RESET_VALUE = ResetValue.getInstance();
 export type ResettableKeys<T> = Required<{
   [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
 }>;
-
-/**
- * @internal
- */
-export const RESETTABLE_OPTIONS: ResettableKeys<ManifestEndpoint> = {
-  availableMemoryMb: null,
-  timeoutSeconds: null,
-  minInstances: null,
-  maxInstances: null,
-  ingressSettings: null,
-  concurrency: null,
-  serviceAccountEmail: null,
-};

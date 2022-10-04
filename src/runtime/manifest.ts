@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { RESET_VALUE, RESETTABLE_OPTIONS, ResettableKeys, ResetValue } from "../common/options";
+import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
 import { Expression } from "../params";
 import { WireParamSpec } from "../params/types";
 
@@ -137,6 +137,16 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
   traverse(wireStack.endpoints);
   return wireStack;
 }
+
+const RESETTABLE_OPTIONS: ResettableKeys<ManifestEndpoint> = {
+  availableMemoryMb: null,
+  timeoutSeconds: null,
+  minInstances: null,
+  maxInstances: null,
+  ingressSettings: null,
+  concurrency: null,
+  serviceAccountEmail: null,
+};
 
 /**
  * @internal
