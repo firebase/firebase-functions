@@ -22,7 +22,7 @@
 
 import { Request, Response } from "express";
 import { warn } from "../logger";
-import { DeploymentOptions } from "./function-configuration";
+import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
@@ -474,7 +474,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {
-      endpoint.vpc = null;
+      endpoint.vpc = { connector: RESET_VALUE, egressSettings: RESET_VALUE };
     } else {
       const vpc: ManifestEndpoint["vpc"] = { connector: options.vpcConnector };
       convertIfPresent(vpc, options, "egressSettings", "vpcConnectorEgressSettings");

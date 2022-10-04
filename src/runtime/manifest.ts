@@ -38,10 +38,10 @@ export interface ManifestEndpoint {
   timeoutSeconds?: number | Expression<number> | ResetValue;
   vpc?: {
     connector: string | Expression<string> | ResetValue;
-    egressSettings?: string;
+    egressSettings?: string | Expression<string> | ResetValue;
   };
-  ingressSettings?: string | ResetValue;
-  serviceAccountEmail?: string;
+  ingressSettings?: string | Expression<string> | ResetValue;
+  serviceAccountEmail?: string | Expression<string> | ResetValue;
   cpu?: number | "gcf_gen1";
   labels?: Record<string, string>;
   environmentVariables?: Record<string, string>;
@@ -63,8 +63,22 @@ export interface ManifestEndpoint {
     serviceAccountEmail?: string | ResetValue;
   };
 
+  taskQueueTrigger?: {
+    retryConfig?: {
+      maxAttempts?: number | Expression<number> | ResetValue;
+      maxRetrySeconds?: number | Expression<number> | ResetValue;
+      maxBackoffSeconds?: number | Expression<number> | ResetValue;
+      maxDoublings?: number | Expression<number> | ResetValue;
+      minBackoffSeconds?: number | Expression<number> | ResetValue;
+    };
+    rateLimits?: {
+      maxConcurrentDispatches?: number | Expression<number> | ResetValue;
+      maxDispatchesPerSecond?: number | Expression<number> | ResetValue;
+    };
+  };
+
   scheduleTrigger?: {
-    schedule?: string | Expression<string>;
+    schedule: string | Expression<string>;
     timeZone?: string | Expression<string> | ResetValue;
     retryConfig?: {
       retryCount?: number | Expression<number> | ResetValue;
@@ -72,6 +86,10 @@ export interface ManifestEndpoint {
       minBackoffSeconds?: string | Expression<string> | ResetValue;
       maxBackoffSeconds?: string | Expression<string> | ResetValue;
       maxDoublings?: number | Expression<number> | ResetValue;
+      // Note: v1 schedule functions use *Duration instead of *Seconds
+      maxRetryDuration?: string | Expression<string> | ResetValue;
+      minBackoffDuration?: string | Expression<string> | ResetValue;
+      maxBackoffDuration?: string | Expression<string> | ResetValue;
     };
   };
 
