@@ -13,26 +13,45 @@ const TIMEOUT_L = 10_000;
 const TIMEOUT_M = 5_000;
 const TIMEOUT_S = 1_000;
 
+const DEFAULT_OPTIONS = {
+  memory: null,
+  maxInstances: null,
+  minInstances: null,
+  timeoutSeconds: null,
+  vpcConnector: null,
+  vpcConnectorEgressSettings: null,
+  serviceAccount: null,
+  ingressSettings: null,
+};
+
+const DEFAULT_V1_OPTIONS = { ...DEFAULT_OPTIONS };
+
+const DEFAULT_V2_OPTIONS = { ...DEFAULT_OPTIONS, concurrency: null };
+
 const BASE_STACK = {
   endpoints: {
     v1http: {
+      ...DEFAULT_V1_OPTIONS,
       platform: "gcfv1",
       entryPoint: "v1http",
       httpsTrigger: {},
     },
     v1callable: {
+      ...DEFAULT_V1_OPTIONS,
       platform: "gcfv1",
       entryPoint: "v1callable",
       labels: {},
       callableTrigger: {},
     },
     v2http: {
+      ...DEFAULT_V2_OPTIONS,
       platform: "gcfv2",
       entryPoint: "v2http",
       labels: {},
       httpsTrigger: {},
     },
     v2callable: {
+      ...DEFAULT_V2_OPTIONS,
       platform: "gcfv2",
       entryPoint: "v2callable",
       labels: {},
@@ -183,11 +202,13 @@ describe("functions.yaml", () => {
           endpoints: {
             ...BASE_STACK.endpoints,
             "g1-groupedhttp": {
+              ...DEFAULT_V1_OPTIONS,
               platform: "gcfv1",
               entryPoint: "g1.groupedhttp",
               httpsTrigger: {},
             },
             "g1-groupedcallable": {
+              ...DEFAULT_V1_OPTIONS,
               platform: "gcfv1",
               entryPoint: "g1.groupedcallable",
               labels: {},
