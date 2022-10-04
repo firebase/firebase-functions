@@ -148,10 +148,14 @@ const RESETTABLE_OPTIONS: ResettableKeys<ManifestEndpoint> = {
   serviceAccountEmail: null,
 };
 
+interface ManifestOptions {
+  preserveExternalChanges?: boolean;
+}
+
 /**
  * @internal
  */
-export function initEndpoint(...opts: { preserveExternalChanges?: boolean }[]): ManifestEndpoint {
+export function initEndpoint(...opts: ManifestOptions[]): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
     for (const key of Object.keys(RESETTABLE_OPTIONS)) {
@@ -187,7 +191,7 @@ const RESETTABLE_RATE_LIMITS_OPTIONS: ResettableKeys<
  * @internal
  */
 export function initTaskQueueTrigger(
-  ...opts: { preserveExternalChanges?: boolean }[]
+  ...opts: ManifestOptions[]
 ): ManifestEndpoint["taskQueueTrigger"] {
   let taskQueueTrigger = {};
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
@@ -229,7 +233,7 @@ const RESETTABLE_V2_SCHEDULE_OPTIONS: Omit<
 function initScheduleTrigger(
   resetOptions: Record<string, unknown>,
   schedule: string | Expression<string>,
-  ...opts: { preserveExternalChanges?: boolean }[]
+  ...opts: ManifestOptions[]
 ): ManifestEndpoint["scheduleTrigger"] {
   let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = { schedule };
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
@@ -247,7 +251,7 @@ function initScheduleTrigger(
  */
 export function initV1ScheduleTrigger(
   schedule: string | Expression<string>,
-  ...opts: { preserveExternalChanges?: boolean }[]
+  ...opts: ManifestOptions[]
 ): ManifestEndpoint["scheduleTrigger"] {
   return initScheduleTrigger(RESETTABLE_V1_SCHEDULE_OPTIONS, schedule, ...opts);
 }
@@ -257,7 +261,7 @@ export function initV1ScheduleTrigger(
  */
 export function initV2ScheduleTrigger(
   schedule: string | Expression<string>,
-  ...opts: { preserveExternalChanges?: boolean }[]
+  ...opts: ManifestOptions[]
 ): ManifestEndpoint["scheduleTrigger"] {
   return initScheduleTrigger(RESETTABLE_V2_SCHEDULE_OPTIONS, schedule, ...opts);
 }
