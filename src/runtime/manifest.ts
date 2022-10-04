@@ -64,14 +64,14 @@ export interface ManifestEndpoint {
   };
 
   taskQueueTrigger?: {
-    retryConfig?: {
+    retryConfig: {
       maxAttempts?: number | Expression<number> | ResetValue;
       maxRetrySeconds?: number | Expression<number> | ResetValue;
       maxBackoffSeconds?: number | Expression<number> | ResetValue;
       maxDoublings?: number | Expression<number> | ResetValue;
       minBackoffSeconds?: number | Expression<number> | ResetValue;
     };
-    rateLimits?: {
+    rateLimits: {
       maxConcurrentDispatches?: number | Expression<number> | ResetValue;
       maxDispatchesPerSecond?: number | Expression<number> | ResetValue;
     };

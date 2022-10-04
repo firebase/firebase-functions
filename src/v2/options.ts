@@ -26,7 +26,7 @@
  */
 
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { ResetValue } from "../common/options";
+import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec } from "../params/types";
@@ -184,12 +184,25 @@ export interface GlobalOptions {
   secrets?: string[];
 
   /**
-   * Determines whether Firebase AppCheck is enforced.
+   * Determines whether Firebase AppCheck is enforced. Defaults to false.
+   *
+   * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
    * When false, requests with invalid tokens set event.app to undefiend.
    */
   enforceAppCheck?: boolean;
+
+  /**
+   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
+   *
+   * @remarks
+   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
+   * SDK, we highly recommend setting preserveExternalChanges to true. Otherwise, when Firebase Functions SDK releases
+   * a new version of the SDK with the support for the missing configuration, your functions manually configured setting
+   * may inadvertently be wiped out.
+   */
+  preserveExternalChanges?: boolean;
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -237,6 +250,28 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   channel?: string;
 }
 
+const RESETTABLE_CONFIGS: ResettableKeys<GlobalOptions> = {
+  memory: null,
+  timeoutSeconds: null,
+  minInstances: null,
+  maxInstances: null,
+  ingressSettings: null,
+  vpcConnector: null,
+  vpcConnectorEgressSettings: null,
+  serviceAccount: null,
+  concurrency: null,
+};
+
+function initEndpoint(opts: GlobalOptions | EventHandlerOptions | HttpsOptions): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
+  if (!opts.preserveExternalChanges) {
+    for (const k of Object.keys(RESETTABLE_CONFIGS)) {
+      endpoint[k] = RESET_VALUE;
+    }
+  }
+  return endpoint;
+}
+
 /**
  * Apply GlobalOptions to endpoint manifest.
  * @internal
@@ -244,7 +279,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 export function optionsToEndpoint(
   opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
-  const endpoint: ManifestEndpoint = {};
+  const endpoint = initEndpoint(opts);
   copyIfPresent(
     endpoint,
     opts,

@@ -26,7 +26,7 @@ import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
-import { ResetValue } from "../common/options";
+import { ResettableKeys, ResetValue } from "../common/options";
 
 export { Change } from "../common/change";
 
@@ -373,7 +373,28 @@ export function makeCloudFunction<EventData>({
       };
 
       if (options.schedule) {
-        endpoint.scheduleTrigger = options.schedule as any;
+        let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = {
+          schedule: options.schedule.schedule,
+        };
+        if (!options.preserveExternalChanges) {
+          const retryConfig = {};
+          for (const key of Object.keys(RESETTABLE_SCHEDULE_OPTIONS)) {
+            retryConfig[key] = RESET_VALUE;
+          }
+          scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, retryConfig };
+        }
+        endpoint.scheduleTrigger = scheduleTrigger;
+        copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
+        copyIfPresent(
+          endpoint.scheduleTrigger.retryConfig,
+          options.schedule.retryConfig,
+          "retryCount",
+          "maxDoublings",
+          "maxBackoffDuration",
+          "maxRetryDuration",
+          "minBackoffDuration"
+        );
+        endpoint.scheduleTrigger = scheduleTrigger;
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
@@ -455,9 +476,23 @@ function _detectAuthType(event: Event) {
   return "UNAUTHENTICATED";
 }
 
+const RESETTABLE_OPTIONS: ResettableKeys<DeploymentOptions> = {
+  memory: null,
+  timeoutSeconds: null,
+  minInstances: null,
+  maxInstances: null,
+  vpcConnector: null,
+  serviceAccount: null,
+};
+
 /** @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
+  if (!options.preserveExternalChanges) {
+    for (const key of Object.keys(RESETTABLE_OPTIONS)) {
+      endpoint[key] = RESET_VALUE;
+    }
+  }
   copyIfPresent(
     endpoint,
     options,

@@ -117,6 +117,14 @@ export interface ScheduleOptions extends options.GlobalOptions {
   maxDoublings?: number | Expression<number> | ResetValue;
 }
 
+const RESETTABLE_SCHEDULE_OPTIONS: Array<keyof ScheduleOptions> = [
+  "retryCount",
+  "maxRetrySeconds",
+  "minBackoffSeconds",
+  "maxBackoffSeconds",
+  "maxDoublings",
+];
+
 /**
  * Handler for scheduled functions. Triggered whenever the associated
  * scheduler job sends a http request.
@@ -170,8 +178,18 @@ export function onSchedule(
   const func: any = wrapTraceContext(httpFunc);
   func.run = handler;
 
-  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
+  const globalOpts = options.getGlobalOptions();
+  const baseOptsEndpoint = options.optionsToEndpoint(globalOpts);
   const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
+
+  let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = { schedule: separatedOpts.schedule };
+  if (!globalOpts.preserveExternalChanges && !separatedOpts.opts.preserveExternalChanges) {
+    const retryConfig = {};
+    for (const key of Object.keys(RESETTABLE_SCHEDULE_OPTIONS)) {
+      retryConfig[key] = RESET_VALUE;
+    }
+    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, retryConfig };
+  }
 
   const ep: ManifestEndpoint = {
     platform: "gcfv2",
@@ -181,11 +199,9 @@ export function onSchedule(
       ...baseOptsEndpoint?.labels,
       ...specificOptsEndpoint?.labels,
     },
-    scheduleTrigger: {
-      schedule: separatedOpts.schedule,
-      retryConfig: {},
-    },
+    scheduleTrigger,
   };
+
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,

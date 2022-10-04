@@ -1,5 +1,5 @@
 import { Expression } from "../params";
-import { ResetValue } from "../common/options";
+import { ResettableKeys, ResetValue } from "../common/options";
 
 export { RESET_VALUE } from "../common/options";
 
@@ -255,4 +255,23 @@ export interface DeploymentOptions extends RuntimeOptions {
    * Schedule for the scheduled function.
    */
   schedule?: Schedule;
+  /**
+   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
+   *
+   * @remarks
+   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
+   * SDK, we highly recommend setting preserveExternalChanges to true. Otherwise, when Firebase Functions SDK releases
+   * a new version of the SDK with the support for the missing configuration, your functions manually configured setting
+   * may inadvertently be wiped out.
+   */
+  preserveExternalChanges?: boolean;
 }
+
+/** @internal */
+export const RESETTABLE_SCHEDULE_OPTIONS: ResettableKeys<ScheduleRetryConfig> = {
+  retryCount: null,
+  maxBackoffDuration: null,
+  maxDoublings: null,
+  maxRetryDuration: null,
+  minBackoffDuration: null,
+};
