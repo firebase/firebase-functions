@@ -205,7 +205,7 @@ export interface RuntimeOptions {
   /**
    * Egress settings for VPC connector.
    */
-  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
+  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number] | ResetValue;
 
   /**
    * Specific service account for the function to run as.
@@ -215,7 +215,7 @@ export interface RuntimeOptions {
   /**
    * Ingress settings which control where this function can be called from.
    */
-  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
+  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number] | ResetValue;
 
   /**
    * User labels to set on the function.

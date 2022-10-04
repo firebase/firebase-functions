@@ -63,6 +63,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (
     runtimeOptions.ingressSettings &&
+    !(runtimeOptions.ingressSettings instanceof ResetValue) &&
     !INGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.ingressSettings)
   ) {
     throw new Error(
@@ -72,6 +73,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (
     runtimeOptions.vpcConnectorEgressSettings &&
+    !(runtimeOptions.vpcConnectorEgressSettings instanceof ResetValue) &&
     !VPC_EGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.vpcConnectorEgressSettings)
   ) {
     throw new Error(
