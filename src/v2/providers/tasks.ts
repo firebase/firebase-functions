@@ -26,20 +26,19 @@
  */
 
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
-import { RESET_VALUE, ResetValue } from "../../common/options";
+import { ResetValue } from "../../common/options";
 import {
   AuthData,
   onDispatchHandler,
   RateLimits,
   Request,
-  RESETTABLE_RATE_LIMITS_OPTIONS,
-  RESETTABLE_RETRY_CONFIG_OPTIONS,
   RetryConfig,
 } from "../../common/providers/tasks";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
+import { initEndpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 
 export { AuthData, Request };
 
@@ -213,28 +212,16 @@ export function onTaskDispatched<Args = any>(
   // but optionsToManifestEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
 
-  let taskQueueTrigger = {};
-  if (!globalOpts.preserveExternalChanges && !opts.preserveExternalChanges) {
-    const retryConfig = {};
-    for (const key of Object.keys(RESETTABLE_RETRY_CONFIG_OPTIONS)) {
-      retryConfig[key] = RESET_VALUE;
-    }
-    const rateLimits = {};
-    for (const key of Object.keys(RESETTABLE_RATE_LIMITS_OPTIONS)) {
-      rateLimits[key] = RESET_VALUE;
-    }
-    taskQueueTrigger = { retryConfig, rateLimits };
-  }
-
   func.__endpoint = {
     platform: "gcfv2",
+    ...initEndpoint(options.getGlobalOptions(), opts),
     ...baseOpts,
     ...specificOpts,
     labels: {
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    taskQueueTrigger,
+    taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
 
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");

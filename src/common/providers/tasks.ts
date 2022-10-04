@@ -26,8 +26,7 @@ import { DecodedIdToken } from "firebase-admin/auth";
 import * as logger from "../../logger";
 import * as https from "./https";
 import { Expression } from "../../params";
-import { ResettableKeys, ResetValue } from "../options";
-import { ManifestEndpoint } from "../../runtime/manifest";
+import { ResetValue } from "../options";
 
 /** How a task should be retried in the event of a non-2xx return. */
 export interface RetryConfig {
@@ -108,25 +107,6 @@ export interface Request<T = any> {
 
 type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
 type v2TaskHandler<Req> = (request: Request<Req>) => void | Promise<void>;
-
-/** @internal */
-export const RESETTABLE_RETRY_CONFIG_OPTIONS: ResettableKeys<
-  ManifestEndpoint["taskQueueTrigger"]["retryConfig"]
-> = {
-  maxAttempts: null,
-  maxDoublings: null,
-  maxBackoffSeconds: null,
-  maxRetrySeconds: null,
-  minBackoffSeconds: null,
-};
-
-/** @internal */
-export const RESETTABLE_RATE_LIMITS_OPTIONS: ResettableKeys<
-  ManifestEndpoint["taskQueueTrigger"]["rateLimits"]
-> = {
-  maxConcurrentDispatches: null,
-  maxDispatchesPerSecond: null,
-};
 
 /** @internal */
 export function onDispatchHandler<Req = any>(

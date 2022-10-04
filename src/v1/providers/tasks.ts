@@ -27,14 +27,17 @@ import { Request } from "../../common/providers/https";
 import {
   onDispatchHandler,
   RateLimits,
-  RESETTABLE_RATE_LIMITS_OPTIONS,
-  RESETTABLE_RETRY_CONFIG_OPTIONS,
   RetryConfig,
   TaskContext,
 } from "../../common/providers/tasks";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import {
+  initEndpoint,
+  initTaskQueueTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../../runtime/manifest";
 import { optionsToEndpoint } from "../cloud-functions";
-import { DeploymentOptions, RESET_VALUE } from "../function-configuration";
+import { DeploymentOptions } from "../function-configuration";
 
 export { RetryConfig, RateLimits, TaskContext };
 
@@ -103,23 +106,11 @@ export class TaskQueueBuilder {
     const fixedLen = (data: any, context: TaskContext) => handler(data, context);
     const func: any = onDispatchHandler(fixedLen);
 
-    let taskQueueTrigger = {};
-    if (!this.depOpts?.preserveExternalChanges) {
-      const retryConfig = {};
-      for (const key of Object.keys(RESETTABLE_RETRY_CONFIG_OPTIONS)) {
-        retryConfig[key] = RESET_VALUE;
-      }
-      const rateLimits = {};
-      for (const key of Object.keys(RESETTABLE_RATE_LIMITS_OPTIONS)) {
-        rateLimits[key] = RESET_VALUE;
-      }
-      taskQueueTrigger = { retryConfig, rateLimits };
-    }
-
     func.__endpoint = {
       platform: "gcfv1",
+      ...initEndpoint(this.depOpts),
       ...optionsToEndpoint(this.depOpts),
-      taskQueueTrigger,
+      taskQueueTrigger: initTaskQueueTrigger(this.depOpts),
     };
     copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "retryConfig");
     copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "rateLimits");

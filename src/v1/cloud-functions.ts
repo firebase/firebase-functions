@@ -25,25 +25,18 @@ import { warn } from "../logger";
 import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
-import { RESETTABLE_OPTIONS, ResettableKeys, ResetValue } from "../common/options";
+import {
+  initEndpoint,
+  initV1ScheduleTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../runtime/manifest";
+import { ResetValue } from "../common/options";
 
 export { Change } from "../common/change";
 
 /** @internal */
 const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
-
-/** @internal */
-export const RESETTABLE_SCHEDULE_OPTIONS: Omit<
-  ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
-  "maxBackoffSeconds" | "minBackoffSeconds" | "maxRetrySeconds"
-> = {
-  retryCount: null,
-  maxDoublings: null,
-  maxRetryDuration: null,
-  maxBackoffDuration: null,
-  minBackoffDuration: null,
-};
 
 /**
  * Wire format for an event.
@@ -381,21 +374,12 @@ export function makeCloudFunction<EventData>({
 
       const endpoint: ManifestEndpoint = {
         platform: "gcfv1",
+        ...initEndpoint(options),
         ...optionsToEndpoint(options),
       };
 
       if (options.schedule) {
-        let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = {
-          schedule: options.schedule.schedule,
-        };
-        if (!options.preserveExternalChanges) {
-          const retryConfig = {};
-          for (const key of Object.keys(RESETTABLE_SCHEDULE_OPTIONS)) {
-            retryConfig[key] = RESET_VALUE;
-          }
-          scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, retryConfig };
-        }
-        endpoint.scheduleTrigger = scheduleTrigger;
+        endpoint.scheduleTrigger = initV1ScheduleTrigger(options.schedule.schedule, options);
         copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
         copyIfPresent(
           endpoint.scheduleTrigger.retryConfig,
@@ -406,7 +390,6 @@ export function makeCloudFunction<EventData>({
           "maxRetryDuration",
           "minBackoffDuration"
         );
-        endpoint.scheduleTrigger = scheduleTrigger;
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
@@ -490,12 +473,7 @@ function _detectAuthType(event: Event) {
 
 /** @internal */
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
-  const endpoint: ManifestEndpoint = {};
-  if (!options.preserveExternalChanges) {
-    for (const key of Object.keys(RESETTABLE_OPTIONS)) {
-      endpoint[key] = RESET_VALUE;
-    }
-  }
+  const endpoint: ManifestEndpoint = initEndpoint(options);
   copyIfPresent(
     endpoint,
     options,

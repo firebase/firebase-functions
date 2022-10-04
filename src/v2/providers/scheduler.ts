@@ -23,9 +23,13 @@
 import * as express from "express";
 
 import { copyIfPresent } from "../../common/encoding";
-import { ResettableKeys, ResetValue } from "../../common/options";
+import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import {
+  initV2ScheduleTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../../runtime/manifest";
 import { HttpsFunction } from "./https";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
@@ -117,17 +121,6 @@ export interface ScheduleOptions extends options.GlobalOptions {
   maxDoublings?: number | Expression<number> | ResetValue;
 }
 
-const RESETTABLE_SCHEDULE_OPTIONS: Omit<
-  ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
-  "maxRetryDuration" | "maxBackoffDuration" | "minBackoffDuration"
-> = {
-  retryCount: null,
-  maxDoublings: null,
-  maxRetrySeconds: null,
-  minBackoffSeconds: null,
-  maxBackoffSeconds: null,
-};
-
 /**
  * Handler for scheduled functions. Triggered whenever the associated
  * scheduler job sends a http request.
@@ -185,15 +178,6 @@ export function onSchedule(
   const baseOptsEndpoint = options.optionsToEndpoint(globalOpts);
   const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
 
-  let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = { schedule: separatedOpts.schedule };
-  if (!globalOpts.preserveExternalChanges && !separatedOpts.opts.preserveExternalChanges) {
-    const retryConfig = {};
-    for (const key of Object.keys(RESETTABLE_SCHEDULE_OPTIONS)) {
-      retryConfig[key] = RESET_VALUE;
-    }
-    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, retryConfig };
-  }
-
   const ep: ManifestEndpoint = {
     platform: "gcfv2",
     ...baseOptsEndpoint,
@@ -202,7 +186,7 @@ export function onSchedule(
       ...baseOptsEndpoint?.labels,
       ...specificOptsEndpoint?.labels,
     },
-    scheduleTrigger,
+    scheduleTrigger: initV2ScheduleTrigger(separatedOpts.schedule, globalOpts, separatedOpts.opts),
   };
 
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");

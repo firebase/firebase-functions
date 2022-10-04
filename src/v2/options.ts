@@ -26,7 +26,7 @@
  */
 
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { RESET_VALUE, RESETTABLE_OPTIONS, ResetValue } from "../common/options";
+import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec } from "../params/types";
@@ -250,16 +250,6 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   channel?: string;
 }
 
-function initEndpoint(opts: GlobalOptions | EventHandlerOptions | HttpsOptions): ManifestEndpoint {
-  const endpoint: ManifestEndpoint = {};
-  if (!opts.preserveExternalChanges) {
-    for (const k of Object.keys(RESETTABLE_OPTIONS)) {
-      endpoint[k] = RESET_VALUE;
-    }
-  }
-  return endpoint;
-}
-
 /**
  * Apply GlobalOptions to endpoint manifest.
  * @internal
@@ -267,7 +257,7 @@ function initEndpoint(opts: GlobalOptions | EventHandlerOptions | HttpsOptions):
 export function optionsToEndpoint(
   opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
-  const endpoint = initEndpoint(opts);
+  const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
     opts,
@@ -282,7 +272,7 @@ export function optionsToEndpoint(
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
   if (opts.vpcConnector !== undefined) {
     if (opts.vpcConnector === null || opts.vpcConnector instanceof ResetValue) {
-      endpoint.vpc = null;
+      endpoint.vpc = { connector: RESET_VALUE, egressSettings: RESET_VALUE };
     } else {
       const vpc: ManifestEndpoint["vpc"] = { connector: opts.vpcConnector };
       convertIfPresent(vpc, opts, "egressSettings", "vpcConnectorEgressSettings");
