@@ -19,30 +19,46 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-/**
- * Special configuration type to reset configuration to platform default.
- *
- * @alpha
- */
-export class ResetValue {
-  toJSON(): null {
-    return null;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
-  public static getInstance() {
-    return new ResetValue();
-  }
-}
+import { ManifestEndpoint } from "../src/runtime/manifest";
+import { RESET_VALUE } from "../src/common/options";
 
-/**
- * Special configuration value to reset configuration to platform default.
- */
-export const RESET_VALUE = ResetValue.getInstance();
+export const MINIMAL_V2_ENDPOINT: ManifestEndpoint = {
+  availableMemoryMb: RESET_VALUE,
+  concurrency: RESET_VALUE,
+  ingressSettings: RESET_VALUE,
+  maxInstances: RESET_VALUE,
+  minInstances: RESET_VALUE,
+  serviceAccountEmail: RESET_VALUE,
+  timeoutSeconds: RESET_VALUE,
+  vpc: RESET_VALUE,
+};
 
-/**
- * @internal
- */
-export type ResettableKeys<T> = Required<{
-  [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
-}>;
+export const MINIMAL_V1_ENDPOINT: ManifestEndpoint = {
+  availableMemoryMb: RESET_VALUE,
+  ingressSettings: RESET_VALUE,
+  maxInstances: RESET_VALUE,
+  minInstances: RESET_VALUE,
+  serviceAccountEmail: RESET_VALUE,
+  timeoutSeconds: RESET_VALUE,
+  vpc: RESET_VALUE,
+};
+
+export const FULL_ENDPOINT: ManifestEndpoint = {
+  region: ["us-west1"],
+  availableMemoryMb: 512,
+  timeoutSeconds: 60,
+  minInstances: 1,
+  maxInstances: 3,
+  concurrency: 20,
+  vpc: {
+    connector: "aConnector",
+    egressSettings: "ALL_TRAFFIC",
+  },
+  serviceAccountEmail: "root@",
+  ingressSettings: "ALLOW_ALL",
+  cpu: "gcf_gen1",
+  labels: {
+    hello: "world",
+  },
+  secretEnvironmentVariables: [{ key: "MY_SECRET" }],
+};

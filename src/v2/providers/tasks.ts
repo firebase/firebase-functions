@@ -38,6 +38,7 @@ import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
+import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 
 export { AuthData, Request };
 
@@ -205,20 +206,24 @@ export function onTaskDispatched<Args = any>(
   const fixedLen = (req: Request<Args>) => handler(req);
   const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
 
-  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const globalOpts = options.getGlobalOptions();
+  const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToManifestEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+
   func.__endpoint = {
     platform: "gcfv2",
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     ...baseOpts,
     ...specificOpts,
     labels: {
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    taskQueueTrigger: {},
+    taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
+
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);

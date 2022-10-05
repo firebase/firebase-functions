@@ -26,7 +26,7 @@
  */
 
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { ResetValue } from "../common/options";
+import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec } from "../params/types";
@@ -184,12 +184,25 @@ export interface GlobalOptions {
   secrets?: string[];
 
   /**
-   * Determines whether Firebase AppCheck is enforced.
+   * Determines whether Firebase AppCheck is enforced. Defaults to false.
+   *
+   * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
    * When false, requests with invalid tokens set event.app to undefiend.
    */
   enforceAppCheck?: boolean;
+
+  /**
+   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
+   *
+   * @remarks
+   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
+   * SDK, we highly recommend setting preserveExternalChanges to true. Otherwise, when Firebase Functions SDK releases
+   * a new version of the SDK with the support for the missing configuration, your functions manually configured setting
+   * may inadvertently be wiped out.
+   */
+  preserveExternalChanges?: boolean;
 }
 
 let globalOptions: GlobalOptions | undefined;
@@ -259,7 +272,7 @@ export function optionsToEndpoint(
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
   if (opts.vpcConnector !== undefined) {
     if (opts.vpcConnector === null || opts.vpcConnector instanceof ResetValue) {
-      endpoint.vpc = null;
+      endpoint.vpc = RESET_VALUE;
     } else {
       const vpc: ManifestEndpoint["vpc"] = { connector: opts.vpcConnector };
       convertIfPresent(vpc, opts, "egressSettings", "vpcConnectorEgressSettings");

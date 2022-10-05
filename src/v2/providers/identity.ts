@@ -37,6 +37,7 @@ import {
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
+import { initV2Endpoint } from "../../runtime/manifest";
 import * as options from "../options";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
@@ -283,6 +284,7 @@ export function beforeOperation(
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(opts);
   func.__endpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
     ...baseOptsEndpoint,
     ...specificOptsEndpoint,

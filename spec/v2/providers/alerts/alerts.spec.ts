@@ -2,7 +2,8 @@ import { expect } from "chai";
 import { CloudEvent } from "../../../../src/v2";
 import * as options from "../../../../src/v2/options";
 import * as alerts from "../../../../src/v2/providers/alerts";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "../fixtures";
+import { FULL_OPTIONS } from "../fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
 
 const ALERT_TYPE = "new-alert-type";
 const APPID = "123456789";
@@ -22,6 +23,7 @@ describe("alerts", () => {
       const result = alerts.onAlertPublished(ALERT_TYPE, () => 42);
 
       expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -44,6 +46,7 @@ describe("alerts", () => {
 
       expect(result.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: ALERT_APP_EVENT_FILTER,
@@ -73,6 +76,7 @@ describe("alerts", () => {
 
     it("should define the endpoint without appId and opts", () => {
       expect(alerts.getEndpointAnnotation({}, ALERT_TYPE)).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -86,6 +90,7 @@ describe("alerts", () => {
     it("should define a complex endpoint without appId", () => {
       expect(alerts.getEndpointAnnotation({ ...FULL_OPTIONS }, ALERT_TYPE)).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: ALERT_EVENT_FILTER,
@@ -97,6 +102,7 @@ describe("alerts", () => {
     it("should define a complex endpoint", () => {
       expect(alerts.getEndpointAnnotation({ ...FULL_OPTIONS }, ALERT_TYPE, APPID)).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: ALERT_APP_EVENT_FILTER,
@@ -117,6 +123,7 @@ describe("alerts", () => {
       };
 
       expect(alerts.getEndpointAnnotation(specificOpts, ALERT_TYPE, APPID)).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         concurrency: 20,

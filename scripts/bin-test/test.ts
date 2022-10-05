@@ -13,26 +13,44 @@ const TIMEOUT_L = 10_000;
 const TIMEOUT_M = 5_000;
 const TIMEOUT_S = 1_000;
 
+const DEFAULT_OPTIONS = {
+  availableMemoryMb: null,
+  maxInstances: null,
+  minInstances: null,
+  timeoutSeconds: null,
+  vpc: null,
+  serviceAccountEmail: null,
+  ingressSettings: null,
+};
+
+const DEFAULT_V1_OPTIONS = { ...DEFAULT_OPTIONS };
+
+const DEFAULT_V2_OPTIONS = { ...DEFAULT_OPTIONS, concurrency: null };
+
 const BASE_STACK = {
   endpoints: {
     v1http: {
+      ...DEFAULT_V1_OPTIONS,
       platform: "gcfv1",
       entryPoint: "v1http",
       httpsTrigger: {},
     },
     v1callable: {
+      ...DEFAULT_V1_OPTIONS,
       platform: "gcfv1",
       entryPoint: "v1callable",
       labels: {},
       callableTrigger: {},
     },
     v2http: {
+      ...DEFAULT_V2_OPTIONS,
       platform: "gcfv2",
       entryPoint: "v2http",
       labels: {},
       httpsTrigger: {},
     },
     v2callable: {
+      ...DEFAULT_V2_OPTIONS,
       platform: "gcfv2",
       entryPoint: "v2callable",
       labels: {},
@@ -82,7 +100,7 @@ async function startBin(
   const getPort = promisify(portfinder.getPort) as () => Promise<number>;
   const port = await getPort();
 
-  const proc = subprocess.spawn("./node_modules/.bin/firebase-functions", [], {
+  const proc = subprocess.spawn("npx", ["firebase-functions"], {
     cwd: path.resolve(tc.modulePath),
     env: {
       PATH: process.env.PATH,
@@ -183,17 +201,46 @@ describe("functions.yaml", () => {
           endpoints: {
             ...BASE_STACK.endpoints,
             "g1-groupedhttp": {
+              ...DEFAULT_V1_OPTIONS,
               platform: "gcfv1",
               entryPoint: "g1.groupedhttp",
               httpsTrigger: {},
             },
             "g1-groupedcallable": {
+              ...DEFAULT_V1_OPTIONS,
               platform: "gcfv1",
               entryPoint: "g1.groupedcallable",
               labels: {},
               callableTrigger: {},
             },
           },
+        },
+      },
+      {
+        name: "preserveChange",
+        modulePath: "./scripts/bin-test/sources/commonjs-preserve",
+        expected: {
+          endpoints: {
+            v1http: {
+              ...DEFAULT_V1_OPTIONS,
+              platform: "gcfv1",
+              entryPoint: "v1http",
+              httpsTrigger: {},
+            },
+            v1httpPreserve: {
+              platform: "gcfv1",
+              entryPoint: "v1httpPreserve",
+              httpsTrigger: {},
+            },
+            v2http: {
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              labels: {},
+              httpsTrigger: {},
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
         },
       },
     ];

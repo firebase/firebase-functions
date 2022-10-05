@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from "../../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
 import { ResetValue } from "../../../common/options";
 import { CloudEvent, CloudFunction } from "../../core";
 import { Expression } from "../../../params";
@@ -230,6 +230,7 @@ export function getEndpointAnnotation(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,

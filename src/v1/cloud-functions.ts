@@ -25,7 +25,12 @@ import { warn } from "../logger";
 import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
+import {
+  initV1Endpoint,
+  initV1ScheduleTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../runtime/manifest";
 import { ResetValue } from "../common/options";
 
 export { Change } from "../common/change";
@@ -369,11 +374,22 @@ export function makeCloudFunction<EventData>({
 
       const endpoint: ManifestEndpoint = {
         platform: "gcfv1",
+        ...initV1Endpoint(options),
         ...optionsToEndpoint(options),
       };
 
       if (options.schedule) {
-        endpoint.scheduleTrigger = options.schedule as any;
+        endpoint.scheduleTrigger = initV1ScheduleTrigger(options.schedule.schedule, options);
+        copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
+        copyIfPresent(
+          endpoint.scheduleTrigger.retryConfig,
+          options.schedule.retryConfig,
+          "retryCount",
+          "maxDoublings",
+          "maxBackoffDuration",
+          "maxRetryDuration",
+          "minBackoffDuration"
+        );
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
@@ -474,7 +490,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {
-      endpoint.vpc = { connector: RESET_VALUE, egressSettings: RESET_VALUE };
+      endpoint.vpc = RESET_VALUE;
     } else {
       const vpc: ManifestEndpoint["vpc"] = { connector: options.vpcConnector };
       convertIfPresent(vpc, options, "egressSettings", "vpcConnectorEgressSettings");
