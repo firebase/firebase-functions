@@ -14,13 +14,15 @@ const TIMEOUT_M = 5_000;
 const TIMEOUT_S = 1_000;
 
 const DEFAULT_OPTIONS = {
-  memory: null,
+  availableMemoryMb: null,
   maxInstances: null,
   minInstances: null,
   timeoutSeconds: null,
-  vpcConnector: null,
-  vpcConnectorEgressSettings: null,
-  serviceAccount: null,
+  vpc: {
+    connector: null,
+    egressSettings: null,
+  },
+  serviceAccountEmail: null,
   ingressSettings: null,
 };
 
@@ -215,6 +217,33 @@ describe("functions.yaml", () => {
               callableTrigger: {},
             },
           },
+        },
+      },
+      {
+        name: "preserveChange",
+        modulePath: "./scripts/bin-test/sources/commonjs-preserve",
+        expected: {
+          endpoints: {
+            v1http: {
+              ...DEFAULT_V1_OPTIONS,
+              platform: "gcfv1",
+              entryPoint: "v1http",
+              httpsTrigger: {},
+            },
+            v1httpPreserve: {
+              platform: "gcfv1",
+              entryPoint: "v1httpPreserve",
+              httpsTrigger: {},
+            },
+            v2http: {
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              labels: {},
+              httpsTrigger: {},
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
         },
       },
     ];
