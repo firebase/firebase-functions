@@ -1,4 +1,7 @@
 import { Expression } from "../params";
+import { ResetValue } from "../common/options";
+
+export { RESET_VALUE } from "../common/options";
 
 /**
  * List of all regions supported by Cloud Functions.
@@ -79,7 +82,7 @@ export interface ScheduleRetryConfig {
    *
    * @defaultValue 0 (infinite retry)
    */
-  retryCount?: number | Expression<number> | null;
+  retryCount?: number | Expression<number> | ResetValue;
   /**
    * The time limit for retrying a failed job, measured from time when an execution was first attempted.
    *
@@ -87,25 +90,25 @@ export interface ScheduleRetryConfig {
    *
    * @defaultValue 0
    */
-  maxRetryDuration?: string | Expression<string> | null;
+  maxRetryDuration?: string | Expression<string> | ResetValue;
   /**
    * The minimum amount of time to wait before retrying a job after it fails.
    *
    * @defaultValue 5 seconds
    */
-  minBackoffDuration?: string | Expression<string> | null;
+  minBackoffDuration?: string | Expression<string> | ResetValue;
   /**
    * The maximum amount of time to wait before retrying a job after it fails.
    *
    * @defaultValue 1 hour
    */
-  maxBackoffDuration?: string | Expression<string> | null;
+  maxBackoffDuration?: string | Expression<string> | ResetValue;
   /**
    * The max number of backoff doubling applied at each retry.
    *
    * @defaultValue 5
    */
-  maxDoublings?: number | Expression<number> | null;
+  maxDoublings?: number | Expression<number> | ResetValue;
 }
 
 /**
@@ -136,7 +139,7 @@ export interface Schedule {
    *
    * The value of this field must be a time zone name from the tz database.
    */
-  timeZone?: string;
+  timeZone?: string | ResetValue;
   /**
    * Settings that determine the retry behavior.
    */
@@ -174,43 +177,45 @@ export interface RuntimeOptions {
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTIONS[number];
+  memory?: typeof VALID_MEMORY_OPTIONS[number] | ResetValue;
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
-  timeoutSeconds?: number;
+  timeoutSeconds?: number | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
    */
-  minInstances?: number;
+  minInstances?: number | ResetValue;
 
   /**
    * Max number of actual instances allowed to be running in parallel.
    */
-  maxInstances?: number;
+  maxInstances?: number | ResetValue;
 
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
    */
-  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number];
+  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number] | ResetValue;
 
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: "default" | string;
+  serviceAccount?: "default" | string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
    */
-  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number];
+  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number] | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -229,6 +234,8 @@ export interface RuntimeOptions {
 
   /**
    * Determines whether Firebase AppCheck is enforced.
+   *
+   * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
    * When false, requests with invalid tokens set context.app to undefiend.

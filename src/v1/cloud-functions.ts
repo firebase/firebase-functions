@@ -22,10 +22,11 @@
 
 import { Request, Response } from "express";
 import { warn } from "../logger";
-import { DeploymentOptions } from "./function-configuration";
+import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
+import { ResetValue } from "../common/options";
 
 export { Change } from "../common/change";
 
@@ -372,7 +373,7 @@ export function makeCloudFunction<EventData>({
       };
 
       if (options.schedule) {
-        endpoint.scheduleTrigger = options.schedule;
+        endpoint.scheduleTrigger = options.schedule as any;
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
@@ -471,9 +472,14 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   convertIfPresent(endpoint, options, "secretEnvironmentVariables", "secrets", (secrets) =>
     secrets.map((secret) => ({ key: secret }))
   );
-  if (options?.vpcConnector) {
-    endpoint.vpc = { connector: options.vpcConnector };
-    convertIfPresent(endpoint.vpc, options, "egressSettings", "vpcConnectorEgressSettings");
+  if (options?.vpcConnector !== undefined) {
+    if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {
+      endpoint.vpc = { connector: RESET_VALUE, egressSettings: RESET_VALUE };
+    } else {
+      const vpc: ManifestEndpoint["vpc"] = { connector: options.vpcConnector };
+      convertIfPresent(vpc, options, "egressSettings", "vpcConnectorEgressSettings");
+      endpoint.vpc = vpc;
+    }
   }
   convertIfPresent(endpoint, options, "availableMemoryMb", "memory", (mem) => {
     const memoryLookup = {
@@ -485,7 +491,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
       "4GB": 4096,
       "8GB": 8192,
     };
-    return memoryLookup[mem];
+    return typeof mem === "object" ? mem : memoryLookup[mem];
   });
   return endpoint;
 }

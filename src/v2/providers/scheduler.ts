@@ -23,22 +23,24 @@
 import * as express from "express";
 
 import { copyIfPresent } from "../../common/encoding";
+import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
 import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
 import { HttpsFunction } from "./https";
 import { wrapTraceContext } from "../trace";
+import { Expression } from "../../params";
 import * as logger from "../../logger";
 import * as options from "../options";
 
 /** @hidden */
 interface ScheduleArgs {
-  schedule: string;
-  timeZone?: timezone;
-  retryCount?: number;
-  maxRetrySeconds?: number;
-  minBackoffSeconds?: number;
-  maxBackoffSeconds?: number;
-  maxDoublings?: number;
+  schedule: string | Expression<string>;
+  timeZone?: timezone | Expression<string> | ResetValue;
+  retryCount?: number | Expression<number> | ResetValue;
+  maxRetrySeconds?: number | Expression<number> | ResetValue;
+  minBackoffSeconds?: number | Expression<number> | ResetValue;
+  maxBackoffSeconds?: number | Expression<number> | ResetValue;
+  maxDoublings?: number | Expression<number> | ResetValue;
   opts: options.GlobalOptions;
 }
 
@@ -97,22 +99,22 @@ export interface ScheduleOptions extends options.GlobalOptions {
   schedule: string;
 
   /** The timezone that the schedule executes in. */
-  timeZone?: timezone;
+  timeZone?: timezone | Expression<string> | ResetValue;
 
   /** The number of retry attempts for a failed run. */
-  retryCount?: number;
+  retryCount?: number | Expression<number> | ResetValue;
 
   /** The time limit for retrying. */
-  maxRetrySeconds?: number;
+  maxRetrySeconds?: number | Expression<number> | ResetValue;
 
   /** The minimum time to wait before retying. */
-  minBackoffSeconds?: number;
+  minBackoffSeconds?: number | Expression<number> | ResetValue;
 
   /** The maximum time to wait before retrying. */
-  maxBackoffSeconds?: number;
+  maxBackoffSeconds?: number | Expression<number> | ResetValue;
 
   /** The time between will double max doublings times. */
-  maxDoublings?: number;
+  maxDoublings?: number | Expression<number> | ResetValue;
 }
 
 /**
