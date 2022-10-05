@@ -40,10 +40,10 @@ export interface ManifestEndpoint {
     connector: string | Expression<string> | ResetValue;
     egressSettings?: string | Expression<string> | ResetValue;
   };
-  ingressSettings?: string | Expression<string> | ResetValue;
   serviceAccountEmail?: string | Expression<string> | ResetValue;
   cpu?: number | "gcf_gen1";
   labels?: Record<string, string>;
+  ingressSettings?: string | Expression<string> | ResetValue;
   environmentVariables?: Record<string, string>;
   secretEnvironmentVariables?: Array<{ key: string; secret?: string }>;
 
