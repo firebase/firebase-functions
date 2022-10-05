@@ -26,7 +26,7 @@ import * as functions from "../../../src/v1";
 import * as https from "../../../src/v1/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("CloudHttpsBuilder", () => {
   describe("#onRequest", () => {
@@ -35,7 +35,7 @@ describe("CloudHttpsBuilder", () => {
         resp.send(200);
       });
       expect(result.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
         httpsTrigger: {},
       });
@@ -66,7 +66,7 @@ describe("#onCall", () => {
     });
 
     expect(result.__endpoint).to.deep.equal({
-      ...MINIMAL_ENDPOINT,
+      ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
       callableTrigger: {},
       labels: {},

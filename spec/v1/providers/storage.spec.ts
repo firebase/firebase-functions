@@ -25,13 +25,13 @@ import { Event } from "../../../src/v1";
 import * as config from "../../../src/common/config";
 import * as functions from "../../../src/v1";
 import * as storage from "../../../src/v1/providers/storage";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Storage Functions", () => {
   describe("ObjectBuilder", () => {
     function expectedEndpoint(bucket: string, eventType: string) {
       return {
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
         eventTrigger: {
           eventFilters: {

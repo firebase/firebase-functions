@@ -23,7 +23,7 @@
 import { expect } from "chai";
 
 import { Event, RESET_VALUE } from "../../../src/v1";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER } from "./fixtures";
 import * as functions from "../../../src/v1";
 import * as pubsub from "../../../src/v1/providers/pubsub";
@@ -94,7 +94,7 @@ describe("Pubsub Functions", () => {
         const result = pubsub.topic("toppy").onPublish(() => null);
 
         expect(result.__endpoint).to.deep.equal({
-          ...MINIMAL_ENDPOINT,
+          ...MINIMAL_V1_ENDPOINT,
           platform: "gcfv1",
           eventTrigger: {
             eventType: "google.pubsub.topic.publish",

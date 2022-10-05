@@ -2,7 +2,7 @@ import { expect } from "chai";
 
 import { CloudEvent } from "../../../src/v2/core";
 import { FULL_OPTIONS } from "./fixtures";
-import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import * as options from "../../../src/v2/options";
 import * as pubsub from "../../../src/v2/providers/pubsub";
 
@@ -33,7 +33,7 @@ describe("onMessagePublished", () => {
     const result = pubsub.onMessagePublished("topic", () => 42);
 
     expect(result.__endpoint).to.deep.equal({
-      ...MINIMAL_ENDPOINT,
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       eventTrigger: ENDPOINT_EVENT_TRIGGER,
       labels: {},
@@ -67,7 +67,7 @@ describe("onMessagePublished", () => {
     );
 
     expect(result.__endpoint).to.deep.equal({
-      ...MINIMAL_ENDPOINT,
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       concurrency: 20,
       minInstances: 3,
@@ -89,7 +89,7 @@ describe("onMessagePublished", () => {
     );
 
     expect(result.__endpoint).to.deep.equal({
-      ...MINIMAL_ENDPOINT,
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       minInstances: 3,
       region: ["us-west1"],

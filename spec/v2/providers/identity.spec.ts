@@ -21,7 +21,7 @@
 // SOFTWARE.
 import { expect } from "chai";
 import * as identity from "../../../src/v2/providers/identity";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 const BEFORE_CREATE_TRIGGER = {
   eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
@@ -54,7 +54,7 @@ describe("identity", () => {
       const fn = identity.beforeUserCreated(() => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_CREATE_TRIGGER,
@@ -71,7 +71,7 @@ describe("identity", () => {
       const fn = identity.beforeUserCreated(opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         minInstances: 1,
@@ -98,7 +98,7 @@ describe("identity", () => {
       const fn = identity.beforeUserSignedIn(() => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
@@ -115,7 +115,7 @@ describe("identity", () => {
       const fn = identity.beforeUserSignedIn(opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         minInstances: 1,
@@ -142,7 +142,7 @@ describe("identity", () => {
       const fn = identity.beforeOperation("beforeCreate", () => Promise.resolve(), undefined);
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_CREATE_TRIGGER,
@@ -159,7 +159,7 @@ describe("identity", () => {
       const fn = identity.beforeOperation("beforeSignIn", () => Promise.resolve(), undefined);
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
@@ -176,7 +176,7 @@ describe("identity", () => {
       const fn = identity.beforeOperation("beforeCreate", opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         minInstances: 1,
@@ -201,7 +201,7 @@ describe("identity", () => {
       const fn = identity.beforeOperation("beforeSignIn", opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         minInstances: 1,

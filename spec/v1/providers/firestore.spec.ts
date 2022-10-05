@@ -26,7 +26,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import * as functions from "../../../src/v1";
 import * as firestore from "../../../src/v1/providers/firestore";
 import { expectType } from "../../common/metaprogramming";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Firestore Functions", () => {
   function constructValue(fields: any) {
@@ -94,7 +94,7 @@ describe("Firestore Functions", () => {
   describe("document builders and event types", () => {
     function expectedEndpoint(resource: string, eventType: string) {
       return {
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
         eventTrigger: {
           eventFilters: {

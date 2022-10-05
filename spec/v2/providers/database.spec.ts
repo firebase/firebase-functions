@@ -24,7 +24,7 @@ import { expect } from "chai";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
 import * as database from "../../../src/v2/providers/database";
 import { expectType } from "../../common/metaprogramming";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -158,7 +158,7 @@ describe("database", () => {
       );
 
       expect(ep).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {
           1: "2",
@@ -188,7 +188,7 @@ describe("database", () => {
       );
 
       expect(ep).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {
           1: "2",
@@ -213,7 +213,7 @@ describe("database", () => {
       const func = database.onChangedOperation(database.writtenEventType, "/foo/{bar}/", () => 2);
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -232,7 +232,7 @@ describe("database", () => {
       const func = database.onChangedOperation(database.updatedEventType, "/foo/{bar}/", () => 2);
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -261,7 +261,7 @@ describe("database", () => {
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         cpu: "gcf_gen1",
         minInstances: 2,
@@ -286,7 +286,7 @@ describe("database", () => {
       const func = database.onOperation(database.createdEventType, "/foo/{bar}/", () => 2);
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -305,7 +305,7 @@ describe("database", () => {
       const func = database.onOperation(database.deletedEventType, "/foo/{bar}/", () => 2);
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -334,7 +334,7 @@ describe("database", () => {
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         cpu: "gcf_gen1",
         minInstances: 2,
@@ -361,7 +361,7 @@ describe("database", () => {
       });
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -391,7 +391,7 @@ describe("database", () => {
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         cpu: "gcf_gen1",
         minInstances: 2,
@@ -418,7 +418,7 @@ describe("database", () => {
       });
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -451,7 +451,7 @@ describe("database", () => {
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         cpu: "gcf_gen1",
         minInstances: 2,
@@ -478,7 +478,7 @@ describe("database", () => {
       });
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -508,7 +508,7 @@ describe("database", () => {
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         cpu: "gcf_gen1",
         minInstances: 2,
@@ -535,7 +535,7 @@ describe("database", () => {
       });
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -565,7 +565,7 @@ describe("database", () => {
       );
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         cpu: "gcf_gen1",
         minInstances: 2,

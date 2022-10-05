@@ -2,7 +2,7 @@ import { expect } from "chai";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import * as performance from "../../../../src/v2/providers/alerts/performance";
 import { FULL_OPTIONS } from "../fixtures";
-import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../../fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
 
 const APPID = "123456789";
 const myHandler = () => 42;
@@ -17,7 +17,7 @@ describe("performance", () => {
       const func = performance.onThresholdAlertPublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {
@@ -71,7 +71,7 @@ describe("performance", () => {
       const func = performance.onThresholdAlertPublished(myHandler);
 
       expect(func.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         eventTrigger: {

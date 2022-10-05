@@ -27,7 +27,7 @@ import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { FULL_OPTIONS } from "./fixtures";
-import { FULL_ENDPOINT, MINIMAL_ENDPOINT } from "../../fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import * as options from "../../../src/v2/options";
 
 const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
@@ -58,7 +58,7 @@ describe("onTaskDispatched", () => {
     const result = onTaskDispatched(() => undefined);
 
     expect(result.__endpoint).to.deep.equal({
-      ...MINIMAL_ENDPOINT,
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       labels: {},
       taskQueueTrigger: MINIMIAL_TASK_QUEUE_TRIGGER,
@@ -121,7 +121,7 @@ describe("onTaskDispatched", () => {
     );
 
     expect(result.__endpoint).to.deep.equal({
-      ...MINIMAL_ENDPOINT,
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       concurrency: 20,
       minInstances: 3,

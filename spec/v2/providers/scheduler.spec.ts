@@ -24,7 +24,7 @@ import { expect } from "chai";
 import { ManifestEndpoint } from "../../../src/runtime/manifest";
 import * as options from "../../../src/v2/options";
 import * as schedule from "../../../src/v2/providers/scheduler";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
   schedule: "",
@@ -82,7 +82,7 @@ describe("schedule", () => {
       const schfn = schedule.onSchedule("* * * * *", () => console.log(1));
 
       expect(schfn.__endpoint).to.deep.eq({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
@@ -115,7 +115,7 @@ describe("schedule", () => {
       );
 
       expect(schfn.__endpoint).to.deep.eq({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: { key: "val" },
         region: ["us-central1"],

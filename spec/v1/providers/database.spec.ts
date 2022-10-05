@@ -27,7 +27,7 @@ import { applyChange } from "../../../src/common/utilities/utils";
 import * as functions from "../../../src/v1";
 import * as database from "../../../src/v1/providers/database";
 import { expectType } from "../../common/metaprogramming";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Database Functions", () => {
   describe("DatabaseBuilder", () => {
@@ -35,7 +35,7 @@ describe("Database Functions", () => {
 
     function expectedEndpoint(resource: string, eventType: string) {
       return {
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
         eventTrigger: {
           eventFilters: {

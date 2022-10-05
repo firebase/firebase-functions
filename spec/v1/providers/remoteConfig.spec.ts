@@ -24,7 +24,7 @@ import { expect } from "chai";
 import * as functions from "../../../src/v1";
 import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
 import * as remoteConfig from "../../../src/v1/providers/remoteConfig";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("RemoteConfig Functions", () => {
   function constructVersion() {
@@ -54,7 +54,7 @@ describe("RemoteConfig Functions", () => {
       const cloudFunction = remoteConfig.onUpdate(() => null);
 
       expect(cloudFunction.__endpoint).to.deep.equal({
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
         eventTrigger: {
           eventType: "google.firebase.remoteconfig.update",

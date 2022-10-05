@@ -25,7 +25,7 @@ import { UserRecord } from "../../../src/common/providers/identity";
 import * as functions from "../../../src/v1";
 import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
 import * as auth from "../../../src/v1/providers/auth";
-import { MINIMAL_ENDPOINT } from "../../fixtures";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Auth Functions", () => {
   const event: Event = {
@@ -49,7 +49,7 @@ describe("Auth Functions", () => {
   describe("AuthBuilder", () => {
     function expectedEndpoint(project: string, eventType: string) {
       return {
-        ...MINIMAL_ENDPOINT,
+        ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
         eventTrigger: {
           eventFilters: {
@@ -116,7 +116,7 @@ describe("Auth Functions", () => {
         const fn = auth.user().beforeCreate(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
-          ...MINIMAL_ENDPOINT,
+          ...MINIMAL_V1_ENDPOINT,
           platform: "gcfv1",
           labels: {},
           blockingTrigger: {
@@ -152,7 +152,7 @@ describe("Auth Functions", () => {
           .beforeCreate(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
-          ...MINIMAL_ENDPOINT,
+          ...MINIMAL_V1_ENDPOINT,
           platform: "gcfv1",
           labels: {},
           region: ["us-east1"],
@@ -181,7 +181,7 @@ describe("Auth Functions", () => {
         const fn = auth.user().beforeSignIn(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
-          ...MINIMAL_ENDPOINT,
+          ...MINIMAL_V1_ENDPOINT,
           platform: "gcfv1",
           labels: {},
           blockingTrigger: {
@@ -217,7 +217,7 @@ describe("Auth Functions", () => {
           .beforeSignIn(() => Promise.resolve());
 
         expect(fn.__endpoint).to.deep.equal({
-          ...MINIMAL_ENDPOINT,
+          ...MINIMAL_V1_ENDPOINT,
           platform: "gcfv1",
           labels: {},
           region: ["us-east1"],
