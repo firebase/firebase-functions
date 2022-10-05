@@ -23,6 +23,7 @@
 import { expect } from "chai";
 
 import * as functions from "../../src/v1";
+import { ResetValue } from "../../src/common/options";
 
 describe("FunctionBuilder", () => {
   before(() => {
@@ -225,7 +226,11 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.vpc.connector).to.equal("test-connector");
+    if (!(fn.__endpoint.vpc instanceof ResetValue)) {
+      expect(fn.__endpoint.vpc.connector).to.equal("test-connector");
+    } else {
+      expect.fail("__endpoint.vpc unexpectedly set to RESET_VALUE");
+    }
   });
 
   it("should allow a vpcConnectorEgressSettings to be set", () => {
@@ -237,7 +242,11 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.vpc.egressSettings).to.equal("PRIVATE_RANGES_ONLY");
+    if (!(fn.__endpoint.vpc instanceof ResetValue)) {
+      expect(fn.__endpoint.vpc.egressSettings).to.equal("PRIVATE_RANGES_ONLY");
+    } else {
+      expect.fail("__endpoint.vpc unexpectedly set to RESET_VALUE");
+    }
   });
 
   it("should throw an error if user chooses an invalid vpcConnectorEgressSettings", () => {

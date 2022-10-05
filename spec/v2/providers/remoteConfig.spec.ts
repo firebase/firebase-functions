@@ -23,6 +23,7 @@
 import { expect } from "chai";
 import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
 import * as options from "../../../src/v2/options";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 describe("onConfigUpdated", () => {
   afterEach(() => {
@@ -33,6 +34,7 @@ describe("onConfigUpdated", () => {
     const fn = remoteConfig.onConfigUpdated(() => 2);
 
     expect(fn.__endpoint).to.deep.eq({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       labels: {},
       eventTrigger: {
@@ -59,6 +61,7 @@ describe("onConfigUpdated", () => {
     );
 
     expect(fn.__endpoint).to.deep.eq({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       availableMemoryMb: 512,
       region: ["us-central1"],
