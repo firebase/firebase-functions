@@ -38,6 +38,7 @@ import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
+import { SecretParam } from "../../params/types";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
@@ -150,7 +151,7 @@ export interface BlockingOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 }
 
 /**

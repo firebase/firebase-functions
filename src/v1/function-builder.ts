@@ -23,6 +23,7 @@
 import * as express from "express";
 
 import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -192,7 +193,9 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   if (runtimeOptions.secrets !== undefined) {
-    const invalidSecrets = runtimeOptions.secrets.filter((s) => !/^[A-Za-z\d\-_]+$/.test(s));
+    const invalidSecrets = runtimeOptions.secrets.filter(
+      (s) => !/^[A-Za-z\d\-_]+$/.test(s instanceof SecretParam ? s.name : s)
+    );
     if (invalidSecrets.length > 0) {
       throw new Error(
         `Invalid secrets: ${invalidSecrets.join(",")}. ` +

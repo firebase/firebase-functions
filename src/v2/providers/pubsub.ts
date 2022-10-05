@@ -32,6 +32,7 @@ import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
+import { SecretParam } from "../../params/types";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -242,7 +243,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;

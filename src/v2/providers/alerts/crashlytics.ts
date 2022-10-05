@@ -31,6 +31,7 @@ import { CloudEvent, CloudFunction } from "../../core";
 import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
+import { SecretParam } from "../../../params/types";
 
 /** Generic Crashlytics issue interface */
 export interface Issue {
@@ -264,7 +265,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;
