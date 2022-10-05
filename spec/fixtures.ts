@@ -22,7 +22,7 @@
 import { ManifestEndpoint } from "../src/runtime/manifest";
 import { RESET_VALUE } from "../src/common/options";
 
-export const MINIMAL_ENDPOINT: Partial<ManifestEndpoint> = {
+export const MINIMAL_ENDPOINT: ManifestEndpoint = {
   availableMemoryMb: RESET_VALUE,
   concurrency: RESET_VALUE,
   ingressSettings: RESET_VALUE,
@@ -31,4 +31,24 @@ export const MINIMAL_ENDPOINT: Partial<ManifestEndpoint> = {
   serviceAccountEmail: RESET_VALUE,
   timeoutSeconds: RESET_VALUE,
   vpc: RESET_VALUE,
+};
+
+export const FULL_ENDPOINT: ManifestEndpoint = {
+  region: ["us-west1"],
+  availableMemoryMb: 512,
+  timeoutSeconds: 60,
+  minInstances: 1,
+  maxInstances: 3,
+  concurrency: 20,
+  vpc: {
+    connector: "aConnector",
+    egressSettings: "ALL_TRAFFIC",
+  },
+  serviceAccountEmail: "root@",
+  ingressSettings: "ALLOW_ALL",
+  cpu: "gcf_gen1",
+  labels: {
+    hello: "world",
+  },
+  secretEnvironmentVariables: [{ key: "MY_SECRET" }],
 };
