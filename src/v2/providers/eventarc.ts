@@ -27,7 +27,7 @@
 
 import { convertIfPresent, copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
-import { initEndpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
@@ -199,7 +199,7 @@ export function onCustomEventPublished<T = any>(
   const specificOpts = options.optionsToEndpoint(opts);
 
   const endpoint: ManifestEndpoint = {
-    ...initEndpoint(options.getGlobalOptions(), opts),
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,

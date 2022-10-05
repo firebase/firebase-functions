@@ -31,7 +31,7 @@ import {
   TaskContext,
 } from "../../common/providers/tasks";
 import {
-  initEndpoint,
+  initV1Endpoint,
   initTaskQueueTrigger,
   ManifestEndpoint,
   ManifestRequiredAPI,
@@ -108,7 +108,7 @@ export class TaskQueueBuilder {
 
     func.__endpoint = {
       platform: "gcfv1",
-      ...initEndpoint(this.depOpts),
+      ...initV1Endpoint(this.depOpts),
       ...optionsToEndpoint(this.depOpts),
       taskQueueTrigger: initTaskQueueTrigger(this.depOpts),
     };

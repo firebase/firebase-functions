@@ -28,7 +28,7 @@ import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { PathPattern } from "../../common/utilities/path-pattern";
 import { applyChange } from "../../common/utilities/utils";
-import { initEndpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { Expression } from "../../params";
 import { wrapTraceContext } from "../trace";
@@ -428,7 +428,7 @@ export function makeEndpoint(
     : (eventFilters.instance = instance.getValue());
 
   return {
-    ...initEndpoint(options.getGlobalOptions(), opts),
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,

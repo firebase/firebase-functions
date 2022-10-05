@@ -26,7 +26,7 @@ import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
 import {
-  initEndpoint,
+  initV2Endpoint,
   initV2ScheduleTrigger,
   ManifestEndpoint,
   ManifestRequiredAPI,
@@ -180,7 +180,7 @@ export function onSchedule(
   const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
 
   const ep: ManifestEndpoint = {
-    ...initEndpoint(globalOpts, separatedOpts.opts),
+    ...initV2Endpoint(globalOpts, separatedOpts.opts),
     platform: "gcfv2",
     ...baseOptsEndpoint,
     ...specificOptsEndpoint,

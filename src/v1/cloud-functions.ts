@@ -26,7 +26,7 @@ import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import {
-  initEndpoint,
+  initV1Endpoint,
   initV1ScheduleTrigger,
   ManifestEndpoint,
   ManifestRequiredAPI,
@@ -374,7 +374,7 @@ export function makeCloudFunction<EventData>({
 
       const endpoint: ManifestEndpoint = {
         platform: "gcfv1",
-        ...initEndpoint(options),
+        ...initV1Endpoint(options),
         ...optionsToEndpoint(options),
       };
 

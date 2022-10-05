@@ -38,7 +38,7 @@ import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
-import { initEndpoint, initTaskQueueTrigger } from "../../runtime/manifest";
+import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 
 export { AuthData, Request };
 
@@ -214,7 +214,7 @@ export function onTaskDispatched<Args = any>(
 
   func.__endpoint = {
     platform: "gcfv2",
-    ...initEndpoint(options.getGlobalOptions(), opts),
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     ...baseOpts,
     ...specificOpts,
     labels: {

@@ -152,13 +152,13 @@ interface ManifestOptions {
   preserveExternalChanges?: boolean;
 }
 
-/**
- * @internal
- */
-export function initEndpoint(...opts: ManifestOptions[]): ManifestEndpoint {
+function initEndpoint(
+  resetOptions: Record<string, unknown>,
+  ...opts: ManifestOptions[]
+): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
-    for (const key of Object.keys(RESETTABLE_OPTIONS)) {
+    for (const key of Object.keys(resetOptions)) {
       endpoint[key] = RESET_VALUE;
     }
     // VPC settings is not flat and handled separately.
@@ -168,6 +168,22 @@ export function initEndpoint(...opts: ManifestOptions[]): ManifestEndpoint {
     };
   }
   return endpoint;
+}
+
+/**
+ * @internal
+ */
+export function initV1Endpoint(...opts: ManifestOptions[]): ManifestEndpoint {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { concurrency, ...resetOpts } = RESETTABLE_OPTIONS;
+  return initEndpoint(resetOpts, ...opts);
+}
+
+/**
+ * @internal
+ */
+export function initV2Endpoint(...opts: ManifestOptions[]): ManifestEndpoint {
+  return initEndpoint(RESETTABLE_OPTIONS, ...opts);
 }
 
 const RESETTABLE_RETRY_CONFIG_OPTIONS: ResettableKeys<
