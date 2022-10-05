@@ -9,8 +9,5 @@ export const MINIMAL_ENDPOINT: Partial<ManifestEndpoint> = {
   minInstances: RESET_VALUE,
   serviceAccountEmail: RESET_VALUE,
   timeoutSeconds: RESET_VALUE,
-  vpc: {
-    connector: RESET_VALUE,
-    egressSettings: RESET_VALUE,
-  },
+  vpc: RESET_VALUE,
 };

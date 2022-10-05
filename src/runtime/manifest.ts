@@ -36,10 +36,12 @@ export interface ManifestEndpoint {
   minInstances?: number | Expression<number> | ResetValue;
   concurrency?: number | Expression<number> | ResetValue;
   timeoutSeconds?: number | Expression<number> | ResetValue;
-  vpc?: {
-    connector: string | Expression<string> | ResetValue;
-    egressSettings?: string | Expression<string> | ResetValue;
-  };
+  vpc?:
+    | {
+        connector: string | Expression<string>;
+        egressSettings?: string | Expression<string> | ResetValue;
+      }
+    | ResetValue;
   serviceAccountEmail?: string | Expression<string> | ResetValue;
   cpu?: number | "gcf_gen1";
   labels?: Record<string, string>;
@@ -146,6 +148,7 @@ const RESETTABLE_OPTIONS: ResettableKeys<ManifestEndpoint> = {
   ingressSettings: null,
   concurrency: null,
   serviceAccountEmail: null,
+  vpc: null,
 };
 
 interface ManifestOptions {
@@ -161,11 +164,6 @@ function initEndpoint(
     for (const key of Object.keys(resetOptions)) {
       endpoint[key] = RESET_VALUE;
     }
-    // VPC settings is not flat and handled separately.
-    endpoint.vpc = {
-      connector: RESET_VALUE,
-      egressSettings: RESET_VALUE,
-    };
   }
   return endpoint;
 }

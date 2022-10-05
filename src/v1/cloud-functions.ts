@@ -490,7 +490,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {
-      endpoint.vpc = { connector: RESET_VALUE, egressSettings: RESET_VALUE };
+      endpoint.vpc = RESET_VALUE;
     } else {
       const vpc: ManifestEndpoint["vpc"] = { connector: options.vpcConnector };
       convertIfPresent(vpc, options, "egressSettings", "vpcConnectorEgressSettings");

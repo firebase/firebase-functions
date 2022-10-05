@@ -272,7 +272,7 @@ export function optionsToEndpoint(
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
   if (opts.vpcConnector !== undefined) {
     if (opts.vpcConnector === null || opts.vpcConnector instanceof ResetValue) {
-      endpoint.vpc = { connector: RESET_VALUE, egressSettings: RESET_VALUE };
+      endpoint.vpc = RESET_VALUE;
     } else {
       const vpc: ManifestEndpoint["vpc"] = { connector: opts.vpcConnector };
       convertIfPresent(vpc, opts, "egressSettings", "vpcConnectorEgressSettings");
