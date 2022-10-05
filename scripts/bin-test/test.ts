@@ -18,10 +18,7 @@ const DEFAULT_OPTIONS = {
   maxInstances: null,
   minInstances: null,
   timeoutSeconds: null,
-  vpc: {
-    connector: null,
-    egressSettings: null,
-  },
+  vpc: null,
   serviceAccountEmail: null,
   ingressSettings: null,
 };
@@ -103,7 +100,7 @@ async function startBin(
   const getPort = promisify(portfinder.getPort) as () => Promise<number>;
   const port = await getPort();
 
-  const proc = subprocess.spawn("./node_modules/.bin/firebase-functions", [], {
+  const proc = subprocess.spawn("npx", ["firebase-functions"], {
     cwd: path.resolve(tc.modulePath),
     env: {
       PATH: process.env.PATH,
