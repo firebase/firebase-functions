@@ -53,7 +53,7 @@ import * as testLab from "./providers/testLab";
  */
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   const mem = runtimeOptions.memory;
-  if (mem && !(mem instanceof ResetValue) && !VALID_MEMORY_OPTIONS.includes(mem)) {
+  if (mem && typeof mem !== "object" && !VALID_MEMORY_OPTIONS.includes(mem)) {
     throw new Error(
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );

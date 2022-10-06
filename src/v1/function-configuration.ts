@@ -178,11 +178,11 @@ export interface RuntimeOptions {
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTIONS[number] | ResetValue;
+  memory?: typeof VALID_MEMORY_OPTIONS[number] | Expression<number> | ResetValue;
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
-  timeoutSeconds?: number | ResetValue;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -191,12 +191,12 @@ export interface RuntimeOptions {
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
    */
-  minInstances?: number | ResetValue;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of actual instances allowed to be running in parallel.
    */
-  maxInstances?: number | ResetValue;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Connect cloud function to specified VPC connector.
