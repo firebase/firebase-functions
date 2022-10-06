@@ -151,7 +151,7 @@ type ParamInput<T> =
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
   example?: string;
-  validationRegex?: string;
+  validationRegex?: string | RegExp;
   validationErrorMessage?: string;
 }
 
@@ -259,6 +259,10 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
       out.default = paramDefault.toCEL();
     } else if (paramDefault !== undefined) {
       out.default = paramDefault;
+    }
+
+    if (out.input && "text" in out.input && out.input.text.validationRegex instanceof RegExp) {
+      out.input.text.validationRegex = out.input.text.validationRegex.source;
     }
 
     return out;

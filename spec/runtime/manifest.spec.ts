@@ -9,6 +9,36 @@ describe("stackToWire", () => {
     params.clearParams();
   });
 
+  it("converts regular expressions used in param inputs", () => {
+    const regExpParam = params.defineString("foo", {
+      input: { text: { validationRegex: /\d{5}/ } },
+    });
+
+    const stack: ManifestStack = {
+      endpoints: {},
+      requiredAPIs: [],
+      params: [regExpParam.toSpec()],
+      specVersion: "v1alpha1",
+    };
+    const expected = {
+      endpoints: {},
+      requiredAPIs: [],
+      params: [
+        {
+          name: "foo",
+          type: "string",
+          input: {
+            text: {
+              validationRegex: "\\d{5}",
+            },
+          },
+        },
+      ],
+      specVersion: "v1alpha1",
+    };
+    expect(stackToWire(stack)).to.deep.equal(expected);
+  });
+
   it("converts stack with null values", () => {
     const stack: ManifestStack = {
       endpoints: {
