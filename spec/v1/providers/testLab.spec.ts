@@ -23,6 +23,7 @@
 import { expect } from "chai";
 
 import * as testLab from "../../../src/v1/providers/testLab";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Test Lab Functions", () => {
   describe("#onComplete", () => {
@@ -39,6 +40,7 @@ describe("Test Lab Functions", () => {
         const func = testLab.testMatrix().onComplete(() => null);
 
         expect(func.__endpoint).to.deep.equal({
+          ...MINIMAL_V1_ENDPOINT,
           platform: "gcfv1",
           eventTrigger: {
             eventType: "google.testing.testMatrix.complete",

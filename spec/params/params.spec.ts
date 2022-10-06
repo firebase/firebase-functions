@@ -55,6 +55,32 @@ describe("Params value extraction", () => {
     expect(falseParam.value()).to.be.false;
   });
 
+  it("extracts the special case internal params from env.FIREBASE_CONFIG", () => {
+    process.env.FIREBASE_CONFIG = JSON.stringify({
+      projectId: "foo",
+      storageBucket: "foo.appspot.com",
+      databaseURL: "https://foo.firebaseio.com",
+    });
+    expect(params.databaseURL.value()).to.equal("https://foo.firebaseio.com");
+    expect(params.gcloudProject.value()).to.equal("foo");
+    expect(params.projectID.value()).to.equal("foo");
+    expect(params.storageBucket.value()).to.equal("foo.appspot.com");
+
+    process.env.FIREBASE_CONFIG = JSON.stringify({ projectId: "foo" });
+    expect(params.databaseURL.value()).to.equal("");
+    expect(params.gcloudProject.value()).to.equal("foo");
+    expect(params.projectID.value()).to.equal("foo");
+    expect(params.storageBucket.value()).to.equal("");
+
+    process.env.FIREBASE_CONFIG = JSON.stringify({});
+    expect(params.databaseURL.value()).to.equal("");
+    expect(params.gcloudProject.value()).to.equal("");
+    expect(params.projectID.value()).to.equal("");
+    expect(params.storageBucket.value()).to.equal("");
+
+    delete process.env.FIREBASE_CONFIG;
+  });
+
   it("falls back on the javascript zero values in case of type mismatch", () => {
     const stringToInt = params.defineInt("A_STRING");
     expect(stringToInt.value()).to.equal(0);
@@ -89,7 +115,6 @@ describe("Params value extraction", () => {
     expect(int.equals(-11).value()).to.be.true;
     expect(int.equals(diffInt).value()).to.be.false;
     expect(int.equals(22).value()).to.be.false;
-
     expect(int.notEquals(diffInt).value()).to.be.true;
     expect(int.notEquals(22).value()).to.be.true;
     expect(int.greaterThan(diffInt).value()).to.be.false;
@@ -155,6 +180,35 @@ describe("Params value extraction", () => {
 });
 
 describe("Params as CEL", () => {
+  it("internal expressions behave like strings", () => {
+    const str = params.defineString("A_STRING");
+
+    expect(params.projectID.toCEL()).to.equal(`{{ params.PROJECT_ID }}`);
+    expect(params.projectID.equals("foo").toCEL()).to.equal(`{{ params.PROJECT_ID == "foo" }}`);
+    expect(params.projectID.equals(str).toCEL()).to.equal(
+      `{{ params.PROJECT_ID == params.A_STRING }}`
+    );
+    expect(params.gcloudProject.toCEL()).to.equal(`{{ params.GCLOUD_PROJECT }}`);
+    expect(params.gcloudProject.equals("foo").toCEL()).to.equal(
+      `{{ params.GCLOUD_PROJECT == "foo" }}`
+    );
+    expect(params.gcloudProject.equals(str).toCEL()).to.equal(
+      `{{ params.GCLOUD_PROJECT == params.A_STRING }}`
+    );
+    expect(params.databaseURL.toCEL()).to.equal(`{{ params.DATABASE_URL }}`);
+    expect(params.databaseURL.equals("foo").toCEL()).to.equal(`{{ params.DATABASE_URL == "foo" }}`);
+    expect(params.databaseURL.equals(str).toCEL()).to.equal(
+      `{{ params.DATABASE_URL == params.A_STRING }}`
+    );
+    expect(params.storageBucket.toCEL()).to.equal(`{{ params.STORAGE_BUCKET }}`);
+    expect(params.storageBucket.equals("foo").toCEL()).to.equal(
+      `{{ params.STORAGE_BUCKET == "foo" }}`
+    );
+    expect(params.storageBucket.equals(str).toCEL()).to.equal(
+      `{{ params.STORAGE_BUCKET == params.A_STRING }}`
+    );
+  });
+
   it("identity expressions", () => {
     expect(params.defineString("FOO").toCEL()).to.equal("{{ params.FOO }}");
     expect(params.defineInt("FOO").toCEL()).to.equal("{{ params.FOO }}");

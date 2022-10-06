@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 
@@ -89,7 +89,7 @@ export interface ConfigUpdateData {
  * Event handler which triggers when data is updated in a Remote Config.
  *
  * @param handler - Event handler which is run every time a Remote Config update occurs.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
   handler: (event: CloudEvent<ConfigUpdateData>) => any | Promise<any>
@@ -100,7 +100,7 @@ export function onConfigUpdated(
  *
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Remote Config update occurs.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
   opts: EventHandlerOptions,
@@ -112,7 +112,7 @@ export function onConfigUpdated(
  *
  * @param optsOrHandler - Options or an event handler.
  * @param handler - Event handler which is run every time a Remote Config update occurs.
- * @returns A Cloud Function that you can export and deploy.
+ * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
   optsOrHandler:
@@ -134,6 +134,7 @@ export function onConfigUpdated(
   func.run = handler;
 
   const ep: ManifestEndpoint = {
+    ...initV2Endpoint(getGlobalOptions(), optsOrHandler),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,

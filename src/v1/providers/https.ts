@@ -32,6 +32,7 @@ import {
 } from "../../common/providers/https";
 import { HttpsFunction, optionsToEndpoint, Runnable } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
+import { initV1Endpoint } from "../../runtime/manifest";
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };
 
@@ -69,6 +70,7 @@ export function _onRequestWithOptions(
 
   cloudFunction.__endpoint = {
     platform: "gcfv1",
+    ...initV1Endpoint(options),
     ...optionsToEndpoint(options),
     httpsTrigger: {},
   };
@@ -102,6 +104,7 @@ export function _onCallWithOptions(
   func.__endpoint = {
     platform: "gcfv1",
     labels: {},
+    ...initV1Endpoint(options),
     ...optionsToEndpoint(options),
     callableTrigger: {},
   };

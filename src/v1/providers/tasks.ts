@@ -30,7 +30,12 @@ import {
   RetryConfig,
   TaskContext,
 } from "../../common/providers/tasks";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import {
+  initV1Endpoint,
+  initTaskQueueTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../../runtime/manifest";
 import { optionsToEndpoint } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -90,7 +95,7 @@ export class TaskQueueBuilder {
   /**
    * Creates a handler for tasks sent to a Google Cloud Tasks queue.
    * @param handler - A callback to handle task requests.
-   * @returns A Cloud Function you can export and deploy.
+   * @returns A function you can export and deploy.
    */
   onDispatch(
     handler: (data: any, context: TaskContext) => void | Promise<void>
@@ -103,8 +108,9 @@ export class TaskQueueBuilder {
 
     func.__endpoint = {
       platform: "gcfv1",
+      ...initV1Endpoint(this.depOpts),
       ...optionsToEndpoint(this.depOpts),
-      taskQueueTrigger: {},
+      taskQueueTrigger: initTaskQueueTrigger(this.depOpts),
     };
     copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "retryConfig");
     copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "rateLimits");

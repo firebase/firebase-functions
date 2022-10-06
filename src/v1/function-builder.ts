@@ -22,6 +22,8 @@
 
 import * as express from "express";
 
+import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -50,11 +52,8 @@ import * as testLab from "./providers/testLab";
  * @throws { Error } Memory and TimeoutSeconds values must be valid.
  */
 function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
-  if (
-    runtimeOptions.memory &&
-    typeof runtimeOptions.memory === "string" &&
-    !VALID_MEMORY_OPTIONS.includes(runtimeOptions.memory)
-  ) {
+  const mem = runtimeOptions.memory;
+  if (mem && typeof mem !== "object" && !VALID_MEMORY_OPTIONS.includes(mem)) {
     throw new Error(
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
@@ -65,6 +64,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (
     runtimeOptions.ingressSettings &&
+    !(runtimeOptions.ingressSettings instanceof ResetValue) &&
     !INGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.ingressSettings)
   ) {
     throw new Error(
@@ -74,6 +74,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (
     runtimeOptions.vpcConnectorEgressSettings &&
+    !(runtimeOptions.vpcConnectorEgressSettings instanceof ResetValue) &&
     !VPC_EGRESS_SETTINGS_OPTIONS.includes(runtimeOptions.vpcConnectorEgressSettings)
   ) {
     throw new Error(
@@ -84,10 +85,12 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   validateFailurePolicy(runtimeOptions.failurePolicy);
+  const serviceAccount = runtimeOptions.serviceAccount;
   if (
-    runtimeOptions.serviceAccount &&
-    runtimeOptions.serviceAccount !== "default" &&
-    !runtimeOptions.serviceAccount.includes("@")
+    serviceAccount &&
+    serviceAccount !== "default" &&
+    !(serviceAccount instanceof ResetValue) &&
+    !serviceAccount.includes("@")
   ) {
     throw new Error(
       `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
@@ -190,7 +193,9 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   }
 
   if (runtimeOptions.secrets !== undefined) {
-    const invalidSecrets = runtimeOptions.secrets.filter((s) => !/^[A-Za-z\d\-_]+$/.test(s));
+    const invalidSecrets = runtimeOptions.secrets.filter(
+      (s) => !/^[A-Za-z\d\-_]+$/.test(s instanceof SecretParam ? s.name : s)
+    );
     if (invalidSecrets.length > 0) {
       throw new Error(
         `Invalid secrets: ${invalidSecrets.join(",")}. ` +

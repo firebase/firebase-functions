@@ -26,6 +26,7 @@
  */
 
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
+import { ResetValue } from "../../common/options";
 import {
   AuthData,
   onDispatchHandler,
@@ -37,6 +38,8 @@ import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
+import { SecretParam } from "../../params/types";
+import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 
 export { AuthData, Request };
 
@@ -49,6 +52,8 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
 
   /**
    * Who can enqueue tasks for this function.
+   *
+   * @remakrs
    * If left unspecified, only service accounts which have
    * `roles/cloudtasks.enqueuer` and `roles/cloudfunctions.invoker`
    * will have permissions.
@@ -62,47 +67,51 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
 
   /**
    * Amount of memory to allocate to a function.
-   * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   * A value of null restores the default of 60s
+   *
+   * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
-   * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
+   *
+   * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
+   * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
@@ -113,27 +122,23 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
 
   /**
    * Connect cloud function to specified VPC connector.
-   * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
-   * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
-   * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
-   * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -143,7 +148,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
@@ -168,7 +173,7 @@ export interface TaskQueueFunction<T = any> extends HttpsFunction {
  * Creates a handler for tasks sent to a Google Cloud Tasks queue.
  * @param handler - A callback to handle task requests.
  * @typeParam Args - The interface for the request's `data` field.
- * @returns A Cloud Function you can export and deploy.
+ * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
@@ -179,7 +184,7 @@ export function onTaskDispatched<Args = any>(
  * @param options - Configuration for the task queue or Cloud Function.
  * @param handler - A callback to handle task requests.
  * @typeParam Args - The interface for the request's `data` field.
- * @returns A Cloud Function you can export and deploy.
+ * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
@@ -202,20 +207,24 @@ export function onTaskDispatched<Args = any>(
   const fixedLen = (req: Request<Args>) => handler(req);
   const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
 
-  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const globalOpts = options.getGlobalOptions();
+  const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToManifestEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+
   func.__endpoint = {
     platform: "gcfv2",
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
     ...baseOpts,
     ...specificOpts,
     labels: {
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    taskQueueTrigger: {},
+    taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
+
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
   copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);

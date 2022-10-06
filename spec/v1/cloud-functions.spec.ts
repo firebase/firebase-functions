@@ -22,7 +22,14 @@
 
 import { expect } from "chai";
 
-import { Event, EventContext, makeCloudFunction, MakeCloudFunctionArgs } from "../../src/v1";
+import {
+  Event,
+  EventContext,
+  makeCloudFunction,
+  MakeCloudFunctionArgs,
+  RESET_VALUE,
+} from "../../src/v1";
+import { MINIMAL_V1_ENDPOINT } from "../fixtures";
 
 describe("makeCloudFunction", () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
@@ -44,6 +51,7 @@ describe("makeCloudFunction", () => {
     });
 
     expect(cf.__endpoint).to.deep.equal({
+      ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
       eventTrigger: {
         eventType: "mock.provider.mock.event",
@@ -60,6 +68,7 @@ describe("makeCloudFunction", () => {
     const cf = makeCloudFunction(cloudFunctionArgs);
 
     expect(cf.__endpoint).to.deep.equal({
+      ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
       eventTrigger: {
         eventType: "providers/provider/eventTypes/event",
@@ -89,6 +98,7 @@ describe("makeCloudFunction", () => {
     });
 
     expect(cf.__endpoint).to.deep.equal({
+      ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
       timeoutSeconds: 10,
       region: ["us-central1"],
@@ -117,6 +127,7 @@ describe("makeCloudFunction", () => {
     });
 
     expect(cf.__endpoint).to.deep.equal({
+      ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
       eventTrigger: {
         eventType: "mock.provider.mock.event",
@@ -146,8 +157,18 @@ describe("makeCloudFunction", () => {
       },
     });
     expect(cf.__endpoint).to.deep.equal({
+      ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
-      scheduleTrigger: schedule,
+      scheduleTrigger: {
+        ...schedule,
+        retryConfig: {
+          ...schedule.retryConfig,
+          maxBackoffDuration: RESET_VALUE,
+          maxDoublings: RESET_VALUE,
+          maxRetryDuration: RESET_VALUE,
+          minBackoffDuration: RESET_VALUE,
+        },
+      },
       labels: {},
     });
   });
