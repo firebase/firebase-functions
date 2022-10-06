@@ -28,7 +28,7 @@
 import { firebaseConfig } from "../../common/config";
 import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
-import { ManifestEndpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
@@ -567,6 +567,7 @@ export function onOperation(
 
       const endpoint: ManifestEndpoint = {
         platform: "gcfv2",
+        ...initV2Endpoint(options.getGlobalOptions(), opts),
         ...baseOpts,
         ...specificOpts,
         labels: {

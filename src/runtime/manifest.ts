@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ResetValue } from "../common/options";
+import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
 import { Expression } from "../params";
 import { WireParamSpec } from "../params/types";
 
@@ -36,10 +36,12 @@ export interface ManifestEndpoint {
   minInstances?: number | Expression<number> | ResetValue;
   concurrency?: number | Expression<number> | ResetValue;
   timeoutSeconds?: number | Expression<number> | ResetValue;
-  vpc?: {
-    connector: string | Expression<string> | ResetValue;
-    egressSettings?: string | Expression<string> | ResetValue;
-  };
+  vpc?:
+    | {
+        connector: string | Expression<string>;
+        egressSettings?: string | Expression<string> | ResetValue;
+      }
+    | ResetValue;
   serviceAccountEmail?: string | Expression<string> | ResetValue;
   cpu?: number | "gcf_gen1";
   labels?: Record<string, string>;
@@ -135,4 +137,144 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
   };
   traverse(wireStack.endpoints);
   return wireStack;
+}
+
+const RESETTABLE_OPTIONS: ResettableKeys<ManifestEndpoint> = {
+  availableMemoryMb: null,
+  timeoutSeconds: null,
+  minInstances: null,
+  maxInstances: null,
+  ingressSettings: null,
+  concurrency: null,
+  serviceAccountEmail: null,
+  vpc: null,
+};
+
+interface ManifestOptions {
+  preserveExternalChanges?: boolean;
+}
+
+function initEndpoint(
+  resetOptions: Record<string, unknown>,
+  ...opts: ManifestOptions[]
+): ManifestEndpoint {
+  const endpoint: ManifestEndpoint = {};
+  if (opts.every((opt) => !opt?.preserveExternalChanges)) {
+    for (const key of Object.keys(resetOptions)) {
+      endpoint[key] = RESET_VALUE;
+    }
+  }
+  return endpoint;
+}
+
+/**
+ * @internal
+ */
+export function initV1Endpoint(...opts: ManifestOptions[]): ManifestEndpoint {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { concurrency, ...resetOpts } = RESETTABLE_OPTIONS;
+  return initEndpoint({ ...resetOpts }, ...opts);
+}
+
+/**
+ * @internal
+ */
+export function initV2Endpoint(...opts: ManifestOptions[]): ManifestEndpoint {
+  return initEndpoint(RESETTABLE_OPTIONS, ...opts);
+}
+
+const RESETTABLE_RETRY_CONFIG_OPTIONS: ResettableKeys<
+  ManifestEndpoint["taskQueueTrigger"]["retryConfig"]
+> = {
+  maxAttempts: null,
+  maxDoublings: null,
+  maxBackoffSeconds: null,
+  maxRetrySeconds: null,
+  minBackoffSeconds: null,
+};
+
+const RESETTABLE_RATE_LIMITS_OPTIONS: ResettableKeys<
+  ManifestEndpoint["taskQueueTrigger"]["rateLimits"]
+> = {
+  maxConcurrentDispatches: null,
+  maxDispatchesPerSecond: null,
+};
+
+/**
+ * @internal
+ */
+export function initTaskQueueTrigger(
+  ...opts: ManifestOptions[]
+): ManifestEndpoint["taskQueueTrigger"] {
+  let taskQueueTrigger = {};
+  if (opts.every((opt) => !opt?.preserveExternalChanges)) {
+    const retryConfig = {};
+    for (const key of Object.keys(RESETTABLE_RETRY_CONFIG_OPTIONS)) {
+      retryConfig[key] = RESET_VALUE;
+    }
+    const rateLimits = {};
+    for (const key of Object.keys(RESETTABLE_RATE_LIMITS_OPTIONS)) {
+      rateLimits[key] = RESET_VALUE;
+    }
+    taskQueueTrigger = { retryConfig, rateLimits };
+  }
+  return taskQueueTrigger;
+}
+
+const RESETTABLE_V1_SCHEDULE_OPTIONS: Omit<
+  ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
+  "maxBackoffSeconds" | "minBackoffSeconds" | "maxRetrySeconds"
+> = {
+  retryCount: null,
+  maxDoublings: null,
+  maxRetryDuration: null,
+  maxBackoffDuration: null,
+  minBackoffDuration: null,
+};
+
+const RESETTABLE_V2_SCHEDULE_OPTIONS: Omit<
+  ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
+  "maxRetryDuration" | "maxBackoffDuration" | "minBackoffDuration"
+> = {
+  retryCount: null,
+  maxDoublings: null,
+  maxRetrySeconds: null,
+  minBackoffSeconds: null,
+  maxBackoffSeconds: null,
+};
+
+function initScheduleTrigger(
+  resetOptions: Record<string, unknown>,
+  schedule: string | Expression<string>,
+  ...opts: ManifestOptions[]
+): ManifestEndpoint["scheduleTrigger"] {
+  let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = { schedule };
+  if (opts.every((opt) => !opt?.preserveExternalChanges)) {
+    const retryConfig = {};
+    for (const key of Object.keys(resetOptions)) {
+      retryConfig[key] = RESET_VALUE;
+    }
+    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, retryConfig };
+  }
+  return scheduleTrigger;
+}
+
+/**
+ * @internal
+ */
+export function initV1ScheduleTrigger(
+  schedule: string | Expression<string>,
+  ...opts: ManifestOptions[]
+): ManifestEndpoint["scheduleTrigger"] {
+  return initScheduleTrigger(RESETTABLE_V1_SCHEDULE_OPTIONS, schedule, ...opts);
+}
+
+/**
+ * @internal
+ */
+export function initV2ScheduleTrigger(
+  schedule: string | Expression<string>,
+  ...opts: ManifestOptions[]
+): ManifestEndpoint["scheduleTrigger"] {
+  return initScheduleTrigger(RESETTABLE_V2_SCHEDULE_OPTIONS, schedule, ...opts);
 }

@@ -17,32 +17,20 @@
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ignoreUnusedWarning OR OTHER DEALINGS IN THE
 // SOFTWARE.
-/**
- * Special configuration type to reset configuration to platform default.
- *
- * @alpha
- */
-export class ResetValue {
-  toJSON(): null {
-    return null;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
-  public static getInstance() {
-    return new ResetValue();
-  }
-}
+import { ResettableKeys, ResetValue } from "../../src/common/options";
+import { expectNever, expectType } from "./metaprogramming";
 
-/**
- * Special configuration value to reset configuration to platform default.
- */
-export const RESET_VALUE = ResetValue.getInstance();
+describe("ResettableKeys", () => {
+  it("should pick out keys with a type that includes ResetValue", () => {
+    type A = { a: number; b: ResetValue; c: number | boolean | ResetValue };
+    expectType<keyof ResettableKeys<A>>("b");
+    expectType<keyof ResettableKeys<A>>("c");
+  });
 
-/**
- * @internal
- */
-export type ResettableKeys<T> = Required<{
-  [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
-}>;
+  it("should return an empty type if no keys are resettable", () => {
+    type A = { a: number };
+    expectNever<keyof ResettableKeys<A>>();
+  });
+});

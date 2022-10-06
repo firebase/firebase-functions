@@ -19,30 +19,32 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-/**
- * Special configuration type to reset configuration to platform default.
- *
- * @alpha
- */
-export class ResetValue {
-  toJSON(): null {
-    return null;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
-  public static getInstance() {
-    return new ResetValue();
-  }
-}
+import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import * as functions from "../../../src/v1";
+import * as options from "../../../src/v2/options";
 
-/**
- * Special configuration value to reset configuration to platform default.
- */
-export const RESET_VALUE = ResetValue.getInstance();
+export const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
+  rateLimits: {
+    maxConcurrentDispatches: functions.RESET_VALUE,
+    maxDispatchesPerSecond: functions.RESET_VALUE,
+  },
+  retryConfig: {
+    maxAttempts: functions.RESET_VALUE,
+    maxBackoffSeconds: functions.RESET_VALUE,
+    maxDoublings: functions.RESET_VALUE,
+    maxRetrySeconds: functions.RESET_VALUE,
+    minBackoffSeconds: functions.RESET_VALUE,
+  },
+};
 
-/**
- * @internal
- */
-export type ResettableKeys<T> = Required<{
-  [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
-}>;
+export const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
+  schedule: "",
+  timeZone: options.RESET_VALUE,
+  retryConfig: {
+    retryCount: options.RESET_VALUE,
+    maxRetryDuration: options.RESET_VALUE,
+    maxBackoffDuration: options.RESET_VALUE,
+    minBackoffDuration: options.RESET_VALUE,
+    maxDoublings: options.RESET_VALUE,
+  },
+};

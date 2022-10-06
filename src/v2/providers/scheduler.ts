@@ -25,7 +25,12 @@ import * as express from "express";
 import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import {
+  initV2Endpoint,
+  initV2ScheduleTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../../runtime/manifest";
 import { HttpsFunction } from "./https";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
@@ -170,10 +175,12 @@ export function onSchedule(
   const func: any = wrapTraceContext(httpFunc);
   func.run = handler;
 
-  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
+  const globalOpts = options.getGlobalOptions();
+  const baseOptsEndpoint = options.optionsToEndpoint(globalOpts);
   const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
 
   const ep: ManifestEndpoint = {
+    ...initV2Endpoint(globalOpts, separatedOpts.opts),
     platform: "gcfv2",
     ...baseOptsEndpoint,
     ...specificOptsEndpoint,
@@ -181,11 +188,9 @@ export function onSchedule(
       ...baseOptsEndpoint?.labels,
       ...specificOptsEndpoint?.labels,
     },
-    scheduleTrigger: {
-      schedule: separatedOpts.schedule,
-      retryConfig: {},
-    },
+    scheduleTrigger: initV2ScheduleTrigger(separatedOpts.schedule, globalOpts, separatedOpts.opts),
   };
+
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,

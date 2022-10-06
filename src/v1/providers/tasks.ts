@@ -30,7 +30,12 @@ import {
   RetryConfig,
   TaskContext,
 } from "../../common/providers/tasks";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../../runtime/manifest";
+import {
+  initV1Endpoint,
+  initTaskQueueTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../../runtime/manifest";
 import { optionsToEndpoint } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -103,8 +108,9 @@ export class TaskQueueBuilder {
 
     func.__endpoint = {
       platform: "gcfv1",
+      ...initV1Endpoint(this.depOpts),
       ...optionsToEndpoint(this.depOpts),
-      taskQueueTrigger: {},
+      taskQueueTrigger: initTaskQueueTrigger(this.depOpts),
     };
     copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "retryConfig");
     copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "rateLimits");
