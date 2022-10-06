@@ -32,6 +32,7 @@ import {
   ManifestRequiredAPI,
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 
 export { Change } from "../common/change";
 
@@ -485,8 +486,13 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   );
   convertIfPresent(endpoint, options, "region", "regions");
   convertIfPresent(endpoint, options, "serviceAccountEmail", "serviceAccount", (sa) => sa);
-  convertIfPresent(endpoint, options, "secretEnvironmentVariables", "secrets", (secrets) =>
-    secrets.map((secret) => ({ key: secret }))
+  convertIfPresent(
+    endpoint,
+    options,
+    "secretEnvironmentVariables",
+    "secrets",
+    (secrets: (string | SecretParam)[]) =>
+      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {

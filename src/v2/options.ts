@@ -29,7 +29,7 @@ import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { declaredParams, Expression } from "../params";
-import { ParamSpec } from "../params/types";
+import { ParamSpec, SecretParam } from "../params/types";
 import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
 
@@ -181,7 +181,7 @@ export interface GlobalOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /**
    * Determines whether Firebase AppCheck is enforced. Defaults to false.
@@ -296,8 +296,13 @@ export function optionsToEndpoint(
     }
     return region;
   });
-  convertIfPresent(endpoint, opts, "secretEnvironmentVariables", "secrets", (secrets) =>
-    secrets.map((secret) => ({ key: secret }))
+  convertIfPresent(
+    endpoint,
+    opts,
+    "secretEnvironmentVariables",
+    "secrets",
+    (secrets: (string | SecretParam)[]) =>
+      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
   );
 
   return endpoint;

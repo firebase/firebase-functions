@@ -26,6 +26,7 @@ import { CloudEvent, CloudFunction } from "../../core";
 import { Expression } from "../../../params";
 import { wrapTraceContext } from "../../trace";
 import * as options from "../../options";
+import { SecretParam } from "../../../params/types";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
@@ -173,7 +174,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;

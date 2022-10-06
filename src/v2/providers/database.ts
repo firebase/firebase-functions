@@ -33,6 +33,7 @@ import { CloudEvent, CloudFunction } from "../core";
 import { Expression } from "../../params";
 import { wrapTraceContext } from "../trace";
 import * as options from "../options";
+import { SecretParam } from "../../params/types";
 
 export { DataSnapshot };
 
@@ -185,7 +186,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;

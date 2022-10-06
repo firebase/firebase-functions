@@ -1,5 +1,6 @@
 import { Expression } from "../params";
 import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 
 export { RESET_VALUE } from "../common/options";
 
@@ -230,7 +231,7 @@ export interface RuntimeOptions {
   /*
    * Secrets to bind to a function instance.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /**
    * Determines whether Firebase AppCheck is enforced.

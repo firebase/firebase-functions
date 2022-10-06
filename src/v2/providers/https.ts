@@ -41,6 +41,7 @@ import {
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
 import { Expression } from "../../params";
+import { SecretParam } from "../../params/types";
 import * as options from "../options";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
@@ -142,7 +143,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /**
    * Invoker to set access control on https functions.

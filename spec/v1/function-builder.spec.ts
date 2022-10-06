@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import { clearParams, defineSecret } from "../../src/params";
 
 import * as functions from "../../src/v1";
 import { ResetValue } from "../../src/common/options";
@@ -92,6 +93,24 @@ describe("FunctionBuilder", () => {
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     expect(fn.__endpoint.eventTrigger.retry).to.deep.equal(true);
+  });
+
+  it("should allow SecretParams in the secrets array and convert them", () => {
+    const sp = defineSecret("API_KEY");
+    const fn = functions
+      .runWith({
+        secrets: [sp],
+      })
+      .auth.user()
+      .onCreate((user) => user);
+
+    expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
+      {
+        key: "API_KEY",
+      },
+    ]);
+
+    clearParams();
   });
 
   it("should apply a default failure policy if it's aliased with `true`", () => {
@@ -493,26 +512,53 @@ describe("FunctionBuilder", () => {
   });
 
   it("should throw error given secrets expressed with full resource name", () => {
+    const sp = defineSecret("projects/my-project/secrets/API_KEY");
+
     expect(() =>
       functions.runWith({
         secrets: ["projects/my-project/secrets/API_KEY"],
       })
     ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        secrets: [sp],
+      })
+    ).to.throw();
+    clearParams();
   });
 
   it("should throw error given invalid secret config", () => {
+    const sp = defineSecret("ABC/efg");
+
     expect(() =>
       functions.runWith({
         secrets: ["ABC/efg"],
       })
     ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        secrets: [sp],
+      })
+    ).to.throw();
+    clearParams();
   });
 
   it("should throw error given invalid secret with versions", () => {
+    const sp = defineSecret("ABC@3");
+
     expect(() =>
       functions.runWith({
         secrets: ["ABC@3"],
       })
     ).to.throw();
+
+    expect(() =>
+      functions.runWith({
+        secrets: [sp],
+      })
+    ).to.throw();
+    clearParams();
   });
 });

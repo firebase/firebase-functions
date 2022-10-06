@@ -78,7 +78,6 @@ export interface ManifestEndpoint {
       maxDispatchesPerSecond?: number | Expression<number> | ResetValue;
     };
   };
-
   scheduleTrigger?: {
     schedule: string | Expression<string>;
     timeZone?: string | Expression<string> | ResetValue;
