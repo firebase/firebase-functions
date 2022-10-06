@@ -9,6 +9,11 @@ describe("Params spec extraction", () => {
         .default
     ).to.equal(`{{ params.BAR != 22 ? "asdf" : "jkl;" }}`);
   });
+
+  it("converts RegExps in string validation parameters to strings", () => {
+    const foo = params.defineString("FOO", { input: { text: { validationRegex: /\d{5}/ } } });
+    expect(foo.toSpec().input).to.deep.equal({ text: { validationRegex: "\\d{5}" } });
+  });
 });
 
 describe("Params value extraction", () => {

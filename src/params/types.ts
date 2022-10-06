@@ -261,6 +261,10 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
       out.default = paramDefault;
     }
 
+    if (out.input && "text" in out.input && out.input.text.validationRegex instanceof RegExp) {
+      out.input.text.validationRegex = out.input.text.validationRegex.source;
+    }
+
     return out;
   }
 }
