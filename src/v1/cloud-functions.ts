@@ -22,10 +22,17 @@
 
 import { Request, Response } from "express";
 import { warn } from "../logger";
-import { DeploymentOptions } from "./function-configuration";
+import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
-import { ManifestEndpoint, ManifestRequiredAPI } from "../runtime/manifest";
+import {
+  initV1Endpoint,
+  initV1ScheduleTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../runtime/manifest";
+import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 
 export { Change } from "../common/change";
 
@@ -368,11 +375,22 @@ export function makeCloudFunction<EventData>({
 
       const endpoint: ManifestEndpoint = {
         platform: "gcfv1",
+        ...initV1Endpoint(options),
         ...optionsToEndpoint(options),
       };
 
       if (options.schedule) {
-        endpoint.scheduleTrigger = options.schedule;
+        endpoint.scheduleTrigger = initV1ScheduleTrigger(options.schedule.schedule, options);
+        copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
+        copyIfPresent(
+          endpoint.scheduleTrigger.retryConfig,
+          options.schedule.retryConfig,
+          "retryCount",
+          "maxDoublings",
+          "maxBackoffDuration",
+          "maxRetryDuration",
+          "minBackoffDuration"
+        );
       } else {
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
@@ -468,12 +486,22 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   );
   convertIfPresent(endpoint, options, "region", "regions");
   convertIfPresent(endpoint, options, "serviceAccountEmail", "serviceAccount", (sa) => sa);
-  convertIfPresent(endpoint, options, "secretEnvironmentVariables", "secrets", (secrets) =>
-    secrets.map((secret) => ({ key: secret }))
+  convertIfPresent(
+    endpoint,
+    options,
+    "secretEnvironmentVariables",
+    "secrets",
+    (secrets: (string | SecretParam)[]) =>
+      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
   );
-  if (options?.vpcConnector) {
-    endpoint.vpc = { connector: options.vpcConnector };
-    convertIfPresent(endpoint.vpc, options, "egressSettings", "vpcConnectorEgressSettings");
+  if (options?.vpcConnector !== undefined) {
+    if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {
+      endpoint.vpc = RESET_VALUE;
+    } else {
+      const vpc: ManifestEndpoint["vpc"] = { connector: options.vpcConnector };
+      convertIfPresent(vpc, options, "egressSettings", "vpcConnectorEgressSettings");
+      endpoint.vpc = vpc;
+    }
   }
   convertIfPresent(endpoint, options, "availableMemoryMb", "memory", (mem) => {
     const memoryLookup = {
@@ -485,7 +513,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
       "4GB": 4096,
       "8GB": 8192,
     };
-    return memoryLookup[mem];
+    return typeof mem === "object" ? mem : memoryLookup[mem];
   });
   return endpoint;
 }

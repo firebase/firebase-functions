@@ -291,6 +291,27 @@ export class StringParam extends Param<string> {
   }
 }
 
+/**
+ * A CEL expression which represents an internal Firebase variable. This class
+ * cannot be instantiated by developers, but we provide several canned instances
+ * of it to make available params that will never have to be defined at
+ * deployment time, and can always be read from process.env.
+ * @internal
+ */
+export class InternalExpression extends Param<string> {
+  constructor(name: string, private readonly getter: (env: NodeJS.ProcessEnv) => string) {
+    super(name);
+  }
+
+  value(): string {
+    return this.getter(process.env) || "";
+  }
+
+  toSpec(): WireParamSpec<string> {
+    throw new Error("An InternalExpression should never be marshalled for wire transmission.");
+  }
+}
+
 export class IntParam extends Param<number> {
   static type: ParamValueType = "int";
 

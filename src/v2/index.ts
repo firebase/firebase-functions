@@ -39,6 +39,7 @@ import * as scheduler from "./providers/scheduler";
 import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
 import * as remoteConfig from "./providers/remoteConfig";
+import * as testLab from "./providers/testLab";
 
 export {
   alerts,
@@ -52,6 +53,7 @@ export {
   eventarc,
   scheduler,
   remoteConfig,
+  testLab,
 };
 
 export {

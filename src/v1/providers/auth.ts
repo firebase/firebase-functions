@@ -42,6 +42,7 @@ import {
   optionsToEndpoint,
 } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
+import { initV1Endpoint } from "../../runtime/manifest";
 
 // TODO: yank in next breaking change release
 export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
@@ -215,6 +216,7 @@ export class UserBuilder {
     func.__endpoint = {
       platform: "gcfv1",
       labels: {},
+      ...initV1Endpoint(this.options),
       ...optionsToEndpoint(this.options),
       blockingTrigger: {
         eventType: legacyEventType,

@@ -68,7 +68,7 @@ export class TopicBuilder {
    *
    * @param handler - Event handler that runs every time a Cloud Pub/Sub message
    *   is published.
-   * @returns A Cloud Function that you can export and deploy.
+   * @returns A function that you can export and deploy.
    */
   onPublish(
     handler: (message: Message, context: EventContext) => PromiseLike<any> | any
@@ -142,7 +142,7 @@ export class ScheduleBuilder {
    *
    * @param handler - Handler that fires whenever the associated
    *   scheduler job sends a Pub/Sub message.
-   * @returns A Cloud Function that you can export and deploy.
+   * @returns A function that you can export and deploy.
    */
   onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
     const cloudFunction = makeCloudFunction({

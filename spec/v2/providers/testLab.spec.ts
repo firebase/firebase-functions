@@ -21,24 +21,22 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
+import * as testLab from "../../../src/v2/providers/testLab";
 import * as options from "../../../src/v2/options";
-import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
-describe("onConfigUpdated", () => {
+describe("onTestMatrixCompleted", () => {
   afterEach(() => {
     options.setGlobalOptions({});
   });
 
   it("should create a function with a handler", () => {
-    const fn = remoteConfig.onConfigUpdated(() => 2);
+    const fn = testLab.onTestMatrixCompleted(() => 2);
 
     expect(fn.__endpoint).to.deep.eq({
-      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       labels: {},
       eventTrigger: {
-        eventType: remoteConfig.eventType,
+        eventType: testLab.eventType,
         eventFilters: {},
         retry: false,
       },
@@ -52,7 +50,7 @@ describe("onConfigUpdated", () => {
       region: "us-west1",
     });
 
-    const fn = remoteConfig.onConfigUpdated(
+    const fn = testLab.onTestMatrixCompleted(
       {
         region: "us-central1",
         retry: true,
@@ -61,13 +59,12 @@ describe("onConfigUpdated", () => {
     );
 
     expect(fn.__endpoint).to.deep.eq({
-      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       availableMemoryMb: 512,
       region: ["us-central1"],
       labels: {},
       eventTrigger: {
-        eventType: remoteConfig.eventType,
+        eventType: testLab.eventType,
         eventFilters: {},
         retry: true,
       },

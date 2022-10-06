@@ -28,7 +28,8 @@ import * as options from "../../../src/v2/options";
 import * as https from "../../../src/v2/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { FULL_ENDPOINT, FULL_OPTIONS } from "./fixtures";
+import { FULL_OPTIONS } from "./fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 describe("onRequest", () => {
   beforeEach(() => {
@@ -46,6 +47,7 @@ describe("onRequest", () => {
     });
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       httpsTrigger: {},
       labels: {},
@@ -66,6 +68,7 @@ describe("onRequest", () => {
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
+      platform: "gcfv2",
       httpsTrigger: {
         invoker: ["service-account1@", "service-account2@"],
       },
@@ -93,6 +96,7 @@ describe("onRequest", () => {
     );
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       httpsTrigger: {
         invoker: ["private"],
@@ -199,6 +203,7 @@ describe("onCall", () => {
     const result = https.onCall(() => 42);
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       callableTrigger: {},
       labels: {},
@@ -210,6 +215,7 @@ describe("onCall", () => {
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
+      platform: "gcfv2",
       callableTrigger: {},
     });
   });
@@ -230,6 +236,7 @@ describe("onCall", () => {
     );
 
     expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       callableTrigger: {},
       concurrency: 20,

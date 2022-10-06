@@ -1,6 +1,8 @@
 import { expect } from "chai";
 import { stackToWire, ManifestStack } from "../../src/runtime/manifest";
 import * as params from "../../src/params";
+import * as optsv2 from "../../src/v2/options";
+import * as v1 from "../../src/v1";
 
 describe("stackToWire", () => {
   afterEach(() => {
@@ -32,6 +34,80 @@ describe("stackToWire", () => {
           },
         },
       ],
+      specVersion: "v1alpha1",
+    };
+    expect(stackToWire(stack)).to.deep.equal(expected);
+  });
+
+  it("converts stack with null values", () => {
+    const stack: ManifestStack = {
+      endpoints: {
+        v2http: {
+          platform: "gcfv2",
+          entryPoint: "v2http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: null,
+        },
+      },
+      requiredAPIs: [],
+      specVersion: "v1alpha1",
+    };
+    const expected = {
+      endpoints: {
+        v2http: {
+          platform: "gcfv2",
+          entryPoint: "v2http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: null,
+        },
+      },
+      requiredAPIs: [],
+      specVersion: "v1alpha1",
+    };
+    expect(stackToWire(stack)).to.deep.equal(expected);
+  });
+
+  it("converts stack with RESET_VALUES", () => {
+    const stack: ManifestStack = {
+      endpoints: {
+        v1http: {
+          platform: "gcfv1",
+          entryPoint: "v1http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: v1.RESET_VALUE,
+        },
+        v2http: {
+          platform: "gcfv2",
+          entryPoint: "v2http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: optsv2.RESET_VALUE,
+        },
+      },
+      requiredAPIs: [],
+      specVersion: "v1alpha1",
+    };
+    const expected = {
+      endpoints: {
+        v1http: {
+          platform: "gcfv1",
+          entryPoint: "v1http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: null,
+        },
+        v2http: {
+          platform: "gcfv2",
+          entryPoint: "v2http",
+          labels: {},
+          httpsTrigger: {},
+          maxInstances: null,
+        },
+      },
+      requiredAPIs: [],
       specVersion: "v1alpha1",
     };
     expect(stackToWire(stack)).to.deep.equal(expected);
