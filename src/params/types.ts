@@ -32,11 +32,12 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   value(): T {
     if (process.env.FIREBASE_DISCOVERY_DIR) {
       logger.warn(
-        `Parametrized expression ${this.toString()}.value() invoked during Function discovery. This is usually a mistake.`
+        `${this.toString()}.value() invoked during Function configuration, instead of during runtime.`
       );
       logger.warn(
-        `To configure a function with a parameter, use it directly without calling .value().`
+        `This is usually a mistake. In configs, use Params directly without calling .value().`
       );
+      logger.warn(`\texample: { memory: memoryParam } not { memory: memoryParam.value() }`);
     }
     return this.runtimeValue();
   }
