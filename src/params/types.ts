@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import * as logger from "../logger";
+
 /*
  * A CEL expression which can be evaluated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
@@ -28,6 +30,19 @@
 export abstract class Expression<T extends string | number | boolean | string[]> {
   // Returns the Expression's runtime value, based on the CLI's resolution of params.
   value(): T {
+    if (process.env.FIREBASE_DISCOVERY_DIR) {
+      logger.warn(
+        `Parametrized expression ${this.toString()}.value() invoked during Function discovery. This is usually a mistake.`
+      );
+      logger.warn(
+        `To configure a Function with an expression object, use it directly without calling .value().`
+      );
+    }
+    return this.runtimeValue();
+  }
+
+  // @internal
+  runtimeValue(): T {
     throw new Error("Not implemented");
   }
 
@@ -47,7 +62,7 @@ function quoteIfString<T extends string | number | boolean | string[]>(literal: 
 }
 
 function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
-  return arg instanceof Expression ? arg.value() : arg;
+  return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
 function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
   return arg instanceof Expression ? arg.toString() : quoteIfString(arg).toString();
@@ -69,8 +84,8 @@ export class TernaryExpression<
     this.ifFalse = ifFalse;
   }
 
-  value(): T {
-    return this.test.value() ? valueOf(this.ifTrue) : valueOf(this.ifFalse);
+  runtimeValue(): T {
+    return this.test.runtimeValue() ? valueOf(this.ifTrue) : valueOf(this.ifFalse);
   }
 
   toString() {
@@ -100,8 +115,8 @@ export class CompareExpression<
     this.rhs = rhs;
   }
 
-  value(): boolean {
-    const left = this.lhs.value();
+  runtimeValue(): boolean {
+    const left = this.lhs.runtimeValue();
     const right = valueOf(this.rhs);
     switch (this.cmp) {
       case "==":
@@ -210,7 +225,7 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     super();
   }
 
-  value(): T {
+  runtimeValue(): T {
     throw new Error("Not implemented");
   }
 
@@ -277,7 +292,7 @@ export class SecretParam {
     this.name = name;
   }
 
-  value(): string {
+  runtimeValue(): string {
     return process.env[this.name] || "";
   }
 
@@ -290,7 +305,7 @@ export class SecretParam {
 }
 
 export class StringParam extends Param<string> {
-  value(): string {
+  runtimeValue(): string {
     return process.env[this.name] || "";
   }
 }
@@ -307,7 +322,7 @@ export class InternalExpression extends Param<string> {
     super(name);
   }
 
-  value(): string {
+  runtimeValue(): string {
     return this.getter(process.env) || "";
   }
 
@@ -319,7 +334,7 @@ export class InternalExpression extends Param<string> {
 export class IntParam extends Param<number> {
   static type: ParamValueType = "int";
 
-  value(): number {
+  runtimeValue(): number {
     return parseInt(process.env[this.name] || "0", 10) || 0;
   }
 }
@@ -327,7 +342,7 @@ export class IntParam extends Param<number> {
 export class FloatParam extends Param<number> {
   static type: ParamValueType = "float";
 
-  value(): number {
+  runtimeValue(): number {
     return parseFloat(process.env[this.name] || "0") || 0;
   }
 }
@@ -335,7 +350,7 @@ export class FloatParam extends Param<number> {
 export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = "boolean";
 
-  value(): boolean {
+  runtimeValue(): boolean {
     return !!process.env[this.name] && process.env[this.name] === "true";
   }
 
@@ -347,7 +362,7 @@ export class BooleanParam extends Param<boolean> {
 export class ListParam extends Param<string[]> {
   static type: ParamValueType = "list";
 
-  value(): string[] {
+  runtimeValue(): string[] {
     throw new Error("Not implemented");
   }
 
