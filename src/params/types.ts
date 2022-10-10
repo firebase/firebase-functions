@@ -42,7 +42,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
     return this.runtimeValue();
   }
 
-  // @internal
+  /** @internal */
   runtimeValue(): T {
     throw new Error("Not implemented");
   }
@@ -85,6 +85,7 @@ export class TernaryExpression<
     this.ifFalse = ifFalse;
   }
 
+  /** @internal */
   runtimeValue(): T {
     return this.test.runtimeValue() ? valueOf(this.ifTrue) : valueOf(this.ifFalse);
   }
@@ -116,6 +117,7 @@ export class CompareExpression<
     this.rhs = rhs;
   }
 
+  /** @internal */
   runtimeValue(): boolean {
     const left = this.lhs.runtimeValue();
     const right = valueOf(this.rhs);
@@ -226,6 +228,7 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     super();
   }
 
+  /** @internal */
   runtimeValue(): T {
     throw new Error("Not implemented");
   }
@@ -293,6 +296,7 @@ export class SecretParam {
     this.name = name;
   }
 
+  /** @internal */
   runtimeValue(): string {
     return process.env[this.name] || "";
   }
@@ -306,6 +310,7 @@ export class SecretParam {
 }
 
 export class StringParam extends Param<string> {
+  /** @internal */
   runtimeValue(): string {
     return process.env[this.name] || "";
   }
@@ -323,6 +328,7 @@ export class InternalExpression extends Param<string> {
     super(name);
   }
 
+  /** @internal */
   runtimeValue(): string {
     return this.getter(process.env) || "";
   }
@@ -335,6 +341,7 @@ export class InternalExpression extends Param<string> {
 export class IntParam extends Param<number> {
   static type: ParamValueType = "int";
 
+  /** @internal */
   runtimeValue(): number {
     return parseInt(process.env[this.name] || "0", 10) || 0;
   }
@@ -343,6 +350,7 @@ export class IntParam extends Param<number> {
 export class FloatParam extends Param<number> {
   static type: ParamValueType = "float";
 
+  /** @internal */
   runtimeValue(): number {
     return parseFloat(process.env[this.name] || "0") || 0;
   }
@@ -351,6 +359,7 @@ export class FloatParam extends Param<number> {
 export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = "boolean";
 
+  /** @internal */
   runtimeValue(): boolean {
     return !!process.env[this.name] && process.env[this.name] === "true";
   }
@@ -363,6 +372,7 @@ export class BooleanParam extends Param<boolean> {
 export class ListParam extends Param<string[]> {
   static type: ParamValueType = "list";
 
+  /** @internal */
   runtimeValue(): string[] {
     throw new Error("Not implemented");
   }
