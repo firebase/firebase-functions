@@ -35,7 +35,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
         `Parametrized expression ${this.toString()}.value() invoked during Function discovery. This is usually a mistake.`
       );
       logger.warn(
-        `To configure a Function with an expression object, use it directly without calling .value().`
+        `To configure a function with a parameter, use it directly without calling .value().`
       );
     }
     return this.runtimeValue();
