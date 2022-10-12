@@ -26,12 +26,12 @@
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
 export abstract class Expression<T extends string | number | boolean | string[]> {
-  // Returns the Expression's runtime value, based on the CLI's resolution of params.
+  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): T {
     throw new Error("Not implemented");
   }
 
-  // Returns the Expression's representation as a braced CEL expression.
+  /** Returns the Expression's representation as a braced CEL expression. */
   toCEL(): string {
     return `{{ ${this.toString()} }}`;
   }
@@ -69,6 +69,7 @@ export class TernaryExpression<
     this.ifFalse = ifFalse;
   }
 
+  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): T {
     return this.test.value() ? valueOf(this.ifTrue) : valueOf(this.ifFalse);
   }
@@ -100,6 +101,7 @@ export class CompareExpression<
     this.rhs = rhs;
   }
 
+  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): boolean {
     const left = this.lhs.value();
     const right = valueOf(this.rhs);
@@ -126,6 +128,7 @@ export class CompareExpression<
     return `${this.lhs} ${this.cmp} ${rhsStr}`;
   }
 
+  /** Returns a TernaryExpression which can resolve to one of two values, based on the resolution of this comparison. */
   then<retT extends string | number | boolean | string[]>(
     ifTrue: retT | Expression<retT>,
     ifFalse: retT | Expression<retT>
@@ -146,12 +149,20 @@ type ParamInput<T> =
  * Specifies that a Param's value should be determined by prompting the user
  * to type it in interactively at deploy-time. Input that does not match the
  * provided validationRegex, if present, will be retried.
- *
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
   example?: string;
+  /**
+   * A regular expression (or an escaped string to compile into a regular
+   * expression) which the prompted text must satisfy; the prompt will retry
+   * until input matching the regex is provided.
+   */
   validationRegex?: string | RegExp;
+  /**
+   * A custom error message to display when retrying the prompt based on input
+   * failing to conform to the validationRegex,
+   */
   validationErrorMessage?: string;
 }
 
@@ -174,21 +185,33 @@ export interface SelectInput<T = unknown> {
   options: Array<SelectOptions<T>>;
 }
 
+/**
+ * One of the options provided to a SelectInput, containing a value and
+ * optionally a human-readable label to display in the selection interface.
+ */
 export interface SelectOptions<T = unknown> {
   label?: string;
   value: T;
 }
 
+/** The wire representation of a Param when it's sent to the CLI. A superset of ParamOptions. */
 export type ParamSpec<T extends string | number | boolean | string[]> = {
+  /** The name of the parameter which will be stored in .env files. Use UPPERCASE. */
   name: string;
+  /** An optional default value to be used while prompting for input. Can be a literal or another parametrized expression. */
   default?: T | Expression<T>;
+  /** An optional human-readable string to be used as a replacement for the Param's name when prompting. */
   label?: string;
+  /** An optional long-form description of the Param to be displayed while prompting. */
   description?: string;
+  /** @internal */
   type: ParamValueType;
+  /** The way in which the Firebase CLI will prompt for the value of this Param. Defaults to a TextInput. */
   input?: ParamInput<T>;
 };
 
 // N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
+/** @internal */
 export type WireParamSpec<T extends string | number | boolean | string[]> = {
   name: string;
   default?: T | string;
@@ -198,11 +221,17 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   input?: ParamInput<T>;
 };
 
+/** Configuration options which can be used to customize the prompting behavior of a Param. */
 export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   ParamSpec<T>,
   "name" | "type"
 >;
 
+/**
+ * Represents a parametrized value that will be read from .env files if present,
+ * or prompted for by the CLI if missing. Instantiate these with the defineX
+ * methods exported by the firebase-functions/params namespace.
+ */
 export abstract class Param<T extends string | number | boolean | string[]> extends Expression<T> {
   static type: ParamValueType = "string";
 
@@ -210,34 +239,42 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     super();
   }
 
+  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): T {
     throw new Error("Not implemented");
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   cmp(cmp: "==" | "!=" | ">" | ">=" | "<" | "<=", rhs: T | Expression<T>) {
     return new CompareExpression<T>(cmp, this, rhs);
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   equals(rhs: T | Expression<T>) {
     return this.cmp("==", rhs);
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   notEquals(rhs: T | Expression<T>) {
     return this.cmp("!=", rhs);
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   greaterThan(rhs: T | Expression<T>) {
     return this.cmp(">", rhs);
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   greaterThanOrEqualTo(rhs: T | Expression<T>) {
     return this.cmp(">=", rhs);
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   lessThan(rhs: T | Expression<T>) {
     return this.cmp("<", rhs);
   }
 
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
   lessThanorEqualTo(rhs: T | Expression<T>) {
     return this.cmp("<=", rhs);
   }
@@ -246,6 +283,7 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     return `params.${this.name}`;
   }
 
+  /** @internal */
   toSpec(): WireParamSpec<T> {
     const { default: paramDefault, ...otherOptions } = this.options;
 
@@ -269,6 +307,12 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
   }
 }
 
+/**
+ * A parametrized string whose value is stored in Cloud Secret Manager
+ * instead of the local filesystem. Supply instances of SecretParams to
+ * the secrets array while defining a Function to make their values accessible
+ * during execution of that Function.
+ */
 export class SecretParam {
   static type: ParamValueType = "secret";
   name: string;
@@ -277,10 +321,12 @@ export class SecretParam {
     this.name = name;
   }
 
+  /** Returns the Expression's runtime value, based on the latest version of the Secret in Cloud Secret Manager */
   value(): string {
     return process.env[this.name] || "";
   }
 
+  /** @internal */
   toSpec(): ParamSpec<string> {
     return {
       type: "secret",
@@ -289,6 +335,10 @@ export class SecretParam {
   }
 }
 
+/**
+ *  A parametrized value of String type that will be read from .env files
+ *  if present, or prompted for by the CLI if missing.
+ */
 export class StringParam extends Param<string> {
   value(): string {
     return process.env[this.name] || "";
@@ -316,6 +366,10 @@ export class InternalExpression extends Param<string> {
   }
 }
 
+/**
+ *  A parametrized value of Integer type that will be read from .env files
+ *  if present, or prompted for by the CLI if missing.
+ */
 export class IntParam extends Param<number> {
   static type: ParamValueType = "int";
 
@@ -324,6 +378,10 @@ export class IntParam extends Param<number> {
   }
 }
 
+/**
+ *  A parametrized value of Float type that will be read from .env files
+ *  if present, or prompted for by the CLI if missing.
+ */
 export class FloatParam extends Param<number> {
   static type: ParamValueType = "float";
 
@@ -332,9 +390,14 @@ export class FloatParam extends Param<number> {
   }
 }
 
+/**
+ *  A parametrized value of Boolean type that will be read from .env files
+ *  if present, or prompted for by the CLI if missing.
+ */
 export class BooleanParam extends Param<boolean> {
   static type: ParamValueType = "boolean";
 
+  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): boolean {
     return !!process.env[this.name] && process.env[this.name] === "true";
   }
@@ -344,9 +407,11 @@ export class BooleanParam extends Param<boolean> {
   }
 }
 
+/** @hidden */
 export class ListParam extends Param<string[]> {
   static type: ParamValueType = "list";
 
+  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): string[] {
     throw new Error("Not implemented");
   }
