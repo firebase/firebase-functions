@@ -173,7 +173,7 @@ export type HttpsFunction = ((
   /** An Express response object, for this function to respond to callers. */
   res: express.Response
 ) => void | Promise<void>) & {
-  /** @alpha */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 };
 

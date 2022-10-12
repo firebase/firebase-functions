@@ -426,17 +426,3 @@ export class BooleanParam extends Param<boolean> {
     return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
-
-/** @hidden */
-export class ListParam extends Param<string[]> {
-  static type: ParamValueType = "list";
-
-  /** @internal */
-  runtimeValue(): string[] {
-    throw new Error("Not implemented");
-  }
-
-  toSpec(): WireParamSpec<string[]> {
-    throw new Error("Not implemented");
-  }
-}
