@@ -25,7 +25,8 @@ import * as path from "path";
 
 export { firebaseConfig } from "../common/config";
 
-let singleton: Record<string, any>;
+/** @internal */
+export let singleton: Record<string, any>;
 
 /** @internal */
 export function resetCache(): void {
