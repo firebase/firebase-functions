@@ -70,7 +70,7 @@ export interface CloudEvent<T> {
 export interface CloudFunction<EventType extends CloudEvent<unknown>> {
   (raw: CloudEvent<unknown>): any | Promise<any>;
 
-  /** @alpha */
+  /** @internal */
   __endpoint: ManifestEndpoint;
 
   /**

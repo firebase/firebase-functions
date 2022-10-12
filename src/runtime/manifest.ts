@@ -26,6 +26,8 @@ import { WireParamSpec } from "../params/types";
 
 /**
  * An definition of a function as appears in the Manifest.
+ *
+ * @internal
  */
 export interface ManifestEndpoint {
   entryPoint?: string;
@@ -100,6 +102,7 @@ export interface ManifestEndpoint {
   };
 }
 
+/** @internal */
 export interface ManifestRequiredAPI {
   api: string;
   reason: string;
@@ -107,6 +110,7 @@ export interface ManifestRequiredAPI {
 
 /**
  * An definition of a function deployment as appears in the Manifest.
+ * @internal
  */
 export interface ManifestStack {
   specVersion: "v1alpha1";
