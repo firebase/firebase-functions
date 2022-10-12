@@ -101,9 +101,7 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   const requiredAPIs: ManifestRequiredAPI[] = [];
   const mod = await loadModule(functionsDir);
 
-  process.env.FIREBASE_DISCOVERY_DIR = functionsDir;
   extractStack(mod, endpoints, requiredAPIs);
-  delete process.env.FIREBASE_DISCOVERY_DIR;
 
   const stack: ManifestStack = {
     endpoints,

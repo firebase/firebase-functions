@@ -30,14 +30,14 @@ import * as logger from "../logger";
 export abstract class Expression<T extends string | number | boolean | string[]> {
   /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
   value(): T {
-    if (process.env.FIREBASE_DISCOVERY_DIR) {
+    if (process.env.FUNCTIONS_CONTROL_API === "true") {
       logger.warn(
         `${this.toString()}.value() invoked during function deployment, instead of during runtime.`
       );
       logger.warn(
         `This is usually a mistake. In configs, use Params directly without calling .value().`
       );
-      logger.warn(`\texample: { memory: memoryParam } not { memory: memoryParam.value() }`);
+      logger.warn(`example: { memory: memoryParam } not { memory: memoryParam.value() }`);
     }
     return this.runtimeValue();
   }
