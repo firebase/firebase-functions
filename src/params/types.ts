@@ -32,7 +32,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   value(): T {
     if (process.env.FIREBASE_DISCOVERY_DIR) {
       logger.warn(
-        `${this.toString()}.value() invoked during Function configuration, instead of during runtime.`
+        `${this.toString()}.value() invoked during function deployment, instead of during runtime.`
       );
       logger.warn(
         `This is usually a mistake. In configs, use Params directly without calling .value().`
