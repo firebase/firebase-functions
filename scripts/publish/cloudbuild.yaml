@@ -94,7 +94,7 @@ steps:
   # Publish the package.
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
-    args: ["bash", "./scripts/publish.sh", "${_VERSION}"]
+    args: ["bash", "./scripts/publish.sh", "${_VERSION}", "${_PRERELEASE}"]
     env:
       - "REPOSITORY_ORG=${_REPOSITORY_ORG}"
       - "REPOSITORY_NAME=${_REPOSITORY_NAME}"
@@ -107,6 +107,7 @@ options:
 
 substitutions:
   _VERSION: ""
+  _PRERELEASE: ""
   _DRY_RUN: ""
   _KEY_RING: "npm-publish-keyring"
   _KEY_NAME: "publish"

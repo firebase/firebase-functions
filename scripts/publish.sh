@@ -2,12 +2,14 @@
 set -e
 
 printusage() {
-  echo "publish.sh <version>"
+  echo "publish.sh <version> [--prerelease]"
   echo "REPOSITORY_ORG and REPOSITORY_NAME should be set in the environment."
   echo "e.g. REPOSITORY_ORG=user, REPOSITORY_NAME=repo"
   echo ""
   echo "Arguments:"
   echo "  version: 'patch', 'minor', or 'major'."
+  echo "Flags:"
+  echo "  --prerelease: Set to publish a prerelease version (e.g. 4.0.1-rc.0)"
 }
 
 VERSION=$1
@@ -17,6 +19,11 @@ if [[ $VERSION == "" ]]; then
 elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major") ]]; then
   printusage
   exit 1
+fi
+
+PRERELEASE=false
+if [[ $2 == "--prerelease" || $2 == "-p" ]]; then
+  PRERELEASE=true
 fi
 
 if [[ $REPOSITORY_ORG == "" ]]; then
@@ -88,13 +95,13 @@ npm run build:release
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
-# TODO: Remove the following command.
-#   npm version command had previously failed claiming unclean git repo, and we don't know why.
-echo "DEBUG: Running git status to show dirty files..."
-git status
-npm version $VERSION
+if [[ "$PRERELEASE" = true ]]; then
+  npm version pre$VERSION --preid=rc
+else
+  npm version $VERSION
+fi
 NEW_VERSION=$(jq -r ".version" package.json)
-echo "Made a $VERSION version."
+echo "Made a $NEW_VERSION version."
 
 echo "Making the release notes..."
 RELEASE_NOTES_FILE=$(mktemp)
