@@ -239,10 +239,10 @@ export interface Runnable<T> {
 export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
-  /** @internal */
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
-  /** @internal */
+  /** @alpha */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -259,10 +259,10 @@ export interface BlockingFunction {
   /** @public */
   (req: Request, resp: Response): void | Promise<void>;
 
-  /** @internal */
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
-  /** @internal */
+  /** @alpha */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
@@ -276,10 +276,10 @@ export interface BlockingFunction {
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
 
-  /** @internal */
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
-  /** @internal */
+  /** @alpha */
   __requiredAPIs?: ManifestRequiredAPI[];
 }
 
