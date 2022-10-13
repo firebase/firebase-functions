@@ -1,5 +1,5 @@
-const functions = require("../../../../src/index");
-const functionsv2 = require("../../../../src/v2/index");
+const functions = require("../../../../src/v1");
+const functionsv2 = require("../../../../src/v2");
 
 exports.v1http = functions.https.onRequest((req, resp) => {
     resp.status(200).send("PASS");

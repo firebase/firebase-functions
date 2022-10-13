@@ -20,126 +20,91 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import * as functions from '../../../src/index';
-import * as https from '../../../src/providers/https';
-import {
-  expectedResponseHeaders,
-  MockRequest,
-} from '../../fixtures/mockrequest';
-import { runHandler } from '../../helper';
+import * as functions from "../../../src/v1";
+import * as https from "../../../src/v1/providers/https";
+import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
-describe('CloudHttpsBuilder', () => {
-  describe('#onRequest', () => {
-    it('should return a trigger with appropriate values', () => {
+describe("CloudHttpsBuilder", () => {
+  describe("#onRequest", () => {
+    it("should return a trigger with appropriate values", () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
-      expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
       expect(result.__endpoint).to.deep.equal({
-        platform: 'gcfv1',
+        ...MINIMAL_V1_ENDPOINT,
+        platform: "gcfv1",
         httpsTrigger: {},
       });
     });
 
-    it('should allow both region and runtime options to be set', () => {
+    it("should allow both region and runtime options to be set", () => {
       const fn = functions
-        .region('us-east1')
+        .region("us-east1")
         .runWith({
           timeoutSeconds: 90,
-          memory: '256MB',
-          invoker: 'private',
+          memory: "256MB",
+          invoker: "private",
         })
         .https.onRequest(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
-      expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
-
-      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
-      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(['private']);
+      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(["private"]);
     });
   });
 });
 
-describe('handler namespace', () => {
-  describe('#onRequest', () => {
-    it('should return an empty trigger', () => {
-      const result = functions.handler.https.onRequest((req, res) => {
-        res.send(200);
-      });
-      expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.be.undefined;
-    });
-  });
-
-  describe('#onCall', () => {
-    it('should return an empty trigger', () => {
-      const result = functions.handler.https.onCall(() => null);
-      expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.be.undefined;
-    });
-  });
-});
-
-describe('#onCall', () => {
-  it('should return a trigger/endpoint with appropriate values', () => {
-    const result = https.onCall((data) => {
-      return 'response';
-    });
-
-    expect(result.__trigger).to.deep.equal({
-      httpsTrigger: {},
-      labels: { 'deployment-callable': 'true' },
+describe("#onCall", () => {
+  it("should return a trigger/endpoint with appropriate values", () => {
+    const result = https.onCall(() => {
+      return "response";
     });
 
     expect(result.__endpoint).to.deep.equal({
-      platform: 'gcfv1',
+      ...MINIMAL_V1_ENDPOINT,
+      platform: "gcfv1",
       callableTrigger: {},
       labels: {},
     });
   });
 
-  it('should allow both region and runtime options to be set', () => {
+  it("should allow both region and runtime options to be set", () => {
     const fn = functions
-      .region('us-east1')
+      .region("us-east1")
       .runWith({
         timeoutSeconds: 90,
-        memory: '256MB',
+        memory: "256MB",
       })
       .https.onCall(() => null);
 
-    expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
-    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-    expect(fn.__trigger.timeout).to.deep.equal('90s');
-
-    expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+    expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
-  it('has a .run method', () => {
+  it("has a .run method", () => {
     const cf = https.onCall((d, c) => {
       return { data: d, context: c };
     });
 
-    const data = 'data';
+    const data = "data";
     const context = {
-      instanceIdToken: 'token',
+      instanceIdToken: "token",
       auth: {
-        uid: 'abc',
-        token: 'token',
+        uid: "abc",
+        token: "token",
       },
     };
     expect(cf.run(data, context)).to.deep.equal({ data, context });
   });
 
   // Regression test for firebase-functions#947
-  it('should lock to the v1 API even with function.length == 1', async () => {
+  it("should lock to the v1 API even with function.length == 1", async () => {
     let gotData: Record<string, any>;
     const func = https.onCall((data) => {
       gotData = data;
@@ -147,61 +112,59 @@ describe('#onCall', () => {
 
     const req = new MockRequest(
       {
-        data: { foo: 'bar' },
+        data: { foo: "bar" },
       },
       {
-        'content-type': 'application/json',
+        "content-type": "application/json",
       }
     );
-    req.method = 'POST';
+    req.method = "POST";
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(200);
-    expect(gotData).to.deep.equal({ foo: 'bar' });
+    expect(gotData).to.deep.equal({ foo: "bar" });
   });
 });
 
-describe('callable CORS', () => {
-  it('handles OPTIONS preflight', async () => {
-    const func = https.onCall((data, context) => {
-      throw new Error(
-        `This shouldn't have gotten called for an OPTIONS preflight.`
-      );
+describe("callable CORS", () => {
+  it("handles OPTIONS preflight", async () => {
+    const func = https.onCall(() => {
+      throw new Error(`This shouldn't have gotten called for an OPTIONS preflight.`);
     });
 
     const req = new MockRequest(
       {},
       {
-        'Access-Control-Request-Method': 'POST',
-        'Access-Control-Request-Headers': 'origin',
-        Origin: 'example.com',
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "origin",
+        Origin: "example.com",
       }
     );
-    req.method = 'OPTIONS';
+    req.method = "OPTIONS";
 
     const response = await runHandler(func, req as any);
 
     expect(response.status).to.equal(204);
     expect(response.body).to.be.undefined;
     expect(response.headers).to.deep.equal({
-      'Access-Control-Allow-Methods': 'POST',
-      'Content-Length': '0',
-      Vary: 'Origin, Access-Control-Request-Headers',
+      "Access-Control-Allow-Methods": "POST",
+      "Content-Length": "0",
+      Vary: "Origin, Access-Control-Request-Headers",
     });
   });
 
-  it('adds CORS headers', async () => {
-    const func = https.onCall((data, context) => 42);
+  it("adds CORS headers", async () => {
+    const func = https.onCall(() => 42);
     const req = new MockRequest(
       {
         data: {},
       },
       {
-        'content-type': 'application/json',
-        origin: 'example.com',
+        "content-type": "application/json",
+        origin: "example.com",
       }
     );
-    req.method = 'POST';
+    req.method = "POST";
 
     const response = await runHandler(func, req as any);
 

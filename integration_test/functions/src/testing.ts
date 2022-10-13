@@ -1,5 +1,5 @@
-import * as firebase from 'firebase-admin';
-import * as functions from 'firebase-functions';
+import * as firebase from "firebase-admin";
+import * as functions from "firebase-functions";
 
 export type TestCase<T> = (data: T, context?: functions.EventContext) => any;
 export interface TestCaseMap<T> {
@@ -31,7 +31,7 @@ export class TestSuite<T> {
         .then(
           (result) => {
             functions.logger.info(
-              `${result ? 'Passed' : 'Failed with successful op'}: ${testName}`
+              `${result ? "Passed" : "Failed with successful op"}: ${testName}`
             );
             return { name: testName, passed: !!result };
           },
@@ -44,15 +44,13 @@ export class TestSuite<T> {
     }
     return Promise.all(running).then((results) => {
       let sum = 0;
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
       results.forEach((val) => (sum = sum + val.passed));
       const summary = `passed ${sum} of ${running.length}`;
       const passed = sum === running.length;
       functions.logger.info(summary);
       const result = { passed, summary, tests: results };
-      return firebase
-        .database()
-        .ref(`testRuns/${testId}/${this.name}`)
-        .set(result);
+      return firebase.database().ref(`testRuns/${testId}/${this.name}`).set(result);
     });
   }
 }
@@ -74,8 +72,8 @@ export function evaluate(value: boolean, errMsg: string) {
 
 export function expectEq(left: any, right: any) {
   return evaluate(
-    left == right,
-    JSON.stringify(left) + ' does not equal ' + JSON.stringify(right)
+    left === right,
+    JSON.stringify(left) + " does not equal " + JSON.stringify(right)
   );
 }
 
@@ -88,16 +86,18 @@ function deepEq(left: any, right: any) {
     return false;
   }
 
-  if (Object.keys(left).length != Object.keys(right).length) {
+  if (Object.keys(left).length !== Object.keys(right).length) {
     return false;
   }
 
   for (const key in left) {
-    if (!right.hasOwnProperty(key)) {
-      return false;
-    }
-    if (!deepEq(left[key], right[key])) {
-      return false;
+    if (Object.prototype.hasOwnProperty.call(left, key)) {
+      if (!Object.prototype.hasOwnProperty.call(right, key)) {
+        return false;
+      }
+      if (!deepEq(left[key], right[key])) {
+        return false;
+      }
     }
   }
 
@@ -114,7 +114,7 @@ export function expectDeepEq(left: any, right: any) {
 export function expectMatches(input: string, regexp: RegExp) {
   return evaluate(
     input.match(regexp) !== null,
-    "Input '" + input + "' did not match regexp '" + regexp + "'"
+    `Input '${input}' did not match regexp '${regexp}'`
   );
 }
 
@@ -128,7 +128,7 @@ export function expectReject<EventType>(f: (e: EventType) => Promise<void>) {
     }
 
     if (!rejected) {
-      throw new Error('Test should have returned a rejected promise');
+      throw new Error("Test should have returned a rejected promise");
     }
   };
 }

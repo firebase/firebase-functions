@@ -34,31 +34,26 @@ export interface ChangeJson {
    */
   before?: any;
   /**
-   * @hidden
    * Comma-separated string that represents names of fields that changed.
    */
   fieldMask?: string;
 }
 
-/** @hidden */
-export function applyFieldMask(
-  sparseBefore: any,
-  after: any,
-  fieldMask: string
-) {
+/** @internal */
+export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string) {
   const before = { ...after };
-  const masks = fieldMask.split(',');
+  const masks = fieldMask.split(",");
 
   for (const mask of masks) {
-    const parts = mask.split('.');
+    const parts = mask.split(".");
     const head = parts[0];
-    const tail = parts.slice(1).join('.');
+    const tail = parts.slice(1).join(".");
     if (parts.length > 1) {
       before[head] = applyFieldMask(sparseBefore?.[head], after[head], tail);
       continue;
     }
     const val = sparseBefore?.[head];
-    if (typeof val === 'undefined') {
+    if (typeof val === "undefined") {
       delete before[mask];
     } else {
       before[mask] = val;
@@ -78,7 +73,6 @@ export function applyFieldMask(
  */
 export class Change<T> {
   /**
-   * @hidden
    * Factory method for creating a Change from a `before` object and an `after`
    * object.
    */
@@ -87,23 +81,16 @@ export class Change<T> {
   }
 
   /**
-   * @hidden
    * Factory method for creating a Change from a JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */
-  static fromJSON<T>(
-    json: ChangeJson,
-    customizer: (x: any) => T = (x) => x as T
-  ): Change<T> {
+  static fromJSON<T>(json: ChangeJson, customizer: (x: any) => T = (x) => x as T): Change<T> {
     let before = { ...json.before };
     if (json.fieldMask) {
       before = applyFieldMask(before, json.after, json.fieldMask);
     }
 
-    return Change.fromObjects(
-      customizer(before || {}),
-      customizer(json.after || {})
-    );
+    return Change.fromObjects(customizer(before || {}), customizer(json.after || {}));
   }
   constructor(public before: T, public after: T) {}
 }

@@ -25,12 +25,15 @@
  * @packageDocumentation
  */
 
-import { copyIfPresent } from '../../common/encoding';
-import { firebaseConfig } from '../../config';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
-import { Expression } from '../params';
+import { firebaseConfig } from "../../common/config";
+import { copyIfPresent } from "../../common/encoding";
+import { ResetValue } from "../../common/options";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../core";
+import { wrapTraceContext } from "../trace";
+import { Expression } from "../../params";
+import * as options from "../options";
+import { SecretParam } from "../../params/types";
 
 /**
  * An object within Google Cloud Storage.
@@ -40,7 +43,7 @@ export interface StorageObjectData {
   /**
    * The name of the bucket containing this object.
    */
-  bucket?: string;
+  bucket: string;
   /**
    * Cache-Control directive for the object data, matching
    * [https://tools.ietf.org/html/rfc7234#section-5.2"][RFC 7234 §5.2].
@@ -95,12 +98,12 @@ export interface StorageObjectData {
    * The content generation of this object. Used for object versioning.
    * Attempting to set this field will result in an error.
    */
-  generation?: number;
+  generation: number;
   /**
    * The ID of the object, including the bucket name, object name, and
    * generation number.
    */
-  id?: string;
+  id: string;
   /**
    * The kind of item this is. For objects, this is always "storage#object".
    */
@@ -127,11 +130,11 @@ export interface StorageObjectData {
    * number is only meaningful in the context of a particular generation of a
    * particular object.
    */
-  metageneration?: number;
+  metageneration: number;
   /**
    * The name of the object.
    */
-  name?: string;
+  name: string;
   /**
    * The link to this object.
    */
@@ -140,11 +143,11 @@ export interface StorageObjectData {
    * Content-Length of the object data in bytes, matching
    * [https://tools.ietf.org/html/rfc7230#section-3.3.2][RFC 7230 §3.3.2].
    */
-  size?: number;
+  size: number;
   /**
    * Storage class of the object.
    */
-  storageClass?: string;
+  storageClass: string;
   /**
    * The creation time of the object.
    * Attempting to set this field will result in an error.
@@ -187,14 +190,13 @@ export interface StorageEvent extends CloudEvent<StorageObjectData> {
 }
 
 /** @internal */
-export const archivedEvent = 'google.cloud.storage.object.v1.archived';
+export const archivedEvent = "google.cloud.storage.object.v1.archived";
 /** @internal */
-export const finalizedEvent = 'google.cloud.storage.object.v1.finalized';
+export const finalizedEvent = "google.cloud.storage.object.v1.finalized";
 /** @internal */
-export const deletedEvent = 'google.cloud.storage.object.v1.deleted';
+export const deletedEvent = "google.cloud.storage.object.v1.deleted";
 /** @internal */
-export const metadataUpdatedEvent =
-  'google.cloud.storage.object.v1.metadataUpdated';
+export const metadataUpdatedEvent = "google.cloud.storage.object.v1.metadataUpdated";
 
 /** StorageOptions extend EventHandlerOptions with a bucket name  */
 export interface StorageOptions extends options.EventHandlerOptions {
@@ -208,78 +210,78 @@ export interface StorageOptions extends options.EventHandlerOptions {
 
   /**
    * Amount of memory to allocate to a function.
-   * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   * A value of null restores the default of 60s
+   *
+   * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
-   * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
+   *
+   * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
+   * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
-   * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
-   * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
-   * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
-   * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -289,10 +291,10 @@ export interface StorageOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /**
@@ -345,10 +347,7 @@ export function onObjectArchived(
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(archivedEvent, bucketOrOptsOrHandler, handler);
@@ -412,10 +411,7 @@ export function onObjectFinalized(
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(finalizedEvent, bucketOrOptsOrHandler, handler);
@@ -483,10 +479,7 @@ export function onObjectDeleted(
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(deletedEvent, bucketOrOptsOrHandler, handler);
@@ -535,10 +528,7 @@ export function onObjectMetadataUpdated(
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(metadataUpdatedEvent, bucketOrOptsOrHandler, handler);
@@ -547,51 +537,21 @@ export function onObjectMetadataUpdated(
 /** @internal */
 export function onOperation(
   eventType: string,
-  bucketOrOptsOrHandler:
-    | string
-    | StorageOptions
-    | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
-  if (typeof bucketOrOptsOrHandler === 'function') {
-    handler = bucketOrOptsOrHandler as (
-      event: StorageEvent
-    ) => any | Promise<any>;
+  if (typeof bucketOrOptsOrHandler === "function") {
+    handler = bucketOrOptsOrHandler as (event: StorageEvent) => any | Promise<any>;
     bucketOrOptsOrHandler = {};
   }
 
-  const [opts, bucket] = getOptsAndBucket(
-    bucketOrOptsOrHandler as string | StorageOptions
-  );
+  const [opts, bucket] = getOptsAndBucket(bucketOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as StorageEvent);
+    return wrapTraceContext(handler)(raw as StorageEvent);
   };
 
   func.run = handler;
-
-  Object.defineProperty(func, '__trigger', {
-    get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
-
-      return {
-        platform: 'gcfv2',
-        ...baseOpts,
-        ...specificOpts,
-        labels: {
-          ...baseOpts?.labels,
-          ...specificOpts?.labels,
-        },
-        eventTrigger: {
-          eventType,
-          resource: bucket, // TODO(colerogers): replace with 'bucket,' eventually
-        },
-      };
-    },
-  });
 
   // TypeScript doesn't recognize defineProperty as adding a property and complains
   // that __endpoint doesn't exist. We can either cast to any and lose all type safety
@@ -600,13 +560,14 @@ export function onOperation(
 
   // SDK may attempt to read FIREBASE_CONFIG env var to fetch the default bucket name.
   // To prevent runtime errors when FIREBASE_CONFIG env var is missing, we use getters.
-  Object.defineProperty(func, '__endpoint', {
+  Object.defineProperty(func, "__endpoint", {
     get: () => {
       const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
       const specificOpts = options.optionsToEndpoint(opts);
 
       const endpoint: ManifestEndpoint = {
-        platform: 'gcfv2',
+        platform: "gcfv2",
+        ...initV2Endpoint(options.getGlobalOptions(), opts),
         ...baseOpts,
         ...specificOpts,
         labels: {
@@ -619,7 +580,7 @@ export function onOperation(
           retry: false,
         },
       };
-      copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+      copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
       return endpoint;
     },
   });
@@ -633,7 +594,7 @@ export function getOptsAndBucket(
 ): [options.EventHandlerOptions, string] {
   let bucket: string;
   let opts: options.EventHandlerOptions;
-  if (typeof bucketOrOpts === 'string') {
+  if (typeof bucketOrOpts === "string") {
     bucket = bucketOrOpts;
     opts = {};
   } else {
@@ -644,8 +605,8 @@ export function getOptsAndBucket(
 
   if (!bucket) {
     throw new Error(
-      'Missing bucket name. If you are unit testing, please provide a bucket name' +
-        ' by providing bucket name directly in the event handler or by setting process.env.FIREBASE_CONFIG.'
+      "Missing bucket name. If you are unit testing, please provide a bucket name" +
+        " by providing bucket name directly in the event handler or by setting process.env.FIREBASE_CONFIG."
     );
   }
   if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {

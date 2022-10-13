@@ -25,13 +25,9 @@
  * @packageDocumentation
  */
 
-import { CloudEvent, CloudFunction } from '../../core';
-import { EventHandlerOptions } from '../../options';
-import {
-  convertAlertAndApp,
-  FirebaseAlertData,
-  getEndpointAnnotation,
-} from './alerts';
+import { CloudEvent, CloudFunction } from "../../core";
+import { EventHandlerOptions } from "../../options";
+import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 
 /**
  * The internal payload object for a performance threshold alert.
@@ -74,7 +70,7 @@ export interface PerformanceEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
 }
 
 /** @internal */
-export const thresholdAlert = 'performance.threshold';
+export const thresholdAlert = "performance.threshold";
 
 /**
  * Configuration for app distribution functions.
@@ -90,9 +86,7 @@ export interface PerformanceOptions extends EventHandlerOptions {
  * @returns A function that you can export and deploy.
  */
 export function onThresholdAlertPublished(
-  handler: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -103,9 +97,7 @@ export function onThresholdAlertPublished(
  */
 export function onThresholdAlertPublished(
   appId: string,
-  handler: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -116,9 +108,7 @@ export function onThresholdAlertPublished(
  */
 export function onThresholdAlertPublished(
   opts: PerformanceOptions,
-  handler: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -132,11 +122,9 @@ export function onThresholdAlertPublished(
     | string
     | PerformanceOptions
     | ((event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>),
-  handler?: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler?: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>> {
-  if (typeof appIdOrOptsOrHandler === 'function') {
+  if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (
       event: PerformanceEvent<ThresholdAlertPayload>
     ) => any | Promise<any>;
@@ -146,9 +134,7 @@ export function onThresholdAlertPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = convertAlertAndApp(raw) as PerformanceEvent<
-      ThresholdAlertPayload
-    >;
+    const event = convertAlertAndApp(raw) as PerformanceEvent<ThresholdAlertPayload>;
     const convertedPayload = convertPayload(event.data.payload);
     event.data.payload = convertedPayload;
     return handler(event);
@@ -167,7 +153,7 @@ export function onThresholdAlertPublished(
 export function getOptsAndApp(
   appIdOrOpts: string | PerformanceOptions
 ): [EventHandlerOptions, string | undefined] {
-  if (typeof appIdOrOpts === 'string') {
+  if (typeof appIdOrOpts === "string") {
     return [{}, appIdOrOpts];
   }
 
@@ -182,20 +168,12 @@ export function getOptsAndApp(
  * Helper function to convert the raw payload of a {@link PerformanceEvent} to a {@link ThresholdAlertPayload}
  * @internal
  */
-export function convertPayload(
-  raw: ThresholdAlertPayload
-): ThresholdAlertPayload {
+export function convertPayload(raw: ThresholdAlertPayload): ThresholdAlertPayload {
   const payload: ThresholdAlertPayload = { ...raw };
-  if (
-    typeof payload.conditionPercentile !== 'undefined' &&
-    payload.conditionPercentile === 0
-  ) {
+  if (typeof payload.conditionPercentile !== "undefined" && payload.conditionPercentile === 0) {
     delete (payload as any).conditionPercentile;
   }
-  if (
-    typeof payload.appVersion !== 'undefined' &&
-    payload.appVersion.length === 0
-  ) {
+  if (typeof payload.appVersion !== "undefined" && payload.appVersion.length === 0) {
     delete (payload as any).appVersion;
   }
 

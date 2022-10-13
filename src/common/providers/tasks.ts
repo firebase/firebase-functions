@@ -20,12 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
-import * as firebase from 'firebase-admin';
+import * as express from "express";
+import { DecodedIdToken } from "firebase-admin/auth";
 
-import * as logger from '../../logger';
-import { Expression } from '../../v2/params';
-import * as https from './https';
+import * as logger from "../../logger";
+import * as https from "./https";
+import { Expression } from "../../params";
+import { ResetValue } from "../options";
 
 /** How a task should be retried in the event of a non-2xx return. */
 export interface RetryConfig {
@@ -33,31 +34,31 @@ export interface RetryConfig {
    * Maximum number of times a request should be attempted.
    * If left unspecified, will default to 3.
    */
-  maxAttempts?: number | Expression<number> | null;
+  maxAttempts?: number | Expression<number> | ResetValue;
 
   /**
    * Maximum amount of time for retrying failed task.
    * If left unspecified will retry indefinitely.
    */
-  maxRetrySeconds?: number | Expression<number> | null;
+  maxRetrySeconds?: number | Expression<number> | ResetValue;
 
   /**
    * The maximum amount of time to wait between attempts.
    * If left unspecified will default to 1hr.
    */
-  maxBackoffSeconds?: number | Expression<number> | null;
+  maxBackoffSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * The maximum number of times to double the backoff between
    * retries. If left unspecified will default to 16.
    */
-  maxDoublings?: number | Expression<number> | null;
+  maxDoublings?: number | Expression<number> | ResetValue;
 
   /**
    * The minimum time to wait between attempts. If left unspecified
    * will default to 100ms.
    */
-  minBackoffSeconds?: number | Expression<number> | null;
+  minBackoffSeconds?: number | Expression<number> | ResetValue;
 }
 
 /** How congestion control should be applied to the function. */
@@ -66,19 +67,19 @@ export interface RateLimits {
    * The maximum number of requests that can be outstanding at a time.
    * If left unspecified, will default to 1000.
    */
-  maxConcurrentDispatches?: number | Expression<number> | null;
+  maxConcurrentDispatches?: number | Expression<number> | ResetValue;
 
   /**
    * The maximum number of requests that can be invoked per second.
    * If left unspecified, will default to 500.
    */
-  maxDispatchesPerSecond?: number | Expression<number> | null;
+  maxDispatchesPerSecond?: number | Expression<number> | ResetValue;
 }
 
 /** Metadata about the authorization used to invoke a function. */
 export interface AuthData {
   uid: string;
-  token: firebase.auth.DecodedIdToken;
+  token: DecodedIdToken;
 }
 
 /** Metadata about a call to a Task Queue function. */
@@ -114,20 +115,20 @@ export function onDispatchHandler<Req = any>(
   return async (req: https.Request, res: express.Response): Promise<void> => {
     try {
       if (!https.isValidRequest(req)) {
-        logger.error('Invalid request, unable to process.');
-        throw new https.HttpsError('invalid-argument', 'Bad Request');
+        logger.error("Invalid request, unable to process.");
+        throw new https.HttpsError("invalid-argument", "Bad Request");
       }
 
       const context: TaskContext = {};
       if (!process.env.FUNCTIONS_EMULATOR) {
-        const authHeader = req.header('Authorization') || '';
+        const authHeader = req.header("Authorization") || "";
         const token = authHeader.match(/^Bearer (.*)$/)?.[1];
         // Note: this should never happen since task queue functions are guarded by IAM.
         if (!token) {
-          throw new https.HttpsError('unauthenticated', 'Unauthenticated');
+          throw new https.HttpsError("unauthenticated", "Unauthenticated");
         }
         // We skip authenticating the token since tq functions are guarded by IAM.
-        const authToken = await https.unsafeDecodeIdToken(token);
+        const authToken = https.unsafeDecodeIdToken(token);
         context.auth = {
           uid: authToken.uid,
           token: authToken,
@@ -144,19 +145,20 @@ export function onDispatchHandler<Req = any>(
         };
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
-        await (handler as any)(arg);
+        await (handler as v2TaskHandler<Req>)(arg);
       }
 
       res.status(204).end();
     } catch (err) {
+      let httpErr: https.HttpsError = err;
       if (!(err instanceof https.HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        logger.error('Unhandled error', err);
-        err = new https.HttpsError('internal', 'INTERNAL');
+        logger.error("Unhandled error", err);
+        httpErr = new https.HttpsError("internal", "INTERNAL");
       }
 
-      const { status } = err.httpErrorCode;
-      const body = { error: err.toJSON() };
+      const { status } = httpErr.httpErrorCode;
+      const body = { error: httpErr.toJSON() };
 
       res.status(status).send(body);
     }

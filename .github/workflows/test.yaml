@@ -8,13 +8,28 @@ env:
   CI: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    strategy:
+      matrix:
+        node-version:
+          - "16"
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
   unit:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
-          - 10.x
-          - 12.x
           - 14.x
           - 16.x
     steps:
@@ -22,23 +37,19 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-
       - name: Cache npm
         uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
-
       - run: npm ci
-      - run: npm run lint
-      - run: npm run format
       - run: npm run test
   integration:
+    needs: "unit"
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version:
-          - 12.x
           - 14.x
           - 16.x
     steps:
@@ -46,12 +57,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-
       - name: Cache npm
         uses: actions/cache@v1
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
-
-      - run: npm install
+      - run: npm ci
       - run: npm run test:bin

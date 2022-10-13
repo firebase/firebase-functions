@@ -20,23 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as firebase from 'firebase-admin';
+import { expect } from "chai";
+import { App, initializeApp } from "firebase-admin/app";
 
-import { apps as appsNamespace } from '../../../src/apps';
-import * as https from '../../../src/common/providers/https';
-import {
-  onDispatchHandler,
-  Request,
-  TaskContext,
-} from '../../../src/common/providers/tasks';
-import * as mocks from '../../fixtures/credential/key.json';
-import {
-  generateIdToken,
-  generateUnsignedIdToken,
-  mockRequest,
-} from '../../fixtures/mockrequest';
-import { checkAuthContext, runHandler } from '../../helper';
+import { getApp, setApp } from "../../../src/common/app";
+import * as https from "../../../src/common/providers/https";
+import { onDispatchHandler, Request, TaskContext } from "../../../src/common/providers/tasks";
+import * as mocks from "../../fixtures/credential/key.json";
+import { generateIdToken, generateUnsignedIdToken, mockRequest } from "../../fixtures/mockrequest";
+import { checkAuthContext, runHandler } from "../../helper";
 
 /** Represents a test case for a Task Queue Function */
 interface TaskTest {
@@ -56,20 +48,20 @@ interface TaskTest {
 
 // Runs a TaskTest test.
 export async function runTaskTest(test: TaskTest): Promise<any> {
-  const taskQueueFunctionV1 = onDispatchHandler((data, context) => {
+  const taskQueueFunctionV1 = onDispatchHandler(async (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     if (test.taskFunction) {
-      test.taskFunction(data, context);
+      await test.taskFunction(data, context);
     }
   });
 
   const responseV1 = await runHandler(taskQueueFunctionV1, test.httpRequest);
   expect(responseV1.status).to.equal(test.expectedStatus);
 
-  const taskQueueFunctionV2 = onDispatchHandler((request) => {
+  const taskQueueFunctionV2 = onDispatchHandler(async (request) => {
     expect(request.data).to.deep.equal(test.expectedData);
     if (test.taskFunction2) {
-      test.taskFunction2(request);
+      await test.taskFunction2(request);
     }
   });
 
@@ -77,13 +69,13 @@ export async function runTaskTest(test: TaskTest): Promise<any> {
   expect(responseV2.status).to.equal(test.expectedStatus);
 }
 
-describe('onEnqueueHandler', () => {
-  let app: firebase.app.App;
+describe("onEnqueueHandler", () => {
+  let app: App;
 
   function mockEnqueueRequest(
     data: unknown,
-    contentType: string = 'application/json',
-    context: { authorization?: string } = { authorization: 'Bearer abc' }
+    contentType = "application/json",
+    context: { authorization?: string } = { authorization: "Bearer abc" }
   ): ReturnType<typeof mockRequest> {
     return mockRequest(data, contentType, context);
   }
@@ -93,38 +85,40 @@ describe('onEnqueueHandler', () => {
       getAccessToken: () => {
         return Promise.resolve({
           expires_in: 1000,
-          access_token: 'fake',
+          access_token: "fake",
         });
       },
       getCertificate: () => {
         return {
-          projectId: 'aProjectId',
+          projectId: "aProjectId",
         };
       },
     };
-    app = firebase.initializeApp({
-      projectId: 'aProjectId',
-      credential,
-    });
-    Object.defineProperty(appsNamespace(), 'admin', { get: () => app });
+    app = initializeApp(
+      {
+        projectId: "aProjectId",
+        credential,
+      },
+      "tq-test-app"
+    );
+    setApp(app);
   });
 
   after(() => {
-    app.delete();
-    delete appsNamespace.singleton;
+    setApp(undefined);
   });
 
-  it('should handle success', () => {
+  it("should handle success", () => {
     return runTaskTest({
-      httpRequest: mockEnqueueRequest({ foo: 'bar' }),
-      expectedData: { foo: 'bar' },
+      httpRequest: mockEnqueueRequest({ foo: "bar" }),
+      expectedData: { foo: "bar" },
       expectedStatus: 204,
     });
   });
 
-  it('should reject bad method', () => {
+  it("should reject bad method", () => {
     const req = mockRequest(null);
-    req.method = 'GET';
+    req.method = "GET";
     return runTaskTest({
       httpRequest: req,
       expectedData: null,
@@ -132,25 +126,25 @@ describe('onEnqueueHandler', () => {
     });
   });
 
-  it('should ignore charset', () => {
+  it("should ignore charset", () => {
     return runTaskTest({
-      httpRequest: mockEnqueueRequest(null, 'application/json; charset=utf-8'),
+      httpRequest: mockEnqueueRequest(null, "application/json; charset=utf-8"),
       expectedData: null,
       expectedStatus: 204,
     });
   });
 
-  it('should reject bad content type', () => {
+  it("should reject bad content type", () => {
     return runTaskTest({
-      httpRequest: mockEnqueueRequest(null, 'text/plain'),
+      httpRequest: mockEnqueueRequest(null, "text/plain"),
       expectedData: null,
       expectedStatus: 400,
     });
   });
 
-  it('should reject extra body fields', () => {
+  it("should reject extra body fields", () => {
     const req = mockEnqueueRequest(null);
-    req.body.extra = 'bad';
+    req.body.extra = "bad";
     return runTaskTest({
       httpRequest: req,
       expectedData: null,
@@ -158,54 +152,54 @@ describe('onEnqueueHandler', () => {
     });
   });
 
-  it('should handle unhandled error', () => {
+  it("should handle unhandled error", () => {
     return runTaskTest({
       httpRequest: mockEnqueueRequest(null),
       expectedData: null,
-      taskFunction: (data, context) => {
+      taskFunction: () => {
         throw new Error(`ceci n'est pas une error`);
       },
-      taskFunction2: (request) => {
+      taskFunction2: () => {
         throw new Error(`cece n'est pas une error`);
       },
       expectedStatus: 500,
     });
   });
 
-  it('should handle unknown error status', () => {
+  it("should handle unknown error status", () => {
     return runTaskTest({
       httpRequest: mockEnqueueRequest(null),
       expectedData: null,
-      taskFunction: (data, context) => {
-        throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
+      taskFunction: () => {
+        throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
-      taskFunction2: (request) => {
-        throw new https.HttpsError('THIS_IS_NOT_VALID' as any, 'nope');
+      taskFunction2: () => {
+        throw new https.HttpsError("THIS_IS_NOT_VALID" as any, "nope");
       },
       expectedStatus: 500,
     });
   });
 
-  it('should handle well-formed error', () => {
+  it("should handle well-formed error", () => {
     return runTaskTest({
       httpRequest: mockEnqueueRequest(null),
       expectedData: null,
-      taskFunction: (data, context) => {
-        throw new https.HttpsError('not-found', 'i am error');
+      taskFunction: () => {
+        throw new https.HttpsError("not-found", "i am error");
       },
-      taskFunction2: (request) => {
-        throw new https.HttpsError('not-found', 'i am error');
+      taskFunction2: () => {
+        throw new https.HttpsError("not-found", "i am error");
       },
       expectedStatus: 404,
     });
   });
 
-  it('should handle auth', async () => {
-    const projectId = appsNamespace().admin.options.projectId;
+  it("should handle auth", async () => {
+    const projectId = getApp().options.projectId;
     const idToken = generateIdToken(projectId);
     await runTaskTest({
-      httpRequest: mockEnqueueRequest(null, 'application/json', {
-        authorization: 'Bearer ' + idToken,
+      httpRequest: mockEnqueueRequest(null, "application/json", {
+        authorization: "Bearer " + idToken,
       }),
       expectedData: null,
       taskFunction: (data, context) => {
@@ -220,12 +214,12 @@ describe('onEnqueueHandler', () => {
     });
   });
 
-  it('should accept unsigned auth too', async () => {
-    const projectId = appsNamespace().admin.options.projectId;
+  it("should accept unsigned auth too", async () => {
+    const projectId = getApp().options.projectId;
     const idToken = generateUnsignedIdToken(projectId);
     await runTaskTest({
-      httpRequest: mockEnqueueRequest(null, 'application/json', {
-        authorization: 'Bearer ' + idToken,
+      httpRequest: mockEnqueueRequest(null, "application/json", {
+        authorization: "Bearer " + idToken,
       }),
       expectedData: null,
       taskFunction: (data, context) => {
@@ -240,12 +234,12 @@ describe('onEnqueueHandler', () => {
     });
   });
 
-  it('should skip auth in emulated environment', async () => {
+  it("should skip auth in emulated environment", async () => {
     const restore = process.env.FUNCTIONS_EMULATOR;
-    process.env.FUNCTIONS_EMULATOR = 'true';
+    process.env.FUNCTIONS_EMULATOR = "true";
 
     await runTaskTest({
-      httpRequest: mockEnqueueRequest(null, 'application/json', {}),
+      httpRequest: mockEnqueueRequest(null, "application/json", {}),
       expectedData: null,
       taskFunction: (data, context) => {
         expect(context.auth).to.be.undefined;

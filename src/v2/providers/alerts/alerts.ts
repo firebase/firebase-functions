@@ -20,10 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestEndpoint } from '../../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../../core';
-import * as options from '../../options';
-import { Expression } from '../../params';
+import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
+import { ResetValue } from "../../../common/options";
+import { CloudEvent, CloudFunction } from "../../core";
+import { Expression } from "../../../params";
+import { wrapTraceContext } from "../../trace";
+import * as options from "../../options";
+import { SecretParam } from "../../../params/types";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
@@ -56,21 +59,21 @@ export interface AlertEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
 }
 
 /** @internal */
-export const eventType = 'google.firebase.firebasealerts.alerts.v1.published';
+export const eventType = "google.firebase.firebasealerts.alerts.v1.published";
 
 /** The underlying alert type of the Firebase Alerts provider. */
 export type AlertType =
-  | 'crashlytics.newFatalIssue'
-  | 'crashlytics.newNonfatalIssue'
-  | 'crashlytics.regression'
-  | 'crashlytics.stabilityDigest'
-  | 'crashlytics.velocity'
-  | 'crashlytics.newAnrIssue'
-  | 'billing.planUpdate'
-  | 'billing.automatedPlanUpdate'
-  | 'appDistribution.newTesterIosDevice'
-  | 'appDistribution.inAppFeedback'
-  | 'performance.threshold'
+  | "crashlytics.newFatalIssue"
+  | "crashlytics.newNonfatalIssue"
+  | "crashlytics.regression"
+  | "crashlytics.stabilityDigest"
+  | "crashlytics.velocity"
+  | "crashlytics.newAnrIssue"
+  | "billing.planUpdate"
+  | "billing.automatedPlanUpdate"
+  | "appDistribution.newTesterIosDevice"
+  | "appDistribution.inAppFeedback"
+  | "performance.threshold"
   | string;
 
 /**
@@ -92,7 +95,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * Amount of memory to allocate to a function.
    * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
@@ -104,7 +107,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
@@ -112,13 +115,13 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * while idle.
    * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
    * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
@@ -127,7 +130,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
@@ -137,31 +140,31 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
    * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
    * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
    * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -171,10 +174,10 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /**
@@ -184,7 +187,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
  * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
  * @returns A function that you can export and deploy.
  */
-export function onAlertPublished<T extends { ['@type']: string } = any>(
+export function onAlertPublished<T extends { ["@type"]: string } = any>(
   alertType: AlertType,
   handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<AlertEvent<T>>;
@@ -195,19 +198,19 @@ export function onAlertPublished<T extends { ['@type']: string } = any>(
  * @param options - the alert type and other options for this cloud function.
  * @param handler a function that can handle the Firebase Alert inside a CloudEvent.
  */
-export function onAlertPublished<T extends { ['@type']: string } = any>(
+export function onAlertPublished<T extends { ["@type"]: string } = any>(
   options: FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<AlertEvent<T>>;
 
-export function onAlertPublished<T extends { ['@type']: string } = any>(
+export function onAlertPublished<T extends { ["@type"]: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
   handler: (event: AlertEvent<T>) => any | Promise<any>
 ): CloudFunction<AlertEvent<T>> {
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(convertAlertAndApp(raw) as AlertEvent<T>);
+    return wrapTraceContext(handler(convertAlertAndApp(raw) as AlertEvent<T>));
   };
 
   func.run = handler;
@@ -228,7 +231,8 @@ export function getEndpointAnnotation(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {
-    platform: 'gcfv2',
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -259,7 +263,7 @@ export function getOptsAndAlertTypeAndApp(
   let opts: options.EventHandlerOptions;
   let alertType: AlertType;
   let appId: string | undefined;
-  if (typeof alertTypeOrOpts === 'string') {
+  if (typeof alertTypeOrOpts === "string") {
     alertType = alertTypeOrOpts;
     opts = {};
   } else {
@@ -276,15 +280,13 @@ export function getOptsAndAlertTypeAndApp(
  * Helper function to covert alert type & app id in the CloudEvent to camel case.
  * @internal
  */
-export function convertAlertAndApp(
-  raw: CloudEvent<unknown>
-): CloudEvent<unknown> {
+export function convertAlertAndApp(raw: CloudEvent<unknown>): CloudEvent<unknown> {
   const event = { ...raw };
 
-  if ('alerttype' in event) {
+  if ("alerttype" in event) {
     (event as any).alertType = (event as any).alerttype;
   }
-  if ('appid' in event) {
+  if ("appid" in event) {
     (event as any).appId = (event as any).appid;
   }
 

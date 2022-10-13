@@ -19,11 +19,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import { expect } from 'chai';
-import * as identity from '../../../src/v2/providers/identity';
+import { expect } from "chai";
+import * as identity from "../../../src/v2/providers/identity";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 const BEFORE_CREATE_TRIGGER = {
-  eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+  eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
   options: {
     accessToken: false,
     idToken: false,
@@ -32,7 +33,7 @@ const BEFORE_CREATE_TRIGGER = {
 };
 
 const BEFORE_SIGN_IN_TRIGGER = {
-  eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+  eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
   options: {
     accessToken: false,
     idToken: false,
@@ -44,35 +45,37 @@ const opts: identity.BlockingOptions = {
   accessToken: true,
   refreshToken: false,
   minInstances: 1,
-  region: 'us-west1',
+  region: "us-west1",
 };
 
-describe('identity', () => {
-  describe('beforeUserCreated', () => {
-    it('should accept a handler', () => {
-      const fn = identity.beforeUserCreated((event) => Promise.resolve());
+describe("identity", () => {
+  describe("beforeUserCreated", () => {
+    it("should accept a handler", () => {
+      const fn = identity.beforeUserCreated(() => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_CREATE_TRIGGER,
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
 
-    it('should accept options and a handler', () => {
-      const fn = identity.beforeUserCreated(opts, (event) => Promise.resolve());
+    it("should accept options and a handler", () => {
+      const fn = identity.beforeUserCreated(opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         minInstances: 1,
-        region: ['us-west1'],
+        region: ["us-west1"],
         blockingTrigger: {
           ...BEFORE_CREATE_TRIGGER,
           options: {
@@ -83,40 +86,40 @@ describe('identity', () => {
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
   });
 
-  describe('beforeUserSignedIn', () => {
-    it('should accept a handler', () => {
-      const fn = identity.beforeUserSignedIn((event) => Promise.resolve());
+  describe("beforeUserSignedIn", () => {
+    it("should accept a handler", () => {
+      const fn = identity.beforeUserSignedIn(() => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
 
-    it('should accept options and a handler', () => {
-      const fn = identity.beforeUserSignedIn(opts, (event) =>
-        Promise.resolve()
-      );
+    it("should accept options and a handler", () => {
+      const fn = identity.beforeUserSignedIn(opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         minInstances: 1,
-        region: ['us-west1'],
+        region: ["us-west1"],
         blockingTrigger: {
           ...BEFORE_SIGN_IN_TRIGGER,
           options: {
@@ -127,64 +130,57 @@ describe('identity', () => {
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
   });
 
-  describe('beforeOperation', () => {
-    it('should handle eventType and handler for before create events', () => {
-      const fn = identity.beforeOperation(
-        'beforeCreate',
-        (event) => Promise.resolve(),
-        undefined
-      );
+  describe("beforeOperation", () => {
+    it("should handle eventType and handler for before create events", () => {
+      const fn = identity.beforeOperation("beforeCreate", () => Promise.resolve(), undefined);
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_CREATE_TRIGGER,
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
 
-    it('should handle eventType and handler for before sign in events', () => {
-      const fn = identity.beforeOperation(
-        'beforeSignIn',
-        (event) => Promise.resolve(),
-        undefined
-      );
+    it("should handle eventType and handler for before sign in events", () => {
+      const fn = identity.beforeOperation("beforeSignIn", () => Promise.resolve(), undefined);
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
 
-    it('should handle eventType, options, and handler for before create events', () => {
-      const fn = identity.beforeOperation('beforeCreate', opts, (event) =>
-        Promise.resolve()
-      );
+    it("should handle eventType, options, and handler for before create events", () => {
+      const fn = identity.beforeOperation("beforeCreate", opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         minInstances: 1,
-        region: ['us-west1'],
+        region: ["us-west1"],
         blockingTrigger: {
           ...BEFORE_CREATE_TRIGGER,
           options: {
@@ -195,22 +191,21 @@ describe('identity', () => {
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
 
-    it('should handle eventType, options, and handler for before sign in events', () => {
-      const fn = identity.beforeOperation('beforeSignIn', opts, (event) =>
-        Promise.resolve()
-      );
+    it("should handle eventType, options, and handler for before sign in events", () => {
+      const fn = identity.beforeOperation("beforeSignIn", opts, () => Promise.resolve());
 
       expect(fn.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         minInstances: 1,
-        region: ['us-west1'],
+        region: ["us-west1"],
         blockingTrigger: {
           ...BEFORE_SIGN_IN_TRIGGER,
           options: {
@@ -221,15 +216,15 @@ describe('identity', () => {
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: 'identitytoolkit.googleapis.com',
-          reason: 'Needed for auth blocking functions',
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
         },
       ]);
     });
   });
 
-  describe('getOpts', () => {
-    it('should parse an empty object', () => {
+  describe("getOpts", () => {
+    it("should parse an empty object", () => {
       const internalOpts = identity.getOpts({});
 
       expect(internalOpts).to.deep.equal({
@@ -240,12 +235,12 @@ describe('identity', () => {
       });
     });
 
-    it('should parse global options', () => {
-      const internalOpts = identity.getOpts({ region: 'us-central1', cpu: 2 });
+    it("should parse global options", () => {
+      const internalOpts = identity.getOpts({ region: "us-central1", cpu: 2 });
 
       expect(internalOpts).to.deep.equal({
         opts: {
-          region: 'us-central1',
+          region: "us-central1",
           cpu: 2,
         },
         accessToken: false,
@@ -254,9 +249,9 @@ describe('identity', () => {
       });
     });
 
-    it('should a full options', () => {
+    it("should a full options", () => {
       const internalOpts = identity.getOpts({
-        region: 'us-central1',
+        region: "us-central1",
         cpu: 2,
         accessToken: true,
         idToken: false,
@@ -265,7 +260,7 @@ describe('identity', () => {
 
       expect(internalOpts).to.deep.equal({
         opts: {
-          region: 'us-central1',
+          region: "us-central1",
           cpu: 2,
         },
         accessToken: true,

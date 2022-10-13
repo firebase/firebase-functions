@@ -20,21 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as options from '../../../src/v2/options';
-import * as eventarc from '../../../src/v2/providers/eventarc';
-import { FULL_ENDPOINT, FULL_OPTIONS } from './fixtures';
+import { expect } from "chai";
+import * as options from "../../../src/v2/options";
+import * as eventarc from "../../../src/v2/providers/eventarc";
+import { FULL_OPTIONS } from "./fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 const ENDPOINT_EVENT_TRIGGER = {
-  eventType: 'event-type',
+  eventType: "event-type",
   retry: false,
   eventFilters: {},
 };
 
-describe('v2/eventarc', () => {
-  describe('onCustomEventPublished', () => {
+describe("v2/eventarc", () => {
+  describe("onCustomEventPublished", () => {
     beforeEach(() => {
-      process.env.GCLOUD_PROJECT = 'aProject';
+      process.env.GCLOUD_PROJECT = "aProject";
     });
 
     afterEach(() => {
@@ -42,104 +43,109 @@ describe('v2/eventarc', () => {
       delete process.env.GCLOUD_PROJECT;
     });
 
-    it('should create a minimal trigger/endpoint with default channel', () => {
-      const result = eventarc.onCustomEventPublished('event-type', () => 42);
+    it("should create a minimal trigger/endpoint with default channel", () => {
+      const result = eventarc.onCustomEventPublished("event-type", () => 42);
 
       expect(result.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: 'locations/us-central1/channels/firebase',
+          channel: "locations/us-central1/channels/firebase",
         },
       });
     });
 
-    it('should create a minimal trigger/endpoint with opts', () => {
+    it("should create a minimal trigger/endpoint with opts", () => {
       const result = eventarc.onCustomEventPublished(
-        { eventType: 'event-type', region: 'us-west1' },
+        { eventType: "event-type", region: "us-west1" },
         () => 42
       );
 
       expect(result.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: 'locations/us-central1/channels/firebase',
+          channel: "locations/us-central1/channels/firebase",
         },
-        region: ['us-west1'],
+        region: ["us-west1"],
       });
     });
 
-    it('should create a minimal trigger with channel with opts', () => {
+    it("should create a minimal trigger with channel with opts", () => {
       const result = eventarc.onCustomEventPublished(
         {
-          eventType: 'event-type',
-          channel: 'locations/us-west1/channels/my-channel',
-          filters: { foo: 'bar' },
+          eventType: "event-type",
+          channel: "locations/us-west1/channels/my-channel",
+          filters: { foo: "bar" },
         },
         () => 42
       );
 
       expect(result.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: 'locations/us-west1/channels/my-channel',
+          channel: "locations/us-west1/channels/my-channel",
           eventFilters: {
-            foo: 'bar',
+            foo: "bar",
           },
         },
       });
     });
 
-    it('should create a complex trigger/endpoint with appropriate values', () => {
+    it("should create a complex trigger/endpoint with appropriate values", () => {
       const result = eventarc.onCustomEventPublished(
         {
           ...FULL_OPTIONS,
-          eventType: 'event-type',
-          channel: 'locations/us-west1/channels/my-channel',
+          eventType: "event-type",
+          channel: "locations/us-west1/channels/my-channel",
         },
         () => 42
       );
 
       expect(result.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: 'locations/us-west1/channels/my-channel',
+          channel: "locations/us-west1/channels/my-channel",
         },
       });
     });
 
-    it('should merge options and globalOptions', () => {
+    it("should merge options and globalOptions", () => {
       options.setGlobalOptions({
         concurrency: 20,
-        region: 'europe-west1',
+        region: "europe-west1",
         minInstances: 1,
       });
 
       const result = eventarc.onCustomEventPublished(
         {
-          eventType: 'event-type',
-          channel: 'locations/us-west1/channels/my-channel',
-          region: 'us-west1',
+          eventType: "event-type",
+          channel: "locations/us-west1/channels/my-channel",
+          region: "us-west1",
           minInstances: 3,
         },
         () => 42
       );
 
       expect(result.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         concurrency: 20,
         minInstances: 3,
-        region: ['us-west1'],
+        region: ["us-west1"],
         labels: {},
         eventTrigger: {
           ...ENDPOINT_EVENT_TRIGGER,
-          channel: 'locations/us-west1/channels/my-channel',
+          channel: "locations/us-west1/channels/my-channel",
         },
       });
     });

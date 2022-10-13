@@ -25,14 +25,13 @@
  * @packageDocumentation
  */
 
-import { CloudEvent, CloudFunction } from '../../core';
-import * as options from '../../options';
-import { Expression } from '../../params';
-import {
-  convertAlertAndApp,
-  FirebaseAlertData,
-  getEndpointAnnotation,
-} from './alerts';
+import { ResetValue } from "../../../common/options";
+import { Expression } from "../../../params";
+import { CloudEvent, CloudFunction } from "../../core";
+import { wrapTraceContext } from "../../trace";
+import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
+import * as options from "../../options";
+import { SecretParam } from "../../../params/types";
 
 /** Generic Crashlytics issue interface */
 export interface Issue {
@@ -51,7 +50,7 @@ export interface Issue {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewFatalIssuePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewFatalIssuePayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewFatalIssuePayload";
   /** Basic information of the Crashlytics issue */
   issue: Issue;
 }
@@ -61,7 +60,7 @@ export interface NewFatalIssuePayload {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewNonfatalIssuePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewNonfatalIssuePayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewNonfatalIssuePayload";
   /** Basic information of the Crashlytics issue */
   issue: Issue;
 }
@@ -71,7 +70,7 @@ export interface NewNonfatalIssuePayload {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface RegressionAlertPayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsRegressionAlertPayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsRegressionAlertPayload";
   /** The type of the Crashlytics issue, e.g. new fatal, new nonfatal, ANR */
   type: string;
   /** Basic information of the Crashlytics issue */
@@ -100,7 +99,7 @@ export interface TrendingIssueDetails {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface StabilityDigestPayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsStabilityDigestPayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsStabilityDigestPayload";
   /**
    * The date that the digest gets created. Issues in the digest should have the
    * same date as the digest date
@@ -115,7 +114,7 @@ export interface StabilityDigestPayload {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface VelocityAlertPayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsVelocityAlertPayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsVelocityAlertPayload";
   /** Basic information of the Crashlytics issue */
   issue: Issue;
   /** The time that the Crashlytics issue gets created */
@@ -142,7 +141,7 @@ export interface VelocityAlertPayload {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface NewAnrIssuePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewAnrIssuePayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.CrashlyticsNewAnrIssuePayload";
   /** Basic information of the Crashlytics issue */
   issue: Issue;
 }
@@ -159,17 +158,17 @@ export interface CrashlyticsEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
 }
 
 /** @internal */
-export const newFatalIssueAlert = 'crashlytics.newFatalIssue';
+export const newFatalIssueAlert = "crashlytics.newFatalIssue";
 /** @internal */
-export const newNonfatalIssueAlert = 'crashlytics.newNonfatalIssue';
+export const newNonfatalIssueAlert = "crashlytics.newNonfatalIssue";
 /** @internal */
-export const regressionAlert = 'crashlytics.regression';
+export const regressionAlert = "crashlytics.regression";
 /** @internal */
-export const stabilityDigestAlert = 'crashlytics.stabilityDigest';
+export const stabilityDigestAlert = "crashlytics.stabilityDigest";
 /** @internal */
-export const velocityAlert = 'crashlytics.velocity';
+export const velocityAlert = "crashlytics.velocity";
 /** @internal */
-export const newAnrIssueAlert = 'crashlytics.newAnrIssue';
+export const newAnrIssueAlert = "crashlytics.newAnrIssue";
 
 /**
  * Configuration for Crashlytics functions.
@@ -185,78 +184,78 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
 
   /**
    * Amount of memory to allocate to a function.
-   * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
    * Timeout for the function in sections, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   * A value of null restores the default of 60s
+   *
+   * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
-   * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
+   *
+   * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
+   * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
-   * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
-   * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
-   * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
-   * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -266,10 +265,10 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /**
@@ -314,15 +313,9 @@ export function onNewFatalIssuePublished(
     | string
     | CrashlyticsOptions
     | ((event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>),
-  handler?: (
-    event: CrashlyticsEvent<NewFatalIssuePayload>
-  ) => any | Promise<any>
+  handler?: (event: CrashlyticsEvent<NewFatalIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewFatalIssuePayload>> {
-  return onOperation<NewFatalIssuePayload>(
-    newFatalIssueAlert,
-    appIdOrOptsOrHandler,
-    handler
-  );
+  return onOperation<NewFatalIssuePayload>(newFatalIssueAlert, appIdOrOptsOrHandler, handler);
 }
 
 /**
@@ -331,9 +324,7 @@ export function onNewFatalIssuePublished(
  * @returns A function that you can export and deploy.
  */
 export function onNewNonfatalIssuePublished(
-  handler: (
-    event: CrashlyticsEvent<NewNonfatalIssuePayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<NewNonfatalIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 
 /**
@@ -344,9 +335,7 @@ export function onNewNonfatalIssuePublished(
  */
 export function onNewNonfatalIssuePublished(
   appId: string,
-  handler: (
-    event: CrashlyticsEvent<NewNonfatalIssuePayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<NewNonfatalIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 
 /**
@@ -357,9 +346,7 @@ export function onNewNonfatalIssuePublished(
  */
 export function onNewNonfatalIssuePublished(
   opts: CrashlyticsOptions,
-  handler: (
-    event: CrashlyticsEvent<NewNonfatalIssuePayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<NewNonfatalIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>>;
 
 /**
@@ -372,18 +359,10 @@ export function onNewNonfatalIssuePublished(
   appIdOrOptsOrHandler:
     | string
     | CrashlyticsOptions
-    | ((
-        event: CrashlyticsEvent<NewNonfatalIssuePayload>
-      ) => any | Promise<any>),
-  handler?: (
-    event: CrashlyticsEvent<NewNonfatalIssuePayload>
-  ) => any | Promise<any>
+    | ((event: CrashlyticsEvent<NewNonfatalIssuePayload>) => any | Promise<any>),
+  handler?: (event: CrashlyticsEvent<NewNonfatalIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewNonfatalIssuePayload>> {
-  return onOperation<NewNonfatalIssuePayload>(
-    newNonfatalIssueAlert,
-    appIdOrOptsOrHandler,
-    handler
-  );
+  return onOperation<NewNonfatalIssuePayload>(newNonfatalIssueAlert, appIdOrOptsOrHandler, handler);
 }
 
 /**
@@ -392,9 +371,7 @@ export function onNewNonfatalIssuePublished(
  * @returns A function that you can export and deploy.
  */
 export function onRegressionAlertPublished(
-  handler: (
-    event: CrashlyticsEvent<RegressionAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<RegressionAlertPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 
 /**
@@ -406,9 +383,7 @@ export function onRegressionAlertPublished(
  */
 export function onRegressionAlertPublished(
   appId: string,
-  handler: (
-    event: CrashlyticsEvent<RegressionAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<RegressionAlertPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 
 /**
@@ -420,9 +395,7 @@ export function onRegressionAlertPublished(
  */
 export function onRegressionAlertPublished(
   opts: CrashlyticsOptions,
-  handler: (
-    event: CrashlyticsEvent<RegressionAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<RegressionAlertPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>>;
 
 /**
@@ -436,15 +409,9 @@ export function onRegressionAlertPublished(
     | string
     | CrashlyticsOptions
     | ((event: CrashlyticsEvent<RegressionAlertPayload>) => any | Promise<any>),
-  handler?: (
-    event: CrashlyticsEvent<RegressionAlertPayload>
-  ) => any | Promise<any>
+  handler?: (event: CrashlyticsEvent<RegressionAlertPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<RegressionAlertPayload>> {
-  return onOperation<RegressionAlertPayload>(
-    regressionAlert,
-    appIdOrOptsOrHandler,
-    handler
-  );
+  return onOperation<RegressionAlertPayload>(regressionAlert, appIdOrOptsOrHandler, handler);
 }
 
 /**
@@ -453,9 +420,7 @@ export function onRegressionAlertPublished(
  * @returns A function that you can export and deploy.
  */
 export function onStabilityDigestPublished(
-  handler: (
-    event: CrashlyticsEvent<StabilityDigestPayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<StabilityDigestPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 
 /**
@@ -467,9 +432,7 @@ export function onStabilityDigestPublished(
  */
 export function onStabilityDigestPublished(
   appId: string,
-  handler: (
-    event: CrashlyticsEvent<StabilityDigestPayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<StabilityDigestPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 
 /**
@@ -481,9 +444,7 @@ export function onStabilityDigestPublished(
  */
 export function onStabilityDigestPublished(
   opts: CrashlyticsOptions,
-  handler: (
-    event: CrashlyticsEvent<StabilityDigestPayload>
-  ) => any | Promise<any>
+  handler: (event: CrashlyticsEvent<StabilityDigestPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>>;
 
 /**
@@ -497,15 +458,9 @@ export function onStabilityDigestPublished(
     | string
     | CrashlyticsOptions
     | ((event: CrashlyticsEvent<StabilityDigestPayload>) => any | Promise<any>),
-  handler?: (
-    event: CrashlyticsEvent<StabilityDigestPayload>
-  ) => any | Promise<any>
+  handler?: (event: CrashlyticsEvent<StabilityDigestPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<StabilityDigestPayload>> {
-  return onOperation<StabilityDigestPayload>(
-    stabilityDigestAlert,
-    appIdOrOptsOrHandler,
-    handler
-  );
+  return onOperation<StabilityDigestPayload>(stabilityDigestAlert, appIdOrOptsOrHandler, handler);
 }
 
 /**
@@ -550,15 +505,9 @@ export function onVelocityAlertPublished(
     | string
     | CrashlyticsOptions
     | ((event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>),
-  handler?: (
-    event: CrashlyticsEvent<VelocityAlertPayload>
-  ) => any | Promise<any>
+  handler?: (event: CrashlyticsEvent<VelocityAlertPayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<VelocityAlertPayload>> {
-  return onOperation<VelocityAlertPayload>(
-    velocityAlert,
-    appIdOrOptsOrHandler,
-    handler
-  );
+  return onOperation<VelocityAlertPayload>(velocityAlert, appIdOrOptsOrHandler, handler);
 }
 
 /**
@@ -607,11 +556,7 @@ export function onNewAnrIssuePublished(
     | ((event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>),
   handler?: (event: CrashlyticsEvent<NewAnrIssuePayload>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<NewAnrIssuePayload>> {
-  return onOperation<NewAnrIssuePayload>(
-    newAnrIssueAlert,
-    appIdOrOptsOrHandler,
-    handler
-  );
+  return onOperation<NewAnrIssuePayload>(newAnrIssueAlert, appIdOrOptsOrHandler, handler);
 }
 
 /** @internal */
@@ -623,19 +568,15 @@ export function onOperation<T>(
     | ((event: CrashlyticsEvent<T>) => any | Promise<any>),
   handler: (event: CrashlyticsEvent<T>) => any | Promise<any>
 ): CloudFunction<CrashlyticsEvent<T>> {
-  if (typeof appIdOrOptsOrHandler === 'function') {
-    handler = appIdOrOptsOrHandler as (
-      event: CrashlyticsEvent<T>
-    ) => any | Promise<any>;
+  if (typeof appIdOrOptsOrHandler === "function") {
+    handler = appIdOrOptsOrHandler as (event: CrashlyticsEvent<T>) => any | Promise<any>;
     appIdOrOptsOrHandler = {};
   }
 
-  const [opts, appId] = getOptsAndApp(
-    appIdOrOptsOrHandler as string | CrashlyticsOptions
-  );
+  const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(convertAlertAndApp(raw) as CrashlyticsEvent<T>);
+    return wrapTraceContext(handler(convertAlertAndApp(raw) as CrashlyticsEvent<T>));
   };
 
   func.run = handler;
@@ -653,7 +594,7 @@ export function getOptsAndApp(
 ): [options.EventHandlerOptions, string | undefined] {
   let opts: options.EventHandlerOptions;
   let appId: string | undefined;
-  if (typeof appIdOrOpts === 'string') {
+  if (typeof appIdOrOpts === "string") {
     opts = {};
     appId = appIdOrOpts;
   } else {

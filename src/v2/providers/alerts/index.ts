@@ -27,10 +27,10 @@
  * @packageDocumentation
  */
 
-import * as appDistribution from './appDistribution';
-import * as billing from './billing';
-import * as crashlytics from './crashlytics';
-import * as performance from './performance';
+import * as appDistribution from "./appDistribution";
+import * as billing from "./billing";
+import * as crashlytics from "./crashlytics";
+import * as performance from "./performance";
 
 export { appDistribution, billing, crashlytics, performance };
-export * from './alerts';
+export * from "./alerts";
