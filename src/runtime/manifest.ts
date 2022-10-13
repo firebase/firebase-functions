@@ -27,7 +27,7 @@ import { WireParamSpec } from "../params/types";
 /**
  * An definition of a function as appears in the Manifest.
  *
- * @internal
+ * @alpha
  */
 export interface ManifestEndpoint {
   entryPoint?: string;
@@ -102,7 +102,10 @@ export interface ManifestEndpoint {
   };
 }
 
-/** @internal */
+/**
+ * Description of API required for this stack.
+ * @alpha
+ */
 export interface ManifestRequiredAPI {
   api: string;
   reason: string;
@@ -110,7 +113,7 @@ export interface ManifestRequiredAPI {
 
 /**
  * An definition of a function deployment as appears in the Manifest.
- * @internal
+ * @alpha
  */
 export interface ManifestStack {
   specVersion: "v1alpha1";
@@ -123,7 +126,8 @@ export interface ManifestStack {
  * Returns the JSON representation of a ManifestStack, which has CEL
  * expressions in its options as object types, with its expressions
  * transformed into the actual CEL strings.
- * @internal
+ *
+ * @alpha
  */
 export function stackToWire(stack: ManifestStack): Record<string, unknown> {
   const wireStack = stack as any;

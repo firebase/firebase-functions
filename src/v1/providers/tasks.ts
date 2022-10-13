@@ -65,10 +65,10 @@ export interface TaskQueueOptions {
 export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
 
-  /** @internal */
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
-  /** @internal */
+  /** @alpha */
   __requiredAPIs?: ManifestRequiredAPI[];
 
   /**
