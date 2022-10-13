@@ -2,14 +2,12 @@
 set -e
 
 printusage() {
-  echo "publish.sh <version> [--prerelease]"
+  echo "publish.sh <version>"
   echo "REPOSITORY_ORG and REPOSITORY_NAME should be set in the environment."
   echo "e.g. REPOSITORY_ORG=user, REPOSITORY_NAME=repo"
   echo ""
   echo "Arguments:"
   echo "  version: 'patch', 'minor', or 'major'."
-  echo "Flags:"
-  echo "  --prerelease: Set to publish a prerelease version (e.g. 4.0.1-rc.0)"
 }
 
 VERSION=$1
@@ -19,11 +17,6 @@ if [[ $VERSION == "" ]]; then
 elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major") ]]; then
   printusage
   exit 1
-fi
-
-PRERELEASE=false
-if [[ $2 == "--prerelease" || $2 == "-p" ]]; then
-  PRERELEASE=true
 fi
 
 if [[ $REPOSITORY_ORG == "" ]]; then
@@ -95,10 +88,10 @@ npm run build:release
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
-if [[ "$PRERELEASE" = true ]]; then
-  npm version pre$VERSION --preid=rc
-else
+if [[ $PRE_RELEASE == "" ]]; then
   npm version $VERSION
+else
+  npm version pre$VERSION --preid=rc
 fi
 NEW_VERSION=$(jq -r ".version" package.json)
 echo "Made a $NEW_VERSION version."
@@ -119,6 +112,11 @@ else
   npm publish --dry-run
 fi
 echo "Published to npm."
+
+if [[ $PRE_RELEASE != "" ]]; then
+  echo "Published a pre-release version. Skipping post-release actions."
+  exit
+fi
 
 if [[ $DRY_RUN != "" ]]; then
   echo "All other commands are mutations, and we are doing a dry run."
