@@ -261,8 +261,8 @@ export interface DeploymentOptions extends RuntimeOptions {
    *
    * @remarks
    * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
-   * SDK, we highly recommend setting preserveExternalChanges to true. Otherwise, when Firebase Functions SDK releases
-   * a new version of the SDK with the support for the missing configuration, your functions manually configured setting
+   * SDK, we highly recommend setting `preserveExternalChanges` to `true`. Otherwise, when the Firebase Functions SDK releases
+   * a new version of the SDK with support for the missing configuration, your function's manually configured setting
    * may inadvertently be wiped out.
    */
   preserveExternalChanges?: boolean;
