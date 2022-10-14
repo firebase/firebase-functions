@@ -88,10 +88,10 @@ npm run build:release
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
-if [[ $PRE_RELEASE == "" ]]; then
-  npm version $VERSION
-else
+if [[ $PRE_RELEASE != "" ]]; then
   npm version pre$VERSION --preid=rc
+else
+  npm version $VERSION
 fi
 NEW_VERSION=$(jq -r ".version" package.json)
 echo "Made a $NEW_VERSION version."
@@ -105,11 +105,11 @@ cat CHANGELOG.md >> "${RELEASE_NOTES_FILE}"
 echo "Made the release notes."
 
 echo "Publishing to npm..."
-if [[ $DRY_RUN == "" ]]; then
-  npm publish
-else
+if [[ $DRY_RUN != "" ]]; then
   echo "DRY RUN: running publish with --dry-run"
   npm publish --dry-run
+else
+  npm publish
 fi
 echo "Published to npm."
 
