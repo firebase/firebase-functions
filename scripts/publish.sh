@@ -88,13 +88,13 @@ npm run build:release
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
-# TODO: Remove the following command.
-#   npm version command had previously failed claiming unclean git repo, and we don't know why.
-echo "DEBUG: Running git status to show dirty files..."
-git status
-npm version $VERSION
+if [[ $PRE_RELEASE != "" ]]; then
+  npm version pre$VERSION --preid=rc
+else
+  npm version $VERSION
+fi
 NEW_VERSION=$(jq -r ".version" package.json)
-echo "Made a $VERSION version."
+echo "Made a $NEW_VERSION version."
 
 echo "Making the release notes..."
 RELEASE_NOTES_FILE=$(mktemp)
@@ -105,13 +105,18 @@ cat CHANGELOG.md >> "${RELEASE_NOTES_FILE}"
 echo "Made the release notes."
 
 echo "Publishing to npm..."
-if [[ $DRY_RUN == "" ]]; then
-  npm publish
-else
+if [[ $DRY_RUN != "" ]]; then
   echo "DRY RUN: running publish with --dry-run"
   npm publish --dry-run
+else
+  npm publish
 fi
 echo "Published to npm."
+
+if [[ $PRE_RELEASE != "" ]]; then
+  echo "Published a pre-release version. Skipping post-release actions."
+  exit
+fi
 
 if [[ $DRY_RUN != "" ]]; then
   echo "All other commands are mutations, and we are doing a dry run."
