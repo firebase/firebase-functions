@@ -284,9 +284,11 @@ describe("Params as CEL", () => {
       '{{ params.A != params.B ? "asdf" : "jkl;" }}'
     );
     expect(cmpExpr.thenElse(-11, 22).toCEL()).to.equal("{{ params.A != params.B ? -11 : 22 }}");
-    expect(cmpExpr.thenElse(false, true).toCEL()).to.equal("{{ params.A != params.B ? false : true }}");
-    expect(cmpExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()).to.equal(
-      "{{ params.A != params.B ? params.FOO : params.BAR }}"
+    expect(cmpExpr.thenElse(false, true).toCEL()).to.equal(
+      "{{ params.A != params.B ? false : true }}"
     );
+    expect(
+      cmpExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()
+    ).to.equal("{{ params.A != params.B ? params.FOO : params.BAR }}");
   });
 });
