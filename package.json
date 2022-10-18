@@ -75,31 +75,34 @@
         "lib/v1"
       ],
       "v1/analytics": [
-        "./lib/v1/providers/analytics"
+        "lib/v1/providers/analytics"
       ],
       "v1/auth": [
-        "./lib/v1/providers/auth"
+        "lib/v1/providers/auth"
       ],
       "v1/database": [
-        "./lib/v1/privders/database"
+        "lib/v1/privders/database"
       ],
       "v1/firestore": [
-        "./lib/v1/providers/firestore"
+        "lib/v1/providers/firestore"
+      ],
+      "v1/https": [
+        "lib/v1/providers/https"
       ],
       "v1/pubsub": [
-        "./lib/v1/providers/pubsub"
+        "lib/v1/providers/pubsub"
       ],
       "v1/remoteConfig": [
-        "./lib/v1/providers/remoteConfig"
+        "lib/v1/providers/remoteConfig"
       ],
       "v1/storage": [
-        "./lib/v1/providers/storage"
+        "lib/v1/providers/storage"
       ],
       "v1/tasks": [
-        "./lib/v1/providers/tasks"
+        "lib/v1/providers/tasks"
       ],
       "v1/testLab": [
-        "./lib/v1/providers/testLab"
+        "lib/v1/providers/testLab"
       ],
       "v2": [
         "lib/v2"
