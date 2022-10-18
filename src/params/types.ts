@@ -145,7 +145,7 @@ export class CompareExpression<
   }
 
   /** Returns a TernaryExpression which can resolve to one of two values, based on the resolution of this comparison. */
-  then<retT extends string | number | boolean | string[]>(
+  thenElse<retT extends string | number | boolean | string[]>(
     ifTrue: retT | Expression<retT>,
     ifFalse: retT | Expression<retT>
   ) {
