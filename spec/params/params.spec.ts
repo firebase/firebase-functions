@@ -5,7 +5,7 @@ describe("Params spec extraction", () => {
   it("converts Expressions in the param default to strings", () => {
     const bar = params.defineInt("BAR");
     expect(
-      params.defineString("FOO", { default: bar.notEquals(22).then("asdf", "jkl;") }).toSpec()
+      params.defineString("FOO", { default: bar.notEquals(22).thenElse("asdf", "jkl;") }).toSpec()
         .default
     ).to.equal(`{{ params.BAR != 22 ? "asdf" : "jkl;" }}`);
   });
@@ -174,13 +174,13 @@ describe("Params value extraction", () => {
 
   it("can select the output of a ternary expression based on the comparison", () => {
     const trueExpr = params.defineString("A_STRING").equals(params.defineString("SAME_STRING"));
-    expect(trueExpr.then(1, 0).value()).to.equal(1);
+    expect(trueExpr.thenElse(1, 0).value()).to.equal(1);
     const falseExpr = params.defineInt("AN_INT").equals(params.defineInt("DIFF_INT"));
-    expect(falseExpr.then(1, 0).value()).to.equal(0);
+    expect(falseExpr.thenElse(1, 0).value()).to.equal(0);
 
     const twentytwo = params.defineInt("DIFF_INT");
-    expect(trueExpr.then(twentytwo, 0).value()).to.equal(22);
-    expect(falseExpr.then(1, twentytwo).value()).to.equal(22);
+    expect(trueExpr.thenElse(twentytwo, 0).value()).to.equal(22);
+    expect(falseExpr.thenElse(1, twentytwo).value()).to.equal(22);
   });
 });
 
@@ -280,12 +280,12 @@ describe("Params as CEL", () => {
     expect(
       booleanExpr.then(params.defineString("FOO"), params.defineString("BAR")).toCEL()
     ).to.equal("{{ params.BOOL ? params.FOO : params.BAR }}");
-    expect(cmpExpr.then("asdf", "jkl;").toCEL()).to.equal(
+    expect(cmpExpr.thenElse("asdf", "jkl;").toCEL()).to.equal(
       '{{ params.A != params.B ? "asdf" : "jkl;" }}'
     );
-    expect(cmpExpr.then(-11, 22).toCEL()).to.equal("{{ params.A != params.B ? -11 : 22 }}");
-    expect(cmpExpr.then(false, true).toCEL()).to.equal("{{ params.A != params.B ? false : true }}");
-    expect(cmpExpr.then(params.defineString("FOO"), params.defineString("BAR")).toCEL()).to.equal(
+    expect(cmpExpr.thenElse(-11, 22).toCEL()).to.equal("{{ params.A != params.B ? -11 : 22 }}");
+    expect(cmpExpr.thenElse(false, true).toCEL()).to.equal("{{ params.A != params.B ? false : true }}");
+    expect(cmpExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()).to.equal(
       "{{ params.A != params.B ? params.FOO : params.BAR }}"
     );
   });
