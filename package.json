@@ -89,16 +89,16 @@
       "v1/pubsub": [
         "./lib/v1/providers/pubsub"
       ],
-      "/v1/remoteConfig": [
+      "v1/remoteConfig": [
         "./lib/v1/providers/remoteConfig"
       ],
-      "/v1/storage": [
+      "v1/storage": [
         "./lib/v1/providers/storage"
       ],
-      "/v1/tasks": [
+      "v1/tasks": [
         "./lib/v1/providers/tasks"
       ],
-      "/v1/testLab": [
+      "v1/testLab": [
         "./lib/v1/providers/testLab"
       ],
       "v2": [
