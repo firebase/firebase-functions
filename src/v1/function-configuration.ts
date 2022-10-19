@@ -74,6 +74,10 @@ export const INGRESS_SETTINGS_OPTIONS = [
   "ALLOW_INTERNAL_AND_GCLB",
 ] as const;
 
+export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
+  retry: {},
+};
+
 /**
  * Scheduler retry options. Applies only to scheduled functions.
  */
