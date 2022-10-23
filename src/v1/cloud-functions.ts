@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import { Request, Response } from 'express';
-import * as _ from 'lodash';
 import { warn } from '../logger';
 import {
   DEFAULT_FAILURE_POLICY,
@@ -200,95 +199,6 @@ export interface EventContext<Params = Record<string, string>> {
    * Timestamp for the event as an {@link https://www.ietf.org/rfc/rfc3339.txt | RFC 3339} string.
    */
   timestamp: string;
-}
-
-/**
- * The Functions interface for events that change state, such as
- * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
- *
- * For more information about the format used to construct `Change` objects, see
- * [`cloud-functions.ChangeJson`](/docs/reference/functions/cloud_functions_.changejson).
- *
- */
-export class Change<T> {
-  constructor(public before: T, public after: T) {}
-}
-
-/**
- * `ChangeJson` is the JSON format used to construct a Change object.
- */
-export interface ChangeJson {
-  /**
-   * Key-value pairs representing state of data after the change.
-   */
-  after?: any;
-  /**
-   * Key-value pairs representing state of data before the change. If
-   * `fieldMask` is set, then only fields that changed are present in `before`.
-   */
-  before?: any;
-  /**
-   * @hidden
-   * Comma-separated string that represents names of fields that changed.
-   */
-  fieldMask?: string;
-}
-
-export namespace Change {
-  /** @hidden */
-  function reinterpretCast<T>(x: any) {
-    return x as T;
-  }
-
-  /**
-   * @hidden
-   * Factory method for creating a Change from a `before` object and an `after`
-   * object.
-   */
-  export function fromObjects<T>(before: T, after: T) {
-    return new Change(before, after);
-  }
-
-  /**
-   * @hidden
-   * Factory method for creating a Change from a JSON and an optional customizer
-   * function to be applied to both the `before` and the `after` fields.
-   */
-  export function fromJSON<T>(
-    json: ChangeJson,
-    customizer: (x: any) => T = reinterpretCast
-  ): Change<T> {
-    let before = { ...json.before };
-    if (json.fieldMask) {
-      before = applyFieldMask(before, json.after, json.fieldMask);
-    }
-
-    return Change.fromObjects(
-      customizer(before || {}),
-      customizer(json.after || {})
-    );
-  }
-
-  /** @hidden */
-  export function applyFieldMask(
-    sparseBefore: any,
-    after: any,
-    fieldMask: string
-  ) {
-    const before = { ...after };
-    const masks = fieldMask.split(',');
-
-    masks.forEach((mask) => {
-      const val = _.get(sparseBefore, mask);
-      if (typeof val === 'undefined') {
-        _.unset(before, mask);
-      } else {
-        _.set(before, mask, val);
-      }
-    });
-
-    return before;
-  }
 }
 
 /**
