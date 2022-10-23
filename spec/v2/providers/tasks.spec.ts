@@ -23,11 +23,11 @@
 import { expect } from "chai";
 
 import { ManifestEndpoint } from "../../../src/runtime/manifest";
-import * as options from '../../../src/v2/options';
-import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
-import { MockRequest } from '../../fixtures/mockrequest';
-import { runHandler } from '../../helper';
-import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import * as options from "../../../src/v2/options";
+import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
+import { MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
   rateLimits: {
@@ -53,11 +53,11 @@ describe("onTaskDispatched", () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger/endpoint with appropriate values', () => {
+  it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = onTaskDispatched(() => {});
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       taskQueueTrigger: {},
       labels: {},
     });
@@ -85,7 +85,7 @@ describe("onTaskDispatched", () => {
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
-        invoker: 'private',
+        invoker: "private",
       },
       () => {}
     );
@@ -104,7 +104,7 @@ describe("onTaskDispatched", () => {
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
-        invoker: ['private'],
+        invoker: ["private"],
       },
     });
 
@@ -144,11 +144,11 @@ describe("onTaskDispatched", () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       taskQueueTrigger: {},
       concurrency: 20,
       minInstances: 3,
-      regions: ['us-west1'],
+      regions: ["us-west1"],
       labels: {},
     });
 

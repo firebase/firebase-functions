@@ -235,18 +235,14 @@ export function onRequest(
     };
   }
 
-  Object.defineProperty(handler, '__trigger', {
+  Object.defineProperty(handler, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
       const trigger: any = {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {
@@ -257,13 +253,7 @@ export function onRequest(
           allowInsecure: false,
         },
       };
-      convertIfPresent(
-        trigger.httpsTrigger,
-        opts,
-        'invoker',
-        'invoker',
-        convertInvoker
-      );
+      convertIfPresent(trigger.httpsTrigger, opts, "invoker", "invoker", convertInvoker);
       return trigger;
     },
   });

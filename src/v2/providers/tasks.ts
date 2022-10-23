@@ -207,27 +207,17 @@ export function onTaskDispatched<Args = any>(
   const fixedLen = (req: Request<Args>) => handler(req);
   const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
 
-  Object.defineProperty(func, '__trigger', {
+  Object.defineProperty(func, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
       const taskQueueTrigger: Record<string, unknown> = {};
-      copyIfPresent(taskQueueTrigger, opts, 'retryConfig', 'rateLimits');
-      convertIfPresent(
-        taskQueueTrigger,
-        opts,
-        'invoker',
-        'invoker',
-        convertInvoker
-      );
+      copyIfPresent(taskQueueTrigger, opts, "retryConfig", "rateLimits");
+      convertIfPresent(taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
       return {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {

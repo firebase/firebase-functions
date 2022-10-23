@@ -43,7 +43,7 @@ describe("#onDispatch", () => {
         maxDoublings: 3,
         minBackoffSeconds: 5,
       },
-      invoker: 'private',
+      invoker: "private",
     }).onDispatch(() => {});
 
     expect(result.__trigger).to.deep.equal({
@@ -59,7 +59,7 @@ describe("#onDispatch", () => {
           maxDoublings: 3,
           minBackoffSeconds: 5,
         },
-        invoker: ['private'],
+        invoker: ["private"],
       },
     });
 
@@ -94,9 +94,9 @@ describe("#onDispatch", () => {
       .onDispatch(() => null);
 
     expect(fn.__trigger).to.deep.equal({
-      regions: ['us-east1'],
+      regions: ["us-east1"],
       availableMemoryMb: 256,
-      timeout: '90s',
+      timeout: "90s",
       taskQueueTrigger: {
         retryConfig: {
           maxAttempts: 5,
@@ -158,12 +158,12 @@ describe("#onDispatch", () => {
 
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(204);
-    expect(gotData).to.deep.equal({ foo: 'bar' });
+    expect(gotData).to.deep.equal({ foo: "bar" });
   });
 });
 
-describe('handler namespace', () => {
-  it('should return an empty trigger', () => {
+describe("handler namespace", () => {
+  it("should return an empty trigger", () => {
     const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
     expect(result.__trigger).to.deep.equal({});
     expect(result.__endpoint).to.be.undefined;

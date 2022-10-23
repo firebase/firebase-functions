@@ -32,12 +32,12 @@ import {
   serviceAccountFromShorthand,
 } from "../common/encoding";
 import { RESET_VALUE, ResetValue } from "../common/options";
-import { ManifestEndpoint } from '../runtime/manifest';
-import { TriggerAnnotation } from './core';
+import { ManifestEndpoint } from "../runtime/manifest";
+import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec, SecretParam } from "../params/types";
-import { HttpsOptions } from './providers/https';
-import * as logger from '../logger';
+import { HttpsOptions } from "./providers/https";
+import * as logger from "../logger";
 
 export { RESET_VALUE } from "../common/options";
 
@@ -267,26 +267,20 @@ export function optionsToTriggerAnnotations(
   copyIfPresent(
     annotation,
     opts,
-    'concurrency',
-    'minInstances',
-    'maxInstances',
-    'ingressSettings',
-    'labels',
-    'vpcConnector',
-    'vpcConnectorEgressSettings',
-    'secrets'
+    "concurrency",
+    "minInstances",
+    "maxInstances",
+    "ingressSettings",
+    "labels",
+    "vpcConnector",
+    "vpcConnectorEgressSettings",
+    "secrets"
   );
-  convertIfPresent(
-    annotation,
-    opts,
-    'availableMemoryMb',
-    'memory',
-    (mem: MemoryOption) => {
-      return MemoryOptionToMB[mem];
-    }
-  );
-  convertIfPresent(annotation, opts, 'regions', 'region', (region) => {
-    if (typeof region === 'string') {
+  convertIfPresent(annotation, opts, "availableMemoryMb", "memory", (mem: MemoryOption) => {
+    return MemoryOptionToMB[mem];
+  });
+  convertIfPresent(annotation, opts, "regions", "region", (region) => {
+    if (typeof region === "string") {
       return [region];
     }
     return region;
@@ -294,22 +288,16 @@ export function optionsToTriggerAnnotations(
   convertIfPresent(
     annotation,
     opts,
-    'serviceAccountEmail',
-    'serviceAccount',
+    "serviceAccountEmail",
+    "serviceAccount",
     serviceAccountFromShorthand
   );
+  convertIfPresent(annotation, opts, "timeout", "timeoutSeconds", durationFromSeconds);
   convertIfPresent(
     annotation,
-    opts,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
-  );
-  convertIfPresent(
-    annotation,
-    (opts as any) as EventHandlerOptions,
-    'failurePolicy',
-    'retry',
+    opts as any as EventHandlerOptions,
+    "failurePolicy",
+    "retry",
     (retry: boolean) => {
       return retry ? { retry: true } : null;
     }

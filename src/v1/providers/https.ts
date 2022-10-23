@@ -29,14 +29,9 @@ import {
   HttpsError,
   onCallHandler,
   Request,
-} from '../../common/providers/https';
-import {
-  HttpsFunction,
-  optionsToEndpoint,
-  optionsToTrigger,
-  Runnable,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+} from "../../common/providers/https";
+import { HttpsFunction, optionsToEndpoint, optionsToTrigger, Runnable } from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 import { initV1Endpoint } from "../../runtime/manifest";
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };
@@ -111,7 +106,7 @@ export function _onCallWithOptions(
     ...optionsToTrigger(options),
     httpsTrigger: {},
   };
-  func.__trigger.labels['deployment-callable'] = 'true';
+  func.__trigger.labels["deployment-callable"] = "true";
 
   func.__endpoint = {
     platform: "gcfv1",

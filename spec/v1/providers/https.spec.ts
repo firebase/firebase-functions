@@ -52,22 +52,22 @@ describe("CloudHttpsBuilder", () => {
         })
         .https.onRequest(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+      expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
-      expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(['private']);
+      expect(fn.__trigger.timeout).to.deep.equal("90s");
+      expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(["private"]);
 
-      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
-      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(['private']);
+      expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(["private"]);
     });
   });
 });
 
-describe('handler namespace', () => {
-  describe('#onRequest', () => {
-    it('should return an empty trigger', () => {
+describe("handler namespace", () => {
+  describe("#onRequest", () => {
+    it("should return an empty trigger", () => {
       const result = functions.handler.https.onRequest((req, res) => {
         res.send(200);
       });
@@ -76,8 +76,8 @@ describe('handler namespace', () => {
     });
   });
 
-  describe('#onCall', () => {
-    it('should return an empty trigger', () => {
+  describe("#onCall", () => {
+    it("should return an empty trigger", () => {
       const result = functions.handler.https.onCall(() => null);
       expect(result.__trigger).to.deep.equal({});
       expect(result.__endpoint).to.be.undefined;
@@ -85,15 +85,15 @@ describe('handler namespace', () => {
   });
 });
 
-describe('#onCall', () => {
-  it('should return a trigger/endpoint with appropriate values', () => {
+describe("#onCall", () => {
+  it("should return a trigger/endpoint with appropriate values", () => {
     const result = https.onCall((data) => {
-      return 'response';
+      return "response";
     });
 
     expect(result.__trigger).to.deep.equal({
       httpsTrigger: {},
-      labels: { 'deployment-callable': 'true' },
+      labels: { "deployment-callable": "true" },
     });
 
     expect(result.__endpoint).to.deep.equal({
@@ -113,11 +113,11 @@ describe('#onCall', () => {
       })
       .https.onCall(() => null);
 
-    expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+    expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
     expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-    expect(fn.__trigger.timeout).to.deep.equal('90s');
+    expect(fn.__trigger.timeout).to.deep.equal("90s");
 
-    expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+    expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });

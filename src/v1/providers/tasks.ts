@@ -36,7 +36,7 @@ import {
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";
-import { optionsToEndpoint, optionsToTrigger } from '../cloud-functions';
+import { optionsToEndpoint, optionsToTrigger } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
 export { RetryConfig, RateLimits, TaskContext };
@@ -113,13 +113,13 @@ export class TaskQueueBuilder {
       ...optionsToTrigger(this.depOpts || {}),
       taskQueueTrigger: {},
     };
-    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, 'retryConfig');
-    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, 'rateLimits');
+    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, "retryConfig");
+    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, "rateLimits");
     convertIfPresent(
       func.__trigger.taskQueueTrigger,
       this.tqOpts,
-      'invoker',
-      'invoker',
+      "invoker",
+      "invoker",
       convertInvoker
     );
 

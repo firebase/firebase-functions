@@ -23,15 +23,12 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 
-import * as debug from '../../../src/common/debug';
-import * as options from '../../../src/v2/options';
-import * as https from '../../../src/v2/providers/https';
-import {
-  expectedResponseHeaders,
-  MockRequest,
-} from '../../fixtures/mockrequest';
-import { runHandler } from '../../helper';
-import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import * as debug from "../../../src/common/debug";
+import * as options from "../../../src/v2/options";
+import * as https from "../../../src/v2/providers/https";
+import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 describe("onRequest", () => {
   beforeEach(() => {
@@ -49,7 +46,7 @@ describe("onRequest", () => {
     });
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       httpsTrigger: {
         allowInsecure: false,
       },
@@ -80,9 +77,9 @@ describe("onRequest", () => {
       ...FULL_TRIGGER,
       httpsTrigger: {
         allowInsecure: false,
-        invoker: ['service-account1@', 'service-account2@'],
+        invoker: ["service-account1@", "service-account2@"],
       },
-      regions: ['us-west1', 'us-central1'],
+      regions: ["us-west1", "us-central1"],
     });
 
     expect(result.__endpoint).to.deep.equal({
@@ -115,14 +112,14 @@ describe("onRequest", () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       httpsTrigger: {
         allowInsecure: false,
-        invoker: ['private'],
+        invoker: ["private"],
       },
       concurrency: 20,
       minInstances: 3,
-      regions: ['us-west1', 'us-central1'],
+      regions: ["us-west1", "us-central1"],
       labels: {},
     });
 
@@ -230,16 +227,16 @@ describe("onCall", () => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger/endpoint with appropriate values', () => {
+  it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = https.onCall((request) => 42);
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       httpsTrigger: {
         allowInsecure: false,
       },
       labels: {
-        'deployment-callable': 'true',
+        "deployment-callable": "true",
       },
     });
 
@@ -251,7 +248,7 @@ describe("onCall", () => {
     });
   });
 
-  it('should create a complex trigger/endpoint with appropriate values', () => {
+  it("should create a complex trigger/endpoint with appropriate values", () => {
     const result = https.onCall(FULL_OPTIONS, (request) => 42);
 
     expect(result.__trigger).to.deep.equal({
@@ -261,7 +258,7 @@ describe("onCall", () => {
       },
       labels: {
         ...FULL_TRIGGER.labels,
-        'deployment-callable': 'true',
+        "deployment-callable": "true",
       },
     });
 
@@ -288,15 +285,15 @@ describe("onCall", () => {
     );
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       httpsTrigger: {
         allowInsecure: false,
       },
       concurrency: 20,
       minInstances: 3,
-      regions: ['us-west1', 'us-central1'],
+      regions: ["us-west1", "us-central1"],
       labels: {
-        'deployment-callable': 'true',
+        "deployment-callable": "true",
       },
     });
 

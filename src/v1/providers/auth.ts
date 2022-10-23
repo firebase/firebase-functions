@@ -41,8 +41,8 @@ import {
   makeCloudFunction,
   optionsToEndpoint,
   optionsToTrigger,
-} from '../cloud-functions';
-import { DeploymentOptions } from '../function-configuration';
+} from "../cloud-functions";
+import { DeploymentOptions } from "../function-configuration";
 import { initV1Endpoint } from "../../runtime/manifest";
 
 // TODO: yank in next breaking change release

@@ -41,9 +41,9 @@ describe("Test Lab Functions", () => {
 
         expect(func.__trigger).to.deep.equal({
           eventTrigger: {
-            service: 'testing.googleapis.com',
-            eventType: 'google.testing.testMatrix.complete',
-            resource: 'projects/project1/testMatrices/{matrix}',
+            service: "testing.googleapis.com",
+            eventType: "google.testing.testMatrix.complete",
+            resource: "projects/project1/testMatrices/{matrix}",
           },
         });
 
@@ -154,23 +154,17 @@ describe("Test Lab Functions", () => {
       });
     });
 
-    describe('process.env.GCLOUD_PROJECT not set', () => {
-      it('should not throw if trigger is not accessed', () => {
-        expect(() => testLab.testMatrix().onComplete(() => null)).to.not.throw(
-          Error
-        );
+    describe("process.env.GCLOUD_PROJECT not set", () => {
+      it("should not throw if trigger is not accessed", () => {
+        expect(() => testLab.testMatrix().onComplete(() => null)).to.not.throw(Error);
       });
 
-      it('should throw when trigger is accessed', () => {
-        expect(
-          () => testLab.testMatrix().onComplete(() => null).__trigger
-        ).to.throw(Error);
+      it("should throw when trigger is accessed", () => {
+        expect(() => testLab.testMatrix().onComplete(() => null).__trigger).to.throw(Error);
       });
 
-      it('should throw when endpoint is accessed', () => {
-        expect(
-          () => testLab.testMatrix().onComplete(() => null).__endpoint
-        ).to.throw(Error);
+      it("should throw when endpoint is accessed", () => {
+        expect(() => testLab.testMatrix().onComplete(() => null).__endpoint).to.throw(Error);
       });
     });
   });

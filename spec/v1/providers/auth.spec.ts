@@ -46,13 +46,13 @@ describe("Auth Functions", () => {
     },
   };
 
-  describe('AuthBuilder', () => {
+  describe("AuthBuilder", () => {
     function expectedTrigger(project: string, eventType: string) {
       return {
         eventTrigger: {
           resource: `projects/${project}`,
           eventType: `providers/firebase.auth/eventTypes/${eventType}`,
-          service: 'firebaseauth.googleapis.com',
+          service: "firebaseauth.googleapis.com",
         },
       };
     }
@@ -96,9 +96,9 @@ describe("Auth Functions", () => {
         .auth.user()
         .onCreate(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+      expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__trigger.timeout).to.deep.equal("90s");
 
       expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -109,13 +109,9 @@ describe("Auth Functions", () => {
       it("should return a trigger/endpoint with appropriate values", () => {
         const cloudFunction = auth.user().onCreate(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(project, 'user.create')
-        );
+        expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(project, "user.create"));
 
-        expect(cloudFunction.__endpoint).to.deep.equal(
-          expectedEndpoint(project, 'user.create')
-        );
+        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(project, "user.create"));
       });
     });
 
@@ -123,13 +119,9 @@ describe("Auth Functions", () => {
       it("should return a trigger/endpoint with appropriate values", () => {
         const cloudFunction = auth.user().onDelete(handler);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(project, 'user.delete')
-        );
+        expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(project, "user.delete"));
 
-        expect(cloudFunction.__endpoint).to.deep.equal(
-          expectedEndpoint(project, 'user.delete')
-        );
+        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(project, "user.delete"));
       });
     });
 
@@ -140,7 +132,7 @@ describe("Auth Functions", () => {
         expect(fn.__trigger).to.deep.equal({
           labels: {},
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
             options: {
               accessToken: false,
               idToken: false,
@@ -186,11 +178,11 @@ describe("Auth Functions", () => {
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
-          regions: ['us-east1'],
+          regions: ["us-east1"],
           availableMemoryMb: 256,
-          timeout: '90s',
+          timeout: "90s",
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
             options: {
               accessToken: true,
               idToken: false,
@@ -230,7 +222,7 @@ describe("Auth Functions", () => {
         expect(fn.__trigger).to.deep.equal({
           labels: {},
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
             options: {
               accessToken: false,
               idToken: false,
@@ -276,11 +268,11 @@ describe("Auth Functions", () => {
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
-          regions: ['us-east1'],
+          regions: ["us-east1"],
           availableMemoryMb: 256,
-          timeout: '90s',
+          timeout: "90s",
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
             options: {
               accessToken: true,
               idToken: false,
@@ -320,74 +312,62 @@ describe("Auth Functions", () => {
         cloudFunctionDelete = auth.user().onDelete((data: UserRecord) => data);
       });
 
-      it('should handle wire format as of v5.0.0 of firebase-admin', () => {
-        return cloudFunctionDelete(event.data, event.context).then(
-          (data: any) => {
-            expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
-            );
-            expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
-            );
-          }
-        );
+      it("should handle wire format as of v5.0.0 of firebase-admin", () => {
+        return cloudFunctionDelete(event.data, event.context).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal("2016-12-15T19:37:37.059Z");
+          expect(data.metadata.lastSignInTime).to.equal("2017-01-01T00:00:00.000Z");
+        });
       });
     });
   });
 
-  describe('handler namespace', () => {
-    describe('#onCreate', () => {
-      it('should return an empty trigger', () => {
+  describe("handler namespace", () => {
+    describe("#onCreate", () => {
+      it("should return an empty trigger", () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
-      it('should return an empty endpoint', () => {
+      it("should return an empty endpoint", () => {
         const cloudFunction = functions.handler.auth.user.onCreate(() => null);
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
     });
 
-    describe('#onDelete', () => {
+    describe("#onDelete", () => {
       const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
         (data: UserRecord) => data
       );
 
-      it('should return an empty trigger', () => {
+      it("should return an empty trigger", () => {
         const cloudFunction = functions.handler.auth.user.onDelete(() => null);
         expect(cloudFunction.__trigger).to.deep.equal({});
       });
 
-      it('should return an empty endpoint', () => {
+      it("should return an empty endpoint", () => {
         const cloudFunction = functions.handler.auth.user.onDelete(() => null);
         expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
-      it('should handle wire format as of v5.0.0 of firebase-admin', () => {
-        return cloudFunctionDelete(event.data, event.context).then(
-          (data: any) => {
-            expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
-            );
-            expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
-            );
-          }
-        );
+      it("should handle wire format as of v5.0.0 of firebase-admin", () => {
+        return cloudFunctionDelete(event.data, event.context).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal("2016-12-15T19:37:37.059Z");
+          expect(data.metadata.lastSignInTime).to.equal("2017-01-01T00:00:00.000Z");
+        });
       });
     });
   });
 
-  describe('process.env.GCLOUD_PROJECT not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
+  describe("process.env.GCLOUD_PROJECT not set", () => {
+    it("should not throw if __trigger is not accessed", () => {
       expect(() => auth.user().onCreate(() => null)).to.not.throw(Error);
     });
 
-    it('should throw when trigger is accessed', () => {
+    it("should throw when trigger is accessed", () => {
       expect(() => auth.user().onCreate(() => null).__trigger).to.throw(Error);
     });
 
-    it('should throw when endpoint is accessed', () => {
+    it("should throw when endpoint is accessed", () => {
       expect(() => auth.user().onCreate(() => null).__endpoint).to.throw(Error);
     });
 

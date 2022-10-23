@@ -83,11 +83,11 @@ describe("Pubsub Functions", () => {
         .pubsub.topic("toppy")
         .onPublish(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+      expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__trigger.timeout).to.deep.equal("90s");
 
-      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
@@ -95,13 +95,13 @@ describe("Pubsub Functions", () => {
     describe("#onPublish", () => {
       it("should return a trigger/endpoint with appropriate values", () => {
         // Pick up project from process.env.GCLOUD_PROJECT
-        const result = pubsub.topic('toppy').onPublish(() => null);
+        const result = pubsub.topic("toppy").onPublish(() => null);
 
         expect(result.__trigger).to.deep.equal({
           eventTrigger: {
-            eventType: 'google.pubsub.topic.publish',
-            resource: 'projects/project1/topics/toppy',
-            service: 'pubsub.googleapis.com',
+            eventType: "google.pubsub.topic.publish",
+            resource: "projects/project1/topics/toppy",
+            service: "pubsub.googleapis.com",
           },
         });
 
@@ -159,14 +159,12 @@ describe("Pubsub Functions", () => {
       });
     });
 
-    describe('#schedule', () => {
-      it('should return a trigger/endpoint with schedule', () => {
-        const result = pubsub
-          .schedule('every 5 minutes')
-          .onRun((context) => null);
+    describe("#schedule", () => {
+      it("should return a trigger/endpoint with schedule", () => {
+        const result = pubsub.schedule("every 5 minutes").onRun((context) => null);
 
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
+          schedule: "every 5 minutes",
         });
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
@@ -177,13 +175,13 @@ describe("Pubsub Functions", () => {
 
       it("should return a trigger/endpoint with schedule and timeZone when one is chosen", () => {
         const result = pubsub
-          .schedule('every 5 minutes')
-          .timeZone('America/New_York')
+          .schedule("every 5 minutes")
+          .timeZone("America/New_York")
           .onRun((context) => null);
 
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
-          timeZone: 'America/New_York',
+          schedule: "every 5 minutes",
+          timeZone: "America/New_York",
         });
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
@@ -207,11 +205,11 @@ describe("Pubsub Functions", () => {
           .onRun(() => null);
 
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
+          schedule: "every 5 minutes",
           retryConfig,
         });
         expect(result.__trigger.labels).to.deep.equal({
-          'deployment-scheduled': 'true',
+          "deployment-scheduled": "true",
         });
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
@@ -240,12 +238,12 @@ describe("Pubsub Functions", () => {
             .onRun(() => null);
 
           expect(result.__trigger.schedule).to.deep.equal({
-            schedule: 'every 5 minutes',
+            schedule: "every 5 minutes",
             retryConfig,
-            timeZone: 'America/New_York',
+            timeZone: "America/New_York",
           });
           expect(result.__trigger.labels).to.deep.equal({
-            'deployment-scheduled': 'true',
+            "deployment-scheduled": "true",
           });
 
           expect(result.__endpoint.scheduleTrigger).to.deep.equal({
@@ -268,11 +266,11 @@ describe("Pubsub Functions", () => {
           .pubsub.schedule("every 5 minutes")
           .onRun(() => null);
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
+          schedule: "every 5 minutes",
         });
-        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.regions).to.deep.equal(["us-east1"]);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
-        expect(result.__trigger.timeout).to.deep.equal('90s');
+        expect(result.__trigger.timeout).to.deep.equal("90s");
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           ...MINIMAL_SCHEDULE_TRIGGER,
@@ -294,12 +292,12 @@ describe("Pubsub Functions", () => {
           .timeZone("America/New_York")
           .onRun(() => null);
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
-          timeZone: 'America/New_York',
+          schedule: "every 5 minutes",
+          timeZone: "America/New_York",
         });
-        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.regions).to.deep.equal(["us-east1"]);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
-        expect(result.__trigger.timeout).to.deep.equal('90s');
+        expect(result.__trigger.timeout).to.deep.equal("90s");
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           ...MINIMAL_SCHEDULE_TRIGGER,
@@ -329,15 +327,15 @@ describe("Pubsub Functions", () => {
           .retryConfig(retryConfig)
           .onRun(() => null);
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
+          schedule: "every 5 minutes",
           retryConfig,
         });
         expect(result.__trigger.labels).to.deep.equal({
-          'deployment-scheduled': 'true',
+          "deployment-scheduled": "true",
         });
-        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.regions).to.deep.equal(["us-east1"]);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
-        expect(result.__trigger.timeout).to.deep.equal('90s');
+        expect(result.__trigger.timeout).to.deep.equal("90s");
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           ...MINIMAL_SCHEDULE_TRIGGER,
@@ -369,16 +367,16 @@ describe("Pubsub Functions", () => {
           .retryConfig(retryConfig)
           .onRun(() => null);
         expect(result.__trigger.schedule).to.deep.equal({
-          schedule: 'every 5 minutes',
-          timeZone: 'America/New_York',
+          schedule: "every 5 minutes",
+          timeZone: "America/New_York",
           retryConfig,
         });
         expect(result.__trigger.labels).to.deep.equal({
-          'deployment-scheduled': 'true',
+          "deployment-scheduled": "true",
         });
-        expect(result.__trigger.regions).to.deep.equal(['us-east1']);
+        expect(result.__trigger.regions).to.deep.equal(["us-east1"]);
         expect(result.__trigger.availableMemoryMb).to.deep.equal(256);
-        expect(result.__trigger.timeout).to.deep.equal('90s');
+        expect(result.__trigger.timeout).to.deep.equal("90s");
 
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           ...MINIMAL_SCHEDULE_TRIGGER,
@@ -393,33 +391,31 @@ describe("Pubsub Functions", () => {
     });
   });
 
-  describe('handler namespace', () => {
-    describe('#onPublish', () => {
-      describe('#topic', () => {
-        it('should return an empty trigger', () => {
+  describe("handler namespace", () => {
+    describe("#onPublish", () => {
+      describe("#topic", () => {
+        it("should return an empty trigger", () => {
           const result = functions.handler.pubsub.topic.onPublish(() => null);
           expect(result.__trigger).to.deep.equal({});
           expect(result.__endpoint).to.be.undefined;
         });
 
-        it('should properly handle a new-style event', () => {
-          const raw = new Buffer('{"hello":"world"}', 'utf8').toString(
-            'base64'
-          );
+        it("should properly handle a new-style event", () => {
+          const raw = new Buffer('{"hello":"world"}', "utf8").toString("base64");
           const event = {
             data: {
               data: raw,
               attributes: {
-                foo: 'bar',
+                foo: "bar",
               },
             },
             context: {
-              eventId: '70172329041928',
-              timestamp: '2018-04-09T07:56:12.975Z',
-              eventType: 'google.pubsub.topic.publish',
+              eventId: "70172329041928",
+              timestamp: "2018-04-09T07:56:12.975Z",
+              eventType: "google.pubsub.topic.publish",
               resource: {
-                service: 'pubsub.googleapis.com',
-                name: 'projects/project1/topics/toppy',
+                service: "pubsub.googleapis.com",
+                name: "projects/project1/topics/toppy",
               },
             },
           };
@@ -432,69 +428,55 @@ describe("Pubsub Functions", () => {
             };
           });
 
-          return expect(
-            result(event.data, event.context)
-          ).to.eventually.deep.equal({
+          return expect(result(event.data, event.context)).to.eventually.deep.equal({
             raw,
-            json: { hello: 'world' },
-            attributes: { foo: 'bar' },
+            json: { hello: "world" },
+            attributes: { foo: "bar" },
           });
         });
       });
-      describe('#schedule', () => {
-        it('should return an empty trigger', () => {
+      describe("#schedule", () => {
+        it("should return an empty trigger", () => {
           const result = functions.handler.pubsub.schedule.onRun(() => null);
           expect(result.__trigger).to.deep.equal({});
         });
-        it('should return a handler with a proper event context', () => {
-          const raw = new Buffer('{"hello":"world"}', 'utf8').toString(
-            'base64'
-          );
+        it("should return a handler with a proper event context", () => {
+          const raw = new Buffer('{"hello":"world"}', "utf8").toString("base64");
           const event = {
             data: {
               data: raw,
               attributes: {
-                foo: 'bar',
+                foo: "bar",
               },
             },
             context: {
-              eventId: '70172329041928',
-              timestamp: '2018-04-09T07:56:12.975Z',
-              eventType: 'google.pubsub.topic.publish',
+              eventId: "70172329041928",
+              timestamp: "2018-04-09T07:56:12.975Z",
+              eventType: "google.pubsub.topic.publish",
               resource: {
-                service: 'pubsub.googleapis.com',
-                name: 'projects/project1/topics/toppy',
+                service: "pubsub.googleapis.com",
+                name: "projects/project1/topics/toppy",
               },
             },
           };
-          const result = functions.handler.pubsub.schedule.onRun(
-            (context) => context.eventId
-          );
-          return expect(result(event.data, event.context)).to.eventually.equal(
-            '70172329041928'
-          );
+          const result = functions.handler.pubsub.schedule.onRun((context) => context.eventId);
+          return expect(result(event.data, event.context)).to.eventually.equal("70172329041928");
         });
       });
     });
   });
 
-  describe('process.env.GCLOUD_PROJECT not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
-      expect(() => pubsub.topic('toppy').onPublish(() => null)).to.not.throw(
-        Error
-      );
+  describe("process.env.GCLOUD_PROJECT not set", () => {
+    it("should not throw if __trigger is not accessed", () => {
+      expect(() => pubsub.topic("toppy").onPublish(() => null)).to.not.throw(Error);
     });
 
-    it('should throw when trigger is accessed', () => {
-      expect(
-        () => pubsub.topic('toppy').onPublish(() => null).__trigger
-      ).to.throw(Error);
+    it("should throw when trigger is accessed", () => {
+      expect(() => pubsub.topic("toppy").onPublish(() => null).__trigger).to.throw(Error);
     });
 
-    it('should throw when endpoint is accessed', () => {
-      expect(
-        () => pubsub.topic('toppy').onPublish(() => null).__endpoint
-      ).to.throw(Error);
+    it("should throw when endpoint is accessed", () => {
+      expect(() => pubsub.topic("toppy").onPublish(() => null).__endpoint).to.throw(Error);
     });
 
     it("should not throw when #run is called", () => {

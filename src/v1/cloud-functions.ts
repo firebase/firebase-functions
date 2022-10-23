@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Request, Response } from 'express';
-import { warn } from '../logger';
+import { Request, Response } from "express";
+import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
   RESET_VALUE,
   FailurePolicy,
   Schedule,
-} from './function-configuration';
+} from "./function-configuration";
 export { Request, Response };
 import { convertIfPresent, copyIfPresent } from "../common/encoding";
 import {
@@ -412,7 +412,7 @@ export function makeCloudFunction<EventData>({
     return Promise.resolve(promise);
   };
 
-  Object.defineProperty(cloudFunction, '__trigger', {
+  Object.defineProperty(cloudFunction, "__trigger", {
     get: () => {
       if (triggerResource() == null) {
         return {};
@@ -421,7 +421,7 @@ export function makeCloudFunction<EventData>({
       const trigger: any = _.assign(optionsToTrigger(options), {
         eventTrigger: {
           resource: triggerResource(),
-          eventType: legacyEventType || provider + '.' + eventType,
+          eventType: legacyEventType || provider + "." + eventType,
           service,
         },
       });
@@ -432,7 +432,7 @@ export function makeCloudFunction<EventData>({
     },
   });
 
-  Object.defineProperty(cloudFunction, '__endpoint', {
+  Object.defineProperty(cloudFunction, "__endpoint", {
     get: () => {
       if (triggerResource() == null) {
         return undefined;
@@ -543,64 +543,50 @@ export function optionsToTrigger(options: DeploymentOptions) {
   copyIfPresent(
     trigger,
     options,
-    'regions',
-    'schedule',
-    'minInstances',
-    'maxInstances',
-    'ingressSettings',
-    'vpcConnectorEgressSettings',
-    'vpcConnector',
-    'labels',
-    'secrets'
+    "regions",
+    "schedule",
+    "minInstances",
+    "maxInstances",
+    "ingressSettings",
+    "vpcConnectorEgressSettings",
+    "vpcConnector",
+    "labels",
+    "secrets"
   );
-  convertIfPresent(
-    trigger,
-    options,
-    'failurePolicy',
-    'failurePolicy',
-    (policy) => {
-      if (policy === false) {
-        return undefined;
-      } else if (policy === true) {
-        return DEFAULT_FAILURE_POLICY;
-      } else {
-        return policy;
-      }
+  convertIfPresent(trigger, options, "failurePolicy", "failurePolicy", (policy) => {
+    if (policy === false) {
+      return undefined;
+    } else if (policy === true) {
+      return DEFAULT_FAILURE_POLICY;
+    } else {
+      return policy;
     }
-  );
-  convertIfPresent(
-    trigger,
-    options,
-    'timeout',
-    'timeoutSeconds',
-    durationFromSeconds
-  );
-  convertIfPresent(trigger, options, 'availableMemoryMb', 'memory', (mem) => {
+  });
+  convertIfPresent(trigger, options, "timeout", "timeoutSeconds", durationFromSeconds);
+  convertIfPresent(trigger, options, "availableMemoryMb", "memory", (mem) => {
     const memoryLookup = {
-      '128MB': 128,
-      '256MB': 256,
-      '512MB': 512,
-      '1GB': 1024,
-      '2GB': 2048,
-      '4GB': 4096,
-      '8GB': 8192,
+      "128MB": 128,
+      "256MB": 256,
+      "512MB": 512,
+      "1GB": 1024,
+      "2GB": 2048,
+      "4GB": 4096,
+      "8GB": 8192,
     };
     return memoryLookup[mem];
   });
   convertIfPresent(
     trigger,
     options,
-    'serviceAccountEmail',
-    'serviceAccount',
+    "serviceAccountEmail",
+    "serviceAccount",
     serviceAccountFromShorthand
   );
 
   return trigger;
 }
 
-export function optionsToEndpoint(
-  options: DeploymentOptions
-): ManifestEndpoint {
+export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
