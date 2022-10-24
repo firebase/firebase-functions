@@ -72,19 +72,17 @@ export function convertIfPresent<Src, Dest>(
   dest[destField] = converter(src[srcField]);
 }
 
-export function serviceAccountFromShorthand(
-  serviceAccount: string
-): string | null {
-  if (serviceAccount === 'default') {
+export function serviceAccountFromShorthand(serviceAccount: string): string | null {
+  if (serviceAccount === "default") {
     return null;
-  } else if (serviceAccount.endsWith('@')) {
+  } else if (serviceAccount.endsWith("@")) {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error(
         `Unable to determine email for service account '${serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
       );
     }
     return `${serviceAccount}${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
-  } else if (serviceAccount.includes('@')) {
+  } else if (serviceAccount.includes("@")) {
     return serviceAccount;
   } else {
     throw new Error(

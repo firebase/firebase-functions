@@ -20,14 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {expect} from "chai";
-import {getApp, setApp} from "../../../src/common/app";
+import { expect } from "chai";
+import { getApp, setApp } from "../../../src/common/app";
 import * as config from "../../../src/common/config";
-import {applyChange} from "../../../src/common/utilities/utils";
+import { applyChange } from "../../../src/common/utilities/utils";
 import * as functions from "../../../src/v1";
 import * as database from "../../../src/v1/providers/database";
-import {expectType} from "../../common/metaprogramming";
-import {MINIMAL_V1_ENDPOINT} from "../../fixtures";
+import { expectType } from "../../common/metaprogramming";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Database Functions", () => {
   describe("DatabaseBuilder", () => {
@@ -120,7 +120,7 @@ describe("Database Functions", () => {
         const event = {
           data: {
             data: null,
-            delta: {foo: "bar"},
+            delta: { foo: "bar" },
           },
           context: {
             eventId: "70172329041928",
@@ -130,7 +130,7 @@ describe("Database Functions", () => {
           },
         };
         const handler = database.ref("/users/{id}").onWrite((change) => {
-          expect(change.after.val()).to.deep.equal({foo: "bar"});
+          expect(change.after.val()).to.deep.equal({ foo: "bar" });
         });
 
         return handler(event.data, event.context);
@@ -181,7 +181,7 @@ describe("Database Functions", () => {
         const event = {
           data: {
             data: null,
-            delta: {foo: "bar"},
+            delta: { foo: "bar" },
           },
           context: {
             eventId: "70172329041928",
@@ -192,7 +192,7 @@ describe("Database Functions", () => {
         };
 
         const handler = database.ref("/users/{id}").onCreate((data) => {
-          expect(data.val()).to.deep.equal({foo: "bar"});
+          expect(data.val()).to.deep.equal({ foo: "bar" });
         });
 
         return handler(event.data, event.context);
@@ -243,7 +243,7 @@ describe("Database Functions", () => {
         const event = {
           data: {
             data: null,
-            delta: {foo: "bar"},
+            delta: { foo: "bar" },
           },
           context: {
             eventId: "70172329041928",
@@ -254,7 +254,7 @@ describe("Database Functions", () => {
         };
 
         const handler = database.ref("/users/{id}").onUpdate((change) => {
-          expect(change.after.val()).to.deep.equal({foo: "bar"});
+          expect(change.after.val()).to.deep.equal({ foo: "bar" });
         });
 
         return handler(event.data, event.context);
@@ -304,7 +304,7 @@ describe("Database Functions", () => {
       it("should return a handler that emits events with a proper DataSnapshot", () => {
         const event = {
           data: {
-            data: {foo: "bar"},
+            data: { foo: "bar" },
             delta: null,
           },
           context: {
@@ -316,7 +316,7 @@ describe("Database Functions", () => {
         };
 
         const handler = database.ref("/users/{id}").onDelete((data) => {
-          expect(data.val()).to.deep.equal({foo: "bar"});
+          expect(data.val()).to.deep.equal({ foo: "bar" });
         });
 
         return handler(event.data, event.context);
@@ -364,9 +364,7 @@ describe("extractInstanceAndPath", () => {
   });
 
   it("should return the correct instance and path strings if root path is /refs", () => {
-    const [instance, path] = database.extractInstanceAndPath(
-      "projects/_/instances/foo/refs/refs"
-    );
+    const [instance, path] = database.extractInstanceAndPath("projects/_/instances/foo/refs/refs");
     expect(instance).to.equal("https://foo.firebaseio.com");
     expect(path).to.equal("/refs");
   });
@@ -390,10 +388,7 @@ describe("extractInstanceAndPath", () => {
 
   it("should throw an error if the given instance name contains anything except alphanumerics and dashes", () => {
     expect(() => {
-      return database.extractInstanceAndPath(
-        "projects/_/instances/a.bad.name/refs/bar",
-        undefined
-      );
+      return database.extractInstanceAndPath("projects/_/instances/a.bad.name/refs/bar", undefined);
     }).to.throw(Error);
     expect(() => {
       return database.extractInstanceAndPath(
@@ -438,12 +433,12 @@ describe("DataSnapshot", () => {
 
   describe("#val(): any", () => {
     it("should return child values based on the child path", () => {
-      populate(applyChange({a: {b: "c"}}, {a: {d: "e"}}));
-      expect(subject.child("a").val()).to.deep.equal({b: "c", d: "e"});
+      populate(applyChange({ a: { b: "c" } }, { a: { d: "e" } }));
+      expect(subject.child("a").val()).to.deep.equal({ b: "c", d: "e" });
     });
 
     it("should return null for children past a leaf", () => {
-      populate(applyChange({a: 23}, {b: 33}));
+      populate(applyChange({ a: 23 }, { b: 33 }));
       expect(subject.child("a/b").val()).to.be.null;
       expect(subject.child("b/c").val()).to.be.null;
     });
@@ -451,38 +446,38 @@ describe("DataSnapshot", () => {
     it("should return a leaf value", () => {
       populate(23);
       expect(subject.val()).to.eq(23);
-      populate({b: 23, a: null});
+      populate({ b: 23, a: null });
       expect(subject.child("b").val()).to.eq(23);
     });
 
     it("should coerce object into array if all keys are integers", () => {
-      populate({0: "a", 1: "b", 2: {c: "d"}});
-      expect(subject.val()).to.deep.equal(["a", "b", {c: "d"}]);
-      populate({0: "a", 2: "b", 3: {c: "d"}});
-      expect(subject.val()).to.deep.equal(["a", undefined, "b", {c: "d"}]);
-      populate({foo: {0: "a", 1: "b"}});
-      expect(subject.val()).to.deep.equal({foo: ["a", "b"]});
+      populate({ 0: "a", 1: "b", 2: { c: "d" } });
+      expect(subject.val()).to.deep.equal(["a", "b", { c: "d" }]);
+      populate({ 0: "a", 2: "b", 3: { c: "d" } });
+      expect(subject.val()).to.deep.equal(["a", undefined, "b", { c: "d" }]);
+      populate({ foo: { 0: "a", 1: "b" } });
+      expect(subject.val()).to.deep.equal({ foo: ["a", "b"] });
     });
 
     // Regression test: zero-values (including children) were accidentally forwarded as 'null'.
     it("should deal with zero-values appropriately", () => {
       populate(0);
       expect(subject.val()).to.equal(0);
-      populate({myKey: 0});
-      expect(subject.val()).to.deep.equal({myKey: 0});
+      populate({ myKey: 0 });
+      expect(subject.val()).to.deep.equal({ myKey: 0 });
     });
 
     // Regression test: .val() was returning array of nulls when there's a property called length (BUG#37683995)
     it('should return correct values when data has "length" property', () => {
-      populate({length: 3, foo: "bar"});
-      expect(subject.val()).to.deep.equal({length: 3, foo: "bar"});
+      populate({ length: 3, foo: "bar" });
+      expect(subject.val()).to.deep.equal({ length: 3, foo: "bar" });
     });
 
     it("should deal with null-values appropriately", () => {
       populate(null);
       expect(subject.val()).to.be.null;
 
-      populate({myKey: null});
+      populate({ myKey: null });
       expect(subject.val()).to.be.null;
     });
 
@@ -490,10 +485,10 @@ describe("DataSnapshot", () => {
       populate({});
       expect(subject.val()).to.be.null;
 
-      populate({myKey: {}});
+      populate({ myKey: {} });
       expect(subject.val()).to.be.null;
 
-      populate({myKey: {child: null}});
+      populate({ myKey: { child: null } });
       expect(subject.val()).to.be.null;
     });
 
@@ -501,78 +496,78 @@ describe("DataSnapshot", () => {
       populate([]);
       expect(subject.val()).to.be.null;
 
-      populate({myKey: []});
+      populate({ myKey: [] });
       expect(subject.val()).to.be.null;
 
-      populate({myKey: [null]});
+      populate({ myKey: [null] });
       expect(subject.val()).to.be.null;
 
-      populate({myKey: [{}]});
+      populate({ myKey: [{}] });
       expect(subject.val()).to.be.null;
 
-      populate({myKey: [{myKey: null}]});
+      populate({ myKey: [{ myKey: null }] });
       expect(subject.val()).to.be.null;
 
-      populate({myKey: [{myKey: {}}]});
+      populate({ myKey: [{ myKey: {} }] });
       expect(subject.val()).to.be.null;
     });
   });
 
   describe("#child(): DataSnapshot", () => {
     it("should work with multiple calls", () => {
-      populate({a: {b: {c: "d"}}});
+      populate({ a: { b: { c: "d" } } });
       expect(subject.child("a").child("b/c").val()).to.equal("d");
     });
   });
 
   describe("#exists(): boolean", () => {
     it("should be true for an object value", () => {
-      populate({a: {b: "c"}});
+      populate({ a: { b: "c" } });
       expect(subject.child("a").exists()).to.be.true;
     });
 
     it("should be true for a leaf value", () => {
-      populate({a: {b: "c"}});
+      populate({ a: { b: "c" } });
       expect(subject.child("a/b").exists()).to.be.true;
     });
 
     it("should be false for a non-existent value", () => {
-      populate({a: {b: "c", nullChild: null}});
+      populate({ a: { b: "c", nullChild: null } });
       expect(subject.child("d").exists()).to.be.false;
       expect(subject.child("nullChild").exists()).to.be.false;
     });
 
     it("should be false for a value pathed beyond a leaf", () => {
-      populate({a: {b: "c"}});
+      populate({ a: { b: "c" } });
       expect(subject.child("a/b/c").exists()).to.be.false;
     });
 
     it("should be false for an empty object value", () => {
-      populate({a: {}});
+      populate({ a: {} });
       expect(subject.child("a").exists()).to.be.false;
 
-      populate({a: {child: null}});
+      populate({ a: { child: null } });
       expect(subject.child("a").exists()).to.be.false;
 
-      populate({a: {child: {}}});
+      populate({ a: { child: {} } });
       expect(subject.child("a").exists()).to.be.false;
     });
 
     it("should be false for an empty array value", () => {
-      populate({a: []});
+      populate({ a: [] });
       expect(subject.child("a").exists()).to.be.false;
 
-      populate({a: [null]});
+      populate({ a: [null] });
       expect(subject.child("a").exists()).to.be.false;
 
-      populate({a: [{}]});
+      populate({ a: [{}] });
       expect(subject.child("a").exists()).to.be.false;
     });
   });
 
   describe("#forEach(action: (a: DataSnapshot) => boolean): boolean", () => {
     it("should iterate through child snapshots", () => {
-      populate({a: "b", c: "d"});
+      populate({ a: "b", c: "d" });
       let out = "";
       subject.forEach((snap: any) => {
         out += snap.val();
@@ -581,7 +576,7 @@ describe("DataSnapshot", () => {
     });
 
     it("should have correct key values for child snapshots", () => {
-      populate({a: "b", c: "d"});
+      populate({ a: "b", c: "d" });
       let out = "";
       subject.forEach((snap: any) => {
         out += snap.key;
@@ -610,7 +605,7 @@ describe("DataSnapshot", () => {
     });
 
     it("should cancel further enumeration if callback returns true", () => {
-      populate({a: "b", c: "d", e: "f", g: "h"});
+      populate({ a: "b", c: "d", e: "f", g: "h" });
       let out = "";
       const ret = subject.forEach((snap: any) => {
         if (snap.val() === "f") {
@@ -623,7 +618,7 @@ describe("DataSnapshot", () => {
     });
 
     it("should not cancel further enumeration if callback returns a truthy value", () => {
-      populate({a: "b", c: "d", e: "f", g: "h"});
+      populate({ a: "b", c: "d", e: "f", g: "h" });
       let out = "";
       const ret = subject.forEach((snap: any) => {
         out += snap.val();
@@ -634,7 +629,7 @@ describe("DataSnapshot", () => {
     });
 
     it("should not cancel further enumeration if callback does not return", () => {
-      populate({a: "b", c: "d", e: "f", g: "h"});
+      populate({ a: "b", c: "d", e: "f", g: "h" });
       let out = "";
       const ret = subject.forEach((snap: any) => {
         out += snap.val();
@@ -696,7 +691,7 @@ describe("DataSnapshot", () => {
 
   describe("#hasChild(childPath): boolean", () => {
     it("should return true for a child or deep child", () => {
-      populate({a: {b: "c"}, d: 23});
+      populate({ a: { b: "c" }, d: 23 });
       expect(subject.hasChild("a/b")).to.be.true;
       expect(subject.hasChild("d")).to.be.true;
     });

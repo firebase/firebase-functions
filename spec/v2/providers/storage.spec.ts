@@ -289,10 +289,7 @@ describe("v2/storage", () => {
 
     it("should accept opts and handler, default bucket", () => {
       config.resetCache({ storageBucket: "default-bucket" });
-      const result = storage.onObjectArchived(
-        { region: "us-west1" },
-        () => 42
-      );
+      const result = storage.onObjectArchived({ region: "us-west1" }, () => 42);
 
       expect(result.__trigger).to.deep.equal({
         platform: "gcfv2",
@@ -409,10 +406,7 @@ describe("v2/storage", () => {
 
     it("should accept opts and handler, default bucket", () => {
       config.resetCache({ storageBucket: "default-bucket" });
-      const result = storage.onObjectFinalized(
-        { region: "us-west1" },
-        () => 42
-      );
+      const result = storage.onObjectFinalized({ region: "us-west1" }, () => 42);
 
       expect(result.__trigger).to.deep.equal({
         platform: "gcfv2",
@@ -526,10 +520,7 @@ describe("v2/storage", () => {
 
     it("should accept opts and handler, default bucket", () => {
       config.resetCache({ storageBucket: "default-bucket" });
-      const result = storage.onObjectDeleted(
-        { region: "us-west1" },
-        () => 42
-      );
+      const result = storage.onObjectDeleted({ region: "us-west1" }, () => 42);
 
       expect(result.__trigger).to.deep.equal({
         platform: "gcfv2",
@@ -647,10 +638,7 @@ describe("v2/storage", () => {
     it("should accept opts and handler, default bucket", () => {
       config.resetCache({ storageBucket: "default-bucket" });
 
-      const result = storage.onObjectMetadataUpdated(
-        { region: "us-west1" },
-        () => 42
-      );
+      const result = storage.onObjectMetadataUpdated({ region: "us-west1" }, () => 42);
 
       expect(result.__trigger).to.deep.equal({
         platform: "gcfv2",

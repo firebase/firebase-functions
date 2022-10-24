@@ -73,8 +73,8 @@ export function _onRequestWithOptions(
   convertIfPresent(
     cloudFunction.__trigger.httpsTrigger,
     options,
-    'invoker',
-    'invoker',
+    "invoker",
+    "invoker",
     convertInvoker
   );
   // TODO parse the options

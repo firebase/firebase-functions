@@ -553,15 +553,13 @@ export function onOperation(
 
   func.run = handler;
 
-  Object.defineProperty(func, '__trigger', {
+  Object.defineProperty(func, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       const specificOpts = options.optionsToTriggerAnnotations(opts);
 
       return {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {

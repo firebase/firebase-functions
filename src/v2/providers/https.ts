@@ -326,22 +326,20 @@ export function onCall<T = any, Return = any | Promise<any>>(
     fixedLen
   );
 
-  Object.defineProperty(func, '__trigger', {
+  Object.defineProperty(func, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
       const specificOpts = options.optionsToTriggerAnnotations(opts);
       return {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {
           ...baseOpts?.labels,
           ...specificOpts?.labels,
-          'deployment-callable': 'true',
+          "deployment-callable": "true",
         },
         httpsTrigger: {
           allowInsecure: false,

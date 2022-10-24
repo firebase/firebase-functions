@@ -30,7 +30,12 @@ import {
   Schedule,
 } from "./function-configuration";
 export { Request, Response };
-import { convertIfPresent, copyIfPresent, serviceAccountFromShorthand, durationFromSeconds } from "../common/encoding";
+import {
+  convertIfPresent,
+  copyIfPresent,
+  serviceAccountFromShorthand,
+  durationFromSeconds,
+} from "../common/encoding";
 import {
   initV1Endpoint,
   initV1ScheduleTrigger,

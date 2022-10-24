@@ -103,7 +103,6 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-
     expect(fn.__trigger.secrets).to.deep.equal([
       {
         name: "API_KEY",

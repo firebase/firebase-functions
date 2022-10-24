@@ -137,7 +137,7 @@ describe("Firestore Functions", () => {
     it("should allow custom namespaces", () => {
       const resource = "projects/project1/databases/(default)/documents@v2/users/{uid}";
       const cloudFunction = firestore
-        .namespace('v2')
+        .namespace("v2")
         .document("users/{uid}")
         .onWrite(() => null);
 
