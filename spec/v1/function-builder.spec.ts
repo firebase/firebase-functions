@@ -24,7 +24,6 @@ import { expect } from "chai";
 import { clearParams, defineSecret } from "../../src/params";
 
 import * as functions from "../../src/v1";
-import { ResetValue } from "../../src/common/options";
 
 describe("FunctionBuilder", () => {
   before(() => {
@@ -104,9 +103,19 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-    expect(fn.__trigger.timeout).to.deep.equal("90s");
-    expect(fn.__trigger.failurePolicy).to.deep.equal({ retry: {} });
+
+    expect(fn.__trigger.secrets).to.deep.equal([
+      {
+        name: "API_KEY",
+      },
+    ]);
+    expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
+      {
+        key: "API_KEY",
+      },
+    ]);
+
+    clearParams();
   });
 
   it("should apply a default failure policy if it's aliased with `true`", () => {
@@ -499,8 +508,6 @@ describe("FunctionBuilder", () => {
   });
 
   it("should throw error given secrets expressed with full resource name", () => {
-    const sp = defineSecret("projects/my-project/secrets/API_KEY");
-
     expect(() =>
       functions.runWith({
         secrets: ["projects/my-project/secrets/API_KEY"],
@@ -509,6 +516,7 @@ describe("FunctionBuilder", () => {
   });
 
   it("should throw error given invalid secret config", () => {
+    const sp = defineSecret("projects/my-project/secrets/API_KEY");
     expect(() =>
       functions.runWith({
         secrets: [sp],

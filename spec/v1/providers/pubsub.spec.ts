@@ -161,7 +161,7 @@ describe("Pubsub Functions", () => {
 
     describe("#schedule", () => {
       it("should return a trigger/endpoint with schedule", () => {
-        const result = pubsub.schedule("every 5 minutes").onRun((context) => null);
+        const result = pubsub.schedule("every 5 minutes").onRun(() => null);
 
         expect(result.__trigger.schedule).to.deep.equal({
           schedule: "every 5 minutes",
@@ -177,7 +177,7 @@ describe("Pubsub Functions", () => {
         const result = pubsub
           .schedule("every 5 minutes")
           .timeZone("America/New_York")
-          .onRun((context) => null);
+          .onRun(() => null);
 
         expect(result.__trigger.schedule).to.deep.equal({
           schedule: "every 5 minutes",
@@ -387,81 +387,6 @@ describe("Pubsub Functions", () => {
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);
         expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
         expect(result.__endpoint.timeoutSeconds).to.deep.equal(90);
-      });
-    });
-  });
-
-  describe("handler namespace", () => {
-    describe("#onPublish", () => {
-      describe("#topic", () => {
-        it("should return an empty trigger", () => {
-          const result = functions.handler.pubsub.topic.onPublish(() => null);
-          expect(result.__trigger).to.deep.equal({});
-          expect(result.__endpoint).to.be.undefined;
-        });
-
-        it("should properly handle a new-style event", () => {
-          const raw = new Buffer('{"hello":"world"}', "utf8").toString("base64");
-          const event = {
-            data: {
-              data: raw,
-              attributes: {
-                foo: "bar",
-              },
-            },
-            context: {
-              eventId: "70172329041928",
-              timestamp: "2018-04-09T07:56:12.975Z",
-              eventType: "google.pubsub.topic.publish",
-              resource: {
-                service: "pubsub.googleapis.com",
-                name: "projects/project1/topics/toppy",
-              },
-            },
-          };
-
-          const result = functions.handler.pubsub.topic.onPublish((data) => {
-            return {
-              raw: data.data,
-              json: data.json,
-              attributes: data.attributes,
-            };
-          });
-
-          return expect(result(event.data, event.context)).to.eventually.deep.equal({
-            raw,
-            json: { hello: "world" },
-            attributes: { foo: "bar" },
-          });
-        });
-      });
-      describe("#schedule", () => {
-        it("should return an empty trigger", () => {
-          const result = functions.handler.pubsub.schedule.onRun(() => null);
-          expect(result.__trigger).to.deep.equal({});
-        });
-        it("should return a handler with a proper event context", () => {
-          const raw = new Buffer('{"hello":"world"}', "utf8").toString("base64");
-          const event = {
-            data: {
-              data: raw,
-              attributes: {
-                foo: "bar",
-              },
-            },
-            context: {
-              eventId: "70172329041928",
-              timestamp: "2018-04-09T07:56:12.975Z",
-              eventType: "google.pubsub.topic.publish",
-              resource: {
-                service: "pubsub.googleapis.com",
-                name: "projects/project1/topics/toppy",
-              },
-            },
-          };
-          const result = functions.handler.pubsub.schedule.onRun((context) => context.eventId);
-          return expect(result(event.data, event.context)).to.eventually.equal("70172329041928");
-        });
       });
     });
   });

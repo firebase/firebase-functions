@@ -65,29 +65,9 @@ describe("CloudHttpsBuilder", () => {
   });
 });
 
-describe("handler namespace", () => {
-  describe("#onRequest", () => {
-    it("should return an empty trigger", () => {
-      const result = functions.handler.https.onRequest((req, res) => {
-        res.send(200);
-      });
-      expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.be.undefined;
-    });
-  });
-
-  describe("#onCall", () => {
-    it("should return an empty trigger", () => {
-      const result = functions.handler.https.onCall(() => null);
-      expect(result.__trigger).to.deep.equal({});
-      expect(result.__endpoint).to.be.undefined;
-    });
-  });
-});
-
 describe("#onCall", () => {
   it("should return a trigger/endpoint with appropriate values", () => {
-    const result = https.onCall((data) => {
+    const result = https.onCall(() => {
       return "response";
     });
 

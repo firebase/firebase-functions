@@ -44,7 +44,7 @@ describe("#onDispatch", () => {
         minBackoffSeconds: 5,
       },
       invoker: "private",
-    }).onDispatch(() => {});
+    }).onDispatch(() => undefined);
 
     expect(result.__trigger).to.deep.equal({
       taskQueueTrigger: {
@@ -159,13 +159,5 @@ describe("#onDispatch", () => {
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(204);
     expect(gotData).to.deep.equal({ foo: "bar" });
-  });
-});
-
-describe("handler namespace", () => {
-  it("should return an empty trigger", () => {
-    const result = functions.handler.tasks.taskQueue.onDispatch(() => null);
-    expect(result.__trigger).to.deep.equal({});
-    expect(result.__endpoint).to.be.undefined;
   });
 });

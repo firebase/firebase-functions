@@ -228,7 +228,7 @@ describe("onCall", () => {
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
-    const result = https.onCall((request) => 42);
+    const result = https.onCall(() => 42);
 
     expect(result.__trigger).to.deep.equal({
       platform: "gcfv2",
@@ -249,7 +249,7 @@ describe("onCall", () => {
   });
 
   it("should create a complex trigger/endpoint with appropriate values", () => {
-    const result = https.onCall(FULL_OPTIONS, (request) => 42);
+    const result = https.onCall(FULL_OPTIONS, () => 42);
 
     expect(result.__trigger).to.deep.equal({
       ...FULL_TRIGGER,

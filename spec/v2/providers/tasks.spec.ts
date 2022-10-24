@@ -54,7 +54,7 @@ describe("onTaskDispatched", () => {
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
-    const result = onTaskDispatched(() => {});
+    const result = onTaskDispatched(() => undefined);
 
     expect(result.__trigger).to.deep.equal({
       platform: "gcfv2",
@@ -87,7 +87,7 @@ describe("onTaskDispatched", () => {
         },
         invoker: "private",
       },
-      () => {}
+      () => undefined
     );
 
     expect(result.__trigger).to.deep.equal({
@@ -140,7 +140,7 @@ describe("onTaskDispatched", () => {
         region: "us-west1",
         minInstances: 3,
       },
-      (request) => {}
+      () => undefined
     );
 
     expect(result.__trigger).to.deep.equal({

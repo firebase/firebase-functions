@@ -66,6 +66,17 @@ export function _onRequestWithOptions(
   const cloudFunction: any = (req: Request, res: express.Response) => {
     return handler(req, res);
   };
+  cloudFunction.__trigger = {
+    ...optionsToTrigger(options),
+    httpsTrigger: {},
+  };
+  convertIfPresent(
+    cloudFunction.__trigger.httpsTrigger,
+    options,
+    'invoker',
+    'invoker',
+    convertInvoker
+  );
   // TODO parse the options
 
   cloudFunction.__endpoint = {

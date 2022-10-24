@@ -30,7 +30,7 @@ import {
   Schedule,
 } from "./function-configuration";
 export { Request, Response };
-import { convertIfPresent, copyIfPresent } from "../common/encoding";
+import { convertIfPresent, copyIfPresent, serviceAccountFromShorthand, durationFromSeconds } from "../common/encoding";
 import {
   initV1Endpoint,
   initV1ScheduleTrigger,
@@ -245,7 +245,7 @@ interface TriggerAnnotation {
   labels?: { [key: string]: string };
   regions?: string[];
   schedule?: Schedule;
-  timeout?: Duration;
+  timeout?: string;
   vpcConnector?: string;
   vpcConnectorEgressSettings?: string;
   serviceAccountEmail?: string;
@@ -418,14 +418,15 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
-      const trigger: any = _.assign(optionsToTrigger(options), {
+      const trigger: any = {
+        ...optionsToTrigger(options),
         eventTrigger: {
           resource: triggerResource(),
           eventType: legacyEventType || provider + "." + eventType,
           service,
         },
-      });
-      if (!_.isEmpty(labels)) {
+      };
+      if (!!labels && Object.keys(labels).length) {
         trigger.labels = { ...trigger.labels, ...labels };
       }
       return trigger;

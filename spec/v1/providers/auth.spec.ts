@@ -174,7 +174,7 @@ describe("Auth Functions", () => {
               refreshToken: false,
             },
           })
-          .beforeCreate((u, c) => Promise.resolve());
+          .beforeCreate(() => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
@@ -264,7 +264,7 @@ describe("Auth Functions", () => {
               refreshToken: false,
             },
           })
-          .beforeSignIn((u, c) => Promise.resolve());
+          .beforeSignIn(() => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
@@ -310,43 +310,6 @@ describe("Auth Functions", () => {
 
       before(() => {
         cloudFunctionDelete = auth.user().onDelete((data: UserRecord) => data);
-      });
-
-      it("should handle wire format as of v5.0.0 of firebase-admin", () => {
-        return cloudFunctionDelete(event.data, event.context).then((data: any) => {
-          expect(data.metadata.creationTime).to.equal("2016-12-15T19:37:37.059Z");
-          expect(data.metadata.lastSignInTime).to.equal("2017-01-01T00:00:00.000Z");
-        });
-      });
-    });
-  });
-
-  describe("handler namespace", () => {
-    describe("#onCreate", () => {
-      it("should return an empty trigger", () => {
-        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-      });
-
-      it("should return an empty endpoint", () => {
-        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-    });
-
-    describe("#onDelete", () => {
-      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
-        (data: UserRecord) => data
-      );
-
-      it("should return an empty trigger", () => {
-        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-      });
-
-      it("should return an empty endpoint", () => {
-        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
       });
 
       it("should handle wire format as of v5.0.0 of firebase-admin", () => {

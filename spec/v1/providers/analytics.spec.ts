@@ -23,9 +23,9 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { Event, EventContext } from "../../../src/v1/cloud-functions";
+import { Event } from "../../../src/v1/cloud-functions";
 import * as analytics from "../../../src/v1/providers/analytics";
-import * as analytics_spec_input from "./analytics.spec.input";
+import * as analyticsSpecInput from "./analytics.spec.input";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Analytics Functions", () => {
@@ -294,55 +294,12 @@ describe("Analytics Functions", () => {
           .event("first_open")
           .onLog((data: analytics.AnalyticsEvent) => data);
         // The payload in analytics_spec_input contains all possible fields at least once.
-        const payloadData = analytics_spec_input.fullPayload.data;
-        const payloadContext = analytics_spec_input.fullPayload.context;
+        const payloadData = analyticsSpecInput.fullPayload.data;
+        const payloadContext = analyticsSpecInput.fullPayload.context;
 
         return expect(cloudFunction(payloadData, payloadContext)).to.eventually.deep.equal(
-          analytics_spec_input.data
+          analyticsSpecInput.data
         );
-      });
-    });
-  });
-
-  describe("handler namespace", () => {
-    describe("#onLog", () => {
-      it("should return an empty trigger/endpoint", () => {
-        const cloudFunction = functions.handler.analytics.event.onLog(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-
-      it("should handle an event with the appropriate fields", () => {
-        const cloudFunction = functions.handler.analytics.event.onLog(
-          (data: analytics.AnalyticsEvent, context: EventContext) => data
-        );
-
-        // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
-        // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        const event: Event = {
-          data: {
-            userDim: {
-              userId: "hi!",
-            },
-          },
-          context: {
-            eventId: "70172329041928",
-            timestamp: "2018-04-09T07:56:12.975Z",
-            eventType: "providers/google.firebase.analytics/eventTypes/event.log",
-            resource: {
-              service: "app-measurement.com",
-              name: "projects/project1/events/first_open",
-            },
-          },
-        };
-
-        return expect(cloudFunction(event.data, event.context)).to.eventually.deep.equal({
-          params: {},
-          user: {
-            userId: "hi!",
-            userProperties: {},
-          },
-        });
       });
     });
   });
