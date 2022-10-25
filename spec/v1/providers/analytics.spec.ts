@@ -309,6 +309,10 @@ describe("Analytics Functions", () => {
       expect(() => analytics.event("event").onLog(() => null)).to.not.throw(Error);
     });
 
+    it("should throw when __endpoint is accessed", () => {
+      expect(() => analytics.event("event").onLog(() => null).__endpoint).to.throw(Error);
+    });
+
     it("should throw when trigger is accessed", () => {
       expect(() => analytics.event("event").onLog(() => null).__trigger).to.throw(Error);
     });

@@ -35,15 +35,6 @@ export function firebaseConfig(): AppOptions | null {
     cache = JSON.parse(env);
     return cache;
   }
-  // Could have Runtime Config with Firebase in it as an ENV value.
-  try {
-    const config = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
-    if (config.firebase) {
-      return config.firebase;
-    }
-  } catch (e) {
-    // do nothing
-  }
 
   if (process.env.GCLOUD_PROJECT) {
     logger.warn(

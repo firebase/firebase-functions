@@ -175,7 +175,9 @@ describe("Firestore Functions", () => {
         .database("myDB")
         .namespace("v2")
         .document("users/{uid}")
-        .onWrite(() => null);
+        .onWrite((snap, context) => {
+          expectType<{ uid: string }>(context.params);
+        });
 
       expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, "document.write"));
 
