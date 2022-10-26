@@ -335,11 +335,12 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
  * the secrets array while defining a Function to make their values accessible
  * during execution of that Function.
  */
-export class SecretParam {
+export class SecretParam extends Expression<string> {
   static type: ParamValueType = "secret";
   name: string;
 
   constructor(name: string) {
+    super();
     this.name = name;
   }
 
