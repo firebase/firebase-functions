@@ -41,13 +41,21 @@ describe("makeCloudFunction", () => {
     legacyEventType: "providers/provider/eventTypes/event",
   };
 
-  it("should put a __endpoint on the returned CloudFunction", () => {
+  it("should put a __trigger/__endpoint on the returned CloudFunction", () => {
     const cf = makeCloudFunction({
       provider: "mock.provider",
       eventType: "mock.event",
       service: "service",
       triggerResource: () => "resource",
       handler: () => null,
+    });
+
+    expect(cf.__trigger).to.deep.equal({
+      eventTrigger: {
+        eventType: "mock.provider.mock.event",
+        resource: "resource",
+        service: "service",
+      },
     });
 
     expect(cf.__endpoint).to.deep.equal({
@@ -64,8 +72,16 @@ describe("makeCloudFunction", () => {
     });
   });
 
-  it("should have legacy event type in __endpoint if provided", () => {
+  it("should have legacy event type in __trigger/__endpoint if provided", () => {
     const cf = makeCloudFunction(cloudFunctionArgs);
+
+    expect(cf.__trigger).to.deep.equal({
+      eventTrigger: {
+        eventType: "providers/provider/eventTypes/event",
+        resource: "resource",
+        service: "service",
+      },
+    });
 
     expect(cf.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
