@@ -22,9 +22,20 @@
 
 import { Request, Response } from "express";
 import { warn } from "../logger";
-import { DeploymentOptions, RESET_VALUE } from "./function-configuration";
+import {
+  DEFAULT_FAILURE_POLICY,
+  DeploymentOptions,
+  RESET_VALUE,
+  FailurePolicy,
+  Schedule,
+} from "./function-configuration";
 export { Request, Response };
-import { convertIfPresent, copyIfPresent } from "../common/encoding";
+import {
+  convertIfPresent,
+  copyIfPresent,
+  serviceAccountFromShorthand,
+  durationFromSeconds,
+} from "../common/encoding";
 import {
   initV1Endpoint,
   initV1ScheduleTrigger,
@@ -218,6 +229,36 @@ export interface Resource {
 }
 
 /**
+ * TriggerAnnotion is used internally by the firebase CLI to understand what
+ * type of Cloud Function to deploy.
+ */
+interface TriggerAnnotation {
+  availableMemoryMb?: number;
+  blockingTrigger?: {
+    eventType: string;
+    options?: Record<string, unknown>;
+  };
+  eventTrigger?: {
+    eventType: string;
+    resource: string;
+    service: string;
+  };
+  failurePolicy?: FailurePolicy;
+  httpsTrigger?: {
+    invoker?: string[];
+  };
+  labels?: { [key: string]: string };
+  regions?: string[];
+  schedule?: Schedule;
+  timeout?: string;
+  vpcConnector?: string;
+  vpcConnectorEgressSettings?: string;
+  serviceAccountEmail?: string;
+  ingressSettings?: string;
+  secrets?: string[];
+}
+
+/**
  * A Runnable has a `run` method which directly invokes the user-defined
  * function - useful for unit testing.
  */
@@ -240,6 +281,9 @@ export interface HttpsFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
   /** @alpha */
@@ -260,6 +304,9 @@ export interface BlockingFunction {
   (req: Request, resp: Response): void | Promise<void>;
 
   /** @alpha */
+  __trigger: TriggerAnnotation;
+
+  /** @alpha */
   __endpoint: ManifestEndpoint;
 
   /** @alpha */
@@ -275,6 +322,9 @@ export interface BlockingFunction {
  */
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
+
+  /** @alpha */
+  __trigger: TriggerAnnotation;
 
   /** @alpha */
   __endpoint: ManifestEndpoint;
@@ -366,6 +416,27 @@ export function makeCloudFunction<EventData>({
     }
     return Promise.resolve(promise);
   };
+
+  Object.defineProperty(cloudFunction, "__trigger", {
+    get: () => {
+      if (triggerResource() == null) {
+        return {};
+      }
+
+      const trigger: any = {
+        ...optionsToTrigger(options),
+        eventTrigger: {
+          resource: triggerResource(),
+          eventType: legacyEventType || provider + "." + eventType,
+          service,
+        },
+      };
+      if (!!labels && Object.keys(labels).length) {
+        trigger.labels = { ...trigger.labels, ...labels };
+      }
+      return trigger;
+    },
+  });
 
   Object.defineProperty(cloudFunction, "__endpoint", {
     get: () => {
@@ -472,7 +543,55 @@ function _detectAuthType(event: Event) {
   return "UNAUTHENTICATED";
 }
 
-/** @internal */
+/** @hidden */
+export function optionsToTrigger(options: DeploymentOptions) {
+  const trigger: any = {};
+  copyIfPresent(
+    trigger,
+    options,
+    "regions",
+    "schedule",
+    "minInstances",
+    "maxInstances",
+    "ingressSettings",
+    "vpcConnectorEgressSettings",
+    "vpcConnector",
+    "labels",
+    "secrets"
+  );
+  convertIfPresent(trigger, options, "failurePolicy", "failurePolicy", (policy) => {
+    if (policy === false) {
+      return undefined;
+    } else if (policy === true) {
+      return DEFAULT_FAILURE_POLICY;
+    } else {
+      return policy;
+    }
+  });
+  convertIfPresent(trigger, options, "timeout", "timeoutSeconds", durationFromSeconds);
+  convertIfPresent(trigger, options, "availableMemoryMb", "memory", (mem) => {
+    const memoryLookup = {
+      "128MB": 128,
+      "256MB": 256,
+      "512MB": 512,
+      "1GB": 1024,
+      "2GB": 2048,
+      "4GB": 4096,
+      "8GB": 8192,
+    };
+    return memoryLookup[mem];
+  });
+  convertIfPresent(
+    trigger,
+    options,
+    "serviceAccountEmail",
+    "serviceAccount",
+    serviceAccountFromShorthand
+  );
+
+  return trigger;
+}
+
 export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(

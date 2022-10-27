@@ -303,6 +303,27 @@ export function onMessagePublished<T = any>(
 
   func.run = handler;
 
+  Object.defineProperty(func, "__trigger", {
+    get: () => {
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
+      const specificOpts = options.optionsToTriggerAnnotations(opts);
+
+      return {
+        platform: "gcfv2",
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        eventTrigger: {
+          eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+          resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+        },
+      };
+    },
+  });
+
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
 

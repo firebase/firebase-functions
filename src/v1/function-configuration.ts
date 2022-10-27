@@ -158,6 +158,10 @@ export interface FailurePolicy {
   retry: Record<string, never>;
 }
 
+export const DEFAULT_FAILURE_POLICY: FailurePolicy = {
+  retry: {},
+};
+
 export const MAX_NUMBER_USER_LABELS = 58;
 
 /**
