@@ -46,6 +46,23 @@ describe("#onDispatch", () => {
       invoker: "private",
     }).onDispatch(() => undefined);
 
+    expect(result.__trigger).to.deep.equal({
+      taskQueueTrigger: {
+        rateLimits: {
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxRetrySeconds: 10,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ["private"],
+      },
+    });
+
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
@@ -75,6 +92,17 @@ describe("#onDispatch", () => {
       })
       .tasks.taskQueue({ retryConfig: { maxAttempts: 5 } })
       .onDispatch(() => null);
+
+    expect(fn.__trigger).to.deep.equal({
+      regions: ["us-east1"],
+      availableMemoryMb: 256,
+      timeout: "90s",
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
 
     expect(fn.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
