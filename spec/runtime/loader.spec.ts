@@ -365,6 +365,13 @@ describe("loadStack", () => {
                 },
               },
             },
+            {
+              name: "LIST_PARAM",
+              type: "list",
+              input: {
+                selectList: { options: [{ value: "c" }, { value: "d" }, { value: "e" }] },
+              },
+            },
             { name: "SUPER_SECRET_FLAG", type: "secret" },
           ],
         },
