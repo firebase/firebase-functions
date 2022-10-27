@@ -335,18 +335,23 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
  * the secrets array while defining a Function to make their values accessible
  * during execution of that Function.
  */
-export class SecretParam extends Expression<string> {
+export class SecretParam {
   static type: ParamValueType = "secret";
   name: string;
 
   constructor(name: string) {
-    super();
     this.name = name;
   }
 
   /** @internal */
   runtimeValue(): string {
-    return process.env[this.name] || "";
+    const val = process.env[this.name];
+    if (!val) {
+      logger.warn(
+        `No value found for secret parameter "${this.name}". A function can only access a secret if you include it in the secrets dependency array.`
+      );
+    }
+    return val || "";
   }
 
   /** @internal */
@@ -355,6 +360,16 @@ export class SecretParam extends Expression<string> {
       type: "secret",
       name: this.name,
     };
+  }
+
+  /** Returns the secret's value at runtime. Throws an error if accessed during deployment. */
+  value(): string {
+    if (process.env.FUNCTIONS_CONTROL_API === "true") {
+      throw new Error(
+        `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
+      );
+    }
+    return this.runtimeValue();
   }
 }
 
