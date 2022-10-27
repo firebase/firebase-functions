@@ -321,6 +321,18 @@ describe("Database Functions", () => {
 
         return handler(event.data, event.context);
       });
+
+      it("Should have params of the correct type", () => {
+        database.ref("foo").onDelete((event, context) => {
+          expectType<Record<string, never>>(context.params);
+        });
+        database.ref("foo/{bar}").onDelete((event, context) => {
+          expectType<{ bar: string }>(context.params);
+        });
+        database.ref("foo/{bar}/{baz}").onDelete((event, context) => {
+          expectType<{ bar: string; baz: string }>(context.params);
+        });
+      });
     });
   });
 
@@ -342,74 +354,79 @@ describe("Database Functions", () => {
     const cf = database.ref("/path").onWrite(() => null);
     expect(cf.run).to.not.throw(Error);
   });
-});
 
-describe("extractInstanceAndPath", () => {
-  it("should return correct us-central prod instance and path strings if domain is missing", () => {
-    const [instance, path] = database.extractInstanceAndPath(
-      "projects/_/instances/foo/refs/bar",
-      undefined
-    );
-    expect(instance).to.equal("https://foo.firebaseio.com");
-    expect(path).to.equal("/bar");
-  });
-
-  it("should return the correct staging instance and path strings if domain is present", () => {
-    const [instance, path] = database.extractInstanceAndPath(
-      "projects/_/instances/foo/refs/bar",
-      "firebaseio-staging.com"
-    );
-    expect(instance).to.equal("https://foo.firebaseio-staging.com");
-    expect(path).to.equal("/bar");
-  });
-
-  it("should return the correct instance and path strings if root path is /refs", () => {
-    const [instance, path] = database.extractInstanceAndPath("projects/_/instances/foo/refs/refs");
-    expect(instance).to.equal("https://foo.firebaseio.com");
-    expect(path).to.equal("/refs");
-  });
-
-  it("should return the correct instance and path strings if a child path contain /refs", () => {
-    const [instance, path] = database.extractInstanceAndPath(
-      "projects/_/instances/foo/refs/root/refs"
-    );
-    expect(instance).to.equal("https://foo.firebaseio.com");
-    expect(path).to.equal("/root/refs");
-  });
-
-  it("should return the correct multi-region instance and path strings if domain is present", () => {
-    const [instance, path] = database.extractInstanceAndPath(
-      "projects/_/instances/foo/refs/bar",
-      "euw1.firebasedatabase.app"
-    );
-    expect(instance).to.equal("https://foo.euw1.firebasedatabase.app");
-    expect(path).to.equal("/bar");
-  });
-
-  it("should throw an error if the given instance name contains anything except alphanumerics and dashes", () => {
-    expect(() => {
-      return database.extractInstanceAndPath("projects/_/instances/a.bad.name/refs/bar", undefined);
-    }).to.throw(Error);
-    expect(() => {
-      return database.extractInstanceAndPath(
-        "projects/_/instances/a_different_bad_name/refs/bar",
+  describe("extractInstanceAndPath", () => {
+    it("should return correct us-central prod instance and path strings if domain is missing", () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        "projects/_/instances/foo/refs/bar",
         undefined
       );
-    }).to.throw(Error);
-    expect(() => {
-      return database.extractInstanceAndPath("projects/_/instances/BAD!!!!/refs/bar", undefined);
-    }).to.throw(Error);
-  });
+      expect(instance).to.equal("https://foo.firebaseio.com");
+      expect(path).to.equal("/bar");
+    });
 
-  it("should use the emulator host when present", () => {
-    process.env.FIREBASE_DATABASE_EMULATOR_HOST = "localhost:1234";
-    const [instance, path] = database.extractInstanceAndPath(
-      "projects/_/instances/foo/refs/bar",
-      "firebaseio-staging.com"
-    );
-    expect(instance).to.equal("http://localhost:1234/?ns=foo");
-    expect(path).to.equal("/bar");
-    delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+    it("should return the correct staging instance and path strings if domain is present", () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        "projects/_/instances/foo/refs/bar",
+        "firebaseio-staging.com"
+      );
+      expect(instance).to.equal("https://foo.firebaseio-staging.com");
+      expect(path).to.equal("/bar");
+    });
+
+    it("should return the correct instance and path strings if root path is /refs", () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        "projects/_/instances/foo/refs/refs"
+      );
+      expect(instance).to.equal("https://foo.firebaseio.com");
+      expect(path).to.equal("/refs");
+    });
+
+    it("should return the correct instance and path strings if a child path contain /refs", () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        "projects/_/instances/foo/refs/root/refs"
+      );
+      expect(instance).to.equal("https://foo.firebaseio.com");
+      expect(path).to.equal("/root/refs");
+    });
+
+    it("should return the correct multi-region instance and path strings if domain is present", () => {
+      const [instance, path] = database.extractInstanceAndPath(
+        "projects/_/instances/foo/refs/bar",
+        "euw1.firebasedatabase.app"
+      );
+      expect(instance).to.equal("https://foo.euw1.firebasedatabase.app");
+      expect(path).to.equal("/bar");
+    });
+
+    it("should throw an error if the given instance name contains anything except alphanumerics and dashes", () => {
+      expect(() => {
+        return database.extractInstanceAndPath(
+          "projects/_/instances/a.bad.name/refs/bar",
+          undefined
+        );
+      }).to.throw(Error);
+      expect(() => {
+        return database.extractInstanceAndPath(
+          "projects/_/instances/a_different_bad_name/refs/bar",
+          undefined
+        );
+      }).to.throw(Error);
+      expect(() => {
+        return database.extractInstanceAndPath("projects/_/instances/BAD!!!!/refs/bar", undefined);
+      }).to.throw(Error);
+    });
+
+    it("should use the emulator host when present", () => {
+      process.env.FIREBASE_DATABASE_EMULATOR_HOST = "localhost:1234";
+      const [instance, path] = database.extractInstanceAndPath(
+        "projects/_/instances/foo/refs/bar",
+        "firebaseio-staging.com"
+      );
+      expect(instance).to.equal("http://localhost:1234/?ns=foo");
+      expect(path).to.equal("/bar");
+      delete process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+    });
   });
 });
 
