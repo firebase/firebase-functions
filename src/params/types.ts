@@ -346,9 +346,9 @@ export class SecretParam {
   /** @internal */
   runtimeValue(): string {
     const val = process.env[this.name];
-    if (!val) {
+    if (val === undefined) {
       logger.warn(
-        `No value found for secret parameter "${this.name}". A function can only access a secret if you include it in the secrets dependency array.`
+        `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
       );
     }
     return val || "";
