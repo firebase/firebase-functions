@@ -27,6 +27,7 @@ describe("Params value extraction", () => {
     process.env.PI = "3.14159";
     process.env.TRUE = "true";
     process.env.FALSE = "false";
+    process.env.A_SECRET_STRING = "123456supersecret";
   });
 
   afterEach(() => {
@@ -41,6 +42,7 @@ describe("Params value extraction", () => {
     delete process.env.PI;
     delete process.env.TRUE;
     delete process.env.FALSE;
+    delete process.env.A_SECRET_STRING;
   });
 
   it("extracts identity params from the environment", () => {
@@ -58,6 +60,9 @@ describe("Params value extraction", () => {
 
     const falseParam = params.defineBoolean("FALSE");
     expect(falseParam.value()).to.be.false;
+
+    const secretParam = params.defineSecret("A_SECRET_STRING");
+    expect(secretParam.value()).to.equal("123456supersecret");
   });
 
   it("extracts the special case internal params from env.FIREBASE_CONFIG", () => {
