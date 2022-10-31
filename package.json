@@ -90,9 +90,6 @@
       "v1/https": [
         "lib/v1/providers/https"
       ],
-      "v1/https": [
-        "./lib/v1/providers/https"
-      ],
       "v1/pubsub": [
         "lib/v1/providers/pubsub"
       ],
