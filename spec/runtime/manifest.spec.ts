@@ -127,14 +127,14 @@ describe("stackToWire", () => {
           labels: {},
           httpsTrigger: {},
           concurrency: intParam,
-          maxInstances: intParam.equals(24).then(-1, 1),
+          maxInstances: intParam.equals(24).thenElse(-1, 1),
         },
         v2schedule: {
           platform: "gcfv2",
           entryPoint: "v2callable",
           labels: {},
           scheduleTrigger: {
-            schedule: stringParam.equals("America/Mexico_City").then("mexico", "usa"),
+            schedule: stringParam.equals("America/Mexico_City").thenElse("mexico", "usa"),
             timeZone: stringParam,
           },
         },

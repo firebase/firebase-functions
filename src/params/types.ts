@@ -145,7 +145,7 @@ export class CompareExpression<
   }
 
   /** Returns a TernaryExpression which can resolve to one of two values, based on the resolution of this comparison. */
-  then<retT extends string | number | boolean | string[]>(
+  thenElse<retT extends string | number | boolean | string[]>(
     ifTrue: retT | Expression<retT>,
     ifFalse: retT | Expression<retT>
   ) {
@@ -345,7 +345,13 @@ export class SecretParam {
 
   /** @internal */
   runtimeValue(): string {
-    return process.env[this.name] || "";
+    const val = process.env[this.name];
+    if (val === undefined) {
+      logger.warn(
+        `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
+      );
+    }
+    return val || "";
   }
 
   /** @internal */
@@ -354,6 +360,16 @@ export class SecretParam {
       type: "secret",
       name: this.name,
     };
+  }
+
+  /** Returns the secret's value at runtime. Throws an error if accessed during deployment. */
+  value(): string {
+    if (process.env.FUNCTIONS_CONTROL_API === "true") {
+      throw new Error(
+        `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
+      );
+    }
+    return this.runtimeValue();
   }
 }
 

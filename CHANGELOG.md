@@ -1,0 +1,1 @@
+- Fix a bug where [secret parameters](https://firebase.google.com/docs/functions/config-env#secret_parameters), defined using `defineSecret()`, were missing a `.value()` method (#1281)

@@ -28,8 +28,7 @@ import * as options from "../../../src/v2/options";
 import * as https from "../../../src/v2/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { FULL_OPTIONS } from "./fixtures";
-import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 describe("onRequest", () => {
   beforeEach(() => {
@@ -44,6 +43,14 @@ describe("onRequest", () => {
   it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = https.onRequest((req, res) => {
       res.send(200);
+    });
+
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      httpsTrigger: {
+        allowInsecure: false,
+      },
+      labels: {},
     });
 
     expect(result.__endpoint).to.deep.equal({
@@ -65,6 +72,15 @@ describe("onRequest", () => {
         res.send(200);
       }
     );
+
+    expect(result.__trigger).to.deep.equal({
+      ...FULL_TRIGGER,
+      httpsTrigger: {
+        allowInsecure: false,
+        invoker: ["service-account1@", "service-account2@"],
+      },
+      regions: ["us-west1", "us-central1"],
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
@@ -94,6 +110,18 @@ describe("onRequest", () => {
         res.send(200);
       }
     );
+
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      httpsTrigger: {
+        allowInsecure: false,
+        invoker: ["private"],
+      },
+      concurrency: 20,
+      minInstances: 3,
+      regions: ["us-west1", "us-central1"],
+      labels: {},
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V2_ENDPOINT,
@@ -202,6 +230,16 @@ describe("onCall", () => {
   it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = https.onCall(() => 42);
 
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      httpsTrigger: {
+        allowInsecure: false,
+      },
+      labels: {
+        "deployment-callable": "true",
+      },
+    });
+
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
@@ -212,6 +250,17 @@ describe("onCall", () => {
 
   it("should create a complex trigger/endpoint with appropriate values", () => {
     const result = https.onCall(FULL_OPTIONS, () => 42);
+
+    expect(result.__trigger).to.deep.equal({
+      ...FULL_TRIGGER,
+      httpsTrigger: {
+        allowInsecure: false,
+      },
+      labels: {
+        ...FULL_TRIGGER.labels,
+        "deployment-callable": "true",
+      },
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
@@ -234,6 +283,19 @@ describe("onCall", () => {
       },
       () => 42
     );
+
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      httpsTrigger: {
+        allowInsecure: false,
+      },
+      concurrency: 20,
+      minInstances: 3,
+      regions: ["us-west1", "us-central1"],
+      labels: {
+        "deployment-callable": "true",
+      },
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V2_ENDPOINT,
