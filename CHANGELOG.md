@@ -1,4 +1,4 @@
 - Fix bug where [secret parameters](https://firebase.google.com/docs/functions/config-env#secret_parameters), defined using `defineSecret()`, were missing a `.value()` method (#1281)
 - Fix bug where v1/https was not exported (#1267)
 - Fix incorrect typeVersion export paths (#1287)
-- Revert removal of __trigger (#1274)
+- Revert removal of `\_\_trigger` (#1274)
