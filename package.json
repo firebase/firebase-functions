@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -86,9 +86,6 @@
       ],
       "v1/firestore": [
         "lib/v1/providers/firestore"
-      ],
-      "v1/https": [
-        "lib/v1/providers/https"
       ],
       "v1/https": [
         "./lib/v1/providers/https"
