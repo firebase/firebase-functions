@@ -597,6 +597,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
   copyIfPresent(
     endpoint,
     options,
+    "omit",
     "minInstances",
     "maxInstances",
     "ingressSettings",

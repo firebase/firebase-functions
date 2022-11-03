@@ -95,6 +95,11 @@ export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERN
  */
 export interface GlobalOptions {
   /**
+   * If true (or resolving to true), do not deploy this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: SupportedRegion | string;
@@ -317,6 +322,7 @@ export function optionsToEndpoint(
   copyIfPresent(
     endpoint,
     opts,
+    "omit",
     "concurrency",
     "minInstances",
     "maxInstances",

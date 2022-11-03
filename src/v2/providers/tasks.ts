@@ -61,6 +61,11 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   invoker?: "private" | string | string[];
 
   /**
+   * If true (or resolving to true), do not deploy this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
