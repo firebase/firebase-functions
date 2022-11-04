@@ -78,4 +78,9 @@ if (process.env.PORT) {
 }
 
 console.log("Serving at port", port);
-server = app.listen(port);
+server = app.listen(port, () => {
+  const address = server.address();
+  if (process.send && typeof address === "object") {
+    process.send(address.port);
+  }
+});
