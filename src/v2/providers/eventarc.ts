@@ -220,5 +220,12 @@ export function onCustomEventPublished<T = any>(
 
   func.__endpoint = endpoint;
 
+  func.__requiredAPIs = [
+    {
+      api: "eventarcpublishing.googleapis.com",
+      reason: "Needed for custom event functions",
+    },
+  ];
+
   return func;
 }
