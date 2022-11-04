@@ -1,0 +1,1 @@
+- Adds 'eventarcpublishing' as required API to custom event function
