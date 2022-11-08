@@ -34,6 +34,7 @@ describe("CloudHttpsBuilder", () => {
       const result = https.onRequest((req, resp) => {
         resp.send(200);
       });
+      expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
       expect(result.__endpoint).to.deep.equal({
         ...MINIMAL_V1_ENDPOINT,
         platform: "gcfv1",
@@ -51,6 +52,11 @@ describe("CloudHttpsBuilder", () => {
         })
         .https.onRequest(() => null);
 
+      expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal("90s");
+      expect(fn.__trigger.httpsTrigger.invoker).to.deep.equal(["private"]);
+
       expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
@@ -63,6 +69,11 @@ describe("#onCall", () => {
   it("should return a trigger/endpoint with appropriate values", () => {
     const result = https.onCall(() => {
       return "response";
+    });
+
+    expect(result.__trigger).to.deep.equal({
+      httpsTrigger: {},
+      labels: { "deployment-callable": "true" },
     });
 
     expect(result.__endpoint).to.deep.equal({
@@ -81,6 +92,10 @@ describe("#onCall", () => {
         memory: "256MB",
       })
       .https.onCall(() => null);
+
+    expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__trigger.timeout).to.deep.equal("90s");
 
     expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
