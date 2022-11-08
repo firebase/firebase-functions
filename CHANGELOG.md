@@ -1,0 +1,1 @@
+- Deprecate typoed function name lessThanorEqualTo (#1284)
