@@ -1,8 +1,16 @@
 import { expect } from "chai";
-import { stackToWire, ManifestStack } from "../../src/runtime/manifest";
+import {
+  stackToWire,
+  ManifestStack,
+  initV2ScheduleTrigger,
+  initV1ScheduleTrigger,
+  initTaskQueueTrigger,
+} from "../../src/runtime/manifest";
+import { RESET_VALUE } from "../../src/common/options";
 import * as params from "../../src/params";
 import * as optsv2 from "../../src/v2/options";
 import * as v1 from "../../src/v1";
+import { DeploymentOptions } from "../../src/v1";
 
 describe("stackToWire", () => {
   afterEach(() => {
@@ -166,5 +174,87 @@ describe("stackToWire", () => {
       specVersion: "v1alpha1",
     };
     expect(stackToWire(stack)).to.deep.equal(expected);
+  });
+});
+
+describe("initTaskQueueTrigger", () => {
+  it("should init a taskQueueTrigger without preserveExternalChanges", () => {
+    const tt = initTaskQueueTrigger();
+
+    expect(tt).to.deep.eq({
+      retryConfig: {
+        maxAttempts: RESET_VALUE,
+        maxDoublings: RESET_VALUE,
+        maxBackoffSeconds: RESET_VALUE,
+        maxRetrySeconds: RESET_VALUE,
+        minBackoffSeconds: RESET_VALUE,
+      },
+      rateLimits: {
+        maxConcurrentDispatches: RESET_VALUE,
+        maxDispatchesPerSecond: RESET_VALUE,
+      },
+    });
+  });
+
+  it("should init a taskQueueTrigger with preserveExternalChanges", () => {
+    const opts: DeploymentOptions = { preserveExternalChanges: true };
+
+    const tt = initTaskQueueTrigger(opts);
+
+    expect(tt).to.deep.eq({});
+  });
+});
+
+describe("initScheduleTrigger", () => {
+  it("should init a v1 scheduleTrigger without preserveExternalChanges", () => {
+    const st = initV1ScheduleTrigger("every 30 minutes");
+
+    expect(st).to.deep.eq({
+      schedule: "every 30 minutes",
+      timeZone: RESET_VALUE,
+      retryConfig: {
+        retryCount: RESET_VALUE,
+        maxDoublings: RESET_VALUE,
+        maxRetryDuration: RESET_VALUE,
+        minBackoffDuration: RESET_VALUE,
+        maxBackoffDuration: RESET_VALUE,
+      },
+    });
+  });
+
+  it("should init a v1 scheduleTrigger with preserveExternalChanges", () => {
+    const opts: DeploymentOptions = { preserveExternalChanges: true };
+
+    const st = initV1ScheduleTrigger("every 30 minutes", opts);
+
+    expect(st).to.deep.eq({
+      schedule: "every 30 minutes",
+    });
+  });
+
+  it("should init a v2 scheduleTrigger without preserveExternalChanges", () => {
+    const st = initV2ScheduleTrigger("every 30 minutes");
+
+    expect(st).to.deep.eq({
+      schedule: "every 30 minutes",
+      timeZone: RESET_VALUE,
+      retryConfig: {
+        retryCount: RESET_VALUE,
+        maxDoublings: RESET_VALUE,
+        maxRetrySeconds: RESET_VALUE,
+        minBackoffSeconds: RESET_VALUE,
+        maxBackoffSeconds: RESET_VALUE,
+      },
+    });
+  });
+
+  it("should init a v2 scheduleTrigger with preserveExternalChanges", () => {
+    const opts: DeploymentOptions = { preserveExternalChanges: true };
+
+    const st = initV2ScheduleTrigger("every 30 minutes", opts);
+
+    expect(st).to.deep.eq({
+      schedule: "every 30 minutes",
+    });
   });
 });

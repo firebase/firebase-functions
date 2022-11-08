@@ -41,11 +41,13 @@ import * as options from "../options";
 interface ScheduleArgs {
   schedule: string | Expression<string>;
   timeZone?: timezone | Expression<string> | ResetValue;
-  retryCount?: number | Expression<number> | ResetValue;
-  maxRetrySeconds?: number | Expression<number> | ResetValue;
-  minBackoffSeconds?: number | Expression<number> | ResetValue;
-  maxBackoffSeconds?: number | Expression<number> | ResetValue;
-  maxDoublings?: number | Expression<number> | ResetValue;
+  retryConfig?: {
+    retryCount?: number | Expression<number> | ResetValue;
+    maxRetrySeconds?: number | Expression<number> | ResetValue;
+    minBackoffSeconds?: number | Expression<number> | ResetValue;
+    maxBackoffSeconds?: number | Expression<number> | ResetValue;
+    maxDoublings?: number | Expression<number> | ResetValue;
+  };
   opts: options.GlobalOptions;
 }
 
@@ -57,16 +59,30 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
       opts: {} as options.GlobalOptions,
     };
   }
-  return {
+
+  const separatedOpts: ScheduleArgs = {
     schedule: args.schedule,
-    timeZone: args.timeZone,
-    retryCount: args.retryCount,
-    maxRetrySeconds: args.maxRetrySeconds,
-    minBackoffSeconds: args.minBackoffSeconds,
-    maxBackoffSeconds: args.maxBackoffSeconds,
-    maxDoublings: args.maxDoublings,
     opts: args as options.GlobalOptions,
   };
+  if (args.timeZone) {
+    separatedOpts.timeZone = args.timeZone;
+  }
+  if (
+    args.retryCount ||
+    args.maxRetrySeconds ||
+    args.minBackoffSeconds ||
+    args.maxBackoffSeconds ||
+    args.maxDoublings
+  ) {
+    separatedOpts.retryConfig = {
+      retryCount: args.retryCount,
+      maxRetrySeconds: args.maxRetrySeconds,
+      minBackoffSeconds: args.minBackoffSeconds,
+      maxBackoffSeconds: args.maxBackoffSeconds,
+      maxDoublings: args.maxDoublings,
+    };
+  }
+  return separatedOpts;
 }
 
 /**
@@ -191,10 +207,23 @@ export function onSchedule(
     scheduleTrigger: initV2ScheduleTrigger(separatedOpts.schedule, globalOpts, separatedOpts.opts),
   };
 
+  // Note: setting preserveExternalChanges to true
+  // will not correctly init a retryConfig object,
+  // we must do that explicitly.
+  if (!ep.scheduleTrigger.retryConfig) {
+    ep.scheduleTrigger.retryConfig = {};
+  }
+
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
+  // copyIfPresent(
+  //   ep.scheduleTrigger,
+  //   separatedOpts,
+  //   "retryConfig"
+  // );
+
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
-    separatedOpts,
+    separatedOpts.retryConfig,
     "retryCount",
     "maxRetrySeconds",
     "minBackoffSeconds",

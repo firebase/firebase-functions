@@ -23,6 +23,7 @@
 import { expect } from "chai";
 import * as testLab from "../../../src/v2/providers/testLab";
 import * as options from "../../../src/v2/options";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
 describe("onTestMatrixCompleted", () => {
   afterEach(() => {
@@ -33,6 +34,7 @@ describe("onTestMatrixCompleted", () => {
     const fn = testLab.onTestMatrixCompleted(() => 2);
 
     expect(fn.__endpoint).to.deep.eq({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       labels: {},
       eventTrigger: {
@@ -59,6 +61,7 @@ describe("onTestMatrixCompleted", () => {
     );
 
     expect(fn.__endpoint).to.deep.eq({
+      ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
       availableMemoryMb: 512,
       region: ["us-central1"],
