@@ -156,7 +156,13 @@ describe("schedule", () => {
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: undefined,
-          retryConfig: {},
+          retryConfig: {
+            retryCount: undefined,
+            maxRetrySeconds: undefined,
+            minBackoffSeconds: undefined,
+            maxBackoffSeconds: undefined,
+            maxDoublings: undefined,
+          },
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([

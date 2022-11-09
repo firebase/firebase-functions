@@ -59,28 +59,18 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
       opts: {} as options.GlobalOptions,
     };
   }
-
-  const separatedOpts: SeparatedOpts = {
+  return {
     schedule: args.schedule,
     timeZone: args.timeZone,
-    opts: args as options.GlobalOptions,
-  };
-  if (
-    args.retryCount ||
-    args.maxRetrySeconds ||
-    args.minBackoffSeconds ||
-    args.maxBackoffSeconds ||
-    args.maxDoublings
-  ) {
-    separatedOpts.retryConfig = {
+    retryConfig: {
       retryCount: args.retryCount,
       maxRetrySeconds: args.maxRetrySeconds,
       minBackoffSeconds: args.minBackoffSeconds,
       maxBackoffSeconds: args.maxBackoffSeconds,
       maxDoublings: args.maxDoublings,
-    };
-  }
-  return separatedOpts;
+    },
+    opts: args as options.GlobalOptions,
+  };
 }
 
 /**
@@ -208,7 +198,7 @@ export function onSchedule(
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
-    separatedOpts.retryConfig,
+    separatedOpts.retryConfig || {},
     "retryCount",
     "maxRetrySeconds",
     "minBackoffSeconds",
