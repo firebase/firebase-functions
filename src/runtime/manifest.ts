@@ -32,6 +32,7 @@ import { WireParamSpec } from "../params/types";
 export interface ManifestEndpoint {
   entryPoint?: string;
   region?: string[];
+  omit?: boolean | Expression<boolean>;
   platform?: string;
   availableMemoryMb?: number | Expression<number> | ResetValue;
   maxInstances?: number | Expression<number> | ResetValue;
