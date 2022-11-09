@@ -253,6 +253,10 @@ export interface RuntimeOptions {
  */
 export interface DeploymentOptions extends RuntimeOptions {
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+  /**
    * Regions where function should be deployed.
    */
   regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;

@@ -99,6 +99,11 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   instance?: string;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;

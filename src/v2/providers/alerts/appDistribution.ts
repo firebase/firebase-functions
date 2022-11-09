@@ -98,6 +98,11 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   appId?: string;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
