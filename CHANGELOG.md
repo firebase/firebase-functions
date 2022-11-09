@@ -1,1 +1,1 @@
-- Fixes bug supplying where preserveExternalChanges to scheduled functions would cause deployment failure.
+- Fix a bug where supplying preserveExternalChanges to scheduled functions would cause deployment failure (#1305).

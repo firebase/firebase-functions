@@ -155,6 +155,7 @@ describe("schedule", () => {
         labels: {},
         scheduleTrigger: {
           schedule: "* * * * *",
+          timeZone: undefined,
           retryConfig: {},
         },
       });

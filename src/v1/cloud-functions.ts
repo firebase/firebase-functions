@@ -452,12 +452,6 @@ export function makeCloudFunction<EventData>({
 
       if (options.schedule) {
         endpoint.scheduleTrigger = initV1ScheduleTrigger(options.schedule.schedule, options);
-        // Note: setting preserveExternalChanges to true
-        // will not correctly init a retryConfig object,
-        // we must do that explicitly.
-        if (!endpoint.scheduleTrigger.retryConfig) {
-          endpoint.scheduleTrigger.retryConfig = {};
-        }
         copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
         copyIfPresent(
           endpoint.scheduleTrigger.retryConfig,

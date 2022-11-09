@@ -214,17 +214,17 @@ const RESETTABLE_RATE_LIMITS_OPTIONS: ResettableKeys<
 export function initTaskQueueTrigger(
   ...opts: ManifestOptions[]
 ): ManifestEndpoint["taskQueueTrigger"] {
-  let taskQueueTrigger = {};
+  const taskQueueTrigger: ManifestEndpoint["taskQueueTrigger"] = {
+    retryConfig: {},
+    rateLimits: {},
+  };
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
-    const retryConfig = {};
     for (const key of Object.keys(RESETTABLE_RETRY_CONFIG_OPTIONS)) {
-      retryConfig[key] = RESET_VALUE;
+      taskQueueTrigger.retryConfig[key] = RESET_VALUE;
     }
-    const rateLimits = {};
     for (const key of Object.keys(RESETTABLE_RATE_LIMITS_OPTIONS)) {
-      rateLimits[key] = RESET_VALUE;
+      taskQueueTrigger.rateLimits[key] = RESET_VALUE;
     }
-    taskQueueTrigger = { retryConfig, rateLimits };
   }
   return taskQueueTrigger;
 }
@@ -256,13 +256,15 @@ function initScheduleTrigger(
   schedule: string | Expression<string>,
   ...opts: ManifestOptions[]
 ): ManifestEndpoint["scheduleTrigger"] {
-  let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = { schedule };
+  let scheduleTrigger: ManifestEndpoint["scheduleTrigger"] = {
+    schedule,
+    retryConfig: {},
+  };
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
-    const retryConfig = {};
     for (const key of Object.keys(resetOptions)) {
-      retryConfig[key] = RESET_VALUE;
+      scheduleTrigger.retryConfig[key] = RESET_VALUE;
     }
-    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, retryConfig };
+    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE };
   }
   return scheduleTrigger;
 }

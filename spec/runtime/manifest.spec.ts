@@ -201,7 +201,10 @@ describe("initTaskQueueTrigger", () => {
 
     const tt = initTaskQueueTrigger(opts);
 
-    expect(tt).to.deep.eq({});
+    expect(tt).to.deep.eq({
+      rateLimits: {},
+      retryConfig: {},
+    });
   });
 });
 
@@ -229,6 +232,7 @@ describe("initScheduleTrigger", () => {
 
     expect(st).to.deep.eq({
       schedule: "every 30 minutes",
+      retryConfig: {},
     });
   });
 
@@ -255,6 +259,7 @@ describe("initScheduleTrigger", () => {
 
     expect(st).to.deep.eq({
       schedule: "every 30 minutes",
+      retryConfig: {},
     });
   });
 });

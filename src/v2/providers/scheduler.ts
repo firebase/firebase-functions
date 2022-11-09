@@ -38,7 +38,7 @@ import * as logger from "../../logger";
 import * as options from "../options";
 
 /** @hidden */
-interface ScheduleArgs {
+interface SeparatedOpts {
   schedule: string | Expression<string>;
   timeZone?: timezone | Expression<string> | ResetValue;
   retryConfig?: {
@@ -52,7 +52,7 @@ interface ScheduleArgs {
 }
 
 /** @internal */
-export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
+export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
   if (typeof args === "string") {
     return {
       schedule: args,
@@ -60,13 +60,11 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
     };
   }
 
-  const separatedOpts: ScheduleArgs = {
+  const separatedOpts: SeparatedOpts = {
     schedule: args.schedule,
+    timeZone: args.timeZone,
     opts: args as options.GlobalOptions,
   };
-  if (args.timeZone) {
-    separatedOpts.timeZone = args.timeZone;
-  }
   if (
     args.retryCount ||
     args.maxRetrySeconds ||
@@ -207,20 +205,7 @@ export function onSchedule(
     scheduleTrigger: initV2ScheduleTrigger(separatedOpts.schedule, globalOpts, separatedOpts.opts),
   };
 
-  // Note: setting preserveExternalChanges to true
-  // will not correctly init a retryConfig object,
-  // we must do that explicitly.
-  if (!ep.scheduleTrigger.retryConfig) {
-    ep.scheduleTrigger.retryConfig = {};
-  }
-
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
-  // copyIfPresent(
-  //   ep.scheduleTrigger,
-  //   separatedOpts,
-  //   "retryConfig"
-  // );
-
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
     separatedOpts.retryConfig,
