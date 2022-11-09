@@ -95,7 +95,7 @@ export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERN
  */
 export interface GlobalOptions {
   /**
-   * If true (or resolving to true), do not deploy this function.
+   * If true, do not deploy or emulate this function.
    */
   omit?: boolean | Expression<boolean>;
 

@@ -87,7 +87,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   appId?: string;
 
   /**
-   * If true (or resolving to true), do not deploy this function.
+   * If true, do not deploy or emulate this function.
    */
   omit?: boolean | Expression<boolean>;
 
