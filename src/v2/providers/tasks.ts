@@ -253,7 +253,7 @@ export function onTaskDispatched<Args = any>(
 
   copyIfPresent(
     func.__endpoint.taskQueueTrigger.retryConfig,
-    opts.retryConfig || {},
+    opts.retryConfig,
     "maxAttempts",
     "maxBackoffSeconds",
     "maxDoublings",
@@ -262,7 +262,7 @@ export function onTaskDispatched<Args = any>(
   );
   copyIfPresent(
     func.__endpoint.taskQueueTrigger.rateLimits,
-    opts.rateLimits || {},
+    opts.rateLimits,
     "maxConcurrentDispatches",
     "maxDispatchesPerSecond"
   );

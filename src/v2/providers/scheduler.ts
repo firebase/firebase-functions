@@ -198,7 +198,7 @@ export function onSchedule(
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
-    separatedOpts.retryConfig || {},
+    separatedOpts.retryConfig,
     "retryCount",
     "maxRetrySeconds",
     "minBackoffSeconds",
