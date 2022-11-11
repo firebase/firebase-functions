@@ -176,7 +176,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.

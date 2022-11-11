@@ -163,7 +163,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * Specific service account for the function to run as.
    * A value of null restores the default service account.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
