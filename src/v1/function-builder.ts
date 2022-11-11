@@ -274,7 +274,7 @@ export function region(
  *
  * Value must not be null.
  */
-export function runWith(runtimeOptions: DeploymentOptions): FunctionBuilder {
+export function runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
   if (assertRuntimeOptionsValid(runtimeOptions)) {
     return new FunctionBuilder(runtimeOptions);
   }
@@ -313,7 +313,7 @@ export class FunctionBuilder {
    *
    * Value must not be null.
    */
-  runWith(runtimeOptions: DeploymentOptions): FunctionBuilder {
+  runWith(runtimeOptions: RuntimeOptions): FunctionBuilder {
     if (assertRuntimeOptionsValid(runtimeOptions)) {
       this.options = {
         ...this.options,
