@@ -129,8 +129,21 @@ export class TaskQueueBuilder {
       ...optionsToEndpoint(this.depOpts),
       taskQueueTrigger: initTaskQueueTrigger(this.depOpts),
     };
-    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "retryConfig");
-    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "rateLimits");
+    copyIfPresent(
+      func.__endpoint.taskQueueTrigger.retryConfig,
+      this.tqOpts?.retryConfig || {},
+      "maxAttempts",
+      "maxBackoffSeconds",
+      "maxDoublings",
+      "maxRetrySeconds",
+      "minBackoffSeconds"
+    );
+    copyIfPresent(
+      func.__endpoint.taskQueueTrigger.rateLimits,
+      this.tqOpts?.rateLimits || {},
+      "maxConcurrentDispatches",
+      "maxDispatchesPerSecond"
+    );
     convertIfPresent(
       func.__endpoint.taskQueueTrigger,
       this.tqOpts,

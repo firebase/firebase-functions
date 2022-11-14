@@ -246,6 +246,17 @@ export interface RuntimeOptions {
    * When false, requests with invalid tokens set context.app to undefiend.
    */
   enforceAppCheck?: boolean;
+
+  /**
+   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
+   *
+   * @remarks
+   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
+   * SDK, we highly recommend setting `preserveExternalChanges` to `true`. Otherwise, when the Firebase Functions SDK releases
+   * a new version of the SDK with support for the missing configuration, your function's manually configured setting
+   * may inadvertently be wiped out.
+   */
+  preserveExternalChanges?: boolean;
 }
 
 /**
@@ -264,14 +275,4 @@ export interface DeploymentOptions extends RuntimeOptions {
    * Schedule for the scheduled function.
    */
   schedule?: Schedule;
-  /**
-   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
-   *
-   * @remarks
-   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
-   * SDK, we highly recommend setting `preserveExternalChanges` to `true`. Otherwise, when the Firebase Functions SDK releases
-   * a new version of the SDK with support for the missing configuration, your function's manually configured setting
-   * may inadvertently be wiped out.
-   */
-  preserveExternalChanges?: boolean;
 }

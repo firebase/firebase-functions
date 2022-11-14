@@ -63,11 +63,13 @@ describe("schedule", () => {
       expect(schedule.getOpts(options)).to.deep.eq({
         schedule: "* * * * *",
         timeZone: "utc",
-        retryCount: 3,
-        maxRetrySeconds: 1,
-        minBackoffSeconds: 2,
-        maxBackoffSeconds: 3,
-        maxDoublings: 4,
+        retryConfig: {
+          retryCount: 3,
+          maxRetrySeconds: 1,
+          minBackoffSeconds: 2,
+          maxBackoffSeconds: 3,
+          maxDoublings: 4,
+        },
         opts: {
           ...options,
           memory: "128MiB",
@@ -128,6 +130,38 @@ describe("schedule", () => {
             minBackoffSeconds: 11,
             maxBackoffSeconds: 12,
             maxDoublings: 2,
+          },
+        },
+      });
+      expect(schfn.__requiredAPIs).to.deep.eq([
+        {
+          api: "cloudscheduler.googleapis.com",
+          reason: "Needed for scheduled functions.",
+        },
+      ]);
+    });
+
+    it("should create a schedule function with preserveExternalChanges", () => {
+      const schfn = schedule.onSchedule(
+        {
+          schedule: "* * * * *",
+          preserveExternalChanges: true,
+        },
+        () => console.log(1)
+      );
+
+      expect(schfn.__endpoint).to.deep.eq({
+        platform: "gcfv2",
+        labels: {},
+        scheduleTrigger: {
+          schedule: "* * * * *",
+          timeZone: undefined,
+          retryConfig: {
+            retryCount: undefined,
+            maxRetrySeconds: undefined,
+            minBackoffSeconds: undefined,
+            maxBackoffSeconds: undefined,
+            maxDoublings: undefined,
           },
         },
       });

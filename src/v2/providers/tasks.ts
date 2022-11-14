@@ -251,8 +251,21 @@ export function onTaskDispatched<Args = any>(
     taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
 
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.retryConfig,
+    opts.retryConfig,
+    "maxAttempts",
+    "maxBackoffSeconds",
+    "maxDoublings",
+    "maxRetrySeconds",
+    "minBackoffSeconds"
+  );
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.rateLimits,
+    opts.rateLimits,
+    "maxConcurrentDispatches",
+    "maxDispatchesPerSecond"
+  );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
 
   func.__requiredAPIs = [
