@@ -81,7 +81,7 @@ export function serviceAccountFromShorthand(serviceAccount: string): string | nu
     const projectId = currentProjectId();
     if (!projectId) {
       throw new Error(
-        `Unable to determine email for service account '${serviceAccount}' (process.env.GCLOUD_PROJECT and process.env.GCP_PROJECT misisng)`
+        `Unable to determine email for service account '${serviceAccount}' (process.env.GCLOUD_PROJECT and process.env.GCP_PROJECT missing)`
       );
     }
     return `${serviceAccount}${projectId}.iam.gserviceaccount.com`;
