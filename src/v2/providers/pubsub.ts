@@ -33,6 +33,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { currentProjectId } from "../../common/utilities/utils";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -323,7 +324,7 @@ export function onMessagePublished<T = any>(
         },
         eventTrigger: {
           eventType: "google.cloud.pubsub.topic.v1.messagePublished",
-          resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          resource: `projects/${currentProjectId()}/topics/${topic}`,
         },
       };
     },

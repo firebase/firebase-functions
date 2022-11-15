@@ -44,6 +44,7 @@ import {
 } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 import { initV1Endpoint } from "../../runtime/manifest";
+import { currentProjectId } from "../../common/utilities/utils";
 
 // TODO: yank in next breaking change release
 export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
@@ -88,10 +89,7 @@ export function user(userOptions?: UserOptions): UserBuilder {
 export function _userWithOptions(options: DeploymentOptions, userOptions: UserOptions) {
   return new UserBuilder(
     () => {
-      if (!process.env.GCLOUD_PROJECT) {
-        throw new Error("process.env.GCLOUD_PROJECT is not set.");
-      }
-      return "projects/" + process.env.GCLOUD_PROJECT;
+      return "projects/" + currentProjectId(true);
     },
     options,
     userOptions

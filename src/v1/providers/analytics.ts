@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { currentProjectId } from "../../common/utilities/utils";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -43,10 +44,7 @@ export function event(analyticsEventType: string) {
 /** @internal */
 export function _eventWithOptions(analyticsEventType: string, options: DeploymentOptions) {
   return new AnalyticsEventBuilder(() => {
-    if (!process.env.GCLOUD_PROJECT) {
-      throw new Error("process.env.GCLOUD_PROJECT is not set.");
-    }
-    return "projects/" + process.env.GCLOUD_PROJECT + "/events/" + analyticsEventType;
+    return "projects/" + currentProjectId(true) + "/events/" + analyticsEventType;
   }, options);
 }
 

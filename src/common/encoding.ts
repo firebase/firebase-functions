@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { currentProjectId } from "./utilities/utils";
+
 // Copied from firebase-tools/src/gcp/proto
 
 /**
@@ -76,12 +78,13 @@ export function serviceAccountFromShorthand(serviceAccount: string): string | nu
   if (serviceAccount === "default") {
     return null;
   } else if (serviceAccount.endsWith("@")) {
-    if (!process.env.GCLOUD_PROJECT) {
+    const projectId = currentProjectId();
+    if (!projectId) {
       throw new Error(
-        `Unable to determine email for service account '${serviceAccount}' because process.env.GCLOUD_PROJECT is not set.`
+        `Unable to determine email for service account '${serviceAccount}' (process.env.GCLOUD_PROJECT and process.env.GCP_PROJECT misisng)`
       );
     }
-    return `${serviceAccount}${process.env.GCLOUD_PROJECT}.iam.gserviceaccount.com`;
+    return `${serviceAccount}${projectId}.iam.gserviceaccount.com`;
   } else if (serviceAccount.includes("@")) {
     return serviceAccount;
   } else {

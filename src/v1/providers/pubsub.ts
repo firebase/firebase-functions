@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { currentProjectId } from "../../common/utilities/utils";
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
 
@@ -46,10 +47,7 @@ export function _topicWithOptions(topic: string, options: DeploymentOptions): To
   }
 
   return new TopicBuilder(() => {
-    if (!process.env.GCLOUD_PROJECT) {
-      throw new Error("process.env.GCLOUD_PROJECT is not set.");
-    }
-    return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
+    return `projects/${currentProjectId(true)}/topics/${topic}`;
   }, options);
 }
 
@@ -101,11 +99,8 @@ export function _scheduleWithOptions(
   options: DeploymentOptions
 ): ScheduleBuilder {
   const triggerResource = () => {
-    if (!process.env.GCLOUD_PROJECT) {
-      throw new Error("process.env.GCLOUD_PROJECT is not set.");
-    }
     // The CLI will append the correct topic name based on region and function name
-    return `projects/${process.env.GCLOUD_PROJECT}/topics`;
+    return `projects/${currentProjectId(true)}/topics`;
   };
   return new ScheduleBuilder(triggerResource, {
     ...options,

@@ -24,6 +24,17 @@ function isObject(obj: any): boolean {
   return typeof obj === "object" && !!obj;
 }
 
+/** @internal */
+export function currentProjectId(assertPresence = false): string {
+  const projectId = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT;
+  if (!projectId && assertPresence) {
+    throw new Error(
+      `Unable to determine current GCP project--neither process.env.GCLOUD_PROJECT nor process.env.GCP_PROJECT are set.`
+    );
+  }
+  return projectId;
+}
+
 /** @hidden */
 export function applyChange(src: any, dest: any) {
   // if not mergeable, don't merge

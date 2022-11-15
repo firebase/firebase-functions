@@ -22,6 +22,7 @@
 
 import { format } from "util";
 import { traceContext } from "../common/trace";
+import { currentProjectId } from "../common/utilities/utils";
 
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
@@ -156,7 +157,7 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   }
   return {
     "logging.googleapis.com/trace": ctx?.traceId
-      ? `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`
+      ? `projects/${currentProjectId()}/traces/${ctx.traceId}`
       : undefined,
     ...entry,
     severity,
