@@ -164,7 +164,7 @@ type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret"
 type ParamInput<T> =
   | { text: TextInput<T> }
   | { select: SelectInput<T> }
-  | { selectList: SelectListInput }
+  | { multiSelect: MultiSelectInput }
   | { resource: ResourceInput };
 
 /**
@@ -212,7 +212,7 @@ export interface SelectInput<T = unknown> {
  * a subset from a list of pre-canned options interactively at deploy-time.
  * Will result in errors if used on Params of type other than string[].
  */
-export interface SelectListInput {
+export interface MultiSelectInput {
   options: Array<SelectOptions<string>>;
 }
 

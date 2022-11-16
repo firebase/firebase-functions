@@ -19,7 +19,7 @@ params.defineInt("ANOTHER_INT", {
   },
 });
 
-params.defineList("LIST_PARAM", {input: { selectList: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}})
+params.defineList("LIST_PARAM", {input: { multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}})
 
 params.defineSecret("SUPER_SECRET_FLAG");
 
