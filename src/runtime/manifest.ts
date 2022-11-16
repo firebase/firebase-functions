@@ -61,7 +61,7 @@ export interface ManifestEndpoint {
   eventTrigger?: {
     eventFilters: Record<string, string | Expression<string>>;
     eventFilterPathPatterns?: Record<string, string | Expression<string>>;
-    channel?: string;
+    channel?: string | Expression<string>;
     eventType: string;
     retry: boolean | Expression<boolean> | ResetValue;
     region?: string;

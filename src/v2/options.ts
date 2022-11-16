@@ -258,7 +258,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   serviceAccount?: string | ResetValue;
 
   /** The name of the channel where the function receives events. */
-  channel?: string;
+  channel?: string | Expression<string>;
 }
 
 /**
