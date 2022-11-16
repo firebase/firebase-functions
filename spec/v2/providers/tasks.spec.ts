@@ -23,12 +23,11 @@
 import { expect } from "chai";
 
 import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import * as options from "../../../src/v2/options";
 import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { FULL_OPTIONS } from "./fixtures";
-import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
-import * as options from "../../../src/v2/options";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
   rateLimits: {
@@ -56,6 +55,12 @@ describe("onTaskDispatched", () => {
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = onTaskDispatched(() => undefined);
+
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      taskQueueTrigger: {},
+      labels: {},
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V2_ENDPOINT,
@@ -85,6 +90,24 @@ describe("onTaskDispatched", () => {
       () => undefined
     );
 
+    expect(result.__trigger).to.deep.equal({
+      ...FULL_TRIGGER,
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+          maxDoublings: 3,
+          minBackoffSeconds: 1,
+          maxBackoffSeconds: 2,
+        },
+        rateLimits: {
+          maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ["private"],
+      },
+    });
+
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
       platform: "gcfv2",
@@ -98,6 +121,73 @@ describe("onTaskDispatched", () => {
         },
         rateLimits: {
           maxConcurrentDispatches: 5,
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ["private"],
+      },
+    });
+  });
+
+  it("should return a minimal endpoint without preserveExternalChanges set", () => {
+    const result = onTaskDispatched(
+      {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+      },
+      () => undefined
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      labels: {},
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+          maxBackoffSeconds: options.RESET_VALUE,
+          maxDoublings: options.RESET_VALUE,
+          minBackoffSeconds: options.RESET_VALUE,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+          maxConcurrentDispatches: options.RESET_VALUE,
+        },
+      },
+    });
+  });
+
+  it("should create a complex endpoint with preserveExternalChanges set", () => {
+    const result = onTaskDispatched(
+      {
+        ...FULL_OPTIONS,
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: "private",
+        preserveExternalChanges: true,
+      },
+      () => undefined
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      platform: "gcfv2",
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
           maxDispatchesPerSecond: 10,
         },
         invoker: ["private"],
@@ -119,6 +209,15 @@ describe("onTaskDispatched", () => {
       },
       () => undefined
     );
+
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      taskQueueTrigger: {},
+      concurrency: 20,
+      minInstances: 3,
+      regions: ["us-west1"],
+      labels: {},
+    });
 
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V2_ENDPOINT,

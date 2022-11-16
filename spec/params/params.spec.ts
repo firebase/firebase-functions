@@ -30,6 +30,7 @@ describe("Params value extraction", () => {
     process.env.LIST = JSON.stringify(["a", "b", "c"]);
     process.env.BAD_LIST = JSON.stringify(["a", 22, "c"]);
     process.env.ESCAPED_LIST = JSON.stringify(["f\to\no"]);
+    process.env.A_SECRET_STRING = "123456supersecret";
   });
 
   afterEach(() => {
@@ -47,6 +48,7 @@ describe("Params value extraction", () => {
     delete process.env.LIST;
     delete process.env.BAD_LIST;
     delete process.env.ESCAPED_LIST;
+    delete process.env.A_SECRET_STRING;
   });
 
   it("extracts identity params from the environment", () => {
@@ -70,6 +72,8 @@ describe("Params value extraction", () => {
 
     const listParamWithEscapes = params.defineList("ESCAPED_LIST");
     expect(listParamWithEscapes.value()).to.deep.equal(["f\to\no"]);
+    const secretParam = params.defineSecret("A_SECRET_STRING");
+    expect(secretParam.value()).to.equal("123456supersecret");
   });
 
   it("extracts the special case internal params from env.FIREBASE_CONFIG", () => {

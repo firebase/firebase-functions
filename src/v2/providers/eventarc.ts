@@ -63,6 +63,11 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   filters?: Record<string, string>;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;

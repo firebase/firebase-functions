@@ -92,6 +92,16 @@ describe("Firestore Functions", () => {
   }
 
   describe("document builders and event types", () => {
+    function expectedTrigger(resource: string, eventType: string) {
+      return {
+        eventTrigger: {
+          resource,
+          eventType: `providers/cloud.firestore/eventTypes/${eventType}`,
+          service: "firestore.googleapis.com",
+        },
+      };
+    }
+
     function expectedEndpoint(resource: string, eventType: string) {
       return {
         ...MINIMAL_V1_ENDPOINT,
@@ -129,9 +139,20 @@ describe("Firestore Functions", () => {
       const cloudFunction = firestore
         .namespace("v2")
         .document("users/{uid}")
-        .onWrite((snap, context) => {
-          expectType<{ uid: string }>(context.params);
-        });
+        .onWrite(() => null);
+
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, "document.write"));
+      expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
+    });
+
+    it("should allow custom namespaces", () => {
+      const resource = "projects/project1/databases/(default)/documents@v2/users/{uid}";
+      const cloudFunction = firestore
+        .namespace("v2")
+        .document("users/{uid}")
+        .onWrite(() => null);
+
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, "document.write"));
 
       expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
     });
@@ -142,6 +163,8 @@ describe("Firestore Functions", () => {
         .database("myDB")
         .document("users/{uid}")
         .onWrite(() => null);
+
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, "document.write"));
 
       expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
     });
@@ -155,6 +178,8 @@ describe("Firestore Functions", () => {
         .onWrite((snap, context) => {
           expectType<{ uid: string }>(context.params);
         });
+
+      expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(resource, "document.write"));
 
       expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
     });
@@ -171,6 +196,10 @@ describe("Firestore Functions", () => {
           expectType<Record<string, string>>(context.params);
         });
 
+      expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
+      expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+      expect(fn.__trigger.timeout).to.deep.equal("90s");
+
       expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
@@ -178,8 +207,12 @@ describe("Firestore Functions", () => {
   });
 
   describe("process.env.GCLOUD_PROJECT not set", () => {
-    it("should not throw if __endpoint is not accessed", () => {
+    it("should not throw if __trigger is not accessed", () => {
       expect(() => firestore.document("input").onCreate(() => null)).to.not.throw(Error);
+    });
+
+    it("should throw when trigger is accessed", () => {
+      expect(() => firestore.document("input").onCreate(() => null).__trigger).to.throw(Error);
     });
 
     it("should throw when endpoint is accessed", () => {

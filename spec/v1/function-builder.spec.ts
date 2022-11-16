@@ -24,7 +24,6 @@ import { expect } from "chai";
 import { clearParams, defineSecret } from "../../src/params";
 
 import * as functions from "../../src/v1";
-import { ResetValue } from "../../src/common/options";
 
 describe("FunctionBuilder", () => {
   before(() => {
@@ -41,6 +40,7 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
     expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
   });
 
@@ -50,6 +50,7 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.regions).to.deep.equal(["us-east1", "us-central1"]);
     expect(fn.__endpoint.region).to.deep.equal(["us-east1", "us-central1"]);
   });
 
@@ -67,6 +68,17 @@ describe("FunctionBuilder", () => {
       )
       .auth.user()
       .onCreate((user) => user);
+
+    expect(fn.__trigger.regions).to.deep.equal([
+      "us-central1",
+      "us-east1",
+      "us-east4",
+      "europe-west1",
+      "europe-west2",
+      "europe-west3",
+      "asia-east2",
+      "asia-northeast1",
+    ]);
 
     expect(fn.__endpoint.region).to.deep.equal([
       "us-central1",
@@ -93,6 +105,8 @@ describe("FunctionBuilder", () => {
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     expect(fn.__endpoint.eventTrigger.retry).to.deep.equal(true);
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__trigger.timeout).to.deep.equal("90s");
   });
 
   it("should allow SecretParams in the secrets array and convert them", () => {
@@ -104,6 +118,11 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.secrets).to.deep.equal([
+      {
+        name: "API_KEY",
+      },
+    ]);
     expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
       {
         key: "API_KEY",
@@ -136,6 +155,9 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.regions).to.deep.equal(["europe-west2"]);
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__trigger.timeout).to.deep.equal("90s");
     expect(fn.__endpoint.region).to.deep.equal(["europe-west2"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
@@ -151,6 +173,9 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.regions).to.deep.equal(["europe-west1"]);
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
+    expect(fn.__trigger.timeout).to.deep.equal("90s");
     expect(fn.__endpoint.region).to.deep.equal(["europe-west1"]);
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
@@ -223,6 +248,7 @@ describe("FunctionBuilder", () => {
       .runWith({ ingressSettings: "ALLOW_INTERNAL_ONLY" })
       .https.onRequest(() => undefined);
 
+    expect(fn.__trigger.ingressSettings).to.equal("ALLOW_INTERNAL_ONLY");
     expect(fn.__endpoint.ingressSettings).to.equal("ALLOW_INTERNAL_ONLY");
   });
 
@@ -245,11 +271,8 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    if (!(fn.__endpoint.vpc instanceof ResetValue)) {
-      expect(fn.__endpoint.vpc.connector).to.equal("test-connector");
-    } else {
-      expect.fail("__endpoint.vpc unexpectedly set to RESET_VALUE");
-    }
+    expect(fn.__trigger.vpcConnector).to.equal("test-connector");
+    expect(fn.__endpoint.vpc).to.deep.equal({ connector: "test-connector" });
   });
 
   it("should allow a vpcConnectorEgressSettings to be set", () => {
@@ -261,11 +284,11 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    if (!(fn.__endpoint.vpc instanceof ResetValue)) {
-      expect(fn.__endpoint.vpc.egressSettings).to.equal("PRIVATE_RANGES_ONLY");
-    } else {
-      expect.fail("__endpoint.vpc unexpectedly set to RESET_VALUE");
-    }
+    expect(fn.__trigger.vpcConnectorEgressSettings).to.equal("PRIVATE_RANGES_ONLY");
+    expect(fn.__endpoint.vpc).to.deep.equal({
+      connector: "test-connector",
+      egressSettings: "PRIVATE_RANGES_ONLY",
+    });
   });
 
   it("should throw an error if user chooses an invalid vpcConnectorEgressSettings", () => {
@@ -292,10 +315,12 @@ describe("FunctionBuilder", () => {
       .onCreate((user) => user);
 
     expect(fn.__endpoint.serviceAccountEmail).to.equal(serviceAccount);
+    expect(fn.__trigger.serviceAccountEmail).to.equal(serviceAccount);
   });
 
   it("should allow a serviceAccount to be set with generated service account email", () => {
     const serviceAccount = "test-service-account@";
+    const projectId = process.env.GCLOUD_PROJECT;
     const fn = functions
       .runWith({
         serviceAccount,
@@ -303,6 +328,9 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.serviceAccountEmail).to.equal(
+      `test-service-account@${projectId}.iam.gserviceaccount.com`
+    );
     expect(fn.__endpoint.serviceAccountEmail).to.equal(`test-service-account@`);
   });
 
@@ -315,7 +343,8 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.serviceAccountEmail).to.equal("default");
+    expect(fn.__trigger.serviceAccountEmail).to.be.null;
+    expect(fn.__endpoint.serviceAccountEmail).to.equal(serviceAccount);
   });
 
   it("should throw an error if serviceAccount is set to an invalid value", () => {
@@ -337,6 +366,7 @@ describe("FunctionBuilder", () => {
       .onCreate((user) => user);
 
     expect(fn.__endpoint.availableMemoryMb).to.deep.equal(4096);
+    expect(fn.__trigger.availableMemoryMb).to.deep.equal(4096);
   });
 
   it("should allow labels to be set", () => {
@@ -349,6 +379,9 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
+    expect(fn.__trigger.labels).to.deep.equal({
+      "valid-key": "valid-value",
+    });
     expect(fn.__endpoint.labels).to.deep.equal({
       "valid-key": "valid-value",
     });
@@ -504,22 +537,20 @@ describe("FunctionBuilder", () => {
       .auth.user()
       .onCreate((user) => user);
 
-    expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
-      {
-        key: "API_KEY",
-      },
-    ]);
+    expect(fn.__trigger.secrets).to.deep.equal(secrets);
+    expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([{ key: secrets[0] }]);
   });
 
   it("should throw error given secrets expressed with full resource name", () => {
-    const sp = defineSecret("projects/my-project/secrets/API_KEY");
-
     expect(() =>
       functions.runWith({
         secrets: ["projects/my-project/secrets/API_KEY"],
       })
     ).to.throw();
+  });
 
+  it("should throw error given invalid secret config", () => {
+    const sp = defineSecret("projects/my-project/secrets/API_KEY");
     expect(() =>
       functions.runWith({
         secrets: [sp],

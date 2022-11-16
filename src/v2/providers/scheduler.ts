@@ -38,19 +38,21 @@ import * as logger from "../../logger";
 import * as options from "../options";
 
 /** @hidden */
-interface ScheduleArgs {
+interface SeparatedOpts {
   schedule: string | Expression<string>;
   timeZone?: timezone | Expression<string> | ResetValue;
-  retryCount?: number | Expression<number> | ResetValue;
-  maxRetrySeconds?: number | Expression<number> | ResetValue;
-  minBackoffSeconds?: number | Expression<number> | ResetValue;
-  maxBackoffSeconds?: number | Expression<number> | ResetValue;
-  maxDoublings?: number | Expression<number> | ResetValue;
+  retryConfig?: {
+    retryCount?: number | Expression<number> | ResetValue;
+    maxRetrySeconds?: number | Expression<number> | ResetValue;
+    minBackoffSeconds?: number | Expression<number> | ResetValue;
+    maxBackoffSeconds?: number | Expression<number> | ResetValue;
+    maxDoublings?: number | Expression<number> | ResetValue;
+  };
   opts: options.GlobalOptions;
 }
 
 /** @internal */
-export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
+export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
   if (typeof args === "string") {
     return {
       schedule: args,
@@ -60,11 +62,13 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
   return {
     schedule: args.schedule,
     timeZone: args.timeZone,
-    retryCount: args.retryCount,
-    maxRetrySeconds: args.maxRetrySeconds,
-    minBackoffSeconds: args.minBackoffSeconds,
-    maxBackoffSeconds: args.maxBackoffSeconds,
-    maxDoublings: args.maxDoublings,
+    retryConfig: {
+      retryCount: args.retryCount,
+      maxRetrySeconds: args.maxRetrySeconds,
+      minBackoffSeconds: args.minBackoffSeconds,
+      maxBackoffSeconds: args.maxBackoffSeconds,
+      maxDoublings: args.maxDoublings,
+    },
     opts: args as options.GlobalOptions,
   };
 }
@@ -194,7 +198,7 @@ export function onSchedule(
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
-    separatedOpts,
+    separatedOpts.retryConfig,
     "retryCount",
     "maxRetrySeconds",
     "minBackoffSeconds",

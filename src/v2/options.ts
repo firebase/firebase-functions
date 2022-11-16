@@ -25,9 +25,15 @@
  * @packageDocumentation
  */
 
-import { convertIfPresent, copyIfPresent } from "../common/encoding";
+import {
+  convertIfPresent,
+  copyIfPresent,
+  durationFromSeconds,
+  serviceAccountFromShorthand,
+} from "../common/encoding";
 import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
+import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
 import { ParamSpec, SecretParam } from "../params/types";
 import { HttpsOptions } from "./providers/https";
@@ -88,6 +94,11 @@ export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERN
  * These options are common to HTTPS and Event handling functions.
  */
 export interface GlobalOptions {
+  /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
   /**
    * Region where functions should be deployed.
    */
@@ -251,6 +262,56 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 }
 
 /**
+ * Apply GlobalOptions to trigger definitions.
+ * @internal
+ */
+export function optionsToTriggerAnnotations(
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+): TriggerAnnotation {
+  const annotation: TriggerAnnotation = {};
+  copyIfPresent(
+    annotation,
+    opts,
+    "concurrency",
+    "minInstances",
+    "maxInstances",
+    "ingressSettings",
+    "labels",
+    "vpcConnector",
+    "vpcConnectorEgressSettings",
+    "secrets"
+  );
+  convertIfPresent(annotation, opts, "availableMemoryMb", "memory", (mem: MemoryOption) => {
+    return MemoryOptionToMB[mem];
+  });
+  convertIfPresent(annotation, opts, "regions", "region", (region) => {
+    if (typeof region === "string") {
+      return [region];
+    }
+    return region;
+  });
+  convertIfPresent(
+    annotation,
+    opts,
+    "serviceAccountEmail",
+    "serviceAccount",
+    serviceAccountFromShorthand
+  );
+  convertIfPresent(annotation, opts, "timeout", "timeoutSeconds", durationFromSeconds);
+  convertIfPresent(
+    annotation,
+    opts as any as EventHandlerOptions,
+    "failurePolicy",
+    "retry",
+    (retry: boolean) => {
+      return retry ? { retry: true } : null;
+    }
+  );
+
+  return annotation;
+}
+
+/**
  * Apply GlobalOptions to endpoint manifest.
  * @internal
  */
@@ -261,6 +322,7 @@ export function optionsToEndpoint(
   copyIfPresent(
     endpoint,
     opts,
+    "omit",
     "concurrency",
     "minInstances",
     "maxInstances",

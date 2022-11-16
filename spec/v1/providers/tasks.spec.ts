@@ -28,6 +28,7 @@ import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MINIMIAL_TASK_QUEUE_TRIGGER } from "./fixtures";
+import { runWith } from "../../../src/v1";
 
 describe("#onDispatch", () => {
   it("should return a trigger/endpoint with appropriate values", () => {
@@ -46,10 +47,28 @@ describe("#onDispatch", () => {
       invoker: "private",
     }).onDispatch(() => undefined);
 
+    expect(result.__trigger).to.deep.equal({
+      taskQueueTrigger: {
+        rateLimits: {
+          maxConcurrentDispatches: 30,
+          maxDispatchesPerSecond: 40,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxRetrySeconds: 10,
+          maxBackoffSeconds: 20,
+          maxDoublings: 3,
+          minBackoffSeconds: 5,
+        },
+        invoker: ["private"],
+      },
+    });
+
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
       platform: "gcfv1",
       taskQueueTrigger: {
+        ...MINIMIAL_TASK_QUEUE_TRIGGER,
         rateLimits: {
           maxConcurrentDispatches: 30,
           maxDispatchesPerSecond: 40,
@@ -66,6 +85,35 @@ describe("#onDispatch", () => {
     });
   });
 
+  it("should return an endpoint with appropriate values with preserveExternalChanges set", () => {
+    const result = runWith({ preserveExternalChanges: true })
+      .tasks.taskQueue({
+        rateLimits: {
+          maxConcurrentDispatches: 30,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxRetrySeconds: 10,
+        },
+        invoker: "private",
+      })
+      .onDispatch(() => undefined);
+
+    expect(result.__endpoint).to.deep.equal({
+      platform: "gcfv1",
+      taskQueueTrigger: {
+        rateLimits: {
+          maxConcurrentDispatches: 30,
+        },
+        retryConfig: {
+          maxAttempts: 5,
+          maxRetrySeconds: 10,
+        },
+        invoker: ["private"],
+      },
+    });
+  });
+
   it("should allow both region and runtime options to be set", () => {
     const fn = functions
       .region("us-east1")
@@ -75,6 +123,17 @@ describe("#onDispatch", () => {
       })
       .tasks.taskQueue({ retryConfig: { maxAttempts: 5 } })
       .onDispatch(() => null);
+
+    expect(fn.__trigger).to.deep.equal({
+      regions: ["us-east1"],
+      availableMemoryMb: 256,
+      timeout: "90s",
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 5,
+        },
+      },
+    });
 
     expect(fn.__endpoint).to.deep.equal({
       ...MINIMAL_V1_ENDPOINT,
@@ -86,6 +145,10 @@ describe("#onDispatch", () => {
         ...MINIMIAL_TASK_QUEUE_TRIGGER,
         retryConfig: {
           maxAttempts: 5,
+          maxBackoffSeconds: functions.RESET_VALUE,
+          maxDoublings: functions.RESET_VALUE,
+          maxRetrySeconds: functions.RESET_VALUE,
+          minBackoffSeconds: functions.RESET_VALUE,
         },
       },
     });

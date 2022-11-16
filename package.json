@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -36,6 +36,7 @@
     "./v1/auth": "./lib/v1/providers/auth.js",
     "./v1/database": "./lib/v1/providers/database.js",
     "./v1/firestore": "./lib/v1/providers/firestore.js",
+    "./v1/https": "./lib/v1/providers/https.js",
     "./v1/pubsub": "./lib/v1/providers/pubsub.js",
     "./v1/remoteConfig": "./lib/v1/providers/remoteConfig.js",
     "./v1/storage": "./lib/v1/providers/storage.js",
@@ -75,31 +76,34 @@
         "lib/v1"
       ],
       "v1/analytics": [
-        "./lib/v1/providers/analytics"
+        "lib/v1/providers/analytics"
       ],
       "v1/auth": [
-        "./lib/v1/providers/auth"
+        "lib/v1/providers/auth"
       ],
       "v1/database": [
-        "./lib/v1/privders/database"
+        "lib/v1/privders/database"
       ],
       "v1/firestore": [
-        "./lib/v1/providers/firestore"
+        "lib/v1/providers/firestore"
+      ],
+      "v1/https": [
+        "./lib/v1/providers/https"
       ],
       "v1/pubsub": [
-        "./lib/v1/providers/pubsub"
+        "lib/v1/providers/pubsub"
       ],
-      "/v1/remoteConfig": [
-        "./lib/v1/providers/remoteConfig"
+      "v1/remoteConfig": [
+        "lib/v1/providers/remoteConfig"
       ],
-      "/v1/storage": [
-        "./lib/v1/providers/storage"
+      "v1/storage": [
+        "lib/v1/providers/storage"
       ],
-      "/v1/tasks": [
-        "./lib/v1/providers/tasks"
+      "v1/tasks": [
+        "lib/v1/providers/tasks"
       ],
-      "/v1/testLab": [
-        "./lib/v1/providers/testLab"
+      "v1/testLab": [
+        "lib/v1/providers/testLab"
       ],
       "v2": [
         "lib/v2"

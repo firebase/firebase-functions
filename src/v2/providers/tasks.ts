@@ -61,6 +61,11 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   invoker?: "private" | string | string[];
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
@@ -207,8 +212,29 @@ export function onTaskDispatched<Args = any>(
   const fixedLen = (req: Request<Args>) => handler(req);
   const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
 
-  const globalOpts = options.getGlobalOptions();
-  const baseOpts = options.optionsToEndpoint(globalOpts);
+  Object.defineProperty(func, "__trigger", {
+    get: () => {
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
+      // global options calls region a scalar and https allows it to be an array,
+      // but optionsToTriggerAnnotations handles both cases.
+      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
+      const taskQueueTrigger: Record<string, unknown> = {};
+      copyIfPresent(taskQueueTrigger, opts, "retryConfig", "rateLimits");
+      convertIfPresent(taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
+      return {
+        platform: "gcfv2",
+        ...baseOpts,
+        ...specificOpts,
+        labels: {
+          ...baseOpts?.labels,
+          ...specificOpts?.labels,
+        },
+        taskQueueTrigger,
+      };
+    },
+  });
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToManifestEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
@@ -225,8 +251,21 @@ export function onTaskDispatched<Args = any>(
     taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
 
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.retryConfig,
+    opts.retryConfig,
+    "maxAttempts",
+    "maxBackoffSeconds",
+    "maxDoublings",
+    "maxRetrySeconds",
+    "minBackoffSeconds"
+  );
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.rateLimits,
+    opts.rateLimits,
+    "maxConcurrentDispatches",
+    "maxDispatchesPerSecond"
+  );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
 
   func.__requiredAPIs = [

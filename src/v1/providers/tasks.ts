@@ -36,7 +36,7 @@ import {
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";
-import { optionsToEndpoint } from "../cloud-functions";
+import { optionsToEndpoint, optionsToTrigger } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
 export { RetryConfig, RateLimits, TaskContext };
@@ -64,6 +64,9 @@ export interface TaskQueueOptions {
  */
 export interface TaskQueueFunction {
   (req: Request, res: express.Response): Promise<void>;
+
+  /** @alpha */
+  __trigger: unknown;
 
   /** @alpha */
   __endpoint: ManifestEndpoint;
@@ -106,14 +109,41 @@ export class TaskQueueBuilder {
     const fixedLen = (data: any, context: TaskContext) => handler(data, context);
     const func: any = onDispatchHandler(fixedLen);
 
+    func.__trigger = {
+      ...optionsToTrigger(this.depOpts || {}),
+      taskQueueTrigger: {},
+    };
+    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, "retryConfig");
+    copyIfPresent(func.__trigger.taskQueueTrigger, this.tqOpts, "rateLimits");
+    convertIfPresent(
+      func.__trigger.taskQueueTrigger,
+      this.tqOpts,
+      "invoker",
+      "invoker",
+      convertInvoker
+    );
+
     func.__endpoint = {
       platform: "gcfv1",
       ...initV1Endpoint(this.depOpts),
       ...optionsToEndpoint(this.depOpts),
       taskQueueTrigger: initTaskQueueTrigger(this.depOpts),
     };
-    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "retryConfig");
-    copyIfPresent(func.__endpoint.taskQueueTrigger, this.tqOpts, "rateLimits");
+    copyIfPresent(
+      func.__endpoint.taskQueueTrigger.retryConfig,
+      this.tqOpts?.retryConfig || {},
+      "maxAttempts",
+      "maxBackoffSeconds",
+      "maxDoublings",
+      "maxRetrySeconds",
+      "minBackoffSeconds"
+    );
+    copyIfPresent(
+      func.__endpoint.taskQueueTrigger.rateLimits,
+      this.tqOpts?.rateLimits || {},
+      "maxConcurrentDispatches",
+      "maxDispatchesPerSecond"
+    );
     convertIfPresent(
       func.__endpoint.taskQueueTrigger,
       this.tqOpts,
