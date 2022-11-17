@@ -71,7 +71,7 @@ export type Extract<Part extends string> = Part extends `{${infer Param}=**}`
   : never;
 
 /**
- * A type that maps all parameter capture gropus into keys of a record.
+ * A type that maps all parameter capture groups into keys of a record.
  * For example, ParamsOf<"users/{uid}"> is { uid: string }
  * ParamsOf<"users/{uid}/logs/{log}"> is { uid: string; log: string }
  * ParamsOf<"some/static/data"> is {}
