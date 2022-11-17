@@ -1,2 +1,3 @@
 - Deprecate typoed function name lessThanorEqualTo (#1284)
 - Fix a bug where supplying preserveExternalChanges to scheduled functions would cause deployment failure (#1305).
+- Adds omit option to skip function deploys (#1298).
