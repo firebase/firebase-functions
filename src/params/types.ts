@@ -57,16 +57,26 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 }
 
-function quoteIfString<T extends string | number | boolean | string[]>(literal: T): T {
-  // TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
-  return typeof literal === "string" ? (`"${literal}"` as T) : literal;
-}
-
 function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
+/**
+ * Returns how an entity (either an Expression or a literal value) should be represented in CEL.
+ * - Expressions delegate to the .toString() method, which is used by the WireManifest
+ * - Strings have to be quoted explicitly
+ * - Arrays are represented as []-delimited, parsable JSON
+ * - Numbers and booleans are not quoted explicitly
+ */
 function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
-  return arg instanceof Expression ? arg.toString() : quoteIfString(arg).toString();
+  if (arg instanceof Expression) {
+    return arg.toString();
+  } else if (typeof arg === "string") {
+    return `"${arg}"`;
+  } else if (Array.isArray(arg)) {
+    return JSON.stringify(arg);
+  } else {
+    return arg.toString();
+  }
 }
 
 /**
