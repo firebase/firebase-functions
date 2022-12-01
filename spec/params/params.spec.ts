@@ -311,13 +311,13 @@ describe("Params as CEL", () => {
     const booleanExpr = params.defineBoolean("BOOL");
     const cmpExpr = params.defineInt("A").cmp("!=", params.defineInt("B"));
 
-    expect(booleanExpr.then("asdf", "jkl;").toCEL()).to.equal(
+    expect(booleanExpr.thenElse("asdf", "jkl;").toCEL()).to.equal(
       '{{ params.BOOL ? "asdf" : "jkl;" }}'
     );
-    expect(booleanExpr.then(-11, 22).toCEL()).to.equal("{{ params.BOOL ? -11 : 22 }}");
-    expect(booleanExpr.then(false, true).toCEL()).to.equal("{{ params.BOOL ? false : true }}");
+    expect(booleanExpr.thenElse(-11, 22).toCEL()).to.equal("{{ params.BOOL ? -11 : 22 }}");
+    expect(booleanExpr.thenElse(false, true).toCEL()).to.equal("{{ params.BOOL ? false : true }}");
     expect(
-      booleanExpr.then(params.defineString("FOO"), params.defineString("BAR")).toCEL()
+      booleanExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()
     ).to.equal("{{ params.BOOL ? params.FOO : params.BAR }}");
     expect(cmpExpr.thenElse("asdf", "jkl;").toCEL()).to.equal(
       '{{ params.A != params.B ? "asdf" : "jkl;" }}'

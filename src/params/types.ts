@@ -477,7 +477,15 @@ export class BooleanParam extends Param<boolean> {
     return !!process.env[this.name] && process.env[this.name] === "true";
   }
 
+  /** @deprecated */
   then<T extends string | number | boolean>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
+    return this.thenElse(ifTrue, ifFalse);
+  }
+
+  thenElse<T extends string | number | boolean>(
+    ifTrue: T | Expression<T>,
+    ifFalse: T | Expression<T>
+  ) {
     return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
