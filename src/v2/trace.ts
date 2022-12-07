@@ -28,6 +28,6 @@ export function wrapTraceContext(
       // eslint-disable-next-line prefer-spread
       return handler.apply(null, args);
     }
-    traceContext.run(traceParent, handler, ...args);
+    return traceContext.run(traceParent, handler, ...args);
   };
 }

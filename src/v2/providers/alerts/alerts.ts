@@ -215,7 +215,7 @@ export function onAlertPublished<T extends { ["@type"]: string } = any>(
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler(convertAlertAndApp(raw) as AlertEvent<T>));
+    return wrapTraceContext(handler)(convertAlertAndApp(raw) as AlertEvent<T>);
   };
 
   func.run = handler;
