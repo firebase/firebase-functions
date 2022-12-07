@@ -250,8 +250,8 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(
-      handler(convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>)
+    return wrapTraceContext(handler)(
+      convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>
     );
   };
 
@@ -315,8 +315,8 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(
-      handler(convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>)
+    return wrapTraceContext(handler)(
+      convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>
     );
   };
 

@@ -1,0 +1,1 @@
+- Fix bug where some FireAlerts v2 functions didn't correctly return values back to Functions Framework. (#1324)
