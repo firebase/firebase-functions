@@ -1,2 +1,1 @@
-- Deprecate typoed function name lessThanorEqualTo (#1284)
-- Fix a bug where supplying preserveExternalChanges to scheduled functions would cause deployment failure (#1305).
+- Fix bug where some FireAlerts v2 functions didn't correctly return values back to Functions Framework. (#1324)
