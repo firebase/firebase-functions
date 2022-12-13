@@ -95,6 +95,11 @@ export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERN
  */
 export interface GlobalOptions {
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: SupportedRegion | string;
@@ -105,7 +110,7 @@ export interface GlobalOptions {
   memory?: MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -317,6 +322,7 @@ export function optionsToEndpoint(
   copyIfPresent(
     endpoint,
     opts,
+    "omit",
     "concurrency",
     "minInstances",
     "maxInstances",

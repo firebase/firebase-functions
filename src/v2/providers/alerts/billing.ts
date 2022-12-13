@@ -152,7 +152,7 @@ export function onOperation<T>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler(convertAlertAndApp(raw) as BillingEvent<T>));
+    return wrapTraceContext(handler)(convertAlertAndApp(raw) as BillingEvent<T>);
   };
 
   func.run = handler;

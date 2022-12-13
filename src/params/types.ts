@@ -297,8 +297,16 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
   }
 
   /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
-  lessThanorEqualTo(rhs: T | Expression<T>) {
+  lessThanOrEqualTo(rhs: T | Expression<T>) {
     return this.cmp("<=", rhs);
+  }
+
+  /**
+   * Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression.
+   * @deprecated A typo. Use lessThanOrEqualTo instead.
+   */
+  lessThanorEqualTo(rhs: T | Expression<T>) {
+    return this.lessThanOrEqualTo(rhs);
   }
 
   toString(): string {
@@ -444,7 +452,15 @@ export class BooleanParam extends Param<boolean> {
     return !!process.env[this.name] && process.env[this.name] === "true";
   }
 
+  /** @deprecated */
   then<T extends string | number | boolean>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
+    return this.thenElse(ifTrue, ifFalse);
+  }
+
+  thenElse<T extends string | number | boolean>(
+    ifTrue: T | Expression<T>,
+    ifFalse: T | Expression<T>
+  ) {
     return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }

@@ -128,6 +128,73 @@ describe("onTaskDispatched", () => {
     });
   });
 
+  it("should return a minimal endpoint without preserveExternalChanges set", () => {
+    const result = onTaskDispatched(
+      {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+      },
+      () => undefined
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      labels: {},
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+          maxBackoffSeconds: options.RESET_VALUE,
+          maxDoublings: options.RESET_VALUE,
+          minBackoffSeconds: options.RESET_VALUE,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+          maxConcurrentDispatches: options.RESET_VALUE,
+        },
+      },
+    });
+  });
+
+  it("should create a complex endpoint with preserveExternalChanges set", () => {
+    const result = onTaskDispatched(
+      {
+        ...FULL_OPTIONS,
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: "private",
+        preserveExternalChanges: true,
+      },
+      () => undefined
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      platform: "gcfv2",
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ["private"],
+      },
+    });
+  });
+
   it("should merge options and globalOptions", () => {
     options.setGlobalOptions({
       concurrency: 20,

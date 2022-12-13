@@ -50,6 +50,11 @@ export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
  * Options that can be set on an onRequest HTTPS function.
  */
 export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
+  /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?: SupportedRegion | string | Array<SupportedRegion | string>;
 
@@ -66,7 +71,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks

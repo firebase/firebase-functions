@@ -65,6 +65,11 @@ export interface BlockingOptions {
   refreshToken?: boolean;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
@@ -75,7 +80,7 @@ export interface BlockingOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks

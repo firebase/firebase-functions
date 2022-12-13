@@ -87,6 +87,11 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   appId?: string;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
@@ -98,7 +103,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    * A value of null restores the default of 60s
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
@@ -210,7 +215,7 @@ export function onAlertPublished<T extends { ["@type"]: string } = any>(
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler(convertAlertAndApp(raw) as AlertEvent<T>));
+    return wrapTraceContext(handler)(convertAlertAndApp(raw) as AlertEvent<T>);
   };
 
   func.run = handler;

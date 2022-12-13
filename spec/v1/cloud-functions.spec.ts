@@ -189,6 +189,35 @@ describe("makeCloudFunction", () => {
     });
   });
 
+  it("should setup a scheduleTrigger in __endpoint given a schedule and preserveExternalChanges", () => {
+    const schedule = {
+      schedule: "every 5 minutes",
+      retryConfig: { retryCount: 3 },
+      timeZone: "America/New_York",
+    };
+    const cf = makeCloudFunction({
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
+      handler: () => null,
+      options: {
+        schedule,
+        preserveExternalChanges: true,
+      },
+    });
+    expect(cf.__endpoint).to.deep.equal({
+      platform: "gcfv1",
+      scheduleTrigger: {
+        ...schedule,
+        retryConfig: {
+          ...schedule.retryConfig,
+        },
+      },
+      labels: {},
+    });
+  });
+
   it("should construct the right context for event", () => {
     const args: any = {
       ...cloudFunctionArgs,

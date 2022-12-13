@@ -61,6 +61,11 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   invoker?: "private" | string | string[];
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
@@ -71,7 +76,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -246,8 +251,21 @@ export function onTaskDispatched<Args = any>(
     taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
 
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.retryConfig,
+    opts.retryConfig,
+    "maxAttempts",
+    "maxBackoffSeconds",
+    "maxDoublings",
+    "maxRetrySeconds",
+    "minBackoffSeconds"
+  );
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.rateLimits,
+    opts.rateLimits,
+    "maxConcurrentDispatches",
+    "maxDispatchesPerSecond"
+  );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
 
   func.__requiredAPIs = [
