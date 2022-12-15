@@ -1,1 +1,0 @@
-- Add performance monitoring triggers to v2 alerts (#1223).

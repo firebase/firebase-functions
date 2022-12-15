@@ -20,41 +20,57 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import * as options from '../../../src/v2/options';
-import { onTaskDispatched, Request } from '../../../src/v2/providers/tasks';
-import { MockRequest } from '../../fixtures/mockrequest';
-import { runHandler } from '../../helper';
-import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from './fixtures';
+import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import * as options from "../../../src/v2/options";
+import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
+import { MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
-describe('onTaskDispatched', () => {
+const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
+  rateLimits: {
+    maxConcurrentDispatches: options.RESET_VALUE,
+    maxDispatchesPerSecond: options.RESET_VALUE,
+  },
+  retryConfig: {
+    maxAttempts: options.RESET_VALUE,
+    maxBackoffSeconds: options.RESET_VALUE,
+    maxDoublings: options.RESET_VALUE,
+    maxRetrySeconds: options.RESET_VALUE,
+    minBackoffSeconds: options.RESET_VALUE,
+  },
+};
+
+describe("onTaskDispatched", () => {
   beforeEach(() => {
     options.setGlobalOptions({});
-    process.env.GCLOUD_PROJECT = 'aProject';
+    process.env.GCLOUD_PROJECT = "aProject";
   });
 
   afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
   });
 
-  it('should return a minimal trigger/endpoint with appropriate values', () => {
-    const result = onTaskDispatched(() => {});
+  it("should return a minimal trigger/endpoint with appropriate values", () => {
+    const result = onTaskDispatched(() => undefined);
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       taskQueueTrigger: {},
       labels: {},
     });
 
     expect(result.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      taskQueueTrigger: {},
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
       labels: {},
+      taskQueueTrigger: MINIMIAL_TASK_QUEUE_TRIGGER,
     });
   });
 
-  it('should create a complex trigger/endpoint with appropriate values', () => {
+  it("should create a complex trigger/endpoint with appropriate values", () => {
     const result = onTaskDispatched(
       {
         ...FULL_OPTIONS,
@@ -69,9 +85,9 @@ describe('onTaskDispatched', () => {
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
-        invoker: 'private',
+        invoker: "private",
       },
-      () => {}
+      () => undefined
     );
 
     expect(result.__trigger).to.deep.equal({
@@ -88,13 +104,13 @@ describe('onTaskDispatched', () => {
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
-        invoker: ['private'],
+        invoker: ["private"],
       },
     });
 
     expect(result.__endpoint).to.deep.equal({
       ...FULL_ENDPOINT,
-      platform: 'gcfv2',
+      platform: "gcfv2",
       taskQueueTrigger: {
         retryConfig: {
           maxAttempts: 4,
@@ -107,47 +123,115 @@ describe('onTaskDispatched', () => {
           maxConcurrentDispatches: 5,
           maxDispatchesPerSecond: 10,
         },
-        invoker: ['private'],
+        invoker: ["private"],
       },
     });
   });
 
-  it('should merge options and globalOptions', () => {
+  it("should return a minimal endpoint without preserveExternalChanges set", () => {
+    const result = onTaskDispatched(
+      {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+      },
+      () => undefined
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      labels: {},
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+          maxBackoffSeconds: options.RESET_VALUE,
+          maxDoublings: options.RESET_VALUE,
+          minBackoffSeconds: options.RESET_VALUE,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+          maxConcurrentDispatches: options.RESET_VALUE,
+        },
+      },
+    });
+  });
+
+  it("should create a complex endpoint with preserveExternalChanges set", () => {
+    const result = onTaskDispatched(
+      {
+        ...FULL_OPTIONS,
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: "private",
+        preserveExternalChanges: true,
+      },
+      () => undefined
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...FULL_ENDPOINT,
+      platform: "gcfv2",
+      taskQueueTrigger: {
+        retryConfig: {
+          maxAttempts: 4,
+          maxRetrySeconds: 10,
+        },
+        rateLimits: {
+          maxDispatchesPerSecond: 10,
+        },
+        invoker: ["private"],
+      },
+    });
+  });
+
+  it("should merge options and globalOptions", () => {
     options.setGlobalOptions({
       concurrency: 20,
-      region: 'europe-west1',
+      region: "europe-west1",
       minInstances: 1,
     });
 
     const result = onTaskDispatched(
       {
-        region: 'us-west1',
+        region: "us-west1",
         minInstances: 3,
       },
-      (request) => {}
+      () => undefined
     );
 
     expect(result.__trigger).to.deep.equal({
-      platform: 'gcfv2',
+      platform: "gcfv2",
       taskQueueTrigger: {},
       concurrency: 20,
       minInstances: 3,
-      regions: ['us-west1'],
+      regions: ["us-west1"],
       labels: {},
     });
 
     expect(result.__endpoint).to.deep.equal({
-      platform: 'gcfv2',
-      taskQueueTrigger: {},
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
       concurrency: 20,
       minInstances: 3,
-      region: ['us-west1'],
+      region: ["us-west1"],
       labels: {},
+      taskQueueTrigger: MINIMIAL_TASK_QUEUE_TRIGGER,
     });
   });
 
-  it('has a .run method', async () => {
-    const request: any = { data: 'data' };
+  it("has a .run method", async () => {
+    const request: any = { data: "data" };
     const cf = onTaskDispatched((r) => {
       expect(r.data).to.deep.equal(request.data);
     });
@@ -155,27 +239,27 @@ describe('onTaskDispatched', () => {
     await cf.run(request);
   });
 
-  it('should be an express handler', async () => {
-    const func = onTaskDispatched((request) => {});
+  it("should be an express handler", async () => {
+    const func = onTaskDispatched(() => undefined);
 
     const req = new MockRequest(
       {
         data: {},
       },
       {
-        'content-type': 'application/json',
-        authorization: 'Bearer abc',
-        origin: 'example.com',
+        "content-type": "application/json",
+        authorization: "Bearer abc",
+        origin: "example.com",
       }
     );
-    req.method = 'POST';
+    req.method = "POST";
 
     const resp = await runHandler(func, req as any);
     expect(resp.status).to.equal(204);
   });
 
   // These tests pass if the code transpiles
-  it('allows desirable syntax', () => {
+  it("allows desirable syntax", () => {
     onTaskDispatched<string>((request: Request<string>) => {
       // There should be no lint warnings that data is not a string.
       console.log(`hello, ${request.data}`);

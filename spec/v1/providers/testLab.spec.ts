@@ -20,38 +20,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
+import { expect } from "chai";
 
-import * as testLab from '../../../src/providers/testLab';
+import * as testLab from "../../../src/v1/providers/testLab";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
-describe('Test Lab Functions', () => {
-  describe('#onComplete', () => {
-    describe('with process.env.GCLOUD_PROJECT set', () => {
+describe("Test Lab Functions", () => {
+  describe("#onComplete", () => {
+    describe("with process.env.GCLOUD_PROJECT set", () => {
       before(() => {
-        process.env.GCLOUD_PROJECT = 'project1';
+        process.env.GCLOUD_PROJECT = "project1";
       });
 
       after(() => {
         delete process.env.GCLOUD_PROJECT;
       });
 
-      it('should return a trigger/endpoint with appropriate values', () => {
+      it("should return a trigger/endpoint with appropriate values", () => {
         const func = testLab.testMatrix().onComplete(() => null);
 
         expect(func.__trigger).to.deep.equal({
           eventTrigger: {
-            service: 'testing.googleapis.com',
-            eventType: 'google.testing.testMatrix.complete',
-            resource: 'projects/project1/testMatrices/{matrix}',
+            service: "testing.googleapis.com",
+            eventType: "google.testing.testMatrix.complete",
+            resource: "projects/project1/testMatrices/{matrix}",
           },
         });
 
         expect(func.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
           eventTrigger: {
-            eventType: 'google.testing.testMatrix.complete',
+            eventType: "google.testing.testMatrix.complete",
             eventFilters: {
-              resource: 'projects/project1/testMatrices/{matrix}',
+              resource: "projects/project1/testMatrices/{matrix}",
             },
             retry: false,
           },
@@ -63,174 +65,164 @@ describe('Test Lab Functions', () => {
         const event = {
           data: {
             clientInfo: {
-              name: 'test',
+              name: "test",
             },
-            invalidMatrixDetails: 'INVALID_INPUT_APK',
+            invalidMatrixDetails: "INVALID_INPUT_APK",
             resultStorage: {
               googleCloudStorage: {
-                gcsPath: 'gs://test.appspot.com',
+                gcsPath: "gs://test.appspot.com",
               },
             },
-            state: 'INVALID',
-            testMatrixId: 'matrix-375mfeu9mnw8t',
-            timestamp: '2019-04-15T17:43:32.538Z',
+            state: "INVALID",
+            testMatrixId: "matrix-375mfeu9mnw8t",
+            timestamp: "2019-04-15T17:43:32.538Z",
           },
           context: {
             resource: {},
           },
         };
         const expected = {
-          testMatrixId: 'matrix-375mfeu9mnw8t',
-          state: 'INVALID',
-          createTime: '2019-04-15T17:43:32.538Z',
+          testMatrixId: "matrix-375mfeu9mnw8t",
+          state: "INVALID",
+          createTime: "2019-04-15T17:43:32.538Z",
           outcomeSummary: undefined,
-          invalidMatrixDetails: 'INVALID_INPUT_APK',
+          invalidMatrixDetails: "INVALID_INPUT_APK",
           resultStorage: {
-            gcsPath: 'gs://test.appspot.com',
+            gcsPath: "gs://test.appspot.com",
             resultsUrl: undefined,
             toolResultsHistoryId: undefined,
             toolResultsExecutionId: undefined,
           } as testLab.ResultStorage,
           clientInfo: {
-            name: 'test',
+            name: "test",
             details: {},
           } as testLab.ClientInfo,
         } as testLab.TestMatrix;
         const func = testLab.testMatrix().onComplete((matrix) => matrix);
-        return expect(func(event.data, event.context)).to.eventually.deep.equal(
-          expected
-        );
+        return expect(func(event.data, event.context)).to.eventually.deep.equal(expected);
       });
 
       it('should parse TestMatrix in "FINISHED" state', () => {
         const event = {
           data: {
             clientInfo: {
-              name: 'test',
+              name: "test",
             },
-            outcomeSummary: 'FAILURE',
+            outcomeSummary: "FAILURE",
             resultStorage: {
               googleCloudStorage: {
-                gcsPath: 'gs://test.appspot.com',
+                gcsPath: "gs://test.appspot.com",
               },
               toolResultsExecution: {
-                executionId: '6352915701487950333',
-                historyId: 'bh.9b6f4dac24d3049',
-                projectId: 'test',
+                executionId: "6352915701487950333",
+                historyId: "bh.9b6f4dac24d3049",
+                projectId: "test",
               },
               toolResultsHistory: {
-                historyId: 'bh.9b6f4dac24d3049',
-                projectId: 'test',
+                historyId: "bh.9b6f4dac24d3049",
+                projectId: "test",
               },
-              resultsUrl: 'https://path/to/results',
+              resultsUrl: "https://path/to/results",
             },
-            state: 'FINISHED',
-            testMatrixId: 'matrix-tsgjk8pnvxhya',
-            timestamp: '2019-04-15T18:03:11.115Z',
+            state: "FINISHED",
+            testMatrixId: "matrix-tsgjk8pnvxhya",
+            timestamp: "2019-04-15T18:03:11.115Z",
           },
           context: {
             resource: {},
           },
         };
         const expected = {
-          testMatrixId: 'matrix-tsgjk8pnvxhya',
-          state: 'FINISHED',
-          createTime: '2019-04-15T18:03:11.115Z',
-          outcomeSummary: 'FAILURE',
+          testMatrixId: "matrix-tsgjk8pnvxhya",
+          state: "FINISHED",
+          createTime: "2019-04-15T18:03:11.115Z",
+          outcomeSummary: "FAILURE",
           invalidMatrixDetails: undefined,
           resultStorage: {
-            gcsPath: 'gs://test.appspot.com',
-            toolResultsHistoryId: 'bh.9b6f4dac24d3049',
-            toolResultsExecutionId: '6352915701487950333',
-            resultsUrl: 'https://path/to/results',
+            gcsPath: "gs://test.appspot.com",
+            toolResultsHistoryId: "bh.9b6f4dac24d3049",
+            toolResultsExecutionId: "6352915701487950333",
+            resultsUrl: "https://path/to/results",
           } as testLab.ResultStorage,
           clientInfo: {
-            name: 'test',
+            name: "test",
             details: {},
           } as testLab.ClientInfo,
         } as testLab.TestMatrix;
         const func = testLab.testMatrix().onComplete((matrix) => matrix);
-        return expect(func(event.data, event.context)).to.eventually.deep.equal(
-          expected
-        );
+        return expect(func(event.data, event.context)).to.eventually.deep.equal(expected);
       });
     });
 
-    describe('process.env.GCLOUD_PROJECT not set', () => {
-      it('should not throw if trigger is not accessed', () => {
-        expect(() => testLab.testMatrix().onComplete(() => null)).to.not.throw(
-          Error
-        );
+    describe("process.env.GCLOUD_PROJECT not set", () => {
+      it("should not throw if trigger is not accessed", () => {
+        expect(() => testLab.testMatrix().onComplete(() => null)).to.not.throw(Error);
       });
 
-      it('should throw when trigger is accessed', () => {
-        expect(
-          () => testLab.testMatrix().onComplete(() => null).__trigger
-        ).to.throw(Error);
+      it("should throw when trigger is accessed", () => {
+        expect(() => testLab.testMatrix().onComplete(() => null).__trigger).to.throw(Error);
       });
 
-      it('should throw when endpoint is accessed', () => {
-        expect(
-          () => testLab.testMatrix().onComplete(() => null).__endpoint
-        ).to.throw(Error);
+      it("should throw when endpoint is accessed", () => {
+        expect(() => testLab.testMatrix().onComplete(() => null).__endpoint).to.throw(Error);
       });
     });
   });
 
-  describe('TestMatrix', () => {
-    describe('constructor', () => {
-      it('should populate basic fields', () => {
+  describe("TestMatrix", () => {
+    describe("constructor", () => {
+      it("should populate basic fields", () => {
         const expected = {
-          testMatrixId: 'id1',
-          createTime: '2019-02-08T18:50:32.178Z',
-          state: 'FINISHED',
-          outcomeSummary: 'SUCCESS',
-          invalidMatrixDetails: 'DETAILS_UNAVAILABLE',
+          testMatrixId: "id1",
+          createTime: "2019-02-08T18:50:32.178Z",
+          state: "FINISHED",
+          outcomeSummary: "SUCCESS",
+          invalidMatrixDetails: "DETAILS_UNAVAILABLE",
           resultStorage: new testLab.ResultStorage(),
           clientInfo: new testLab.ClientInfo(),
         } as testLab.TestMatrix;
         const actual = new testLab.TestMatrix({
-          testMatrixId: 'id1',
-          timestamp: '2019-02-08T18:50:32.178Z',
-          state: 'FINISHED',
-          outcomeSummary: 'SUCCESS',
-          invalidMatrixDetails: 'DETAILS_UNAVAILABLE',
+          testMatrixId: "id1",
+          timestamp: "2019-02-08T18:50:32.178Z",
+          state: "FINISHED",
+          outcomeSummary: "SUCCESS",
+          invalidMatrixDetails: "DETAILS_UNAVAILABLE",
         });
         expect(actual).to.deep.equal(expected);
       });
     });
   });
 
-  describe('ClientInfo', () => {
-    describe('constructor', () => {
-      it('should populate basic fields', () => {
+  describe("ClientInfo", () => {
+    describe("constructor", () => {
+      it("should populate basic fields", () => {
         const expected = {
-          name: 'client',
+          name: "client",
           details: {},
         } as testLab.ClientInfo;
         const actual = new testLab.ClientInfo({
-          name: 'client',
+          name: "client",
         });
         expect(actual).to.deep.equal(expected);
       });
 
-      it('should populate key/value details', () => {
+      it("should populate key/value details", () => {
         const expected = {
-          name: 'client',
+          name: "client",
           details: {
-            k0: 'v0',
-            k1: '',
+            k0: "v0",
+            k1: "",
           },
         } as testLab.ClientInfo;
         const actual = new testLab.ClientInfo({
-          name: 'client',
+          name: "client",
           clientInfoDetails: [
             {
-              key: 'k0',
-              value: 'v0',
+              key: "k0",
+              value: "v0",
             },
             {
-              key: 'k1',
+              key: "k1",
             },
           ],
         });
@@ -239,34 +231,34 @@ describe('Test Lab Functions', () => {
     });
   });
 
-  describe('ResultStorage', () => {
-    describe('constructor', () => {
-      it('should populate basic fields', () => {
+  describe("ResultStorage", () => {
+    describe("constructor", () => {
+      it("should populate basic fields", () => {
         const expected = {
-          gcsPath: 'path',
-          toolResultsHistoryId: 'h1',
-          toolResultsExecutionId: 'e2',
-          resultsUrl: 'http://example.com/',
+          gcsPath: "path",
+          toolResultsHistoryId: "h1",
+          toolResultsExecutionId: "e2",
+          resultsUrl: "http://example.com/",
         } as testLab.ResultStorage;
         const actual = new testLab.ResultStorage({
           googleCloudStorage: {
-            gcsPath: 'path',
+            gcsPath: "path",
           },
           toolResultsHistory: {
-            projectId: 'p1',
-            historyId: 'h1',
+            projectId: "p1",
+            historyId: "h1",
           },
           toolResultsExecution: {
-            projectId: 'p2',
-            historyId: 'h2',
-            executionId: 'e2',
+            projectId: "p2",
+            historyId: "h2",
+            executionId: "e2",
           },
-          resultsUrl: 'http://example.com/',
+          resultsUrl: "http://example.com/",
         });
         expect(actual).to.deep.equal(expected);
       });
 
-      it('should not throw on unset fields', () => {
+      it("should not throw on unset fields", () => {
         expect(() => new testLab.ResultStorage({})).to.not.throw();
       });
     });

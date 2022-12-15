@@ -1,5 +1,5 @@
-import * as admin from 'firebase-admin';
-import fetch from 'node-fetch';
+import * as admin from "firebase-admin";
+import fetch from "node-fetch";
 
 interface AndroidDevice {
   androidModelId: string;
@@ -8,7 +8,7 @@ interface AndroidDevice {
   orientation: string;
 }
 
-const TESTING_API_SERVICE_NAME = 'testing.googleapis.com';
+const TESTING_API_SERVICE_NAME = "testing.googleapis.com";
 
 /**
  * Creates a new TestMatrix in Test Lab which is expected to be rejected as
@@ -18,11 +18,7 @@ const TESTING_API_SERVICE_NAME = 'testing.googleapis.com';
  * @param testId Test id which will be encoded in client info details
  * @param accessToken accessToken to attach to requested for authentication
  */
-export async function startTestRun(
-  projectId: string,
-  testId: string,
-  accessToken: string
-) {
+export async function startTestRun(projectId: string, testId: string, accessToken: string) {
   const device = await fetchDefaultDevice(accessToken);
   return await createTestMatrix(accessToken, projectId, testId, device);
 }
@@ -32,8 +28,8 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
     `https://${TESTING_API_SERVICE_NAME}/v1/testEnvironmentCatalog/ANDROID`,
     {
       headers: {
-        Authorization: 'Bearer ' + accessToken,
-        'Content-Type': 'application/json',
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
       },
     }
   );
@@ -45,13 +41,13 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
   const defaultModels = models.filter(
     (m) =>
       m.tags !== undefined &&
-      m.tags.indexOf('default') > -1 &&
+      m.tags.indexOf("default") > -1 &&
       m.supportedVersionIds !== undefined &&
       m.supportedVersionIds.length > 0
   );
 
   if (defaultModels.length === 0) {
-    throw new Error('No default device found');
+    throw new Error("No default device found");
   }
 
   const model = defaultModels[0];
@@ -60,8 +56,8 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
   return {
     androidModelId: model.id,
     androidVersionId: versions[versions.length - 1],
-    locale: 'en',
-    orientation: 'portrait',
+    locale: "en",
+    orientation: "portrait",
   } as AndroidDevice;
 }
 
@@ -76,7 +72,7 @@ async function createTestMatrix(
     testSpecification: {
       androidRoboTest: {
         appApk: {
-          gcsPath: 'gs://path/to/non-existing-app.apk',
+          gcsPath: "gs://path/to/non-existing-app.apk",
         },
       },
     },
@@ -87,13 +83,13 @@ async function createTestMatrix(
     },
     resultStorage: {
       googleCloudStorage: {
-        gcsPath: 'gs://' + admin.storage().bucket().name,
+        gcsPath: "gs://" + admin.storage().bucket().name,
       },
     },
     clientInfo: {
-      name: 'CloudFunctionsSDKIntegrationTest',
+      name: "CloudFunctionsSDKIntegrationTest",
       clientInfoDetails: {
-        key: 'testId',
+        key: "testId",
         value: testId,
       },
     },
@@ -101,10 +97,10 @@ async function createTestMatrix(
   const resp = await fetch(
     `https://${TESTING_API_SERVICE_NAME}/v1/projects/${projectId}/testMatrices`,
     {
-      method: 'POST',
+      method: "POST",
       headers: {
-        Authorization: 'Bearer ' + accessToken,
-        'Content-Type': 'application/json',
+        Authorization: "Bearer " + accessToken,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
     }

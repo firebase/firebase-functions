@@ -20,91 +20,110 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import * as schedule from '../../../src/v2/providers/scheduler';
+import { expect } from "chai";
+import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import * as options from "../../../src/v2/options";
+import * as schedule from "../../../src/v2/providers/scheduler";
+import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 
-describe('schedule', () => {
-  describe('getOpts', () => {
-    it('should handle a schedule', () => {
-      expect(schedule.getOpts('* * * * *')).to.deep.eq({
-        schedule: '* * * * *',
+const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
+  schedule: "",
+  timeZone: options.RESET_VALUE,
+  retryConfig: {
+    retryCount: options.RESET_VALUE,
+    maxRetrySeconds: options.RESET_VALUE,
+    minBackoffSeconds: options.RESET_VALUE,
+    maxBackoffSeconds: options.RESET_VALUE,
+    maxDoublings: options.RESET_VALUE,
+  },
+};
+
+describe("schedule", () => {
+  describe("getOpts", () => {
+    it("should handle a schedule", () => {
+      expect(schedule.getOpts("* * * * *")).to.deep.eq({
+        schedule: "* * * * *",
         opts: {},
       });
     });
 
-    it('should handle full options', () => {
+    it("should handle full options", () => {
       const options: schedule.ScheduleOptions = {
-        schedule: '* * * * *',
-        timeZone: 'utc',
+        schedule: "* * * * *",
+        timeZone: "utc",
         retryCount: 3,
         maxRetrySeconds: 1,
         minBackoffSeconds: 2,
         maxBackoffSeconds: 3,
         maxDoublings: 4,
-        memory: '128MiB',
-        region: 'us-central1',
+        memory: "128MiB",
+        region: "us-central1",
       };
 
       expect(schedule.getOpts(options)).to.deep.eq({
-        schedule: '* * * * *',
-        timeZone: 'utc',
-        retryCount: 3,
-        maxRetrySeconds: 1,
-        minBackoffSeconds: 2,
-        maxBackoffSeconds: 3,
-        maxDoublings: 4,
+        schedule: "* * * * *",
+        timeZone: "utc",
+        retryConfig: {
+          retryCount: 3,
+          maxRetrySeconds: 1,
+          minBackoffSeconds: 2,
+          maxBackoffSeconds: 3,
+          maxDoublings: 4,
+        },
         opts: {
           ...options,
-          memory: '128MiB',
-          region: 'us-central1',
+          memory: "128MiB",
+          region: "us-central1",
         },
       });
     });
   });
 
-  describe('onSchedule', () => {
-    it('should create a schedule function given a schedule', () => {
-      const schfn = schedule.onSchedule('* * * * *', (event) => console.log(1));
+  describe("onSchedule", () => {
+    it("should create a schedule function given a schedule", () => {
+      const schfn = schedule.onSchedule("* * * * *", () => console.log(1));
 
       expect(schfn.__endpoint).to.deep.eq({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
-          schedule: '* * * * *',
-          retryConfig: {},
+          ...MINIMAL_SCHEDULE_TRIGGER,
+          schedule: "* * * * *",
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
         {
-          api: 'cloudscheduler.googleapis.com',
-          reason: 'Needed for scheduled functions.',
+          api: "cloudscheduler.googleapis.com",
+          reason: "Needed for scheduled functions.",
         },
       ]);
     });
 
-    it('should create a schedule function given options', () => {
+    it("should create a schedule function given options", () => {
       const schfn = schedule.onSchedule(
         {
-          schedule: '* * * * *',
-          timeZone: 'utc',
+          schedule: "* * * * *",
+          timeZone: "utc",
           retryCount: 3,
           maxRetrySeconds: 10,
           minBackoffSeconds: 11,
           maxBackoffSeconds: 12,
           maxDoublings: 2,
-          region: 'us-central1',
-          labels: { key: 'val' },
+          region: "us-central1",
+          labels: { key: "val" },
         },
-        (event) => {}
+        () => undefined
       );
 
       expect(schfn.__endpoint).to.deep.eq({
-        platform: 'gcfv2',
-        labels: { key: 'val' },
-        region: ['us-central1'],
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: { key: "val" },
+        region: ["us-central1"],
         scheduleTrigger: {
-          schedule: '* * * * *',
-          timeZone: 'utc',
+          schedule: "* * * * *",
+          timeZone: "utc",
           retryConfig: {
             retryCount: 3,
             maxRetrySeconds: 10,
@@ -116,24 +135,56 @@ describe('schedule', () => {
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
         {
-          api: 'cloudscheduler.googleapis.com',
-          reason: 'Needed for scheduled functions.',
+          api: "cloudscheduler.googleapis.com",
+          reason: "Needed for scheduled functions.",
         },
       ]);
     });
 
-    it('should have a .run method', () => {
+    it("should create a schedule function with preserveExternalChanges", () => {
+      const schfn = schedule.onSchedule(
+        {
+          schedule: "* * * * *",
+          preserveExternalChanges: true,
+        },
+        () => console.log(1)
+      );
+
+      expect(schfn.__endpoint).to.deep.eq({
+        platform: "gcfv2",
+        labels: {},
+        scheduleTrigger: {
+          schedule: "* * * * *",
+          timeZone: undefined,
+          retryConfig: {
+            retryCount: undefined,
+            maxRetrySeconds: undefined,
+            minBackoffSeconds: undefined,
+            maxBackoffSeconds: undefined,
+            maxDoublings: undefined,
+          },
+        },
+      });
+      expect(schfn.__requiredAPIs).to.deep.eq([
+        {
+          api: "cloudscheduler.googleapis.com",
+          reason: "Needed for scheduled functions.",
+        },
+      ]);
+    });
+
+    it("should have a .run method", async () => {
       const testObj = {
-        foo: 'bar',
+        foo: "bar",
       };
-      const schfn = schedule.onSchedule('* * * * *', (event) => {
-        testObj.foo = 'newBar';
+      const schfn = schedule.onSchedule("* * * * *", () => {
+        testObj.foo = "newBar";
       });
 
-      schfn.run('input' as any);
+      await schfn.run("input" as any);
 
       expect(testObj).to.deep.eq({
-        foo: 'newBar',
+        foo: "newBar",
       });
     });
   });

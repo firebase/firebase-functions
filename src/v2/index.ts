@@ -28,16 +28,18 @@
  * @packageDocumentation
  */
 
-import * as logger from '../logger';
-import * as alerts from './providers/alerts';
-import * as database from './providers/database';
-import * as eventarc from './providers/eventarc';
-import * as https from './providers/https';
-import * as identity from './providers/identity';
-import * as pubsub from './providers/pubsub';
-import * as scheduler from './providers/scheduler';
-import * as storage from './providers/storage';
-import * as tasks from './providers/tasks';
+import * as logger from "../logger";
+import * as alerts from "./providers/alerts";
+import * as database from "./providers/database";
+import * as eventarc from "./providers/eventarc";
+import * as https from "./providers/https";
+import * as identity from "./providers/identity";
+import * as pubsub from "./providers/pubsub";
+import * as scheduler from "./providers/scheduler";
+import * as storage from "./providers/storage";
+import * as tasks from "./providers/tasks";
+import * as remoteConfig from "./providers/remoteConfig";
+import * as testLab from "./providers/testLab";
 
 export {
   alerts,
@@ -50,6 +52,8 @@ export {
   tasks,
   eventarc,
   scheduler,
+  remoteConfig,
+  testLab,
 };
 
 export {
@@ -60,8 +64,7 @@ export {
   VpcEgressSetting,
   IngressSetting,
   EventHandlerOptions,
-} from './options';
+} from "./options";
 
-export { Change } from '../common/change';
-
-export { CloudFunction, CloudEvent } from './core';
+export { CloudFunction, CloudEvent, ParamsOf } from "./core";
+export { Change } from "../common/change";

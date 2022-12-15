@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 /* tslint:disable:max-line-length */
-import { AnalyticsEvent } from '../../../src/providers/analytics';
+import { AnalyticsEvent } from "../../../src/v1/providers/analytics";
 
 // A payload, as it might arrive over the wire. Every possible field is filled out at least once.
 export const fullPayload = JSON.parse(`{
@@ -130,62 +130,62 @@ export const fullPayload = JSON.parse(`{
 
 // The event data that we expect would be constructed if the payload above were to arrive.
 export const data: AnalyticsEvent = {
-  reportingDate: '20170202',
-  name: 'Loaded_In_Background',
+  reportingDate: "20170202",
+  name: "Loaded_In_Background",
   params: {
-    build: '1350',
+    build: "1350",
     calls_remaining: 10,
     fraction_calls_dropped: 0.0123456,
     average_call_rating: 4.5,
   },
-  logTime: '2017-02-02T23:06:26.124Z',
-  previousLogTime: '2017-02-02T23:01:19.797Z',
+  logTime: "2017-02-02T23:06:26.124Z",
+  previousLogTime: "2017-02-02T23:01:19.797Z",
   valueInUSD: 1234.5,
   user: {
-    userId: 'abcdefghijklmnop!',
+    userId: "abcdefghijklmnop!",
     appInfo: {
-      appId: 'com.mobileday.MobileDay',
-      appInstanceId: 'E3C9939401814B9B954725A740B8C7BC',
-      appPlatform: 'IOS',
-      appStore: 'iTunes',
-      appVersion: '5.2.0',
+      appId: "com.mobileday.MobileDay",
+      appInstanceId: "E3C9939401814B9B954725A740B8C7BC",
+      appPlatform: "IOS",
+      appStore: "iTunes",
+      appVersion: "5.2.0",
     },
     bundleInfo: {
       bundleSequenceId: 6034,
       serverTimestampOffset: 371,
     },
     deviceInfo: {
-      deviceCategory: 'mobile',
-      deviceModel: 'iPhone7,2',
+      deviceCategory: "mobile",
+      deviceModel: "iPhone7,2",
       deviceTimeZoneOffsetSeconds: -21600,
-      mobileBrandName: 'Apple',
-      mobileMarketingName: 'iPhone 6',
-      mobileModelName: 'iPhone 6',
-      platformVersion: '10.2.1',
-      userDefaultLanguage: 'en-us',
-      deviceId: '599F9C00-92DC-4B5C-9464-7971F01F8370',
-      resettableDeviceId: '599F9C00-92DC-4B5C-9464-7971F01F8370',
+      mobileBrandName: "Apple",
+      mobileMarketingName: "iPhone 6",
+      mobileModelName: "iPhone 6",
+      platformVersion: "10.2.1",
+      userDefaultLanguage: "en-us",
+      deviceId: "599F9C00-92DC-4B5C-9464-7971F01F8370",
+      resettableDeviceId: "599F9C00-92DC-4B5C-9464-7971F01F8370",
       limitedAdTracking: true,
     },
-    firstOpenTime: '2016-04-28T15:00:35.819Z',
+    firstOpenTime: "2016-04-28T15:00:35.819Z",
     geoInfo: {
-      city: 'Plano',
-      continent: '021',
-      country: 'United States',
-      region: 'Texas',
+      city: "Plano",
+      continent: "021",
+      country: "United States",
+      region: "Texas",
     },
     userProperties: {
       build: {
-        setTime: '2017-02-02T23:06:26.090Z',
-        value: '1350',
+        setTime: "2017-02-02T23:06:26.090Z",
+        value: "1350",
       },
       calls_remaining: {
-        setTime: '2017-02-02T23:06:26.094Z',
-        value: '10',
+        setTime: "2017-02-02T23:06:26.094Z",
+        value: "10",
       },
       version: {
-        setTime: '2017-02-02T23:06:26.085Z',
-        value: '5.2.0',
+        setTime: "2017-02-02T23:06:26.085Z",
+        value: "5.2.0",
       },
     },
   },

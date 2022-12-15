@@ -25,31 +25,39 @@
  * @packageDocumentation
  */
 
-import * as cors from 'cors';
-import * as express from 'express';
-import { convertIfPresent, convertInvoker } from '../../common/encoding';
-
-import { isDebugFeatureEnabled } from '../../common/debug';
+import * as cors from "cors";
+import * as express from "express";
+import { convertIfPresent, convertInvoker } from "../../common/encoding";
+import { wrapTraceContext } from "../trace";
+import { isDebugFeatureEnabled } from "../../common/debug";
+import { ResetValue } from "../../common/options";
 import {
   CallableRequest,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-} from '../../common/providers/https';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import * as options from '../options';
-import { GlobalOptions, SupportedRegion } from '../options';
-import { Expression } from '../params';
+} from "../../common/providers/https";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { GlobalOptions, SupportedRegion } from "../options";
+import { Expression } from "../../params";
+import { SecretParam } from "../../params/types";
+import * as options from "../options";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 /**
- * Options that can be set on an individual HTTPS function.
+ * Options that can be set on an onRequest HTTPS function.
  */
-export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
+export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
+  /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?: SupportedRegion | string | Array<SupportedRegion | string>;
+
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
    * If this is an `Array`, allows requests from domains matching at least one entry of the array.
@@ -59,96 +67,106 @@ export interface HttpsOptions extends Omit<GlobalOptions, 'region'> {
 
   /**
    * Amount of memory to allocate to a function.
-   * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   * A value of null restores the default of 60s
+   *
+   * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
-   * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
+   *
+   * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
+   * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
-   * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
-   * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
-   * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
-   * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
    */
   labels?: Record<string, string>;
 
-  /**
-   * Invoker to set access control on https functions.
-   */
-  invoker?: 'public' | 'private' | string | string[];
-
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
-  /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  /**
+   * Invoker to set access control on https functions.
+   */
+  invoker?: "public" | "private" | string | string[];
+}
+
+/**
+ * Options that can be set on a callable HTTPS function.
+ */
+export interface CallableOptions extends HttpsOptions {
+  /**
+   * Determines whether Firebase AppCheck is enforced.
+   * When true, requests with invalid tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set event.app to undefiend.
+   */
+  enforceAppCheck?: boolean;
 }
 
 /**
@@ -184,10 +202,7 @@ export interface CallableFunction<T, Return> extends HttpsFunction {
  */
 export function onRequest(
   opts: HttpsOptions,
-  handler: (
-    request: Request,
-    response: express.Response
-  ) => void | Promise<void>
+  handler: (request: Request, response: express.Response) => void | Promise<void>
 ): HttpsFunction;
 /**
  * Handles HTTPS requests.
@@ -195,19 +210,13 @@ export function onRequest(
  * @returns A function that you can export and deploy.
  */
 export function onRequest(
-  handler: (
-    request: Request,
-    response: express.Response
-  ) => void | Promise<void>
+  handler: (request: Request, response: express.Response) => void | Promise<void>
 ): HttpsFunction;
 export function onRequest(
   optsOrHandler:
     | HttpsOptions
     | ((request: Request, response: express.Response) => void | Promise<void>),
-  handler?: (
-    request: Request,
-    response: express.Response
-  ) => void | Promise<void>
+  handler?: (request: Request, response: express.Response) => void | Promise<void>
 ): HttpsFunction {
   let opts: HttpsOptions;
   if (arguments.length === 1) {
@@ -220,9 +229,9 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if (isDebugFeatureEnabled('enableCors') || 'cors' in opts) {
+  if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     let origin = opts.cors;
-    if (isDebugFeatureEnabled('enableCors')) {
+    if (isDebugFeatureEnabled("enableCors")) {
       // Respect `cors: false` to turn off cors even if debug feature is enabled.
       origin = opts.cors === false ? false : true;
     }
@@ -230,7 +239,7 @@ export function onRequest(
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
-        res.on('finish', resolve);
+        res.on("finish", resolve);
         cors({ origin })(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
@@ -238,18 +247,16 @@ export function onRequest(
     };
   }
 
-  Object.defineProperty(handler, '__trigger', {
+  handler = wrapTraceContext(handler);
+
+  Object.defineProperty(handler, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
       const trigger: any = {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {
@@ -260,13 +267,7 @@ export function onRequest(
           allowInsecure: false,
         },
       };
-      convertIfPresent(
-        trigger.httpsTrigger,
-        opts,
-        'invoker',
-        'invoker',
-        convertInvoker
-      );
+      convertIfPresent(trigger.httpsTrigger, opts, "invoker", "invoker", convertInvoker);
       return trigger;
     },
   });
@@ -276,7 +277,8 @@ export function onRequest(
   // but optionsToTriggerAnnotations handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
   const endpoint: Partial<ManifestEndpoint> = {
-    platform: 'gcfv2',
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -285,13 +287,7 @@ export function onRequest(
     },
     httpsTrigger: {},
   };
-  convertIfPresent(
-    endpoint.httpsTrigger,
-    opts,
-    'invoker',
-    'invoker',
-    convertInvoker
-  );
+  convertIfPresent(endpoint.httpsTrigger, opts, "invoker", "invoker", convertInvoker);
   (handler as HttpsFunction).__endpoint = endpoint;
 
   return handler as HttpsFunction;
@@ -304,7 +300,7 @@ export function onRequest(
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
-  opts: HttpsOptions,
+  opts: CallableOptions,
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 /**
@@ -316,47 +312,44 @@ export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return>;
 export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: HttpsOptions | ((request: CallableRequest<T>) => Return),
+  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
 ): CallableFunction<T, Return> {
-  let opts: HttpsOptions;
-  if (arguments.length == 1) {
+  let opts: CallableOptions;
+  if (arguments.length === 1) {
     opts = {};
     handler = optsOrHandler as (request: CallableRequest<T>) => Return;
   } else {
-    opts = optsOrHandler as HttpsOptions;
+    opts = optsOrHandler as CallableOptions;
   }
 
-  const origin = isDebugFeatureEnabled('enableCors')
-    ? true
-    : 'cors' in opts
-    ? opts.cors
-    : true;
+  const origin = isDebugFeatureEnabled("enableCors") ? true : "cors" in opts ? opts.cors : true;
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
   const func: any = onCallHandler(
-    { cors: { origin, methods: 'POST' } },
+    {
+      cors: { origin, methods: "POST" },
+      enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+    },
     fixedLen
   );
 
-  Object.defineProperty(func, '__trigger', {
+  Object.defineProperty(func, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
       const specificOpts = options.optionsToTriggerAnnotations(opts);
       return {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {
           ...baseOpts?.labels,
           ...specificOpts?.labels,
-          'deployment-callable': 'true',
+          "deployment-callable": "true",
         },
         httpsTrigger: {
           allowInsecure: false,
@@ -370,7 +363,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // but optionsToEndpoint handles both cases.
   const specificOpts = options.optionsToEndpoint(opts);
   func.__endpoint = {
-    platform: 'gcfv2',
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {

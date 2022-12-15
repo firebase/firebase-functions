@@ -20,29 +20,40 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from 'express';
-import { copyIfPresent } from '../../common/encoding';
-import { timezone } from '../../common/timezone';
-import * as logger from '../../logger';
-import { ManifestEndpoint, ManifestRequiredAPI } from '../../runtime/manifest';
-import * as options from '../options';
-import { HttpsFunction } from './https';
+import * as express from "express";
+
+import { copyIfPresent } from "../../common/encoding";
+import { ResetValue } from "../../common/options";
+import { timezone } from "../../common/timezone";
+import {
+  initV2Endpoint,
+  initV2ScheduleTrigger,
+  ManifestEndpoint,
+  ManifestRequiredAPI,
+} from "../../runtime/manifest";
+import { HttpsFunction } from "./https";
+import { wrapTraceContext } from "../trace";
+import { Expression } from "../../params";
+import * as logger from "../../logger";
+import * as options from "../options";
 
 /** @hidden */
-interface ScheduleArgs {
-  schedule: string;
-  timeZone?: timezone;
-  retryCount?: number;
-  maxRetrySeconds?: number;
-  minBackoffSeconds?: number;
-  maxBackoffSeconds?: number;
-  maxDoublings?: number;
+interface SeparatedOpts {
+  schedule: string | Expression<string>;
+  timeZone?: timezone | Expression<string> | ResetValue;
+  retryConfig?: {
+    retryCount?: number | Expression<number> | ResetValue;
+    maxRetrySeconds?: number | Expression<number> | ResetValue;
+    minBackoffSeconds?: number | Expression<number> | ResetValue;
+    maxBackoffSeconds?: number | Expression<number> | ResetValue;
+    maxDoublings?: number | Expression<number> | ResetValue;
+  };
   opts: options.GlobalOptions;
 }
 
 /** @internal */
-export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
-  if (typeof args === 'string') {
+export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
+  if (typeof args === "string") {
     return {
       schedule: args,
       opts: {} as options.GlobalOptions,
@@ -51,11 +62,13 @@ export function getOpts(args: string | ScheduleOptions): ScheduleArgs {
   return {
     schedule: args.schedule,
     timeZone: args.timeZone,
-    retryCount: args.retryCount,
-    maxRetrySeconds: args.maxRetrySeconds,
-    minBackoffSeconds: args.minBackoffSeconds,
-    maxBackoffSeconds: args.maxBackoffSeconds,
-    maxDoublings: args.maxDoublings,
+    retryConfig: {
+      retryCount: args.retryCount,
+      maxRetrySeconds: args.maxRetrySeconds,
+      minBackoffSeconds: args.minBackoffSeconds,
+      maxBackoffSeconds: args.maxBackoffSeconds,
+      maxDoublings: args.maxDoublings,
+    },
     opts: args as options.GlobalOptions,
   };
 }
@@ -95,22 +108,22 @@ export interface ScheduleOptions extends options.GlobalOptions {
   schedule: string;
 
   /** The timezone that the schedule executes in. */
-  timeZone?: timezone;
+  timeZone?: timezone | Expression<string> | ResetValue;
 
   /** The number of retry attempts for a failed run. */
-  retryCount?: number;
+  retryCount?: number | Expression<number> | ResetValue;
 
   /** The time limit for retrying. */
-  maxRetrySeconds?: number;
+  maxRetrySeconds?: number | Expression<number> | ResetValue;
 
   /** The minimum time to wait before retying. */
-  minBackoffSeconds?: number;
+  minBackoffSeconds?: number | Expression<number> | ResetValue;
 
   /** The maximum time to wait before retrying. */
-  maxBackoffSeconds?: number;
+  maxBackoffSeconds?: number | Expression<number> | ResetValue;
 
   /** The time between will double max doublings times. */
-  maxDoublings?: number;
+  maxDoublings?: number | Expression<number> | ResetValue;
 }
 
 /**
@@ -122,7 +135,7 @@ export interface ScheduleOptions extends options.GlobalOptions {
  */
 export function onSchedule(
   schedule: string,
-  handler: (req: ScheduledEvent) => void | Promise<void>
+  handler: (event: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -134,7 +147,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (req: ScheduledEvent) => void | Promise<void>
+  handler: (event: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -146,18 +159,14 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (req: ScheduledEvent) => void | Promise<void>
+  handler: (event: ScheduledEvent) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
-  const func: any = async (
-    req: express.Request,
-    res: express.Response
-  ): Promise<any> => {
+  const httpFunc = async (req: express.Request, res: express.Response): Promise<any> => {
     const event: ScheduledEvent = {
-      jobName: req.header('X-CloudScheduler-JobName') || undefined,
-      scheduleTime:
-        req.header('X-CloudScheduler-ScheduleTime') || new Date().toISOString(),
+      jobName: req.header("X-CloudScheduler-JobName") || undefined,
+      scheduleTime: req.header("X-CloudScheduler-ScheduleTime") || new Date().toISOString(),
     };
     try {
       await handler(event);
@@ -167,42 +176,41 @@ export function onSchedule(
       res.status(500).send();
     }
   };
+  const func: any = wrapTraceContext(httpFunc);
   func.run = handler;
 
-  const baseOptsEndpoint = options.optionsToEndpoint(
-    options.getGlobalOptions()
-  );
+  const globalOpts = options.getGlobalOptions();
+  const baseOptsEndpoint = options.optionsToEndpoint(globalOpts);
   const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
 
   const ep: ManifestEndpoint = {
-    platform: 'gcfv2',
+    ...initV2Endpoint(globalOpts, separatedOpts.opts),
+    platform: "gcfv2",
     ...baseOptsEndpoint,
     ...specificOptsEndpoint,
     labels: {
       ...baseOptsEndpoint?.labels,
       ...specificOptsEndpoint?.labels,
     },
-    scheduleTrigger: {
-      schedule: separatedOpts.schedule,
-      retryConfig: {},
-    },
+    scheduleTrigger: initV2ScheduleTrigger(separatedOpts.schedule, globalOpts, separatedOpts.opts),
   };
-  copyIfPresent(ep.scheduleTrigger, separatedOpts, 'timeZone');
+
+  copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
-    separatedOpts,
-    'retryCount',
-    'maxRetrySeconds',
-    'minBackoffSeconds',
-    'maxBackoffSeconds',
-    'maxDoublings'
+    separatedOpts.retryConfig,
+    "retryCount",
+    "maxRetrySeconds",
+    "minBackoffSeconds",
+    "maxBackoffSeconds",
+    "maxDoublings"
   );
   func.__endpoint = ep;
 
   func.__requiredAPIs = [
     {
-      api: 'cloudscheduler.googleapis.com',
-      reason: 'Needed for scheduled functions.',
+      api: "cloudscheduler.googleapis.com",
+      reason: "Needed for scheduled functions.",
     },
   ];
 

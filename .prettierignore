@@ -1,3 +1,4 @@
-lib
-package.json
-spec/fixtures/credential/unparsable.key.json
+/node_modules
+/lib/**/*
+/CONTRIBUTING.md
+/docgen

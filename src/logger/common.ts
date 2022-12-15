@@ -20,25 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-// Determine if structured logs are supported (node >= 10). If something goes wrong,
-// assume no since unstructured is safer.
-/** @hidden */
-export const SUPPORTS_STRUCTURED_LOGS =
-  parseInt(process.versions?.node?.split('.')?.[0] || '8', 10) >= 10;
-
 // Map LogSeverity types to their equivalent `console.*` method.
 /** @hidden */
 export const CONSOLE_SEVERITY: {
-  [severity: string]: 'debug' | 'info' | 'warn' | 'error';
+  [severity: string]: "debug" | "info" | "warn" | "error";
 } = {
-  DEBUG: 'debug',
-  INFO: 'info',
-  NOTICE: 'info',
-  WARNING: 'warn',
-  ERROR: 'error',
-  CRITICAL: 'error',
-  ALERT: 'error',
-  EMERGENCY: 'error',
+  DEBUG: "debug",
+  INFO: "info",
+  NOTICE: "info",
+  WARNING: "warn",
+  ERROR: "error",
+  CRITICAL: "error",
+  ALERT: "error",
+  EMERGENCY: "error",
 };
 
 // safely preserve unpatched console.* methods in case of compat require

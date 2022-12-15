@@ -20,30 +20,24 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { format } from 'util';
-import {
-  CONSOLE_SEVERITY,
-  SUPPORTS_STRUCTURED_LOGS,
-  UNPATCHED_CONSOLE,
-} from './common';
+import { format } from "util";
+import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
 /** @hidden */
 function patchedConsole(severity: string): (data: any, ...args: any[]) => void {
-  return function(data: any, ...args: any[]): void {
-    if (SUPPORTS_STRUCTURED_LOGS) {
-      UNPATCHED_CONSOLE[CONSOLE_SEVERITY[severity]](
-        JSON.stringify({ severity, message: format(data, ...args) })
-      );
-      return;
+  return function (data: any, ...args: any[]): void {
+    let message = format(data, ...args);
+    if (severity === "ERROR") {
+      message = new Error(message).stack || message;
     }
 
-    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[severity]](data, ...args);
+    UNPATCHED_CONSOLE[CONSOLE_SEVERITY[severity]](JSON.stringify({ severity, message }));
   };
 }
 
 // IMPORTANT -- "../logger" must be imported before monkeypatching!
-console.debug = patchedConsole('DEBUG');
-console.info = patchedConsole('INFO');
-console.log = patchedConsole('INFO');
-console.warn = patchedConsole('WARNING');
-console.error = patchedConsole('ERROR');
+console.debug = patchedConsole("DEBUG");
+console.info = patchedConsole("INFO");
+console.log = patchedConsole("INFO");
+console.warn = patchedConsole("WARNING");
+console.error = patchedConsole("ERROR");

@@ -1,22 +1,24 @@
-import { expect } from 'chai';
-import * as alerts from '../../../../src/v2/providers/alerts';
-import * as performance from '../../../../src/v2/providers/alerts/performance';
-import { FULL_ENDPOINT, FULL_OPTIONS } from '../fixtures';
+import { expect } from "chai";
+import * as alerts from "../../../../src/v2/providers/alerts";
+import * as performance from "../../../../src/v2/providers/alerts/performance";
+import { FULL_OPTIONS } from "../fixtures";
+import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
 
-const APPID = '123456789';
+const APPID = "123456789";
 const myHandler = () => 42;
 
 const APP_EVENT_FILTER = {
   appid: APPID,
 };
 
-describe('performance', () => {
-  describe('onThresholdAlertPublished', () => {
-    it('should create a function with alertType & appId', () => {
+describe("performance", () => {
+  describe("onThresholdAlertPublished", () => {
+    it("should create a function with alertType & appId", () => {
       const func = performance.onThresholdAlertPublished(APPID, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
@@ -29,14 +31,12 @@ describe('performance', () => {
       });
     });
 
-    it('should create a function with opts', () => {
-      const func = performance.onThresholdAlertPublished(
-        { ...FULL_OPTIONS },
-        myHandler
-      );
+    it("should create a function with opts", () => {
+      const func = performance.onThresholdAlertPublished({ ...FULL_OPTIONS }, myHandler);
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -47,7 +47,7 @@ describe('performance', () => {
       });
     });
 
-    it('should create a function with appid in opts', () => {
+    it("should create a function with appid in opts", () => {
       const func = performance.onThresholdAlertPublished(
         { ...FULL_OPTIONS, appId: APPID },
         myHandler
@@ -55,6 +55,7 @@ describe('performance', () => {
 
       expect(func.__endpoint).to.deep.equal({
         ...FULL_ENDPOINT,
+        platform: "gcfv2",
         eventTrigger: {
           eventType: alerts.eventType,
           eventFilters: {
@@ -66,11 +67,12 @@ describe('performance', () => {
       });
     });
 
-    it('should create a function without opts or appId', () => {
+    it("should create a function without opts or appId", () => {
       const func = performance.onThresholdAlertPublished(myHandler);
 
       expect(func.__endpoint).to.deep.equal({
-        platform: 'gcfv2',
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
         labels: {},
         eventTrigger: {
           eventType: alerts.eventType,
@@ -82,56 +84,53 @@ describe('performance', () => {
       });
     });
 
-    it('should create a function with a run method', () => {
-      const func = performance.onThresholdAlertPublished(
-        APPID,
-        (event) => event
-      );
+    it("should create a function with a run method", () => {
+      const func = performance.onThresholdAlertPublished(APPID, (event) => event);
 
-      const res = func.run('input' as any);
+      const res = func.run("input" as any);
 
-      expect(res).to.equal('input');
+      expect(res).to.equal("input");
     });
   });
 
-  describe('getOptsAndApp', () => {
-    it('should parse a string', () => {
+  describe("getOptsAndApp", () => {
+    it("should parse a string", () => {
       const [opts, appId] = performance.getOptsAndApp(APPID);
 
       expect(opts).to.deep.equal({});
       expect(appId).to.equal(APPID);
     });
 
-    it('should parse an options object without appId', () => {
+    it("should parse an options object without appId", () => {
       const myOpts: performance.PerformanceOptions = {
-        region: 'us-west1',
+        region: "us-west1",
       };
 
       const [opts, appId] = performance.getOptsAndApp(myOpts);
 
-      expect(opts).to.deep.equal({ region: 'us-west1' });
+      expect(opts).to.deep.equal({ region: "us-west1" });
       expect(appId).to.be.undefined;
     });
 
-    it('should parse an options object with appId', () => {
+    it("should parse an options object with appId", () => {
       const myOpts: performance.PerformanceOptions = {
         appId: APPID,
-        region: 'us-west1',
+        region: "us-west1",
       };
 
       const [opts, appId] = performance.getOptsAndApp(myOpts);
 
-      expect(opts).to.deep.equal({ region: 'us-west1' });
+      expect(opts).to.deep.equal({ region: "us-west1" });
       expect(appId).to.equal(APPID);
     });
   });
 
-  describe('convertPayload', () => {
-    it('should return the same payload', () => {
+  describe("convertPayload", () => {
+    it("should return the same payload", () => {
       const payload = {
-        a: 'b',
+        a: "b",
         conditionPercentile: 23,
-        appVersion: '3',
+        appVersion: "3",
       };
 
       const convertedPayload = performance.convertPayload(payload as any);
@@ -139,29 +138,29 @@ describe('performance', () => {
       expect(convertedPayload).to.deep.eq(payload);
     });
 
-    it('should return the same payload if the fields are undefined', () => {
+    it("should return the same payload if the fields are undefined", () => {
       const payload = {
-        a: 'b',
+        a: "b",
       };
 
       const convertedPayload = performance.convertPayload(payload as any);
 
       expect(convertedPayload).to.deep.eq({
-        a: 'b',
+        a: "b",
       });
     });
 
-    it('should remove fields', () => {
+    it("should remove fields", () => {
       const payload = {
-        a: 'b',
+        a: "b",
         conditionPercentile: 0,
-        appVersion: '',
+        appVersion: "",
       };
 
       const convertedPayload = performance.convertPayload(payload as any);
 
       expect(convertedPayload).to.deep.eq({
-        a: 'b',
+        a: "b",
       });
     });
   });

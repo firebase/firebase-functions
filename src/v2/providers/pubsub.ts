@@ -25,11 +25,14 @@
  * @packageDocumentation
  */
 
-import { copyIfPresent } from '../../common/encoding';
-import { ManifestEndpoint } from '../../runtime/manifest';
-import { CloudEvent, CloudFunction } from '../core';
-import * as options from '../options';
-import { Expression } from '../params';
+import { copyIfPresent } from "../../common/encoding";
+import { ResetValue } from "../../common/options";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../core";
+import { wrapTraceContext } from "../trace";
+import { Expression } from "../../params";
+import * as options from "../options";
+import { SecretParam } from "../../params/types";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -95,7 +98,7 @@ export class Message<T> {
     this.messageId = data.messageId;
     this.data = data.data;
     this.attributes = data.attributes || {};
-    this.orderingKey = data.orderingKey || '';
+    this.orderingKey = data.orderingKey || "";
     this.publishTime = data.publishTime || new Date().toISOString();
     this._json = data.json;
   }
@@ -104,15 +107,11 @@ export class Message<T> {
    * The JSON data payload of this message object, if any.
    */
   get json(): T {
-    if (typeof this._json === 'undefined') {
+    if (typeof this._json === "undefined") {
       try {
-        this._json = JSON.parse(
-          Buffer.from(this.data, 'base64').toString('utf8')
-        );
+        this._json = JSON.parse(Buffer.from(this.data, "base64").toString("utf8"));
       } catch (err) {
-        throw new Error(
-          `Unable to parse Pub/Sub message data as JSON: ${err.message}`
-        );
+        throw new Error(`Unable to parse Pub/Sub message data as JSON: ${err.message}`);
       }
     }
 
@@ -157,84 +156,89 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   topic: string;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
   region?: options.SupportedRegion | string;
 
   /**
    * Amount of memory to allocate to a function.
-   * A value of null restores the defaults of 256MB.
    */
-  memory?: options.MemoryOption | Expression<number> | null;
+  memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   * A value of null restores the default of 60s
+   *
+   * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
-  timeoutSeconds?: number | Expression<number> | null;
+  timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
+   * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
-   * A value of null restores the default min instances.
    */
-  minInstances?: number | Expression<number> | null;
+  minInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Max number of instances to be running in parallel.
-   * A value of null restores the default max instances.
    */
-  maxInstances?: number | Expression<number> | null;
+  maxInstances?: number | Expression<number> | ResetValue;
 
   /**
    * Number of requests a function can serve at once.
+   *
+   * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
-  concurrency?: number | Expression<number> | null;
+  concurrency?: number | Expression<number> | ResetValue;
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
+   * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
    * to the value "gcf_gen1"
    */
-  cpu?: number | 'gcf_gen1';
+  cpu?: number | "gcf_gen1";
 
   /**
    * Connect cloud function to specified VPC connector.
-   * A value of null removes the VPC connector
    */
-  vpcConnector?: string | null;
+  vpcConnector?: string | ResetValue;
 
   /**
    * Egress settings for VPC connector.
-   * A value of null turns off VPC connector egress settings
    */
-  vpcConnectorEgressSettings?: options.VpcEgressSetting | null;
+  vpcConnectorEgressSettings?: options.VpcEgressSetting | ResetValue;
 
   /**
    * Specific service account for the function to run as.
-   * A value of null restores the default service account.
    */
-  serviceAccount?: string | null;
+  serviceAccount?: string | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
-   * A value of null turns off ingress settings.
    */
-  ingressSettings?: options.IngressSetting | null;
+  ingressSettings?: options.IngressSetting | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -244,10 +248,10 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: string[];
+  secrets?: (string | SecretParam)[];
 
   /** Whether failed executions should be delivered again. */
-  retry?: boolean;
+  retry?: boolean | Expression<boolean> | ResetValue;
 }
 
 /**
@@ -284,7 +288,7 @@ export function onMessagePublished<T = any>(
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
-  if (typeof topicOrOptions === 'string') {
+  if (typeof topicOrOptions === "string") {
     topic = topicOrOptions;
     opts = {};
   } else {
@@ -299,20 +303,18 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return handler(raw as CloudEvent<MessagePublishedData<T>>);
+    return wrapTraceContext(handler)(raw as CloudEvent<MessagePublishedData<T>>);
   };
 
   func.run = handler;
 
-  Object.defineProperty(func, '__trigger', {
+  Object.defineProperty(func, "__trigger", {
     get: () => {
-      const baseOpts = options.optionsToTriggerAnnotations(
-        options.getGlobalOptions()
-      );
+      const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       const specificOpts = options.optionsToTriggerAnnotations(opts);
 
       return {
-        platform: 'gcfv2',
+        platform: "gcfv2",
         ...baseOpts,
         ...specificOpts,
         labels: {
@@ -320,7 +322,7 @@ export function onMessagePublished<T = any>(
           ...specificOpts?.labels,
         },
         eventTrigger: {
-          eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
+          eventType: "google.cloud.pubsub.topic.v1.messagePublished",
           resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
         },
       };
@@ -331,7 +333,8 @@ export function onMessagePublished<T = any>(
   const specificOpts = options.optionsToEndpoint(opts);
 
   const endpoint: ManifestEndpoint = {
-    platform: 'gcfv2',
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
     labels: {
@@ -339,12 +342,12 @@ export function onMessagePublished<T = any>(
       ...specificOpts?.labels,
     },
     eventTrigger: {
-      eventType: 'google.cloud.pubsub.topic.v1.messagePublished',
+      eventType: "google.cloud.pubsub.topic.v1.messagePublished",
       eventFilters: { topic },
       retry: false,
     },
   };
-  copyIfPresent(endpoint.eventTrigger, opts, 'retry', 'retry');
+  copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
   func.__endpoint = endpoint;
 
   return func;

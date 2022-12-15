@@ -25,36 +25,36 @@
  * @packageDocumentation
  */
 
-import { FirebaseAlertData, getEndpointAnnotation } from '.';
-import { CloudEvent, CloudFunction } from '../../core';
-import { EventHandlerOptions } from '../../options';
+import { CloudEvent, CloudFunction } from "../../core";
+import { EventHandlerOptions } from "../../options";
+import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 
 /**
  * The internal payload object for a performance threshold alert.
  * Payload is wrapped inside a {@link FirebaseAlertData} object.
  */
 export interface ThresholdAlertPayload {
-  /* Name of the trace or network request this alert is for (e.g. my_custom_trace, firebase.com/api/123) */
+  /** Name of the trace or network request this alert is for (e.g. my_custom_trace, firebase.com/api/123) */
   eventName: string;
-  /* The resource type this alert is for (i.e. trace, network request, screen rendering, etc.) */
+  /** The resource type this alert is for (i.e. trace, network request, screen rendering, etc.) */
   eventType: string;
-  /* The metric type this alert is for (i.e. success rate, response time, duration, etc.) */
+  /** The metric type this alert is for (i.e. success rate, response time, duration, etc.) */
   metricType: string;
-  /* The number of events checked for this alert condition */
+  /** The number of events checked for this alert condition */
   numSamples: number;
-  /* The threshold value of the alert condition without units (e.g. "75", "2.1") */
+  /** The threshold value of the alert condition without units (e.g. "75", "2.1") */
   thresholdValue: number;
-  /* The unit for the alert threshold (e.g. "percent", "seconds") */
+  /** The unit for the alert threshold (e.g. "percent", "seconds") */
   thresholdUnit: string;
-  /* The percentile of the alert condition, can be 0 if percentile is not applicable to the alert condition and omitted; range: [1, 100] */
+  /** The percentile of the alert condition, can be 0 if percentile is not applicable to the alert condition and omitted; range: [1, 100] */
   conditionPercentile?: number;
-  /* The app version this alert was triggered for, can be omitted if the alert is for a network request (because the alert was checked against data from all versions of app) or a web app (where the app is versionless) */
+  /** The app version this alert was triggered for, can be omitted if the alert is for a network request (because the alert was checked against data from all versions of app) or a web app (where the app is versionless) */
   appVersion?: string;
-  /* The value that violated the alert condition (e.g. "76.5", "3") */
+  /** The value that violated the alert condition (e.g. "76.5", "3") */
   violationValue: number;
-  /* The unit for the violation value (e.g. "percent", "seconds") */
+  /** The unit for the violation value (e.g. "percent", "seconds") */
   violationUnit: string;
-  /* The link to Fireconsole to investigate more into this alert */
+  /** The link to Fireconsole to investigate more into this alert */
   investigateUri: string;
 }
 
@@ -70,13 +70,13 @@ export interface PerformanceEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
 }
 
 /** @internal */
-export const thresholdAlert = 'performance.threshold';
+export const thresholdAlert = "performance.threshold";
 
 /**
  * Configuration for app distribution functions.
  */
 export interface PerformanceOptions extends EventHandlerOptions {
-  // Scope the function to trigger on a specific application.
+  /** Scope the function to trigger on a specific application. */
   appId?: string;
 }
 
@@ -86,9 +86,7 @@ export interface PerformanceOptions extends EventHandlerOptions {
  * @returns A function that you can export and deploy.
  */
 export function onThresholdAlertPublished(
-  handler: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -99,9 +97,7 @@ export function onThresholdAlertPublished(
  */
 export function onThresholdAlertPublished(
   appId: string,
-  handler: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -112,9 +108,7 @@ export function onThresholdAlertPublished(
  */
 export function onThresholdAlertPublished(
   opts: PerformanceOptions,
-  handler: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -128,11 +122,9 @@ export function onThresholdAlertPublished(
     | string
     | PerformanceOptions
     | ((event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>),
-  handler?: (
-    event: PerformanceEvent<ThresholdAlertPayload>
-  ) => any | Promise<any>
+  handler?: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>> {
-  if (typeof appIdOrOptsOrHandler === 'function') {
+  if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (
       event: PerformanceEvent<ThresholdAlertPayload>
     ) => any | Promise<any>;
@@ -142,7 +134,7 @@ export function onThresholdAlertPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as PerformanceEvent<ThresholdAlertPayload>;
+    const event = convertAlertAndApp(raw) as PerformanceEvent<ThresholdAlertPayload>;
     const convertedPayload = convertPayload(event.data.payload);
     event.data.payload = convertedPayload;
     return handler(event);
@@ -161,7 +153,7 @@ export function onThresholdAlertPublished(
 export function getOptsAndApp(
   appIdOrOpts: string | PerformanceOptions
 ): [EventHandlerOptions, string | undefined] {
-  if (typeof appIdOrOpts === 'string') {
+  if (typeof appIdOrOpts === "string") {
     return [{}, appIdOrOpts];
   }
 
@@ -176,20 +168,12 @@ export function getOptsAndApp(
  * Helper function to convert the raw payload of a {@link PerformanceEvent} to a {@link ThresholdAlertPayload}
  * @internal
  */
-export function convertPayload(
-  raw: ThresholdAlertPayload
-): ThresholdAlertPayload {
+export function convertPayload(raw: ThresholdAlertPayload): ThresholdAlertPayload {
   const payload: ThresholdAlertPayload = { ...raw };
-  if (
-    typeof payload.conditionPercentile !== 'undefined' &&
-    payload.conditionPercentile === 0
-  ) {
+  if (typeof payload.conditionPercentile !== "undefined" && payload.conditionPercentile === 0) {
     delete (payload as any).conditionPercentile;
   }
-  if (
-    typeof payload.appVersion !== 'undefined' &&
-    payload.appVersion.length === 0
-  ) {
+  if (typeof payload.appVersion !== "undefined" && payload.appVersion.length === 0) {
     delete (payload as any).appVersion;
   }
 

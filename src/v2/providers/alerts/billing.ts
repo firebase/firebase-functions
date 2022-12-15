@@ -25,16 +25,17 @@
  * @packageDocumentation
  */
 
-import { FirebaseAlertData, getEndpointAnnotation } from '.';
-import { CloudEvent, CloudFunction } from '../../core';
-import * as options from '../../options';
+import { CloudEvent, CloudFunction } from "../../core";
+import { wrapTraceContext } from "../../trace";
+import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
+import * as options from "../../options";
 
 /**
  * The internal payload object for billing plan updates.
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface PlanUpdatePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanUpdatePayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanUpdatePayload";
   /** A Firebase billing plan. */
   billingPlan: string;
   /** The email address of the person that triggered billing plan change */
@@ -48,7 +49,7 @@ export interface PlanUpdatePayload {
  * Payload is wrapped inside a `FirebaseAlertData` object.
  */
 export interface PlanAutomatedUpdatePayload {
-  ['@type']: 'type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanAutomatedUpdatePayload';
+  ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.BillingPlanAutomatedUpdatePayload";
   /** A Firebase billing plan. */
   billingPlan: string;
   /** The type of the notification, e.g. upgrade, downgrade */
@@ -65,9 +66,9 @@ export interface BillingEvent<T> extends CloudEvent<FirebaseAlertData<T>> {
 }
 
 /** @internal */
-export const planUpdateAlert = 'billing.planUpdate';
+export const planUpdateAlert = "billing.planUpdate";
 /** @internal */
-export const planAutomatedUpdateAlert = 'billing.planAutomatedUpdate';
+export const planAutomatedUpdateAlert = "billing.planAutomatedUpdate";
 
 /**
  * Declares a function that can handle a billing plan update event.
@@ -101,11 +102,7 @@ export function onPlanUpdatePublished(
     | ((event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>),
   handler?: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
 ): CloudFunction<BillingEvent<PlanUpdatePayload>> {
-  return onOperation<PlanUpdatePayload>(
-    planUpdateAlert,
-    optsOrHandler,
-    handler
-  );
+  return onOperation<PlanUpdatePayload>(planUpdateAlert, optsOrHandler, handler);
 }
 
 /**
@@ -114,9 +111,7 @@ export function onPlanUpdatePublished(
  * @returns A function that you can export and deploy.
  */
 export function onPlanAutomatedUpdatePublished(
-  handler: (
-    event: BillingEvent<PlanAutomatedUpdatePayload>
-  ) => any | Promise<any>
+  handler: (event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>
 ): CloudFunction<BillingEvent<PlanAutomatedUpdatePayload>>;
 
 /**
@@ -127,9 +122,7 @@ export function onPlanAutomatedUpdatePublished(
  */
 export function onPlanAutomatedUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: (
-    event: BillingEvent<PlanAutomatedUpdatePayload>
-  ) => any | Promise<any>
+  handler: (event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>
 ): CloudFunction<BillingEvent<PlanAutomatedUpdatePayload>>;
 
 /**
@@ -142,32 +135,24 @@ export function onPlanAutomatedUpdatePublished(
   optsOrHandler:
     | options.EventHandlerOptions
     | ((event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>),
-  handler?: (
-    event: BillingEvent<PlanAutomatedUpdatePayload>
-  ) => any | Promise<any>
+  handler?: (event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>
 ): CloudFunction<BillingEvent<PlanAutomatedUpdatePayload>> {
-  return onOperation<PlanAutomatedUpdatePayload>(
-    planAutomatedUpdateAlert,
-    optsOrHandler,
-    handler
-  );
+  return onOperation<PlanAutomatedUpdatePayload>(planAutomatedUpdateAlert, optsOrHandler, handler);
 }
 
 /** @internal */
 export function onOperation<T>(
   alertType: string,
-  optsOrHandler:
-    | options.EventHandlerOptions
-    | ((event: BillingEvent<T>) => any | Promise<any>),
+  optsOrHandler: options.EventHandlerOptions | ((event: BillingEvent<T>) => any | Promise<any>),
   handler: (event: BillingEvent<T>) => any | Promise<any>
 ): CloudFunction<BillingEvent<T>> {
-  if (typeof optsOrHandler === 'function') {
+  if (typeof optsOrHandler === "function") {
     handler = optsOrHandler as (event: BillingEvent<T>) => any | Promise<any>;
     optsOrHandler = {};
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    return handler(raw as BillingEvent<T>);
+    return wrapTraceContext(handler)(convertAlertAndApp(raw) as BillingEvent<T>);
   };
 
   func.run = handler;

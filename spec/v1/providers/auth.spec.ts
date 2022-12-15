@@ -20,49 +20,47 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from 'chai';
-import {
-  CloudFunction,
-  Event,
-  EventContext,
-} from '../../../src/cloud-functions';
-import { UserRecord } from '../../../src/common/providers/identity';
-import * as functions from '../../../src/index';
-import * as auth from '../../../src/providers/auth';
+import { expect } from "chai";
+import { UserRecord } from "../../../src/common/providers/identity";
+import * as functions from "../../../src/v1";
+import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
+import * as auth from "../../../src/v1/providers/auth";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
-describe('Auth Functions', () => {
+describe("Auth Functions", () => {
   const event: Event = {
     data: {
       metadata: {
-        creationTime: '2016-12-15T19:37:37.059Z',
-        lastSignInTime: '2017-01-01T00:00:00.000Z',
+        creationTime: "2016-12-15T19:37:37.059Z",
+        lastSignInTime: "2017-01-01T00:00:00.000Z",
       },
     },
     context: {
-      eventId: '70172329041928',
-      timestamp: '2018-04-09T07:56:12.975Z',
-      eventType: 'providers/firebase.auth/eventTypes/user.delete',
+      eventId: "70172329041928",
+      timestamp: "2018-04-09T07:56:12.975Z",
+      eventType: "providers/firebase.auth/eventTypes/user.delete",
       resource: {
-        service: 'firebaseauth.googleapis.com',
-        name: 'projects/project1',
+        service: "firebaseauth.googleapis.com",
+        name: "projects/project1",
       },
     },
   };
 
-  describe('AuthBuilder', () => {
+  describe("AuthBuilder", () => {
     function expectedTrigger(project: string, eventType: string) {
       return {
         eventTrigger: {
           resource: `projects/${project}`,
           eventType: `providers/firebase.auth/eventTypes/${eventType}`,
-          service: 'firebaseauth.googleapis.com',
+          service: "firebaseauth.googleapis.com",
         },
       };
     }
 
     function expectedEndpoint(project: string, eventType: string) {
       return {
-        platform: 'gcfv1',
+        ...MINIMAL_V1_ENDPOINT,
+        platform: "gcfv1",
         eventTrigger: {
           eventFilters: {
             resource: `projects/${project}`,
@@ -74,11 +72,11 @@ describe('Auth Functions', () => {
       };
     }
 
-    const handler = (user: UserRecord) => {
+    const handler = () => {
       return Promise.resolve();
     };
 
-    const project = 'project1';
+    const project = "project1";
 
     before(() => {
       process.env.GCLOUD_PROJECT = project;
@@ -88,61 +86,53 @@ describe('Auth Functions', () => {
       delete process.env.GCLOUD_PROJECT;
     });
 
-    it('should allow both region and runtime options to be set', () => {
+    it("should allow both region and runtime options to be set", () => {
       const fn = functions
-        .region('us-east1')
+        .region("us-east1")
         .runWith({
           timeoutSeconds: 90,
-          memory: '256MB',
+          memory: "256MB",
         })
         .auth.user()
         .onCreate(() => null);
 
-      expect(fn.__trigger.regions).to.deep.equal(['us-east1']);
+      expect(fn.__trigger.regions).to.deep.equal(["us-east1"]);
       expect(fn.__trigger.availableMemoryMb).to.deep.equal(256);
-      expect(fn.__trigger.timeout).to.deep.equal('90s');
+      expect(fn.__trigger.timeout).to.deep.equal("90s");
 
-      expect(fn.__endpoint.region).to.deep.equal(['us-east1']);
+      expect(fn.__endpoint.region).to.deep.equal(["us-east1"]);
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
     });
 
-    describe('#onCreate', () => {
-      it('should return a trigger/endpoint with appropriate values', () => {
+    describe("#onCreate", () => {
+      it("should return a trigger/endpoint with appropriate values", () => {
         const cloudFunction = auth.user().onCreate(() => null);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(project, 'user.create')
-        );
+        expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(project, "user.create"));
 
-        expect(cloudFunction.__endpoint).to.deep.equal(
-          expectedEndpoint(project, 'user.create')
-        );
+        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(project, "user.create"));
       });
     });
 
-    describe('#onDelete', () => {
-      it('should return a trigger/endpoint with appropriate values', () => {
+    describe("#onDelete", () => {
+      it("should return a trigger/endpoint with appropriate values", () => {
         const cloudFunction = auth.user().onDelete(handler);
 
-        expect(cloudFunction.__trigger).to.deep.equal(
-          expectedTrigger(project, 'user.delete')
-        );
+        expect(cloudFunction.__trigger).to.deep.equal(expectedTrigger(project, "user.delete"));
 
-        expect(cloudFunction.__endpoint).to.deep.equal(
-          expectedEndpoint(project, 'user.delete')
-        );
+        expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(project, "user.delete"));
       });
     });
 
-    describe('beforeCreate', () => {
-      it('should create the function without options', () => {
-        const fn = auth.user().beforeCreate((u, c) => Promise.resolve());
+    describe("beforeCreate", () => {
+      it("should create the function without options", () => {
+        const fn = auth.user().beforeCreate(() => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
             options: {
               accessToken: false,
               idToken: false,
@@ -151,10 +141,11 @@ describe('Auth Functions', () => {
           },
         });
         expect(fn.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
           labels: {},
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
             options: {
               accessToken: false,
               idToken: false,
@@ -164,18 +155,18 @@ describe('Auth Functions', () => {
         });
         expect(fn.__requiredAPIs).to.deep.equal([
           {
-            api: 'identitytoolkit.googleapis.com',
-            reason: 'Needed for auth blocking functions',
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
           },
         ]);
       });
 
-      it('should create the function with options', () => {
+      it("should create the function with options", () => {
         const fn = functions
-          .region('us-east1')
+          .region("us-east1")
           .runWith({
             timeoutSeconds: 90,
-            memory: '256MB',
+            memory: "256MB",
           })
           .auth.user({
             blockingOptions: {
@@ -183,15 +174,15 @@ describe('Auth Functions', () => {
               refreshToken: false,
             },
           })
-          .beforeCreate((u, c) => Promise.resolve());
+          .beforeCreate(() => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
-          regions: ['us-east1'],
+          regions: ["us-east1"],
           availableMemoryMb: 256,
-          timeout: '90s',
+          timeout: "90s",
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
             options: {
               accessToken: true,
               idToken: false,
@@ -200,13 +191,14 @@ describe('Auth Functions', () => {
           },
         });
         expect(fn.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
           labels: {},
-          region: ['us-east1'],
+          region: ["us-east1"],
           availableMemoryMb: 256,
           timeoutSeconds: 90,
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeCreate',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
             options: {
               accessToken: true,
               idToken: false,
@@ -216,21 +208,21 @@ describe('Auth Functions', () => {
         });
         expect(fn.__requiredAPIs).to.deep.equal([
           {
-            api: 'identitytoolkit.googleapis.com',
-            reason: 'Needed for auth blocking functions',
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
           },
         ]);
       });
     });
 
-    describe('beforeSignIn', () => {
-      it('should create the function without options', () => {
-        const fn = auth.user().beforeSignIn((u, c) => Promise.resolve());
+    describe("beforeSignIn", () => {
+      it("should create the function without options", () => {
+        const fn = auth.user().beforeSignIn(() => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
             options: {
               accessToken: false,
               idToken: false,
@@ -239,10 +231,11 @@ describe('Auth Functions', () => {
           },
         });
         expect(fn.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
           labels: {},
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
             options: {
               accessToken: false,
               idToken: false,
@@ -252,18 +245,18 @@ describe('Auth Functions', () => {
         });
         expect(fn.__requiredAPIs).to.deep.equal([
           {
-            api: 'identitytoolkit.googleapis.com',
-            reason: 'Needed for auth blocking functions',
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
           },
         ]);
       });
 
-      it('should create the function with options', () => {
+      it("should create the function with options", () => {
         const fn = functions
-          .region('us-east1')
+          .region("us-east1")
           .runWith({
             timeoutSeconds: 90,
-            memory: '256MB',
+            memory: "256MB",
           })
           .auth.user({
             blockingOptions: {
@@ -271,15 +264,15 @@ describe('Auth Functions', () => {
               refreshToken: false,
             },
           })
-          .beforeSignIn((u, c) => Promise.resolve());
+          .beforeSignIn(() => Promise.resolve());
 
         expect(fn.__trigger).to.deep.equal({
           labels: {},
-          regions: ['us-east1'],
+          regions: ["us-east1"],
           availableMemoryMb: 256,
-          timeout: '90s',
+          timeout: "90s",
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
             options: {
               accessToken: true,
               idToken: false,
@@ -288,13 +281,14 @@ describe('Auth Functions', () => {
           },
         });
         expect(fn.__endpoint).to.deep.equal({
-          platform: 'gcfv1',
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
           labels: {},
-          region: ['us-east1'],
+          region: ["us-east1"],
           availableMemoryMb: 256,
           timeoutSeconds: 90,
           blockingTrigger: {
-            eventType: 'providers/cloud.auth/eventTypes/user.beforeSignIn',
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
             options: {
               accessToken: true,
               idToken: false,
@@ -304,94 +298,43 @@ describe('Auth Functions', () => {
         });
         expect(fn.__requiredAPIs).to.deep.equal([
           {
-            api: 'identitytoolkit.googleapis.com',
-            reason: 'Needed for auth blocking functions',
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
           },
         ]);
       });
     });
 
-    describe('#_dataConstructor', () => {
+    describe("#_dataConstructor", () => {
       let cloudFunctionDelete: CloudFunction<UserRecord>;
 
       before(() => {
-        cloudFunctionDelete = auth
-          .user()
-          .onDelete((data: UserRecord, context: EventContext) => data);
+        cloudFunctionDelete = auth.user().onDelete((data: UserRecord) => data);
       });
 
-      it('should handle wire format as of v5.0.0 of firebase-admin', () => {
-        return cloudFunctionDelete(event.data, event.context).then(
-          (data: any) => {
-            expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
-            );
-            expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
-            );
-          }
-        );
+      it("should handle wire format as of v5.0.0 of firebase-admin", () => {
+        return cloudFunctionDelete(event.data, event.context).then((data: any) => {
+          expect(data.metadata.creationTime).to.equal("2016-12-15T19:37:37.059Z");
+          expect(data.metadata.lastSignInTime).to.equal("2017-01-01T00:00:00.000Z");
+        });
       });
     });
   });
 
-  describe('handler namespace', () => {
-    describe('#onCreate', () => {
-      it('should return an empty trigger', () => {
-        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-      });
-
-      it('should return an empty endpoint', () => {
-        const cloudFunction = functions.handler.auth.user.onCreate(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-    });
-
-    describe('#onDelete', () => {
-      const cloudFunctionDelete: CloudFunction<UserRecord> = functions.handler.auth.user.onDelete(
-        (data: UserRecord) => data
-      );
-
-      it('should return an empty trigger', () => {
-        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
-        expect(cloudFunction.__trigger).to.deep.equal({});
-      });
-
-      it('should return an empty endpoint', () => {
-        const cloudFunction = functions.handler.auth.user.onDelete(() => null);
-        expect(cloudFunction.__endpoint).to.be.undefined;
-      });
-
-      it('should handle wire format as of v5.0.0 of firebase-admin', () => {
-        return cloudFunctionDelete(event.data, event.context).then(
-          (data: any) => {
-            expect(data.metadata.creationTime).to.equal(
-              '2016-12-15T19:37:37.059Z'
-            );
-            expect(data.metadata.lastSignInTime).to.equal(
-              '2017-01-01T00:00:00.000Z'
-            );
-          }
-        );
-      });
-    });
-  });
-
-  describe('process.env.GCLOUD_PROJECT not set', () => {
-    it('should not throw if __trigger is not accessed', () => {
+  describe("process.env.GCLOUD_PROJECT not set", () => {
+    it("should not throw if __trigger is not accessed", () => {
       expect(() => auth.user().onCreate(() => null)).to.not.throw(Error);
     });
 
-    it('should throw when trigger is accessed', () => {
+    it("should throw when trigger is accessed", () => {
       expect(() => auth.user().onCreate(() => null).__trigger).to.throw(Error);
     });
 
-    it('should throw when endpoint is accessed', () => {
+    it("should throw when endpoint is accessed", () => {
       expect(() => auth.user().onCreate(() => null).__endpoint).to.throw(Error);
     });
 
-    it('should not throw when #run is called', () => {
+    it("should not throw when #run is called", () => {
       const cf = auth.user().onCreate(() => null);
       expect(cf.run).to.not.throw(Error);
     });
