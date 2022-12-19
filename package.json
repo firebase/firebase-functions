@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -227,7 +227,7 @@
     "mocha": "^6.1.4",
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
-    "nock": "^10.0.6",
+    "nock": "^13.2.9",
     "node-fetch": "^2.6.7",
     "portfinder": "^1.0.28",
     "prettier": "^2.7.1",

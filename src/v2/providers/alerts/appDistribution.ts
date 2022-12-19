@@ -113,7 +113,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -250,8 +250,8 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(
-      handler(convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>)
+    return wrapTraceContext(handler)(
+      convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>
     );
   };
 
@@ -315,8 +315,8 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(
-      handler(convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>)
+    return wrapTraceContext(handler)(
+      convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>
     );
   };
 

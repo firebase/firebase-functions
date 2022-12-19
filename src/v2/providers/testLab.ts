@@ -190,7 +190,7 @@ export function onTestMatrixCompleted(
   const specificOpts = optionsToEndpoint(optsOrHandler);
 
   const func: any = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler(raw as CloudEvent<TestMatrixCompletedData>));
+    return wrapTraceContext(handler)(raw as CloudEvent<TestMatrixCompletedData>);
   };
   func.run = handler;
 

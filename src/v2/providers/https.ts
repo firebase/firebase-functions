@@ -71,7 +71,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -230,7 +230,12 @@ export function onRequest(
   }
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    const origin = isDebugFeatureEnabled("enableCors") ? true : opts.cors;
+    let origin = opts.cors;
+    if (isDebugFeatureEnabled("enableCors")) {
+      // Respect `cors: false` to turn off cors even if debug feature is enabled.
+      origin = opts.cors === false ? false : true;
+    }
+
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
