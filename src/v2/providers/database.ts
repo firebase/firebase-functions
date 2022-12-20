@@ -166,7 +166,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
