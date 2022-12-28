@@ -151,7 +151,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.

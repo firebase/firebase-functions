@@ -1,0 +1,1 @@
+- Allow Functions to specify vpcConnector as a string parameter (#1329)
