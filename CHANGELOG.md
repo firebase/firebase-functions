@@ -1,4 +1,4 @@
 - Allow Functions to specify vpcConnector as a string parameter (#1329)
 - Upgrade jsonwebtoken to version 9 (#1336)
 - Adds 'eventarcpublishing' as required API to custom event function
-- Fixes an emulator issue where functions could not point to multiple databases.
+- Fixes an emulator issue where snapshot.ref could not point to multiple databases (#1339).
