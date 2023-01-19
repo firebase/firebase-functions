@@ -465,7 +465,7 @@ export function onChangedOperation<Ref extends string>(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
-    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
     return wrapTraceContext(handler)(databaseEvent);
@@ -492,7 +492,7 @@ export function onOperation<Ref extends string>(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
-    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const data = eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
@@ -504,4 +504,9 @@ export function onOperation<Ref extends string>(
   func.__endpoint = makeEndpoint(eventType, opts, pathPattern, instancePattern);
 
   return func;
+}
+
+function getInstance(event: RawRTDBCloudEvent) {
+  const emuHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+  return (emuHost) ? `http://${emuHost}/?ns=${event.instance}` : `https://${event.instance}.${event.firebasedatabasehost}`;
 }
