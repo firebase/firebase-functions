@@ -508,5 +508,7 @@ export function onOperation<Ref extends string>(
 
 function getInstance(event: RawRTDBCloudEvent) {
   const emuHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST;
-  return (emuHost) ? `http://${emuHost}/?ns=${event.instance}` : `https://${event.instance}.${event.firebasedatabasehost}`;
+  return emuHost
+    ? `http://${emuHost}/?ns=${event.instance}`
+    : `https://${event.instance}.${event.firebasedatabasehost}`;
 }
