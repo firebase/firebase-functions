@@ -159,6 +159,8 @@ export function defineInt(name: string, options: ParamOptions<number> = {}): Int
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
+ *
+ * @internal
  */
 export function defineFloat(name: string, options: ParamOptions<number> = {}): FloatParam {
   const param = new FloatParam(name, options);
