@@ -1,0 +1,1 @@
+- Fixes an emulator issue where snapshot.ref could not point to multiple databases (#1339).
