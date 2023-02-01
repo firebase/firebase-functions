@@ -1,1 +1,1 @@
-- Allow Functions to specify vpcConnector as a string parameter (#1329)
+- Fixes an emulator issue where snapshot.ref could not point to multiple databases (#1339).
