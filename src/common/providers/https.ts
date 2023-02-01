@@ -36,6 +36,9 @@ import { TaskContext } from "./tasks";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
+const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
+const ORIGINAL_AUTH_HEADER = "x-original-auth";
+
 /** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
   /** The wire format representation of the request body. */
@@ -661,6 +664,29 @@ function wrapOnCallHandler<Req = any, Res = any>(
       }
 
       const context: CallableContext = { rawRequest: req };
+
+      // This code is needed to fix v1 callable functions in the emulator with a monorepo setup.
+      // The original monkey-patched code lived in the functionsEmulatorRuntime
+      // (link: https://github.com/firebase/firebase-tools/blob/accea7abda3cc9fa6bb91368e4895faf95281c60/src/emulator/functionsEmulatorRuntime.ts#L480)
+      // and was not compatible with how monorepos separate out packages (see https://github.com/firebase/firebase-tools/issues/5210).
+      if (process.env.FUNCTIONS_EMULATOR && handler.length === 2) {
+        const authContext = context.rawRequest.header(CALLABLE_AUTH_HEADER);
+        if (authContext) {
+          logger.debug("Callable functions auth override", {
+            key: CALLABLE_AUTH_HEADER,
+            value: authContext,
+          });
+          context.auth = JSON.parse(decodeURIComponent(authContext));
+          delete context.rawRequest.headers[CALLABLE_AUTH_HEADER];
+        }
+
+        const originalAuth = context.rawRequest.header(ORIGINAL_AUTH_HEADER);
+        if (originalAuth) {
+          context.rawRequest.headers["authorization"] = originalAuth;
+          delete context.rawRequest.headers[ORIGINAL_AUTH_HEADER];
+        }
+      }
+
       const tokenStatus = await checkTokens(req, context);
       if (tokenStatus.auth === "INVALID") {
         throw new HttpsError("unauthenticated", "Unauthenticated");
