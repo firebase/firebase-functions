@@ -665,11 +665,14 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       const context: CallableContext = { rawRequest: req };
 
-      // This code is needed to fix v1 callable functions in the emulator with a monorepo setup.
+      // TODO(colerogers): yank this when we release a breaking change of the CLI that removes
+      // our monkey-patching code referenced below and increases the minimum supported SDK version.
+      //
+      // Note: This code is needed to fix v1 callable functions in the emulator with a monorepo setup.
       // The original monkey-patched code lived in the functionsEmulatorRuntime
       // (link: https://github.com/firebase/firebase-tools/blob/accea7abda3cc9fa6bb91368e4895faf95281c60/src/emulator/functionsEmulatorRuntime.ts#L480)
       // and was not compatible with how monorepos separate out packages (see https://github.com/firebase/firebase-tools/issues/5210).
-      if (process.env.FUNCTIONS_EMULATOR && handler.length === 2) {
+      if (isDebugFeatureEnabled("skipTokenVerification") && handler.length === 2) {
         const authContext = context.rawRequest.header(CALLABLE_AUTH_HEADER);
         if (authContext) {
           logger.debug("Callable functions auth override", {
