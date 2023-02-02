@@ -28,7 +28,8 @@ export function mockRequest(
     authorization?: string;
     instanceIdToken?: string;
     appCheckToken?: string;
-  } = {}
+  } = {},
+  reqHeaders?: Record<string, string>,
 ) {
   const body: any = {};
   if (typeof data !== 'undefined') {
@@ -41,6 +42,7 @@ export function mockRequest(
     'firebase-instance-id-token': context.instanceIdToken,
     'x-firebase-appcheck': context.appCheckToken,
     origin: 'example.com',
+    ...reqHeaders,
   };
 
   return new MockRequest(body, headers);
