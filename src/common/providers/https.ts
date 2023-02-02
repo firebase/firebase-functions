@@ -36,8 +36,10 @@ import { TaskContext } from "./tasks";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
-const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
-const ORIGINAL_AUTH_HEADER = "x-original-auth";
+/** @internal */
+export const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
+/** @internal */
+export const ORIGINAL_AUTH_HEADER = "x-original-auth";
 
 /** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
