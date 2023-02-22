@@ -1,2 +1,0 @@
-- Fixes an emulator issue where snapshot.ref could not point to multiple databases (#1339).
-- Fixes emulated v1 callable functions that use a monorepo setup (#1345).
