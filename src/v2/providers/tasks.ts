@@ -68,7 +68,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.

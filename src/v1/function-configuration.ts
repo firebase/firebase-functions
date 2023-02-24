@@ -270,7 +270,7 @@ export interface DeploymentOptions extends RuntimeOptions {
   /**
    * Regions where function should be deployed.
    */
-  regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
+  regions?: Array<typeof SUPPORTED_REGIONS[number] | string | Expression<string> | ResetValue>;
   /**
    * Schedule for the scheduled function.
    */

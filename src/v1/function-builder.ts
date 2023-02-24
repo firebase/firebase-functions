@@ -23,7 +23,7 @@
 import * as express from "express";
 
 import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
+import { Expression, SecretParam } from "../params/types";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -233,7 +233,7 @@ function validateFailurePolicy(policy: any) {
  * @param regions list of regions.
  * @throws { Error } Regions must be in list of supported regions.
  */
-function assertRegionsAreValid(regions: string[]): boolean {
+function assertRegionsAreValid(regions: (string | Expression<string> | ResetValue)[]): boolean {
   if (!regions.length) {
     throw new Error("You must specify at least one region");
   }
@@ -249,7 +249,7 @@ function assertRegionsAreValid(regions: string[]): boolean {
  * functions.region('us-east1', 'us-central1')
  */
 export function region(
-  ...regions: Array<typeof SUPPORTED_REGIONS[number] | string>
+  ...regions: Array<typeof SUPPORTED_REGIONS[number] | string | Expression<string> | ResetValue>
 ): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
@@ -291,7 +291,9 @@ export class FunctionBuilder {
    * @example
    * functions.region('us-east1', 'us-central1')
    */
-  region(...regions: Array<typeof SUPPORTED_REGIONS[number] | string>): FunctionBuilder {
+  region(
+    ...regions: Array<typeof SUPPORTED_REGIONS[number] | string | Expression<string> | ResetValue>
+  ): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;
