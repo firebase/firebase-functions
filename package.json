@@ -193,7 +193,8 @@
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.7",
+    "protobufjs": "^7.2.2"
   },
   "devDependencies": {
     "@firebase/api-documenter": "^0.2.0",
