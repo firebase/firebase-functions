@@ -26,6 +26,7 @@ import { posix } from "path";
 import { getApp } from "../../common/app";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
+import { _getValueProto } from "../../common/providers/firestore";
 import { dateToTimestampProto } from "../../common/utilities/encoder";
 import * as logger from "../../logger";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
@@ -117,25 +118,6 @@ export class NamespaceBuilder {
       );
     }, this.options);
   }
-}
-
-function _getValueProto(data: any, resource: string, valueFieldName: string) {
-  const value = data?.[valueFieldName];
-  if (
-    typeof value === "undefined" ||
-    value === null ||
-    (typeof value === "object" && !Object.keys(value).length)
-  ) {
-    // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
-    return resource;
-  }
-  const proto = {
-    fields: value?.fields || {},
-    createTime: dateToTimestampProto(value?.createTime),
-    updateTime: dateToTimestampProto(value?.updateTime),
-    name: value?.name || resource,
-  };
-  return proto;
 }
 
 export function snapshotConstructor(event: Event): DocumentSnapshot {
