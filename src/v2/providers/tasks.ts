@@ -41,7 +41,7 @@ import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 
-export { AuthData, Request };
+export { AuthData, Request, RateLimits, RetryConfig };
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
