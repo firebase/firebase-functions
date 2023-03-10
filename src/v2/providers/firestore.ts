@@ -22,22 +22,13 @@
 
 import * as firestore from "firebase-admin/firestore";
 import * as logger from "../../logger";
-import { getApp } from "../../common/app";
-import { google } from "../../protos/compiledFirestore";
 import { ParamsOf } from "../../common/params";
 import { normalizePath } from "../../common/utilities/path";
 import { PathPattern } from "../../common/utilities/path-pattern";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { Change, CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
-import { _getValueProto } from "../../common/providers/firestore";
-import { dateToTimestampProto } from "../../common/utilities/encoder";
-
-let firestoreInstance: any;
-
-/** Static-complied protobufs */
-const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
-const Any = google.protobuf.Any;
+import { createBeforeSnapshotFromJson, createBeforeSnapshotFromProtobuf, createSnapshotFromJson, createSnapshotFromProtobuf } from "../../common/providers/firestore";
 
 /** @internal */
 export const writtenEventType = "google.cloud.firestore.document.v1.written";
@@ -52,14 +43,16 @@ export const updatedEventType = "google.cloud.firestore.document.v1.updated";
 export const deletedEventType = "google.cloud.firestore.document.v1.deleted";
 
 // https://github.com/googleapis/google-cloudevents-nodejs/blob/main/cloud/firestore/v1/DocumentEventData.ts
-interface RawFirestoreDocument {
+/** @internal */
+export interface RawFirestoreDocument {
   name: string;
   fields: Record<string, any>;
-  createTime: Date | string;
-  updateTime: Date | string;
+  createTime: string;
+  updateTime: string;
 }
 
-interface RawFirestoreData {
+/** @internal */
+export interface RawFirestoreData {
   // write, create, update
   value?: RawFirestoreDocument;
   // write, update, delete
@@ -68,7 +61,8 @@ interface RawFirestoreData {
   updateMask?: { fieldPaths: Array<string> };
 }
 
-interface RawFirestoreEvent extends CloudEvent<RawFirestoreData> {
+/** @internal */
+export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreData> {
   // db location
   location: string;
   project: string;
@@ -227,63 +221,37 @@ export function getOpts(documentOrOpts: string | DocumentOptions) {
   };
 }
 
-/** Create a snapshot */
-function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
-  }
+/** @internal */
+export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
   if (event.datacontenttype.includes("application/protobuf")) {
-    try {
-      const dataBuffer = Buffer.from(event.data as any);
-      const anyDecoded = Any.decode(dataBuffer);
-      const firestoreDecoded = DocumentEventData.decode(anyDecoded.value);
-
-      return firestoreInstance.snapshot_(firestoreDecoded.value, null, "protobufJS");
-    } catch (err: unknown) {
-      logger.error("Failed to decode protobuf and create snapshot.");
-    }
+    return createSnapshotFromProtobuf(event.data as Uint8Array);
   } else if (event.datacontenttype.includes("application/json")) {
-    const valueProto = _getValueProto(event.data, event.source, "value");
-    let timeString = event.data.value.createTime || event?.data?.value?.updateTime;
-
-    if (!timeString) {
-      logger.warn("Snapshot has no readTime. Using now()");
-      timeString = new Date().toISOString();
-    }
-
-    const readTime = dateToTimestampProto(timeString as any);
-    return firestoreInstance.snapshot_(valueProto, readTime, "json");
+    return createSnapshotFromJson(
+      event.data,
+      event.source,
+      (event.data as RawFirestoreData).value?.createTime,
+      (event.data as RawFirestoreData).value?.updateTime
+    );
   } else {
-    throw Error("Cannot determine payload, this is a problem with the Firebase SDK.");
+    logger.error("Cannot determine payload type, failing out.");
+    throw Error("Error: Cannot parse event payload.");
   }
 }
 
-/** Create a before snapshot */
-function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
-  }
+/** @internal */
+export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
   if (event.datacontenttype.includes("application/protobuf")) {
-    try {
-      const dataBuffer = Buffer.from(event.data as any);
-      const anyDecoded = Any.decode(dataBuffer);
-      const firestoreDecoded = DocumentEventData.decode(anyDecoded.value);
-
-      return firestoreInstance.snapshot_(firestoreDecoded.oldValue, null, "protobufJS");
-    } catch (err: unknown) {
-      logger.error("Failed to decode protobuf and create snapshot.");
-    }
+    return createBeforeSnapshotFromProtobuf(event.data as Uint8Array);
   } else if (event.datacontenttype.includes("application/json")) {
-    if (!firestoreInstance) {
-      firestoreInstance = firestore.getFirestore(getApp());
-    }
-    const oldValueProto = _getValueProto(event.data, event.source, "oldValue");
-    const oldReadTime = dateToTimestampProto(
-      (event?.data?.oldValue?.createTime || event.data.oldValue.updateTime) as any
+    return createBeforeSnapshotFromJson(
+      event.data,
+      event.source,
+      (event.data as RawFirestoreData).oldValue?.createTime,
+      (event.data as RawFirestoreData).oldValue?.updateTime,
     );
-    return firestoreInstance.snapshot_(oldValueProto, oldReadTime, "json");
   } else {
-    throw Error("Cannot determine payload type, this is a problem with the Firebase SDK.");
+    logger.error("Cannot determine payload type, failing out.");
+    throw Error("Error: Cannot parse event payload.");
   }
 }
 
@@ -294,20 +262,7 @@ function makeParams(event: RawFirestoreEvent, document: PathPattern) {
   };
 }
 
-function makeChangedFirestoreEvent<Params>(
-  event: RawFirestoreEvent,
-  params: Params
-): FirestoreEvent<Change<QueryDocumentSnapshot>, Params> {
-  const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot>, Params> = {
-    ...event,
-    params,
-    data: Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event)),
-  };
-  delete (firestoreEvent as any).datacontenttype;
-  delete (firestoreEvent as any).dataschema;
-  return firestoreEvent;
-}
-
+/** @hidden */
 function makeFirestoreEvent<Params>(
   eventType: string,
   event: RawFirestoreEvent,
@@ -323,7 +278,23 @@ function makeFirestoreEvent<Params>(
   return firestoreEvent;
 }
 
-function makeEndpoint(
+/** @hidden */
+function makeChangedFirestoreEvent<Params>(
+  event: RawFirestoreEvent,
+  params: Params
+): FirestoreEvent<Change<QueryDocumentSnapshot>, Params> {
+  const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot>, Params> = {
+    ...event,
+    params,
+    data: Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event)),
+  };
+  delete (firestoreEvent as any).datacontenttype;
+  delete (firestoreEvent as any).dataschema;
+  return firestoreEvent;
+}
+
+/** @internal */
+export function makeEndpoint(
   eventType: string,
   opts: EventHandlerOptions,
   document: PathPattern,
@@ -355,12 +326,38 @@ function makeEndpoint(
       eventType,
       eventFilters,
       eventFilterPathPatterns,
-      retry: opts.retry,
+      retry: !!opts.retry,
     },
   };
 }
 
-function onChangedOperation<Document extends string>(
+/** @internal */
+export function onOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
+  const { document, database, namespace, opts } = getOpts(documentOrOpts);
+
+  const documentPattern = new PathPattern(document);
+
+  // wrap the handler
+  const func = (raw: CloudEvent<unknown>) => {
+    const event = raw as RawFirestoreEvent;
+    const params = makeParams(event, documentPattern) as unknown as ParamsOf<Document>;
+    const firestoreEvent = makeFirestoreEvent(eventType, event, params);
+    return handler(firestoreEvent);
+  };
+
+  func.run = handler;
+
+  func.__endpoint = makeEndpoint(eventType, opts, documentPattern, database, namespace);
+
+  return func;
+}
+
+/** @internal */
+export function onChangedOperation<Document extends string>(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
@@ -376,30 +373,6 @@ function onChangedOperation<Document extends string>(
     const event = raw as RawFirestoreEvent;
     const params = makeParams(event, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeChangedFirestoreEvent(event, params);
-    return handler(firestoreEvent);
-  };
-
-  func.run = handler;
-
-  func.__endpoint = makeEndpoint(eventType, opts, documentPattern, database, namespace);
-
-  return func;
-}
-
-function onOperation<Document extends string>(
-  eventType: string,
-  documentOrOpts: Document | DocumentOptions<Document>,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
-  const { document, database, namespace, opts } = getOpts(documentOrOpts);
-
-  const documentPattern = new PathPattern(document);
-
-  // wrap the handler
-  const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent;
-    const params = makeParams(event, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent = makeFirestoreEvent(eventType, event, params);
     return handler(firestoreEvent);
   };
 
