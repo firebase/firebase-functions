@@ -21,14 +21,10 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { google } from "../../../src/protos/compiledFirestore";
+import { Any, DocumentEventData } from "../../../src/protos";
 import { Timestamp } from "firebase-admin/firestore";
 import * as firestore from "../../../src/v2/providers/firestore";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
-
-/** static-complied protobufs */
-const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
-const Any = google.protobuf.Any;
 
 const eventBase = {
   location: "us-central1",
@@ -72,7 +68,7 @@ function makeExpectedEp(eventType: string, eventFilters, eventFilterPathPatterns
   };
 }
 
-function makeEncodedProtobuf(data: google.events.cloud.firestore.v1.DocumentEventData) {
+function makeEncodedProtobuf(data: any) {
   const encodedCreatedData = DocumentEventData.encode(data);
   const anyData = Any.create({
     value: encodedCreatedData.finish(),

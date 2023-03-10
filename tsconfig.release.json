@@ -16,6 +16,7 @@
     "./src/logger/index.ts",
     "./src/logger/compat.ts",
     "./src/v2/index.ts",
-    "./src/bin/firebase-functions.ts"
+    "./src/bin/firebase-functions.ts",
+    "./src/protos/index.ts",
   ]
 }
