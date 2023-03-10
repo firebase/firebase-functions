@@ -32,11 +32,7 @@ const Any = google.protobuf.Any;
 
 let firestoreInstance: any;
 
-function _getValueProto(
-  data: any,
-  resource: string,
-  valueFieldName: string
-) {
+function _getValueProto(data: any, resource: string, valueFieldName: string) {
   const value = data?.[valueFieldName];
   if (
     typeof value === "undefined" ||
@@ -55,9 +51,7 @@ function _getValueProto(
   return proto;
 }
 
-export function createSnapshotFromProtobuf(
-  data: Uint8Array,
-) {
+export function createSnapshotFromProtobuf(data: Uint8Array) {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
   }
@@ -72,9 +66,7 @@ export function createSnapshotFromProtobuf(
   }
 }
 
-export function createBeforeSnapshotFromProtobuf(
-  data: Uint8Array,
-) {
+export function createBeforeSnapshotFromProtobuf(data: Uint8Array) {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
   }
@@ -94,7 +86,7 @@ export function createSnapshotFromJson(
   data: any,
   source: string,
   createTime: string | undefined,
-  updateTime: string | undefined,
+  updateTime: string | undefined
 ) {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
@@ -115,7 +107,7 @@ export function createBeforeSnapshotFromJson(
   data: any,
   source: string,
   createTime: string | undefined,
-  updateTime: string | undefined,
+  updateTime: string | undefined
 ) {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());

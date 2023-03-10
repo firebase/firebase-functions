@@ -25,7 +25,10 @@ import * as firestore from "firebase-admin/firestore";
 import { posix } from "path";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
-import { createBeforeSnapshotFromJson, createSnapshotFromJson } from "../../common/providers/firestore";
+import {
+  createBeforeSnapshotFromJson,
+  createSnapshotFromJson,
+} from "../../common/providers/firestore";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -122,7 +125,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
     event.data,
     event.context.resource.name,
     event?.data?.value?.readTime,
-    event?.data?.value?.updateTime,
+    event?.data?.value?.updateTime
   );
 }
 
@@ -132,7 +135,7 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
     event.data,
     event.context.resource.name,
     event?.data?.oldValue?.readTime,
-    undefined,
+    undefined
   );
 }
 

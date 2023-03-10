@@ -37,7 +37,8 @@ const eventBase = {
   namespace: "my-ns",
   document: "foo/fGRodw71mHutZ4wGDuT8",
   datacontenttype: "application/protobuf",
-  dataschema: "https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto",
+  dataschema:
+    "https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto",
   id: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
   source: "//firestore.googleapis.com/projects/my-project/databases/my-db",
   subject: "documents/foo/fGRodw71mHutZ4wGDuT8",
@@ -57,13 +58,25 @@ const expectedEndpointBase = {
   timeoutSeconds: {},
   vpc: {},
   labels: {},
+};
+
+function makeExpectedEp(eventType: string, eventFilters, eventFilterPathPatterns) {
+  return {
+    ...expectedEndpointBase,
+    eventTrigger: {
+      eventType,
+      eventFilters,
+      eventFilterPathPatterns,
+      retry: false,
+    },
+  };
 }
 
 function makeEncodedProtobuf(data: google.events.cloud.firestore.v1.DocumentEventData) {
   const encodedCreatedData = DocumentEventData.encode(data);
   const anyData = Any.create({
     value: encodedCreatedData.finish(),
-  })
+  });
   return Any.encode(anyData).finish();
 }
 
@@ -116,8 +129,8 @@ const updatedData = {
     name: "projects/my-project/databases/my-db/documents/foo/fGRodw71mHutZ4wGDuT8",
   },
   updateMask: {
-    fieldPaths: [ "hello" ],
-  }
+    fieldPaths: ["hello"],
+  },
 };
 const updatedProto = DocumentEventData.create(updatedData);
 
@@ -138,16 +151,194 @@ const writtenData = {
 };
 const writtenProto = DocumentEventData.create(writtenData);
 
-
-
 describe("firestore", () => {
-  // before(() => {
-  //   process.env.GCLOUD_PROJECT = "project1";
-  // });
+  describe("onDocumentWritten", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.writtenEventType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
 
-  // after(() => {
-  //   delete process.env.GCLOUD_PROJECT;
-  // });
+      const func = firestore.onDocumentWritten("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.writtenEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentWritten(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
+
+  describe("onDocumentCreated", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentCreated("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentCreated(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
+
+  describe("onDocumentUpdated", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.updatedEventType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentUpdated("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.updatedEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentUpdated(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
+
+  describe("onDocumentDeleted", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.deletedEventType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentDeleted("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.deletedEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentDeleted(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
 
   describe("getOpts", () => {
     it("should handle document string", () => {
@@ -178,10 +369,12 @@ describe("firestore", () => {
 
   describe("createSnapshot", () => {
     it("should throw an error on invalid content type", () => {
-      expect(() => firestore.createSnapshot({
-        ...eventBase,
-        datacontenttype: "something"
-      } as any)).to.throw("Error: Cannot parse event payload.")
+      expect(() =>
+        firestore.createSnapshot({
+          ...eventBase,
+          datacontenttype: "something",
+        } as any)
+      ).to.throw("Error: Cannot parse event payload.");
     });
 
     it("should create snapshot of a protobuf encoded created event", () => {
@@ -238,10 +431,12 @@ describe("firestore", () => {
 
   describe("createBeforeSnapshot", () => {
     it("should throw an error on invalid content type", () => {
-      expect(() => firestore.createBeforeSnapshot({
-        ...eventBase,
-        datacontenttype: "something"
-      } as any)).to.throw("Error: Cannot parse event payload.")
+      expect(() =>
+        firestore.createBeforeSnapshot({
+          ...eventBase,
+          datacontenttype: "something",
+        } as any)
+      ).to.throw("Error: Cannot parse event payload.");
     });
 
     it("should create before snapshot of a protobuf encoded deleted event", () => {
@@ -296,106 +491,149 @@ describe("firestore", () => {
     });
   });
 
+  describe("makeParams", () => {
+    it("should not extract matches with out a path pattern", () => {
+      const params = firestore.makeParams(
+        "foo/fGRodw71mHutZ4wGDuT8",
+        new PathPattern("foo/fGRodw71mHutZ4wGDuT8")
+      );
+
+      expect(params).to.deep.eq({});
+    });
+
+    it("should extract matches with a path pattern", () => {
+      const params = firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"));
+
+      expect(params).to.deep.eq({
+        bar: "fGRodw71mHutZ4wGDuT8",
+      });
+    });
+  });
+
+  describe("makeFirestoreEvent", () => {
+    it("should make event from a created event", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.createdEventType,
+        makeEvent(makeEncodedProtobuf(createdProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.data()).to.deep.eq({ hello: "create world" });
+    });
+
+    it("should make event from a deleted event", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.deletedEventType,
+        makeEvent(makeEncodedProtobuf(deletedProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.data()).to.deep.eq({ hello: "delete world" });
+    });
+  });
+
+  describe("makeChangedFirestoreEvent", () => {
+    it("should make event from an updated event", () => {
+      const event = firestore.makeChangedFirestoreEvent(
+        makeEvent(makeEncodedProtobuf(updatedProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.before.data()).to.deep.eq({ hello: "old world" });
+      expect(event.data.after.data()).to.deep.eq({ hello: "new world" });
+    });
+
+    it("should make event from a written event", () => {
+      const event = firestore.makeChangedFirestoreEvent(
+        makeEvent(makeEncodedProtobuf(writtenProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.before.data()).to.deep.eq({});
+      expect(event.data.after.data()).to.deep.eq({ hello: "a new world" });
+    });
+  });
+
   describe("makeEndpoint", () => {
     it("should make an endpoint with a document path pattern", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        region: [ "us-central1" ],
-        eventTrigger: {
-          eventType: firestore.createdEventType,
-          eventFilters: {
-            database: "my-db",
-            namespace: "my-ns",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
         }
-      };
-      
+      );
+      expectedEp["region"] = ["us-central1"];
+
       const ep = firestore.makeEndpoint(
         firestore.createdEventType,
         { region: "us-central1" },
         new PathPattern("foo/{bar}"),
         "my-db",
-        "my-ns",
+        "my-ns"
       );
-      
+
       expect(ep).to.deep.eq(expectedEp);
     });
 
     it("should make an endpoint with a document filter", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        region: [ "us-central1" ],
-        eventTrigger: {
-          eventType: firestore.createdEventType,
-          eventFilters: {
-            database: "my-db",
-            namespace: "my-ns",
-            document: "foo/fGRodw71mHutZ4wGDuT8"
-          },
-          eventFilterPathPatterns: {},
-          retry: false,
-        }
-      };
-      
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+          document: "foo/fGRodw71mHutZ4wGDuT8",
+        },
+        {}
+      );
+      expectedEp["region"] = ["us-central1"];
+
       const ep = firestore.makeEndpoint(
         firestore.createdEventType,
         { region: "us-central1" },
         new PathPattern("foo/fGRodw71mHutZ4wGDuT8"),
         "my-db",
-        "my-ns",
+        "my-ns"
       );
-      
+
       expect(ep).to.deep.eq(expectedEp);
     });
   });
 
   describe("onOperation", () => {
     it("should create a func on a created operation", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        eventTrigger: {
-          eventType: firestore.createdEventType,
-          eventFilters: {
-            database: "(default)",
-            namespace: "(default)",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
-        }
-      };
-
-      const func = firestore.onOperation(
+      const expectedEp = makeExpectedEp(
         firestore.createdEventType,
-        "foo/{bar}",
-        (event) => 2,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
       );
-      
+
+      const func = firestore.onOperation(firestore.createdEventType, "foo/{bar}", () => 2);
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
     it("should create a func on a created operation with opts", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        region: [ "us-central1" ],
-        eventTrigger: {
-          eventType: firestore.createdEventType,
-          eventFilters: {
-            database: "my-db",
-            namespace: "my-ns",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
         }
-      };
+      );
+      expectedEp["region"] = ["us-central1"];
 
       const func = firestore.onOperation(
         firestore.createdEventType,
@@ -405,55 +643,43 @@ describe("firestore", () => {
           database: "my-db",
           namespace: "my-ns",
         },
-        (event) => 2,
+        () => 2
       );
-      
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
     it("should create a func on a deleted operation", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        eventTrigger: {
-          eventType: firestore.deletedEventType,
-          eventFilters: {
-            database: "(default)",
-            namespace: "(default)",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
-        }
-      };
-
-      const func = firestore.onOperation(
+      const expectedEp = makeExpectedEp(
         firestore.deletedEventType,
-        "foo/{bar}",
-        (event) => 2,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
       );
-      
+
+      const func = firestore.onOperation(firestore.deletedEventType, "foo/{bar}", () => 2);
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
     it("should create a func on a deleted operation with opts", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        region: [ "us-central1" ],
-        eventTrigger: {
-          eventType: firestore.deletedEventType,
-          eventFilters: {
-            database: "my-db",
-            namespace: "my-ns",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
+      const expectedEp = makeExpectedEp(
+        firestore.deletedEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
         }
-      };
+      );
+      expectedEp["region"] = ["us-central1"];
 
       const func = firestore.onOperation(
         firestore.deletedEventType,
@@ -463,9 +689,9 @@ describe("firestore", () => {
           database: "my-db",
           namespace: "my-ns",
         },
-        (event) => 2,
+        () => 2
       );
-      
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
@@ -473,47 +699,35 @@ describe("firestore", () => {
 
   describe("onChangedOperation", () => {
     it("should create a func on a updated operation", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        eventTrigger: {
-          eventType: firestore.updatedEventType,
-          eventFilters: {
-            database: "(default)",
-            namespace: "(default)",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
-        }
-      };
-
-      const func = firestore.onChangedOperation(
+      const expectedEp = makeExpectedEp(
         firestore.updatedEventType,
-        "foo/{bar}",
-        (event) => 2,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
       );
-      
+
+      const func = firestore.onChangedOperation(firestore.updatedEventType, "foo/{bar}", () => 2);
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
     it("should create a func on a updated operation with opts", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        region: [ "us-central1" ],
-        eventTrigger: {
-          eventType: firestore.updatedEventType,
-          eventFilters: {
-            database: "my-db",
-            namespace: "my-ns",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
+      const expectedEp = makeExpectedEp(
+        firestore.updatedEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
         }
-      };
+      );
+      expectedEp["region"] = ["us-central1"];
 
       const func = firestore.onChangedOperation(
         firestore.updatedEventType,
@@ -523,55 +737,43 @@ describe("firestore", () => {
           database: "my-db",
           namespace: "my-ns",
         },
-        (event) => 2,
+        () => 2
       );
-      
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
     it("should create a func on a written operation", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        eventTrigger: {
-          eventType: firestore.writtenEventType,
-          eventFilters: {
-            database: "(default)",
-            namespace: "(default)",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
-        }
-      };
-
-      const func = firestore.onChangedOperation(
+      const expectedEp = makeExpectedEp(
         firestore.writtenEventType,
-        "foo/{bar}",
-        (event) => 2,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
       );
-      
+
+      const func = firestore.onChangedOperation(firestore.writtenEventType, "foo/{bar}", () => 2);
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
     it("should create a func on a written operation with opts", () => {
-      const expectedEp = {
-        ...expectedEndpointBase,
-        region: [ "us-central1" ],
-        eventTrigger: {
-          eventType: firestore.writtenEventType,
-          eventFilters: {
-            database: "my-db",
-            namespace: "my-ns",
-          },
-          eventFilterPathPatterns: {
-            document: "foo/{bar}"
-          },
-          retry: false,
+      const expectedEp = makeExpectedEp(
+        firestore.writtenEventType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
         }
-      };
+      );
+      expectedEp["region"] = ["us-central1"];
 
       const func = firestore.onChangedOperation(
         firestore.writtenEventType,
@@ -581,9 +783,9 @@ describe("firestore", () => {
           database: "my-db",
           namespace: "my-ns",
         },
-        (event) => 2,
+        () => 2
       );
-      
+
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });

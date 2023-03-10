@@ -28,7 +28,12 @@ import { PathPattern } from "../../common/utilities/path-pattern";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { Change, CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
-import { createBeforeSnapshotFromJson, createBeforeSnapshotFromProtobuf, createSnapshotFromJson, createSnapshotFromProtobuf } from "../../common/providers/firestore";
+import {
+  createBeforeSnapshotFromJson,
+  createBeforeSnapshotFromProtobuf,
+  createSnapshotFromJson,
+  createSnapshotFromProtobuf,
+} from "../../common/providers/firestore";
 
 /** @internal */
 export const writtenEventType = "google.cloud.firestore.document.v1.written";
@@ -147,7 +152,7 @@ export function onDocumentCreated<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
-  return onOperation(deletedEventType, documentOrOpts, handler);
+  return onOperation(createdEventType, documentOrOpts, handler);
 }
 
 /** onDocumentUpdated */
@@ -247,7 +252,7 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
       event.data,
       event.source,
       (event.data as RawFirestoreData).oldValue?.createTime,
-      (event.data as RawFirestoreData).oldValue?.updateTime,
+      (event.data as RawFirestoreData).oldValue?.updateTime
     );
   } else {
     logger.error("Cannot determine payload type, failing out.");
@@ -256,14 +261,14 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
 }
 
 /** @internal */
-function makeParams(event: RawFirestoreEvent, document: PathPattern) {
+export function makeParams(document: string, documentPattern: PathPattern) {
   return {
-    ...document.extractMatches(event.document),
+    ...documentPattern.extractMatches(document),
   };
 }
 
 /** @hidden */
-function makeFirestoreEvent<Params>(
+export function makeFirestoreEvent<Params>(
   eventType: string,
   event: RawFirestoreEvent,
   params: Params
@@ -279,7 +284,7 @@ function makeFirestoreEvent<Params>(
 }
 
 /** @hidden */
-function makeChangedFirestoreEvent<Params>(
+export function makeChangedFirestoreEvent<Params>(
   event: RawFirestoreEvent,
   params: Params
 ): FirestoreEvent<Change<QueryDocumentSnapshot>, Params> {
@@ -344,7 +349,7 @@ export function onOperation<Document extends string>(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawFirestoreEvent;
-    const params = makeParams(event, documentPattern) as unknown as ParamsOf<Document>;
+    const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeFirestoreEvent(eventType, event, params);
     return handler(firestoreEvent);
   };
@@ -371,7 +376,7 @@ export function onChangedOperation<Document extends string>(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawFirestoreEvent;
-    const params = makeParams(event, documentPattern) as unknown as ParamsOf<Document>;
+    const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeChangedFirestoreEvent(event, params);
     return handler(firestoreEvent);
   };
