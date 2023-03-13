@@ -58,34 +58,30 @@ export interface RawFirestoreDocument {
 
 /** @internal */
 export interface RawFirestoreData {
-  // write, create, update
   value?: RawFirestoreDocument;
-  // write, update, delete
   oldValue?: RawFirestoreDocument;
-  // update
   updateMask?: { fieldPaths: Array<string> };
 }
 
 /** @internal */
 export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreData> {
-  // db location
   location: string;
   project: string;
   database: string;
-  // (default) or ns1
   namespace: string;
   document: string;
-  // always set to application/protobuf
   datacontenttype: string;
-  // https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto
   dataschema: string;
-  //
   time: string;
 }
 
+/** A Firestore DocumentSnapshot */
 export type DocumentSnapshot = firestore.DocumentSnapshot;
+
+/** A Firestore QueryDocumentSnapshot */
 export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
 
+/** A CloudEvent that contains a DocumentSnapshot or a Change<DocumentSnapshot> */
 export interface FirestoreEvent<T, Params = Record<string, string>> extends CloudEvent<T> {
   /** The location of the Firestore instance */
   location: string;
@@ -104,6 +100,7 @@ export interface FirestoreEvent<T, Params = Record<string, string>> extends Clou
   params: Params;
 }
 
+/** DocumentOptions extend EventHandlerOptions with provided document and optional database and namespace.  */
 export interface DocumentOptions<Document extends string = string> extends EventHandlerOptions {
   /** The document path */
   document: Document;
@@ -113,7 +110,12 @@ export interface DocumentOptions<Document extends string = string> extends Event
   namespace?: string;
 }
 
-/** onDocumentWritten */
+/**
+ * Event handler which triggers when a document is created, updated, or deleted in Firestore.
+ *
+ * @param document - The Firestore document path to trigger on.
+ * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
+ */
 export function onDocumentWritten<Document extends string>(
   document: Document,
   handler: (
@@ -121,6 +123,12 @@ export function onDocumentWritten<Document extends string>(
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is created, updated, or deleted in Firestore.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
+ */
 export function onDocumentWritten<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
@@ -128,6 +136,12 @@ export function onDocumentWritten<Document extends string>(
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is created, updated, or deleted in Firestore.
+ *
+ * @param documentOrOpts - Options or a string document path.
+ * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
+ */
 export function onDocumentWritten<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
@@ -137,17 +151,34 @@ export function onDocumentWritten<Document extends string>(
   return onChangedOperation(writtenEventType, documentOrOpts, handler);
 }
 
-/** onDocumentCreated */
+/**
+ * Event handler which triggers when a document is created in Firestore.
+ *
+ * @param document - The Firestore document path to trigger on.
+ * @param handler - Event handler which is run every time a Firestore create occurs.
+ */
 export function onDocumentCreated<Document extends string>(
   document: Document,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is created in Firestore.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firestore create occurs.
+ */
 export function onDocumentCreated<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is created in Firestore.
+ *
+ * @param documentOrOpts - Options or a string document path.
+ * @param handler - Event handler which is run every time a Firestore create occurs.
+ */
 export function onDocumentCreated<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
@@ -155,14 +186,24 @@ export function onDocumentCreated<Document extends string>(
   return onOperation(createdEventType, documentOrOpts, handler);
 }
 
-/** onDocumentUpdated */
+/**
+ * Event handler which triggers when a document is updated in Firestore.
+ *
+ * @param document - The Firestore document path to trigger on.
+ * @param handler - Event handler which is run every time a Firestore update occurs.
+ */
 export function onDocumentUpdated<Document extends string>(
   document: Document,
   handler: (
     event: FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>>;
-
+/**
+ * Event handler which triggers when a document is updated in Firestore.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firestore update occurs.
+ */
 export function onDocumentUpdated<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
@@ -170,6 +211,12 @@ export function onDocumentUpdated<Document extends string>(
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is updated in Firestore.
+ *
+ * @param documentOrOpts - Options or a string document path.
+ * @param handler - Event handler which is run every time a Firestore update occurs.
+ */
 export function onDocumentUpdated<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
@@ -179,17 +226,34 @@ export function onDocumentUpdated<Document extends string>(
   return onChangedOperation(updatedEventType, documentOrOpts, handler);
 }
 
-/** onDocumentDeleted */
+/**
+ * Event handler which triggers when a document is deleted in Firestore.
+ *
+ * @param document - The Firestore document path to trigger on.
+ * @param handler - Event handler which is run every time a Firestore delete occurs.
+ */
 export function onDocumentDeleted<Document extends string>(
   document: Document,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is deleted in Firestore.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firestore delete occurs.
+ */
 export function onDocumentDeleted<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
 
+/**
+ * Event handler which triggers when a document is deleted in Firestore.
+ *
+ * @param documentOrOpts - Options or a string document path.
+ * @param handler - Event handler which is run every time a Firestore delete occurs.
+ */
 export function onDocumentDeleted<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
@@ -267,7 +331,7 @@ export function makeParams(document: string, documentPattern: PathPattern) {
   };
 }
 
-/** @hidden */
+/** @internal */
 export function makeFirestoreEvent<Params>(
   eventType: string,
   event: RawFirestoreEvent,
@@ -283,7 +347,7 @@ export function makeFirestoreEvent<Params>(
   return firestoreEvent;
 }
 
-/** @hidden */
+/** @internal */
 export function makeChangedFirestoreEvent<Params>(
   event: RawFirestoreEvent,
   params: Params
