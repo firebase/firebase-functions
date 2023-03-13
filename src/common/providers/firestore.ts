@@ -23,8 +23,12 @@
 import * as firestore from "firebase-admin/firestore";
 import * as logger from "../../logger";
 import { getApp } from "../../common/app";
-import { DocumentEventData, Any } from "../../protos";
+import { google } from "../../../protos/compiledFirestore";
 import { dateToTimestampProto } from "../../common/utilities/encoder";
+
+/** static-complied protobufs */
+const Any = google.protobuf.Any;
+const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 let firestoreInstance: any;
 

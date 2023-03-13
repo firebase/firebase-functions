@@ -21,10 +21,14 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { Any, DocumentEventData } from "../../../src/protos";
+import { google } from "../../../protos/compiledFirestore";
 import { Timestamp } from "firebase-admin/firestore";
 import * as firestore from "../../../src/v2/providers/firestore";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
+
+/** static-complied protobuf */
+const Any = google.protobuf.Any;
+const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 const eventBase = {
   location: "us-central1",
