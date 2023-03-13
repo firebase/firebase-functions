@@ -60,7 +60,8 @@
     "./v2/database": "./lib/v2/providers/database.js",
     "./v2/scheduler": "./lib/v2/providers/scheduler.js",
     "./v2/remoteConfig": "./lib/v2/providers/remoteConfig.js",
-    "./v2/testLab": "./lib/v2/providers/testLab.js"
+    "./v2/testLab": "./lib/v2/providers/testLab.js",
+    "./v2/firestore": "./lib/v2/providers/firestore.js"
   },
   "typesVersions": {
     "*": {
@@ -159,6 +160,9 @@
       ],
       "v2/testLab": [
         "lib/v2/providers/testLab"
+      ],
+      "v2/firestore": [
+        "lib/v2/providers/firestore"
       ]
     }
   },

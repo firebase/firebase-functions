@@ -40,6 +40,7 @@ import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
 import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
+import * as firestore from "./providers/firestore";
 
 export {
   alerts,
@@ -54,6 +55,7 @@ export {
   scheduler,
   remoteConfig,
   testLab,
+  firestore,
 };
 
 export {
