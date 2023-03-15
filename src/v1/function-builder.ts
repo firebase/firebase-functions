@@ -340,8 +340,9 @@ export class FunctionBuilder {
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
        */
-      onCall: (handler: (data: any, context: https.CallableContext) => any | Promise<any>) =>
-        https._onCallWithOptions(handler, this.options),
+      onCall: <TData = never, TReturn = never>(
+        handler: (data: TData, context: https.CallableContext) => TReturn | Promise<TReturn>
+      ) => https._onCallWithOptions(handler, this.options),
     };
   }
 

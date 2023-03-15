@@ -187,12 +187,12 @@ export type HttpsFunction = ((
 /**
  * Creates a callable method for clients to call using a Firebase SDK.
  */
-export interface CallableFunction<T, Return> extends HttpsFunction {
+export interface CallableFunction<T, TReturn> extends HttpsFunction {
   /** Executes the handler function with the provided data as input. Used for unit testing.
    * @param data - An input for the handler function.
    * @returns The output of the handler function.
    */
-  run(data: CallableRequest<T>): Return;
+  run(data: CallableRequest<T>): TReturn;
 }
 /**
  * Handles HTTPS requests.
@@ -299,26 +299,26 @@ export function onRequest(
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>>(
+export function onCall<T = never, TReturn = never>(
   opts: CallableOptions,
-  handler: (request: CallableRequest<T>) => Return
-): CallableFunction<T, Return>;
+  handler: (request: CallableRequest<T>) => TReturn | Promise<TReturn>
+): CallableFunction<T, TReturn | Promise<TReturn>>;
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>>(
-  handler: (request: CallableRequest<T>) => Return
-): CallableFunction<T, Return>;
-export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
-  handler?: (request: CallableRequest<T>) => Return
-): CallableFunction<T, Return> {
+export function onCall<T = never, TReturn = never>(
+  handler: (request: CallableRequest<T>) => TReturn | Promise<TReturn>
+): CallableFunction<T, TReturn | Promise<TReturn>>;
+export function onCall<T = never, TReturn = never>(
+  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => TReturn | Promise<TReturn>),
+  handler?: (request: CallableRequest<T>) => TReturn | Promise<TReturn>
+): CallableFunction<T, TReturn | Promise<TReturn>> {
   let opts: CallableOptions;
   if (arguments.length === 1) {
     opts = {};
-    handler = optsOrHandler as (request: CallableRequest<T>) => Return;
+    handler = optsOrHandler as (request: CallableRequest<T>) => TReturn | Promise<TReturn>;
   } else {
     opts = optsOrHandler as CallableOptions;
   }
