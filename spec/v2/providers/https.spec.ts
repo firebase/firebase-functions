@@ -454,8 +454,8 @@ describe("onCall", () => {
     https.onCall<string, string>(
       (request: https.CallableRequest<string>) => `hello, ${request.data}!`
     );
-    https.onCall<string>((request: https.CallableRequest<string>) => `hello, ${request.data}!`);
-    https.onCall<string>((request: https.CallableRequest) => `hello, ${request.data}!`);
+    https.onCall<string, string>((request) => `hello, ${request.data}!`);
+    https.onCall<string, string>((request) => `hello, ${request.data}!`);
     https.onCall((request: https.CallableRequest<string>) => `Hello, ${request.data}`);
     https.onCall((request: https.CallableRequest) => `Hello, ${request.data}`);
   });
