@@ -170,7 +170,7 @@
     "docgen:v1:gen": "api-documenter-fire markdown -i docgen/v1 -o docgen/v1/markdown --project functions && npm run docgen:v1:toc",
     "docgen:v1": "npm run build && npm run docgen:v1:extract && npm run docgen:v1:gen",
     "docgen:v2:extract": "api-extractor run -c docgen/api-extractor.v2.json --local",
-    "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/functions/beta/reference",
+    "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/reference/functions/2nd-gen/node",
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown --project functions && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
