@@ -24,6 +24,7 @@ import { App } from "firebase-admin/app";
 import * as database from "firebase-admin/database";
 import { firebaseConfig } from "../../common/config";
 import { joinPath, pathParts } from "../../common/utilities/path";
+import { currentProjectId } from "../utilities/utils";
 
 /**
  * Interface representing a Firebase Realtime database data snapshot.
@@ -57,8 +58,8 @@ export class DataSnapshot implements database.DataSnapshot {
       this.instance = app.options.databaseURL;
     } else if (config.databaseURL) {
       this.instance = config.databaseURL;
-    } else if (process.env.GCLOUD_PROJECT) {
-      this.instance = "https://" + process.env.GCLOUD_PROJECT + "-default-rtdb.firebaseio.com";
+    } else if (currentProjectId()) {
+      this.instance = "https://" + currentProjectId() + "-default-rtdb.firebaseio.com";
     }
 
     this._path = path;

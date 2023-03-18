@@ -26,6 +26,7 @@ import * as logger from "../../logger";
 import { EventContext } from "../../v1/cloud-functions";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
+import { currentProjectId } from "../utilities/utils";
 import { HttpsError, unsafeDecodeToken } from "./https";
 
 export { HttpsError };
@@ -784,7 +785,7 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
 export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1 | HandlerV2) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
-      const projectId = process.env.GCLOUD_PROJECT;
+      const projectId = currentProjectId();
       if (!isValidRequest(req)) {
         logger.error("Invalid request, unable to process");
         throw new HttpsError("invalid-argument", "Bad Request");

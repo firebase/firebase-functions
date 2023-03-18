@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 import * as path from "path";
 
 import * as logger from "../logger";
+import { currentProjectId } from "./utilities/utils";
 
 let cache: AppOptions | null = null;
 
@@ -36,15 +37,15 @@ export function firebaseConfig(): AppOptions | null {
     return cache;
   }
 
-  if (process.env.GCLOUD_PROJECT) {
+  const projectId = currentProjectId();
+  if (projectId) {
     logger.warn(
       "Warning, estimating Firebase Config based on GCLOUD_PROJECT. Initializing firebase-admin may fail"
     );
     cache = {
-      databaseURL:
-        process.env.DATABASE_URL || `https://${process.env.GCLOUD_PROJECT}.firebaseio.com`,
-      storageBucket: process.env.STORAGE_BUCKET_URL || `${process.env.GCLOUD_PROJECT}.appspot.com`,
-      projectId: process.env.GCLOUD_PROJECT,
+      databaseURL: process.env.DATABASE_URL || `https://${projectId}.firebaseio.com`,
+      storageBucket: process.env.STORAGE_BUCKET_URL || `${projectId}.appspot.com`,
+      projectId: projectId,
     };
     return cache;
   } else {

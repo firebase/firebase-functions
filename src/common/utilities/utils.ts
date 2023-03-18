@@ -24,6 +24,24 @@ function isObject(obj: any): boolean {
   return typeof obj === "object" && !!obj;
 }
 
+/**
+ * Retrieves the current GCL project ID from process.env.GCLOUD_PROJECT (which
+ * is guaranteed to be set during firebase deploy) or process.env.PROJECT_ID
+ * (which is guaranteed to be set by the Extensions backend). Use this instead
+ * of directly querying process.env if your code can be used in either context.
+ *  
+ * @internal 
+ */
+export function currentProjectId(assertPresence = false): string {
+  const projectId = process.env.GCLOUD_PROJECT || process.env.PROJECT_ID;
+  if (!projectId && assertPresence) {
+    throw new Error(
+      `Unable to determine current GCP project--neither process.env.GCLOUD_PROJECT nor process.env.GCP_PROJECT are set.`
+    );
+  }
+  return projectId;
+}
+
 /** @hidden */
 export function applyChange(src: any, dest: any) {
   // if not mergeable, don't merge

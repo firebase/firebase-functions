@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { currentProjectId } from "../../common/utilities/utils";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -38,10 +39,7 @@ export function testMatrix() {
 /** @internal */
 export function _testMatrixWithOpts(opts: DeploymentOptions) {
   return new TestMatrixBuilder(() => {
-    if (!process.env.GCLOUD_PROJECT) {
-      throw new Error("process.env.GCLOUD_PROJECT is not set.");
-    }
-    return "projects/" + process.env.GCLOUD_PROJECT + "/testMatrices/{matrix}";
+    return "projects/" + currentProjectId(true) + "/testMatrices/{matrix}";
   }, opts);
 }
 

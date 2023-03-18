@@ -27,6 +27,7 @@ import { getApp } from "../../common/app";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
 import { dateToTimestampProto } from "../../common/utilities/encoder";
+import { currentProjectId } from "../../common/utilities/utils";
 import * as logger from "../../logger";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
@@ -101,15 +102,7 @@ export class NamespaceBuilder {
 
   document<Path extends string>(path: Path) {
     return new DocumentBuilder<Path>(() => {
-      if (!process.env.GCLOUD_PROJECT) {
-        throw new Error("process.env.GCLOUD_PROJECT is not set.");
-      }
-      const database = posix.join(
-        "projects",
-        process.env.GCLOUD_PROJECT,
-        "databases",
-        this.database
-      );
+      const database = posix.join("projects", currentProjectId(true), "databases", this.database);
       return posix.join(
         database,
         this.namespace ? `documents@${this.namespace}` : "documents",

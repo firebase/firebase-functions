@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { currentProjectId } from "../../common/utilities/utils";
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -49,10 +50,7 @@ export function _onUpdateWithOptions(
   options: DeploymentOptions
 ): CloudFunction<TemplateVersion> {
   const triggerResource = () => {
-    if (!process.env.GCLOUD_PROJECT) {
-      throw new Error("process.env.GCLOUD_PROJECT is not set.");
-    }
-    return `projects/${process.env.GCLOUD_PROJECT}`;
+    return `projects/${currentProjectId(true)}`;
   };
   return new UpdateBuilder(triggerResource, options).onUpdate(handler);
 }
