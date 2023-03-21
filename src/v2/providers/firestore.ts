@@ -307,7 +307,7 @@ export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot 
       (event.data as RawFirestoreData).value?.updateTime
     );
   } else {
-    logger.error("Cannot determine payload type, failing out.");
+    logger.error(`Cannot determine payload type, datacontenttype is ${event.datacontenttype}, failing out.`);
     throw Error("Error: Cannot parse event payload.");
   }
 }
@@ -324,7 +324,7 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
       (event.data as RawFirestoreData).oldValue?.updateTime
     );
   } else {
-    logger.error("Cannot determine payload type, failing out.");
+    logger.error(`Cannot determine payload type, datacontenttype is ${event.datacontenttype}, failing out.`);
     throw Error("Error: Cannot parse event payload.");
   }
 }
