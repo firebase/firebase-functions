@@ -70,7 +70,7 @@ export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreD
   database: string;
   namespace: string;
   document: string;
-  datacontenttype: string;
+  datacontenttype?: string;
   dataschema: string;
   time: string;
 }
@@ -290,11 +290,16 @@ export function getOpts(documentOrOpts: string | DocumentOptions) {
   };
 }
 
+/** @hidden */
+function getPath(event: RawFirestoreEvent): string {
+  return `projects/${event.project}/databases/${event.database}/documents/${event.document}`;
+}
+
 /** @internal */
 export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
-  if (event.datacontenttype.includes("application/protobuf")) {
-    return createSnapshotFromProtobuf(event.data as Uint8Array);
-  } else if (event.datacontenttype.includes("application/json")) {
+  if (event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data)) {
+    return createSnapshotFromProtobuf(event.data as Uint8Array, getPath(event));
+  } else if (event.datacontenttype?.includes("application/json")) {
     return createSnapshotFromJson(
       event.data,
       event.source,
@@ -309,9 +314,9 @@ export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot 
 
 /** @internal */
 export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
-  if (event.datacontenttype.includes("application/protobuf")) {
-    return createBeforeSnapshotFromProtobuf(event.data as Uint8Array);
-  } else if (event.datacontenttype.includes("application/json")) {
+  if (event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data)) {
+    return createBeforeSnapshotFromProtobuf(event.data as Uint8Array, getPath(event));
+  } else if (event.datacontenttype?.includes("application/json")) {
     return createBeforeSnapshotFromJson(
       event.data,
       event.source,
@@ -337,11 +342,19 @@ export function makeFirestoreEvent<Params>(
   event: RawFirestoreEvent,
   params: Params
 ): FirestoreEvent<QueryDocumentSnapshot, Params> {
+  const data = event.data
+    ? eventType === createdEventType
+      ? createSnapshot(event)
+      : createBeforeSnapshot(event)
+    : undefined;
   const firestoreEvent: FirestoreEvent<QueryDocumentSnapshot, Params> = {
     ...event,
     params,
-    data: eventType === createdEventType ? createSnapshot(event) : createBeforeSnapshot(event),
+    data,
   };
+  if (firestoreEvent.data === undefined) {
+    delete (firestoreEvent as any).data;
+  }
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
   return firestoreEvent;
@@ -352,11 +365,17 @@ export function makeChangedFirestoreEvent<Params>(
   event: RawFirestoreEvent,
   params: Params
 ): FirestoreEvent<Change<QueryDocumentSnapshot>, Params> {
+  const data = event.data
+    ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
+    : undefined;
   const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot>, Params> = {
     ...event,
     params,
-    data: Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event)),
+    data,
   };
+  if (firestoreEvent.data === undefined) {
+    delete (firestoreEvent as any).data;
+  }
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
   return firestoreEvent;

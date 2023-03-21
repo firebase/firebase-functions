@@ -32,6 +32,7 @@ const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 let firestoreInstance: any;
 
+/** @hidden */
 function _getValueProto(data: any, resource: string, valueFieldName: string) {
   const value = data?.[valueFieldName];
   if (
@@ -51,7 +52,8 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
   return proto;
 }
 
-export function createSnapshotFromProtobuf(data: Uint8Array) {
+/** @internal */
+export function createSnapshotFromProtobuf(data: Uint8Array, path: string) {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
   }
@@ -59,14 +61,16 @@ export function createSnapshotFromProtobuf(data: Uint8Array) {
     const dataBuffer = Buffer.from(data);
     const anyDecoded = Any.decode(dataBuffer);
     const firestoreDecoded = DocumentEventData.decode(anyDecoded.value);
-    return firestoreInstance.snapshot_(firestoreDecoded.value, null, "protobufJS");
+
+    return firestoreInstance.snapshot_(firestoreDecoded.value || path, null, "protobufJS");
   } catch (err: unknown) {
     logger.error("Failed to decode protobuf and create a snapshot.");
     throw err;
   }
 }
 
-export function createBeforeSnapshotFromProtobuf(data: Uint8Array) {
+/** @internal */
+export function createBeforeSnapshotFromProtobuf(data: Uint8Array, path: string) {
   if (!firestoreInstance) {
     firestoreInstance = firestore.getFirestore(getApp());
   }
@@ -75,13 +79,14 @@ export function createBeforeSnapshotFromProtobuf(data: Uint8Array) {
     const anyDecoded = Any.decode(dataBuffer);
     const firestoreDecoded = DocumentEventData.decode(anyDecoded.value);
 
-    return firestoreInstance.snapshot_(firestoreDecoded.oldValue, null, "protobufJS");
+    return firestoreInstance.snapshot_(firestoreDecoded.oldValue || path, null, "protobufJS");
   } catch (err: unknown) {
     logger.error("Failed to decode protobuf and create a before snapshot.");
     throw err;
   }
 }
 
+/** @internal */
 export function createSnapshotFromJson(
   data: any,
   source: string,
@@ -103,6 +108,7 @@ export function createSnapshotFromJson(
   return firestoreInstance.snapshot_(valueProto, readTime, "json");
 }
 
+/** @internal */
 export function createBeforeSnapshotFromJson(
   data: any,
   source: string,

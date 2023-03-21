@@ -80,7 +80,7 @@ function makeEncodedProtobuf(data: any) {
   return Any.encode(anyData).finish();
 }
 
-function makeEvent(data: any): firestore.RawFirestoreEvent {
+function makeEvent(data?: any): firestore.RawFirestoreEvent {
   return {
     ...eventBase,
     data,
@@ -377,6 +377,15 @@ describe("firestore", () => {
       ).to.throw("Error: Cannot parse event payload.");
     });
 
+    it("should create snapshot of a protobuf encoded event if datacontexttype is missing", () => {
+      const rawEvent: firestore.RawFirestoreEvent = makeEvent(makeEncodedProtobuf(createdProto));
+      delete rawEvent.datacontenttype;
+
+      const snapshot = firestore.createSnapshot(rawEvent);
+
+      expect(snapshot.data()).to.deep.eq({ hello: "create world" });
+    });
+
     it("should create snapshot of a protobuf encoded created event", () => {
       const rawEvent: firestore.RawFirestoreEvent = makeEvent(makeEncodedProtobuf(createdProto));
 
@@ -511,6 +520,16 @@ describe("firestore", () => {
   });
 
   describe("makeFirestoreEvent", () => {
+    it("should make event from an event without data", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.createdEventType,
+        makeEvent(),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data).to.eq(undefined);
+    });
+
     it("should make event from a created event", () => {
       const event = firestore.makeFirestoreEvent(
         firestore.createdEventType,
@@ -533,6 +552,15 @@ describe("firestore", () => {
   });
 
   describe("makeChangedFirestoreEvent", () => {
+    it("should make event from an event without data", () => {
+      const event = firestore.makeChangedFirestoreEvent(
+        makeEvent(),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data).to.eq(undefined);
+    });
+
     it("should make event from an updated event", () => {
       const event = firestore.makeChangedFirestoreEvent(
         makeEvent(makeEncodedProtobuf(updatedProto)),
