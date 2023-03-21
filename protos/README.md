@@ -1,38 +1,15 @@
 # Generate compiled ProtoBuf
 
-## Step 1
-
-### Grab the protos
-
-Firestore DocumentEventData - https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto
-
-Any - https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/any.proto
-
-Struct - https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/struct.proto
-
-Timestamp - https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/timestamp.proto
-
-Latlng - https://github.com/googleapis/googleapis/blob/master/google/type/latlng.proto
-
-## Step 2
-
-### Directory structure
-
-data.proto
-any.proto
-google/
-struct.proto
-timestamp.proto
-type/
-latlng.proto
-
-## Step 3
-
-### Run the protobufjs cli to generate
+Running the script will generate statically-compiled protobufs for decoding `application/protobuf` events. Generate them by running:
 
 ```
-npx pbjs -t static-module -w commonjs -o compiled.js data.proto any.proto google/struct.proto google/timestamp.proto google/type/latlng.proto
-npx pbts -o compiled.d.ts compiled.js
+./update.sh
 ```
 
-https://github.com/protobufjs/protobuf.js/tree/master/cli#pbts-for-typescript
+In order to build, the following repos are cloned
+
+- https://github.com/googleapis/google-cloudevents
+- https://github.com/googleapis/googleapis
+- https://github.com/google/protobuf
+
+The script relies on the [protobufjs-cli](https://github.com/protobufjs/protobuf.js/tree/master/cli#pbts-for-typescript) package to create the compiled js/ts files.
