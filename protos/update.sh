@@ -30,8 +30,8 @@ WORK_DIR=`mktemp -d`
 function cleanup {
   rm -rf "$WORK_DIR"
   echo "Deleted temp working directory $WORK_DIR"
-  # rm -rf "${PROTOS_DIR}/data.proto" "${PROTOS_DIR}/any.proto" "${PROTOS_DIR}/google"
-  # echo "Deleted copied protos"
+  rm -rf "${PROTOS_DIR}/data.proto" "${PROTOS_DIR}/any.proto" "${PROTOS_DIR}/google"
+  echo "Deleted copied protos"
 }
 
 # register the cleanup function to be called on the EXIT signal
@@ -69,26 +69,7 @@ cp googleapis/google/type/latlng.proto \
 
 popd
 
-# PBJS_ARGS=( --proto_path=. \
-#   --js_out=import_style=commonjs,binary:library \
-#   --target=static-module \
-#   --no-create \
-#   --no-encode \
-#   --no-decode \
-#   --no-verify \
-#   --no-delimited \
-#   --force-enum-string)
-
-"${PBJS}" -t static-module -w commonjs -o compiled.js \
-  data.proto any.proto google/*.proto google/type/*.proto
+"${PBJS}" -t static-module -w commonjs -o compiledFirestore.js \
+  data.proto any.proto
 
 "${PBTS}" -o compiledFirestore.d.ts compiledFirestore.js
-
-# "${PBJS}" "${PBJS_ARGS[@]}" -o compiledFirestore.js \
-#   -r firestore_v1 \
-#   "${PROTOS_DIR}/*.proto" \
-#   "${PROTOS_DIR}/google/type/*.proto"
-
-# perl -pi -e 's/number\|Long/number\|string/g' compiledFirestore.js
-
-# "${PBTS}" -o compiledFirestore.d.ts compiledFirestore.js
