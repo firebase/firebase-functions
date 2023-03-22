@@ -19,7 +19,8 @@
   "license": "MIT",
   "author": "Firebase Team",
   "files": [
-    "lib"
+    "lib",
+    "protos"
   ],
   "main": "lib/v1/index.js",
   "bin": {
@@ -59,7 +60,8 @@
     "./v2/database": "./lib/v2/providers/database.js",
     "./v2/scheduler": "./lib/v2/providers/scheduler.js",
     "./v2/remoteConfig": "./lib/v2/providers/remoteConfig.js",
-    "./v2/testLab": "./lib/v2/providers/testLab.js"
+    "./v2/testLab": "./lib/v2/providers/testLab.js",
+    "./v2/firestore": "./lib/v2/providers/firestore.js"
   },
   "typesVersions": {
     "*": {
@@ -158,6 +160,9 @@
       ],
       "v2/testLab": [
         "lib/v2/providers/testLab"
+      ],
+      "v2/firestore": [
+        "lib/v2/providers/firestore"
       ]
     }
   },
@@ -193,7 +198,8 @@
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.7",
+    "protobufjs": "^7.2.2"
   },
   "devDependencies": {
     "@firebase/api-documenter": "^0.2.0",
@@ -231,6 +237,7 @@
     "node-fetch": "^2.6.7",
     "portfinder": "^1.0.28",
     "prettier": "^2.7.1",
+    "protobufjs-cli": "^1.1.1",
     "semver": "^7.3.5",
     "sinon": "^7.3.2",
     "ts-node": "^10.4.0",

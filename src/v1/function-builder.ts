@@ -249,7 +249,7 @@ function assertRegionsAreValid(regions: string[]): boolean {
  * functions.region('us-east1', 'us-central1')
  */
 export function region(
-  ...regions: Array<typeof SUPPORTED_REGIONS[number] | string>
+  ...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string>
 ): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
@@ -291,7 +291,7 @@ export class FunctionBuilder {
    * @example
    * functions.region('us-east1', 'us-central1')
    */
-  region(...regions: Array<typeof SUPPORTED_REGIONS[number] | string>): FunctionBuilder {
+  region(...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string>): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;

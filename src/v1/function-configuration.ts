@@ -182,7 +182,7 @@ export interface RuntimeOptions {
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTIONS[number] | Expression<number> | ResetValue;
+  memory?: (typeof VALID_MEMORY_OPTIONS)[number] | Expression<number> | ResetValue;
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
@@ -210,7 +210,7 @@ export interface RuntimeOptions {
   /**
    * Egress settings for VPC connector.
    */
-  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number] | ResetValue;
+  vpcConnectorEgressSettings?: (typeof VPC_EGRESS_SETTINGS_OPTIONS)[number] | ResetValue;
 
   /**
    * Specific service account for the function to run as.
@@ -220,7 +220,7 @@ export interface RuntimeOptions {
   /**
    * Ingress settings which control where this function can be called from.
    */
-  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number] | ResetValue;
+  ingressSettings?: (typeof INGRESS_SETTINGS_OPTIONS)[number] | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -270,7 +270,7 @@ export interface DeploymentOptions extends RuntimeOptions {
   /**
    * Regions where function should be deployed.
    */
-  regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
+  regions?: Array<(typeof SUPPORTED_REGIONS)[number] | string>;
   /**
    * Schedule for the scheduled function.
    */
