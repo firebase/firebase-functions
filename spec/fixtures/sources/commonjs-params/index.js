@@ -19,6 +19,8 @@ params.defineInt("ANOTHER_INT", {
   },
 });
 
+params.defineList("LIST_PARAM", {input: { multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}})
+
 params.defineSecret("SUPER_SECRET_FLAG");
 
 // N.B: invocation of the precanned internal params should not affect the manifest

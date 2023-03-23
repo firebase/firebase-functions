@@ -388,6 +388,32 @@ describe("Pubsub Functions", () => {
         expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
         expect(result.__endpoint.timeoutSeconds).to.deep.equal(90);
       });
+
+      it("should return an appropriate endpoint when called with preserveExternalChanges", () => {
+        const result = functions
+          .region("us-east1")
+          .runWith({
+            timeoutSeconds: 90,
+            memory: "256MB",
+            preserveExternalChanges: true,
+          })
+          .pubsub.schedule("every 5 minutes")
+          .timeZone("America/New_York")
+          .onRun(() => null);
+
+        expect(result.__endpoint).to.deep.eq({
+          platform: "gcfv1",
+          labels: {},
+          region: ["us-east1"],
+          availableMemoryMb: 256,
+          timeoutSeconds: 90,
+          scheduleTrigger: {
+            schedule: "every 5 minutes",
+            timeZone: "America/New_York",
+            retryConfig: {},
+          },
+        });
+      });
     });
   });
 

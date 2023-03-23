@@ -182,7 +182,7 @@ export interface RuntimeOptions {
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTIONS[number] | Expression<number> | ResetValue;
+  memory?: (typeof VALID_MEMORY_OPTIONS)[number] | Expression<number> | ResetValue;
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
@@ -205,12 +205,12 @@ export interface RuntimeOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
    */
-  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number] | ResetValue;
+  vpcConnectorEgressSettings?: (typeof VPC_EGRESS_SETTINGS_OPTIONS)[number] | ResetValue;
 
   /**
    * Specific service account for the function to run as.
@@ -220,7 +220,7 @@ export interface RuntimeOptions {
   /**
    * Ingress settings which control where this function can be called from.
    */
-  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number] | ResetValue;
+  ingressSettings?: (typeof INGRESS_SETTINGS_OPTIONS)[number] | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -246,6 +246,17 @@ export interface RuntimeOptions {
    * When false, requests with invalid tokens set context.app to undefiend.
    */
   enforceAppCheck?: boolean;
+
+  /**
+   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
+   *
+   * @remarks
+   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
+   * SDK, we highly recommend setting `preserveExternalChanges` to `true`. Otherwise, when the Firebase Functions SDK releases
+   * a new version of the SDK with support for the missing configuration, your function's manually configured setting
+   * may inadvertently be wiped out.
+   */
+  preserveExternalChanges?: boolean;
 }
 
 /**
@@ -259,19 +270,9 @@ export interface DeploymentOptions extends RuntimeOptions {
   /**
    * Regions where function should be deployed.
    */
-  regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
+  regions?: Array<(typeof SUPPORTED_REGIONS)[number] | string>;
   /**
    * Schedule for the scheduled function.
    */
   schedule?: Schedule;
-  /**
-   * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
-   *
-   * @remarks
-   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
-   * SDK, we highly recommend setting `preserveExternalChanges` to `true`. Otherwise, when the Firebase Functions SDK releases
-   * a new version of the SDK with support for the missing configuration, your function's manually configured setting
-   * may inadvertently be wiped out.
-   */
-  preserveExternalChanges?: boolean;
 }

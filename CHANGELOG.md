@@ -1,1 +1,1 @@
-- Deprecate typoed function name lessThanorEqualTo (#1284)
+- Add firestore 2nd gen triggers (#1358).

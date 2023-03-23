@@ -9,3 +9,4 @@ node_modules
 /dist/
 /spec/fixtures
 /scripts/**/*.js
+/protos/

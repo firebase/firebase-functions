@@ -41,7 +41,7 @@ import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 
-export { AuthData, Request };
+export { AuthData, Request, RateLimits, RetryConfig };
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
@@ -76,7 +76,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -128,7 +128,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -251,8 +251,21 @@ export function onTaskDispatched<Args = any>(
     taskQueueTrigger: initTaskQueueTrigger(options.getGlobalOptions(), opts),
   };
 
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retryConfig");
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "rateLimits");
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.retryConfig,
+    opts.retryConfig,
+    "maxAttempts",
+    "maxBackoffSeconds",
+    "maxDoublings",
+    "maxRetrySeconds",
+    "minBackoffSeconds"
+  );
+  copyIfPresent(
+    func.__endpoint.taskQueueTrigger.rateLimits,
+    opts.rateLimits,
+    "maxConcurrentDispatches",
+    "maxDispatchesPerSecond"
+  );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
 
   func.__requiredAPIs = [
