@@ -23,7 +23,7 @@
 import * as express from "express";
 
 import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
+import { Expression, SecretParam } from "../params/types";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -88,12 +88,15 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   const serviceAccount = runtimeOptions.serviceAccount;
   if (
     serviceAccount &&
-    serviceAccount !== "default" &&
-    !(serviceAccount instanceof ResetValue) &&
-    !serviceAccount.includes("@")
+    !(
+      serviceAccount === "default" ||
+      serviceAccount instanceof ResetValue ||
+      serviceAccount instanceof Expression ||
+      serviceAccount.includes("@")
+    )
   ) {
     throw new Error(
-      `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
+      `serviceAccount must be set to 'default', a string expression, a service account email, or '{serviceAccountName}@'`
     );
   }
 

@@ -172,7 +172,7 @@ export interface GlobalOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -255,7 +255,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   region?: string;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /** The name of the channel where the function receives events. */
   channel?: string;

@@ -7,6 +7,7 @@ import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "../../src/
 import { clearParams } from "../../src/params";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
+import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
 
 describe("extractStack", () => {
   const httpFn = functions.https.onRequest(() => undefined);
@@ -374,6 +375,45 @@ describe("loadStack", () => {
             },
             { name: "SUPER_SECRET_FLAG", type: "secret" },
           ],
+        },
+      },
+      {
+        name: "can use parameterized fields",
+        modulePath: "./spec/fixtures/sources/commonjs-parametrized-fields",
+        expected: {
+          ...expected,
+          params: [
+            { name: "STRING_PARAM", type: "string" },
+            { name: "INT_PARAM", type: "int" },
+            { name: "BOOLEAN_PARAM", type: "boolean" },
+          ],
+          endpoints: {
+            v1http: {
+              ...MINIMAL_V1_ENDPOINT,
+              platform: "gcfv1",
+              entryPoint: "v1http",
+              minInstances: new IntParam("INT_PARAM"),
+              maxInstances: new IntParam("INT_PARAM"),
+              availableMemoryMb: new IntParam("INT_PARAM"),
+              timeoutSeconds: new IntParam("INT_PARAM"),
+              serviceAccountEmail: new StringParam("STRING_PARAM"),
+              omit: new BooleanParam("BOOLEAN_PARAM"),
+              httpsTrigger: {},
+            },
+            v2http: {
+              ...MINIMAL_V2_ENDPOINT,
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              minInstances: new IntParam("INT_PARAM"),
+              maxInstances: new IntParam("INT_PARAM"),
+              availableMemoryMb: new IntParam("INT_PARAM"),
+              timeoutSeconds: new IntParam("INT_PARAM"),
+              serviceAccountEmail: new StringParam("STRING_PARAM"),
+              omit: new BooleanParam("BOOLEAN_PARAM"),
+              labels: {},
+              httpsTrigger: {},
+            },
+          },
         },
       },
     ];

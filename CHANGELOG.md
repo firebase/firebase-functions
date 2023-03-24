@@ -1,1 +1,2 @@
 - Add firestore 2nd gen triggers (#1358).
+- Allow parametrized string type in ServiceAccount fields in Functions and trigger configs (#1309)
