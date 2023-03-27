@@ -215,7 +215,7 @@ export interface RuntimeOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: "default" | string | ResetValue;
+  serviceAccount?: "default" | string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
