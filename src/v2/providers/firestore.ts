@@ -64,7 +64,7 @@ export interface RawFirestoreData {
 }
 
 /** @internal */
-export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreData> {
+export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreData | undefined> {
   location: string;
   project: string;
   database: string;
@@ -119,9 +119,9 @@ export interface DocumentOptions<Document extends string = string> extends Event
 export function onDocumentWritten<Document extends string>(
   document: Document,
   handler: (
-    event: FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>
+    event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>>;
+): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is created, updated, or deleted in Firestore.
@@ -132,9 +132,9 @@ export function onDocumentWritten<Document extends string>(
 export function onDocumentWritten<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>
+    event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>>;
+): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is created, updated, or deleted in Firestore.
@@ -145,9 +145,9 @@ export function onDocumentWritten<Document extends string>(
 export function onDocumentWritten<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>
+    event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>> {
+): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>> {
   return onChangedOperation(writtenEventType, documentOrOpts, handler);
 }
 
@@ -159,8 +159,10 @@ export function onDocumentWritten<Document extends string>(
  */
 export function onDocumentCreated<Document extends string>(
   document: Document,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is created in Firestore.
@@ -170,8 +172,10 @@ export function onDocumentCreated<Document extends string>(
  */
 export function onDocumentCreated<Document extends string>(
   opts: DocumentOptions<Document>,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is created in Firestore.
@@ -181,8 +185,10 @@ export function onDocumentCreated<Document extends string>(
  */
 export function onDocumentCreated<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
   return onOperation(createdEventType, documentOrOpts, handler);
 }
 
@@ -195,9 +201,9 @@ export function onDocumentCreated<Document extends string>(
 export function onDocumentUpdated<Document extends string>(
   document: Document,
   handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>>;
+): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
 /**
  * Event handler which triggers when a document is updated in Firestore.
  *
@@ -207,9 +213,9 @@ export function onDocumentUpdated<Document extends string>(
 export function onDocumentUpdated<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>>;
+): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is updated in Firestore.
@@ -220,9 +226,9 @@ export function onDocumentUpdated<Document extends string>(
 export function onDocumentUpdated<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>> {
+): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>> {
   return onChangedOperation(updatedEventType, documentOrOpts, handler);
 }
 
@@ -234,8 +240,10 @@ export function onDocumentUpdated<Document extends string>(
  */
 export function onDocumentDeleted<Document extends string>(
   document: Document,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is deleted in Firestore.
@@ -245,8 +253,10 @@ export function onDocumentDeleted<Document extends string>(
  */
 export function onDocumentDeleted<Document extends string>(
   opts: DocumentOptions<Document>,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>>;
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler which triggers when a document is deleted in Firestore.
@@ -256,8 +266,10 @@ export function onDocumentDeleted<Document extends string>(
  */
 export function onDocumentDeleted<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
   return onOperation(deletedEventType, documentOrOpts, handler);
 }
 
@@ -345,20 +357,17 @@ export function makeFirestoreEvent<Params>(
   eventType: string,
   event: RawFirestoreEvent,
   params: Params
-): FirestoreEvent<QueryDocumentSnapshot, Params> {
+): FirestoreEvent<QueryDocumentSnapshot | undefined, Params> {
   const data = event.data
     ? eventType === createdEventType
       ? createSnapshot(event)
       : createBeforeSnapshot(event)
     : undefined;
-  const firestoreEvent: FirestoreEvent<QueryDocumentSnapshot, Params> = {
+  const firestoreEvent: FirestoreEvent<QueryDocumentSnapshot | undefined, Params> = {
     ...event,
     params,
     data,
   };
-  if (firestoreEvent.data === undefined) {
-    delete (firestoreEvent as any).data;
-  }
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
   return firestoreEvent;
@@ -368,18 +377,15 @@ export function makeFirestoreEvent<Params>(
 export function makeChangedFirestoreEvent<Params>(
   event: RawFirestoreEvent,
   params: Params
-): FirestoreEvent<Change<QueryDocumentSnapshot>, Params> {
+): FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, Params> {
   const data = event.data
     ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
     : undefined;
-  const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot>, Params> = {
+  const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, Params> = {
     ...event,
     params,
     data,
   };
-  if (firestoreEvent.data === undefined) {
-    delete (firestoreEvent as any).data;
-  }
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
   return firestoreEvent;
