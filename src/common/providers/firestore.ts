@@ -27,7 +27,6 @@ import { google } from "../../../protos/compiledFirestore";
 import { dateToTimestampProto } from "../../common/utilities/encoder";
 
 /** static-complied protobufs */
-const Any = google.protobuf.Any;
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 let firestoreInstance: any;
@@ -59,8 +58,7 @@ export function createSnapshotFromProtobuf(data: Uint8Array, path: string) {
   }
   try {
     const dataBuffer = Buffer.from(data);
-    const anyDecoded = Any.decode(dataBuffer);
-    const firestoreDecoded = DocumentEventData.decode(anyDecoded.value);
+    const firestoreDecoded = DocumentEventData.decode(dataBuffer);
 
     return firestoreInstance.snapshot_(firestoreDecoded.value || path, null, "protobufJS");
   } catch (err: unknown) {
@@ -76,8 +74,7 @@ export function createBeforeSnapshotFromProtobuf(data: Uint8Array, path: string)
   }
   try {
     const dataBuffer = Buffer.from(data);
-    const anyDecoded = Any.decode(dataBuffer);
-    const firestoreDecoded = DocumentEventData.decode(anyDecoded.value);
+    const firestoreDecoded = DocumentEventData.decode(dataBuffer);
 
     return firestoreInstance.snapshot_(firestoreDecoded.oldValue || path, null, "protobufJS");
   } catch (err: unknown) {
