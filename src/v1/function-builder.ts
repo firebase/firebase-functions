@@ -58,7 +58,10 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
   }
-  if (typeof runtimeOptions.timeoutSeconds === "number" && (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0)) {
+  if (
+    typeof runtimeOptions.timeoutSeconds === "number" &&
+    (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0)
+  ) {
     throw new Error(`TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`);
   }
 
