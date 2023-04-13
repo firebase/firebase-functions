@@ -23,11 +23,12 @@
 import * as firestore from "firebase-admin/firestore";
 
 import { posix } from "path";
-import { getApp } from "../../common/app";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
-import { dateToTimestampProto } from "../../common/utilities/encoder";
-import * as logger from "../../logger";
+import {
+  createBeforeSnapshotFromJson,
+  createSnapshotFromJson,
+} from "../../common/providers/firestore";
 import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
@@ -37,7 +38,7 @@ export const provider = "google.firestore";
 export const service = "firestore.googleapis.com";
 /** @internal */
 export const defaultDatabase = "(default)";
-let firestoreInstance: any;
+
 export type DocumentSnapshot = firestore.DocumentSnapshot;
 export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
 
@@ -119,49 +120,23 @@ export class NamespaceBuilder {
   }
 }
 
-function _getValueProto(data: any, resource: string, valueFieldName: string) {
-  const value = data?.[valueFieldName];
-  if (
-    typeof value === "undefined" ||
-    value === null ||
-    (typeof value === "object" && !Object.keys(value).length)
-  ) {
-    // Firestore#snapshot_ takes resource string instead of proto for a non-existent snapshot
-    return resource;
-  }
-  const proto = {
-    fields: value?.fields || {},
-    createTime: dateToTimestampProto(value?.createTime),
-    updateTime: dateToTimestampProto(value?.updateTime),
-    name: value?.name || resource,
-  };
-  return proto;
-}
-
 export function snapshotConstructor(event: Event): DocumentSnapshot {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
-  }
-  const valueProto = _getValueProto(event.data, event.context.resource.name, "value");
-  let timeString = event?.data?.value?.readTime ?? event?.data?.value?.updateTime;
-
-  if (!timeString) {
-    logger.warn("Snapshot has no readTime. Using now()");
-    timeString = new Date().toISOString();
-  }
-
-  const readTime = dateToTimestampProto(timeString);
-  return firestoreInstance.snapshot_(valueProto, readTime, "json");
+  return createSnapshotFromJson(
+    event.data,
+    event.context.resource.name,
+    event?.data?.value?.readTime,
+    event?.data?.value?.updateTime
+  );
 }
 
 // TODO remove this function when wire format changes to new format
 export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
-  }
-  const oldValueProto = _getValueProto(event.data, event.context.resource.name, "oldValue");
-  const oldReadTime = dateToTimestampProto(event?.data?.oldValue?.readTime);
-  return firestoreInstance.snapshot_(oldValueProto, oldReadTime, "json");
+  return createBeforeSnapshotFromJson(
+    event.data,
+    event.context.resource.name,
+    event?.data?.oldValue?.readTime,
+    undefined
+  );
 }
 
 function changeConstructor(raw: Event) {

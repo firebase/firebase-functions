@@ -58,7 +58,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
   }
-  if (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0) {
+  if (typeof runtimeOptions.timeoutSeconds === "number" && (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0)) {
     throw new Error(`TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`);
   }
 
@@ -88,12 +88,15 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   const serviceAccount = runtimeOptions.serviceAccount;
   if (
     serviceAccount &&
-    serviceAccount !== "default" &&
-    !(serviceAccount instanceof ResetValue) &&
-    !serviceAccount.includes("@")
+    !(
+      serviceAccount === "default" ||
+      serviceAccount instanceof ResetValue ||
+      serviceAccount instanceof Expression ||
+      serviceAccount.includes("@")
+    )
   ) {
     throw new Error(
-      `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
+      `serviceAccount must be set to 'default', a string expression, a service account email, or '{serviceAccountName}@'`
     );
   }
 
@@ -249,7 +252,7 @@ function assertRegionsAreValid(regions: (string | Expression<string> | ResetValu
  * functions.region('us-east1', 'us-central1')
  */
 export function region(
-  ...regions: Array<typeof SUPPORTED_REGIONS[number] | string | Expression<string> | ResetValue>
+  ...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string | Expression<string> | ResetValue>
 ): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
@@ -292,7 +295,7 @@ export class FunctionBuilder {
    * functions.region('us-east1', 'us-central1')
    */
   region(
-    ...regions: Array<typeof SUPPORTED_REGIONS[number] | string | Expression<string> | ResetValue>
+    ...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string | Expression<string> | ResetValue>
   ): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
