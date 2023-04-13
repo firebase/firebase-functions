@@ -56,7 +56,12 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   omit?: boolean | Expression<boolean>;
 
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
-  region?: SupportedRegion | string | Array<SupportedRegion | string>;
+  region?:
+    | SupportedRegion
+    | string
+    | Array<SupportedRegion | string>
+    | Expression<string>
+    | ResetValue;
 
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
