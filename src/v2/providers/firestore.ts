@@ -72,7 +72,6 @@ export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreD
   document: string;
   datacontenttype?: string;
   dataschema: string;
-  time: string;
 }
 
 /** A Firestore DocumentSnapshot */
