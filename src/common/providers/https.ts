@@ -51,8 +51,24 @@ export interface Request extends express.Request {
  * The interface for AppCheck tokens verified in Callable functions
  */
 export interface AppCheckData {
+  /**
+   * The App ID that App Check token belonged to.
+   */
   appId: string;
+  /**
+   * Decoded App Check token.
+   */
   token: DecodedAppCheckToken;
+  /**
+   * Indicates if the token has been consumed.
+   *
+   * @remarks
+   * If `false`, App Check has not validated the token, and will be marked as consumed for future use.
+   *
+   * If `true`, the caller is trying to reuse a consumed token. Consider taking precautions, such as rejecting the
+   * request or requiring additional security checks.
+   */
+  alreadyConsumed?: boolean;
 }
 
 /**
@@ -535,7 +551,11 @@ export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
  * @returns {CallableTokenStatus} Status of the token verifications.
  */
 /** @internal */
-async function checkTokens(req: Request, ctx: CallableContext): Promise<CallableTokenStatus> {
+async function checkTokens(
+  req: Request,
+  ctx: CallableContext,
+  options: CallableOptions
+): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
     app: "INVALID",
     auth: "INVALID",
@@ -546,7 +566,7 @@ async function checkTokens(req: Request, ctx: CallableContext): Promise<Callable
       verifications.auth = await checkAuthToken(req, ctx);
     }),
     Promise.resolve().then(async () => {
-      verifications.app = await checkAppCheckToken(req, ctx);
+      verifications.app = await checkAppCheckToken(req, ctx, options);
     }),
   ]);
 
@@ -607,18 +627,29 @@ export async function checkAuthToken(
 }
 
 /** @internal */
-async function checkAppCheckToken(req: Request, ctx: CallableContext): Promise<TokenStatus> {
+async function checkAppCheckToken(
+  req: Request,
+  ctx: CallableContext,
+  options: CallableOptions
+): Promise<TokenStatus> {
   const appCheck = req.header("X-Firebase-AppCheck");
   if (!appCheck) {
     return "MISSING";
   }
   try {
-    let appCheckData;
+    let appCheckData: AppCheckData;
     if (isDebugFeatureEnabled("skipTokenVerification")) {
       const decodedToken = unsafeDecodeAppCheckToken(appCheck);
       appCheckData = { appId: decodedToken.app_id, token: decodedToken };
+      if (options.consumeAppCheckToken) {
+        appCheckData.alreadyConsumed = false;
+      }
     } else {
-      appCheckData = await getAppCheck(getApp()).verifyToken(appCheck);
+      if (options.consumeAppCheckToken) {
+        appCheckData = await getAppCheck(getApp()).verifyToken(appCheck, { consume: true });
+      } else {
+        appCheckData = await getAppCheck(getApp()).verifyToken(appCheck);
+      }
     }
     ctx.app = appCheckData;
     return "VALID";
@@ -635,6 +666,7 @@ type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
 export interface CallableOptions {
   cors: cors.CorsOptions;
   enforceAppCheck?: boolean;
+  consumeAppCheckToken?: boolean;
 }
 
 /** @internal */
@@ -692,7 +724,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
         }
       }
 
-      const tokenStatus = await checkTokens(req, context);
+      const tokenStatus = await checkTokens(req, context, options);
       if (tokenStatus.auth === "INVALID") {
         throw new HttpsError("unauthenticated", "Unauthenticated");
       }
