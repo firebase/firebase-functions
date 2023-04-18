@@ -1,0 +1,1 @@
+- Export Change interface from the v2 firestore path (#1379).
