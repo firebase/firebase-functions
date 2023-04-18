@@ -35,6 +35,8 @@ import {
   createSnapshotFromProtobuf,
 } from "../../common/providers/firestore";
 
+export { Change };
+
 /** @internal */
 export const writtenEventType = "google.cloud.firestore.document.v1.written";
 
