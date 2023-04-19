@@ -52,7 +52,7 @@ export interface Request extends express.Request {
  */
 export interface AppCheckData {
   /**
-   * The App ID that App Check token belonged to.
+   * The app ID of a Firebase App attested by the App Check token.
    */
   appId: string;
   /**
@@ -63,10 +63,11 @@ export interface AppCheckData {
    * Indicates if the token has been consumed.
    *
    * @remarks
-   * If `false`, App Check has not validated the token, and will be marked as consumed for future use.
+   * `false` value indicates that this is the first time the App Check service has seen this token and marked the
+   * token as consumed for future use of the token.
    *
-   * If `true`, the caller is trying to reuse a consumed token. Consider taking precautions, such as rejecting the
-   * request or requiring additional security checks.
+   * `true` value indicates the token has previously been marked as consumed by the App Check service. In this case,
+   *  consider taking extra precautions, such as rejecting the request or requiring additional security checks.
    */
   alreadyConsumed?: boolean;
 }

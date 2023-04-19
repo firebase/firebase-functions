@@ -205,23 +205,6 @@ export interface GlobalOptions {
   enforceAppCheck?: boolean;
 
   /**
-   * Determines whether Firebase App Check token is consumed on request. Defaults to false.
-   *
-   * @remarks
-   * Set this to true to enable the App Check replay protection feature by consuming App Check token on callable request.
-   * Tokens that are found to be already consumed will return app data as alreadyConsumed.
-   *
-   * Tokens are only considered to be consumed by calling the VerifyAppCheckToken method and setting this value to true;
-   * other uses of the token do not consume it.
-   *
-   * This replay protection feature requires an additional network call to the App Check backend and forces the clients
-   * to obtain a fresh attestation from the chosen attestation providers. This can therefore negatively impact
-   * performance and can potentially deplete your attestation providers' quotas faster. Use this feature only for
-   * protecting low volume, security critical, or expensive operations.
-   */
-  consumeAppCheckToken?: boolean;
-
-  /**
    * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
    *
    * @remarks
