@@ -1,0 +1,1 @@
+- Fix typo on alert event type. (#1384)
