@@ -633,23 +633,33 @@ async function checkAppCheckToken(
   ctx: CallableContext,
   options: CallableOptions
 ): Promise<TokenStatus> {
-  const appCheck = req.header("X-Firebase-AppCheck");
-  if (!appCheck) {
+  const appCheckToken = req.header("X-Firebase-AppCheck");
+  if (!appCheckToken) {
     return "MISSING";
   }
   try {
     let appCheckData: AppCheckData;
     if (isDebugFeatureEnabled("skipTokenVerification")) {
-      const decodedToken = unsafeDecodeAppCheckToken(appCheck);
+      const decodedToken = unsafeDecodeAppCheckToken(appCheckToken);
       appCheckData = { appId: decodedToken.app_id, token: decodedToken };
       if (options.consumeAppCheckToken) {
         appCheckData.alreadyConsumed = false;
       }
     } else {
+      const appCheck = getAppCheck(getApp());
       if (options.consumeAppCheckToken) {
-        appCheckData = await getAppCheck(getApp()).verifyToken(appCheck, { consume: true });
+        if (appCheck.verifyToken.length === 1) {
+          const warning =
+            "Unsupported version of the Admin SDK." +
+            " App Check token will not be consumed." +
+            " Please upgrade the firebase-admin to the latest version.";
+          logger.warn(warning);
+        }
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        appCheckData = await getAppCheck(getApp()).verifyToken(appCheckToken, { consume: true });
       } else {
-        appCheckData = await getAppCheck(getApp()).verifyToken(appCheck);
+        appCheckData = await getAppCheck(getApp()).verifyToken(appCheckToken);
       }
     }
     ctx.app = appCheckData;
