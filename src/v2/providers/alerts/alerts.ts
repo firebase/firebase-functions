@@ -70,7 +70,7 @@ export type AlertType =
   | "crashlytics.velocity"
   | "crashlytics.newAnrIssue"
   | "billing.planUpdate"
-  | "billing.automatedPlanUpdate"
+  | "billing.planAutomatedUpdate"
   | "appDistribution.newTesterIosDevice"
   | "appDistribution.inAppFeedback"
   | "performance.threshold"
