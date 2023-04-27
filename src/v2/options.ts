@@ -102,7 +102,7 @@ export interface GlobalOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: SupportedRegion | string;
+  region?: SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -252,7 +252,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 
   /** Region of the EventArc trigger. */
   // region?: string | Expression<string> | null;
-  region?: string;
+  region?: string | Expression<string> | ResetValue;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
   serviceAccount?: string | Expression<string> | ResetValue;

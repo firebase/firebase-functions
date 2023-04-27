@@ -106,7 +106,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
