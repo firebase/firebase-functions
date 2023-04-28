@@ -649,11 +649,12 @@ async function checkAppCheckToken(
       const appCheck = getAppCheck(getApp());
       if (options.consumeAppCheckToken) {
         if (appCheck.verifyToken.length === 1) {
-          const warning =
+          const errorMsg =
             "Unsupported version of the Admin SDK." +
             " App Check token will not be consumed." +
             " Please upgrade the firebase-admin to the latest version.";
-          logger.warn(warning);
+          logger.error(errorMsg);
+          throw new HttpsError("internal", "Internal Error");
         }
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -666,6 +667,9 @@ async function checkAppCheckToken(
     return "VALID";
   } catch (err) {
     logger.warn("Failed to validate AppCheck token.", err);
+    if (err instanceof HttpsError) {
+      throw err;
+    }
     return "INVALID";
   }
 }
