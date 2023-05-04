@@ -1,1 +1,2 @@
 - Fix typo on alert event type. (#1384)
+- Add `consumeAppCheckToken` for callable functions (#1374)
