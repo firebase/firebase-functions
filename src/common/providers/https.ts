@@ -648,7 +648,7 @@ async function checkAppCheckToken(
     } else {
       const appCheck = getAppCheck(getApp());
       if (options.consumeAppCheckToken) {
-        if (appCheck.verifyToken.length === 1) {
+        if (appCheck.verifyToken?.length === 1) {
           const errorMsg =
             "Unsupported version of the Admin SDK." +
             " App Check token will not be consumed." +
