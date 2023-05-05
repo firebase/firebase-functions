@@ -656,8 +656,6 @@ async function checkAppCheckToken(
           logger.error(errorMsg);
           throw new HttpsError("internal", "Internal Error");
         }
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
         appCheckData = await getAppCheck(getApp()).verifyToken(appCheckToken, { consume: true });
       } else {
         appCheckData = await getAppCheck(getApp()).verifyToken(appCheckToken);
