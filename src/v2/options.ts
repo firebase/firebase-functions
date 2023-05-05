@@ -200,7 +200,7 @@ export interface GlobalOptions {
    * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
-   * When false, requests with invalid tokens set event.app to undefiend.
+   * When false, requests with invalid tokens set event.app to undefined.
    */
   enforceAppCheck?: boolean;
 

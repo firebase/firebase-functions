@@ -225,7 +225,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-prettier": "^4.0.0",
-    "firebase-admin": "^10.3.0",
+    "firebase-admin": "^11.8.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^9.0.0",

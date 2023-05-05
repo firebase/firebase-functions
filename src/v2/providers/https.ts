@@ -172,6 +172,30 @@ export interface CallableOptions extends HttpsOptions {
    * When false, requests with invalid tokens set event.app to undefiend.
    */
   enforceAppCheck?: boolean;
+
+  /**
+   * Determines whether Firebase App Check token is consumed on request. Defaults to false.
+   *
+   * @remarks
+   * Set this to true to enable the App Check replay protection feature by consuming the App Check token on callable
+   * request. Tokens that are found to be already consumed will have request.app.alreadyConsumed property set true.
+   *
+   *
+   * Tokens are only considered to be consumed if it is sent to the App Check service by setting this option to true.
+   * Other uses of the token do not consume it.
+   *
+   * This replay protection feature requires an additional network call to the App Check backend and forces the clients
+   * to obtain a fresh attestation from the chosen attestation providers. This can therefore negatively impact
+   * performance and can potentially deplete your attestation providers' quotas faster. Use this feature only for
+   * protecting low volume, security critical, or expensive operations.
+   *
+   * This option does not affect the enforceAppCheck option. Setting the latter to true will cause the callable function
+   * to automatically respond with a 401 Unauthorized status code when request includes an invalid App Check token.
+   * When request includes valid but consumed App Check tokens, requests will not be automatically rejected. Instead,
+   * the request.app.alreadyConsumed property will be set to true and pass the execution to the handler code for making
+   * further decisions, such as requiring additional security checks or rejecting the request.
+   */
+  consumeAppCheckToken?: boolean;
 }
 
 /**
@@ -337,6 +361,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+      consumeAppCheckToken: opts.consumeAppCheckToken,
     },
     fixedLen
   );
