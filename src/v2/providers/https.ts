@@ -361,6 +361,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+      consumeAppCheckToken: opts.consumeAppCheckToken,
     },
     fixedLen
   );
