@@ -1,1 +1,1 @@
-- Add firestore 2nd gen triggers (#1358).
+- Update list of supported regions for 2nd Gen Functions. (#1402)

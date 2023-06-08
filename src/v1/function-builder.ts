@@ -23,7 +23,7 @@
 import * as express from "express";
 
 import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
+import { Expression, SecretParam } from "../params/types";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -58,7 +58,10 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
       `The only valid memory allocation values are: ${VALID_MEMORY_OPTIONS.join(", ")}`
     );
   }
-  if (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0) {
+  if (
+    typeof runtimeOptions.timeoutSeconds === "number" &&
+    (runtimeOptions.timeoutSeconds > MAX_TIMEOUT_SECONDS || runtimeOptions.timeoutSeconds < 0)
+  ) {
     throw new Error(`TimeoutSeconds must be between 0 and ${MAX_TIMEOUT_SECONDS}`);
   }
 
@@ -88,12 +91,15 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
   const serviceAccount = runtimeOptions.serviceAccount;
   if (
     serviceAccount &&
-    serviceAccount !== "default" &&
-    !(serviceAccount instanceof ResetValue) &&
-    !serviceAccount.includes("@")
+    !(
+      serviceAccount === "default" ||
+      serviceAccount instanceof ResetValue ||
+      serviceAccount instanceof Expression ||
+      serviceAccount.includes("@")
+    )
   ) {
     throw new Error(
-      `serviceAccount must be set to 'default', a service account email, or '{serviceAccountName}@'`
+      `serviceAccount must be set to 'default', a string expression, a service account email, or '{serviceAccountName}@'`
     );
   }
 
@@ -233,7 +239,7 @@ function validateFailurePolicy(policy: any) {
  * @param regions list of regions.
  * @throws { Error } Regions must be in list of supported regions.
  */
-function assertRegionsAreValid(regions: string[]): boolean {
+function assertRegionsAreValid(regions: (string | Expression<string> | ResetValue)[]): boolean {
   if (!regions.length) {
     throw new Error("You must specify at least one region");
   }
@@ -249,7 +255,7 @@ function assertRegionsAreValid(regions: string[]): boolean {
  * functions.region('us-east1', 'us-central1')
  */
 export function region(
-  ...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string>
+  ...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string | Expression<string> | ResetValue>
 ): FunctionBuilder {
   if (assertRegionsAreValid(regions)) {
     return new FunctionBuilder({ regions });
@@ -291,7 +297,9 @@ export class FunctionBuilder {
    * @example
    * functions.region('us-east1', 'us-central1')
    */
-  region(...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string>): FunctionBuilder {
+  region(
+    ...regions: Array<(typeof SUPPORTED_REGIONS)[number] | string | Expression<string> | ResetValue>
+  ): FunctionBuilder {
     if (assertRegionsAreValid(regions)) {
       this.options.regions = regions;
       return this;

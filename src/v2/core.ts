@@ -89,7 +89,7 @@ export interface CloudEvent<T> {
   time: string;
 
   /** Information about this specific event. */
-  data?: T;
+  data: T;
 }
 
 /**

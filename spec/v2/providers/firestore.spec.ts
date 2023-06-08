@@ -27,7 +27,6 @@ import * as firestore from "../../../src/v2/providers/firestore";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
 
 /** static-complied protobuf */
-const Any = google.protobuf.Any;
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 const eventBase = {
@@ -73,11 +72,7 @@ function makeExpectedEp(eventType: string, eventFilters, eventFilterPathPatterns
 }
 
 function makeEncodedProtobuf(data: any) {
-  const encodedCreatedData = DocumentEventData.encode(data);
-  const anyData = Any.create({
-    value: encodedCreatedData.finish(),
-  });
-  return Any.encode(anyData).finish();
+  return DocumentEventData.encode(data).finish();
 }
 
 function makeEvent(data?: any): firestore.RawFirestoreEvent {

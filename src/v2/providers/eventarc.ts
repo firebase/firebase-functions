@@ -70,7 +70,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -140,7 +140,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
