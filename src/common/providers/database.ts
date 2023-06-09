@@ -152,20 +152,12 @@ export class DataSnapshot implements database.DataSnapshot {
   }
 
   /**
-   * Returns `true` if this `DataSnapshot` contains any data. It is slightly more
-   * efficient than using `snapshot.val() !== null`.
-   *
+   * Returns `true` if this `DataSnapshot` contains any data.
+   * 
    * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
    */
   exists(): boolean {
-    const val = this.val();
-    if (!val || val === null) {
-      return false;
-    }
-    if (typeof val === "object" && Object.keys(val).length === 0) {
-      return false;
-    }
-    return true;
+    return this.val() !== null;
   }
 
   /**
