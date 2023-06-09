@@ -153,7 +153,7 @@ export class DataSnapshot implements database.DataSnapshot {
 
   /**
    * Returns `true` if this `DataSnapshot` contains any data.
-   * 
+   *
    * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
    */
   exists(): boolean {
