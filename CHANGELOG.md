@@ -1,1 +1,2 @@
 - Update list of supported regions for 2nd Gen Functions. (#1402)
+- Fix bug where log message on structured log was being overwritten (#1416)
