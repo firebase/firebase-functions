@@ -159,7 +159,7 @@ export class DataSnapshot implements database.DataSnapshot {
    */
   exists(): boolean {
     const val = this.val();
-    if (!val || val === null) {
+    if (typeof val === "undefined" || val === null) {
       return false;
     }
     if (typeof val === "object" && Object.keys(val).length === 0) {
