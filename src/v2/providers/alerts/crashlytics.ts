@@ -178,9 +178,14 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   appId?: string;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -188,7 +193,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -240,7 +245,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -250,7 +255,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.

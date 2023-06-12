@@ -45,13 +45,31 @@ export { RESET_VALUE } from "../common/options";
  * List of all regions supported by Cloud Functions v2
  */
 export type SupportedRegion =
+  | "asia-east1"
   | "asia-northeast1"
+  | "asia-northeast2"
   | "europe-north1"
   | "europe-west1"
   | "europe-west4"
   | "us-central1"
   | "us-east1"
-  | "us-west1";
+  | "us-east4"
+  | "us-west1"
+  | "asia-east2"
+  | "asia-northeast3"
+  | "asia-southeast1"
+  | "asia-southeast2"
+  | "asia-south1"
+  | "australia-southeast1"
+  | "europe-central2"
+  | "europe-west2"
+  | "europe-west3"
+  | "europe-west6"
+  | "northamerica-northeast1"
+  | "southamerica-east1"
+  | "us-west2"
+  | "us-west3"
+  | "us-west4";
 
 /**
  * List of available memory options supported by Cloud Functions.
@@ -95,9 +113,14 @@ export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERN
  */
 export interface GlobalOptions {
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
-  region?: SupportedRegion | string;
+  region?: SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -105,7 +128,7 @@ export interface GlobalOptions {
   memory?: MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -157,7 +180,7 @@ export interface GlobalOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -167,7 +190,7 @@ export interface GlobalOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -195,7 +218,7 @@ export interface GlobalOptions {
    * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
-   * When false, requests with invalid tokens set event.app to undefiend.
+   * When false, requests with invalid tokens set event.app to undefined.
    */
   enforceAppCheck?: boolean;
 
@@ -247,10 +270,10 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 
   /** Region of the EventArc trigger. */
   // region?: string | Expression<string> | null;
-  region?: string;
+  region?: string | Expression<string> | ResetValue;
 
   /** The service account that EventArc should use to invoke this function. Requires the P4SA to have ActAs permission on this service account. */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /** The name of the channel where the function receives events. */
   channel?: string;
@@ -317,6 +340,7 @@ export function optionsToEndpoint(
   copyIfPresent(
     endpoint,
     opts,
+    "omit",
     "concurrency",
     "minInstances",
     "maxInstances",

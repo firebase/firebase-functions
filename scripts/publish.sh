@@ -138,8 +138,9 @@ echo "Publishing release notes..."
 hub release create --file "${RELEASE_NOTES_FILE}" "v${NEW_VERSION}"
 echo "Published release notes."
 
-echo "Making the tweet..."
-npm install --no-save twitter@1.7.1
-cp -v "${WDIR}/scripts/twitter.json" "${TEMPDIR}/${REPOSITORY_NAME}/scripts/"
-node ./scripts/tweet.js ${NEW_VERSION}
-echo "Made the tweet."
+# Temporarily disable Twitter integration
+#echo "Making the tweet..."
+#npm install --no-save twitter@1.7.1
+#cp -v "${WDIR}/scripts/twitter.json" "${TEMPDIR}/${REPOSITORY_NAME}/scripts/"
+#node ./scripts/tweet.js ${NEW_VERSION}
+#echo "Made the tweet."

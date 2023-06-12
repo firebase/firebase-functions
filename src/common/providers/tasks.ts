@@ -64,7 +64,7 @@ export interface RetryConfig {
 /** How congestion control should be applied to the function. */
 export interface RateLimits {
   /**
-   * The maximum number of requests that can be outstanding at a time.
+   * The maximum number of requests that can be processed at a time.
    * If left unspecified, will default to 1000.
    */
   maxConcurrentDispatches?: number | Expression<number> | ResetValue;

@@ -1,1 +1,1 @@
-- Fix a bug where [secret parameters](https://firebase.google.com/docs/functions/config-env#secret_parameters), defined using `defineSecret()`, were missing a `.value()` method (#1281)
+- Update list of supported regions for 2nd Gen Functions. (#1402)

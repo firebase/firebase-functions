@@ -154,12 +154,15 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   if (severity === "ERROR" && !args.find((arg) => arg instanceof Error)) {
     message = new Error(message).stack || message;
   }
-  return {
+  const out: LogEntry = {
     "logging.googleapis.com/trace": ctx?.traceId
       ? `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`
       : undefined,
     ...entry,
     severity,
-    message,
   };
+  if (message) {
+    out.message = message;
+  }
+  return out;
 }

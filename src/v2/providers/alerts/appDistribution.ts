@@ -52,8 +52,6 @@ export interface NewTesterDevicePayload {
 /**
  * The internal payload object for receiving in-app feedback from a tester.
  * Payload is wrapped inside a `FirebaseAlertData` object.
- *
- * @alpha
  */
 export interface InAppFeedbackPayload {
   ["@type"]: "type.googleapis.com/google.events.firebase.firebasealerts.v1.AppDistroInAppFeedbackPayload";
@@ -100,9 +98,14 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   appId?: string;
 
   /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
+  /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -110,7 +113,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -162,7 +165,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -172,7 +175,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -247,8 +250,8 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(
-      handler(convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>)
+    return wrapTraceContext(handler)(
+      convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>
     );
   };
 
@@ -262,8 +265,6 @@ export function onNewTesterIosDevicePublished(
  * Declares a function that can handle receiving new in-app feedback from a tester.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
- *
- * @alpha
  */
 export function onInAppFeedbackPublished(
   handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
@@ -274,8 +275,6 @@ export function onInAppFeedbackPublished(
  * @param appId - A specific application the handler will trigger on.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
- *
- * @alpha
  */
 export function onInAppFeedbackPublished(
   appId: string,
@@ -287,8 +286,6 @@ export function onInAppFeedbackPublished(
  * @param opts - Options that can be set on the function.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
- *
- * @alpha
  */
 export function onInAppFeedbackPublished(
   opts: AppDistributionOptions,
@@ -300,8 +297,6 @@ export function onInAppFeedbackPublished(
  * @param appIdOrOptsOrHandler - A specific application, options, or an event-handling function.
  * @param handler - Event handler which is run every time new feedback is received.
  * @returns A function that you can export and deploy.
- *
- * @alpha
  */
 export function onInAppFeedbackPublished(
   appIdOrOptsOrHandler:
@@ -320,8 +315,8 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(
-      handler(convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>)
+    return wrapTraceContext(handler)(
+      convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>
     );
   };
 

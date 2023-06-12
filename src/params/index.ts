@@ -34,6 +34,7 @@ import {
   ParamOptions,
   SecretParam,
   StringParam,
+  ListParam,
   InternalExpression,
 } from "./types";
 
@@ -158,9 +159,24 @@ export function defineInt(name: string, options: ParamOptions<number> = {}): Int
  * @param name The name of the environment variable to use to load the param.
  * @param options Configuration options for the param.
  * @returns A Param with a `number` return type for `.value`.
+ *
+ * @internal
  */
 export function defineFloat(name: string, options: ParamOptions<number> = {}): FloatParam {
   const param = new FloatParam(name, options);
+  registerParam(param);
+  return param;
+}
+
+/**
+ * Declare a list param.
+ *
+ * @param name The name of the environment variable to use to load the param.
+ * @param options Configuration options for the param.
+ * @returns A Param with a `string[]` return type for `.value`.
+ */
+export function defineList(name: string, options: ParamOptions<string[]> = {}): ListParam {
+  const param = new ListParam(name, options);
   registerParam(param);
   return param;
 }

@@ -221,7 +221,7 @@ export class ResultStorage {
  * - `USE_DESTINATION_ARTIFACTS`: One or more of the test targets defined in the
  *   .xctestrun file specifies "UseDestinationArtifacts", which is disallowed.
  *
- * - `TEST_NON_APP_HOSTED`: XC tests which run on physical devices must have
+ * - `TEST_NOT_APP_HOSTED`: XC tests which run on physical devices must have
  *   "IsAppHostedTestBundle" == "true" in the xctestrun file.
  *
  * - `PLIST_CANNOT_BE_PARSED`: An Info.plist file in the XCTest zip could not be

@@ -50,10 +50,7 @@ export class DataSnapshot implements database.DataSnapshot {
     instance?: string
   ) {
     const config = firebaseConfig();
-    if (app?.options?.databaseURL?.startsWith("http:")) {
-      // In this case we're dealing with an emulator
-      this.instance = app.options.databaseURL;
-    } else if (instance) {
+    if (instance) {
       // SDK always supplies instance, but user's unit tests may not
       this.instance = instance;
     } else if (app) {

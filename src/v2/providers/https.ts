@@ -50,8 +50,18 @@ export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
  * Options that can be set on an onRequest HTTPS function.
  */
 export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
+  /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
-  region?: SupportedRegion | string | Array<SupportedRegion | string>;
+  region?:
+    | SupportedRegion
+    | string
+    | Array<SupportedRegion | string>
+    | Expression<string>
+    | ResetValue;
 
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
@@ -66,7 +76,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   memory?: options.MemoryOption | Expression<number> | ResetValue;
 
   /**
-   * Timeout for the function in sections, possible values are 0 to 540.
+   * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
@@ -118,7 +128,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -128,7 +138,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -162,6 +172,30 @@ export interface CallableOptions extends HttpsOptions {
    * When false, requests with invalid tokens set event.app to undefiend.
    */
   enforceAppCheck?: boolean;
+
+  /**
+   * Determines whether Firebase App Check token is consumed on request. Defaults to false.
+   *
+   * @remarks
+   * Set this to true to enable the App Check replay protection feature by consuming the App Check token on callable
+   * request. Tokens that are found to be already consumed will have request.app.alreadyConsumed property set true.
+   *
+   *
+   * Tokens are only considered to be consumed if it is sent to the App Check service by setting this option to true.
+   * Other uses of the token do not consume it.
+   *
+   * This replay protection feature requires an additional network call to the App Check backend and forces the clients
+   * to obtain a fresh attestation from the chosen attestation providers. This can therefore negatively impact
+   * performance and can potentially deplete your attestation providers' quotas faster. Use this feature only for
+   * protecting low volume, security critical, or expensive operations.
+   *
+   * This option does not affect the enforceAppCheck option. Setting the latter to true will cause the callable function
+   * to automatically respond with a 401 Unauthorized status code when request includes an invalid App Check token.
+   * When request includes valid but consumed App Check tokens, requests will not be automatically rejected. Instead,
+   * the request.app.alreadyConsumed property will be set to true and pass the execution to the handler code for making
+   * further decisions, such as requiring additional security checks or rejecting the request.
+   */
+  consumeAppCheckToken?: boolean;
 }
 
 /**
@@ -225,7 +259,12 @@ export function onRequest(
   }
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    const origin = isDebugFeatureEnabled("enableCors") ? true : opts.cors;
+    let origin = opts.cors;
+    if (isDebugFeatureEnabled("enableCors")) {
+      // Respect `cors: false` to turn off cors even if debug feature is enabled.
+      origin = opts.cors === false ? false : true;
+    }
+
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
@@ -322,6 +361,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
+      consumeAppCheckToken: opts.consumeAppCheckToken,
     },
     fixedLen
   );

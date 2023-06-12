@@ -57,16 +57,26 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 }
 
-function quoteIfString<T extends string | number | boolean | string[]>(literal: T): T {
-  // TODO(vsfan@): CEL's string escape semantics are slightly different than Javascript's, what do we do here?
-  return typeof literal === "string" ? (`"${literal}"` as T) : literal;
-}
-
 function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
+/**
+ * Returns how an entity (either an Expression or a literal value) should be represented in CEL.
+ * - Expressions delegate to the .toString() method, which is used by the WireManifest
+ * - Strings have to be quoted explicitly
+ * - Arrays are represented as []-delimited, parsable JSON
+ * - Numbers and booleans are not quoted explicitly
+ */
 function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
-  return arg instanceof Expression ? arg.toString() : quoteIfString(arg).toString();
+  if (arg instanceof Expression) {
+    return arg.toString();
+  } else if (typeof arg === "string") {
+    return `"${arg}"`;
+  } else if (Array.isArray(arg)) {
+    return JSON.stringify(arg);
+  } else {
+    return arg.toString();
+  }
 }
 
 /**
@@ -123,9 +133,9 @@ export class CompareExpression<
     const right = valueOf(this.rhs);
     switch (this.cmp) {
       case "==":
-        return left === right;
+        return Array.isArray(left) ? this.arrayEquals(left, right as string[]) : left === right;
       case "!=":
-        return left !== right;
+        return Array.isArray(left) ? !this.arrayEquals(left, right as string[]) : left !== right;
       case ">":
         return left > right;
       case ">=":
@@ -137,6 +147,11 @@ export class CompareExpression<
       default:
         throw new Error(`Unknown comparator ${this.cmp}`);
     }
+  }
+
+  /** @internal */
+  arrayEquals(a: string[], b: string[]): boolean {
+    return a.every((item) => b.includes(item)) && b.every((item) => a.includes(item));
   }
 
   toString() {
@@ -159,6 +174,7 @@ type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret"
 type ParamInput<T> =
   | { text: TextInput<T> }
   | { select: SelectInput<T> }
+  | { multiSelect: MultiSelectInput }
   | { resource: ResourceInput };
 
 /**
@@ -199,6 +215,15 @@ export interface ResourceInput {
  */
 export interface SelectInput<T = unknown> {
   options: Array<SelectOptions<T>>;
+}
+
+/**
+ * Specifies that a Param's value should be determined by having the user select
+ * a subset from a list of pre-canned options interactively at deploy-time.
+ * Will result in errors if used on Params of type other than string[].
+ */
+export interface MultiSelectInput {
+  options: Array<SelectOptions<string>>;
 }
 
 /**
@@ -297,8 +322,16 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
   }
 
   /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
-  lessThanorEqualTo(rhs: T | Expression<T>) {
+  lessThanOrEqualTo(rhs: T | Expression<T>) {
     return this.cmp("<=", rhs);
+  }
+
+  /**
+   * Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression.
+   * @deprecated A typo. Use lessThanOrEqualTo instead.
+   */
+  lessThanorEqualTo(rhs: T | Expression<T>) {
+    return this.lessThanOrEqualTo(rhs);
   }
 
   toString(): string {
@@ -444,7 +477,56 @@ export class BooleanParam extends Param<boolean> {
     return !!process.env[this.name] && process.env[this.name] === "true";
   }
 
+  /** @deprecated */
   then<T extends string | number | boolean>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
+    return this.thenElse(ifTrue, ifFalse);
+  }
+
+  thenElse<T extends string | number | boolean>(
+    ifTrue: T | Expression<T>,
+    ifFalse: T | Expression<T>
+  ) {
     return new TernaryExpression(this, ifTrue, ifFalse);
+  }
+}
+
+/**
+ *  A parametrized value of String[] type that will be read from .env files
+ *  if present, or prompted for by the CLI if missing.
+ */
+export class ListParam extends Param<string[]> {
+  static type: ParamValueType = "list";
+
+  /** @internal */
+  runtimeValue(): string[] {
+    const val = JSON.parse(process.env[this.name]);
+    if (!Array.isArray(val) || !(val as string[]).every((v) => typeof v === "string")) {
+      return [];
+    }
+    return val as string[];
+  }
+
+  /** @hidden */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  greaterThan(rhs: string[] | Expression<string[]>): CompareExpression<string[]> {
+    throw new Error(">/< comparison operators not supported on params of type List");
+  }
+
+  /** @hidden */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  greaterThanOrEqualTo(rhs: string[] | Expression<string[]>): CompareExpression<string[]> {
+    throw new Error(">/< comparison operators not supported on params of type List");
+  }
+
+  /** @hidden */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  lessThan(rhs: string[] | Expression<string[]>): CompareExpression<string[]> {
+    throw new Error(">/< comparison operators not supported on params of type List");
+  }
+
+  /** @hidden */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  lessThanorEqualTo(rhs: string[] | Expression<string[]>): CompareExpression<string[]> {
+    throw new Error(">/< comparison operators not supported on params of type List");
   }
 }

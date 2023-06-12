@@ -182,7 +182,7 @@ export interface RuntimeOptions {
   /**
    * Amount of memory to allocate to the function.
    */
-  memory?: typeof VALID_MEMORY_OPTIONS[number] | Expression<number> | ResetValue;
+  memory?: (typeof VALID_MEMORY_OPTIONS)[number] | Expression<number> | ResetValue;
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    */
@@ -205,22 +205,22 @@ export interface RuntimeOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
    */
-  vpcConnectorEgressSettings?: typeof VPC_EGRESS_SETTINGS_OPTIONS[number] | ResetValue;
+  vpcConnectorEgressSettings?: (typeof VPC_EGRESS_SETTINGS_OPTIONS)[number] | ResetValue;
 
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: "default" | string | ResetValue;
+  serviceAccount?: "default" | string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
    */
-  ingressSettings?: typeof INGRESS_SETTINGS_OPTIONS[number] | ResetValue;
+  ingressSettings?: (typeof INGRESS_SETTINGS_OPTIONS)[number] | ResetValue;
 
   /**
    * User labels to set on the function.
@@ -246,20 +246,31 @@ export interface RuntimeOptions {
    * When false, requests with invalid tokens set context.app to undefiend.
    */
   enforceAppCheck?: boolean;
-}
 
-/**
- * Configuration options for a function that applies during function deployment.
- */
-export interface DeploymentOptions extends RuntimeOptions {
   /**
-   * Regions where function should be deployed.
+   * Determines whether Firebase App Check token is consumed on request. Defaults to false.
+   *
+   * @remarks
+   * Set this to true to enable the App Check replay protection feature by consuming the App Check token on callable
+   * request. Tokens that are found to be already consumed will have request.app.alreadyConsumed property set true.
+   *
+   *
+   * Tokens are only considered to be consumed if it is sent to the App Check service by setting this option to true.
+   * Other uses of the token do not consume it.
+   *
+   * This replay protection feature requires an additional network call to the App Check backend and forces the clients
+   * to obtain a fresh attestation from the chosen attestation providers. This can therefore negatively impact
+   * performance and can potentially deplete your attestation providers' quotas faster. Use this feature only for
+   * protecting low volume, security critical, or expensive operations.
+   *
+   * This option does not affect the enforceAppCheck option. Setting the latter to true will cause the callable function
+   * to automatically respond with a 401 Unauthorized status code when request includes an invalid App Check token.
+   * When request includes valid but consumed App Check tokens, requests will not be automatically rejected. Instead,
+   * the request.app.alreadyConsumed property will be set to true and pass the execution to the handler code for making
+   * further decisions, such as requiring additional security checks or rejecting the request.
    */
-  regions?: Array<typeof SUPPORTED_REGIONS[number] | string>;
-  /**
-   * Schedule for the scheduled function.
-   */
-  schedule?: Schedule;
+  consumeAppCheckToken?: boolean;
+
   /**
    * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
    *
@@ -270,4 +281,22 @@ export interface DeploymentOptions extends RuntimeOptions {
    * may inadvertently be wiped out.
    */
   preserveExternalChanges?: boolean;
+}
+
+/**
+ * Configuration options for a function that applies during function deployment.
+ */
+export interface DeploymentOptions extends RuntimeOptions {
+  /**
+   * If true, do not deploy or emulate this function.
+   */
+  omit?: boolean | Expression<boolean>;
+  /**
+   * Regions where function should be deployed.
+   */
+  regions?: Array<(typeof SUPPORTED_REGIONS)[number] | string | Expression<string> | ResetValue>;
+  /**
+   * Schedule for the scheduled function.
+   */
+  schedule?: Schedule;
 }

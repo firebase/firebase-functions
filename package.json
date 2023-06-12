@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "4.0.1",
+  "version": "4.4.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -19,7 +19,8 @@
   "license": "MIT",
   "author": "Firebase Team",
   "files": [
-    "lib"
+    "lib",
+    "protos"
   ],
   "main": "lib/v1/index.js",
   "bin": {
@@ -59,7 +60,8 @@
     "./v2/database": "./lib/v2/providers/database.js",
     "./v2/scheduler": "./lib/v2/providers/scheduler.js",
     "./v2/remoteConfig": "./lib/v2/providers/remoteConfig.js",
-    "./v2/testLab": "./lib/v2/providers/testLab.js"
+    "./v2/testLab": "./lib/v2/providers/testLab.js",
+    "./v2/firestore": "./lib/v2/providers/firestore.js"
   },
   "typesVersions": {
     "*": {
@@ -76,34 +78,34 @@
         "lib/v1"
       ],
       "v1/analytics": [
-        "./lib/v1/providers/analytics"
+        "lib/v1/providers/analytics"
       ],
       "v1/auth": [
-        "./lib/v1/providers/auth"
+        "lib/v1/providers/auth"
       ],
       "v1/database": [
-        "./lib/v1/privders/database"
+        "lib/v1/privders/database"
       ],
       "v1/firestore": [
-        "./lib/v1/providers/firestore"
+        "lib/v1/providers/firestore"
       ],
       "v1/https": [
         "./lib/v1/providers/https"
       ],
       "v1/pubsub": [
-        "./lib/v1/providers/pubsub"
+        "lib/v1/providers/pubsub"
       ],
       "v1/remoteConfig": [
-        "./lib/v1/providers/remoteConfig"
+        "lib/v1/providers/remoteConfig"
       ],
       "v1/storage": [
-        "./lib/v1/providers/storage"
+        "lib/v1/providers/storage"
       ],
       "v1/tasks": [
-        "./lib/v1/providers/tasks"
+        "lib/v1/providers/tasks"
       ],
       "v1/testLab": [
-        "./lib/v1/providers/testLab"
+        "lib/v1/providers/testLab"
       ],
       "v2": [
         "lib/v2"
@@ -158,6 +160,9 @@
       ],
       "v2/testLab": [
         "lib/v2/providers/testLab"
+      ],
+      "v2/firestore": [
+        "lib/v2/providers/firestore"
       ]
     }
   },
@@ -170,7 +175,7 @@
     "docgen:v1:gen": "api-documenter-fire markdown -i docgen/v1 -o docgen/v1/markdown --project functions && npm run docgen:v1:toc",
     "docgen:v1": "npm run build && npm run docgen:v1:extract && npm run docgen:v1:gen",
     "docgen:v2:extract": "api-extractor run -c docgen/api-extractor.v2.json --local",
-    "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/functions/beta/reference",
+    "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/reference/functions/2nd-gen/node",
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown --project functions && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
@@ -193,7 +198,8 @@
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "node-fetch": "^2.6.7"
+    "node-fetch": "^2.6.7",
+    "protobufjs": "^7.2.2"
   },
   "devDependencies": {
     "@firebase/api-documenter": "^0.2.0",
@@ -201,7 +207,7 @@
     "@microsoft/api-extractor": "^7.18.7",
     "@types/chai": "^4.1.7",
     "@types/chai-as-promised": "^7.1.0",
-    "@types/jsonwebtoken": "^8.3.2",
+    "@types/jsonwebtoken": "^9.0.0",
     "@types/mocha": "^5.2.7",
     "@types/mock-require": "^2.0.0",
     "@types/nock": "^10.0.3",
@@ -219,18 +225,19 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-prettier": "^4.0.0",
-    "firebase-admin": "^10.3.0",
+    "firebase-admin": "^11.8.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",
-    "mocha": "^6.1.4",
+    "mocha": "^10.2.0",
     "mock-require": "^3.0.3",
     "mz": "^2.7.0",
-    "nock": "^10.0.6",
+    "nock": "^13.2.9",
     "node-fetch": "^2.6.7",
     "portfinder": "^1.0.28",
     "prettier": "^2.7.1",
+    "protobufjs-cli": "^1.1.1",
     "semver": "^7.3.5",
     "sinon": "^7.3.2",
     "ts-node": "^10.4.0",

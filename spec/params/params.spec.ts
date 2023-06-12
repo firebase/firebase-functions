@@ -27,6 +27,9 @@ describe("Params value extraction", () => {
     process.env.PI = "3.14159";
     process.env.TRUE = "true";
     process.env.FALSE = "false";
+    process.env.LIST = JSON.stringify(["a", "b", "c"]);
+    process.env.BAD_LIST = JSON.stringify(["a", 22, "c"]);
+    process.env.ESCAPED_LIST = JSON.stringify(["f\to\no"]);
     process.env.A_SECRET_STRING = "123456supersecret";
   });
 
@@ -42,6 +45,9 @@ describe("Params value extraction", () => {
     delete process.env.PI;
     delete process.env.TRUE;
     delete process.env.FALSE;
+    delete process.env.LIST;
+    delete process.env.BAD_LIST;
+    delete process.env.ESCAPED_LIST;
     delete process.env.A_SECRET_STRING;
   });
 
@@ -61,6 +67,11 @@ describe("Params value extraction", () => {
     const falseParam = params.defineBoolean("FALSE");
     expect(falseParam.value()).to.be.false;
 
+    const listParam = params.defineList("LIST");
+    expect(listParam.value()).to.deep.equal(["a", "b", "c"]);
+
+    const listParamWithEscapes = params.defineList("ESCAPED_LIST");
+    expect(listParamWithEscapes.value()).to.deep.equal(["f\to\no"]);
     const secretParam = params.defineSecret("A_SECRET_STRING");
     expect(secretParam.value()).to.equal("123456supersecret");
   });
@@ -97,6 +108,17 @@ describe("Params value extraction", () => {
 
     const stringToBool = params.defineBoolean("A_STRING");
     expect(stringToBool.value()).to.equal(false);
+
+    const listToInt = params.defineInt("LIST");
+    expect(listToInt.value()).to.equal(0);
+  });
+
+  it("falls back on the javascript zero values in case a list param's is unparsable as string[]", () => {
+    const notAllStrings = params.defineList("BAD_LIST");
+    expect(notAllStrings.value()).to.deep.equal([]);
+
+    const intToList = params.defineList("AN_INT");
+    expect(intToList.value()).to.deep.equal([]);
   });
 
   it("returns a boolean value for Comparison expressions", () => {
@@ -175,6 +197,18 @@ describe("Params value extraction", () => {
     expect(trueParam.cmp("<", false).value()).to.be.false;
     expect(trueParam.cmp("<=", true).value()).to.be.true;
     expect(trueParam.cmp("<=", false).value()).to.be.false;
+  });
+
+  it("can test list params for equality but not < or >", () => {
+    const p1 = params.defineList("LIST");
+    const p2 = params.defineList("ESCAPED_LIST");
+
+    expect(p1.equals(p1).value()).to.be.true;
+    expect(p1.notEquals(p1).value()).to.be.false;
+    expect(p1.equals(p2).value()).to.be.false;
+    expect(p1.notEquals(p2).value()).to.be.true;
+
+    expect(() => p1.greaterThan(p1).value()).to.throw;
   });
 
   it("can select the output of a ternary expression based on the comparison", () => {
@@ -277,13 +311,13 @@ describe("Params as CEL", () => {
     const booleanExpr = params.defineBoolean("BOOL");
     const cmpExpr = params.defineInt("A").cmp("!=", params.defineInt("B"));
 
-    expect(booleanExpr.then("asdf", "jkl;").toCEL()).to.equal(
+    expect(booleanExpr.thenElse("asdf", "jkl;").toCEL()).to.equal(
       '{{ params.BOOL ? "asdf" : "jkl;" }}'
     );
-    expect(booleanExpr.then(-11, 22).toCEL()).to.equal("{{ params.BOOL ? -11 : 22 }}");
-    expect(booleanExpr.then(false, true).toCEL()).to.equal("{{ params.BOOL ? false : true }}");
+    expect(booleanExpr.thenElse(-11, 22).toCEL()).to.equal("{{ params.BOOL ? -11 : 22 }}");
+    expect(booleanExpr.thenElse(false, true).toCEL()).to.equal("{{ params.BOOL ? false : true }}");
     expect(
-      booleanExpr.then(params.defineString("FOO"), params.defineString("BAR")).toCEL()
+      booleanExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()
     ).to.equal("{{ params.BOOL ? params.FOO : params.BAR }}");
     expect(cmpExpr.thenElse("asdf", "jkl;").toCEL()).to.equal(
       '{{ params.A != params.B ? "asdf" : "jkl;" }}'

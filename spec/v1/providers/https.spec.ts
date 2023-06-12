@@ -24,9 +24,17 @@ import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
 import * as https from "../../../src/v1/providers/https";
-import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
+import * as debug from "../../../src/common/debug";
+import * as sinon from "sinon";
+import {
+  expectedResponseHeaders,
+  generateUnsignedIdToken,
+  MockRequest,
+  mockRequest,
+} from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
+import { CALLABLE_AUTH_HEADER, ORIGINAL_AUTH_HEADER } from "../../../src/common/providers/https";
 
 describe("CloudHttpsBuilder", () => {
   describe("#onRequest", () => {
@@ -66,6 +74,10 @@ describe("CloudHttpsBuilder", () => {
 });
 
 describe("#onCall", () => {
+  afterEach(() => {
+    sinon.verifyAndRestore();
+  });
+
   it("should return a trigger/endpoint with appropriate values", () => {
     const result = https.onCall(() => {
       return "response";
@@ -138,6 +150,45 @@ describe("#onCall", () => {
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(200);
     expect(gotData).to.deep.equal({ foo: "bar" });
+  });
+
+  // Test for firebase-tools#5210
+  it("should create context.auth for v1 emulated functions", async () => {
+    sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
+
+    let gotData: Record<string, any>;
+    let gotContext: Record<string, any>;
+    const reqData = { hello: "world" };
+    const authContext = {
+      uid: "SomeUID",
+      token: {
+        aud: "123456",
+        sub: "SomeUID",
+        uid: "SomeUID",
+      },
+    };
+    const originalAuth = "Bearer " + generateUnsignedIdToken("123456");
+    const func = https.onCall((data, context) => {
+      gotData = data;
+      gotContext = context;
+    });
+    const mockReq = mockRequest(
+      reqData,
+      "application/json",
+      {},
+      {
+        [CALLABLE_AUTH_HEADER]: encodeURIComponent(JSON.stringify(authContext)),
+        [ORIGINAL_AUTH_HEADER]: originalAuth,
+      }
+    );
+
+    const response = await runHandler(func, mockReq as any);
+
+    expect(response.status).to.equal(200);
+    expect(gotData).to.deep.eq(reqData);
+    expect(gotContext.rawRequest).to.deep.eq(mockReq);
+    expect(gotContext.rawRequest.headers["authorization"]).to.eq(originalAuth);
+    expect(gotContext.auth).to.deep.eq(authContext);
   });
 });
 
