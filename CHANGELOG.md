@@ -1,1 +1,3 @@
 - Update list of supported regions for 2nd Gen Functions. (#1402)
+- Fix bug where log message on structured log was being overwritten (#1416)
+- Fix bug where exists() should return true for falsy values like 0, "" (#1410)
