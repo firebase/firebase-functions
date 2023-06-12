@@ -588,7 +588,7 @@ describe("DataSnapshot", () => {
       expect(subject.child("bool").exists()).to.be.true;
       expect(subject.child("n").exists()).to.be.false;
       expect(subject.child("missing").exists()).to.be.false;
-    })
+    });
   });
 
   describe("#forEach(action: (a: DataSnapshot) => boolean): boolean", () => {
