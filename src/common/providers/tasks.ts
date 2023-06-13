@@ -88,22 +88,72 @@ export interface TaskContext {
    * The result of decoding and verifying an ODIC token.
    */
   auth?: AuthData;
+
+  /**
+   * The name of the queue.
+   * Populated via the X-CloudTasks-QueueName header.
+   */
+  queueName: string;
+
+  /**
+   * The "short" name of the task, or, if no name was specified at creation, a unique
+   * system-generated id.
+   * This is the my-task-id value in the complete task name, ie, task_name =
+   * projects/my-project-id/locations/my-location/queues/my-queue-id/tasks/my-task-id.
+   * Populated via the X-CloudTasks-TaskName header.
+   */
+  id: string;
+
+  /**
+   * The number of times this task has been retried.
+   * For the first attempt, this value is 0. This number includes attempts where the task failed
+   * due to 5XX error codes and never reached the execution phase.
+   * Populated via the X-CloudTasks-TaskRetryCount header.
+   */
+  retryCount: number;
+
+  /**
+   * The total number of times that the task has received a response from the handler.
+   * Since Cloud Tasks deletes the task once a successful response has been received, all
+   * previous handler responses were failures. This number does not include failures due to 5XX
+   * error codes.
+   * Populated via the X-CluodTasks-TaskExecutionCount header.
+   */
+  executionCount: number;
+
+  /**
+   * The schedule time of the task, as an RFC 3339 string in UTC time zone
+   * Populated via the X-CloudTasks-TaskETA header, which uses seconds since January 1 1970.
+   */
+  scheduledTime: string;
+
+  /**
+   * The HTTP response code from the previous retry.
+   * Populated via the X-CloudTasks-TaskPreviousResponse header
+   */
+  previousResponse?: number;
+
+  /**
+   * The reason for retrying the task.
+   * Populated via the X-CloudTasks-TaskRetryReason header.
+   */
+  retryReason?: string;
+
+  /**
+   * Raw request headers.
+   */
+  headers?: Record<string, string>;
 }
 
 /**
  * The request used to call a Task Queue function.
  */
-export interface Request<T = any> {
+export type Request<T = any> = TaskContext & {
   /**
    * The parameters used by a client when calling this function.
    */
   data: T;
-
-  /**
-   * The result of decoding and verifying an ODIC token.
-   */
-  auth?: AuthData;
-}
+};
 
 type v1TaskHandler = (data: any, context: TaskContext) => void | Promise<void>;
 type v2TaskHandler<Req> = (request: Request<Req>) => void | Promise<void>;
@@ -119,7 +169,26 @@ export function onDispatchHandler<Req = any>(
         throw new https.HttpsError("invalid-argument", "Bad Request");
       }
 
-      const context: TaskContext = {};
+      const headers: Record<string, string> = {};
+      for (const [key, value] of Object.entries(req.headers)) {
+        if (!Array.isArray(value)) {
+          headers[key] = value;
+        }
+      }
+
+      const context: TaskContext = {
+        queueName: req.header("X-CloudTasks-QueueName"),
+        id: req.header("X-CloudTasks-TaskName"),
+        retryCount: Number(req.header("X-CloudTasks-TaskRetryCount")),
+        executionCount: Number(req.header("X-CloudTasks-TaskExecutionCount")),
+        scheduledTime: req.header("X-CloudTasks-TaskETA"),
+        previousResponse: req.header("X-CloudTasks-TaskPreviousResponse")
+          ? Number(req.header("X-CloudTasks-TaskPreviousResponse"))
+          : undefined,
+        retryReason: req.header("X-CloudTasks-TaskRetryReason"),
+        headers,
+      };
+
       if (!process.env.FUNCTIONS_EMULATOR) {
         const authHeader = req.header("Authorization") || "";
         const token = authHeader.match(/^Bearer (.*)$/)?.[1];

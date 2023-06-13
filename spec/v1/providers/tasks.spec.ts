@@ -161,6 +161,11 @@ describe("#onDispatch", () => {
         uid: "abc",
         token: "token" as any,
       },
+      queueName: "fn",
+      id: "task0",
+      retryCount: 0,
+      executionCount: 0,
+      scheduledTime: "timestamp",
     };
     let done = false;
     const cf = taskQueue().onDispatch((d, c) => {
