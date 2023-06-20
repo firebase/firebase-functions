@@ -37,6 +37,7 @@ describe("onRequest", () => {
   });
 
   afterEach(() => {
+    options.setGlobalOptions({});
     delete process.env.GCLOUD_PROJECT;
   });
 
@@ -132,6 +133,33 @@ describe("onRequest", () => {
       concurrency: 20,
       minInstances: 3,
       region: ["us-west1", "us-central1"],
+      labels: {},
+    });
+  });
+
+  it("should take globalOptions invoker", () => {
+    options.setGlobalOptions({
+      invoker: "private",
+    });
+
+    const result = https.onRequest((req, res) => {
+      res.send();
+    });
+
+    expect(result.__trigger).to.deep.eq({
+      platform: "gcfv2",
+      httpsTrigger: {
+        allowInsecure: false,
+        invoker: ["private"],
+      },
+      labels: {},
+    });
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      httpsTrigger: {
+        invoker: ["private"],
+      },
       labels: {},
     });
   });
