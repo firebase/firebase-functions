@@ -105,7 +105,6 @@ export const storageBucket: Param<string> = new InternalExpression(
  * hinting during parameter resolution.
  *
  * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
  * @returns A Param with a `string` return type for `.value`.
  */
 export function defineSecret(name: string): SecretParam {
