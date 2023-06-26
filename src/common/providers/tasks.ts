@@ -91,7 +91,7 @@ export interface TaskContext {
 
   /**
    * The name of the queue.
-   * Populated via the X-CloudTasks-QueueName header.
+   * Populated via the `X-CloudTasks-QueueName` header.
    */
   queueName: string;
 
@@ -100,7 +100,7 @@ export interface TaskContext {
    * system-generated id.
    * This is the my-task-id value in the complete task name, ie, task_name =
    * projects/my-project-id/locations/my-location/queues/my-queue-id/tasks/my-task-id.
-   * Populated via the X-CloudTasks-TaskName header.
+   * Populated via the `X-CloudTasks-TaskName` header.
    */
   id: string;
 
@@ -108,7 +108,7 @@ export interface TaskContext {
    * The number of times this task has been retried.
    * For the first attempt, this value is 0. This number includes attempts where the task failed
    * due to 5XX error codes and never reached the execution phase.
-   * Populated via the X-CloudTasks-TaskRetryCount header.
+   * Populated via the `X-CloudTasks-TaskRetryCount` header.
    */
   retryCount: number;
 
@@ -117,25 +117,25 @@ export interface TaskContext {
    * Since Cloud Tasks deletes the task once a successful response has been received, all
    * previous handler responses were failures. This number does not include failures due to 5XX
    * error codes.
-   * Populated via the X-CluodTasks-TaskExecutionCount header.
+   * Populated via the `X-CloudTasks-TaskExecutionCount` header.
    */
   executionCount: number;
 
   /**
-   * The schedule time of the task, as an RFC 3339 string in UTC time zone
-   * Populated via the X-CloudTasks-TaskETA header, which uses seconds since January 1 1970.
+   * The schedule time of the task, as an RFC 3339 string in UTC time zone.
+   * Populated via the `X-CloudTasks-TaskETA` header, which uses seconds since January 1 1970.
    */
   scheduledTime: string;
 
   /**
    * The HTTP response code from the previous retry.
-   * Populated via the X-CloudTasks-TaskPreviousResponse header
+   * Populated via the `X-CloudTasks-TaskPreviousResponse` header
    */
   previousResponse?: number;
 
   /**
    * The reason for retrying the task.
-   * Populated via the X-CloudTasks-TaskRetryReason header.
+   * Populated via the `X-CloudTasks-TaskRetryReason` header.
    */
   retryReason?: string;
 
@@ -146,7 +146,7 @@ export interface TaskContext {
 }
 
 /**
- * The request used to call a Task Queue function.
+ * The request used to call a task queue function.
  */
 export type Request<T = any> = TaskContext & {
   /**
@@ -179,8 +179,12 @@ export function onDispatchHandler<Req = any>(
       const context: TaskContext = {
         queueName: req.header("X-CloudTasks-QueueName"),
         id: req.header("X-CloudTasks-TaskName"),
-        retryCount: Number(req.header("X-CloudTasks-TaskRetryCount")),
-        executionCount: Number(req.header("X-CloudTasks-TaskExecutionCount")),
+        retryCount: req.header("X-CloudTasks-TaskRetryCount")
+          ? Number(req.header("X-CloudTasks-TaskRetryCount"))
+          : undefined,
+        executionCount: req.header("X-CloudTasks-TaskExecutionCount")
+          ? Number(req.header("X-CloudTasks-TaskExecutionCount"))
+          : undefined,
         scheduledTime: req.header("X-CloudTasks-TaskETA"),
         previousResponse: req.header("X-CloudTasks-TaskPreviousResponse")
           ? Number(req.header("X-CloudTasks-TaskPreviousResponse"))
