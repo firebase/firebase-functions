@@ -75,9 +75,10 @@ describe("onEnqueueHandler", () => {
   function mockEnqueueRequest(
     data: unknown,
     contentType = "application/json",
-    context: { authorization?: string } = { authorization: "Bearer abc" }
+    context: { authorization?: string } = { authorization: "Bearer abc" },
+    headers: Record<string, string> = {}
   ): ReturnType<typeof mockRequest> {
-    return mockRequest(data, contentType, context);
+    return mockRequest(data, contentType, context, headers);
   }
 
   before(() => {
@@ -191,6 +192,50 @@ describe("onEnqueueHandler", () => {
         throw new https.HttpsError("not-found", "i am error");
       },
       expectedStatus: 404,
+    });
+  });
+
+  it("should populate context with values from header", () => {
+    const headers = {
+      "x-cloudtasks-queuename": "x",
+      "x-cloudtasks-taskname": "x",
+      "x-cloudtasks-taskretrycount": "1",
+      "x-cloudtasks-taskexecutioncount": "1",
+      "x-cloudtasks-tasketa": "timestamp",
+      "x-cloudtasks-taskpreviousresponse": "400",
+      "x-cloudtasks-taskretryreason": "something broke",
+    };
+    const expectedContext = {
+      queueName: "x",
+      id: "x",
+      retryCount: 1,
+      executionCount: 1,
+      scheduledTime: "timestamp",
+      previousResponse: 400,
+      retryReason: "something broke",
+    };
+
+    const projectId = getApp().options.projectId;
+    const idToken = generateIdToken(projectId);
+    return runTaskTest({
+      httpRequest: mockEnqueueRequest(
+        {},
+        "application/json",
+        { authorization: "Bearer " + idToken },
+        headers
+      ),
+      expectedData: {},
+      taskFunction: (data, context) => {
+        checkAuthContext(context, projectId, mocks.user_id);
+        expect(context).to.include(expectedContext);
+        return null;
+      },
+      taskFunction2: (request) => {
+        checkAuthContext(request, projectId, mocks.user_id);
+        expect(request).to.include(expectedContext);
+        return null;
+      },
+      expectedStatus: 204,
     });
   });
 
