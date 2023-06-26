@@ -1,2 +1,1 @@
 - Add features to task queue functions. (#1423)
-- Update list of supported regions for 2nd Gen Functions. (#1402)
