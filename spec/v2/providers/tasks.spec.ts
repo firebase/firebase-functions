@@ -70,6 +70,31 @@ describe("onTaskDispatched", () => {
     });
   });
 
+  it("should take globalOptions invoker", () => {
+    options.setGlobalOptions({
+      invoker: "private",
+    });
+
+    const result = onTaskDispatched(() => undefined);
+
+    expect(result.__trigger).to.deep.equal({
+      platform: "gcfv2",
+      taskQueueTrigger: {
+        invoker: ["private"],
+      },
+      labels: {},
+    });
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      labels: {},
+      taskQueueTrigger: {
+        ...MINIMIAL_TASK_QUEUE_TRIGGER,
+        invoker: ["private"],
+      },
+    });
+  });
+
   it("should create a complex trigger/endpoint with appropriate values", () => {
     const result = onTaskDispatched(
       {
