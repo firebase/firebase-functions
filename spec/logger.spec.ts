@@ -61,6 +61,24 @@ describe("logger", () => {
         message: "hello world null",
       });
     });
+
+    it("should overwrite a 'message' field in structured object if a message is provided", () => {
+      logger.log("this instead", { test: true, message: "not this" });
+      expectStdout({
+        severity: "INFO",
+        message: "this instead",
+        test: true,
+      });
+    });
+
+    it("should not overwrite a 'message' field in structured object if no other args are provided", () => {
+      logger.log({ test: true, message: "this" });
+      expectStdout({
+        severity: "INFO",
+        message: "this",
+        test: true,
+      });
+    });
   });
 
   describe("write", () => {

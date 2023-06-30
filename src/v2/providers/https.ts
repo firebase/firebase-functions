@@ -296,17 +296,25 @@ export function onRequest(
           allowInsecure: false,
         },
       };
+      convertIfPresent(
+        trigger.httpsTrigger,
+        options.getGlobalOptions(),
+        "invoker",
+        "invoker",
+        convertInvoker
+      );
       convertIfPresent(trigger.httpsTrigger, opts, "invoker", "invoker", convertInvoker);
       return trigger;
     },
   });
 
-  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const globalOpts = options.getGlobalOptions();
+  const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
   const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
   const endpoint: Partial<ManifestEndpoint> = {
-    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    ...initV2Endpoint(globalOpts, opts),
     platform: "gcfv2",
     ...baseOpts,
     ...specificOpts,
@@ -316,6 +324,7 @@ export function onRequest(
     },
     httpsTrigger: {},
   };
+  convertIfPresent(endpoint.httpsTrigger, globalOpts, "invoker", "invoker", convertInvoker);
   convertIfPresent(endpoint.httpsTrigger, opts, "invoker", "invoker", convertInvoker);
   (handler as HttpsFunction).__endpoint = endpoint;
 

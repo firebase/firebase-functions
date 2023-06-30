@@ -220,6 +220,13 @@ export function onTaskDispatched<Args = any>(
       const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
       const taskQueueTrigger: Record<string, unknown> = {};
       copyIfPresent(taskQueueTrigger, opts, "retryConfig", "rateLimits");
+      convertIfPresent(
+        taskQueueTrigger,
+        options.getGlobalOptions(),
+        "invoker",
+        "invoker",
+        convertInvoker
+      );
       convertIfPresent(taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
       return {
         platform: "gcfv2",
@@ -265,6 +272,13 @@ export function onTaskDispatched<Args = any>(
     opts.rateLimits,
     "maxConcurrentDispatches",
     "maxDispatchesPerSecond"
+  );
+  convertIfPresent(
+    func.__endpoint.taskQueueTrigger,
+    options.getGlobalOptions(),
+    "invoker",
+    "invoker",
+    convertInvoker
   );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
 

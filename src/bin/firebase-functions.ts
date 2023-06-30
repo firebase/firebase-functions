@@ -67,6 +67,7 @@ if (process.env.FUNCTIONS_CONTROL_API === "true") {
       res.setHeader("content-type", "text/yaml");
       res.send(JSON.stringify(stackToWire(stack)));
     } catch (e) {
+      console.error(e);
       res.status(400).send(`Failed to generate manifest from function source: ${e}`);
     }
   });
