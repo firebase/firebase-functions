@@ -1,1 +1,2 @@
+- Fixes access on deeply nested, nonexistent property. (#1432)
 - Update list of supported regions for 2nd Gen Functions. (#1402)
