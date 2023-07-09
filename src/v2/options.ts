@@ -42,7 +42,7 @@ import * as logger from "../logger";
 export { RESET_VALUE } from "../common/options";
 
 /**
- * List of all regions supported by Cloud Functions v2
+ * List of all regions supported by Cloud Functions (2nd gen).
  */
 export type SupportedRegion =
   | "asia-east1"
@@ -98,18 +98,18 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
 };
 
 /**
- * List of available options for VpcConnectorEgressSettings.
+ * List of available options for `VpcConnectorEgressSettings`.
  */
 export type VpcEgressSetting = "PRIVATE_RANGES_ONLY" | "ALL_TRAFFIC";
 
 /**
- * List of available options for IngressSettings.
+ * List of available options for `IngressSettings`.
  */
 export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERNAL_AND_GCLB";
 
 /**
- * GlobalOptions are options that can be set across an entire project.
- * These options are common to HTTPS and Event handling functions.
+ * `GlobalOptions` are options that can be set across an entire project.
+ * These options are common to HTTPS and event handling functions.
  */
 export interface GlobalOptions {
   /**
@@ -132,25 +132,25 @@ export interface GlobalOptions {
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
-   * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
+   * The minimum timeout for a 2nd gen function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
    * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
-   * timeout of 1,800s (30 minutes)
+   * timeout of 1,800s (30 minutes).
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
 
   /**
-   * Min number of actual instances to be running at a given time.
+   * Minimum number of actual instances to be running at a given time.
    *
    * @remarks
-   * Instances will be billed for memory allocation and 10% of CPU allocation
+   * Instances are billed for memory allocation and 10% of CPU allocation
    * while idle.
    */
   minInstances?: number | Expression<number> | ResetValue;
 
   /**
-   * Max number of instances to be running in parallel.
+   * Max number of instances that can be running in parallel.
    */
   maxInstances?: number | Expression<number> | ResetValue;
 
@@ -158,7 +158,7 @@ export interface GlobalOptions {
    * Number of requests a function can serve at once.
    *
    * @remarks
-   * Can only be applied to functions running on Cloud Functions v2.
+   * Can be applied only to functions running on Cloud Functions (2nd gen)).
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
@@ -171,14 +171,14 @@ export interface GlobalOptions {
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
-   * the fixed amount assigned in Google Cloud Functions generation 1.
-   * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
+   * the fixed amount assigned in Cloud Functions (1st gen).
+   * To revert to the CPU amounts used in gcloud or in Cloud Functions (1st gen), set this
    * to the value "gcf_gen1"
    */
   cpu?: number | "gcf_gen1";
 
   /**
-   * Connect cloud function to specified VPC connector.
+   * Connect a function to a specified VPC connector.
    */
   vpcConnector?: string | Expression<string> | ResetValue;
 
@@ -198,7 +198,7 @@ export interface GlobalOptions {
   ingressSettings?: IngressSetting | ResetValue;
 
   /**
-   * Invoker to set access control on https functions.
+   * Invoker to set access control on HTTPS functions.
    */
   invoker?: "public" | "private" | string | string[];
 
@@ -213,12 +213,12 @@ export interface GlobalOptions {
   secrets?: (string | SecretParam)[];
 
   /**
-   * Determines whether Firebase AppCheck is enforced. Defaults to false.
+   * Determines whether Firebase App Check is enforced. Defaults to false.
    *
    * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
-   * When false, requests with invalid tokens set event.app to undefined.
+   * When false, requests with invalid tokens set `event.app` to `undefined`.
    */
   enforceAppCheck?: boolean;
 
@@ -226,8 +226,8 @@ export interface GlobalOptions {
    * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
    *
    * @remarks
-   * When setting configuration available in the underlying platform that is not yet available in the Firebase Functions
-   * SDK, we highly recommend setting `preserveExternalChanges` to `true`. Otherwise, when the Firebase Functions SDK releases
+   * When setting configuration available in an underlying platform that is not yet available in the Firebase SDK
+   * for Cloud Functions, we recommend setting `preserveExternalChanges` to `true`. Otherwise, when Google releases
    * a new version of the SDK with support for the missing configuration, your function's manually configured setting
    * may inadvertently be wiped out.
    */
@@ -237,7 +237,7 @@ export interface GlobalOptions {
 let globalOptions: GlobalOptions | undefined;
 
 /**
- * Sets default options for all functions written using the v2 SDK.
+ * Sets default options for all functions written using the 2nd gen SDK.
  * @param options Options to set as default
  */
 export function setGlobalOptions(options: GlobalOptions) {
@@ -257,12 +257,16 @@ export function getGlobalOptions(): GlobalOptions {
 }
 
 /**
- * Additional fields that can be set on any event-handling Cloud Function.
+ * Additional fields that can be set on any event-handling function.
  */
 export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck"> {
+   /** Type of the event. Valid values are TODO */
   eventType?: string;
 
+  /** TODO */
   eventFilters?: Record<string, string | Expression<string>>;
+
+  /** TODO */
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
