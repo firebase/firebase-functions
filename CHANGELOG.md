@@ -1,1 +1,2 @@
 - Add features to task queue functions. (#1423)
+- Add traces to V2 Firestore trigger logs. (#1440)
