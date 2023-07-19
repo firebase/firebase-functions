@@ -34,6 +34,7 @@ import {
   createSnapshotFromJson,
   createSnapshotFromProtobuf,
 } from "../../common/providers/firestore";
+import { wrapTraceContext } from "../trace";
 
 export { Change };
 
@@ -445,7 +446,7 @@ export function onOperation<Document extends string>(
     const event = raw as RawFirestoreEvent;
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeFirestoreEvent(eventType, event, params);
-    return handler(firestoreEvent);
+    return wrapTraceContext(handler)(firestoreEvent);
   };
 
   func.run = handler;
