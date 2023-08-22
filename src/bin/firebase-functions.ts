@@ -54,7 +54,7 @@ const app = express();
 
 function handleQuitquitquit(req: express.Request, res: express.Response) {
   res.send("ok");
-  server.close(() => console.log("shutdown requested via /__/quitquitquit"));
+  server.close();
 }
 
 app.get("/__/quitquitquit", handleQuitquitquit);
