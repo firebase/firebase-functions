@@ -310,6 +310,7 @@ export interface AdditionalUserInfo {
   profile?: any;
   username?: string;
   isNewUser: boolean;
+  recaptchaScore?: number;
 }
 
 /** The credential component of the auth event context */
@@ -338,8 +339,13 @@ export interface AuthBlockingEvent extends AuthEventContext {
   data: AuthUserRecord;
 }
 
+/** The base handler response type for beforeCreate and beforeSignIn blocking events*/
+export interface BlockingFunctionResponse {
+  recaptchaPassed?: boolean;
+}
+
 /** The handler response type for beforeCreate blocking events */
-export interface BeforeCreateResponse {
+export interface BeforeCreateResponse extends BlockingFunctionResponse {
   displayName?: string;
   disabled?: boolean;
   emailVerified?: boolean;
@@ -423,6 +429,7 @@ export interface DecodedPayload {
   oauth_refresh_token?: string;
   oauth_token_secret?: string;
   oauth_expires_in?: number;
+  recaptcha_score?: number;
   [key: string]: any;
 }
 
@@ -640,7 +647,36 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
     profile,
     username,
     isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
+    recaptchaScore: decodedJWT.recaptcha_score,
   };
+}
+
+/** Helper to generate payload to GCIP from client request.
+ * @internal
+ */
+export function generateRequestPayload(
+  authResponse?: BeforeCreateResponse | BeforeSignInResponse
+): any {
+  if (!authResponse) {
+    return "";
+  }
+
+  const { recaptchaPassed, ...formattedAuthResponse } = authResponse;
+  const result = {} as any;
+  const updateMask = getUpdateMask(formattedAuthResponse);
+
+  if (updateMask.length !== 0) {
+    result.userRecord = {
+      ...formattedAuthResponse,
+      updateMask,
+    };
+  }
+
+  if (recaptchaPassed !== undefined) {
+    result.recaptchaPassed = recaptchaPassed;
+  }
+
+  return result;
 }
 
 /** Helper to get the Credential from the decoded jwt */
@@ -801,7 +837,6 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
         : handler.length === 2
         ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
-
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
 
@@ -818,16 +853,7 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
       }
 
       validateAuthResponse(eventType, authResponse);
-      const updateMask = getUpdateMask(authResponse);
-      const result =
-        updateMask.length === 0
-          ? {}
-          : {
-              userRecord: {
-                ...authResponse,
-                updateMask,
-              },
-            };
+      const result = generateRequestPayload(authResponse);
 
       res.status(200);
       res.setHeader("Content-Type", "application/json");

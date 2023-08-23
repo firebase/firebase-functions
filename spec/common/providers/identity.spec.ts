@@ -26,6 +26,7 @@ import * as identity from "../../../src/common/providers/identity";
 
 const EVENT = "EVENT_TYPE";
 const now = new Date();
+const TEST_NAME = "John Doe";
 
 describe("identity", () => {
   describe("userRecordConstructor", () => {
@@ -232,14 +233,14 @@ describe("identity", () => {
   describe("parseProviderData", () => {
     const decodedUserInfo = {
       provider_id: "google.com",
-      display_name: "John Doe",
+      display_name: TEST_NAME,
       photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
       uid: "1234567890",
       email: "user@gmail.com",
     };
     const userInfo = {
       providerId: "google.com",
-      displayName: "John Doe",
+      displayName: TEST_NAME,
       photoURL: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
       uid: "1234567890",
       email: "user@gmail.com",
@@ -340,12 +341,12 @@ describe("identity", () => {
       uid: "abcdefghijklmnopqrstuvwxyz",
       email: "user@gmail.com",
       email_verified: true,
-      display_name: "John Doe",
+      display_name: TEST_NAME,
       phone_number: "+11234567890",
       provider_data: [
         {
           provider_id: "google.com",
-          display_name: "John Doe",
+          display_name: TEST_NAME,
           photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
           email: "user@gmail.com",
           uid: "1234567890",
@@ -366,7 +367,7 @@ describe("identity", () => {
           provider_id: "password",
           email: "user@gmail.com",
           uid: "user@gmail.com",
-          display_name: "John Doe",
+          display_name: TEST_NAME,
         },
       ],
       password_hash: "passwordHash",
@@ -407,11 +408,11 @@ describe("identity", () => {
       phoneNumber: "+11234567890",
       emailVerified: true,
       disabled: false,
-      displayName: "John Doe",
+      displayName: TEST_NAME,
       providerData: [
         {
           providerId: "google.com",
-          displayName: "John Doe",
+          displayName: TEST_NAME,
           photoURL: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
           email: "user@gmail.com",
           uid: "1234567890",
@@ -435,7 +436,7 @@ describe("identity", () => {
         },
         {
           providerId: "password",
-          displayName: "John Doe",
+          displayName: TEST_NAME,
           photoURL: undefined,
           email: "user@gmail.com",
           uid: "user@gmail.com",
@@ -489,8 +490,9 @@ describe("identity", () => {
   });
 
   describe("parseAuthEventContext", () => {
+    const TEST_RECAPTCHA_SCORE = 0.9;
     const rawUserInfo = {
-      name: "John Doe",
+      name: TEST_NAME,
       granted_scopes:
         "openid https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
       id: "123456789",
@@ -516,6 +518,7 @@ describe("identity", () => {
         user_agent: "USER_AGENT",
         locale: "en",
         raw_user_info: JSON.stringify(rawUserInfo),
+        recaptcha_score: TEST_RECAPTCHA_SCORE,
       };
       const context = {
         locale: "en",
@@ -534,6 +537,7 @@ describe("identity", () => {
           profile: rawUserInfo,
           username: undefined,
           isNewUser: false,
+          recaptchaScore: TEST_RECAPTCHA_SCORE,
         },
         credential: null,
         params: {},
@@ -563,6 +567,7 @@ describe("identity", () => {
         oauth_refresh_token: "REFRESH_TOKEN",
         oauth_token_secret: "OAUTH_TOKEN_SECRET",
         oauth_expires_in: 3600,
+        recaptcha_score: TEST_RECAPTCHA_SCORE,
       };
       const context = {
         locale: "en",
@@ -581,6 +586,7 @@ describe("identity", () => {
           profile: rawUserInfo,
           username: undefined,
           isNewUser: false,
+          recaptchaScore: TEST_RECAPTCHA_SCORE,
         },
         credential: {
           claims: undefined,
@@ -619,14 +625,14 @@ describe("identity", () => {
           uid: "abcdefghijklmnopqrstuvwxyz",
           email: "user@gmail.com",
           email_verified: true,
-          display_name: "John Doe",
+          display_name: TEST_NAME,
           phone_number: "+11234567890",
           provider_data: [
             {
               provider_id: "oidc.provider",
               email: "user@gmail.com",
               uid: "user@gmail.com",
-              display_name: "John Doe",
+              display_name: TEST_NAME,
             },
           ],
           photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
@@ -647,6 +653,7 @@ describe("identity", () => {
         oauth_token_secret: "OAUTH_TOKEN_SECRET",
         oauth_expires_in: 3600,
         raw_user_info: JSON.stringify(rawUserInfo),
+        recaptcha_score: TEST_RECAPTCHA_SCORE,
       };
       const context = {
         locale: "en",
@@ -665,6 +672,7 @@ describe("identity", () => {
           providerId: "oidc.provider",
           profile: rawUserInfo,
           isNewUser: true,
+          recaptchaScore: TEST_RECAPTCHA_SCORE,
         },
         credential: {
           claims: undefined,
@@ -760,6 +768,40 @@ describe("identity", () => {
       expect(identity.getUpdateMask(response)).to.eq(
         "displayName,disabled,emailVerified,photoURL,customClaims,sessionClaims"
       );
+    });
+  });
+
+  describe("generateRequestPayload", () => {
+    const DISPLAY_NAME_FILED = "displayName";
+    const TEST_RESPONSE = {
+      displayName: TEST_NAME,
+      recaptchaPassed: false,
+    } as identity.BeforeCreateResponse;
+
+    const EXPECT_PAYLOAD = {
+      userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FILED },
+      recaptchaPassed: false,
+    };
+
+    const TEST_RESPONSE_RECAPTCHA_UNDEFINED = {
+      displayName: TEST_NAME,
+    } as identity.BeforeSignInResponse;
+
+    const EXPECT_PAYLOAD_UNDEFINED = {
+      userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FILED },
+    };
+    it("should return empty string on undefined response", () => {
+      expect(identity.generateRequestPayload()).to.eq("");
+    });
+
+    it("should exclude recaptchaPass field from updateMask", () => {
+      expect(identity.generateRequestPayload(TEST_RESPONSE)).to.deep.equal(EXPECT_PAYLOAD);
+    });
+
+    it("should not return recaptchaPass if undefined", () => {
+      const payload = identity.generateRequestPayload(TEST_RESPONSE_RECAPTCHA_UNDEFINED);
+      expect(payload.hasOwnProperty("recaptchaPassed")).to.be.false;
+      expect(payload).to.deep.equal(EXPECT_PAYLOAD_UNDEFINED);
     });
   });
 });
