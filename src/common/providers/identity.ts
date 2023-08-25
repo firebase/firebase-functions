@@ -433,6 +433,17 @@ export interface DecodedPayload {
   [key: string]: any;
 }
 
+/** @internal */
+export interface ResponsePayload {
+  userRecord?: UserRecordResponsePayload;
+  recaptchaPassed?: boolean;
+}
+
+/** @internal */
+export interface UserRecordResponsePayload extends Omit<BeforeSignInResponse, "recaptchaPassed"> {
+  updateMask?: string;
+}
+
 type HandlerV1 = (
   user: AuthUserRecord,
   context: AuthEventContext
@@ -651,18 +662,19 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
   };
 }
 
-/** Helper to generate payload to GCIP from client request.
+/**
+ * Helper to generate a response from the blocking function to the Firebase Auth backend.
  * @internal
  */
-export function generateRequestPayload(
+export function generateResponsePayload(
   authResponse?: BeforeCreateResponse | BeforeSignInResponse
-): any {
+): ResponsePayload {
   if (!authResponse) {
-    return "";
+    return {};
   }
 
   const { recaptchaPassed, ...formattedAuthResponse } = authResponse;
-  const result = {} as any;
+  const result = {} as ResponsePayload;
   const updateMask = getUpdateMask(formattedAuthResponse);
 
   if (updateMask.length !== 0) {
@@ -853,7 +865,7 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
       }
 
       validateAuthResponse(eventType, authResponse);
-      const result = generateRequestPayload(authResponse);
+      const result = generateResponsePayload(authResponse);
 
       res.status(200);
       res.setHeader("Content-Type", "application/json");
