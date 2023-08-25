@@ -772,15 +772,23 @@ describe("identity", () => {
   });
 
   describe("generateRequestPayload", () => {
-    const DISPLAY_NAME_FILED = "displayName";
+    const DISPLAY_NAME_FIELD = "displayName";
     const TEST_RESPONSE = {
       displayName: TEST_NAME,
       recaptchaPassed: false,
     } as identity.BeforeCreateResponse;
 
     const EXPECT_PAYLOAD = {
-      userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FILED },
+      userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FIELD },
       recaptchaPassed: false,
+    };
+
+    const TEST_RESPONSE_RECAPTCHA_TRUE = {
+      recaptchaPassed: true,
+    } as identity.BeforeCreateResponse;
+
+    const EXPECT_PAYLOAD_RECAPTCHA_TRUE = {
+      recaptchaPassed: true,
     };
 
     const TEST_RESPONSE_RECAPTCHA_UNDEFINED = {
@@ -788,18 +796,24 @@ describe("identity", () => {
     } as identity.BeforeSignInResponse;
 
     const EXPECT_PAYLOAD_UNDEFINED = {
-      userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FILED },
+      userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FIELD },
     };
-    it("should return empty string on undefined response", () => {
-      expect(identity.generateRequestPayload()).to.eq("");
+    it("should return empty object on undefined response", () => {
+      expect(identity.generateResponsePayload()).to.eql({});
     });
 
     it("should exclude recaptchaPass field from updateMask", () => {
-      expect(identity.generateRequestPayload(TEST_RESPONSE)).to.deep.equal(EXPECT_PAYLOAD);
+      expect(identity.generateResponsePayload(TEST_RESPONSE)).to.deep.equal(EXPECT_PAYLOAD);
+    });
+
+    it("should return recaptchaPass when it is true on response", () => {
+      expect(identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_TRUE)).to.deep.equal(
+        EXPECT_PAYLOAD_RECAPTCHA_TRUE
+      );
     });
 
     it("should not return recaptchaPass if undefined", () => {
-      const payload = identity.generateRequestPayload(TEST_RESPONSE_RECAPTCHA_UNDEFINED);
+      const payload = identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_UNDEFINED);
       expect(payload.hasOwnProperty("recaptchaPassed")).to.be.false;
       expect(payload).to.deep.equal(EXPECT_PAYLOAD_UNDEFINED);
     });
