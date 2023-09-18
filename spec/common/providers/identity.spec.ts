@@ -27,6 +27,8 @@ import * as identity from "../../../src/common/providers/identity";
 const EVENT = "EVENT_TYPE";
 const now = new Date();
 const TEST_NAME = "John Doe";
+const ALLOW = "ALLOW";
+const BLOCK = "BLOCK";
 
 describe("identity", () => {
   describe("userRecordConstructor", () => {
@@ -771,24 +773,24 @@ describe("identity", () => {
     });
   });
 
-  describe("generateRequestPayload", () => {
+  describe("generateResponsePayload", () => {
     const DISPLAY_NAME_FIELD = "displayName";
     const TEST_RESPONSE = {
       displayName: TEST_NAME,
-      recaptchaPassed: false,
+      recaptchaActionOverride: BLOCK,
     } as identity.BeforeCreateResponse;
 
     const EXPECT_PAYLOAD = {
       userRecord: { displayName: TEST_NAME, updateMask: DISPLAY_NAME_FIELD },
-      recaptchaPassed: false,
+      recaptchaActionOverride: BLOCK,
     };
 
-    const TEST_RESPONSE_RECAPTCHA_TRUE = {
-      recaptchaPassed: true,
+    const TEST_RESPONSE_RECAPTCHA_ALLOW = {
+      recaptchaActionOverride: ALLOW,
     } as identity.BeforeCreateResponse;
 
-    const EXPECT_PAYLOAD_RECAPTCHA_TRUE = {
-      recaptchaPassed: true,
+    const EXPECT_PAYLOAD_RECAPTCHA_ALLOW = {
+      recaptchaActionOverride: ALLOW,
     };
 
     const TEST_RESPONSE_RECAPTCHA_UNDEFINED = {
@@ -802,19 +804,19 @@ describe("identity", () => {
       expect(identity.generateResponsePayload()).to.eql({});
     });
 
-    it("should exclude recaptchaPass field from updateMask", () => {
+    it("should exclude recaptchaActionOverride field from updateMask", () => {
       expect(identity.generateResponsePayload(TEST_RESPONSE)).to.deep.equal(EXPECT_PAYLOAD);
     });
 
-    it("should return recaptchaPass when it is true on response", () => {
-      expect(identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_TRUE)).to.deep.equal(
-        EXPECT_PAYLOAD_RECAPTCHA_TRUE
+    it("should return recaptchaActionOverride when it is true on response", () => {
+      expect(identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_ALLOW)).to.deep.equal(
+        EXPECT_PAYLOAD_RECAPTCHA_ALLOW
       );
     });
 
-    it("should not return recaptchaPass if undefined", () => {
+    it("should not return recaptchaActionOverride if undefined", () => {
       const payload = identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_UNDEFINED);
-      expect(payload.hasOwnProperty("recaptchaPassed")).to.be.false;
+      expect(payload.hasOwnProperty("recaptchaActionOverride")).to.be.false;
       expect(payload).to.deep.equal(EXPECT_PAYLOAD_UNDEFINED);
     });
   });

@@ -339,18 +339,19 @@ export interface AuthBlockingEvent extends AuthEventContext {
   data: AuthUserRecord;
 }
 
-/** The base handler response type for beforeCreate and beforeSignIn blocking events*/
-export interface BlockingFunctionResponse {
-  recaptchaPassed?: boolean;
-}
+/**
+ * The reCACPTCHA action options.
+ */
+export type RecatpchaActionOptions = "ALLOW" | "BLOCK";
 
 /** The handler response type for beforeCreate blocking events */
-export interface BeforeCreateResponse extends BlockingFunctionResponse {
+export interface BeforeCreateResponse {
   displayName?: string;
   disabled?: boolean;
   emailVerified?: boolean;
   photoURL?: string;
   customClaims?: object;
+  recaptchaActionOverride?: RecatpchaActionOptions;
 }
 
 /** The handler response type for beforeSignIn blocking events */
@@ -433,14 +434,18 @@ export interface DecodedPayload {
   [key: string]: any;
 }
 
-/** @internal */
+/**
+ * This interface defines the payload to send back to GCIP.
+ * The nesting structure different than what customers returned.
+ * @internal */
 export interface ResponsePayload {
   userRecord?: UserRecordResponsePayload;
-  recaptchaPassed?: boolean;
+  recaptchaActionOverride?: RecatpchaActionOptions;
 }
 
 /** @internal */
-export interface UserRecordResponsePayload extends Omit<BeforeSignInResponse, "recaptchaPassed"> {
+export interface UserRecordResponsePayload
+  extends Omit<BeforeSignInResponse, "recaptchaActionOverride"> {
   updateMask?: string;
 }
 
@@ -673,7 +678,8 @@ export function generateResponsePayload(
     return {};
   }
 
-  const { recaptchaPassed, ...formattedAuthResponse } = authResponse;
+  const { recaptchaActionOverride: recaptchaActionOverride, ...formattedAuthResponse } =
+    authResponse;
   const result = {} as ResponsePayload;
   const updateMask = getUpdateMask(formattedAuthResponse);
 
@@ -684,8 +690,8 @@ export function generateResponsePayload(
     };
   }
 
-  if (recaptchaPassed !== undefined) {
-    result.recaptchaPassed = recaptchaPassed;
+  if (recaptchaActionOverride !== undefined) {
+    result.recaptchaActionOverride = recaptchaActionOverride;
   }
 
   return result;
