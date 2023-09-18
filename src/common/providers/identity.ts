@@ -435,8 +435,9 @@ export interface DecodedPayload {
 }
 
 /**
- * This interface defines the payload to send back to GCIP.
- * The nesting structure different than what customers returned.
+ * Internal definition to include all the fields that can be sent as
+ * a response from the blocking function to the backend.
+ * This is added mainly to have a type definition for 'generateResponsePayload'
  * @internal */
 export interface ResponsePayload {
   userRecord?: UserRecordResponsePayload;
