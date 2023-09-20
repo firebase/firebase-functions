@@ -679,8 +679,7 @@ export function generateResponsePayload(
     return {};
   }
 
-  const { recaptchaActionOverride, ...formattedAuthResponse } =
-    authResponse;
+  const { recaptchaActionOverride, ...formattedAuthResponse } = authResponse;
   const result = {} as ResponsePayload;
   const updateMask = getUpdateMask(formattedAuthResponse);
 
