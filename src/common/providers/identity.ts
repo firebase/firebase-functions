@@ -340,9 +340,9 @@ export interface AuthBlockingEvent extends AuthEventContext {
 }
 
 /**
- * The reCACPTCHA action options.
+ * The reCAPTCHA action options.
  */
-export type RecatpchaActionOptions = "ALLOW" | "BLOCK";
+export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
 
 /** The handler response type for beforeCreate blocking events */
 export interface BeforeCreateResponse {
@@ -351,7 +351,7 @@ export interface BeforeCreateResponse {
   emailVerified?: boolean;
   photoURL?: string;
   customClaims?: object;
-  recaptchaActionOverride?: RecatpchaActionOptions;
+  recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
 /** The handler response type for beforeSignIn blocking events */
@@ -441,7 +441,7 @@ export interface DecodedPayload {
  * @internal */
 export interface ResponsePayload {
   userRecord?: UserRecordResponsePayload;
-  recaptchaActionOverride?: RecatpchaActionOptions;
+  recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
 /** @internal */
@@ -679,7 +679,7 @@ export function generateResponsePayload(
     return {};
   }
 
-  const { recaptchaActionOverride: recaptchaActionOverride, ...formattedAuthResponse } =
+  const { recaptchaActionOverride, ...formattedAuthResponse } =
     authResponse;
   const result = {} as ResponsePayload;
   const updateMask = getUpdateMask(formattedAuthResponse);
