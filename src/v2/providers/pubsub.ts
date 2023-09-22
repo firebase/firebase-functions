@@ -324,7 +324,6 @@ export function onMessagePublished<T = any>(
         eventTrigger: {
           eventType: "google.cloud.pubsub.topic.v1.messagePublished",
           resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
-          retry: opts.retry || false,
         },
       };
     },
@@ -345,7 +344,7 @@ export function onMessagePublished<T = any>(
     eventTrigger: {
       eventType: "google.cloud.pubsub.topic.v1.messagePublished",
       eventFilters: { topic },
-      retry: false,
+      retry: opts.retry || false,
     },
   };
   copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
