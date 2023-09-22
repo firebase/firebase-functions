@@ -603,7 +603,7 @@ export function onOperation(
         eventTrigger: {
           eventType,
           eventFilters: { bucket },
-          retry: false,
+          retry: opts.retry || false,
         },
       };
       copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
