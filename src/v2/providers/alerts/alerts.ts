@@ -249,7 +249,7 @@ export function getEndpointAnnotation(
       eventFilters: {
         alerttype: alertType,
       },
-      retry: !!opts.retry,
+      retry: opts.retry || false,
     },
   };
   if (appId) {

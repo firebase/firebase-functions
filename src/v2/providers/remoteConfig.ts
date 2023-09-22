@@ -145,7 +145,7 @@ export function onConfigUpdated(
     eventTrigger: {
       eventType,
       eventFilters: {},
-      retry: !!optsOrHandler.retry,
+      retry: optsOrHandler.retry || false,
     },
   };
   func.__endpoint = ep;
