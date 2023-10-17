@@ -489,10 +489,10 @@ function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
  */
 export function parseMetadata(metadata: DecodedPayloadUserRecordMetadata): AuthUserMetadata {
   const creationTime = metadata?.creation_time
-    ? new Date(metadata.creation_time * 1000).toUTCString()
+    ? new Date(metadata.creation_time).toUTCString()
     : null;
   const lastSignInTime = metadata?.last_sign_in_time
-    ? new Date(metadata.last_sign_in_time * 1000).toUTCString()
+    ? new Date(metadata.last_sign_in_time).toUTCString()
     : null;
   return {
     creationTime,
