@@ -55,11 +55,12 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn";
+export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
   beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
+  beforeSendSms: "providers/cloud.auth/eventTypes/user.beforeSendSms"
 };
 
 /**
@@ -338,6 +339,8 @@ export interface AuthBlockingEvent extends AuthEventContext {
   data: AuthUserRecord;
 }
 
+export type SmsType = "SIGNIN" | "MULTIFACTORENROLLMENT" | "MULTIFACTORSIGNIN";  
+
 /** The handler response type for beforeCreate blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
@@ -345,11 +348,16 @@ export interface BeforeCreateResponse {
   emailVerified?: boolean;
   photoURL?: string;
   customClaims?: object;
+  recaptchaActionOverride?: string;
 }
 
 /** The handler response type for beforeSignIn blocking events */
 export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
+}
+
+export interface BeforeSendSmsResponse {
+  smsType?: SmsType;
 }
 
 interface DecodedPayloadUserRecordMetadata {
@@ -432,9 +440,11 @@ type HandlerV1 = (
 ) =>
   | BeforeCreateResponse
   | BeforeSignInResponse
+  | BeforeSendSmsResponse
   | void
   | Promise<BeforeCreateResponse>
   | Promise<BeforeSignInResponse>
+  | Promise<BeforeSendSmsResponse>
   | Promise<void>;
 
 type HandlerV2 = (
@@ -442,9 +452,11 @@ type HandlerV2 = (
 ) =>
   | BeforeCreateResponse
   | BeforeSignInResponse
+  | BeforeSendSmsResponse
   | void
   | Promise<BeforeCreateResponse>
   | Promise<BeforeSignInResponse>
+  | Promise<BeforeSendSmsResponse>
   | Promise<void>;
 
 /**
