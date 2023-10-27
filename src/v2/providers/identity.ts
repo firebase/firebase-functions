@@ -34,6 +34,7 @@ import {
   BeforeEmailResponse,
   HttpsError,
   wrapHandler,
+  BeforeSmsResponse,
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
@@ -281,6 +282,46 @@ export function beforeEmailSent(
   return beforeOperation("beforeSendEmail", optsOrHandler, handler);
 }
 
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeSmsSent(
+  handler: (
+    event: AuthBlockingEvent
+  ) => BeforeSmsResponse | Promise<BeforeSmsResponse> | void | Promise<void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param opts - Object containing function options
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeSmsSent(
+  opts: BlockingOptions,
+  handler: (
+    event: AuthBlockingEvent
+  ) => BeforeSmsResponse | Promise<BeforeSmsResponse> | void | Promise<void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param optsOrHandler- Either an object containing function options, or an event handler that is run before an email is sent to a user.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeSmsSent(
+  optsOrHandler:
+    | BlockingOptions
+    | ((
+        event: AuthBlockingEvent
+      ) => BeforeSmsResponse | Promise<BeforeSmsResponse> | void | Promise<void>),
+  handler?: (
+    event: AuthBlockingEvent
+  ) => BeforeSmsResponse | Promise<BeforeSmsResponse> | void | Promise<void>
+): BlockingFunction {
+  return beforeOperation("beforeSendSms", optsOrHandler, handler);
+}
+
 /** @hidden */
 export function beforeOperation(
   eventType: AuthBlockingEventType,
@@ -288,15 +329,42 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>),
+      ) => BeforeCreateResponse 
+      | BeforeSignInResponse 
+      | BeforeEmailResponse 
+      | BeforeSmsResponse 
+      | void 
+      | Promise<BeforeCreateResponse> 
+      | Promise<BeforeSignInResponse> 
+      | Promise<BeforeEmailResponse> 
+      | Promise<BeforeSmsResponse> 
+      | Promise<void>),
   handler: (
     event: AuthBlockingEvent
-  ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>
+  ) => BeforeCreateResponse 
+  | BeforeSignInResponse 
+  | BeforeEmailResponse 
+  | BeforeSmsResponse 
+  | void 
+  | Promise<BeforeCreateResponse> 
+  | Promise<BeforeSignInResponse> 
+  | Promise<BeforeEmailResponse> 
+  | Promise<BeforeSmsResponse> 
+  | Promise<void>
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>;
+    ) => BeforeCreateResponse 
+    | BeforeSignInResponse 
+    | BeforeEmailResponse 
+    | BeforeSmsResponse 
+    | void 
+    | Promise<BeforeCreateResponse> 
+    | Promise<BeforeSignInResponse> 
+    | Promise<BeforeEmailResponse> 
+    | Promise<BeforeSmsResponse> 
+    | Promise<void>;
     optsOrHandler = {};
   }
 
