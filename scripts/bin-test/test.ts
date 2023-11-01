@@ -10,7 +10,6 @@ import * as semver from "semver";
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
-const TIMEOUT_M = 5_000;
 const TIMEOUT_S = 1_000;
 
 const DEFAULT_OPTIONS = {
@@ -124,7 +123,7 @@ async function startBin(
       throw e;
     }
     return true;
-  }, TIMEOUT_M);
+  }, TIMEOUT_L);
 
   if (debug) {
     proc.stdout?.on("data", (data: unknown) => {
@@ -148,7 +147,7 @@ async function startBin(
           return Promise.resolve(true);
         }
         return Promise.resolve(false);
-      }, TIMEOUT_M);
+      }, TIMEOUT_L);
     },
   };
 }
