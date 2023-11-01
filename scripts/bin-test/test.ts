@@ -9,6 +9,7 @@ import * as portfinder from "portfinder";
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
+const TIMEOUT_M = 5_000;
 const TIMEOUT_S = 1_000;
 
 const DEFAULT_OPTIONS = {
@@ -151,7 +152,9 @@ async function startBin(
   };
 }
 
-describe("functions.yaml", () => {
+describe("functions.yaml", function () {
+  this.timeout(TIMEOUT_XL);
+
   function runTests(tc: Testcase) {
     let port: number;
     let cleanup: () => Promise<void>;
@@ -166,7 +169,8 @@ describe("functions.yaml", () => {
       await cleanup?.();
     });
 
-    it("functions.yaml returns expected Manifest", async () => {
+    it("functions.yaml returns expected Manifest", async function () {
+      this.timeout(TIMEOUT_M);
       const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
       const text = await res.text();
       let parsed: any;
@@ -179,7 +183,8 @@ describe("functions.yaml", () => {
     });
   }
 
-  describe("commonjs", () => {
+  describe("commonjs", function () {
+    this.timeout(TIMEOUT_L);
     const testcases: Testcase[] = [
       {
         name: "basic",
@@ -248,9 +253,10 @@ describe("functions.yaml", () => {
         runTests(tc);
       });
     }
-  }).timeout(TIMEOUT_L);
+  });
 
-  describe("esm", () => {
+  describe("esm", function () {
+    this.timeout(TIMEOUT_L);
     const testcases: Testcase[] = [
       {
         name: "basic",
@@ -275,5 +281,5 @@ describe("functions.yaml", () => {
         runTests(tc);
       });
     }
-  }).timeout(TIMEOUT_L);
-}).timeout(TIMEOUT_XL);
+  });
+});
