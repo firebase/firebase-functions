@@ -153,6 +153,7 @@ async function startBin(
 }
 
 describe("functions.yaml", function () {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this
   this.timeout(TIMEOUT_XL);
 
   function runTests(tc: Testcase) {
@@ -170,7 +171,9 @@ describe("functions.yaml", function () {
     });
 
     it("functions.yaml returns expected Manifest", async function () {
+      // eslint-disable-next-line @typescript-eslint/no-invalid-this
       this.timeout(TIMEOUT_M);
+
       const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
       const text = await res.text();
       let parsed: any;
@@ -184,7 +187,9 @@ describe("functions.yaml", function () {
   }
 
   describe("commonjs", function () {
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
     this.timeout(TIMEOUT_L);
+
     const testcases: Testcase[] = [
       {
         name: "basic",
@@ -256,7 +261,9 @@ describe("functions.yaml", function () {
   });
 
   describe("esm", function () {
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
     this.timeout(TIMEOUT_L);
+
     const testcases: Testcase[] = [
       {
         name: "basic",
