@@ -6,7 +6,6 @@ import { expect } from "chai";
 import * as yaml from "js-yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
-import * as semver from "semver";
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
@@ -138,7 +137,7 @@ async function startBin(
   return {
     port,
     cleanup: async () => {
-      process.kill(proc.pid);
+      process.kill(proc.pid, 9);
       await retryUntil(async () => {
         try {
           process.kill(proc.pid, 0);
@@ -251,32 +250,30 @@ describe("functions.yaml", () => {
     }
   }).timeout(TIMEOUT_L);
 
-  if (semver.gt(process.versions.node, "13.2.0")) {
-    describe("esm", () => {
-      const testcases: Testcase[] = [
-        {
-          name: "basic",
-          modulePath: "./scripts/bin-test/sources/esm",
-          expected: BASE_STACK,
-        },
-        {
-          name: "with main",
+  describe("esm", () => {
+    const testcases: Testcase[] = [
+      {
+        name: "basic",
+        modulePath: "./scripts/bin-test/sources/esm",
+        expected: BASE_STACK,
+      },
+      {
+        name: "with main",
 
-          modulePath: "./scripts/bin-test/sources/esm-main",
-          expected: BASE_STACK,
-        },
-        {
-          name: "with .m extension",
-          modulePath: "./scripts/bin-test/sources/esm-ext",
-          expected: BASE_STACK,
-        },
-      ];
+        modulePath: "./scripts/bin-test/sources/esm-main",
+        expected: BASE_STACK,
+      },
+      {
+        name: "with .m extension",
+        modulePath: "./scripts/bin-test/sources/esm-ext",
+        expected: BASE_STACK,
+      },
+    ];
 
-      for (const tc of testcases) {
-        describe(tc.name, () => {
-          runTests(tc);
-        });
-      }
-    }).timeout(TIMEOUT_L);
-  }
+    for (const tc of testcases) {
+      describe(tc.name, () => {
+        runTests(tc);
+      });
+    }
+  }).timeout(TIMEOUT_L);
 }).timeout(TIMEOUT_XL);
