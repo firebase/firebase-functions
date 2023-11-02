@@ -13,10 +13,7 @@ for f in scripts/bin-test/sources/*; do
 done
 
 # Make sure firebase-functions binary is executable
-chmox +x ./lib/bin/firebase-functions.js
-
-# DEBUG
-ls -la scripts/bin-test/sources/commonjs/node_modules
+chmod +x ./lib/bin/firebase-functions.js
 
 mocha \
   --file ./scripts/bin-test/mocha-setup.ts \
