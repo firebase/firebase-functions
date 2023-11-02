@@ -6,7 +6,6 @@ import { expect } from "chai";
 import * as yaml from "js-yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
-import * as semver from "semver";
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
@@ -124,7 +123,7 @@ async function startBin(
       throw e;
     }
     return true;
-  }, TIMEOUT_M);
+  }, TIMEOUT_L);
 
   if (debug) {
     proc.stdout?.on("data", (data: unknown) => {
@@ -139,7 +138,7 @@ async function startBin(
   return {
     port,
     cleanup: async () => {
-      process.kill(proc.pid);
+      process.kill(proc.pid, 9);
       await retryUntil(async () => {
         try {
           process.kill(proc.pid, 0);
@@ -148,12 +147,15 @@ async function startBin(
           return Promise.resolve(true);
         }
         return Promise.resolve(false);
-      }, TIMEOUT_M);
+      }, TIMEOUT_L);
     },
   };
 }
 
-describe("functions.yaml", () => {
+describe("functions.yaml", function () {
+  // eslint-disable-next-line @typescript-eslint/no-invalid-this
+  this.timeout(TIMEOUT_XL);
+
   function runTests(tc: Testcase) {
     let port: number;
     let cleanup: () => Promise<void>;
@@ -168,7 +170,10 @@ describe("functions.yaml", () => {
       await cleanup?.();
     });
 
-    it("functions.yaml returns expected Manifest", async () => {
+    it("functions.yaml returns expected Manifest", async function () {
+      // eslint-disable-next-line @typescript-eslint/no-invalid-this
+      this.timeout(TIMEOUT_M);
+
       const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
       const text = await res.text();
       let parsed: any;
@@ -181,7 +186,10 @@ describe("functions.yaml", () => {
     });
   }
 
-  describe("commonjs", () => {
+  describe("commonjs", function () {
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.timeout(TIMEOUT_L);
+
     const testcases: Testcase[] = [
       {
         name: "basic",
@@ -250,34 +258,35 @@ describe("functions.yaml", () => {
         runTests(tc);
       });
     }
-  }).timeout(TIMEOUT_L);
+  });
 
-  if (semver.gt(process.versions.node, "13.2.0")) {
-    describe("esm", () => {
-      const testcases: Testcase[] = [
-        {
-          name: "basic",
-          modulePath: "./scripts/bin-test/sources/esm",
-          expected: BASE_STACK,
-        },
-        {
-          name: "with main",
+  describe("esm", function () {
+    // eslint-disable-next-line @typescript-eslint/no-invalid-this
+    this.timeout(TIMEOUT_L);
 
-          modulePath: "./scripts/bin-test/sources/esm-main",
-          expected: BASE_STACK,
-        },
-        {
-          name: "with .m extension",
-          modulePath: "./scripts/bin-test/sources/esm-ext",
-          expected: BASE_STACK,
-        },
-      ];
+    const testcases: Testcase[] = [
+      {
+        name: "basic",
+        modulePath: "./scripts/bin-test/sources/esm",
+        expected: BASE_STACK,
+      },
+      {
+        name: "with main",
 
-      for (const tc of testcases) {
-        describe(tc.name, () => {
-          runTests(tc);
-        });
-      }
-    }).timeout(TIMEOUT_L);
-  }
-}).timeout(TIMEOUT_XL);
+        modulePath: "./scripts/bin-test/sources/esm-main",
+        expected: BASE_STACK,
+      },
+      {
+        name: "with .m extension",
+        modulePath: "./scripts/bin-test/sources/esm-ext",
+        expected: BASE_STACK,
+      },
+    ];
+
+    for (const tc of testcases) {
+      describe(tc.name, () => {
+        runTests(tc);
+      });
+    }
+  });
+});
