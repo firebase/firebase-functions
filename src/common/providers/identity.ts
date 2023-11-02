@@ -310,6 +310,7 @@ export interface AdditionalUserInfo {
   profile?: any;
   username?: string;
   isNewUser: boolean;
+  recaptchaScore?: number;
 }
 
 /** The credential component of the auth event context */
@@ -338,6 +339,11 @@ export interface AuthBlockingEvent extends AuthEventContext {
   data: AuthUserRecord;
 }
 
+/**
+ * The reCAPTCHA action options.
+ */
+export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
+
 /** The handler response type for beforeCreate blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
@@ -345,6 +351,7 @@ export interface BeforeCreateResponse {
   emailVerified?: boolean;
   photoURL?: string;
   customClaims?: object;
+  recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
 /** The handler response type for beforeSignIn blocking events */
@@ -423,7 +430,24 @@ export interface DecodedPayload {
   oauth_refresh_token?: string;
   oauth_token_secret?: string;
   oauth_expires_in?: number;
+  recaptcha_score?: number;
   [key: string]: any;
+}
+
+/**
+ * Internal definition to include all the fields that can be sent as
+ * a response from the blocking function to the backend.
+ * This is added mainly to have a type definition for 'generateResponsePayload'
+ * @internal */
+export interface ResponsePayload {
+  userRecord?: UserRecordResponsePayload;
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
+
+/** @internal */
+export interface UserRecordResponsePayload
+  extends Omit<BeforeSignInResponse, "recaptchaActionOverride"> {
+  updateMask?: string;
 }
 
 type HandlerV1 = (
@@ -640,7 +664,37 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
     profile,
     username,
     isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
+    recaptchaScore: decodedJWT.recaptcha_score,
   };
+}
+
+/**
+ * Helper to generate a response from the blocking function to the Firebase Auth backend.
+ * @internal
+ */
+export function generateResponsePayload(
+  authResponse?: BeforeCreateResponse | BeforeSignInResponse
+): ResponsePayload {
+  if (!authResponse) {
+    return {};
+  }
+
+  const { recaptchaActionOverride, ...formattedAuthResponse } = authResponse;
+  const result = {} as ResponsePayload;
+  const updateMask = getUpdateMask(formattedAuthResponse);
+
+  if (updateMask.length !== 0) {
+    result.userRecord = {
+      ...formattedAuthResponse,
+      updateMask,
+    };
+  }
+
+  if (recaptchaActionOverride !== undefined) {
+    result.recaptchaActionOverride = recaptchaActionOverride;
+  }
+
+  return result;
 }
 
 /** Helper to get the Credential from the decoded jwt */
@@ -801,7 +855,6 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
         : handler.length === 2
         ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
-
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
 
@@ -818,16 +871,7 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
       }
 
       validateAuthResponse(eventType, authResponse);
-      const updateMask = getUpdateMask(authResponse);
-      const result =
-        updateMask.length === 0
-          ? {}
-          : {
-              userRecord: {
-                ...authResponse,
-                updateMask,
-              },
-            };
+      const result = generateResponsePayload(authResponse);
 
       res.status(200);
       res.setHeader("Content-Type", "application/json");
