@@ -2,3 +2,4 @@
 - Add features to task queue functions. (#1423)
 - Add traces to V2 Firestore trigger logs. (#1440)
 - Fix incorrectly parsed timestamps in auth blocking functions. (#1472)
+- Add recaptcha verdict support for auth blocking functions (#1458)
