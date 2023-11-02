@@ -55,7 +55,7 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn";
+export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSendEmail" | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
@@ -336,7 +336,23 @@ export interface AuthEventContext extends EventContext {
 
 /** Defines the auth event for v2 blocking events */
 export interface AuthBlockingEvent extends AuthEventContext {
-  data: AuthUserRecord;
+  data?: AuthUserRecord;
+}
+
+/**
+ * The reCAPTCHA action options.
+ */
+export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
+
+export type SmsType = "SIGNIN" | "MULTI_FACTOR_ENROLLMENT" | "MULTI_FACTOR_SIGN_IN";
+
+export interface BeforeEmailResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
+
+export interface BeforeSmsResponse {
+  phoneNumber?: string;
+  smsType?: SmsType;
 }
 
 /**
@@ -453,23 +469,29 @@ export interface UserRecordResponsePayload
 type HandlerV1 = (
   user: AuthUserRecord,
   context: AuthEventContext
-) =>
-  | BeforeCreateResponse
-  | BeforeSignInResponse
-  | void
-  | Promise<BeforeCreateResponse>
-  | Promise<BeforeSignInResponse>
-  | Promise<void>;
+) => BeforeCreateResponse 
+| BeforeSignInResponse 
+| BeforeEmailResponse 
+| BeforeSmsResponse 
+| void 
+| Promise<BeforeCreateResponse> 
+| Promise<BeforeSignInResponse> 
+| Promise<BeforeEmailResponse> 
+| Promise<BeforeSmsResponse> 
+| Promise<void>;
 
 type HandlerV2 = (
   event: AuthBlockingEvent
-) =>
-  | BeforeCreateResponse
-  | BeforeSignInResponse
-  | void
-  | Promise<BeforeCreateResponse>
-  | Promise<BeforeSignInResponse>
-  | Promise<void>;
+) => BeforeCreateResponse 
+| BeforeSignInResponse 
+| BeforeEmailResponse 
+| BeforeSmsResponse 
+| void 
+| Promise<BeforeCreateResponse> 
+| Promise<BeforeSignInResponse> 
+| Promise<BeforeEmailResponse> 
+| Promise<BeforeSmsResponse> 
+| Promise<void>;
 
 /**
  * Checks for a valid identity platform web request, otherwise throws an HttpsError
