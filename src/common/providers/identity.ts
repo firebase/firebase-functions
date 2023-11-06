@@ -311,6 +311,7 @@ export interface AdditionalUserInfo {
   username?: string;
   isNewUser: boolean;
   recaptchaScore?: number;
+  email?: string;
 }
 
 /** The credential component of the auth event context */
@@ -325,6 +326,9 @@ export interface Credential {
   signInMethod: string;
 }
 
+/** Possible types of emails as described by the GCIP backend. */
+export type EmailType = "EMAIL_SIGNIN" | "PASSWORD_RESET";
+
 /** Defines the auth event context for blocking events */
 export interface AuthEventContext extends EventContext {
   locale?: string;
@@ -332,6 +336,7 @@ export interface AuthEventContext extends EventContext {
   userAgent: string;
   additionalUserInfo?: AdditionalUserInfo;
   credential?: Credential;
+  emailType?: EmailType;
 }
 
 /** Defines the auth event for v2 blocking events */
@@ -339,9 +344,7 @@ export interface AuthBlockingEvent extends AuthEventContext {
   data?: AuthUserRecord;
 }
 
-/**
- * The reCAPTCHA action options.
- */
+/** The reCAPTCHA action options. */
 export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
 
 export interface BeforeEmailResponse {
@@ -394,6 +397,7 @@ interface DecodedPayloadUserRecordEnrolledFactors {
 export interface DecodedPayloadUserRecord {
   uid: string;
   email?: string;
+  email_type?: string;
   email_verified?: boolean;
   phone_number?: string;
   display_name?: string;
@@ -435,6 +439,8 @@ export interface DecodedPayload {
   oauth_token_secret?: string;
   oauth_expires_in?: number;
   recaptcha_score?: number;
+  email?: string;
+  email_type?: string;
   [key: string]: any;
 }
 
@@ -454,14 +460,23 @@ export interface UserRecordResponsePayload
   updateMask?: string;
 }
 
-type HandlerV1 = (
-  user: AuthUserRecord,
-  context: AuthEventContext
-) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>;
+export type MaybeAsync<T> = T | Promise<T>;
 
-type HandlerV2 = (
+// N.B. As we add support for new auth blocking functions, some auth blocking event handlers
+// will not receive a user record object. However, we can't make the user record parameter
+// optional because it is listed before the required context parameter.
+export type HandlerV1 = (
+  userOrContext: AuthUserRecord | AuthEventContext,
+  context?: AuthEventContext
+) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+
+export type HandlerV2 = (
   event: AuthBlockingEvent
-) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>;
+) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+
+export type AgnosticHandler = (HandlerV1 | HandlerV2) & {
+  platform: string;
+};
 
 /**
  * Checks for a valid identity platform web request, otherwise throws an HttpsError
@@ -657,6 +672,7 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
     username,
     isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
     recaptchaScore: decodedJWT.recaptcha_score,
+    email: decodedJWT.email,
   };
 }
 
@@ -743,6 +759,7 @@ export function parseAuthEventContext(
     timestamp: new Date(decodedJWT.iat * 1000).toUTCString(),
     additionalUserInfo: parseAdditionalUserInfo(decodedJWT),
     credential: parseAuthCredential(decodedJWT, time),
+    emailType: decodedJWT.email_type as EmailType,
     params: {},
   };
 }
@@ -827,7 +844,7 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
 }
 
 /** @internal */
-export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1 | HandlerV2) {
+export function wrapHandler(eventType: AuthBlockingEventType, handler: AgnosticHandler) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const projectId = process.env.GCLOUD_PROJECT;
@@ -844,16 +861,20 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
 
       const decodedPayload: DecodedPayload = isDebugFeatureEnabled("skipTokenVerification")
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
-        : handler.length === 2
+        : handler.platform === "gcfv1"
         ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
-      const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
+      let authUserRecord: AuthUserRecord | undefined;
+      if (decodedPayload.user_record) {
+        authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
+      }
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
 
       let authResponse;
-      if (handler.length === 2) {
-        authResponse =
-          (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined;
+      if (handler.platform === "gcfv1") {
+        authResponse = authUserRecord
+          ? (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined
+          : (await (handler as HandlerV1)(authEventContext)) || undefined;
       } else {
         authResponse =
           (await (handler as HandlerV2)({

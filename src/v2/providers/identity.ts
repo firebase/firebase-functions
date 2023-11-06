@@ -32,8 +32,11 @@ import {
   BeforeCreateResponse,
   BeforeSignInResponse,
   BeforeEmailResponse,
+  HandlerV2,
   HttpsError,
   wrapHandler,
+  MaybeAsync,
+  AgnosticHandler,
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
@@ -166,9 +169,7 @@ export interface BlockingOptions {
  * @param handler - Event handler which is run every time before a user is created
  */
 export function beforeUserCreated(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction;
 
 /**
@@ -178,9 +179,7 @@ export function beforeUserCreated(
  */
 export function beforeUserCreated(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction;
 
 /**
@@ -191,12 +190,8 @@ export function beforeUserCreated(
 export function beforeUserCreated(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeCreate", optsOrHandler, handler);
 }
@@ -206,9 +201,7 @@ export function beforeUserCreated(
  * @param handler - Event handler which is run every time before a user is signed in
  */
 export function beforeUserSignedIn(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction;
 
 /**
@@ -218,9 +211,7 @@ export function beforeUserSignedIn(
  */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction;
 
 /**
@@ -231,12 +222,8 @@ export function beforeUserSignedIn(
 export function beforeUserSignedIn(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeSignIn", optsOrHandler, handler);
 }
@@ -246,9 +233,7 @@ export function beforeUserSignedIn(
  * @param handler - Event handler that is run before an email is sent to a user.
  */
 export function beforeEmailSent(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeEmailResponse | Promise<BeforeEmailResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
 ): BlockingFunction;
 
 /**
@@ -258,9 +243,7 @@ export function beforeEmailSent(
  */
 export function beforeEmailSent(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeEmailResponse | Promise<BeforeEmailResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
 ): BlockingFunction;
 
 /**
@@ -271,12 +254,8 @@ export function beforeEmailSent(
 export function beforeEmailSent(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeEmailResponse | Promise<BeforeEmailResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeEmailResponse | Promise<BeforeEmailResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeSendEmail", optsOrHandler, handler);
 }
@@ -288,10 +267,8 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>),
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>
+      ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>),
+  handler: HandlerV2
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
@@ -304,8 +281,9 @@ export function beforeOperation(
 
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
-  const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const func: any = wrapTraceContext(wrapHandler(eventType, wrappedHandler));
+  // const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
+  const annotatedHandler: AgnosticHandler = Object.assign(handler, { platform: "gcfv2" });
+  const func: any = wrapTraceContext(wrapHandler(eventType, annotatedHandler));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
