@@ -60,6 +60,7 @@ export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSen
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
   beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
+  beforeSendEmail: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
 };
 
 /**
@@ -306,7 +307,7 @@ export interface AuthUserRecord {
 
 /** The additional user info component of the auth event context */
 export interface AdditionalUserInfo {
-  providerId: string;
+  providerId?: string;
   profile?: any;
   username?: string;
   isNewUser: boolean;
@@ -420,7 +421,7 @@ export interface DecodedPayload {
   exp: number;
   iat: number;
   iss: string;
-  sub: string;
+  sub?: string;
   event_id: string;
   event_type: string;
   ip_address: string;
