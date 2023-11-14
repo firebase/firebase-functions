@@ -60,6 +60,8 @@ export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSen
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
   beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
+  beforeSendEmail: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+  beforeSendSms: "providers/cloud.auth/eventTypes/user.beforeSendSms",
 };
 
 /**
