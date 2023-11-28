@@ -1,0 +1,1 @@
+- Wrap 2nd gen onCall functions with trace context. (#1491)
