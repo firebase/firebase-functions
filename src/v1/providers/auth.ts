@@ -25,8 +25,12 @@ import {
   AuthEventContext,
   AuthUserRecord,
   BeforeCreateResponse,
+  BeforeEmailResponse,
   BeforeSignInResponse,
+  AgnosticHandler,
+  HandlerV1,
   HttpsError,
+  MaybeAsync,
   UserInfo,
   UserRecord,
   userRecordConstructor,
@@ -151,7 +155,7 @@ export class UserBuilder {
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) => BeforeCreateResponse | void | Promise<BeforeCreateResponse> | Promise<void>
+    ) => MaybeAsync<BeforeCreateResponse | void>
   ): BlockingFunction {
     return this.beforeOperation(handler, "beforeCreate");
   }
@@ -167,9 +171,15 @@ export class UserBuilder {
     handler: (
       user: AuthUserRecord,
       context: AuthEventContext
-    ) => BeforeSignInResponse | void | Promise<BeforeSignInResponse> | Promise<void>
+    ) => MaybeAsync<BeforeSignInResponse | void>
   ): BlockingFunction {
     return this.beforeOperation(handler, "beforeSignIn");
+  }
+
+  beforeEmail(
+    handler: (context: AuthEventContext) => MaybeAsync<BeforeEmailResponse | void>
+  ): BlockingFunction {
+    return this.beforeOperation(handler, "beforeSendEmail");
   }
 
   private onOperation(
@@ -189,28 +199,13 @@ export class UserBuilder {
     });
   }
 
-  private beforeOperation(
-    handler: (
-      user: AuthUserRecord,
-      context: AuthEventContext
-    ) =>
-      | BeforeCreateResponse
-      | BeforeSignInResponse
-      | void
-      | Promise<BeforeCreateResponse>
-      | Promise<BeforeSignInResponse>
-      | Promise<void>,
-    eventType: AuthBlockingEventType
-  ): BlockingFunction {
+  private beforeOperation(handler: HandlerV1, eventType: AuthBlockingEventType): BlockingFunction {
     const accessToken = this.userOptions?.blockingOptions?.accessToken || false;
     const idToken = this.userOptions?.blockingOptions?.idToken || false;
     const refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
-    // Create our own function that just calls the provided function so we know for sure that
-    // handler takes two arguments. This is something common/providers/identity depends on.
-    const wrappedHandler = (user: AuthUserRecord, context: AuthEventContext) =>
-      handler(user, context);
-    const func: any = wrapHandler(eventType, wrappedHandler);
+    const annotatedHandler: AgnosticHandler = Object.assign(handler, { platform: "gcfv1" });
+    const func: any = wrapHandler(eventType, annotatedHandler);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

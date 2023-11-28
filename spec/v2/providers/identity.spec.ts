@@ -41,6 +41,15 @@ const BEFORE_SIGN_IN_TRIGGER = {
   },
 };
 
+const BEFORE_EMAIL_TRIGGER = {
+  eventType: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+  options: {
+    accessToken: false,
+    idToken: false,
+    refreshToken: false,
+  },
+};
+
 const opts: identity.BlockingOptions = {
   accessToken: true,
   refreshToken: false,
@@ -137,6 +146,50 @@ describe("identity", () => {
     });
   });
 
+  describe("beforeEmailSent", () => {
+    it("should accept a handler", () => {
+      const fn = identity.beforeEmailSent(() => Promise.resolve());
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        blockingTrigger: BEFORE_EMAIL_TRIGGER,
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+  });
+
+  it("should accept options and a handler", () => {
+    const fn = identity.beforeEmailSent(opts, () => Promise.resolve());
+
+    expect(fn.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      labels: {},
+      minInstances: 1,
+      region: ["us-west1"],
+      blockingTrigger: {
+        ...BEFORE_EMAIL_TRIGGER,
+        options: {
+          ...BEFORE_EMAIL_TRIGGER.options,
+          accessToken: true,
+        },
+      },
+    });
+    expect(fn.__requiredAPIs).to.deep.equal([
+      {
+        api: "identitytoolkit.googleapis.com",
+        reason: "Needed for auth blocking functions",
+      },
+    ]);
+  });
+
   describe("beforeOperation", () => {
     it("should handle eventType and handler for before create events", () => {
       const fn = identity.beforeOperation("beforeCreate", () => Promise.resolve(), undefined);
@@ -163,6 +216,23 @@ describe("identity", () => {
         platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_SIGN_IN_TRIGGER,
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+
+    it("should handle eventType and handler for before email events", () => {
+      const fn = identity.beforeOperation("beforeSendEmail", () => Promise.resolve(), undefined);
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        blockingTrigger: BEFORE_EMAIL_TRIGGER,
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
@@ -210,6 +280,31 @@ describe("identity", () => {
           ...BEFORE_SIGN_IN_TRIGGER,
           options: {
             ...BEFORE_SIGN_IN_TRIGGER.options,
+            accessToken: true,
+          },
+        },
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: "identitytoolkit.googleapis.com",
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+
+    it("should handle eventType, options, and handler for before send email events", () => {
+      const fn = identity.beforeOperation("beforeSendEmail", opts, () => Promise.resolve());
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        minInstances: 1,
+        region: ["us-west1"],
+        blockingTrigger: {
+          ...BEFORE_EMAIL_TRIGGER,
+          options: {
+            ...BEFORE_EMAIL_TRIGGER.options,
             accessToken: true,
           },
         },

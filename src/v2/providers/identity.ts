@@ -31,8 +31,12 @@ import {
   AuthUserRecord,
   BeforeCreateResponse,
   BeforeSignInResponse,
+  BeforeEmailResponse,
+  HandlerV2,
   HttpsError,
   wrapHandler,
+  MaybeAsync,
+  AgnosticHandler,
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
@@ -165,9 +169,7 @@ export interface BlockingOptions {
  * @param handler - Event handler which is run every time before a user is created
  */
 export function beforeUserCreated(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction;
 
 /**
@@ -177,9 +179,7 @@ export function beforeUserCreated(
  */
 export function beforeUserCreated(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction;
 
 /**
@@ -190,12 +190,8 @@ export function beforeUserCreated(
 export function beforeUserCreated(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeCreate", optsOrHandler, handler);
 }
@@ -205,9 +201,7 @@ export function beforeUserCreated(
  * @param handler - Event handler which is run every time before a user is signed in
  */
 export function beforeUserSignedIn(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction;
 
 /**
@@ -217,9 +211,7 @@ export function beforeUserSignedIn(
  */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction;
 
 /**
@@ -230,14 +222,42 @@ export function beforeUserSignedIn(
 export function beforeUserSignedIn(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeSignIn", optsOrHandler, handler);
+}
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeEmailSent(
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param opts - Object containing function options
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeEmailSent(
+  opts: BlockingOptions,
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param optsOrHandler- Either an object containing function options, or an event handler that is run before an email is sent to a user.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeEmailSent(
+  optsOrHandler:
+    | BlockingOptions
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+): BlockingFunction {
+  return beforeOperation("beforeSendEmail", optsOrHandler, handler);
 }
 
 /** @hidden */
@@ -247,33 +267,13 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) =>
-        | BeforeCreateResponse
-        | BeforeSignInResponse
-        | void
-        | Promise<BeforeCreateResponse>
-        | Promise<BeforeSignInResponse>
-        | Promise<void>),
-  handler: (
-    event: AuthBlockingEvent
-  ) =>
-    | BeforeCreateResponse
-    | BeforeSignInResponse
-    | void
-    | Promise<BeforeCreateResponse>
-    | Promise<BeforeSignInResponse>
-    | Promise<void>
+      ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>),
+  handler: HandlerV2
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) =>
-      | BeforeCreateResponse
-      | BeforeSignInResponse
-      | void
-      | Promise<BeforeCreateResponse>
-      | Promise<BeforeSignInResponse>
-      | Promise<void>;
+    ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>;
     optsOrHandler = {};
   }
 
@@ -281,8 +281,9 @@ export function beforeOperation(
 
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
-  const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const func: any = wrapTraceContext(wrapHandler(eventType, wrappedHandler));
+  // const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
+  const annotatedHandler: AgnosticHandler = Object.assign(handler, { platform: "gcfv2" });
+  const func: any = wrapTraceContext(wrapHandler(eventType, annotatedHandler));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
