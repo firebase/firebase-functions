@@ -1,4 +1,6 @@
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
+import { timeout } from "../utils";
+import { initializeFirebase } from "../firebaseSetup";
 import fetch from "node-fetch";
 
 interface AndroidDevice {
@@ -10,25 +12,17 @@ interface AndroidDevice {
 
 const TESTING_API_SERVICE_NAME = "testing.googleapis.com";
 
-/**
- * Creates a new TestMatrix in Test Lab which is expected to be rejected as
- * invalid.
- *
- * @param projectId Project for which the test run will be created
- * @param testId Test id which will be encoded in client info details
- * @param accessToken accessToken to attach to requested for authentication
- */
 export async function startTestRun(projectId: string, testId: string, accessToken: string) {
   const device = await fetchDefaultDevice(accessToken);
   return await createTestMatrix(accessToken, projectId, testId, device);
 }
 
-async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
+async function fetchDefaultDevice(accessToken: string) {
   const resp = await fetch(
     `https://${TESTING_API_SERVICE_NAME}/v1/testEnvironmentCatalog/ANDROID`,
     {
       headers: {
-        Authorization: "Bearer " + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     }
@@ -39,7 +33,7 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
   const data = await resp.json();
   const models = data?.androidDeviceCatalog?.models || [];
   const defaultModels = models.filter(
-    (m) =>
+    (m: any) =>
       m.tags !== undefined &&
       m.tags.indexOf("default") > -1 &&
       m.supportedVersionIds !== undefined &&
@@ -99,7 +93,7 @@ async function createTestMatrix(
     {
       method: "POST",
       headers: {
-        Authorization: "Bearer " + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(body),
@@ -110,3 +104,49 @@ async function createTestMatrix(
   }
   return;
 }
+
+describe("TestLab test matrix onComplete trigger", () => {
+  const projectId = process.env.PROJECT_ID;
+  const testId = process.env.TEST_RUN_ID;
+  let loggedContext: admin.firestore.DocumentData | undefined;
+
+  beforeAll(async () => {
+    if (!testId || !projectId) {
+      throw new Error("Environment configured incorrectly.");
+    }
+
+    await initializeFirebase();
+
+    const accessToken = await admin.credential.applicationDefault().getAccessToken();
+    await startTestRun(projectId, testId, accessToken.access_token);
+    await timeout(20000);
+    const logSnapshot = await admin
+      .firestore()
+      .collection("testLabOnCompleteTests")
+      .doc(testId)
+      .get();
+    loggedContext = logSnapshot.data();
+    if (!loggedContext) {
+      throw new Error("loggedContext is undefined");
+    }
+  });
+
+  it("should have eventId", () => {
+    expect(loggedContext?.eventId).toBeDefined();
+  });
+
+  it("should have right eventType", () => {
+    expect(loggedContext?.eventType).toEqual("google.testing.testMatrix.complete");
+  });
+
+  it("should be in state 'INVALID'", () => {
+    const matrix = JSON.parse(loggedContext?.matrix);
+    expect(matrix?.state).toEqual("INVALID");
+  });
+});
+
+// describe("Firebase TestLab onComplete trigger", () => {
+//   test("should have refs resources", async () => {
+//     console.log("test");
+//   });
+// });

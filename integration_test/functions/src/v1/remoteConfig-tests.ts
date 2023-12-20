@@ -1,23 +1,19 @@
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
 import { REGION } from "../region";
-import { expectEq, TestSuite } from "../testing";
-import TemplateVersion = functions.remoteConfig.TemplateVersion;
+import { sanitizeData } from "../utils";
 
-export const remoteConfigTests: any = functions.region(REGION).remoteConfig.onUpdate((v, c) => {
-  return new TestSuite<TemplateVersion>("remoteConfig onUpdate")
-    .it("should have a project as resource", (version, context) =>
-      expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
-    )
-
-    .it("should have the correct eventType", (version, context) =>
-      expectEq(context.eventType, "google.firebase.remoteconfig.update")
-    )
-
-    .it("should have an eventId", (version, context) => context.eventId)
-
-    .it("should have a timestamp", (version, context) => context.timestamp)
-
-    .it("should not have auth", (version, context) => expectEq((context as any).auth, undefined))
-
-    .run(v.description, v, c);
-});
+export const remoteConfigOnUpdateTests: any = functions
+  .region(REGION)
+  .remoteConfig.onUpdate(async (version, context) => {
+    const testId = version.description;
+    try {
+      await admin
+        .firestore()
+        .collection("remoteConfigOnUpdateTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in RemoteConfig onUpdate function for testId: ${testId}`, error);
+    }
+  });

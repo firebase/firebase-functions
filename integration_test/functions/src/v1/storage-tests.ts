@@ -1,28 +1,100 @@
+import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import { REGION } from "../region";
-import { expectEq, TestSuite } from "../testing";
-import ObjectMetadata = functions.storage.ObjectMetadata;
+import { sanitizeData } from "../utils";
 
-export const storageTests: any = functions
+export const storageOnArchiveTests: any = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
   .storage.bucket()
   .object()
-  .onFinalize((s, c) => {
-    const testId = s.name.split(".")[0];
-    return new TestSuite<ObjectMetadata>("storage object finalize")
+  .onArchive(async (object, context) => {
+    const testId = object.name?.split(".")[0];
+    if (!testId) {
+      console.error("TestId not found for storage object archive");
+      return;
+    }
+    try {
+      await admin
+        .firestore()
+        .collection("storageOnArchiveTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Storage onArchive function for testId: ${testId}`, error);
+    }
+  });
 
-      .it("should not have event.app", (data, context) => !(context as any).app)
+export const storageOnDeleteTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .storage.bucket()
+  .object()
+  .onDelete(async (object, context) => {
+    const testId = object.name?.split(".")[0];
+    if (!testId) {
+      console.error("TestId not found for storage object delete");
+      return;
+    }
+    try {
+      await admin
+        .firestore()
+        .collection("storageOnDeleteTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Storage onDelete function for testId: ${testId}`, error);
+    }
+  });
 
-      .it("should have the right eventType", (snap, context) =>
-        expectEq(context.eventType, "google.storage.object.finalize")
-      )
+export const storageOnFinalizeTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .storage.bucket()
+  .object()
+  .onFinalize(async (object, context) => {
+    const testId = object.name?.split(".")[0];
+    if (!testId) {
+      console.error("TestId not found for storage object finalize");
+      return;
+    }
+    try {
+      await admin
+        .firestore()
+        .collection("storageOnFinalizeTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Storage onFinalize function for testId: ${testId}`, error);
+    }
+  });
 
-      .it("should have eventId", (snap, context) => context.eventId)
-
-      .it("should have timestamp", (snap, context) => context.timestamp)
-
-      .run(testId, s, c);
+export const storageOnMetadataUpdateTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .storage.bucket()
+  .object()
+  .onMetadataUpdate(async (object, context) => {
+    const testId = object.name?.split(".")[0];
+    if (!testId) {
+      console.error("TestId not found for storage object metadata update");
+      return;
+    }
+    try {
+      await admin
+        .firestore()
+        .collection("storageOnMetadataUpdateTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Storage onMetadataUpdate function for testId: ${testId}`, error);
+    }
   });

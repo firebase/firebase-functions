@@ -1,44 +1,80 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import { REGION } from "../region";
-import { expectDeepEq, expectEq, TestSuite } from "../testing";
-import DocumentSnapshot = admin.firestore.DocumentSnapshot;
+import { sanitizeData } from "../utils";
 
-const testIdFieldName = "documentId";
-
-export const firestoreTests: any = functions
+export const firestoreDocumentOnCreateTests: any = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
-  .firestore.document("tests/{documentId}")
-  .onCreate((s, c) => {
-    return new TestSuite<DocumentSnapshot>("firestore document onWrite")
+  .firestore.document("tests/{testId}")
+  .onCreate(async (snapshot, context) => {
+    const testId = context.params.testId;
+    try {
+      await admin
+        .firestore()
+        .collection("firestoreDocumentOnCreateTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Firestore document onCreate function for testId: ${testId}`, error);
+    }
+  });
 
-      .it("should not have event.app", (snap, context) => !(context as any).app)
+export const firestoreDocumentOnDeleteTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .firestore.document("tests/{testId}")
+  .onDelete(async (snapshot, context) => {
+    const testId = context.params.testId;
+    try {
+      await admin
+        .firestore()
+        .collection("firestoreDocumentOnDeleteTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Firestore document onDelete function for testId: ${testId}`, error);
+    }
+  });
 
-      .it("should give refs write access", (snap) =>
-        snap.ref.set({ allowed: 1 }, { merge: true }).then(() => true)
-      )
+export const firestoreDocumentOnUpdateTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .firestore.document("tests/{testId}")
+  .onUpdate(async (change, context) => {
+    const testId = context.params.testId;
+    try {
+      await admin
+        .firestore()
+        .collection("firestoreDocumentOnUpdateTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Firestore document onUpdate function for testId: ${testId}`, error);
+    }
+  });
 
-      .it("should have well-formatted resource", (snap, context) =>
-        expectEq(
-          context.resource.name,
-          `projects/${process.env.GCLOUD_PROJECT}/databases/(default)/documents/tests/${context.params.documentId}`
-        )
-      )
-
-      .it("should have the right eventType", (snap, context) =>
-        expectEq(context.eventType, "google.firestore.document.create")
-      )
-
-      .it("should have eventId", (snap, context) => context.eventId)
-
-      .it("should have timestamp", (snap, context) => context.timestamp)
-
-      .it("should have the correct data", (snap, context) =>
-        expectDeepEq(snap.data(), { test: context.params.documentId })
-      )
-
-      .run(c.params[testIdFieldName], s, c);
+export const firestoreDocumentOnWriteTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .firestore.document("tests/{testId}")
+  .onWrite(async (change, context) => {
+    const testId = context.params.testId;
+    try {
+      await admin
+        .firestore()
+        .collection("firestoreDocumentOnWriteTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Firestore document onWrite function for testId: ${testId}`, error);
+    }
   });
