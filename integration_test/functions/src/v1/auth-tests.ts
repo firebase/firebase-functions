@@ -1,65 +1,87 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import { REGION } from "../region";
-import { expectEq, TestSuite } from "../testing";
-import UserMetadata = admin.auth.UserRecord;
+import { sanitizeData } from "../utils";
 
-export const createUserTests: any = functions
+export const authUserOnCreateTests: any = functions
   .region(REGION)
   .auth.user()
-  .onCreate((u, c) => {
-    const testId: string = u.displayName;
-    functions.logger.info(`testId is ${testId}`);
+  .onCreate(async (user, context) => {
+    const { email, displayName, uid } = user;
+    try {
+      const userProfile = {
+        email,
+        displayName,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      };
+      await admin.firestore().collection("userProfiles").doc(uid).set(userProfile);
 
-    return new TestSuite<UserMetadata>("auth user onCreate")
-      .it("should have a project as resource", (user, context) =>
-        expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
-      )
-
-      .it("should not have a path", (user, context) => expectEq((context as any).path, undefined))
-
-      .it("should have the correct eventType", (user, context) =>
-        expectEq(context.eventType, "google.firebase.auth.user.create")
-      )
-
-      .it("should have an eventId", (user, context) => context.eventId)
-
-      .it("should have a timestamp", (user, context) => context.timestamp)
-
-      .it("should not have auth", (user, context) => expectEq((context as any).auth, undefined))
-
-      .it("should not have action", (user, context) => expectEq((context as any).action, undefined))
-
-      .it("should have properly defined meta", (user) => user.metadata)
-
-      .run(testId, u, c);
+      await admin
+        .firestore()
+        .collection("authUserOnCreateTests")
+        .doc(uid)
+        .set(
+          sanitizeData({
+            ...context,
+            metadata: JSON.stringify(user.metadata),
+          })
+        );
+    } catch (error) {
+      console.error(`Error in Auth user onCreate function for uid: ${uid}`, error);
+    }
   });
 
-export const deleteUserTests: any = functions
+export const authUserOnDeleteTests: any = functions
   .region(REGION)
   .auth.user()
-  .onDelete((u, c) => {
-    const testId: string = u.displayName;
-    functions.logger.info(`testId is ${testId}`);
+  .onDelete(async (user, context) => {
+    const { uid } = user;
+    try {
+      await admin
+        .firestore()
+        .collection("authUserOnDeleteTests")
+        .doc(uid)
+        .set(
+          sanitizeData({
+            ...context,
+            metadata: JSON.stringify(user.metadata),
+          })
+        );
+    } catch (error) {
+      console.error(`Error in Auth user onDelete function for uid: ${uid}`, error);
+    }
+  });
 
-    return new TestSuite<UserMetadata>("auth user onDelete")
-      .it("should have a project as resource", (user, context) =>
-        expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
-      )
+export const authUserBeforeCreateTests: any = functions
+  .region(REGION)
+  .auth.user()
+  .beforeCreate(async (user, context) => {
+    const { uid } = user;
+    try {
+      await admin
+        .firestore()
+        .collection("authUserBeforeCreateTests")
+        .doc(uid)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Auth user beforeCreate function for uid: ${uid}`, error);
+    }
+    return user;
+  });
 
-      .it("should not have a path", (user, context) => expectEq((context as any).path, undefined))
-
-      .it("should have the correct eventType", (user, context) =>
-        expectEq(context.eventType, "google.firebase.auth.user.delete")
-      )
-
-      .it("should have an eventId", (user, context) => context.eventId)
-
-      .it("should have a timestamp", (user, context) => context.timestamp)
-
-      .it("should not have auth", (user, context) => expectEq((context as any).auth, undefined))
-
-      .it("should not have action", (user, context) => expectEq((context as any).action, undefined))
-
-      .run(testId, u, c);
+export const authUserBeforeSignInTests: any = functions
+  .region(REGION)
+  .auth.user()
+  .beforeSignIn(async (user, context) => {
+    const { uid } = user;
+    try {
+      await admin
+        .firestore()
+        .collection("authUserBeforeSignInTests")
+        .doc(uid)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Auth user beforeSignIn function for uid: ${uid}`, error);
+    }
+    return user;
   });
