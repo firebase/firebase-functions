@@ -68,3 +68,4 @@ node_modules/
 # Firebase/GCP config
 .firebaserc
 serviceAccount.json
+functions.yaml
