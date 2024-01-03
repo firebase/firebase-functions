@@ -1,1 +1,2 @@
 - Wrap 2nd gen onCall functions with trace context. (#1491)
+- Bump peer depdencies for firebase-admin to support 12.0.0. (#1509)
