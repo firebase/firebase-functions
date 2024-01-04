@@ -158,73 +158,65 @@ describe("Firebase Auth", () => {
     });
   });
 
-  // TODO: figure out way to connect blocking function to authentication
-  // using unique identifier :/
-  // describe("Firebase Auth user beforeCreate trigger", () => {
-  //   const projectId = process.env.PROJECT_ID;
-  //   const testId = process.env.TEST_RUN_ID;
-  //   let userRecord;
-  //   let logSnapshot;
-  //   let loggedContext;
+  describe("user beforeCreate trigger", () => {
+    const projectId = process.env.PROJECT_ID;
+    const testId = process.env.TEST_RUN_ID;
+    let userRecord;
+    let loggedContext;
 
-  //   beforeAll(async () => {
-  //     await initializeFirebase();
-  //     try {
-  //       userRecord = await admin.auth().createUser({
-  //         email: `${testId}@fake.com`,
-  //         password: "secret",
-  //         displayName: `${testId}`,
-  //       });
+    beforeAll(async () => {
+      if (!testId || !projectId) {
+        throw new Error("Environment configured incorrectly.");
+      }
 
-  //       await timeout(12000);
+      await initializeFirebase();
+      userRecord = await admin.auth().createUser({
+        email: `${testId}@fake.com`,
+        password: "secret",
+        displayName: `${testId}`,
+      });
 
-  //       logSnapshot = await admin
-  //         .firestore()
-  //         .collection("userBeforeCreateTests")
-  //         .doc(userRecord.uid)
-  //         .get();
+      await timeout(20000);
 
-  //       loggedContext = logSnapshot.data();
-  //     } catch (error) {
-  //       console.error("Error in beforeAll:", error);
-  //       throw error;
-  //     }
-  //   });
+      const logSnapshot = await admin
+        .firestore()
+        .collection("userBeforeCreateTests")
+        .doc(userRecord.uid)
+        .get();
 
-  //   afterAll(async () => {
-  //     try {
-  //       await admin.auth().deleteUser(userRecord.uid);
-  //     } catch (error) {
-  //       console.error("Error in afterAll:", error);
-  //     }
-  //   });
+      loggedContext = logSnapshot.data();
+    });
 
-  //   it("should have a project as resource", () => {
-  //     expect(loggedContext?.resource.name).toMatch(`projects/${projectId}`);
-  //   });
+    afterAll(async () => {
+      await admin.auth().deleteUser(userRecord.uid);
+    });
 
-  //   it("should not have a path", () => {
-  //     expect(loggedContext?.path).toBeUndefined();
-  //   });
+    it("should have a project as resource", () => {
+      expect(loggedContext?.resource.name).toMatch(`projects/${projectId}`);
+    });
 
-  //   it("should have the correct eventType", async () => {
-  //     expect(loggedContext?.eventType).toEqual("google.firebase.auth.user.beforeCreate");
-  //   });
+    it("should not have a path", () => {
+      expect(loggedContext?.path).toBeUndefined();
+    });
 
-  //   it("should have an eventId", () => {
-  //     expect(loggedContext?.eventId).toBeDefined();
-  //   });
+    it("should have the correct eventType", async () => {
+      expect(loggedContext?.eventType).toEqual("google.firebase.auth.user.beforeCreate");
+    });
 
-  //   it("should have a timestamp", () => {
-  //     expect(loggedContext?.timestamp).toBeDefined();
-  //   });
+    it("should have an eventId", () => {
+      expect(loggedContext?.eventId).toBeDefined();
+    });
 
-  //   it("should not have auth", () => {
-  //     expect(loggedContext?.auth).toBeUndefined();
-  //   });
+    it("should have a timestamp", () => {
+      expect(loggedContext?.timestamp).toBeDefined();
+    });
 
-  //   it("should not have an action", () => {
-  //     expect(loggedContext?.action).toBeUndefined();
-  //   });
-  // });
+    it("should not have auth", () => {
+      expect(loggedContext?.auth).toBeUndefined();
+    });
+
+    it("should not have an action", () => {
+      expect(loggedContext?.action).toBeUndefined();
+    });
+  });
 });

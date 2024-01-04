@@ -3,30 +3,6 @@ import * as functions from "firebase-functions";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
-export const storageOnFinalizeTests: any = functions
-  .runWith({
-    timeoutSeconds: 540,
-  })
-  .region(REGION)
-  .storage.bucket()
-  .object()
-  .onFinalize(async (object, context) => {
-    const testId = object.name?.split(".")[0];
-    if (!testId) {
-      console.error("TestId not found for storage object finalize");
-      return;
-    }
-    try {
-      await admin
-        .firestore()
-        .collection("storageOnFinalizeTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Storage onFinalize function for testId: ${testId}`, error);
-    }
-  });
-
 export const storageOnArchiveTests: any = functions
   .runWith({
     timeoutSeconds: 540,
@@ -75,6 +51,30 @@ export const storageOnDeleteTests: any = functions
     }
   });
 
+export const storageOnFinalizeTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .storage.bucket()
+  .object()
+  .onFinalize(async (object, context) => {
+    const testId = object.name?.split(".")[0];
+    if (!testId) {
+      console.error("TestId not found for storage object finalize");
+      return;
+    }
+    try {
+      await admin
+        .firestore()
+        .collection("storageOnFinalizeTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Storage onFinalize function for testId: ${testId}`, error);
+    }
+  });
+
 export const storageOnMetadataUpdateTests: any = functions
   .runWith({
     timeoutSeconds: 540,
@@ -82,7 +82,7 @@ export const storageOnMetadataUpdateTests: any = functions
   .region(REGION)
   .storage.bucket()
   .object()
-  .onDelete(async (object, context) => {
+  .onMetadataUpdate(async (object, context) => {
     const testId = object.name?.split(".")[0];
     if (!testId) {
       console.error("TestId not found for storage object metadata update");
@@ -95,6 +95,6 @@ export const storageOnMetadataUpdateTests: any = functions
         .doc(testId)
         .set(sanitizeData(context));
     } catch (error) {
-      console.error(`Error in Storage onDelete function for testId: ${testId}`, error);
+      console.error(`Error in Storage onMetadataUpdate function for testId: ${testId}`, error);
     }
   });
