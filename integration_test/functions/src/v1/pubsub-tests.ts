@@ -3,8 +3,6 @@ import * as functions from "firebase-functions";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
-// TODO(inlined) use multiple queues to run inline
-// Expected message data: { "hello": "world" }
 export const pubsubOnPublishTests: any = functions
   .region(REGION)
   .pubsub.topic("pubsubTests")

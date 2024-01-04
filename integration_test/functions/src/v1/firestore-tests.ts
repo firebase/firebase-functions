@@ -8,42 +8,17 @@ export const firestoreDocumentOnCreateTests: any = functions
     timeoutSeconds: 540,
   })
   .region(REGION)
-  .firestore.document("tests/{documentId}")
+  .firestore.document("tests/{testId}")
   .onCreate(async (snapshot, context) => {
-    const documentId = context.params.documentId;
+    const testId = context.params.testId;
     try {
       await admin
         .firestore()
         .collection("firestoreDocumentOnCreateTests")
-        .doc(documentId)
+        .doc(testId)
         .set(sanitizeData(context));
     } catch (error) {
-      console.error(
-        `Error in Firestore document onCreate function for testId: ${documentId}`,
-        error
-      );
-    }
-  });
-
-export const firestoreDocumentOnUpdateTests: any = functions
-  .runWith({
-    timeoutSeconds: 540,
-  })
-  .region(REGION)
-  .firestore.document("tests/{documentId}")
-  .onUpdate(async (change, context) => {
-    const documentId = context.params.documentId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreDocumentOnUpdateTests")
-        .doc(documentId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(
-        `Error in Firestore document onUpdate function for testId: ${documentId}`,
-        error
-      );
+      console.error(`Error in Firestore document onCreate function for testId: ${testId}`, error);
     }
   });
 
@@ -52,20 +27,36 @@ export const firestoreDocumentOnDeleteTests: any = functions
     timeoutSeconds: 540,
   })
   .region(REGION)
-  .firestore.document("tests/{documentId}")
+  .firestore.document("tests/{testId}")
   .onDelete(async (snapshot, context) => {
-    const documentId = context.params.documentId;
+    const testId = context.params.testId;
     try {
       await admin
         .firestore()
         .collection("firestoreDocumentOnDeleteTests")
-        .doc(documentId)
+        .doc(testId)
         .set(sanitizeData(context));
     } catch (error) {
-      console.error(
-        `Error in Firestore document onDelete function for testId: ${documentId}`,
-        error
-      );
+      console.error(`Error in Firestore document onDelete function for testId: ${testId}`, error);
+    }
+  });
+
+export const firestoreDocumentOnUpdateTests: any = functions
+  .runWith({
+    timeoutSeconds: 540,
+  })
+  .region(REGION)
+  .firestore.document("tests/{testId}")
+  .onUpdate(async (change, context) => {
+    const testId = context.params.testId;
+    try {
+      await admin
+        .firestore()
+        .collection("firestoreDocumentOnUpdateTests")
+        .doc(testId)
+        .set(sanitizeData(context));
+    } catch (error) {
+      console.error(`Error in Firestore document onUpdate function for testId: ${testId}`, error);
     }
   });
 
@@ -74,19 +65,16 @@ export const firestoreDocumentOnWriteTests: any = functions
     timeoutSeconds: 540,
   })
   .region(REGION)
-  .firestore.document("tests/{documentId}")
+  .firestore.document("tests/{testId}")
   .onWrite(async (change, context) => {
-    const documentId = context.params.documentId;
+    const testId = context.params.testId;
     try {
       await admin
         .firestore()
         .collection("firestoreDocumentOnWriteTests")
-        .doc(documentId)
+        .doc(testId)
         .set(sanitizeData(context));
     } catch (error) {
-      console.error(
-        `Error in Firestore document onWrite function for testId: ${documentId}`,
-        error
-      );
+      console.error(`Error in Firestore document onWrite function for testId: ${testId}`, error);
     }
   });
