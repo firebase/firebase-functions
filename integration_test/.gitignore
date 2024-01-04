@@ -69,3 +69,4 @@ node_modules/
 .firebaserc
 serviceAccount.json
 functions.yaml
+functions/src/package.json
