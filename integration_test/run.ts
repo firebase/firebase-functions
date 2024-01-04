@@ -179,7 +179,7 @@ function cleanFiles(): void {
     });
 
     fs.rmSync("lib", { recursive: true });
-    fs.existsSync("node_modules") && fs.rmSync("node_modules", { recursive: true });
+    // fs.existsSync("node_modules") && fs.rmSync("node_modules", { recursive: true });
   } catch (error) {
     console.error("Error occurred while cleaning files:", error);
   }
@@ -254,7 +254,7 @@ async function runIntegrationTests(): Promise<void> {
   } catch (err) {
     console.error("Error occurred during integration tests", err);
   } finally {
-    // await handleCleanUp();
+    await handleCleanUp();
   }
 }
 
