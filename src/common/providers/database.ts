@@ -26,6 +26,14 @@ import { firebaseConfig } from "../../common/config";
 import { joinPath, pathParts } from "../../common/utilities/path";
 
 /**
+ * Pulled from @firebase/database-types
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
+ */
+interface IteratedDataSnapshot extends DataSnapshot {
+  key: string; // key of the location of this snapshot.
+}
+
+/**
  * Interface representing a Firebase Realtime database data snapshot.
  */
 export class DataSnapshot implements database.DataSnapshot {
@@ -204,7 +212,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * @return `true` if enumeration was canceled due to your callback
    *   returning `true`.
    */
-  forEach(action: (a: DataSnapshot) => boolean | void): boolean {
+  forEach(action: (a: IteratedDataSnapshot) => boolean | void): boolean {
     const val = this.val() || {};
     if (typeof val === "object") {
       return Object.keys(val).some((key) => action(this.child(key)) === true);
