@@ -1,3 +1,1 @@
 - Fixes access on deeply nested, nonexistent property. (#1432)
-- Add features to task queue functions. (#1423)
-- Add traces to V2 Firestore trigger logs. (#1440)

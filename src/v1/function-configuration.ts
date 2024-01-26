@@ -252,7 +252,8 @@ export interface RuntimeOptions {
    *
    * @remarks
    * Set this to true to enable the App Check replay protection feature by consuming the App Check token on callable
-   * request. Tokens that are found to be already consumed will have request.app.alreadyConsumed property set true.
+   * request. Tokens that are found to be already consumed will have the `request.app.alreadyConsumed` property set
+   * to true.
    *
    *
    * Tokens are only considered to be consumed if it is sent to the App Check service by setting this option to true.
@@ -263,10 +264,10 @@ export interface RuntimeOptions {
    * performance and can potentially deplete your attestation providers' quotas faster. Use this feature only for
    * protecting low volume, security critical, or expensive operations.
    *
-   * This option does not affect the enforceAppCheck option. Setting the latter to true will cause the callable function
-   * to automatically respond with a 401 Unauthorized status code when request includes an invalid App Check token.
-   * When request includes valid but consumed App Check tokens, requests will not be automatically rejected. Instead,
-   * the request.app.alreadyConsumed property will be set to true and pass the execution to the handler code for making
+   * This option does not affect the `enforceAppCheck` option. Setting the latter to true will cause the callable function
+   * to automatically respond with a 401 Unauthorized status code when the request includes an invalid App Check token.
+   * When the request includes valid but consumed App Check tokens, requests will not be automatically rejected. Instead,
+   * the `request.app.alreadyConsumed` property will be set to true and pass the execution to the handler code for making
    * further decisions, such as requiring additional security checks or rejecting the request.
    */
   consumeAppCheckToken?: boolean;

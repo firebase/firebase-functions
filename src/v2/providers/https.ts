@@ -366,7 +366,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: CallableRequest<T>) => handler(req);
-  const func: any = onCallHandler(
+  let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
@@ -374,6 +374,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
     },
     fixedLen
   );
+
+  func = wrapTraceContext(func);
 
   Object.defineProperty(func, "__trigger", {
     get: () => {
