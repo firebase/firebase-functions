@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import * as logger from "../logger";
+import { Resource } from "../v1";
 
 /*
  * A CEL expression which can be evaluated during function deployment, and
@@ -209,7 +210,7 @@ export interface ResourceInput {
   };
 }
 
-export const BUCKET_PICKER: ParamInput<string> = {
+export const BUCKET_PICKER: ResourceInput = {
   resource: {
     type: "storage.googleapis.com/Bucket",
   },
