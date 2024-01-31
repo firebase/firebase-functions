@@ -201,7 +201,7 @@ export const metadataUpdatedEvent = "google.cloud.storage.object.v1.metadataUpda
 /** StorageOptions extend EventHandlerOptions with a bucket name  */
 export interface StorageOptions extends options.EventHandlerOptions {
   /** The name of the bucket containing this object. */
-  bucket?: string;
+  bucket?: string | Expression<string>;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -324,7 +324,7 @@ export function onObjectArchived(
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
-  bucket: string,
+  bucket: string | Expression<string>,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
@@ -352,7 +352,11 @@ export function onObjectArchived(
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
-  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler:
+    | string
+    | Expression<string>
+    | StorageOptions
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(archivedEvent, bucketOrOptsOrHandler, handler);
@@ -384,7 +388,7 @@ export function onObjectFinalized(
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
-  bucket: string,
+  bucket: string | Expression<string>,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
@@ -416,7 +420,11 @@ export function onObjectFinalized(
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
-  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler:
+    | string
+    | Expression<string>
+    | StorageOptions
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(finalizedEvent, bucketOrOptsOrHandler, handler);
@@ -450,7 +458,7 @@ export function onObjectDeleted(
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
-  bucket: string,
+  bucket: string | Expression<string>,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
@@ -484,7 +492,11 @@ export function onObjectDeleted(
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
-  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler:
+    | string
+    | Expression<string>
+    | StorageOptions
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(deletedEvent, bucketOrOptsOrHandler, handler);
@@ -509,7 +521,7 @@ export function onObjectMetadataUpdated(
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  bucket: string,
+  bucket: string | Expression<string>,
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent>;
 
@@ -533,7 +545,11 @@ export function onObjectMetadataUpdated(
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler:
+    | string
+    | Expression<string>
+    | StorageOptions
+    | ((event: StorageEvent) => any | Promise<any>),
   handler?: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   return onOperation(metadataUpdatedEvent, bucketOrOptsOrHandler, handler);
@@ -542,7 +558,11 @@ export function onObjectMetadataUpdated(
 /** @internal */
 export function onOperation(
   eventType: string,
-  bucketOrOptsOrHandler: string | StorageOptions | ((event: StorageEvent) => any | Promise<any>),
+  bucketOrOptsOrHandler:
+    | string
+    | Expression<string>
+    | StorageOptions
+    | ((event: StorageEvent) => any | Promise<any>),
   handler: (event: StorageEvent) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   if (typeof bucketOrOptsOrHandler === "function") {
@@ -616,11 +636,12 @@ export function onOperation(
 
 /** @internal */
 export function getOptsAndBucket(
-  bucketOrOpts: string | StorageOptions
-): [options.EventHandlerOptions, string] {
-  let bucket: string;
+  bucketOrOpts: string | Expression<string> | StorageOptions
+): [options.EventHandlerOptions, string | Expression<string>] {
+  let bucket: string | Expression<string>;
   let opts: options.EventHandlerOptions;
-  if (typeof bucketOrOpts === "string") {
+  // If bucket is a string or Expression<string>
+  if (typeof bucketOrOpts === "string" || "value" in bucketOrOpts) {
     bucket = bucketOrOpts;
     opts = {};
   } else {
@@ -635,7 +656,7 @@ export function getOptsAndBucket(
         " by providing bucket name directly in the event handler or by setting process.env.FIREBASE_CONFIG."
     );
   }
-  if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
+  if (typeof bucket === "string" && !/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
     throw new Error(`Invalid bucket name ${bucket}`);
   }
 

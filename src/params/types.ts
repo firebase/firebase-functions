@@ -174,8 +174,8 @@ type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret"
 type ParamInput<T> =
   | { text: TextInput<T> }
   | { select: SelectInput<T> }
-  | { multiSelect: MultiSelectInput }
-  | { resource: ResourceInput };
+  | (T extends unknown[] ? MultiSelectInput : never)
+  | (T extends string ? ResourceInput : never);
 
 /**
  * Specifies that a Param's value should be determined by prompting the user
@@ -205,9 +205,15 @@ export interface TextInput<T = unknown> {
  */
 export interface ResourceInput {
   resource: {
-    type: string;
+    type: "storage.googleapis.com/Bucket";
   };
 }
+
+export const BUCKET_PICKER: ParamInput<string> = {
+  resource: {
+    type: "storage.googleapis.com/Bucket",
+  },
+};
 
 /**
  * Specifies that a Param's value should be determined by having the user select
@@ -223,7 +229,9 @@ export interface SelectInput<T = unknown> {
  * Will result in errors if used on Params of type other than string[].
  */
 export interface MultiSelectInput {
-  options: Array<SelectOptions<string>>;
+  multiSelect: {
+    options: Array<SelectOptions<string>>;
+  }
 }
 
 /**

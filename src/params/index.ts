@@ -38,6 +38,8 @@ import {
   InternalExpression,
 } from "./types";
 
+export { BUCKET_PICKER } from "./types";
+
 export { ParamOptions, Expression };
 
 type SecretOrExpr = Param<any> | SecretParam;
