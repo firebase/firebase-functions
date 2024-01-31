@@ -38,7 +38,7 @@ import {
   InternalExpression,
 } from "./types";
 
-export { BUCKET_PICKER } from "./types";
+export { BUCKET_PICKER, SelectInput, SelectOptions, MultiSelectInput } from "./types";
 
 export { ParamOptions, Expression };
 
