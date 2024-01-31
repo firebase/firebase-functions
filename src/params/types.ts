@@ -21,7 +21,6 @@
 // SOFTWARE.
 
 import * as logger from "../logger";
-import { Resource } from "../v1";
 
 /*
  * A CEL expression which can be evaluated during function deployment, and
