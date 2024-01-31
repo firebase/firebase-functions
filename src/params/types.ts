@@ -231,7 +231,7 @@ export interface SelectInput<T = unknown> {
 export interface MultiSelectInput {
   multiSelect: {
     options: Array<SelectOptions<string>>;
-  }
+  };
 }
 
 /**
