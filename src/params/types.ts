@@ -171,9 +171,51 @@ export class CompareExpression<
 /** @hidden */
 type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret";
 
+/** Create a select input from a series of values. */
+export function select<T>(options: T[]): SelectInput;
+
+/** Create a select input from a map of labels to vaues. */
+export function select<T>(optionsWithLabels: Record<string, T>): SelectInput;
+
+/** Create a select input from a series of values or a map of labels to values */
+export function select<T>(options: T[] | Record<string, T>): SelectInput {
+  let wireOpts: SelectOptions<T>[];
+  if (Array.isArray(options)) {
+    wireOpts = options.map((opt) => ({ value: opt }));
+  } else {
+    wireOpts = Object.entries(options).map(([label, value]) => ({ label, value }));
+  }
+  return {
+    select: {
+      options: wireOpts,
+    },
+  };
+}
+
+/** Create a multi-select input from a series of values. */
+export function multiSelect(options: string[]): MultiSelectInput;
+
+/** Create a multi-select input from map of labels to values. */
+export function multiSelect(options: Record<string, string>): MultiSelectInput;
+
+/** Create a multi-select input from a series of values or map of labels to values. */
+export function multiSelect(options: string[] | Record<string, string>): MultiSelectInput {
+  let wireOpts: SelectOptions<string>[];
+  if (Array.isArray(options)) {
+    wireOpts = options.map((opt) => ({ value: opt }));
+  } else {
+    wireOpts = Object.entries(options).map(([label, value]) => ({ label, value }));
+  }
+  return {
+    multiSelect: {
+      options: wireOpts,
+    },
+  };
+}
+
 type ParamInput<T> =
-  | { text: TextInput<T> }
-  | { select: SelectInput<T> }
+  | TextInput<T>
+  | SelectInput<T>
   | (T extends unknown[] ? MultiSelectInput : never)
   | (T extends string ? ResourceInput : never);
 
@@ -184,18 +226,20 @@ type ParamInput<T> =
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
-  example?: string;
-  /**
-   * A regular expression (or an escaped string to compile into a regular
-   * expression) which the prompted text must satisfy; the prompt will retry
-   * until input matching the regex is provided.
-   */
-  validationRegex?: string | RegExp;
-  /**
-   * A custom error message to display when retrying the prompt based on input
-   * failing to conform to the validationRegex,
-   */
-  validationErrorMessage?: string;
+  text: {
+    example?: string;
+    /**
+     * A regular expression (or an escaped string to compile into a regular
+     * expression) which the prompted text must satisfy; the prompt will retry
+     * until input matching the regex is provided.
+     */
+    validationRegex?: string | RegExp;
+    /**
+     * A custom error message to display when retrying the prompt based on input
+     * failing to conform to the validationRegex,
+     */
+    validationErrorMessage?: string;
+  };
 }
 
 /**
@@ -220,7 +264,9 @@ export const BUCKET_PICKER: ResourceInput = {
  * from a list of pre-canned options interactively at deploy-time.
  */
 export interface SelectInput<T = unknown> {
-  options: Array<SelectOptions<T>>;
+  select: {
+    options: Array<SelectOptions<T>>;
+  };
 }
 
 /**
