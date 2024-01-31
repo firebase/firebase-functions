@@ -234,7 +234,7 @@ describe("Firestore Functions", () => {
       delete process.env.GCLOUD_PROJECT;
     });
 
-    it('constructs appropriate fields and getters for event.data on "document.write" events', () => {
+    it('constructs appropriate fields and getters for event.data on "document.write" events', async () => {
       const testFunction = firestore.document("path").onWrite((change) => {
         expect(change.before.data()).to.deep.equal({
           key1: false,
@@ -246,20 +246,30 @@ describe("Firestore Functions", () => {
         return true; // otherwise will get warning about returning undefined
       });
       const event = constructEvent(createOldValue(), createValue());
-      return testFunction(event.data, event.context);
+
+      let hello;
+      functions.onInit(() => (hello = "world"));
+      expect(hello).is.undefined;
+      await testFunction(event.data, event.context);
+      expect(hello).equals("world");
     }).timeout(5000);
 
-    it('constructs appropriate fields and getters for event.data on "document.create" events', () => {
+    it('constructs appropriate fields and getters for event.data on "document.create" events', async () => {
       const testFunction = firestore.document("path").onCreate((data) => {
         expect(data.data()).to.deep.equal({ key1: true, key2: 123 });
         expect(data.get("key1")).to.equal(true);
         return true; // otherwise will get warning about returning undefined
       });
       const event = constructEvent({}, createValue());
-      return testFunction(event.data, event.context);
+
+      let hello;
+      functions.onInit(() => (hello = "world"));
+      expect(hello).is.undefined;
+      await testFunction(event.data, event.context);
+      expect(hello).equals("world");
     }).timeout(5000);
 
-    it('constructs appropriate fields and getters for event.data on "document.update" events', () => {
+    it('constructs appropriate fields and getters for event.data on "document.update" events', async () => {
       const testFunction = firestore.document("path").onUpdate((change) => {
         expect(change.before.data()).to.deep.equal({
           key1: false,
@@ -271,17 +281,27 @@ describe("Firestore Functions", () => {
         return true; // otherwise will get warning about returning undefined
       });
       const event = constructEvent(createOldValue(), createValue());
-      return testFunction(event.data, event.context);
+
+      let hello;
+      functions.onInit(() => (hello = "world"));
+      expect(hello).is.undefined;
+      await testFunction(event.data, event.context);
+      expect(hello).equals("world");
     }).timeout(5000);
 
-    it('constructs appropriate fields and getters for event.data on "document.delete" events', () => {
+    it('constructs appropriate fields and getters for event.data on "document.delete" events', async () => {
       const testFunction = firestore.document("path").onDelete((data) => {
         expect(data.data()).to.deep.equal({ key1: false, key2: 111 });
         expect(data.get("key1")).to.equal(false);
         return true; // otherwise will get warning about returning undefined
       });
       const event = constructEvent(createOldValue(), {});
-      return testFunction(event.data, event.context);
+
+      let hello;
+      functions.onInit(() => (hello = "world"));
+      expect(hello).is.undefined;
+      await testFunction(event.data, event.context);
+      expect(hello).equals("world");
     }).timeout(5000);
   });
 

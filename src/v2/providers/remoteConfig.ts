@@ -20,9 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { withInit } from "../../common/onInit";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
+import { wrapTraceContext } from "../trace";
 
 /** @internal */
 export const eventType = "google.firebase.remoteconfig.remoteConfig.v1.updated";
@@ -131,7 +133,7 @@ export function onConfigUpdated(
   const func: any = (raw: CloudEvent<unknown>) => {
     return handler(raw as CloudEvent<ConfigUpdateData>);
   };
-  func.run = handler;
+  func.run = wrapTraceContext(withInit(handler));
 
   const ep: ManifestEndpoint = {
     ...initV2Endpoint(getGlobalOptions(), optsOrHandler),

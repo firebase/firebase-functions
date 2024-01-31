@@ -339,4 +339,30 @@ describe("Auth Functions", () => {
       expect(cf.run).to.not.throw(Error);
     });
   });
+
+  describe("onInit", () => {
+    beforeEach(() => {
+      functions.onInit(() => {});
+      process.env.GCLOUD_PROJECT = "project";
+    });
+
+    after(() => {
+      functions.onInit(null);
+      delete process.env.GCLOUD_PROJECT;
+    })
+
+    it("initailizes before onCreate", async () => {
+      let hello;
+      functions.onInit(() => hello = "world");
+      await auth.user().onCreate(() => null)(event.data, event.context);
+      expect(hello).equals("world");
+    });
+
+    it("initailizes before onDelete", async () => {
+      let hello;
+      functions.onInit(() => hello = "world");
+      await auth.user().onDelete(() => null)(event.data, event.context);
+      expect(hello).equals("world");
+    });
+  });
 });

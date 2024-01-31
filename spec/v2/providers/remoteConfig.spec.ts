@@ -30,7 +30,7 @@ describe("onConfigUpdated", () => {
     options.setGlobalOptions({});
   });
 
-  it("should create a function with a handler", () => {
+  it("should create a function with a handler", async () => {
     const fn = remoteConfig.onConfigUpdated(() => 2);
 
     expect(fn.__endpoint).to.deep.eq({
@@ -43,10 +43,10 @@ describe("onConfigUpdated", () => {
         retry: false,
       },
     });
-    expect(fn.run(1 as any)).to.eq(2);
+    await expect(fn.run(1 as any)).to.eventually.eq(2);
   });
 
-  it("should create a function with opts and a handler", () => {
+  it("should create a function with opts and a handler", async () => {
     options.setGlobalOptions({
       memory: "512MiB",
       region: "us-west1",
@@ -72,6 +72,6 @@ describe("onConfigUpdated", () => {
         retry: true,
       },
     });
-    expect(fn.run(1 as any)).to.eq(2);
+    await expect(fn.run(1 as any)).to.eventually.eq(2);
   });
 });

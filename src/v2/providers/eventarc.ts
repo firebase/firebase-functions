@@ -33,6 +33,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
@@ -193,8 +194,8 @@ export function onCustomEventPublished<T = any>(
   } else if (typeof eventTypeOrOpts === "object") {
     opts = eventTypeOrOpts;
   }
-  const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(raw as CloudEvent<T>);
+  const func = async (raw: CloudEvent<unknown>) => {
+    return wrapTraceContext(withInit(handler))(raw as CloudEvent<T>);
   };
 
   func.run = handler;

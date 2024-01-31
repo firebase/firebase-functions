@@ -3,6 +3,7 @@ import * as alerts from "../../../../src/v2/providers/alerts";
 import * as billing from "../../../../src/v2/providers/alerts/billing";
 import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
+import { onInit } from "../../../../src/v2/core";
 
 const ALERT_TYPE = "new-alert-type";
 const myHandler = () => 42;
@@ -41,6 +42,16 @@ describe("billing", () => {
         },
       });
     });
+
+    it("should call the initializer", async () => {
+      const func = billing.onPlanAutomatedUpdatePublished((event) => event);
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await func({ data: "test" } as any);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onPlanAutomatedUpdatePublished", () => {
@@ -75,6 +86,16 @@ describe("billing", () => {
           retry: false,
         },
       });
+    });
+
+    it("should call the initializer", async () => {
+      const func = billing.onPlanAutomatedUpdatePublished((event) => event);
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await func({ data: "test" } as any);
+      expect(hello).to.equal("world");
     });
   });
 
@@ -118,6 +139,16 @@ describe("billing", () => {
       const res = func.run("input" as any);
 
       expect(res).to.equal("input");
+    });
+
+    it("should call the initializer", async () => {
+      const func = billing.onOperation(ALERT_TYPE, (event) => event, undefined);
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await func({ data: "test" } as any);
+      expect(hello).to.equal("world");
     });
   });
 });

@@ -23,6 +23,7 @@
 import { expect } from "chai";
 
 import {
+  onInit,
   Event,
   EventContext,
   makeCloudFunction,
@@ -40,6 +41,34 @@ describe("makeCloudFunction", () => {
     handler: () => null,
     legacyEventType: "providers/provider/eventTypes/event",
   };
+
+  it("should call the onInit callback", async () => {
+    const test: Event = {
+      context: {
+        eventId: "00000",
+        timestamp: "2016-11-04T21:29:03.496Z",
+        eventType: "provider.event",
+        resource: {
+          service: "provider",
+          name: "resource",
+        },
+      },
+      data: "data",
+    };
+    const cf = makeCloudFunction({
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
+      handler: () => null,
+    });
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).is.undefined;
+    await cf(test.data, test.context);
+    expect(hello).equals("world");
+  });
 
   it("should put a __trigger/__endpoint on the returned CloudFunction", () => {
     const cf = makeCloudFunction({
