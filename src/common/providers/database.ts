@@ -26,7 +26,7 @@ import { firebaseConfig } from "../../common/config";
 import { joinPath, pathParts } from "../../common/utilities/path";
 
 /**
- * Pulled from @firebase/database-types
+ * Pulled from @firebase/database-types, make sure the interface is updated on dependencies upgrades.
  * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
  */
 interface IteratedDataSnapshot extends DataSnapshot {
