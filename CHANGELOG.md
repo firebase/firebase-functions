@@ -1,0 +1,1 @@
+- Fixes access on deeply nested, nonexistent property. (#1432)
