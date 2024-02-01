@@ -1,2 +1,3 @@
+- Add new 2nd gen Firestore auth context triggers. (#1519)
 - Fixes access on deeply nested, nonexistent property. (#1432)
 - Add IteratedDataSnapshot interface to match with firebase admin v12 (#1517).
