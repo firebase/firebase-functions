@@ -458,6 +458,7 @@ describe("DataSnapshot", () => {
       populate(applyChange({ a: 23 }, { b: 33 }));
       expect(subject.child("a/b").val()).to.be.null;
       expect(subject.child("b/c").val()).to.be.null;
+      expect(subject.child("a/b/c").val()).to.be.null;
     });
 
     it("should return a leaf value", () => {
