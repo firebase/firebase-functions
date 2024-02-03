@@ -27,7 +27,6 @@
 
 import {
   BooleanParam,
-  Expression,
   FloatParam,
   IntParam,
   Param,
@@ -38,7 +37,18 @@ import {
   InternalExpression,
 } from "./types";
 
-export { ParamOptions, Expression };
+export {
+  BooleanParam,
+  Expression,
+  FloatParam,
+  IntParam,
+  Param,
+  ParamOptions,
+  SecretParam,
+  StringParam,
+  ListParam,
+  InternalExpression,
+} from "./types";
 
 type SecretOrExpr = Param<any> | SecretParam;
 export const declaredParams: SecretOrExpr[] = [];
