@@ -38,7 +38,7 @@ import {
   InternalExpression,
 } from "./types";
 
-export { ParamOptions, Expression };
+export { ParamOptions, Expression, BooleanParam, FloatParam, IntParam, SecretParam, StringParam, ListParam };
 
 type SecretOrExpr = Param<any> | SecretParam;
 export const declaredParams: SecretOrExpr[] = [];
