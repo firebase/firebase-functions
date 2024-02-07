@@ -1,2 +1,4 @@
 - Fixes access on deeply nested, nonexistent property. (#1432)
 - Add IteratedDataSnapshot interface to match with firebase admin v12 (#1517).
+- Make bucket parameterizeable in storage functions (#1518)
+- Introduce helper library for select and multi-select input (#1518)
