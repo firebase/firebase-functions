@@ -172,13 +172,13 @@ export class CompareExpression<
 type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret";
 
 /** Create a select input from a series of values. */
-export function select<T>(options: T[]): SelectInput;
+export function select<T>(options: T[]): SelectInput<T>;
 
 /** Create a select input from a map of labels to vaues. */
-export function select<T>(optionsWithLabels: Record<string, T>): SelectInput;
+export function select<T>(optionsWithLabels: Record<string, T>): SelectInput<T>;
 
 /** Create a select input from a series of values or a map of labels to values */
-export function select<T>(options: T[] | Record<string, T>): SelectInput {
+export function select<T>(options: T[] | Record<string, T>): SelectInput<T> {
   let wireOpts: SelectOptions<T>[];
   if (Array.isArray(options)) {
     wireOpts = options.map((opt) => ({ value: opt }));
@@ -216,7 +216,7 @@ export function multiSelect(options: string[] | Record<string, string>): MultiSe
 type ParamInput<T> =
   | TextInput<T>
   | SelectInput<T>
-  | (T extends unknown[] ? MultiSelectInput : never)
+  | (T extends string[] ? MultiSelectInput : never)
   | (T extends string ? ResourceInput : never);
 
 /**
