@@ -28,7 +28,7 @@ import * as logger from "../logger";
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
 export abstract class Expression<T extends string | number | boolean | string[]> {
-  /** Returns the Expression's runtime value, based on the CLI's resolution of params. */
+  /** Returns the expression's runtime value, based on the CLI's resolution of parameters. */
   value(): T {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
       logger.warn(
@@ -47,11 +47,12 @@ export abstract class Expression<T extends string | number | boolean | string[]>
     throw new Error("Not implemented");
   }
 
-  /** Returns the Expression's representation as a braced CEL expression. */
+  /** Returns the expression's representation as a braced CEL expression. */
   toCEL(): string {
     return `{{ ${this.toString()} }}`;
   }
 
+  /** Returns the expression's representation as JSON. */
   toJSON(): string {
     return this.toString();
   }
@@ -61,8 +62,8 @@ function valueOf<T extends string | number | boolean | string[]>(arg: T | Expres
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
 /**
- * Returns how an entity (either an Expression or a literal value) should be represented in CEL.
- * - Expressions delegate to the .toString() method, which is used by the WireManifest
+ * Returns how an entity (either an `Expression` or a literal value) should be represented in CEL.
+ * - Expressions delegate to the `.toString()` method, which is used by the WireManifest
  * - Strings have to be quoted explicitly
  * - Arrays are represented as []-delimited, parsable JSON
  * - Numbers and booleans are not quoted explicitly
@@ -159,7 +160,7 @@ export class CompareExpression<
     return `${this.lhs} ${this.cmp} ${rhsStr}`;
   }
 
-  /** Returns a TernaryExpression which can resolve to one of two values, based on the resolution of this comparison. */
+  /** Returns a `TernaryExpression` which can resolve to one of two values, based on the resolution of this comparison. */
   thenElse<retT extends string | number | boolean | string[]>(
     ifTrue: retT | Expression<retT>,
     ifFalse: retT | Expression<retT>
@@ -220,8 +221,8 @@ type ParamInput<T> =
   | (T extends string ? ResourceInput : never);
 
 /**
- * Specifies that a Param's value should be determined by prompting the user
- * to type it in interactively at deploy-time. Input that does not match the
+ * Specifies that a parameter's value should be determined by prompting the user
+ * to type it in interactively at deploy time. Input that does not match the
  * provided validationRegex, if present, will be retried.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -243,7 +244,7 @@ export interface TextInput<T = unknown> {
 }
 
 /**
- * Specifies that a Param's value should be determined by having the user
+ * Specifies that a parameter's value should be determined by having the user
  * select from a list containing all the project's resources of a certain
  * type. Currently, only type:"storage.googleapis.com/Bucket" is supported.
  */
@@ -253,6 +254,9 @@ export interface ResourceInput {
   };
 }
 
+/**
+ * Autogenerate a list of buckets in a project that a user can select from.
+ */
 export const BUCKET_PICKER: ResourceInput = {
   resource: {
     type: "storage.googleapis.com/Bucket",
@@ -260,8 +264,8 @@ export const BUCKET_PICKER: ResourceInput = {
 };
 
 /**
- * Specifies that a Param's value should be determined by having the user select
- * from a list of pre-canned options interactively at deploy-time.
+ * Specifies that a parameter's value should be determined by having the user select
+ * from a list of pre-canned options interactively at deploy time.
  */
 export interface SelectInput<T = unknown> {
   select: {
@@ -270,9 +274,9 @@ export interface SelectInput<T = unknown> {
 }
 
 /**
- * Specifies that a Param's value should be determined by having the user select
- * a subset from a list of pre-canned options interactively at deploy-time.
- * Will result in errors if used on Params of type other than string[].
+ * Specifies that a parameter's value should be determined by having the user select
+ * a subset from a list of pre-canned options interactively at deploy time.
+ * Will result in errors if used on parameters of type other than `string[]`.
  */
 export interface MultiSelectInput {
   multiSelect: {
@@ -281,7 +285,7 @@ export interface MultiSelectInput {
 }
 
 /**
- * One of the options provided to a SelectInput, containing a value and
+ * One of the options provided to a `SelectInput`, containing a value and
  * optionally a human-readable label to display in the selection interface.
  */
 export interface SelectOptions<T = unknown> {
@@ -289,19 +293,19 @@ export interface SelectOptions<T = unknown> {
   value: T;
 }
 
-/** The wire representation of a Param when it's sent to the CLI. A superset of ParamOptions. */
+/** The wire representation of a parameter when it's sent to the CLI. A superset of `ParamOptions`. */
 export type ParamSpec<T extends string | number | boolean | string[]> = {
   /** The name of the parameter which will be stored in .env files. Use UPPERCASE. */
   name: string;
   /** An optional default value to be used while prompting for input. Can be a literal or another parametrized expression. */
   default?: T | Expression<T>;
-  /** An optional human-readable string to be used as a replacement for the Param's name when prompting. */
+  /** An optional human-readable string to be used as a replacement for the parameter's name when prompting. */
   label?: string;
-  /** An optional long-form description of the Param to be displayed while prompting. */
+  /** An optional long-form description of the parameter to be displayed while prompting. */
   description?: string;
   /** @internal */
   type: ParamValueType;
-  /** The way in which the Firebase CLI will prompt for the value of this Param. Defaults to a TextInput. */
+  /** The way in which the Firebase CLI will prompt for the value of this parameter. Defaults to a TextInput. */
   input?: ParamInput<T>;
 };
 
@@ -322,7 +326,7 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   input?: ParamInput<T>;
 };
 
-/** Configuration options which can be used to customize the prompting behavior of a Param. */
+/** Configuration options which can be used to customize the prompting behavior of a parameter. */
 export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   ParamSpec<T>,
   "name" | "type"
@@ -345,43 +349,43 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
     throw new Error("Not implemented");
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   cmp(cmp: "==" | "!=" | ">" | ">=" | "<" | "<=", rhs: T | Expression<T>) {
     return new CompareExpression<T>(cmp, this, rhs);
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   equals(rhs: T | Expression<T>) {
     return this.cmp("==", rhs);
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   notEquals(rhs: T | Expression<T>) {
     return this.cmp("!=", rhs);
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   greaterThan(rhs: T | Expression<T>) {
     return this.cmp(">", rhs);
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   greaterThanOrEqualTo(rhs: T | Expression<T>) {
     return this.cmp(">=", rhs);
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   lessThan(rhs: T | Expression<T>) {
     return this.cmp("<", rhs);
   }
 
-  /** Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression. */
+  /** Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression. */
   lessThanOrEqualTo(rhs: T | Expression<T>) {
     return this.cmp("<=", rhs);
   }
 
   /**
-   * Returns a parametrized expression of Boolean type, based on comparing the value of this param to a literal or a different expression.
+   * Returns a parametrized expression of Boolean type, based on comparing the value of this parameter to a literal or a different expression.
    * @deprecated A typo. Use lessThanOrEqualTo instead.
    */
   lessThanorEqualTo(rhs: T | Expression<T>) {
@@ -474,7 +478,7 @@ export class StringParam extends Param<string> {
 /**
  * A CEL expression which represents an internal Firebase variable. This class
  * cannot be instantiated by developers, but we provide several canned instances
- * of it to make available params that will never have to be defined at
+ * of it to make available parameters that will never have to be defined at
  * deployment time, and can always be read from process.env.
  * @internal
  */
