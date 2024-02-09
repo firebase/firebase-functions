@@ -115,7 +115,7 @@ describe("#onCall", () => {
   });
 
   it("has a .run method", () => {
-    const cf = https.onCall((d, c) => {
+    const cf = https.onCall<string, { data: string; context: https.CallableContext }>((d, c) => {
       return { data: d, context: c };
     });
 
