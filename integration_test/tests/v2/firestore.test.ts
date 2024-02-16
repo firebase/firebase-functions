@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import { timeout } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
-describe("Cloud Firestore (v1)", () => {
+describe("Cloud Firestore (v2)", () => {
   const projectId = process.env.PROJECT_ID;
   const testId = process.env.TEST_RUN_ID;
 
@@ -15,13 +15,13 @@ describe("Cloud Firestore (v1)", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("firestoreDocumentOnCreateTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreDocumentOnDeleteTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreDocumentOnUpdateTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreDocumentOnWriteTests").doc(testId).delete();
+    await admin.firestore().collection("firestoreOnDocumentCreatedTests").doc(testId).delete();
+    await admin.firestore().collection("firestoreOnDocumentDeletedTests").doc(testId).delete();
+    await admin.firestore().collection("firestoreOnDocumentUpdatedTests").doc(testId).delete();
+    await admin.firestore().collection("firestoreOnDocumentWrittenTests").doc(testId).delete();
   });
 
-  describe("Document onCreate trigger", () => {
+  describe("Document created trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
     let dataSnapshot: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>;
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
@@ -35,7 +35,7 @@ describe("Cloud Firestore (v1)", () => {
 
       const logSnapshot = await admin
         .firestore()
-        .collection("firestoreDocumentOnCreateTests")
+        .collection("firestoreOnDocumentCreatedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -43,10 +43,6 @@ describe("Cloud Firestore (v1)", () => {
       if (!loggedContext) {
         throw new Error("loggedContext is undefined");
       }
-    });
-
-    afterAll(async () => {
-      await admin.firestore().collection("tests").doc(testId).delete();
     });
 
     it("should not have event.app", () => {
@@ -59,21 +55,21 @@ describe("Cloud Firestore (v1)", () => {
     });
 
     it("should have well-formed resource", () => {
-      expect(loggedContext?.resource.name).toMatch(
-        `projects/${projectId}/databases/(default)/documents/tests/${testId}`
+      expect(loggedContext?.source).toMatch(
+        `//firestore.googleapis.com/projects/${projectId}/databases/(default)`
       );
     });
 
-    it("should have the correct eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.firestore.document.create");
+    it("should have the correct type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.firestore.document.v1.created");
     });
 
-    it("should have an eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
+    it("should have an id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have a timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have a time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
 
     it("should have the correct data", () => {
@@ -81,7 +77,7 @@ describe("Cloud Firestore (v1)", () => {
     });
   });
 
-  describe("Document onDelete trigger", () => {
+  describe("Document deleted trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
     let dataSnapshot: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>;
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
@@ -100,7 +96,7 @@ describe("Cloud Firestore (v1)", () => {
 
       const logSnapshot = await admin
         .firestore()
-        .collection("firestoreDocumentOnDeleteTests")
+        .collection("firestoreOnDocumentDeletedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -110,30 +106,26 @@ describe("Cloud Firestore (v1)", () => {
       }
     });
 
-    afterAll(async () => {
-      await admin.firestore().collection("tests").doc(testId).delete();
-    });
-
     it("should not have event.app", () => {
       expect(loggedContext?.app).toBeUndefined();
     });
 
-    it("should have well-formed resource", () => {
-      expect(loggedContext?.resource.name).toMatch(
-        `projects/${projectId}/databases/(default)/documents/tests/${testId}`
+    it("should have well-formed source", () => {
+      expect(loggedContext?.source).toMatch(
+        `//firestore.googleapis.com/projects/${projectId}/databases/(default)`
       );
     });
 
-    it("should have the correct eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.firestore.document.delete");
+    it("should have the correct type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.firestore.document.v1.deleted");
     });
 
-    it("should have an eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
+    it("should have an id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have a timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have a time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
 
     it("should not have the data", () => {
@@ -141,7 +133,7 @@ describe("Cloud Firestore (v1)", () => {
     });
   });
 
-  describe("Document onUpdate trigger", () => {
+  describe("Document updated trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
     let dataSnapshot: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>;
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
@@ -160,7 +152,7 @@ describe("Cloud Firestore (v1)", () => {
 
       const logSnapshot = await admin
         .firestore()
-        .collection("firestoreDocumentOnUpdateTests")
+        .collection("firestoreOnDocumentUpdatedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -170,38 +162,34 @@ describe("Cloud Firestore (v1)", () => {
       }
     });
 
-    afterAll(async () => {
-      await admin.firestore().collection("tests").doc(testId).delete();
-    });
-
     it("should not have event.app", () => {
       expect(loggedContext?.app).toBeUndefined();
     });
 
     it("should have well-formed resource", () => {
-      expect(loggedContext?.resource.name).toMatch(
-        `projects/${projectId}/databases/(default)/documents/tests/${testId}`
+      expect(loggedContext?.source).toMatch(
+        `//firestore.googleapis.com/projects/${projectId}/databases/(default)`
       );
     });
 
-    it("should have the correct eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.firestore.document.update");
+    it("should have the correct type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.firestore.document.v1.updated");
     });
 
-    it("should have an eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
+    it("should have an id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have a timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have a time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
 
-    it("should not have the data", () => {
+    it("should have the correct data", () => {
       expect(dataSnapshot.data()).toStrictEqual({ test: testId });
     });
   });
 
-  describe("Document onWrite trigger", () => {
+  describe("Document written trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
     let dataSnapshot: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>;
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
@@ -215,7 +203,7 @@ describe("Cloud Firestore (v1)", () => {
 
       const logSnapshot = await admin
         .firestore()
-        .collection("firestoreDocumentOnWriteTests")
+        .collection("firestoreOnDocumentWrittenTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -223,10 +211,6 @@ describe("Cloud Firestore (v1)", () => {
       if (!loggedContext) {
         throw new Error("loggedContext is undefined");
       }
-    });
-
-    afterAll(async () => {
-      await admin.firestore().collection("tests").doc(testId).delete();
     });
 
     it("should not have event.app", () => {
@@ -239,21 +223,21 @@ describe("Cloud Firestore (v1)", () => {
     });
 
     it("should have well-formed resource", () => {
-      expect(loggedContext?.resource.name).toMatch(
-        `projects/${projectId}/databases/(default)/documents/tests/${testId}`
+      expect(loggedContext?.source).toMatch(
+        `//firestore.googleapis.com/projects/${projectId}/databases/(default)`
       );
     });
 
-    it("should have the correct eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.firestore.document.write");
+    it("should have the correct type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.firestore.document.v1.written");
     });
 
-    it("should have an eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
+    it("should have an id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have a timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have a time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
 
     it("should have the correct data", () => {

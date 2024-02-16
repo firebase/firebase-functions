@@ -8,27 +8,23 @@ export const authUserOnCreateTests: any = functions
   .auth.user()
   .onCreate(async (user, context) => {
     const { email, displayName, uid } = user;
-    try {
-      const userProfile = {
-        email,
-        displayName,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      };
-      await admin.firestore().collection("userProfiles").doc(uid).set(userProfile);
+    const userProfile = {
+      email,
+      displayName,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    await admin.firestore().collection("userProfiles").doc(uid).set(userProfile);
 
-      await admin
-        .firestore()
-        .collection("authUserOnCreateTests")
-        .doc(uid)
-        .set(
-          sanitizeData({
-            ...context,
-            metadata: JSON.stringify(user.metadata),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Auth user onCreate function for uid: ${uid}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("authUserOnCreateTests")
+      .doc(uid)
+      .set(
+        sanitizeData({
+          ...context,
+          metadata: JSON.stringify(user.metadata),
+        })
+      );
   });
 
 export const authUserOnDeleteTests: any = functions
@@ -36,36 +32,29 @@ export const authUserOnDeleteTests: any = functions
   .auth.user()
   .onDelete(async (user, context) => {
     const { uid } = user;
-    try {
-      await admin
-        .firestore()
-        .collection("authUserOnDeleteTests")
-        .doc(uid)
-        .set(
-          sanitizeData({
-            ...context,
-            metadata: JSON.stringify(user.metadata),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Auth user onDelete function for uid: ${uid}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("authUserOnDeleteTests")
+      .doc(uid)
+      .set(
+        sanitizeData({
+          ...context,
+          metadata: JSON.stringify(user.metadata),
+        })
+      );
   });
 
 export const authUserBeforeCreateTests: any = functions
   .region(REGION)
   .auth.user()
   .beforeCreate(async (user, context) => {
-    const { uid } = user;
-    try {
-      await admin
-        .firestore()
-        .collection("authUserBeforeCreateTests")
-        .doc(uid)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Auth user beforeCreate function for uid: ${uid}`, error);
-    }
+    await admin.firestore().collection("authBeforeCreateTests").doc(user.uid).set({
+      eventId: context.eventId,
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      resource: context.resource,
+    });
+
     return user;
   });
 
@@ -73,15 +62,12 @@ export const authUserBeforeSignInTests: any = functions
   .region(REGION)
   .auth.user()
   .beforeSignIn(async (user, context) => {
-    const { uid } = user;
-    try {
-      await admin
-        .firestore()
-        .collection("authUserBeforeSignInTests")
-        .doc(uid)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Auth user beforeSignIn function for uid: ${uid}`, error);
-    }
+    await admin.firestore().collection("authBeforeSignInTests").doc(user.uid).set({
+      eventId: context.eventId,
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      resource: context.resource,
+    });
+
     return user;
   });

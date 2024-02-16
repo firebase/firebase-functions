@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import { timeout } from "../utils";
-import { initializeFirebase } from "../firebaseSetup";
+import { timeout } from "../../tests/utils";
+import { initializeFirebase } from "../../tests/firebaseSetup";
 
 async function uploadBufferToFirebase(buffer: Buffer, fileName: string) {
   const bucket = admin.storage().bucket();
@@ -13,8 +13,9 @@ async function uploadBufferToFirebase(buffer: Buffer, fileName: string) {
   });
 }
 
-describe("Firebase Storage", () => {
+describe("Firebase Storage (v2)", () => {
   const testId = process.env.TEST_RUN_ID;
+
   if (!testId) {
     throw new Error("Environment configured incorrectly.");
   }
@@ -24,12 +25,12 @@ describe("Firebase Storage", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("storageOnFinalizeTests").doc(testId).delete();
-    await admin.firestore().collection("storageOnDeleteTests").doc(testId).delete();
-    await admin.firestore().collection("storageOnMetadataUpdateTests").doc(testId).delete();
+    await admin.firestore().collection("storageOnObjectFinalizedTests").doc(testId).delete();
+    await admin.firestore().collection("storageOnObjectDeletedTests").doc(testId).delete();
+    await admin.firestore().collection("storageOnObjectMetadataUpdatedTests").doc(testId).delete();
   });
 
-  describe("object onFinalize trigger", () => {
+  describe("onObjectFinalized trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -41,7 +42,7 @@ describe("Firebase Storage", () => {
       await timeout(20000);
       const logSnapshot = await admin
         .firestore()
-        .collection("storageOnFinalizeTests")
+        .collection("storageOnObjectFinalizedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -62,24 +63,20 @@ describe("Firebase Storage", () => {
       }
     });
 
-    it("should not have event.app", () => {
-      expect(loggedContext?.app).toBeUndefined();
+    it("should have the right event type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.storage.object.v1.finalized");
     });
 
-    it("should have the right eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.storage.object.finalize");
+    it("should have event id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
-    });
-
-    it("should have timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
   });
 
-  describe("object onDelete trigger", () => {
+  describe("onDeleted trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -100,7 +97,7 @@ describe("Firebase Storage", () => {
 
       const logSnapshot = await admin
         .firestore()
-        .collection("storageOnDeleteTests")
+        .collection("storageOnObjectDeletedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -109,24 +106,20 @@ describe("Firebase Storage", () => {
       }
     });
 
-    it("should not have event.app", () => {
-      expect(loggedContext?.app).toBeUndefined();
+    it("should have the right event type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.storage.object.v1.deleted");
     });
 
-    it("should have the right eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.storage.object.delete");
+    it("should have event id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
-    });
-
-    it("should have timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
   });
 
-  describe("object onMetadataUpdate trigger", () => {
+  describe("onMetadataUpdated trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -146,7 +139,7 @@ describe("Firebase Storage", () => {
 
       const logSnapshot = await admin
         .firestore()
-        .collection("storageOnMetadataUpdateTests")
+        .collection("storageOnObjectMetadataUpdatedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -167,20 +160,16 @@ describe("Firebase Storage", () => {
       }
     });
 
-    it("should not have event.app", () => {
-      expect(loggedContext?.app).toBeUndefined();
+    it("should have the right event type", () => {
+      expect(loggedContext?.type).toEqual("google.cloud.storage.object.v1.metadataUpdated");
     });
 
-    it("should have the right eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.storage.object.metadataUpdate");
+    it("should have event id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
-    });
-
-    it("should have timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
+    it("should have time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
   });
 });

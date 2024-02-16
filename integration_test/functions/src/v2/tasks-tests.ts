@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 import { onTaskDispatched } from "firebase-functions/v2/tasks";
 import { REGION } from "../region";
 
@@ -8,16 +9,17 @@ export const tasksOnTaskDispatchedTests = onTaskDispatched(
   },
   async (event) => {
     const testId = event.data.testId;
-    try {
-      await admin
-        .firestore()
-        .collection("tasksOnTaskDispatchedTests")
-        .doc(testId)
-        .set({
-          event: JSON.stringify(event),
-        });
-    } catch (error) {
-      console.error(`Error in Tasks onTaskDispatched function for testId: ${testId}`, error);
+
+    if (!testId) {
+      functions.logger.error("TestId not found for tasks onTaskDispatched");
+      return;
     }
+
+    await admin.firestore().collection("tasksOnTaskDispatchedTests").doc(testId).set({
+      testId,
+      queueName: event.queueName,
+      id: event.id,
+      scheduledTime: event.scheduledTime,
+    });
   }
 );

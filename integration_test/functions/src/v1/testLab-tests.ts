@@ -12,21 +12,18 @@ export const testLabOnCompleteTests: any = functions
   .onComplete(async (matrix, context) => {
     const testId = matrix?.clientInfo?.details?.testId;
     if (!testId) {
-      console.error("TestId not found for test matrix completion");
+      functions.logger.error("TestId not found for test matrix completion");
       return;
     }
-    try {
-      await admin
-        .firestore()
-        .collection("testLabOnCompleteTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            ...context,
-            matrix: JSON.stringify(matrix),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Test Matrix onComplete function for testId: ${testId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("testLabOnCompleteTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          ...context,
+          matrix: JSON.stringify(matrix),
+        })
+      );
   });
