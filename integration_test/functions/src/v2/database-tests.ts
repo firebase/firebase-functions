@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 import {
   onValueWritten,
   onValueCreated,
@@ -15,21 +16,19 @@ export const databaseCreatedTests = onValueCreated(
   },
   async (event) => {
     const testId = event.params.testId;
-
-    try {
-      await admin
-        .firestore()
-        .collection("databaseCreatedTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            testId,
-            url: event.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseCreatedTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          testId,
+          type: event.type,
+          id: event.id,
+          time: event.time,
+          url: event.ref.toString(),
+        })
+      );
   }
 );
 
@@ -40,21 +39,19 @@ export const databaseDeletedTests = onValueDeleted(
   },
   async (event) => {
     const testId = event.params.testId;
-
-    try {
-      await admin
-        .firestore()
-        .collection("databaseDeletedTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            testId,
-            url: event.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseDeletedTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          testId,
+          type: event.type,
+          id: event.id,
+          time: event.time,
+          url: event.ref.toString(),
+        })
+      );
   }
 );
 
@@ -65,21 +62,21 @@ export const databaseUpdatedTests = onValueUpdated(
   },
   async (event) => {
     const testId = event.params.testId;
-
-    try {
-      await admin
-        .firestore()
-        .collection("databaseUpdatedTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            testId,
-            url: event.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${testId}`, error);
-    }
+    const data = event.data.after.val();
+    await admin
+      .firestore()
+      .collection("databaseUpdatedTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          testId,
+          url: event.ref.toString(),
+          type: event.type,
+          id: event.id,
+          time: event.time,
+          data: JSON.stringify(data ?? {}),
+        })
+      );
   }
 );
 
@@ -90,25 +87,22 @@ export const databaseWrittenTests = onValueWritten(
   },
   async (event) => {
     const testId = event.params.testId;
-
     if (!event.data.after.exists()) {
-      console.info(`Event for ${testId} is null; presuming data cleanup, so skipping.`);
+      functions.logger.info(`Event for ${testId} is null; presuming data cleanup, so skipping.`);
       return;
     }
-
-    try {
-      await admin
-        .firestore()
-        .collection("databaseWrittenTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            testId,
-            url: event.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseWrittenTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          testId,
+          type: event.type,
+          id: event.id,
+          time: event.time,
+          url: event.ref.toString(),
+        })
+      );
   }
 );

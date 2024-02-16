@@ -9,20 +9,16 @@ export const databaseRefOnCreateTests: any = functions
   .onCreate(async (snapshot, context) => {
     const testId = context.params.testId;
 
-    try {
-      await admin
-        .firestore()
-        .collection("databaseRefOnCreateTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            ...context,
-            url: snapshot.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Database ref onCreate function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseRefOnCreateTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          ...context,
+          url: snapshot.ref.toString(),
+        })
+      );
   });
 
 export const databaseRefOnDeleteTests: any = functions
@@ -31,20 +27,16 @@ export const databaseRefOnDeleteTests: any = functions
   .onDelete(async (snapshot, context) => {
     const testId = context.params.testId;
 
-    try {
-      await admin
-        .firestore()
-        .collection("databaseRefOnDeleteTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            ...context,
-            url: snapshot.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Database ref onDelete function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseRefOnDeleteTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          ...context,
+          url: snapshot.ref.toString(),
+        })
+      );
   });
 
 export const databaseRefOnUpdateTests: any = functions
@@ -52,21 +44,19 @@ export const databaseRefOnUpdateTests: any = functions
   .database.ref("dbTests/{testId}/start")
   .onUpdate(async (change, context) => {
     const testId = context.params.testId;
+    const data = change.after.val();
 
-    try {
-      await admin
-        .firestore()
-        .collection("databaseRefOnUpdateTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            ...context,
-            url: change.after.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Database ref onUpdate function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseRefOnUpdateTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          ...context,
+          url: change.after.ref.toString(),
+          data: data ? JSON.stringify(data) : null,
+        })
+      );
   });
 
 export const databaseRefOnWriteTests: any = functions
@@ -79,18 +69,14 @@ export const databaseRefOnWriteTests: any = functions
       return;
     }
 
-    try {
-      await admin
-        .firestore()
-        .collection("databaseRefOnWriteTests")
-        .doc(testId)
-        .set(
-          sanitizeData({
-            ...context,
-            url: change.after.ref.toString(),
-          })
-        );
-    } catch (error) {
-      console.error(`Error in Database ref onWrite function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("databaseRefOnWriteTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          ...context,
+          url: change.after.ref.toString(),
+        })
+      );
   });

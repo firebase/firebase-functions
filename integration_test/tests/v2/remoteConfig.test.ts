@@ -3,7 +3,7 @@ import { timeout } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 import fetch from "node-fetch";
 
-describe("Firebase Remote Config (v1)", () => {
+describe("Firebase Remote Config (v2)", () => {
   const projectId = process.env.PROJECT_ID;
   const testId = process.env.TEST_RUN_ID;
 
@@ -16,10 +16,10 @@ describe("Firebase Remote Config (v1)", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("remoteConfigOnUpdateTests").doc(testId).delete();
+    await admin.firestore().collection("remoteConfigOnConfigUpdatedTests").doc(testId).delete();
   });
 
-  describe("onUpdate trigger", () => {
+  describe("onUpdated trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -43,7 +43,7 @@ describe("Firebase Remote Config (v1)", () => {
       await timeout(20000);
       const logSnapshot = await admin
         .firestore()
-        .collection("remoteConfigOnUpdateTests")
+        .collection("remoteConfigOnConfigUpdatedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -52,23 +52,17 @@ describe("Firebase Remote Config (v1)", () => {
       }
     });
 
-    it("should have refs resources", () =>
-      expect(loggedContext?.resource.name).toMatch(`projects/${process.env.PROJECT_ID}`));
-
-    it("should have the right eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.firebase.remoteconfig.update");
+    it("should have the right event type", () => {
+      // TODO: not sure if the nested remoteconfig.remoteconfig is expected?
+      expect(loggedContext?.type).toEqual("google.firebase.remoteconfig.remoteConfig.v1.updated");
     });
 
-    it("should have eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
+    it("should have event id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
-    });
-
-    it("should not have auth", () => {
-      expect(loggedContext?.auth).toBeUndefined();
+    it("should have time", () => {
+      expect(loggedContext?.time).toBeDefined();
     });
   });
 });

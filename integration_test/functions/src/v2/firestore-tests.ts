@@ -1,5 +1,11 @@
 import * as admin from "firebase-admin";
-import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
+import * as functions from "firebase-functions";
+import {
+  onDocumentCreated,
+  onDocumentDeleted,
+  onDocumentUpdated,
+  onDocumentWritten,
+} from "firebase-functions/v2/firestore";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
@@ -10,16 +16,21 @@ export const firestoreOnDocumentCreatedTests = onDocumentCreated(
     timeoutSeconds: 540,
   },
   async (event) => {
+    functions.logger.debug(event);
     const documentId = event.params.documentId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreOnDocumentCreatedTests")
-        .doc(documentId)
-        .set(sanitizeData(event));
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${documentId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("firestoreOnDocumentCreatedTests")
+      .doc(documentId)
+      .set(
+        sanitizeData({
+          time: event.time,
+          id: event.id,
+          type: event.type,
+          source: event.source,
+        })
+      );
   }
 );
 
@@ -30,55 +41,70 @@ export const firestoreOnDocumentDeletedTests = onDocumentDeleted(
     timeoutSeconds: 540,
   },
   async (event) => {
+    functions.logger.debug(event);
     const documentId = event.params.documentId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreOnDocumentCreatedTests")
-        .doc(documentId)
-        .set(sanitizeData(event));
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${documentId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("firestoreOnDocumentDeletedTests")
+      .doc(documentId)
+      .set(
+        sanitizeData({
+          time: event.time,
+          id: event.id,
+          type: event.type,
+          source: event.source,
+        })
+      );
   }
 );
 
-export const firestoreOnDocumentUpdatedTests = onDocumentDeleted(
+export const firestoreOnDocumentUpdatedTests = onDocumentUpdated(
   {
     document: "tests/{documentId}",
     region: REGION,
     timeoutSeconds: 540,
   },
   async (event) => {
+    functions.logger.debug(event);
     const documentId = event.params.documentId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreOnDocumentUpdatedTests")
-        .doc(documentId)
-        .set(sanitizeData(event));
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${documentId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("firestoreOnDocumentUpdatedTests")
+      .doc(documentId)
+      .set(
+        sanitizeData({
+          time: event.time,
+          id: event.id,
+          type: event.type,
+          source: event.source,
+        })
+      );
   }
 );
 
-export const firestoreOnDocumentWrittenTests = onDocumentDeleted(
+export const firestoreOnDocumentWrittenTests = onDocumentWritten(
   {
     document: "tests/{documentId}",
     region: REGION,
     timeoutSeconds: 540,
   },
   async (event) => {
+    functions.logger.debug(event);
     const documentId = event.params.documentId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreOnDocumentWrittenTests")
-        .doc(documentId)
-        .set(sanitizeData(event));
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${documentId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("firestoreOnDocumentWrittenTests")
+      .doc(documentId)
+      .set(
+        sanitizeData({
+          time: event.time,
+          id: event.id,
+          type: event.type,
+          source: event.source,
+        })
+      );
   }
 );

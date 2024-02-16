@@ -7,13 +7,9 @@ export const remoteConfigOnUpdateTests: any = functions
   .region(REGION)
   .remoteConfig.onUpdate(async (version, context) => {
     const testId = version.description;
-    try {
-      await admin
-        .firestore()
-        .collection("remoteConfigOnUpdateTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in RemoteConfig onUpdate function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("remoteConfigOnUpdateTests")
+      .doc(testId)
+      .set(sanitizeData(context));
   });

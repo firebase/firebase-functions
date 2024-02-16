@@ -2,7 +2,7 @@ import admin from "firebase-admin";
 import { startTestRun, timeout } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
-describe("TestLab (v1)", () => {
+describe("TestLab (v2)", () => {
   const projectId = process.env.PROJECT_ID;
   const testId = process.env.TEST_RUN_ID;
 
@@ -15,7 +15,7 @@ describe("TestLab (v1)", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("testLabOnCompleteTests").doc(testId).delete();
+    await admin.firestore().collection("testLabOnTestMatrixCompletedTests").doc(testId).delete();
   });
 
   describe("test matrix onComplete trigger", () => {
@@ -27,7 +27,7 @@ describe("TestLab (v1)", () => {
       await timeout(20000);
       const logSnapshot = await admin
         .firestore()
-        .collection("testLabOnCompleteTests")
+        .collection("testLabOnTestMatrixCompletedTests")
         .doc(testId)
         .get();
       loggedContext = logSnapshot.data();
@@ -36,17 +36,16 @@ describe("TestLab (v1)", () => {
       }
     });
 
-    it("should have eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
+    it("should have event id", () => {
+      expect(loggedContext?.id).toBeDefined();
     });
 
-    it("should have right eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.testing.testMatrix.complete");
+    it("should have right event type", () => {
+      expect(loggedContext?.type).toEqual("google.firebase.testlab.testMatrix.v1.completed");
     });
 
     it("should be in state 'INVALID'", () => {
-      const matrix = JSON.parse(loggedContext?.matrix);
-      expect(matrix?.state).toEqual("INVALID");
+      expect(loggedContext?.state).toEqual("INVALID");
     });
   });
 });

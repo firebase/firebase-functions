@@ -1,8 +1,9 @@
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { REGION } from "../region";
 
-export const schedulerOnScheduleTests: any = onSchedule(
+export const schedule: any = onSchedule(
   {
     schedule: "every 10 hours",
     region: REGION,
@@ -10,18 +11,16 @@ export const schedulerOnScheduleTests: any = onSchedule(
   async (event) => {
     const testId = event.jobName;
     if (!testId) {
-      console.error("TestId not found for scheduled function execution");
+      functions.logger.error("TestId not found for scheduled function execution");
       return;
     }
-    try {
-      await admin
-        .firestore()
-        .collection("schedulerOnScheduleTests")
-        .doc(testId)
-        .set({ success: true });
-    } catch (error) {
-      console.error(`Error in scheduler onSchedule function for testId: ${testId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("schedulerOnScheduleV2Tests")
+      .doc(testId)
+      .set({ success: true });
+
     return;
   }
 );

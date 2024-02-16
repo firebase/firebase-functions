@@ -1,6 +1,8 @@
 import * as admin from "firebase-admin";
+import * as functions from "firebase-functions";
 import { onMessagePublished } from "firebase-functions/v2/pubsub";
 import { REGION } from "../region";
+import { sanitizeData } from "../utils";
 
 export const pubsubOnMessagePublishedTests = onMessagePublished(
   {
@@ -10,19 +12,23 @@ export const pubsubOnMessagePublishedTests = onMessagePublished(
   async (event) => {
     let testId = event.data.message.json?.testId;
     if (!testId) {
-      console.error("TestId not found for onMessagePublished function execution");
+      functions.logger.error("TestId not found for onMessagePublished function execution");
       return;
     }
-    try {
-      await admin
-        .firestore()
-        .collection("pubsubOnMessagePublishedTests")
-        .doc(testId)
-        .set({
-          event: JSON.stringify(event),
-        });
-    } catch (error) {
-      console.error(`Error in Pub/Sub onMessagePublished function for testId: ${testId}`, error);
-    }
+
+    await admin
+      .firestore()
+      .collection("pubsubOnMessagePublishedTests")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          id: event.id,
+          source: event.source,
+          subject: event.subject,
+          time: event.time,
+          type: event.type,
+          message: JSON.stringify(event.data.message),
+        })
+      );
   }
 );

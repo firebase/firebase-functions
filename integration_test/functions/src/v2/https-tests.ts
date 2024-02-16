@@ -9,11 +9,7 @@ export const httpsOnCallV2Tests = onCall(
   },
   async (req) => {
     const data = req?.data;
-    try {
-      await admin.firestore().collection("httpsOnCallV2Tests").doc(data?.testId).set(data);
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${data?.testId}`, error);
-    }
+    await admin.firestore().collection("httpsOnCallV2Tests").doc(data?.testId).set(data);
   }
 );
 
@@ -24,10 +20,7 @@ export const httpsOnRequestV2Tests = onRequest(
   },
   async (req) => {
     const data = req?.body.data;
-    try {
-      await admin.firestore().collection("httpsOnRequestV2Tests").doc(data?.testId).set(data);
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${data?.testId}`, error);
-    }
+
+    await admin.firestore().collection("httpsOnRequestV2Tests").doc(data?.testId).set(data);
   }
 );

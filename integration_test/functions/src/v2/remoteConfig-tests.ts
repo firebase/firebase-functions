@@ -8,16 +8,12 @@ export const remoteConfigOnConfigUpdatedTests = onConfigUpdated(
   },
   async (event) => {
     const testId = event.data.description;
-    try {
-      await admin
-        .firestore()
-        .collection("remoteConfigOnConfigUpdatedTests")
-        .doc(testId)
-        .set({
-          event: JSON.stringify(event),
-        });
-    } catch (error) {
-      console.error(`Error in RemoteConfig onConfigUpdated function for testId: ${testId}`, error);
-    }
+
+    await admin.firestore().collection("remoteConfigOnConfigUpdatedTests").doc(testId).set({
+      testId,
+      type: event.type,
+      id: event.id,
+      time: event.time,
+    });
   }
 );

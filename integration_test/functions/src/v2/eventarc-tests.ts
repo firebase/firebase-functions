@@ -1,25 +1,21 @@
 import * as admin from "firebase-admin";
 import { onCustomEventPublished } from "firebase-functions/v2/eventarc";
-import { REGION } from "../region";
 
 export const eventarcOnCustomEventPublishedTests = onCustomEventPublished(
-  {
-    eventType: "custom_event_tests",
-    region: REGION,
-  },
+  "achieved-leaderboard",
   async (event) => {
-    const testId = event.data.payload.testId;
+    const testId = event.data.testId;
 
-    try {
-      await admin
-        .firestore()
-        .collection("eventarcOnCustomEventPublishedTests")
-        .doc(testId)
-        .set({
-          event: JSON.stringify(event),
-        });
-    } catch (error) {
-      console.error(`Error creating test record for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("eventarcOnCustomEventPublishedTests")
+      .doc(testId)
+      .set({
+        id: event.id,
+        type: event.type,
+        time: event.time,
+        source: event.source,
+        data: JSON.stringify(event.data),
+      });
   }
 );
