@@ -1,5 +1,4 @@
 import * as admin from "firebase-admin";
-import "@firebase/analytics";
 import { cert } from "firebase-admin/app";
 
 /**

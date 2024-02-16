@@ -33,10 +33,24 @@ const {
   PROJECT_ID,
   DATABASE_URL,
   STORAGE_BUCKET,
+  FIREBASE_APP_ID,
+  FIREBASE_MEASUREMENT_ID,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_API_KEY,
+  GOOGLE_ANALYTICS_API_SECRET,
 } = process.env;
 const TEST_RUN_ID = `t${Date.now()}`;
 
-if (!PROJECT_ID || !DATABASE_URL || !STORAGE_BUCKET) {
+if (
+  !PROJECT_ID ||
+  !DATABASE_URL ||
+  !STORAGE_BUCKET ||
+  !FIREBASE_APP_ID ||
+  !FIREBASE_MEASUREMENT_ID ||
+  !FIREBASE_AUTH_DOMAIN ||
+  !FIREBASE_API_KEY ||
+  !GOOGLE_ANALYTICS_API_SECRET
+) {
   console.error("Required environment variables are not set. Exiting...");
   process.exit(1);
 }
@@ -64,7 +78,14 @@ const env = {
 let modifiedYaml: any;
 
 function generateUniqueHash(originalName: string): string {
-  return `${TEST_RUN_ID}-${originalName}`;
+  // Function name can only contain letters, numbers and hyphens and be less than 100 chars.
+  const modifiedName = `${TEST_RUN_ID}-${originalName}`;
+  if (modifiedName.length > 100) {
+    throw new Error(
+      `Function name is too long. Original=${originalName}, Modified=${modifiedName}`
+    );
+  }
+  return modifiedName;
 }
 
 /**
@@ -259,5 +280,8 @@ async function runIntegrationTests(): Promise<void> {
 }
 
 runIntegrationTests()
-  .then(() => console.log("Integration tests completed"))
+  .then(() => {
+    console.log("Integration tests completed");
+    process.exit(0);
+  })
   .catch((error) => console.error("An error occurred during integration tests", error));

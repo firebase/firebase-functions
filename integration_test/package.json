@@ -3,23 +3,25 @@
   "module": "index.ts",
   "type": "module",
   "dependencies": {
-    "@firebase/analytics": "^0.10.0",
-    "firebase": "^8.2.3",
+    "@google-cloud/eventarc": "^3.1.0",
+    "@google-cloud/tasks": "^5.1.0",
+    "firebase": "^10.8.0",
     "firebase-admin": "^11.11.0",
-    "firebase-tools": "^12.9.1",
-    "js-yaml": "^4.1.0"
+    "firebase-tools": "^13.3.0",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "2"
   },
   "scripts": {
     "copyfiles": "cp ./serviceAccount.json ./dist/serviceAccount.json",
     "build": "tsc && npm run copyfiles",
-    "test": "jest",
+    "test": "jest --detectOpenHandles",
     "start": "npm run build && node dist/run.js"
   },
   "devDependencies": {
     "@types/firebase": "^3.2.1",
     "@types/jest": "^29.5.11",
     "@types/js-yaml": "^4.0.9",
-    "@types/node-fetch": "^2.6.9",
+    "@types/node-fetch": "2",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1"
   }

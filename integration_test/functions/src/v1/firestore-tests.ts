@@ -11,15 +11,11 @@ export const firestoreDocumentOnCreateTests: any = functions
   .firestore.document("tests/{testId}")
   .onCreate(async (snapshot, context) => {
     const testId = context.params.testId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreDocumentOnCreateTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Firestore document onCreate function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("firestoreDocumentOnCreateTests")
+      .doc(testId)
+      .set(sanitizeData(context));
   });
 
 export const firestoreDocumentOnDeleteTests: any = functions
@@ -30,15 +26,11 @@ export const firestoreDocumentOnDeleteTests: any = functions
   .firestore.document("tests/{testId}")
   .onDelete(async (snapshot, context) => {
     const testId = context.params.testId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreDocumentOnDeleteTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Firestore document onDelete function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("firestoreDocumentOnDeleteTests")
+      .doc(testId)
+      .set(sanitizeData(context));
   });
 
 export const firestoreDocumentOnUpdateTests: any = functions
@@ -49,15 +41,11 @@ export const firestoreDocumentOnUpdateTests: any = functions
   .firestore.document("tests/{testId}")
   .onUpdate(async (change, context) => {
     const testId = context.params.testId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreDocumentOnUpdateTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Firestore document onUpdate function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("firestoreDocumentOnUpdateTests")
+      .doc(testId)
+      .set(sanitizeData(context));
   });
 
 export const firestoreDocumentOnWriteTests: any = functions
@@ -68,13 +56,9 @@ export const firestoreDocumentOnWriteTests: any = functions
   .firestore.document("tests/{testId}")
   .onWrite(async (change, context) => {
     const testId = context.params.testId;
-    try {
-      await admin
-        .firestore()
-        .collection("firestoreDocumentOnWriteTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Firestore document onWrite function for testId: ${testId}`, error);
-    }
+    await admin
+      .firestore()
+      .collection("firestoreDocumentOnWriteTests")
+      .doc(testId)
+      .set(sanitizeData(context));
   });

@@ -11,13 +11,14 @@ export const tasksOnDispatchTests: any = functions
   .tasks.taskQueue()
   .onDispatch(async (data, context) => {
     const testId = data.testId;
-    try {
-      await admin
-        .firestore()
-        .collection("tasksOnDispatchTests")
-        .doc(testId)
-        .set(sanitizeData(context));
-    } catch (error) {
-      console.error(`Error in Tasks onDispatch function for testId: ${testId}`, error);
+    if (!testId) {
+      functions.logger.error("TestId not found for tasks onDispatch");
+      return;
     }
+
+    await admin
+      .firestore()
+      .collection("tasksOnDispatchTests")
+      .doc(testId)
+      .set(sanitizeData(context));
   });
