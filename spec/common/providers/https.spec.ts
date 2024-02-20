@@ -936,6 +936,34 @@ describe("encoding/decoding", () => {
     });
   });
 
+  it("encodes object with circular reference without histical data", () => {
+    class TestClass {
+      foo: string;
+      bar: number;
+      self: TestClass | undefined;
+      constructor(foo: string, bar: number) {
+        this.foo = foo;
+        this.bar = bar;
+      }
+    }
+    const testObject = new TestClass("hello", 1);
+    expect(https.encode(testObject)).to.deep.equal({
+      foo: "hello",
+      bar: 1,
+    });
+    testObject.self = testObject;
+    expect(https.encode(testObject)).to.deep.equal({
+      foo: "hello",
+      bar: 1,
+      self: { foo: "hello", bar: 1 },
+    });
+    delete testObject.self;
+    expect(https.encode(testObject)).to.deep.equal({
+      foo: "hello",
+      bar: 1,
+    });
+  });
+
   it("encodes function as an empty object", () => {
     expect(https.encode(() => "foo")).to.deep.equal({});
   });
