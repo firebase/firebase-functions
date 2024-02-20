@@ -869,6 +869,68 @@ describe("encoding/decoding", () => {
     });
   });
 
+  it("encodes object with self reference", () => {
+    class TestClass {
+      foo: string;
+      bar: number;
+      self: TestClass;
+      constructor(foo: string, bar: number) {
+        this.foo = foo;
+        this.bar = bar;
+        this.self = this;
+      }
+    }
+    const testObject = new TestClass("hello", 1);
+    expect(https.encode(testObject)).to.deep.equal({
+      foo: "hello",
+      bar: 1,
+      self: { foo: "hello", bar: 1 },
+    });
+  });
+
+  it("encodes object with circular reference", () => {
+    class TestClass {
+      foo: string;
+      bar: number;
+      self: TestClass;
+      constructor(foo: string, bar: number) {
+        this.foo = foo;
+        this.bar = bar;
+        this.self = this;
+      }
+    }
+    const testObject1 = new TestClass("hello", 1);
+    const testObject2 = new TestClass("world", 2);
+    testObject1.self = testObject2;
+    testObject2.self = testObject1;
+    expect(https.encode(testObject1)).to.deep.equal({
+      foo: "hello",
+      bar: 1,
+      self: { foo: "world", bar: 2, self: { foo: "hello", bar: 1 } },
+    });
+  })
+
+  it("encodes object with circular reference in nested object", () => {
+    class TestClass {
+      foo: string;
+      bar: number;
+      nested: {
+        self: TestClass;
+      };
+      constructor(foo: string, bar: number) {
+        this.foo = foo;
+        this.bar = bar;
+        this.nested = { self: this };
+      }
+    }
+    const testObject = new TestClass("hello", 1);
+    expect(https.encode(testObject)).to.deep.equal({
+      foo: "hello",
+      bar: 1,
+      nested: { self: { foo: "hello", bar: 1 } },
+    });
+  });
+
   it("encodes function as an empty object", () => {
     expect(https.encode(() => "foo")).to.deep.equal({});
   });

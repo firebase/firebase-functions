@@ -395,12 +395,16 @@ const LONG_TYPE = "type.googleapis.com/google.protobuf.Int64Value";
 /** @hidden */
 const UNSIGNED_LONG_TYPE = "type.googleapis.com/google.protobuf.UInt64Value";
 
+/** @hidden */
+const SELF_REFERENCE_WEAKMAP = new WeakMap<Object,Object>();
 /**
  * Encodes arbitrary data in our special format for JSON.
  * This is exposed only for testing.
  */
 /** @hidden */
-export function encode(data: any): any {
+export function encode(
+  data: unknown
+): any {
   if (data === null || typeof data === "undefined") {
     return null;
   }
@@ -421,18 +425,28 @@ export function encode(data: any): any {
   if (Array.isArray(data)) {
     return data.map(encode);
   }
-  if (typeof data === "object" || typeof data === "function") {
-    // Sadly we don't have Object.fromEntries in Node 10, so we can't use a single
-    // list comprehension
-    const obj: Record<string, any> = {};
-    for (const [k, v] of Object.entries(data)) {
-      obj[k] = encode(v);
-    }
-    return obj;
+  const isObjectOrFunction = typeof data === "object" || typeof data === "function";
+
+  if (!isObjectOrFunction) {
+    // If we got this far, the data is not encodable.
+    logger.error("Data cannot be encoded in JSON.", data);
+    throw new Error(`Data cannot be encoded in JSON: ${data}`);
   }
-  // If we got this far, the data is not encodable.
-  logger.error("Data cannot be encoded in JSON.", data);
-  throw new Error(`Data cannot be encoded in JSON: ${data}`);
+  // implementation of an hidden argument to keep track of objects that have been encoded
+  if (SELF_REFERENCE_WEAKMAP.has(data)) {
+    return { ...SELF_REFERENCE_WEAKMAP.get(data) }; // return a shallow copy of the object
+  }
+
+  // Sadly we don't have Object.fromEntries in Node 10, so we can't use a single
+  // list comprehension
+  const obj: Record<string, any> = {};
+
+  SELF_REFERENCE_WEAKMAP.set(data, obj);
+
+  for (const [k, v] of Object.entries(data)) {
+    obj[k] = encode(v);
+  }
+  return obj;
 }
 
 /**
