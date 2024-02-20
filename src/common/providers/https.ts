@@ -396,15 +396,13 @@ const LONG_TYPE = "type.googleapis.com/google.protobuf.Int64Value";
 const UNSIGNED_LONG_TYPE = "type.googleapis.com/google.protobuf.UInt64Value";
 
 /** @hidden */
-const SELF_REFERENCE_WEAKMAP = new WeakMap<Object,Object>();
+const SELF_REFERENCE_WEAKMAP = new WeakMap<Object, Object>();
 /**
  * Encodes arbitrary data in our special format for JSON.
  * This is exposed only for testing.
  */
 /** @hidden */
-export function encode(
-  data: unknown
-): any {
+export function encode(data: unknown): any {
   if (data === null || typeof data === "undefined") {
     return null;
   }
@@ -446,6 +444,11 @@ export function encode(
   for (const [k, v] of Object.entries(data)) {
     obj[k] = encode(v);
   }
+
+  // clean after recursive call - 
+  // we don't want to keep references to objects that are not part of the current object
+  SELF_REFERENCE_WEAKMAP.delete(data);
+
   return obj;
 }
 
