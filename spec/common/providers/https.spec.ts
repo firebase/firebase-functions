@@ -908,6 +908,11 @@ describe("encoding/decoding", () => {
       bar: 1,
       self: { foo: "world", bar: 2, self: { foo: "hello", bar: 1 } },
     });
+    expect(https.encode(testObject2)).to.deep.equal({
+      foo: "world",
+      bar: 2,
+      self: { foo: "hello", bar: 1, self: { foo: "world", bar: 2 } },
+    });
   })
 
   it("encodes object with circular reference in nested object", () => {
