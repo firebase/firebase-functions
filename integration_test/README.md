@@ -29,14 +29,12 @@ yarn start
 [x] Update existing tests to use jest (v1 and v2)
 [x] Add missing coverage for v1 and v2 (WIP)
 [x] Ensure proper teardown of resources (only those for current test run)
-[] Check that we are properly tearing down all docs as side-effects
-[] Analytics: since you cannot directly trigger onLog events from Firebase Analytics in a CI environment, the primary strategy is to isolate and test the logic within the Cloud Functions by mocking Firebase services and the Analytics event data. This is done elsewhere via unit tests, so no additional coverage necessary.
-[] Alerts: same as analytics
-[] Auth blocking functions can only be deployed one at a time, half-way solution is to deploy v1 functions, run v1 tests, teardown, and repeat for v2. However, this still won't allow for multiple runs to happen in parallel. Solution needed before re-enabling auth/identity tests.
-[] Https tests were commented out previously, comments remain as before for same reasons
+[] Analytics: since you cannot directly trigger onLog events from Firebase Analytics in a CI environment, the primary strategy is to isolate and test the logic within the Cloud Functions by mocking Firebase services and the Analytics event data. This is done elsewhere via unit tests, so no additional coverage added.
+[] Alerts: same as analytics, couldn't find way to trigger.
+[] Auth blocking functions can only be deployed one at a time, half-way solution is to deploy v1 functions, run v1 tests, teardown, and repeat for v2. However, this still won't allow for multiple runs to happen in parallel. Solution needed before re-enabling auth/identity tests. You can run the suite with either v1 or v2 commented out to check test runs.
+[] Https tests were commented out previously, comments remain as before
 [] Python runtime support
 
 ## Troubleshooting
 
 - Sometimes I ran into this reported [issue](https://github.com/firebase/firebase-tools/issues/793), I had to give it some period of time and attempt deploy again. Probably an upstream issue but may affect our approach here. Seems to struggle with deploying the large amount of trigger functions...? Falls over on Firebase Storage functions (if you comment these out everything else deploys as expected).
-- Ensure service account has the necessary permissions for each service, and enable object versioning for the storage onArchive tests.
