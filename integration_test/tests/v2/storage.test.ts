@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import { timeout } from "../../tests/utils";
-import { initializeFirebase } from "../../tests/firebaseSetup";
+import { timeout } from "../utils";
+import { initializeFirebase } from "../firebaseSetup";
 
 async function uploadBufferToFirebase(buffer: Buffer, fileName: string) {
   const bucket = admin.storage().bucket();
