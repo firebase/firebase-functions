@@ -106,7 +106,7 @@ describe("crashlytics", () => {
         });
       });
 
-      it("should call initializer", async () => {
+      it("calls init function", async () => {
         const func = crashlytics[method](APPID, myHandler);
 
         let hello;

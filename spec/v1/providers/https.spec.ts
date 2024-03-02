@@ -72,11 +72,13 @@ describe("CloudHttpsBuilder", () => {
       expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(["private"]);
     });
 
-    it("should call initializer", async () => {
+    it("calls init function", async () => {
       let hello;
       onInit(() => (hello = "world"));
       expect(hello).to.be.undefined;
-      const fn = functions.https.onRequest(() => null);
+      const fn = functions.https.onRequest((_req, res) => {
+        res.send(200);
+      });
       const req = new MockRequest(
         {
           data: { foo: "bar" },
@@ -86,9 +88,7 @@ describe("CloudHttpsBuilder", () => {
         }
       );
       req.method = "POST";
-      // We don't really have test infrastructure to fake requests. Luckily we
-      // don't touch much of the request in boilerplate, just trace context.
-      await fn({headers: []} as any, null as any);
+      await runHandler(fn, req as any);
       expect(hello).to.equal("world");
     });
   });

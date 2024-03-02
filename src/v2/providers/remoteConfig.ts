@@ -130,10 +130,12 @@ export function onConfigUpdated(
   const baseOpts = optionsToEndpoint(getGlobalOptions());
   const specificOpts = optionsToEndpoint(optsOrHandler);
 
-  const func: any = (raw: CloudEvent<unknown>) => {
-    return handler(raw as CloudEvent<ConfigUpdateData>);
-  };
-  func.run = wrapTraceContext(withInit(handler));
+  const func: any = wrapTraceContext(
+    withInit((raw: CloudEvent<unknown>) => {
+      return handler(raw as CloudEvent<ConfigUpdateData>);
+    })
+  );
+  func.run = handler;
 
   const ep: ManifestEndpoint = {
     ...initV2Endpoint(getGlobalOptions(), optsOrHandler),

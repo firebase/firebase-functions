@@ -43,7 +43,7 @@ describe("billing", () => {
       });
     });
 
-    it("should call the initializer", async () => {
+    it("calls init function", async () => {
       const func = billing.onPlanAutomatedUpdatePublished((event) => event);
 
       let hello;
@@ -88,7 +88,7 @@ describe("billing", () => {
       });
     });
 
-    it("should call the initializer", async () => {
+    it("calls init function", async () => {
       const func = billing.onPlanAutomatedUpdatePublished((event) => event);
 
       let hello;
@@ -141,7 +141,7 @@ describe("billing", () => {
       expect(res).to.equal("input");
     });
 
-    it("should call the initializer", async () => {
+    it("calls init function", async () => {
       const func = billing.onOperation(ALERT_TYPE, (event) => event, undefined);
 
       let hello;

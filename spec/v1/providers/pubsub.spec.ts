@@ -123,7 +123,7 @@ describe("Pubsub Functions", () => {
         expect(() => pubsub.topic("bad/topic/format")).to.throw(Error);
       });
 
-      it("should properly handle a new-style event", async () => {
+      it("should properly handle a new-style event", () => {
         const raw = new Buffer('{"hello":"world"}', "utf8").toString("base64");
         const event: Event = {
           data: {
@@ -151,15 +151,11 @@ describe("Pubsub Functions", () => {
           };
         });
 
-        let hello;
-        functions.onInit(() => (hello = "world"));
-        expect(hello).is.undefined;
-        await expect(result(event.data, event.context)).to.eventually.deep.equal({
+        return expect(result(event.data, event.context)).to.eventually.deep.equal({
           raw,
           json: { hello: "world" },
           attributes: { foo: "bar" },
         });
-        expect(hello).equals("world");
       });
     });
 

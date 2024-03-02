@@ -93,7 +93,7 @@ describe("appDistribution", () => {
       expect(res).to.equal("input");
     });
 
-    it("should call the initializer", async () => {
+    it("calls init function", async () => {
       const func = appDistribution.onNewTesterIosDevicePublished(APPID, (event) => event);
 
       let hello;
@@ -184,7 +184,7 @@ describe("appDistribution", () => {
       expect(res).to.equal("input");
     });
 
-    it("should call the initializer", async () => {
+    it("calls init function", async () => {
       const func = appDistribution.onInAppFeedbackPublished(APPID, (event) => event);
 
       let hello;

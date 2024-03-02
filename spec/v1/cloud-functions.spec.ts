@@ -42,7 +42,7 @@ describe("makeCloudFunction", () => {
     legacyEventType: "providers/provider/eventTypes/event",
   };
 
-  it("should call the onInit callback", async () => {
+  it("calls init function", async () => {
     const test: Event = {
       context: {
         eventId: "00000",

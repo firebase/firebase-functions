@@ -116,7 +116,7 @@ describe("Database Functions", () => {
         );
       });
 
-      it("should return a handler that emits events with a proper DataSnapshot", async () => {
+      it("should return a handler that emits events with a proper DataSnapshot", () => {
         const event = {
           data: {
             data: null,
@@ -133,11 +133,7 @@ describe("Database Functions", () => {
           expect(change.after.val()).to.deep.equal({ foo: "bar" });
         });
 
-        let hello;
-        functions.onInit(() => (hello = "world"));
-        expect(hello).is.undefined;
-        await handler(event.data, event.context);
-        expect(hello).equals("world");
+        return handler(event.data, event.context);
       });
 
       it("Should have params of the correct type", () => {
@@ -181,7 +177,7 @@ describe("Database Functions", () => {
         );
       });
 
-      it("should return a handler that emits events with a proper DataSnapshot", async () => {
+      it("should return a handler that emits events with a proper DataSnapshot", () => {
         const event = {
           data: {
             data: null,
@@ -199,11 +195,7 @@ describe("Database Functions", () => {
           expect(data.val()).to.deep.equal({ foo: "bar" });
         });
 
-        let hello;
-        functions.onInit(() => (hello = "world"));
-        expect(hello).to.be.undefined;
-        await handler(event.data, event.context);
-        expect(hello).equals("world");
+        return handler(event.data, event.context);
       });
 
       it("Should have params of the correct type", () => {
@@ -247,7 +239,7 @@ describe("Database Functions", () => {
         );
       });
 
-      it("should return a handler that emits events with a proper DataSnapshot", async () => {
+      it("should return a handler that emits events with a proper DataSnapshot", () => {
         const event = {
           data: {
             data: null,
@@ -265,11 +257,7 @@ describe("Database Functions", () => {
           expect(change.after.val()).to.deep.equal({ foo: "bar" });
         });
 
-        let hello;
-        functions.onInit(() => (hello = "world"));
-        expect(hello).is.undefined;
-        await handler(event.data, event.context);
-        expect(hello).equals("world");
+        return handler(event.data, event.context);
       });
 
       it("Should have params of the correct type", () => {
@@ -313,7 +301,7 @@ describe("Database Functions", () => {
         );
       });
 
-      it("should return a handler that emits events with a proper DataSnapshot", async () => {
+      it("should return a handler that emits events with a proper DataSnapshot", () => {
         const event = {
           data: {
             data: { foo: "bar" },
@@ -331,11 +319,7 @@ describe("Database Functions", () => {
           expect(data.val()).to.deep.equal({ foo: "bar" });
         });
 
-        let hello;
-        functions.onInit(() => (hello = "world"));
-        expect(hello).is.undefined;
-        await handler(event.data, event.context);
-        expect(hello).equals("world");
+        return handler(event.data, event.context);
       });
 
       it("Should have params of the correct type", () => {

@@ -109,8 +109,6 @@ describe("Analytics Functions", () => {
           },
         };
 
-        let hello;
-        functions.onInit(() => hello = "world");
         await expect(cloudFunction(event.data, event.context)).to.eventually.deep.equal({
           params: {},
           user: {
@@ -118,7 +116,6 @@ describe("Analytics Functions", () => {
             userProperties: {},
           },
         });
-        expect(hello).equals("world");
       });
 
       it("should remove xValues", () => {

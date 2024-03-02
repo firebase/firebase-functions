@@ -24,6 +24,8 @@ import { expect } from "chai";
 import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
 import * as options from "../../../src/v2/options";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { CloudEvent } from "../../../lib/v2/core";
+import { onInit } from "../../../src/v2/core";
 
 describe("onConfigUpdated", () => {
   afterEach(() => {
@@ -43,7 +45,7 @@ describe("onConfigUpdated", () => {
         retry: false,
       },
     });
-    await expect(fn.run(1 as any)).to.eventually.eq(2);
+    await expect(fn(1 as any)).to.eventually.eq(2);
   });
 
   it("should create a function with opts and a handler", async () => {
@@ -72,6 +74,23 @@ describe("onConfigUpdated", () => {
         retry: true,
       },
     });
-    await expect(fn.run(1 as any)).to.eventually.eq(2);
+    await expect(fn(1 as any)).to.eventually.eq(2);
+  });
+
+  it("calls init function", async () => {
+    const event: CloudEvent<string> = {
+      specversion: "1.0",
+      id: "id",
+      source: "source",
+      type: "type",
+      time: "now",
+      data: "data",
+    };
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await remoteConfig.onConfigUpdated(() => null)(event);
+    expect(hello).to.equal("world");
   });
 });
