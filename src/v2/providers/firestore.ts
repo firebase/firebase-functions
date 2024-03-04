@@ -473,7 +473,7 @@ export function onChangedOperation<Document extends string>(
     const event = raw as RawFirestoreEvent;
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeChangedFirestoreEvent(event, params);
-    return handler(firestoreEvent);
+    return wrapTraceContext(handler)(firestoreEvent);
   };
 
   func.run = handler;
