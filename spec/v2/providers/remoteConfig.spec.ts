@@ -24,8 +24,7 @@ import { expect } from "chai";
 import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
 import * as options from "../../../src/v2/options";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
-import { CloudEvent } from "../../../lib/v2/core";
-import { onInit } from "../../../src/v2/core";
+import { CloudEvent, onInit } from "../../../src/v2/core";
 
 describe("onConfigUpdated", () => {
   afterEach(() => {
