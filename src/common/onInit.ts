@@ -1,7 +1,6 @@
-
 import * as logger from "../logger";
 
-let initCallback: (() => any) | null = null;
+let initCallback: (() => unknown) | null = null;
 let didInit = false;
 
 /**

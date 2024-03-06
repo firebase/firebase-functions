@@ -116,7 +116,8 @@ export function _onCallWithOptions(
         cors: { origin: true, methods: "POST" },
       },
       fixedLen
-  ));
+    )
+  );
 
   func.__trigger = {
     labels: {},

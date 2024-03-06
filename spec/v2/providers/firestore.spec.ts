@@ -332,7 +332,6 @@ describe("firestore", () => {
         },
       };
 
-
       let hello;
       onInit(() => (hello = "world"));
       expect(hello).to.be.undefined;

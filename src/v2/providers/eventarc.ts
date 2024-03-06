@@ -194,7 +194,7 @@ export function onCustomEventPublished<T = any>(
   } else if (typeof eventTypeOrOpts === "object") {
     opts = eventTypeOrOpts;
   }
-  const func = async (raw: CloudEvent<unknown>) => {
+  const func = (raw: CloudEvent<unknown>) => {
     return wrapTraceContext(withInit(handler))(raw as CloudEvent<T>);
   };
 

@@ -114,7 +114,7 @@ describe("crashlytics", () => {
         expect(hello).to.be.undefined;
         await func({ data: "crash" } as any);
         expect(hello).to.equal("world");
-      })
+      });
     });
   }
 

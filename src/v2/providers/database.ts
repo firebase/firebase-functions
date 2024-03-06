@@ -464,7 +464,7 @@ export function onChangedOperation<Ref extends string>(
   const instancePattern = new PathPattern(instance);
 
   // wrap the handler
-  const func = async (raw: CloudEvent<unknown>) => {
+  const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
@@ -493,7 +493,7 @@ export function onOperation<Ref extends string>(
   const instancePattern = new PathPattern(instance);
 
   // wrap the handler
-  const func = async (raw: CloudEvent<unknown>) => {
+  const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
