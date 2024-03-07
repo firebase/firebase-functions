@@ -25,6 +25,7 @@ import { google } from "../../../protos/compiledFirestore";
 import { Timestamp } from "firebase-admin/firestore";
 import * as firestore from "../../../src/v2/providers/firestore";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
+import { onInit } from "../../../src/v2/core";
 
 /** static-complied protobuf */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
@@ -39,9 +40,9 @@ const eventBase = {
   dataschema:
     "https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto",
   id: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
-  source: "//firestore.googleapis.com/projects/my-project/databases/my-db",
+  source: "projects/my-project/databases/my-db/documents/d",
   subject: "documents/foo/fGRodw71mHutZ4wGDuT8",
-  specversion: "1.0",
+  specversion: "1.0" as const,
   time: "2023-03-10T18:20:43.677647Z",
   type: "google.cloud.firestore.document.v1.created",
 };
@@ -192,6 +193,23 @@ describe("firestore", () => {
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentWritten("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onDocumentCreated", () => {
@@ -238,6 +256,23 @@ describe("firestore", () => {
 
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentCreated("type", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 
@@ -286,6 +321,23 @@ describe("firestore", () => {
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentUpdated("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onDocumentDeleted", () => {
@@ -332,6 +384,23 @@ describe("firestore", () => {
 
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentDeleted("path", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 

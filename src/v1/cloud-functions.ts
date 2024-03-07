@@ -44,6 +44,7 @@ import {
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
 import { SecretParam } from "../params/types";
+import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
 
@@ -403,6 +404,7 @@ export function makeCloudFunction<EventData>({
       context.params = context.params || _makeParams(context, triggerResource);
     }
 
+    handler = withInit(handler);
     let promise;
     if (labels && labels["deployment-scheduled"]) {
       // Scheduled function do not have meaningful data, so exclude it

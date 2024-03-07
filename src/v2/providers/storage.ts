@@ -34,6 +34,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 /**
  * An object within Google Cloud Storage.
@@ -573,7 +574,7 @@ export function onOperation(
   const [opts, bucket] = getOptsAndBucket(bucketOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(raw as StorageEvent);
+    return wrapTraceContext(withInit(handler))(raw as StorageEvent);
   };
 
   func.run = handler;

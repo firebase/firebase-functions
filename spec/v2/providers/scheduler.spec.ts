@@ -25,6 +25,9 @@ import { ManifestEndpoint } from "../../../src/runtime/manifest";
 import * as options from "../../../src/v2/options";
 import * as schedule from "../../../src/v2/providers/scheduler";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { onInit } from "../../../src/v2/core";
+import { MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
 
 const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
   schedule: "",
@@ -186,6 +189,27 @@ describe("schedule", () => {
       expect(testObj).to.deep.eq({
         foo: "newBar",
       });
+    });
+
+    it("calls init function", async () => {
+      const func = schedule.onSchedule("* * * * *", () => null);
+
+      const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          "content-type": "application/json",
+          origin: "example.com",
+        }
+      );
+      req.method = "POST";
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await runHandler(func, req as any);
+      expect(hello).to.equal("world");
     });
   });
 });

@@ -43,6 +43,7 @@ import { GlobalOptions, SupportedRegion } from "../options";
 import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import * as options from "../options";
+import { withInit } from "../../common/onInit";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -276,7 +277,7 @@ export function onRequest(
     };
   }
 
-  handler = wrapTraceContext(handler);
+  handler = wrapTraceContext(withInit(handler));
 
   Object.defineProperty(handler, "__trigger", {
     get: () => {
@@ -340,7 +341,8 @@ export function onRequest(
 export function onCall<T = any, Return = any | Promise<any>>(
   opts: CallableOptions,
   handler: (request: CallableRequest<T>) => Return
-): CallableFunction<T, Return>;
+): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
+
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler - A function that takes a {@link https.CallableRequest}.
@@ -348,11 +350,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
  */
 export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>) => Return
-): CallableFunction<T, Return>;
+): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
 export function onCall<T = any, Return = any | Promise<any>>(
   optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>) => Return
-): CallableFunction<T, Return> {
+): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
   let opts: CallableOptions;
   if (arguments.length === 1) {
     opts = {};
@@ -365,7 +367,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
-  const fixedLen = (req: CallableRequest<T>) => handler(req);
+  const fixedLen = (req: CallableRequest<T>) => withInit(handler)(req);
   let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
@@ -415,6 +417,6 @@ export function onCall<T = any, Return = any | Promise<any>>(
     callableTrigger: {},
   };
 
-  func.run = handler;
+  func.run = withInit(handler);
   return func;
 }
