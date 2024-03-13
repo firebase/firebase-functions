@@ -36,6 +36,7 @@ import {
 } from "../../common/providers/firestore";
 import { wrapTraceContext } from "../trace";
 import { withInit } from "../../common/onInit";
+import { Expression } from "../../params";
 
 export { Change };
 
@@ -106,11 +107,11 @@ export interface FirestoreEvent<T, Params = Record<string, string>> extends Clou
 /** DocumentOptions extend EventHandlerOptions with provided document and optional database and namespace.  */
 export interface DocumentOptions<Document extends string = string> extends EventHandlerOptions {
   /** The document path */
-  document: Document;
+  document: Document | Expression<string>;
   /** The Firestore database */
-  database?: string;
+  database?: string | Expression<string>;
   /** The Firestore namespace */
-  namespace?: string;
+  namespace?: string | Expression<string>;
 }
 
 /**
@@ -278,9 +279,9 @@ export function onDocumentDeleted<Document extends string>(
 
 /** @internal */
 export function getOpts(documentOrOpts: string | DocumentOptions) {
-  let document: string;
-  let database: string;
-  let namespace: string;
+  let document: string | Expression<string>;
+  let database: string | Expression<string>;
+  let namespace: string | Expression<string>;
   let opts: EventHandlerOptions;
   if (typeof documentOrOpts === "string") {
     document = normalizePath(documentOrOpts);
@@ -288,7 +289,10 @@ export function getOpts(documentOrOpts: string | DocumentOptions) {
     namespace = "(default)";
     opts = {};
   } else {
-    document = normalizePath(documentOrOpts.document);
+    document =
+      typeof documentOrOpts.document === "string"
+        ? normalizePath(documentOrOpts.document)
+        : documentOrOpts.document;
     database = documentOrOpts.database || "(default)";
     namespace = documentOrOpts.namespace || "(default)";
     opts = { ...documentOrOpts };
@@ -398,21 +402,25 @@ export function makeChangedFirestoreEvent<Params>(
 export function makeEndpoint(
   eventType: string,
   opts: EventHandlerOptions,
-  document: PathPattern,
-  database: string,
-  namespace: string
+  document: string | Expression<string>,
+  database: string | Expression<string>,
+  namespace: string | Expression<string>
 ): ManifestEndpoint {
   const baseOpts = optionsToEndpoint(getGlobalOptions());
   const specificOpts = optionsToEndpoint(opts);
 
-  const eventFilters: Record<string, string> = {
+  const eventFilters: Record<string, string | Expression<string>> = {
     database,
     namespace,
   };
-  const eventFilterPathPatterns: Record<string, string> = {};
-  document.hasWildcards()
-    ? (eventFilterPathPatterns.document = document.getValue())
-    : (eventFilters.document = document.getValue());
+  const eventFilterPathPatterns: Record<string, string | Expression<string>> = {};
+  const maybePattern =
+    typeof document === "string" ? new PathPattern(document).hasWildcards() : true;
+  if (maybePattern) {
+    eventFilterPathPatterns.document = document;
+  } else {
+    eventFilters.document = document;
+  }
 
   return {
     ...initV2Endpoint(getGlobalOptions(), opts),
@@ -440,11 +448,12 @@ export function onOperation<Document extends string>(
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
   const { document, database, namespace, opts } = getOpts(documentOrOpts);
 
-  const documentPattern = new PathPattern(document);
-
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawFirestoreEvent;
+    const documentPattern = new PathPattern(
+      typeof document === "string" ? document : document.value()
+    );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeFirestoreEvent(eventType, event, params);
     return wrapTraceContext(withInit(handler))(firestoreEvent);
@@ -452,7 +461,7 @@ export function onOperation<Document extends string>(
 
   func.run = handler;
 
-  func.__endpoint = makeEndpoint(eventType, opts, documentPattern, database, namespace);
+  func.__endpoint = makeEndpoint(eventType, opts, document, database, namespace);
 
   return func;
 }
@@ -467,11 +476,12 @@ export function onChangedOperation<Document extends string>(
 ): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>> {
   const { document, database, namespace, opts } = getOpts(documentOrOpts);
 
-  const documentPattern = new PathPattern(document);
-
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawFirestoreEvent;
+    const documentPattern = new PathPattern(
+      typeof document === "string" ? document : document.value()
+    );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeChangedFirestoreEvent(event, params);
     return wrapTraceContext(withInit(handler))(firestoreEvent);
@@ -479,7 +489,7 @@ export function onChangedOperation<Document extends string>(
 
   func.run = handler;
 
-  func.__endpoint = makeEndpoint(eventType, opts, documentPattern, database, namespace);
+  func.__endpoint = makeEndpoint(eventType, opts, document, database, namespace);
 
   return func;
 }
