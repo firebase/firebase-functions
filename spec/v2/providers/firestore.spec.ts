@@ -26,6 +26,7 @@ import { Timestamp } from "firebase-admin/firestore";
 import * as firestore from "../../../src/v2/providers/firestore";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
 import { onInit } from "../../../src/v2/core";
+import * as params from "../../../src/params";
 
 /** static-complied protobuf */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
@@ -148,6 +149,20 @@ const writtenData = {
 const writtenProto = DocumentEventData.create(writtenData);
 
 describe("firestore", () => {
+  let docParam: params.Expression<string>;
+  let nsParam: params.Expression<string>;
+  let dbParam: params.Expression<string>;
+
+  before(() => {
+    docParam = params.defineString("DOCUMENT");
+    nsParam = params.defineString("NAMESPACE");
+    dbParam = params.defineString("DATABASE");
+  });
+
+  after(() => {
+    params.clearParams();
+  });
+
   describe("onDocumentWritten", () => {
     it("should create a func", () => {
       const expectedEp = makeExpectedEp(
@@ -191,6 +206,29 @@ describe("firestore", () => {
       );
 
       expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with param opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.writtenEventType,
+        {
+          database: dbParam,
+          namespace: nsParam,
+        },
+        {
+          document: docParam,
+        }
+      );
+
+      const func = firestore.onDocumentWritten(
+        {
+          database: dbParam,
+          namespace: nsParam,
+          document: docParam,
+        },
+        () => true
+      );
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
@@ -258,6 +296,29 @@ describe("firestore", () => {
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
+    it("should create a func with param opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventType,
+        {
+          database: dbParam,
+          namespace: nsParam,
+        },
+        {
+          document: docParam,
+        }
+      );
+
+      const func = firestore.onDocumentCreated(
+        {
+          database: dbParam,
+          namespace: nsParam,
+          document: docParam,
+        },
+        () => true
+      );
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
     it("calls init function", async () => {
       const event: firestore.RawFirestoreEvent = {
         ...eventBase,
@@ -322,6 +383,29 @@ describe("firestore", () => {
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
+    it("should create a func with param opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.updatedEventType,
+        {
+          database: dbParam,
+          namespace: nsParam,
+        },
+        {
+          document: docParam,
+        }
+      );
+
+      const func = firestore.onDocumentUpdated(
+        {
+          database: dbParam,
+          namespace: nsParam,
+          document: docParam,
+        },
+        () => true
+      );
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
     it("calls init function", async () => {
       const event: firestore.RawFirestoreEvent = {
         ...eventBase,
@@ -383,6 +467,29 @@ describe("firestore", () => {
       );
 
       expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with param opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.deletedEventType,
+        {
+          database: dbParam,
+          namespace: nsParam,
+        },
+        {
+          document: docParam,
+        }
+      );
+
+      const func = firestore.onDocumentDeleted(
+        {
+          database: dbParam,
+          namespace: nsParam,
+          document: docParam,
+        },
+        () => true
+      );
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
 
@@ -663,7 +770,7 @@ describe("firestore", () => {
       const ep = firestore.makeEndpoint(
         firestore.createdEventType,
         { region: "us-central1" },
-        new PathPattern("foo/{bar}"),
+        "foo/{bar}",
         "my-db",
         "my-ns"
       );
@@ -686,7 +793,7 @@ describe("firestore", () => {
       const ep = firestore.makeEndpoint(
         firestore.createdEventType,
         { region: "us-central1" },
-        new PathPattern("foo/fGRodw71mHutZ4wGDuT8"),
+        "foo/fGRodw71mHutZ4wGDuT8",
         "my-db",
         "my-ns"
       );
