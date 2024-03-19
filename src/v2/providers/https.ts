@@ -265,12 +265,19 @@ export function onRequest(
       // Respect `cors: false` to turn off cors even if debug feature is enabled.
       origin = opts.cors === false ? false : true;
     }
+    // Arrays cause the access-control-allow-origin header to be dynamic based
+    // on the origin header of the request. If there is only one element in the
+    // array, this is unnecessary.
+    if (Array.isArray(origin) && origin.length === 1) {
+      origin = origin[1];
+    }
+    const middleware = cors({ origin });
 
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
         res.on("finish", resolve);
-        cors({ origin })(req, res, () => {
+        middleware(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
       });
@@ -363,7 +370,13 @@ export function onCall<T = any, Return = any | Promise<any>>(
     opts = optsOrHandler as CallableOptions;
   }
 
-  const origin = isDebugFeatureEnabled("enableCors") ? true : "cors" in opts ? opts.cors : true;
+  let origin = isDebugFeatureEnabled("enableCors") ? true : "cors" in opts ? opts.cors : true;
+  // Arrays cause the access-control-allow-origin header to be dynamic based
+  // on the origin header of the request. If there is only one element in the
+  // array, this is unnecessary.
+  if (Array.isArray(origin) && origin.length === 1) {
+    origin = origin[1];
+  }
 
   // onCallHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
