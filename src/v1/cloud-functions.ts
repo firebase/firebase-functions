@@ -367,6 +367,7 @@ export function makeCloudFunction<EventData>({
   service,
   triggerResource,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
+  handler = withInit(handler);
   const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       /*
@@ -404,7 +405,6 @@ export function makeCloudFunction<EventData>({
       context.params = context.params || _makeParams(context, triggerResource);
     }
 
-    handler = withInit(handler);
     let promise;
     if (labels && labels["deployment-scheduled"]) {
       // Scheduled function do not have meaningful data, so exclude it
