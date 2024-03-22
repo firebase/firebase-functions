@@ -44,6 +44,7 @@ import {
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
 import { SecretParam } from "../params/types";
+import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
 
@@ -366,6 +367,7 @@ export function makeCloudFunction<EventData>({
   service,
   triggerResource,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
+  handler = withInit(handler);
   const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       /*

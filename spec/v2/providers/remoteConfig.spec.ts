@@ -24,13 +24,14 @@ import { expect } from "chai";
 import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
 import * as options from "../../../src/v2/options";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { CloudEvent, onInit } from "../../../src/v2/core";
 
 describe("onConfigUpdated", () => {
   afterEach(() => {
     options.setGlobalOptions({});
   });
 
-  it("should create a function with a handler", () => {
+  it("should create a function with a handler", async () => {
     const fn = remoteConfig.onConfigUpdated(() => 2);
 
     expect(fn.__endpoint).to.deep.eq({
@@ -43,10 +44,10 @@ describe("onConfigUpdated", () => {
         retry: false,
       },
     });
-    expect(fn.run(1 as any)).to.eq(2);
+    await expect(fn(1 as any)).to.eventually.eq(2);
   });
 
-  it("should create a function with opts and a handler", () => {
+  it("should create a function with opts and a handler", async () => {
     options.setGlobalOptions({
       memory: "512MiB",
       region: "us-west1",
@@ -72,6 +73,23 @@ describe("onConfigUpdated", () => {
         retry: true,
       },
     });
-    expect(fn.run(1 as any)).to.eq(2);
+    await expect(fn(1 as any)).to.eventually.eq(2);
+  });
+
+  it("calls init function", async () => {
+    const event: CloudEvent<string> = {
+      specversion: "1.0",
+      id: "id",
+      source: "source",
+      type: "type",
+      time: "now",
+      data: "data",
+    };
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await remoteConfig.onConfigUpdated(() => null)(event);
+    expect(hello).to.equal("world");
   });
 });

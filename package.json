@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "4.7.0",
+  "version": "4.8.1",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -109,6 +109,9 @@
       ],
       "v2": [
         "lib/v2"
+      ],
+      "v2/core": [
+        "lib/v2/core"
       ],
       "v2/alerts": [
         "lib/v2/providers/alerts"

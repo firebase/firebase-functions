@@ -25,8 +25,10 @@
  * @packageDocumentation
  */
 
+import { withInit } from "../../../common/onInit";
 import { CloudEvent, CloudFunction } from "../../core";
 import { EventHandlerOptions } from "../../options";
+import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 
 /**
@@ -137,7 +139,7 @@ export function onThresholdAlertPublished(
     const event = convertAlertAndApp(raw) as PerformanceEvent<ThresholdAlertPayload>;
     const convertedPayload = convertPayload(event.data.payload);
     event.data.payload = convertedPayload;
-    return handler(event);
+    return wrapTraceContext(withInit(handler(event)));
   };
 
   func.run = handler;

@@ -36,6 +36,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as logger from "../../logger";
 import * as options from "../options";
+import { withInit } from "../../common/onInit";
 
 /** @hidden */
 interface SeparatedOpts {
@@ -176,7 +177,7 @@ export function onSchedule(
       res.status(500).send();
     }
   };
-  const func: any = wrapTraceContext(httpFunc);
+  const func: any = wrapTraceContext(withInit(httpFunc));
   func.run = handler;
 
   const globalOpts = options.getGlobalOptions();
