@@ -869,7 +869,7 @@ describe("encoding/decoding", () => {
     });
   });
 
-  it("encodes object with self reference", () => {
+  it("Throws object with self reference", () => {
     class TestClass {
       foo: string;
       bar: number;
@@ -881,87 +881,7 @@ describe("encoding/decoding", () => {
       }
     }
     const testObject = new TestClass("hello", 1);
-    expect(https.encode(testObject)).to.deep.equal({
-      foo: "hello",
-      bar: 1,
-      self: { foo: "hello", bar: 1 },
-    });
-  });
-
-  it("encodes object with circular reference", () => {
-    class TestClass {
-      foo: string;
-      bar: number;
-      self: TestClass;
-      constructor(foo: string, bar: number) {
-        this.foo = foo;
-        this.bar = bar;
-        this.self = this;
-      }
-    }
-    const testObject1 = new TestClass("hello", 1);
-    const testObject2 = new TestClass("world", 2);
-    testObject1.self = testObject2;
-    testObject2.self = testObject1;
-    expect(https.encode(testObject1)).to.deep.equal({
-      foo: "hello",
-      bar: 1,
-      self: { foo: "world", bar: 2, self: { foo: "hello", bar: 1 } },
-    });
-    expect(https.encode(testObject2)).to.deep.equal({
-      foo: "world",
-      bar: 2,
-      self: { foo: "hello", bar: 1, self: { foo: "world", bar: 2 } },
-    });
-  });
-
-  it("encodes object with circular reference in nested object", () => {
-    class TestClass {
-      foo: string;
-      bar: number;
-      nested: {
-        self: TestClass;
-      };
-      constructor(foo: string, bar: number) {
-        this.foo = foo;
-        this.bar = bar;
-        this.nested = { self: this };
-      }
-    }
-    const testObject = new TestClass("hello", 1);
-    expect(https.encode(testObject)).to.deep.equal({
-      foo: "hello",
-      bar: 1,
-      nested: { self: { foo: "hello", bar: 1 } },
-    });
-  });
-
-  it("encodes object with circular reference without histical data", () => {
-    class TestClass {
-      foo: string;
-      bar: number;
-      self: TestClass | undefined;
-      constructor(foo: string, bar: number) {
-        this.foo = foo;
-        this.bar = bar;
-      }
-    }
-    const testObject = new TestClass("hello", 1);
-    expect(https.encode(testObject)).to.deep.equal({
-      foo: "hello",
-      bar: 1,
-    });
-    testObject.self = testObject;
-    expect(https.encode(testObject)).to.deep.equal({
-      foo: "hello",
-      bar: 1,
-      self: { foo: "hello", bar: 1 },
-    });
-    delete testObject.self;
-    expect(https.encode(testObject)).to.deep.equal({
-      foo: "hello",
-      bar: 1,
-    });
+    expect(()=>https.encode(testObject)).to.throw(`Data cannot be encoded in JSON: ${testObject}`);
   });
 
   it("encodes function as an empty object", () => {

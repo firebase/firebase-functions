@@ -396,7 +396,7 @@ const LONG_TYPE = "type.googleapis.com/google.protobuf.Int64Value";
 const UNSIGNED_LONG_TYPE = "type.googleapis.com/google.protobuf.UInt64Value";
 
 /** @hidden */
-const SELF_REFERENCE_WEAKMAP = new WeakMap<any, any>();
+const SELF_REFERENCE_WEAKSET = new WeakSet<object|((...args:any[])=>any)>();
 /**
  * Encodes arbitrary data in our special format for JSON.
  * This is exposed only for testing.
@@ -423,23 +423,16 @@ export function encode(data: unknown): any {
   if (Array.isArray(data)) {
     return data.map(encode);
   }
-  const isObjectOrFunction = typeof data === "object" || typeof data === "function";
-
-  if (!isObjectOrFunction) {
-    // If we got this far, the data is not encodable.
+  if(!isFunctionOrObject(data)||SELF_REFERENCE_WEAKSET.has(data)) {
     logger.error("Data cannot be encoded in JSON.", data);
     throw new Error(`Data cannot be encoded in JSON: ${data}`);
   }
-  // implementation of an hidden argument to keep track of objects that have been encoded
-  if (SELF_REFERENCE_WEAKMAP.has(data)) {
-    return { ...SELF_REFERENCE_WEAKMAP.get(data) }; // return a shallow copy of the object
-  }
-
+  
   // Sadly we don't have Object.fromEntries in Node 10, so we can't use a single
   // list comprehension
   const obj: Record<string, any> = {};
 
-  SELF_REFERENCE_WEAKMAP.set(data, obj);
+  SELF_REFERENCE_WEAKSET.add(data);
 
   for (const [k, v] of Object.entries(data)) {
     obj[k] = encode(v);
@@ -447,9 +440,19 @@ export function encode(data: unknown): any {
 
   // clean after recursive call -
   // we don't want to keep references to objects that are not part of the current object
-  SELF_REFERENCE_WEAKMAP.delete(data);
+  SELF_REFERENCE_WEAKSET.delete(data);
 
   return obj;
+}
+
+function isFunctionOrObject(data: unknown): data is object|((...args:any[])=>any) {
+  const isObjectOrFunction = typeof data === "object" || typeof data === "function";
+
+  if (!isObjectOrFunction) {
+    // If we got this far, the data is not encodable.
+    return false;
+  }
+  return true;
 }
 
 /**
