@@ -269,7 +269,7 @@ export function onRequest(
     // on the origin header of the request. If there is only one element in the
     // array, this is unnecessary.
     if (Array.isArray(origin) && origin.length === 1) {
-      origin = origin[1];
+      origin = origin[0];
     }
     const middleware = cors({ origin });
 
