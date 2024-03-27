@@ -367,7 +367,7 @@ export function makeCloudFunction<EventData>({
   service,
   triggerResource,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
-  handler = withInit(handler);
+  handler = withInit(handler ?? contextOnlyHandler);
   const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       /*
