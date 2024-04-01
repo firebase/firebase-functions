@@ -181,7 +181,7 @@ export function onDocumentWritten<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created, updated, or deleted in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param document - The Firestore document path to trigger on.
  * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
@@ -195,7 +195,7 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created, updated, or deleted in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
@@ -209,7 +209,7 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created, updated, or deleted in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param opts - Options or a string document path.
  * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
@@ -266,7 +266,7 @@ export function onDocumentCreated<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param document - The Firestore document path to trigger on.
  * @param handler - Event handler which is run every time a Firestore create occurs.
@@ -280,7 +280,7 @@ export function onDocumentCreatedWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Firestore create occurs.
@@ -349,7 +349,7 @@ export function onDocumentUpdated<Document extends string>(
 
 /**
  * Event handler that triggers when a document is updated in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param document - The Firestore document path to trigger on.
  * @param handler - Event handler which is run every time a Firestore update occurs.
@@ -362,7 +362,7 @@ export function onDocumentUpdatedWithAuthContext<Document extends string>(
 ): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
 /**
  * Event handler that triggers when a document is updated in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Firestore update occurs.
@@ -432,7 +432,7 @@ export function onDocumentDeleted<Document extends string>(
 
 /**
  * Event handler that triggers when a document is deleted in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param document - The Firestore document path to trigger on.
  * @param handler - Event handler which is run every time a Firestore delete occurs.
@@ -446,7 +446,7 @@ export function onDocumentDeletedWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is deleted in Firestore.
- * This trigger will also provide the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event.
  *
  * @param opts - Options that can be set on an individual event-handling function.
  * @param handler - Event handler which is run every time a Firestore delete occurs.
