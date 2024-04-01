@@ -40,6 +40,8 @@ const eventBase = {
   datacontenttype: "application/protobuf",
   dataschema:
     "https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto",
+  authtype: "unknown",
+  authid: "1234",
   id: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
   source: "projects/my-project/databases/my-db/documents/d",
   subject: "documents/foo/fGRodw71mHutZ4wGDuT8",
@@ -508,6 +510,194 @@ describe("firestore", () => {
       expect(hello).to.be.undefined;
       await firestore.onDocumentDeleted("path", () => null)(event);
       expect(hello).to.equal("world");
+    });
+  });
+
+  describe("onDocumentWrittenWithAuthContext", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.writtenEventWithAuthContextType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentWrittenWithAuthContext("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.writtenEventWithAuthContextType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentWrittenWithAuthContext(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
+
+  describe("onDocumentCreatedWithAuthContext", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventWithAuthContextType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentCreatedWithAuthContext("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.createdEventWithAuthContextType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentCreatedWithAuthContext(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
+
+  describe("onDocumentUpdatedWithAuthContext", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.updatedEventWithAuthContextType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentUpdatedWithAuthContext("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.updatedEventWithAuthContextType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentUpdatedWithAuthContext(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+  });
+
+  describe("onDocumentDeletedWithAuthContext", () => {
+    it("should create a func", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.deletedEventWithAuthContextType,
+        {
+          database: "(default)",
+          namespace: "(default)",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+
+      const func = firestore.onDocumentDeletedWithAuthContext("foo/{bar}", () => 2);
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should create a func with opts", () => {
+      const expectedEp = makeExpectedEp(
+        firestore.deletedEventWithAuthContextType,
+        {
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        {
+          document: "foo/{bar}",
+        }
+      );
+      expectedEp["region"] = ["us-central1"];
+
+      const func = firestore.onDocumentDeletedWithAuthContext(
+        {
+          region: "us-central1",
+          document: "foo/{bar}",
+          database: "my-db",
+          namespace: "my-ns",
+        },
+        () => 2
+      );
+
+      expect(func.run(true as any)).to.eq(2);
+      expect(func.__endpoint).to.deep.eq(expectedEp);
     });
   });
 
