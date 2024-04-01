@@ -103,7 +103,15 @@ export type DocumentSnapshot = firestore.DocumentSnapshot;
 /** A Firestore QueryDocumentSnapshot */
 export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
 
-type AuthType = "service_account" | "api_key" | "system" | "unauthenticated" | "unknown";
+/**
+ * AuthType defines the possible values for the authType field in a Firestore event with auth context.
+ * - service_account: a non-user principal used to identify a workload or machine user.
+ * - api_key: a non-user client API key.
+ * - system: an obscured identity used when Cloud Platform or another system triggered the event. Examples include a database record which was deleted based on a TTL.
+ * - unauthenticated: an unauthenticated action.
+ * - unknown: a general type to capture all other principals not captured in the other auth types.
+ */
+export type AuthType = "service_account" | "api_key" | "system" | "unauthenticated" | "unknown";
 
 /** A CloudEvent that contains a DocumentSnapshot or a Change<DocumentSnapshot> */
 export interface FirestoreEvent<T, Params = Record<string, string>> extends CloudEvent<T> {
