@@ -1015,7 +1015,6 @@ describe("firestore", () => {
     });
   });
 
-
   describe("makeEndpoint", () => {
     it("should make an endpoint with a document path pattern", () => {
       const expectedEp = makeExpectedEp(
