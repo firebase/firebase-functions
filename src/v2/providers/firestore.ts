@@ -233,11 +233,16 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
 export function onDocumentWrittenWithAuthContext<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<
-  FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
-> {
+): CloudFunction<FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>> {
+  // const fn = (
+  //   event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>> & {
+  //     foo: string;
+  //   }
+  // ): any => {
+  //   return event;
+  // };
   return onChangedOperation(writtenEventWithAuthContextType, documentOrOpts, handler);
 }
 
@@ -579,11 +584,13 @@ export function makeParams(document: string, documentPattern: PathPattern) {
 /** @internal */
 export function makeFirestoreEvent<Params>(
   eventType: string,
-  event: RawFirestoreEvent,
+  event: RawFirestoreEvent | RawFirestoreAuthEvent,
   params: Params
-): FirestoreEvent<QueryDocumentSnapshot | undefined, Params> {
+):
+  | FirestoreEvent<QueryDocumentSnapshot | undefined, Params>
+  | FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params> {
   const data = event.data
-    ? eventType === createdEventType
+    ? eventType === createdEventType || eventType === createdEventWithAuthContextType
       ? createSnapshot(event)
       : createBeforeSnapshot(event)
     : undefined;
@@ -595,38 +602,28 @@ export function makeFirestoreEvent<Params>(
 
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
-  return firestoreEvent;
-}
 
-/** @internal */
-export function makeFirestoreAuthEvent<Params>(
-  eventType: string,
-  event: RawFirestoreAuthEvent,
-  params: Params
-): FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params> {
-  const data = event.data
-    ? eventType === createdEventType
-      ? createSnapshot(event)
-      : createBeforeSnapshot(event)
-    : undefined;
-  const firestoreEvent: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params> = {
-    ...event,
-    params,
-    data,
-    authType: event.authtype,
-    authId: event.authid,
-  };
+  if ("authtype" in event) {
+    const eventWithAuth = {
+      ...firestoreEvent,
+      authType: event.authtype,
+      authId: event.authid,
+    };
+    delete (eventWithAuth as any).authtype;
+    delete (eventWithAuth as any).authid;
+    return eventWithAuth;
+  }
 
-  delete (firestoreEvent as any).datacontenttype;
-  delete (firestoreEvent as any).dataschema;
   return firestoreEvent;
 }
 
 /** @internal */
 export function makeChangedFirestoreEvent<Params>(
-  event: RawFirestoreEvent,
+  event: RawFirestoreEvent | RawFirestoreAuthEvent,
   params: Params
-): FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, Params> {
+):
+  | FirestoreEvent<Change<DocumentSnapshot> | undefined, Params>
+  | FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, Params> {
   const data = event.data
     ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
     : undefined;
@@ -637,25 +634,18 @@ export function makeChangedFirestoreEvent<Params>(
   };
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
-  return firestoreEvent;
-}
 
-export function makeChangedFirestoreAuthEvent<Params>(
-  event: RawFirestoreAuthEvent,
-  params: Params
-): FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, Params> {
-  const data = event.data
-    ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
-    : undefined;
-  const firestoreEvent: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, Params> = {
-    ...event,
-    params,
-    data,
-    authType: event.authtype,
-    authId: event.authid,
-  };
-  delete (firestoreEvent as any).datacontenttype;
-  delete (firestoreEvent as any).dataschema;
+  if ("authtype" in event) {
+    const eventWithAuth = {
+      ...firestoreEvent,
+      authType: event.authtype,
+      authId: event.authid,
+    };
+    delete (eventWithAuth as any).authtype;
+    delete (eventWithAuth as any).authid;
+    return eventWithAuth;
+  }
+
   return firestoreEvent;
 }
 
@@ -704,9 +694,7 @@ export function makeEndpoint(
 /** @internal */
 export function onOperation<
   Document extends string,
-  Event extends
-    | FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>
-    | FirestoreAuthEvent<QueryDocumentSnapshot, ParamsOf<Document>>
+  Event extends FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -721,10 +709,7 @@ export function onOperation<
       typeof document === "string" ? document : document.value()
     );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent =
-      "authid" in raw
-        ? makeFirestoreAuthEvent(eventType, event, params)
-        : makeFirestoreEvent(eventType, event, params);
+    const firestoreEvent = makeFirestoreEvent(eventType, event, params);
     return wrapTraceContext(withInit(handler))(firestoreEvent);
   };
 
@@ -738,9 +723,7 @@ export function onOperation<
 /** @internal */
 export function onChangedOperation<
   Document extends string,
-  Event extends
-    | FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
-    | FirestoreAuthEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+  Event extends FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -755,10 +738,7 @@ export function onChangedOperation<
       typeof document === "string" ? document : document.value()
     );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent =
-      "authid" in raw
-        ? makeChangedFirestoreAuthEvent(event, params)
-        : makeChangedFirestoreEvent(event, params);
+    const firestoreEvent = makeChangedFirestoreEvent(event, params);
     return wrapTraceContext(withInit(handler))(firestoreEvent);
   };
 

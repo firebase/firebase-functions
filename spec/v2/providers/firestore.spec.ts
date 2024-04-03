@@ -40,8 +40,6 @@ const eventBase = {
   datacontenttype: "application/protobuf",
   dataschema:
     "https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto",
-  authtype: "unknown",
-  authid: "1234",
   id: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
   source: "projects/my-project/databases/my-db/documents/d",
   subject: "documents/foo/fGRodw71mHutZ4wGDuT8",
@@ -90,8 +88,8 @@ function makeAuthEvent(data?: any): firestore.RawFirestoreAuthEvent {
   return {
     ...eventBase,
     data,
-    userId: "userId",
-    authType: "user",
+    authid: "userId",
+    authtype: "unknown",
   } as firestore.RawFirestoreAuthEvent;
 }
 
@@ -919,22 +917,10 @@ describe("firestore", () => {
 
       expect(event.data.data()).to.deep.eq({ hello: "delete world" });
     });
-  });
 
-  describe("makeFirestoreAuthEvent", () => {
-    it("should make event from an event without data", () => {
-      const event = firestore.makeFirestoreAuthEvent(
-        firestore.createdEventType,
-        makeAuthEvent(),
-        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
-      );
-
-      expect(event.data).to.eq(undefined);
-    });
-
-    it("should make event from a created event", () => {
-      const event = firestore.makeFirestoreAuthEvent(
-        firestore.createdEventType,
+    it("should make event from a created event with auth context", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.createdEventWithAuthContextType,
         makeAuthEvent(makeEncodedProtobuf(createdProto)),
         firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
       );
@@ -942,14 +928,14 @@ describe("firestore", () => {
       expect(event.data.data()).to.deep.eq({ hello: "create world" });
     });
 
-    it("should make event from a deleted event", () => {
-      const event = firestore.makeFirestoreAuthEvent(
-        firestore.deletedEventType,
-        makeAuthEvent(makeEncodedProtobuf(deletedProto)),
+    it("should include auth fields if provided in raw event", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.createdEventWithAuthContextType,
+        makeAuthEvent(makeEncodedProtobuf(createdProto)),
         firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
       );
 
-      expect(event.data.data()).to.deep.eq({ hello: "delete world" });
+      expect(event).to.include({ authId: "userId", authType: "unknown" });
     });
   });
 
@@ -984,35 +970,13 @@ describe("firestore", () => {
     });
   });
 
-  describe("makeChangedFirestoreEvent", () => {
-    it("should make event from an event without data", () => {
-      const event = firestore.makeChangedFirestoreAuthEvent(
-        makeAuthEvent(),
-        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
-      );
+  it("should include auth fields if provided in raw event", () => {
+    const event = firestore.makeChangedFirestoreEvent(
+      makeAuthEvent(makeEncodedProtobuf(writtenProto)),
+      firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+    );
 
-      expect(event.data).to.eq(undefined);
-    });
-
-    it("should make event from an updated event", () => {
-      const event = firestore.makeChangedFirestoreEvent(
-        makeAuthEvent(makeEncodedProtobuf(updatedProto)),
-        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
-      );
-
-      expect(event.data.before.data()).to.deep.eq({ hello: "old world" });
-      expect(event.data.after.data()).to.deep.eq({ hello: "new world" });
-    });
-
-    it("should make event from a written event", () => {
-      const event = firestore.makeChangedFirestoreEvent(
-        makeAuthEvent(makeEncodedProtobuf(writtenProto)),
-        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
-      );
-
-      expect(event.data.before.data()).to.deep.eq({});
-      expect(event.data.after.data()).to.deep.eq({ hello: "a new world" });
-    });
+    expect(event).to.include({ authId: "userId", authType: "unknown" });
   });
 
   describe("makeEndpoint", () => {
