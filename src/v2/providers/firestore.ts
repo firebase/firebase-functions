@@ -236,13 +236,6 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
     event: FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>> {
-  // const fn = (
-  //   event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>> & {
-  //     foo: string;
-  //   }
-  // ): any => {
-  //   return event;
-  // };
   return onChangedOperation(writtenEventWithAuthContextType, documentOrOpts, handler);
 }
 
