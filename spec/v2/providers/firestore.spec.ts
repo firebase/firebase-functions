@@ -40,8 +40,6 @@ const eventBase = {
   datacontenttype: "application/protobuf",
   dataschema:
     "https://github.com/googleapis/google-cloudevents/blob/main/proto/google/events/cloud/firestore/v1/data.proto",
-  authtype: "unknown",
-  authid: "1234",
   id: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
   source: "projects/my-project/databases/my-db/documents/d",
   subject: "documents/foo/fGRodw71mHutZ4wGDuT8",
@@ -84,6 +82,15 @@ function makeEvent(data?: any): firestore.RawFirestoreEvent {
     ...eventBase,
     data,
   } as firestore.RawFirestoreEvent;
+}
+
+function makeAuthEvent(data?: any): firestore.RawFirestoreAuthEvent {
+  return {
+    ...eventBase,
+    data,
+    authid: "userId",
+    authtype: "unknown",
+  } as firestore.RawFirestoreAuthEvent;
 }
 
 const createdData = {
@@ -910,6 +917,26 @@ describe("firestore", () => {
 
       expect(event.data.data()).to.deep.eq({ hello: "delete world" });
     });
+
+    it("should make event from a created event with auth context", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.createdEventWithAuthContextType,
+        makeAuthEvent(makeEncodedProtobuf(createdProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.data()).to.deep.eq({ hello: "create world" });
+    });
+
+    it("should include auth fields if provided in raw event", () => {
+      const event = firestore.makeFirestoreEvent(
+        firestore.createdEventWithAuthContextType,
+        makeAuthEvent(makeEncodedProtobuf(createdProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event).to.include({ authId: "userId", authType: "unknown" });
+    });
   });
 
   describe("makeChangedFirestoreEvent", () => {
@@ -941,6 +968,15 @@ describe("firestore", () => {
       expect(event.data.before.data()).to.deep.eq({});
       expect(event.data.after.data()).to.deep.eq({ hello: "a new world" });
     });
+  });
+
+  it("should include auth fields if provided in raw event", () => {
+    const event = firestore.makeChangedFirestoreEvent(
+      makeAuthEvent(makeEncodedProtobuf(writtenProto)),
+      firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+    );
+
+    expect(event).to.include({ authId: "userId", authType: "unknown" });
   });
 
   describe("makeEndpoint", () => {
