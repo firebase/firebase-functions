@@ -558,6 +558,23 @@ describe("firestore", () => {
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentWrittenWithAuthContext("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onDocumentCreatedWithAuthContext", () => {
@@ -604,6 +621,23 @@ describe("firestore", () => {
 
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentCreatedWithAuthContext("path", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 
@@ -652,6 +686,23 @@ describe("firestore", () => {
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentUpdatedWithAuthContext("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onDocumentDeletedWithAuthContext", () => {
@@ -698,6 +749,23 @@ describe("firestore", () => {
 
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("calls init function", async () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: {
+          oldValue: null,
+          value: null,
+        },
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await firestore.onDocumentDeletedWithAuthContext("path", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 
