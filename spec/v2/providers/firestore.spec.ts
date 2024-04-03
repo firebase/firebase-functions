@@ -86,6 +86,15 @@ function makeEvent(data?: any): firestore.RawFirestoreEvent {
   } as firestore.RawFirestoreEvent;
 }
 
+function makeAuthEvent(data?: any): firestore.RawFirestoreAuthEvent {
+  return {
+    ...eventBase,
+    data,
+    userId: "userId",
+    authType: "user",
+  } as firestore.RawFirestoreAuthEvent;
+}
+
 const createdData = {
   value: {
     fields: {
@@ -912,6 +921,38 @@ describe("firestore", () => {
     });
   });
 
+  describe("makeFirestoreAuthEvent", () => {
+    it("should make event from an event without data", () => {
+      const event = firestore.makeFirestoreAuthEvent(
+        firestore.createdEventType,
+        makeAuthEvent(),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data).to.eq(undefined);
+    });
+
+    it("should make event from a created event", () => {
+      const event = firestore.makeFirestoreAuthEvent(
+        firestore.createdEventType,
+        makeAuthEvent(makeEncodedProtobuf(createdProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.data()).to.deep.eq({ hello: "create world" });
+    });
+
+    it("should make event from a deleted event", () => {
+      const event = firestore.makeFirestoreAuthEvent(
+        firestore.deletedEventType,
+        makeAuthEvent(makeEncodedProtobuf(deletedProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.data()).to.deep.eq({ hello: "delete world" });
+    });
+  });
+
   describe("makeChangedFirestoreEvent", () => {
     it("should make event from an event without data", () => {
       const event = firestore.makeChangedFirestoreEvent(
@@ -942,6 +983,38 @@ describe("firestore", () => {
       expect(event.data.after.data()).to.deep.eq({ hello: "a new world" });
     });
   });
+
+  describe("makeChangedFirestoreEvent", () => {
+    it("should make event from an event without data", () => {
+      const event = firestore.makeChangedFirestoreAuthEvent(
+        makeAuthEvent(),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data).to.eq(undefined);
+    });
+
+    it("should make event from an updated event", () => {
+      const event = firestore.makeChangedFirestoreEvent(
+        makeAuthEvent(makeEncodedProtobuf(updatedProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.before.data()).to.deep.eq({ hello: "old world" });
+      expect(event.data.after.data()).to.deep.eq({ hello: "new world" });
+    });
+
+    it("should make event from a written event", () => {
+      const event = firestore.makeChangedFirestoreEvent(
+        makeAuthEvent(makeEncodedProtobuf(writtenProto)),
+        firestore.makeParams("foo/fGRodw71mHutZ4wGDuT8", new PathPattern("foo/{bar}"))
+      );
+
+      expect(event.data.before.data()).to.deep.eq({});
+      expect(event.data.after.data()).to.deep.eq({ hello: "a new world" });
+    });
+  });
+
 
   describe("makeEndpoint", () => {
     it("should make an endpoint with a document path pattern", () => {

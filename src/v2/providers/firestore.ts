@@ -93,7 +93,11 @@ export interface RawFirestoreEvent extends CloudEvent<Uint8Array | RawFirestoreD
   document: string;
   datacontenttype?: string;
   dataschema: string;
-  authtype?: string;
+}
+
+/** @internal */
+export interface RawFirestoreAuthEvent extends RawFirestoreEvent {
+  authtype?: AuthType;
   authid?: string;
 }
 
@@ -125,15 +129,19 @@ export interface FirestoreEvent<T, Params = Record<string, string>> extends Clou
   namespace: string;
   /** The document path */
   document: string;
-  /** The type of principal that triggered the event */
-  authType?: AuthType;
-  /** The unique identifier for the principal */
-  authId?: string;
   /**
    * An object containing the values of the path patterns.
    * Only named capture groups will be populated - {key}, {key=*}, {key=**}
    */
   params: Params;
+}
+
+export interface FirestoreAuthEvent<T, Params = Record<string, string>>
+  extends FirestoreEvent<T, Params> {
+  /** The type of principal that triggered the event */
+  authType: AuthType;
+  /** The unique identifier for the principal */
+  authId?: string;
 }
 
 /** DocumentOptions extend EventHandlerOptions with provided document and optional database and namespace.  */
@@ -197,9 +205,9 @@ export function onDocumentWritten<Document extends string>(
 export function onDocumentWrittenWithAuthContext<Document extends string>(
   document: Document,
   handler: (
-    event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is created, updated, or deleted in Firestore.
@@ -211,9 +219,9 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
 export function onDocumentWrittenWithAuthContext<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is created, updated, or deleted in Firestore.
@@ -223,12 +231,14 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
  * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
  */
 export function onDocumentWrittenWithAuthContext<Document extends string>(
-  documentorOpts: Document | DocumentOptions<Document>,
+  documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>> {
-  return onChangedOperation(writtenEventWithAuthContextType, documentorOpts, handler);
+): CloudFunction<
+  FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+> {
+  return onChangedOperation(writtenEventWithAuthContextType, documentOrOpts, handler);
 }
 
 /**
@@ -282,9 +292,9 @@ export function onDocumentCreated<Document extends string>(
 export function onDocumentCreatedWithAuthContext<Document extends string>(
   document: Document,
   handler: (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is created in Firestore.
@@ -296,9 +306,9 @@ export function onDocumentCreatedWithAuthContext<Document extends string>(
 export function onDocumentCreatedWithAuthContext<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is created in Firestore.
@@ -309,9 +319,9 @@ export function onDocumentCreatedWithAuthContext<Document extends string>(
 export function onDocumentCreatedWithAuthContext<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
   return onOperation(createdEventWithAuthContextType, documentOrOpts, handler);
 }
 
@@ -365,9 +375,10 @@ export function onDocumentUpdated<Document extends string>(
 export function onDocumentUpdatedWithAuthContext<Document extends string>(
   document: Document,
   handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+
 /**
  * Event handler that triggers when a document is updated in Firestore.
  * This trigger also provides the authentication context of the principal who triggered the event.
@@ -378,9 +389,9 @@ export function onDocumentUpdatedWithAuthContext<Document extends string>(
 export function onDocumentUpdatedWithAuthContext<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is updated in Firestore.
@@ -391,9 +402,11 @@ export function onDocumentUpdatedWithAuthContext<Document extends string>(
 export function onDocumentUpdatedWithAuthContext<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>> {
+): CloudFunction<
+  FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+> {
   return onChangedOperation(updatedEventWithAuthContextType, documentOrOpts, handler);
 }
 
@@ -448,9 +461,9 @@ export function onDocumentDeleted<Document extends string>(
 export function onDocumentDeletedWithAuthContext<Document extends string>(
   document: Document,
   handler: (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is deleted in Firestore.
@@ -462,9 +475,9 @@ export function onDocumentDeletedWithAuthContext<Document extends string>(
 export function onDocumentDeletedWithAuthContext<Document extends string>(
   opts: DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
 
 /**
  * Event handler that triggers when a document is deleted in Firestore.
@@ -475,9 +488,9 @@ export function onDocumentDeletedWithAuthContext<Document extends string>(
 export function onDocumentDeletedWithAuthContext<Document extends string>(
   documentOrOpts: Document | DocumentOptions<Document>,
   handler: (
-    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
   ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
   return onOperation(deletedEventWithAuthContextType, documentOrOpts, handler);
 }
 
@@ -578,9 +591,32 @@ export function makeFirestoreEvent<Params>(
     ...event,
     params,
     data,
-    authType: event.authtype as AuthType,
+  };
+
+  delete (firestoreEvent as any).datacontenttype;
+  delete (firestoreEvent as any).dataschema;
+  return firestoreEvent;
+}
+
+/** @internal */
+export function makeFirestoreAuthEvent<Params>(
+  eventType: string,
+  event: RawFirestoreAuthEvent,
+  params: Params
+): FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params> {
+  const data = event.data
+    ? eventType === createdEventType
+      ? createSnapshot(event)
+      : createBeforeSnapshot(event)
+    : undefined;
+  const firestoreEvent: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params> = {
+    ...event,
+    params,
+    data,
+    authType: event.authtype,
     authId: event.authid,
   };
+
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
   return firestoreEvent;
@@ -598,7 +634,24 @@ export function makeChangedFirestoreEvent<Params>(
     ...event,
     params,
     data,
-    authType: event.authtype as AuthType,
+  };
+  delete (firestoreEvent as any).datacontenttype;
+  delete (firestoreEvent as any).dataschema;
+  return firestoreEvent;
+}
+
+export function makeChangedFirestoreAuthEvent<Params>(
+  event: RawFirestoreAuthEvent,
+  params: Params
+): FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, Params> {
+  const data = event.data
+    ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
+    : undefined;
+  const firestoreEvent: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, Params> = {
+    ...event,
+    params,
+    data,
+    authType: event.authtype,
     authId: event.authid,
   };
   delete (firestoreEvent as any).datacontenttype;
@@ -649,21 +702,29 @@ export function makeEndpoint(
 }
 
 /** @internal */
-export function onOperation<Document extends string>(
+export function onOperation<
+  Document extends string,
+  Event extends
+    | FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>
+    | FirestoreAuthEvent<QueryDocumentSnapshot, ParamsOf<Document>>
+>(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
-  handler: (event: FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>) => any | Promise<any>
-): CloudFunction<FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>> {
+  handler: (event: Event) => any | Promise<any>
+): CloudFunction<Event> {
   const { document, database, namespace, opts } = getOpts(documentOrOpts);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent;
+    const event = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
     const documentPattern = new PathPattern(
       typeof document === "string" ? document : document.value()
     );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent = makeFirestoreEvent(eventType, event, params);
+    const firestoreEvent =
+      "authid" in raw
+        ? makeFirestoreAuthEvent(eventType, event, params)
+        : makeFirestoreEvent(eventType, event, params);
     return wrapTraceContext(withInit(handler))(firestoreEvent);
   };
 
@@ -675,23 +736,29 @@ export function onOperation<Document extends string>(
 }
 
 /** @internal */
-export function onChangedOperation<Document extends string>(
+export function onChangedOperation<
+  Document extends string,
+  Event extends
+    | FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+    | FirestoreAuthEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+>(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
-  handler: (
-    event: FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
-  ) => any | Promise<any>
-): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>> {
+  handler: (event: Event) => any | Promise<any>
+): CloudFunction<Event> {
   const { document, database, namespace, opts } = getOpts(documentOrOpts);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent;
+    const event = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
     const documentPattern = new PathPattern(
       typeof document === "string" ? document : document.value()
     );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent = makeChangedFirestoreEvent(event, params);
+    const firestoreEvent =
+      "authid" in raw
+        ? makeChangedFirestoreAuthEvent(event, params)
+        : makeChangedFirestoreEvent(event, params);
     return wrapTraceContext(withInit(handler))(firestoreEvent);
   };
 
