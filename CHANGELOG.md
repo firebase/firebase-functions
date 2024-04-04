@@ -1,1 +1,0 @@
-- Add new 2nd gen Firestore auth context triggers. (#1519)
