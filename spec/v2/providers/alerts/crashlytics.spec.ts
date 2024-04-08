@@ -3,6 +3,7 @@ import * as alerts from "../../../../src/v2/providers/alerts";
 import * as crashlytics from "../../../../src/v2/providers/alerts/crashlytics";
 import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
+import { onInit } from "../../../../src/v2/core";
 
 const ALERT_TYPE = "new-alert-type";
 const APPID = "123456789";
@@ -103,6 +104,16 @@ describe("crashlytics", () => {
             retry: false,
           },
         });
+      });
+
+      it("calls init function", async () => {
+        const func = crashlytics[method](APPID, myHandler);
+
+        let hello;
+        onInit(() => (hello = "world"));
+        expect(hello).to.be.undefined;
+        await func({ data: "crash" } as any);
+        expect(hello).to.equal("world");
       });
     });
   }

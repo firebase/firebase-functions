@@ -29,6 +29,7 @@ import { CloudEvent, CloudFunction } from "../../core";
 import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
+import { withInit } from "../../../common/onInit";
 
 /**
  * The internal payload object for billing plan updates.
@@ -152,7 +153,7 @@ export function onOperation<T>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(convertAlertAndApp(raw) as BillingEvent<T>);
+    return wrapTraceContext(withInit(handler))(convertAlertAndApp(raw) as BillingEvent<T>);
   };
 
   func.run = handler;

@@ -32,6 +32,7 @@ import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
 import { SecretParam } from "../../../params/types";
+import { withInit } from "../../../common/onInit";
 
 /** Generic Crashlytics issue interface */
 export interface Issue {
@@ -581,7 +582,7 @@ export function onOperation<T>(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler(convertAlertAndApp(raw) as CrashlyticsEvent<T>));
+    return wrapTraceContext(withInit(handler))(convertAlertAndApp(raw) as CrashlyticsEvent<T>);
   };
 
   func.run = handler;
