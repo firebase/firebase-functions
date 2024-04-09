@@ -1,0 +1,1 @@
+- Add option to get named firestore instance for v2 firestore functions (#1550).
