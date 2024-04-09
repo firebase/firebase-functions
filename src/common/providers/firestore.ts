@@ -52,9 +52,9 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 }
 
 /** @internal */
-export function createSnapshotFromProtobuf(data: Uint8Array, path: string) {
+export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
   if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
+    firestoreInstance = firestore.getFirestore(databaseId);
   }
   try {
     const dataBuffer = Buffer.from(data);
@@ -68,9 +68,13 @@ export function createSnapshotFromProtobuf(data: Uint8Array, path: string) {
 }
 
 /** @internal */
-export function createBeforeSnapshotFromProtobuf(data: Uint8Array, path: string) {
+export function createBeforeSnapshotFromProtobuf(
+  data: Uint8Array,
+  path: string,
+  databaseId: string
+) {
   if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
+    firestoreInstance = firestore.getFirestore(databaseId);
   }
   try {
     const dataBuffer = Buffer.from(data);
@@ -88,10 +92,13 @@ export function createSnapshotFromJson(
   data: any,
   source: string,
   createTime: string | undefined,
-  updateTime: string | undefined
+  updateTime: string | undefined,
+  databaseId?: string
 ) {
   if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
+    firestoreInstance = databaseId
+      ? firestore.getFirestore(databaseId)
+      : firestore.getFirestore(getApp());
   }
   const valueProto = _getValueProto(data, source, "value");
   let timeString = createTime || updateTime;
@@ -110,11 +117,15 @@ export function createBeforeSnapshotFromJson(
   data: any,
   source: string,
   createTime: string | undefined,
-  updateTime: string | undefined
+  updateTime: string | undefined,
+  databaseId?: string
 ) {
   if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp());
+    firestoreInstance = databaseId
+      ? firestore.getFirestore(databaseId)
+      : firestore.getFirestore(getApp());
   }
+
   const oldValueProto = _getValueProto(data, source, "oldValue");
   const oldReadTime = dateToTimestampProto(createTime || updateTime);
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, "json");
