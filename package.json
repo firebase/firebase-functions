@@ -84,7 +84,7 @@
         "lib/v1/providers/auth"
       ],
       "v1/database": [
-        "lib/v1/privders/database"
+        "lib/v1/providers/database"
       ],
       "v1/firestore": [
         "lib/v1/providers/firestore"
