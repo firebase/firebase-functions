@@ -1,1 +1,2 @@
 - Add option to get named firestore instance for v2 firestore functions (#1550).
+- Remove firebase-admin v10 dependency for Firestore triggers multi-DB support (#1555).
