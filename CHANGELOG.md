@@ -1,0 +1,1 @@
+- Fix App fetching for named firestore instances (#1562).

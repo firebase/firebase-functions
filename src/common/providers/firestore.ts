@@ -54,7 +54,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 /** @internal */
 export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
   if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(databaseId);
+    firestoreInstance = firestore.getFirestore(getApp(), databaseId);
   }
   try {
     const dataBuffer = Buffer.from(data);
@@ -74,7 +74,7 @@ export function createBeforeSnapshotFromProtobuf(
   databaseId: string
 ) {
   if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(databaseId);
+    firestoreInstance = firestore.getFirestore(getApp(), databaseId);
   }
   try {
     const dataBuffer = Buffer.from(data);
@@ -97,7 +97,7 @@ export function createSnapshotFromJson(
 ) {
   if (!firestoreInstance) {
     firestoreInstance = databaseId
-      ? firestore.getFirestore(databaseId)
+      ? firestore.getFirestore(getApp(), databaseId)
       : firestore.getFirestore(getApp());
   }
   const valueProto = _getValueProto(data, source, "value");
@@ -122,7 +122,7 @@ export function createBeforeSnapshotFromJson(
 ) {
   if (!firestoreInstance) {
     firestoreInstance = databaseId
-      ? firestore.getFirestore(databaseId)
+      ? firestore.getFirestore(getApp(), databaseId)
       : firestore.getFirestore(getApp());
   }
 
