@@ -210,8 +210,8 @@ describe("identity", () => {
 
   describe("parseMetadata", () => {
     const decodedMetadata = {
-      last_sign_in_time: 1476235905,
-      creation_time: 1476136676,
+      last_sign_in_time: 1476235905000,
+      creation_time: 1476136676000,
     };
     const metadata = {
       lastSignInTime: new Date(1476235905000).toUTCString(),
@@ -377,8 +377,8 @@ describe("identity", () => {
       photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
       tokens_valid_after_time: 1476136676,
       metadata: {
-        last_sign_in_time: 1476235905,
-        creation_time: 1476136676,
+        last_sign_in_time: 1476235905000,
+        creation_time: 1476136676000,
       },
       custom_claims: {
         admin: true,
@@ -640,8 +640,8 @@ describe("identity", () => {
           photo_url: "https://lh3.googleusercontent.com/1234567890/photo.jpg",
           tokens_valid_after_time: 1476136676,
           metadata: {
-            last_sign_in_time: 1476235905,
-            creation_time: 1476136676,
+            last_sign_in_time: 1476235905000,
+            creation_time: 1476136676000,
           },
           custom_claims: {
             admin: true,

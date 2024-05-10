@@ -69,18 +69,19 @@ const EVENT_MAPPING: Record<string, string> = {
 };
 
 /**
- * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
- * SDK.
+ * The `UserRecord` passed to Cloud Functions is the same
+ * {@link https://firebase.google.com/docs/reference/admin/node/firebase-admin.auth.userrecord | UserRecord}
+ * that is returned by the Firebase Admin SDK.
  */
 export type UserRecord = auth.UserRecord;
 
 /**
- * UserInfo that is part of the UserRecord
+ * `UserInfo` that is part of the `UserRecord`.
  */
 export type UserInfo = auth.UserInfo;
 
 /**
- * Helper class to create the user metadata in a UserRecord object
+ * Helper class to create the user metadata in a `UserRecord` object.
  */
 export class UserRecordMetadata implements auth.UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
@@ -95,9 +96,9 @@ export class UserRecordMetadata implements auth.UserMetadata {
 }
 
 /**
- * Helper function that creates a UserRecord Class from data sent over the wire.
+ * Helper function that creates a `UserRecord` class from data sent over the wire.
  * @param wireData data sent over the wire
- * @returns an instance of UserRecord with correct toJSON functions
+ * @returns an instance of `UserRecord` with correct toJSON functions
  */
 export function userRecordConstructor(wireData: Record<string, unknown>): UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
@@ -163,7 +164,7 @@ export function userRecordConstructor(wireData: Record<string, unknown>): UserRe
 }
 
 /**
- * User info that is part of the AuthUserRecord
+ * User info that is part of the `AuthUserRecord`.
  */
 export interface AuthUserInfo {
   /**
@@ -243,7 +244,7 @@ export interface AuthMultiFactorSettings {
 }
 
 /**
- * The UserRecord passed to auth blocking Cloud Functions from the identity platform.
+ * The `UserRecord` passed to auth blocking functions from the identity platform.
  */
 export interface AuthUserRecord {
   /**
@@ -340,7 +341,7 @@ export interface AuthEventContext extends EventContext {
   credential?: Credential;
 }
 
-/** Defines the auth event for v2 blocking events */
+/** Defines the auth event for 2nd gen blocking events */
 export interface AuthBlockingEvent extends AuthEventContext {
   data?: AuthUserRecord;
 }
@@ -362,7 +363,12 @@ export interface BeforeSmsResponse {
   smsType?: SmsType;
 }
 
-/** The handler response type for beforeCreate blocking events */
+/**
+ * The reCAPTCHA action options.
+ */
+export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
+
+/** The handler response type for `beforeCreate` blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
   disabled?: boolean;
@@ -372,7 +378,7 @@ export interface BeforeCreateResponse {
   recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
-/** The handler response type for beforeSignIn blocking events */
+/** The handler response type for `beforeSignIn` blocking events */
 export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
@@ -498,7 +504,7 @@ type HandlerV2 = (
   | Promise<void>;
 
 /**
- * Checks for a valid identity platform web request, otherwise throws an HttpsError
+ * Checks for a valid identity platform web request, otherwise throws an HttpsError.
  * @internal
  */
 export function isValidRequest(req: express.Request): boolean {
@@ -534,15 +540,15 @@ function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
 }
 
 /**
- * Helper function to parse the decoded metadata object into a UserMetaData object
+ * Helper function to parse the decoded metadata object into a `UserMetaData` object
  * @internal
  */
 export function parseMetadata(metadata: DecodedPayloadUserRecordMetadata): AuthUserMetadata {
   const creationTime = metadata?.creation_time
-    ? new Date(metadata.creation_time * 1000).toUTCString()
+    ? new Date(metadata.creation_time).toUTCString()
     : null;
   const lastSignInTime = metadata?.last_sign_in_time
-    ? new Date(metadata.last_sign_in_time * 1000).toUTCString()
+    ? new Date(metadata.last_sign_in_time).toUTCString()
     : null;
   return {
     creationTime,
@@ -551,7 +557,7 @@ export function parseMetadata(metadata: DecodedPayloadUserRecordMetadata): AuthU
 }
 
 /**
- * Helper function to parse the decoded user info array into an AuthUserInfo array
+ * Helper function to parse the decoded user info array into an `AuthUserInfo` array.
  * @internal
  */
 export function parseProviderData(
@@ -572,7 +578,7 @@ export function parseProviderData(
 }
 
 /**
- * Helper function to parse the date into a UTC string
+ * Helper function to parse the date into a UTC string.
  * @internal
  */
 export function parseDate(tokensValidAfterTime?: number): string | null {
@@ -665,7 +671,7 @@ export function parseAuthUserRecord(
   };
 }
 
-/** Helper to get the AdditionalUserInfo from the decoded jwt */
+/** Helper to get the `AdditionalUserInfo` from the decoded JWT */
 function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo {
   let profile;
   let username;
@@ -723,7 +729,7 @@ export function generateResponsePayload(
   return result;
 }
 
-/** Helper to get the Credential from the decoded jwt */
+/** Helper to get the Credential from the decoded JWT */
 function parseAuthCredential(decodedJWT: DecodedPayload, time: number): Credential {
   if (
     !decodedJWT.sign_in_attributes &&
