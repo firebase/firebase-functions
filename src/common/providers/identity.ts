@@ -55,7 +55,11 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSendEmail" | "beforeSendSms";
+export type AuthBlockingEventType =
+  | "beforeCreate"
+  | "beforeSignIn"
+  | "beforeSendEmail"
+  | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
@@ -353,6 +357,7 @@ export interface BeforeEmailResponse {
 }
 
 export interface BeforeSmsResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
   phoneNumber?: string;
   smsType?: SmsType;
 }
@@ -466,29 +471,31 @@ export interface UserRecordResponsePayload
 type HandlerV1 = (
   user: AuthUserRecord,
   context: AuthEventContext
-) => BeforeCreateResponse 
-| BeforeSignInResponse 
-| BeforeEmailResponse 
-| BeforeSmsResponse 
-| void 
-| Promise<BeforeCreateResponse> 
-| Promise<BeforeSignInResponse> 
-| Promise<BeforeEmailResponse> 
-| Promise<BeforeSmsResponse> 
-| Promise<void>;
+) =>
+  | BeforeCreateResponse
+  | BeforeSignInResponse
+  | BeforeEmailResponse
+  | BeforeSmsResponse
+  | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
+  | Promise<BeforeEmailResponse>
+  | Promise<BeforeSmsResponse>
+  | Promise<void>;
 
 type HandlerV2 = (
   event: AuthBlockingEvent
-) => BeforeCreateResponse 
-| BeforeSignInResponse 
-| BeforeEmailResponse 
-| BeforeSmsResponse 
-| void 
-| Promise<BeforeCreateResponse> 
-| Promise<BeforeSignInResponse> 
-| Promise<BeforeEmailResponse> 
-| Promise<BeforeSmsResponse> 
-| Promise<void>;
+) =>
+  | BeforeCreateResponse
+  | BeforeSignInResponse
+  | BeforeEmailResponse
+  | BeforeSmsResponse
+  | void
+  | Promise<BeforeCreateResponse>
+  | Promise<BeforeSignInResponse>
+  | Promise<BeforeEmailResponse>
+  | Promise<BeforeSmsResponse>
+  | Promise<void>;
 
 /**
  * Checks for a valid identity platform web request, otherwise throws an HttpsError

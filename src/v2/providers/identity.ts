@@ -329,42 +329,45 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) => BeforeCreateResponse 
-      | BeforeSignInResponse 
-      | BeforeEmailResponse 
-      | BeforeSmsResponse 
-      | void 
-      | Promise<BeforeCreateResponse> 
-      | Promise<BeforeSignInResponse> 
-      | Promise<BeforeEmailResponse> 
-      | Promise<BeforeSmsResponse> 
-      | Promise<void>),
+      ) =>
+        | BeforeCreateResponse
+        | BeforeSignInResponse
+        | BeforeEmailResponse
+        | BeforeSmsResponse
+        | void
+        | Promise<BeforeCreateResponse>
+        | Promise<BeforeSignInResponse>
+        | Promise<BeforeEmailResponse>
+        | Promise<BeforeSmsResponse>
+        | Promise<void>),
   handler: (
     event: AuthBlockingEvent
-  ) => BeforeCreateResponse 
-  | BeforeSignInResponse 
-  | BeforeEmailResponse 
-  | BeforeSmsResponse 
-  | void 
-  | Promise<BeforeCreateResponse> 
-  | Promise<BeforeSignInResponse> 
-  | Promise<BeforeEmailResponse> 
-  | Promise<BeforeSmsResponse> 
-  | Promise<void>
+  ) =>
+    | BeforeCreateResponse
+    | BeforeSignInResponse
+    | BeforeEmailResponse
+    | BeforeSmsResponse
+    | void
+    | Promise<BeforeCreateResponse>
+    | Promise<BeforeSignInResponse>
+    | Promise<BeforeEmailResponse>
+    | Promise<BeforeSmsResponse>
+    | Promise<void>
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) => BeforeCreateResponse 
-    | BeforeSignInResponse 
-    | BeforeEmailResponse 
-    | BeforeSmsResponse 
-    | void 
-    | Promise<BeforeCreateResponse> 
-    | Promise<BeforeSignInResponse> 
-    | Promise<BeforeEmailResponse> 
-    | Promise<BeforeSmsResponse> 
-    | Promise<void>;
+    ) =>
+      | BeforeCreateResponse
+      | BeforeSignInResponse
+      | BeforeEmailResponse
+      | BeforeSmsResponse
+      | void
+      | Promise<BeforeCreateResponse>
+      | Promise<BeforeSignInResponse>
+      | Promise<BeforeEmailResponse>
+      | Promise<BeforeSmsResponse>
+      | Promise<void>;
     optsOrHandler = {};
   }
 
