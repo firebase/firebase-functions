@@ -34,6 +34,7 @@ import { Expression } from "../../params";
 import { wrapTraceContext } from "../trace";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 export { DataSnapshot };
 
@@ -468,7 +469,9 @@ export function onChangedOperation<Ref extends string>(
     const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
-    return wrapTraceContext(handler)(databaseEvent);
+    // Intentionally put init in the context of traces in case there is something
+    // expensive to observe.
+    return wrapTraceContext(withInit(handler))(databaseEvent);
   };
 
   func.run = handler;
@@ -496,7 +499,7 @@ export function onOperation<Ref extends string>(
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const data = eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
-    return handler(databaseEvent);
+    return wrapTraceContext(withInit(handler))(databaseEvent);
   };
 
   func.run = handler;

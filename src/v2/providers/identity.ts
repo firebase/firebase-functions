@@ -44,6 +44,7 @@ import { Expression } from "../../params";
 import { initV2Endpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
@@ -283,7 +284,7 @@ export function beforeOperation(
   // handler takes one argument. This is something common/providers/identity depends on.
   // const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
   const annotatedHandler: AgnosticHandler = Object.assign(handler, { platform: "gcfv2" });
-  const func: any = wrapTraceContext(wrapHandler(eventType, annotatedHandler));
+  const func: any = wrapTraceContext(withInit(wrapHandler(eventType, annotatedHandler)));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

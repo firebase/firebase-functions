@@ -40,6 +40,7 @@ import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
+import { withInit } from "../../common/onInit";
 
 export { AuthData, Request, RateLimits, RetryConfig };
 
@@ -210,7 +211,7 @@ export function onTaskDispatched<Args = any>(
   // onDispatchHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: Request<Args>) => handler(req);
-  const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
+  const func: any = wrapTraceContext(withInit(onDispatchHandler(fixedLen)));
 
   Object.defineProperty(func, "__trigger", {
     get: () => {
