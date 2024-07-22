@@ -27,7 +27,6 @@ import {
   BeforeCreateResponse,
   BeforeEmailResponse,
   BeforeSignInResponse,
-  AgnosticHandler,
   HandlerV1,
   HttpsError,
   MaybeAsync,
@@ -204,7 +203,7 @@ export class UserBuilder {
     const idToken = this.userOptions?.blockingOptions?.idToken || false;
     const refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
-    const annotatedHandler: AgnosticHandler = Object.assign(handler, { platform: "gcfv1" });
+    const annotatedHandler = Object.assign(handler, { platform: "gcfv1" as const });
     const func: any = wrapHandler(eventType, annotatedHandler);
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;

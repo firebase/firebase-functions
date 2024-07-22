@@ -36,7 +36,6 @@ import {
   HttpsError,
   wrapHandler,
   MaybeAsync,
-  AgnosticHandler,
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
@@ -243,7 +242,7 @@ export function beforeEmailSent(
  * @param handler - Event handler that is run before an email is sent to a user.
  */
 export function beforeEmailSent(
-  opts: BlockingOptions,
+  opts: Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">,
   handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
 ): BlockingFunction;
 
@@ -254,7 +253,7 @@ export function beforeEmailSent(
  */
 export function beforeEmailSent(
   optsOrHandler:
-    | BlockingOptions
+    | Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">
     | ((event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>),
   handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
 ): BlockingFunction {
@@ -283,7 +282,7 @@ export function beforeOperation(
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
   // const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const annotatedHandler: AgnosticHandler = Object.assign(handler, { platform: "gcfv2" });
+  const annotatedHandler = Object.assign(handler, { platform: "gcfv2" as const });
   const func: any = wrapTraceContext(withInit(wrapHandler(eventType, annotatedHandler)));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;

@@ -349,6 +349,7 @@ export interface AuthBlockingEvent extends AuthEventContext {
 /** The reCAPTCHA action options. */
 export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
 
+/** The handler response type for `beforeEmailSent` blocking events */
 export interface BeforeEmailResponse {
   recaptchaActionOverride?: RecaptchaActionOptions;
 }
@@ -399,7 +400,6 @@ interface DecodedPayloadUserRecordEnrolledFactors {
 export interface DecodedPayloadUserRecord {
   uid: string;
   email?: string;
-  email_type?: string;
   email_verified?: boolean;
   phone_number?: string;
   display_name?: string;
@@ -476,8 +476,9 @@ export type HandlerV2 = (
   event: AuthBlockingEvent
 ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
 
-export type AgnosticHandler = (HandlerV1 | HandlerV2) & {
-  platform: string;
+export type AuthBlockingEventHandler = (HandlerV1 | HandlerV2) & {
+  // Specify the GCF gen of the trigger that the auth blocking event handler was written for
+  platform: "gcfv1" | "gcfv2";
 };
 
 /**
@@ -846,7 +847,7 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
 }
 
 /** @internal */
-export function wrapHandler(eventType: AuthBlockingEventType, handler: AgnosticHandler) {
+export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlockingEventHandler) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const projectId = process.env.GCLOUD_PROJECT;
@@ -867,7 +868,10 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AgnosticH
         ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
       let authUserRecord: AuthUserRecord | undefined;
-      if (decodedPayload.user_record) {
+      if (
+        decodedPayload.event_type === "beforeCreate" ||
+        decodedPayload.event_type === "beforeSignIn"
+      ) {
         authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       }
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
