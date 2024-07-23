@@ -1,0 +1,1 @@
+- Add support for beforeEmailSent auth blocking triggers. (#1492)
