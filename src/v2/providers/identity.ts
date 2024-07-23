@@ -273,11 +273,11 @@ export function beforeOperation(
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) => BeforeEmailResponse | void | Promise<BeforeEmailResponse> | Promise<void>;
+    ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
     optsOrHandler = {};
   }
 
-  const { opts, accessToken, idToken, refreshToken } = getOpts(optsOrHandler);
+  const { opts, ...blockingOptions } = getOpts(optsOrHandler);
 
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
@@ -302,9 +302,7 @@ export function beforeOperation(
     blockingTrigger: {
       eventType: legacyEventType,
       options: {
-        accessToken,
-        idToken,
-        refreshToken,
+        ...((eventType === "beforeCreate" || eventType === "beforeSignIn") && blockingOptions),
       },
     },
   };

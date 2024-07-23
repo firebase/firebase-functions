@@ -207,31 +207,30 @@ describe("identity", () => {
         },
       ]);
     });
-  });
 
-  it("should accept options and a handler", () => {
-    const fn = identity.beforeEmailSent(opts, () => Promise.resolve());
+    it("should accept options and a handler", () => {
+      const fn = identity.beforeEmailSent(
+        { region: opts.region, minInstances: opts.minInstances },
+        () => Promise.resolve()
+      );
 
-    expect(fn.__endpoint).to.deep.equal({
-      ...MINIMAL_V2_ENDPOINT,
-      platform: "gcfv2",
-      labels: {},
-      minInstances: 1,
-      region: [REGION],
-      blockingTrigger: {
-        ...BEFORE_EMAIL_TRIGGER,
-        options: {
-          ...BEFORE_EMAIL_TRIGGER.options,
-          accessToken: true,
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        minInstances: 1,
+        region: [REGION],
+        blockingTrigger: {
+          ...BEFORE_EMAIL_TRIGGER,
         },
-      },
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: IDENTITY_TOOLKIT_API,
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
     });
-    expect(fn.__requiredAPIs).to.deep.equal([
-      {
-        api: IDENTITY_TOOLKIT_API,
-        reason: "Needed for auth blocking functions",
-      },
-    ]);
   });
 
   describe("beforeOperation", () => {
@@ -347,10 +346,6 @@ describe("identity", () => {
         region: [REGION],
         blockingTrigger: {
           ...BEFORE_EMAIL_TRIGGER,
-          options: {
-            ...BEFORE_EMAIL_TRIGGER.options,
-            accessToken: true,
-          },
         },
       });
       expect(fn.__requiredAPIs).to.deep.equal([
