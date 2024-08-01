@@ -447,7 +447,7 @@ export function makeEndpoint(
       eventType,
       eventFilters,
       eventFilterPathPatterns,
-      retry: false,
+      retry: opts.retry,
     },
   };
 }
@@ -459,6 +459,7 @@ export function onChangedOperation<Ref extends string>(
   handler: (event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>) => any | Promise<any>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>> {
   const { path, instance, opts } = getOpts(referenceOrOpts);
+  console.log(opts);
 
   const pathPattern = new PathPattern(path);
   const instancePattern = new PathPattern(instance);
