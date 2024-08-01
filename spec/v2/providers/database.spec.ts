@@ -31,7 +31,7 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
     ["@type"]: "type.googleapis.com/google.events.firebase.database.v1.ReferenceEventData",
     data: {},
-    delta: {}
+    delta: {},
   },
   firebasedatabasehost: "firebaseio.com",
   instance: "my-instance",
@@ -41,7 +41,7 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   source: "source",
   specversion: "1.0",
   time: "time",
-  type: "type"
+  type: "type",
 };
 
 describe("database", () => {
@@ -49,7 +49,7 @@ describe("database", () => {
     it("should make params with basic path", () => {
       const event: database.RawRTDBCloudEvent = {
         ...RAW_RTDB_EVENT,
-        ref: "match_a/something/else/nothing/end/match_b"
+        ref: "match_a/something/else/nothing/end/match_b",
       };
 
       expect(
@@ -60,14 +60,14 @@ describe("database", () => {
         )
       ).to.deep.equal({
         a: "match_a",
-        b: "match_b"
+        b: "match_b",
       });
     });
 
     it("should make params with multi segment path", () => {
       const event: database.RawRTDBCloudEvent = {
         ...RAW_RTDB_EVENT,
-        ref: "something/is/a/thing/else/match_a/hello/match_b/world"
+        ref: "something/is/a/thing/else/match_a/hello/match_b/world",
       };
 
       expect(
@@ -78,14 +78,14 @@ describe("database", () => {
         )
       ).to.deep.equal({
         a: "match_a",
-        b: "match_b"
+        b: "match_b",
       });
     });
 
     it("should make params with multi segment path capture", () => {
       const event: database.RawRTDBCloudEvent = {
         ...RAW_RTDB_EVENT,
-        ref: "something/is/a/thing/else/match_a/hello/match_b/world"
+        ref: "something/is/a/thing/else/match_a/hello/match_b/world",
       };
 
       expect(
@@ -97,14 +97,14 @@ describe("database", () => {
       ).to.deep.equal({
         path: "is/a/thing",
         a: "match_a",
-        b: "match_b"
+        b: "match_b",
       });
     });
 
     it("should make params for a full path and instance", () => {
       const event: database.RawRTDBCloudEvent = {
         ...RAW_RTDB_EVENT,
-        ref: "something/is/a/thing/else/match_a/hello/match_b/world"
+        ref: "something/is/a/thing/else/match_a/hello/match_b/world",
       };
 
       expect(
@@ -116,7 +116,7 @@ describe("database", () => {
       ).to.deep.equal({
         path: "is/a/thing",
         a: "match_a",
-        b: "match_b"
+        b: "match_b",
       });
     });
   });
@@ -126,7 +126,7 @@ describe("database", () => {
       expect(database.getOpts("/foo/{bar}/")).to.deep.equal({
         path: "foo/{bar}",
         instance: "*",
-        opts: {}
+        opts: {},
       });
     });
 
@@ -134,14 +134,14 @@ describe("database", () => {
       expect(
         database.getOpts({
           ref: "/foo/{bar}/",
-          region: "us-central1"
+          region: "us-central1",
         })
       ).to.deep.equal({
         path: "foo/{bar}",
         instance: "*",
         opts: {
-          region: "us-central1"
-        }
+          region: "us-central1",
+        },
       });
     });
   });
@@ -152,7 +152,7 @@ describe("database", () => {
         database.writtenEventType,
         {
           region: "us-central1",
-          labels: { 1: "2" }
+          labels: { 1: "2" },
         },
         new PathPattern("foo/bar"),
         new PathPattern("*")
@@ -162,7 +162,7 @@ describe("database", () => {
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {
-          1: "2"
+          1: "2",
         },
         region: ["us-central1"],
         eventTrigger: {
@@ -170,10 +170,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/bar",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -182,7 +182,7 @@ describe("database", () => {
         database.writtenEventType,
         {
           region: "us-central1",
-          labels: { 1: "2" }
+          labels: { 1: "2" },
         },
         new PathPattern("foo/bar"),
         new PathPattern("my-instance")
@@ -192,19 +192,19 @@ describe("database", () => {
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
         labels: {
-          1: "2"
+          1: "2",
         },
         region: ["us-central1"],
         eventTrigger: {
           eventType: database.writtenEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/bar"
+            ref: "foo/bar",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
   });
@@ -222,10 +222,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -241,10 +241,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -256,7 +256,7 @@ describe("database", () => {
           instance: "my-instance",
           region: "us-central1",
           cpu: "gcf_gen1",
-          minInstances: 2
+          minInstances: 2,
         },
         () => 2
       );
@@ -271,13 +271,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.writtenEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -305,13 +305,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.writtenEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: true
-        }
+          retry: true,
+        },
       });
     });
   });
@@ -329,10 +329,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -348,10 +348,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -363,7 +363,7 @@ describe("database", () => {
           instance: "my-instance",
           region: "us-central1",
           cpu: "gcf_gen1",
-          minInstances: 2
+          minInstances: 2,
         },
         () => 2
       );
@@ -378,13 +378,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.createdEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
   });
@@ -404,10 +404,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -418,7 +418,7 @@ describe("database", () => {
           instance: "my-instance",
           region: "us-central1",
           cpu: "gcf_gen1",
-          minInstances: 2
+          minInstances: 2,
         },
         (event) => {
           expectType<{ path: string; bar: string }>(event.params);
@@ -435,13 +435,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.writtenEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -452,7 +452,7 @@ describe("database", () => {
         source: "source",
         type: "type",
         time: "now",
-        data: "data"
+        data: "data",
       };
 
       let hello;
@@ -478,10 +478,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -492,7 +492,7 @@ describe("database", () => {
           instance: "instance",
           region: "us-central1",
           cpu: "gcf_gen1",
-          minInstances: 2
+          minInstances: 2,
         },
         (event) => {
           expectType<{
@@ -512,13 +512,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.createdEventType,
           eventFilters: {
-            instance: "instance"
+            instance: "instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -529,7 +529,7 @@ describe("database", () => {
         source: "source",
         type: "type",
         time: "now",
-        data: "data"
+        data: "data",
       };
 
       let hello;
@@ -555,10 +555,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -569,7 +569,7 @@ describe("database", () => {
           instance: "my-instance",
           region: "us-central1",
           cpu: "gcf_gen1",
-          minInstances: 2
+          minInstances: 2,
         },
         (event) => {
           expectType<{ path: string; bar: string }>(event.params);
@@ -586,13 +586,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.updatedEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -603,7 +603,7 @@ describe("database", () => {
         source: "source",
         type: "type",
         time: "now",
-        data: "data"
+        data: "data",
       };
 
       let hello;
@@ -629,10 +629,10 @@ describe("database", () => {
           eventFilters: {},
           eventFilterPathPatterns: {
             ref: "foo/{bar}",
-            instance: "*"
+            instance: "*",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -643,7 +643,7 @@ describe("database", () => {
           instance: "my-instance",
           region: "us-central1",
           cpu: "gcf_gen1",
-          minInstances: 2
+          minInstances: 2,
         },
         (event) => {
           expectType<{ path: string; bar: string }>(event.params);
@@ -660,13 +660,13 @@ describe("database", () => {
         eventTrigger: {
           eventType: database.deletedEventType,
           eventFilters: {
-            instance: "my-instance"
+            instance: "my-instance",
           },
           eventFilterPathPatterns: {
-            ref: "foo/{path=**}/{bar}"
+            ref: "foo/{path=**}/{bar}",
           },
-          retry: false
-        }
+          retry: false,
+        },
       });
     });
 
@@ -677,7 +677,7 @@ describe("database", () => {
         source: "source",
         type: "type",
         time: "now",
-        data: "data"
+        data: "data",
       };
 
       let hello;
