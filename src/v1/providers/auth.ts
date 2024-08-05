@@ -25,7 +25,9 @@ import {
   AuthEventContext,
   AuthUserRecord,
   BeforeCreateResponse,
+  BeforeEmailResponse,
   BeforeSignInResponse,
+  BeforeSmsResponse,
   HttpsError,
   UserInfo,
   UserRecord,
@@ -196,9 +198,13 @@ export class UserBuilder {
     ) =>
       | BeforeCreateResponse
       | BeforeSignInResponse
+      | BeforeEmailResponse
+      | BeforeSmsResponse
       | void
       | Promise<BeforeCreateResponse>
       | Promise<BeforeSignInResponse>
+      | Promise<BeforeEmailResponse>
+      | Promise<BeforeSmsResponse>
       | Promise<void>,
     eventType: AuthBlockingEventType
   ): BlockingFunction {

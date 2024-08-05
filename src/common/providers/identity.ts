@@ -55,11 +55,17 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn";
+export type AuthBlockingEventType =
+  | "beforeCreate"
+  | "beforeSignIn"
+  | "beforeSendEmail"
+  | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
   beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
+  beforeSendEmail: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+  beforeSendSms: "providers/cloud.auth/eventTypes/user.beforeSendSms",
 };
 
 /**
@@ -337,7 +343,24 @@ export interface AuthEventContext extends EventContext {
 
 /** Defines the auth event for 2nd gen blocking events */
 export interface AuthBlockingEvent extends AuthEventContext {
-  data: AuthUserRecord;
+  data?: AuthUserRecord;
+}
+
+/**
+ * The reCAPTCHA action options.
+ */
+export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
+
+export type SmsType = "SIGNIN" | "MULTI_FACTOR_ENROLLMENT" | "MULTI_FACTOR_SIGN_IN";
+
+export interface BeforeEmailResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
+
+export interface BeforeSmsResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
+  phoneNumber?: string;
+  smsType?: SmsType;
 }
 
 /**
@@ -457,9 +480,13 @@ type HandlerV1 = (
 ) =>
   | BeforeCreateResponse
   | BeforeSignInResponse
+  | BeforeEmailResponse
+  | BeforeSmsResponse
   | void
   | Promise<BeforeCreateResponse>
   | Promise<BeforeSignInResponse>
+  | Promise<BeforeEmailResponse>
+  | Promise<BeforeSmsResponse>
   | Promise<void>;
 
 type HandlerV2 = (
@@ -467,9 +494,13 @@ type HandlerV2 = (
 ) =>
   | BeforeCreateResponse
   | BeforeSignInResponse
+  | BeforeEmailResponse
+  | BeforeSmsResponse
   | void
   | Promise<BeforeCreateResponse>
   | Promise<BeforeSignInResponse>
+  | Promise<BeforeEmailResponse>
+  | Promise<BeforeSmsResponse>
   | Promise<void>;
 
 /**
