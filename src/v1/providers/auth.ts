@@ -27,6 +27,7 @@ import {
   BeforeCreateResponse,
   BeforeEmailResponse,
   BeforeSignInResponse,
+  BeforeSmsResponse,
   HandlerV1,
   HttpsError,
   MaybeAsync,
@@ -179,6 +180,12 @@ export class UserBuilder {
     handler: (context: AuthEventContext) => MaybeAsync<BeforeEmailResponse | void>
   ): BlockingFunction {
     return this.beforeOperation(handler, "beforeSendEmail");
+  }
+  
+  beforeSms(
+    handler: (context: AuthEventContext) => MaybeAsync<BeforeSmsResponse | void>
+  ): BlockingFunction {
+    return this.beforeOperation(handler, "beforeSendSms");
   }
 
   private onOperation(
