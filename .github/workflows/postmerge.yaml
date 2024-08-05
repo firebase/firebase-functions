@@ -15,10 +15,6 @@ name: Post-merge tests
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows: ["CI Tests"]
-    types: [completed]
-    branches: [master]
 
 concurrency:
   group: postmerge-${{ github.ref }}
