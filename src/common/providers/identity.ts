@@ -343,7 +343,7 @@ export interface AuthEventContext extends EventContext {
 
 /** Defines the auth event for 2nd gen blocking events */
 export interface AuthBlockingEvent extends AuthEventContext {
-  data?: AuthUserRecord;
+  data?: AuthUserRecord; // will be undefined for beforeEmailSent and beforeSmsSent event types
 }
 
 /** The reCAPTCHA action options. */
