@@ -32,6 +32,7 @@ import {
   BeforeCreateResponse,
   BeforeSignInResponse,
   BeforeEmailResponse,
+  BeforeSmsResponse,
   HandlerV2,
   HttpsError,
   wrapHandler,
@@ -259,6 +260,37 @@ export function beforeEmailSent(
 ): BlockingFunction {
   return beforeOperation("beforeSendEmail", optsOrHandler, handler);
 }
+/**
+ * Handles an event that is triggered before an SMS is sent to a user.
+ * @param handler - Event handler that is run before an SMS is sent to a user.
+ */
+export function beforeSmsSent(
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an SMS is sent to a user.
+ * @param opts - Object containing function options
+ * @param handler - Event handler that is run before an SMS is sent to a user.
+ */
+export function beforeSmsSent(
+  opts: Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">,
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an SMS is sent to a user.
+ * @param optsOrHandler - Either an object containing function options, or an event handler that is run before an SMS is sent to a user.
+ * @param handler - Event handler that is run before an SMS is sent to a user.
+ */
+export function beforeSmsSent(
+  optsOrHandler:
+    | Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+): BlockingFunction {
+  return beforeOperation("beforeSendSms", optsOrHandler, handler);
+}
 
 /** @hidden */
 export function beforeOperation(
@@ -267,13 +299,13 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>),
+      ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>),
   handler: HandlerV2
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+    ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>;
     optsOrHandler = {};
   }
 
