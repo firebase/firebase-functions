@@ -120,4 +120,3 @@ export declare class FirestoreTranslateText {
      */
     onCompletion<T = unknown>(callback: EventCallback<T>, options?: SimpleEventarcTriggerOptions): import("firebase-functions/v2").CloudFunction<CloudEvent<T>>;
 }
-//# sourceMappingURL=index.d.ts.map

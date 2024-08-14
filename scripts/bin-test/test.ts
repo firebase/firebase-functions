@@ -44,7 +44,7 @@ const BASE_EXTENSIONS = {
       DO_BACKFILL: "False",
       LOCATION: "us-central1",
     },
-    localPath: "./functions/generated/extensions/local/backfill0.0.2/src",
+    localPath: "./functions/generated/extensions/local/backfill/0.0.2/src",
     events: [],
   },
 };
@@ -306,10 +306,12 @@ describe("functions.yaml", function () {
               },
             },
           },
-          requiredAPIs: [{
-            api: "eventarcpublishing.googleapis.com",
-            reason: "Needed for custom event functions",
-          },],
+          requiredAPIs: [
+            {
+              api: "eventarcpublishing.googleapis.com",
+              reason: "Needed for custom event functions",
+            },
+          ],
           specVersion: "v1alpha1",
           extensions: BASE_EXTENSIONS,
         },
