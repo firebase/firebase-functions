@@ -1,0 +1,4 @@
+{
+    "name": "@firebase-extensions/firebase-firestore-translate-text-sdk",
+    "main": "./index.js"
+}
