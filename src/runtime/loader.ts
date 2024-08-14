@@ -83,13 +83,13 @@ export function extractStack(
       extensions[val.instanceId] = {
         params: convertExtensionParams(val.params),
         ref: val.FIREBASE_EXTENSION_REFERENCE,
-        events: val.events,
+        events: val.events || [],
       };
     } else if (isFirebaseLocalExtension(val)) {
       extensions[val.instanceId] = {
         params: convertExtensionParams(val.params),
         localPath: val.FIREBASE_EXTENSION_LOCAL_PATH,
-        events: val.events,
+        events: val.events || [],
       };
     } else if (isObject(val)) {
       extractStack(val, endpoints, requiredAPIs, extensions, prefix + name + "-");
@@ -139,7 +139,7 @@ interface FirebaseLocalExtension {
   FIREBASE_EXTENSION_LOCAL_PATH: string;
   instanceId: string;
   params: Record<string, unknown>;
-  events: string[];
+  events?: string[];
 }
 
 const isFirebaseLocalExtension = (val: unknown): val is FirebaseLocalExtension => {
@@ -148,7 +148,7 @@ const isFirebaseLocalExtension = (val: unknown): val is FirebaseLocalExtension =
     typeof val.FIREBASE_EXTENSION_LOCAL_PATH === "string" &&
     typeof val.instanceId === "string" &&
     isObject(val.params) &&
-    Array.isArray(val.events)
+    (!val.events || Array.isArray(val.events))
   );
 };
 
@@ -156,7 +156,7 @@ interface FirebaseRefExtension {
   FIREBASE_EXTENSION_REFERENCE: string;
   instanceId: string;
   params: Record<string, unknown>;
-  events: string[];
+  events?: string[];
 }
 
 const isFirebaseRefExtension = (val: unknown): val is FirebaseRefExtension => {
@@ -165,7 +165,7 @@ const isFirebaseRefExtension = (val: unknown): val is FirebaseRefExtension => {
     typeof val.FIREBASE_EXTENSION_REFERENCE === "string" &&
     typeof val.instanceId === "string" &&
     isObject(val.params) &&
-    Array.isArray(val.events)
+    (!val.events || Array.isArray(val.events))
   );
 };
 

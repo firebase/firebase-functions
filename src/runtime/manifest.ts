@@ -26,8 +26,7 @@ import { WireParamSpec, SecretParam } from "../params/types";
 
 /**
  * A definition of an extension as appears in the Manifest.
- *
- * @alpha
+ * Exactly one of ref or localPath must be present.
  */
 export interface ManifestExtension {
   params: Record<string, string | SecretParam>;

@@ -27,6 +27,7 @@ describe("stackToWire", () => {
       requiredAPIs: [],
       params: [regExpParam.toSpec()],
       specVersion: "v1alpha1",
+      extensions: {},
     };
     const expected = {
       endpoints: {},
@@ -43,6 +44,7 @@ describe("stackToWire", () => {
         },
       ],
       specVersion: "v1alpha1",
+      extensions: {},
     };
     expect(stackToWire(stack)).to.deep.equal(expected);
   });
@@ -60,6 +62,13 @@ describe("stackToWire", () => {
       },
       requiredAPIs: [],
       specVersion: "v1alpha1",
+      extensions: {
+        ext1: {
+          params: {},
+          localPath: "localPath",
+          events: [],
+        },
+      },
     };
     const expected = {
       endpoints: {
@@ -73,6 +82,13 @@ describe("stackToWire", () => {
       },
       requiredAPIs: [],
       specVersion: "v1alpha1",
+      extensions: {
+        ext1: {
+          params: {},
+          localPath: "localPath",
+          events: [],
+        },
+      },
     };
     expect(stackToWire(stack)).to.deep.equal(expected);
   });
@@ -97,6 +113,13 @@ describe("stackToWire", () => {
       },
       requiredAPIs: [],
       specVersion: "v1alpha1",
+      extensions: {
+        ext1: {
+          params: {},
+          localPath: "localPath",
+          events: [],
+        },
+      },
     };
     const expected = {
       endpoints: {
@@ -117,6 +140,13 @@ describe("stackToWire", () => {
       },
       requiredAPIs: [],
       specVersion: "v1alpha1",
+      extensions: {
+        ext1: {
+          params: {},
+          localPath: "localPath",
+          events: [],
+        },
+      },
     };
     expect(stackToWire(stack)).to.deep.equal(expected);
   });
@@ -149,6 +179,13 @@ describe("stackToWire", () => {
       },
       requiredAPIs: [],
       specVersion: "v1alpha1",
+      extensions: {
+        ext1: {
+          params: {},
+          localPath: "localPath",
+          events: [],
+        },
+      },
     };
     const expected = {
       endpoints: {
@@ -172,6 +209,13 @@ describe("stackToWire", () => {
       },
       requiredAPIs: [],
       specVersion: "v1alpha1",
+      extensions: {
+        ext1: {
+          params: {},
+          localPath: "localPath",
+          events: [],
+        },
+      },
     };
     expect(stackToWire(stack)).to.deep.equal(expected);
   });
