@@ -133,7 +133,7 @@ export interface ManifestStack {
   params?: WireParamSpec<any>[];
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
-  extensions: Record<string, ManifestExtension>;
+  extensions?: Record<string, ManifestExtension>;
 }
 
 /**
