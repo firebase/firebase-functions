@@ -1,0 +1,13 @@
+[debug] [2022-07-25T23:29:13.949Z] ----------------------------------------------------------------------
+[debug] [2022-07-25T23:29:13.950Z] Command:       /Users/danielylee/.nvm/versions/node/v16.14.0/bin/node /Users/danielylee/.nvm/versions/node/v16.14.0/bin/firebase login:ci
+[debug] [2022-07-25T23:29:13.950Z] CLI Version:   11.3.0
+[debug] [2022-07-25T23:29:13.950Z] Platform:      darwin
+[debug] [2022-07-25T23:29:13.950Z] Node Version:  v16.14.0
+[debug] [2022-07-25T23:29:13.950Z] Time:          Mon Jul 25 2022 16:29:13 GMT-0700 (Pacific Daylight Time)
+[debug] [2022-07-25T23:29:13.950Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://accounts.google.com/o/oauth2/auth?client_id=563584335869-fgrhgmd47bqnekij5i8b5pr03ho849e6.apps.googleusercontent.com&scope=email%20openid%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloudplatformprojects.readonly%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Ffirebase%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform&response_type=code&state=628386933&redirect_uri=http%3A%2F%2Flocalhost%3A9005
+[info] 
+[info] Waiting for authentication...

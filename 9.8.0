@@ -1,0 +1,8 @@
++ firebase-admin@8.13.0
+updated 1 package and audited 577 packages in 7.046s
+
+20 packages are looking for funding
+  run `npm fund` for details
+
+found 22 vulnerabilities (2 moderate, 19 high, 1 critical)
+  run `npm audit fix` to fix them, or `npm audit` for details

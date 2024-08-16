@@ -22,13 +22,13 @@
     "lib",
     "protos"
   ],
-  "main": "lib/v1/index.js",
+  "main": "lib/v2/index.js",
   "bin": {
     "firebase-functions": "./lib/bin/firebase-functions.js"
   },
-  "types": "lib/v1/index.d.ts",
+  "types": "lib/v2/index.d.ts",
   "exports": {
-    ".": "./lib/v1/index.js",
+    ".": "./lib/v2/index.js",
     "./logger/compat": "./lib/logger/compat.js",
     "./logger": "./lib/logger/index.js",
     "./params": "./lib/params/index.js",

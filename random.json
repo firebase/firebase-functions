@@ -1,0 +1,712 @@
+{
+  "version": 4,
+  "routes": {
+    "/": { "initialRevalidateSeconds": false, "srcRoute": "/", "dataRoute": "/index.rsc" },
+    "/AliceBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/AliceBlue.rsc"
+    },
+    "/AntiqueWhite": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/AntiqueWhite.rsc"
+    },
+    "/Aqua": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Aqua.rsc"
+    },
+    "/Aquamarine": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Aquamarine.rsc"
+    },
+    "/Azure": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Azure.rsc"
+    },
+    "/Beige": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Beige.rsc"
+    },
+    "/Bisque": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Bisque.rsc"
+    },
+    "/Black": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Black.rsc"
+    },
+    "/BlanchedAlmond": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/BlanchedAlmond.rsc"
+    },
+    "/Blue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Blue.rsc"
+    },
+    "/BlueViolet": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/BlueViolet.rsc"
+    },
+    "/Brown": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Brown.rsc"
+    },
+    "/BurlyWood": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/BurlyWood.rsc"
+    },
+    "/CadetBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/CadetBlue.rsc"
+    },
+    "/Chartreuse": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Chartreuse.rsc"
+    },
+    "/Chocolate": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Chocolate.rsc"
+    },
+    "/Coral": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Coral.rsc"
+    },
+    "/CornflowerBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/CornflowerBlue.rsc"
+    },
+    "/Cornsilk": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Cornsilk.rsc"
+    },
+    "/Crimson": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Crimson.rsc"
+    },
+    "/Cyan": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Cyan.rsc"
+    },
+    "/DarkBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkBlue.rsc"
+    },
+    "/DarkCyan": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkCyan.rsc"
+    },
+    "/DarkGoldenRod": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkGoldenRod.rsc"
+    },
+    "/DarkGrey": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkGrey.rsc"
+    },
+    "/DarkGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkGreen.rsc"
+    },
+    "/DarkKhaki": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkKhaki.rsc"
+    },
+    "/DarkMagenta": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkMagenta.rsc"
+    },
+    "/DarkOliveGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkOliveGreen.rsc"
+    },
+    "/Darkorange": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Darkorange.rsc"
+    },
+    "/DarkOrchid": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkOrchid.rsc"
+    },
+    "/DarkRed": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkRed.rsc"
+    },
+    "/DarkSalmon": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkSalmon.rsc"
+    },
+    "/DarkSeaGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkSeaGreen.rsc"
+    },
+    "/DarkSlateBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkSlateBlue.rsc"
+    },
+    "/DarkSlateGrey": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkSlateGrey.rsc"
+    },
+    "/DarkTurquoise": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkTurquoise.rsc"
+    },
+    "/DarkViolet": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DarkViolet.rsc"
+    },
+    "/DeepPink": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DeepPink.rsc"
+    },
+    "/DeepSkyBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DeepSkyBlue.rsc"
+    },
+    "/DimGray": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DimGray.rsc"
+    },
+    "/DodgerBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/DodgerBlue.rsc"
+    },
+    "/FireBrick": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/FireBrick.rsc"
+    },
+    "/FloralWhite": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/FloralWhite.rsc"
+    },
+    "/ForestGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/ForestGreen.rsc"
+    },
+    "/Fuchsia": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Fuchsia.rsc"
+    },
+    "/Gainsboro": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Gainsboro.rsc"
+    },
+    "/GhostWhite": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/GhostWhite.rsc"
+    },
+    "/Gold": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Gold.rsc"
+    },
+    "/GoldenRod": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/GoldenRod.rsc"
+    },
+    "/Grey": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Grey.rsc"
+    },
+    "/Green": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Green.rsc"
+    },
+    "/GreenYellow": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/GreenYellow.rsc"
+    },
+    "/HoneyDew": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/HoneyDew.rsc"
+    },
+    "/HotPink": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/HotPink.rsc"
+    },
+    "/IndianRed": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/IndianRed.rsc"
+    },
+    "/Indigo": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Indigo.rsc"
+    },
+    "/Ivory": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Ivory.rsc"
+    },
+    "/Khaki": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Khaki.rsc"
+    },
+    "/Lavender": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Lavender.rsc"
+    },
+    "/LavenderBlush": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LavenderBlush.rsc"
+    },
+    "/LawnGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LawnGreen.rsc"
+    },
+    "/LemonChiffon": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LemonChiffon.rsc"
+    },
+    "/LightBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightBlue.rsc"
+    },
+    "/LightCoral": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightCoral.rsc"
+    },
+    "/LightCyan": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightCyan.rsc"
+    },
+    "/LightGoldenRodYellow": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightGoldenRodYellow.rsc"
+    },
+    "/LightGrey": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightGrey.rsc"
+    },
+    "/LightGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightGreen.rsc"
+    },
+    "/LightPink": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightPink.rsc"
+    },
+    "/LightSalmon": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightSalmon.rsc"
+    },
+    "/LightSeaGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightSeaGreen.rsc"
+    },
+    "/LightSkyBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightSkyBlue.rsc"
+    },
+    "/LightSlateGrey": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightSlateGrey.rsc"
+    },
+    "/LightSteelBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightSteelBlue.rsc"
+    },
+    "/LightYellow": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LightYellow.rsc"
+    },
+    "/Lime": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Lime.rsc"
+    },
+    "/LimeGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/LimeGreen.rsc"
+    },
+    "/Linen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Linen.rsc"
+    },
+    "/Magenta": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Magenta.rsc"
+    },
+    "/Maroon": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Maroon.rsc"
+    },
+    "/MediumAquaMarine": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumAquaMarine.rsc"
+    },
+    "/MediumBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumBlue.rsc"
+    },
+    "/MediumOrchid": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumOrchid.rsc"
+    },
+    "/MediumPurple": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumPurple.rsc"
+    },
+    "/MediumSeaGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumSeaGreen.rsc"
+    },
+    "/MediumSlateBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumSlateBlue.rsc"
+    },
+    "/MediumSpringGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumSpringGreen.rsc"
+    },
+    "/MediumTurquoise": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumTurquoise.rsc"
+    },
+    "/MediumVioletRed": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MediumVioletRed.rsc"
+    },
+    "/MidnightBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MidnightBlue.rsc"
+    },
+    "/MintCream": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MintCream.rsc"
+    },
+    "/MistyRose": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/MistyRose.rsc"
+    },
+    "/Moccasin": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Moccasin.rsc"
+    },
+    "/NavajoWhite": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/NavajoWhite.rsc"
+    },
+    "/Navy": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Navy.rsc"
+    },
+    "/OldLace": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/OldLace.rsc"
+    },
+    "/Olive": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Olive.rsc"
+    },
+    "/OliveDrab": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/OliveDrab.rsc"
+    },
+    "/Orange": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Orange.rsc"
+    },
+    "/OrangeRed": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/OrangeRed.rsc"
+    },
+    "/Orchid": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Orchid.rsc"
+    },
+    "/PaleGoldenRod": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PaleGoldenRod.rsc"
+    },
+    "/PaleGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PaleGreen.rsc"
+    },
+    "/PaleTurquoise": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PaleTurquoise.rsc"
+    },
+    "/PaleVioletRed": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PaleVioletRed.rsc"
+    },
+    "/PapayaWhip": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PapayaWhip.rsc"
+    },
+    "/PeachPuff": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PeachPuff.rsc"
+    },
+    "/Peru": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Peru.rsc"
+    },
+    "/Pink": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Pink.rsc"
+    },
+    "/Plum": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Plum.rsc"
+    },
+    "/PowderBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/PowderBlue.rsc"
+    },
+    "/Purple": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Purple.rsc"
+    },
+    "/Red": { "initialRevalidateSeconds": false, "srcRoute": "/[color]", "dataRoute": "/Red.rsc" },
+    "/RosyBrown": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/RosyBrown.rsc"
+    },
+    "/RoyalBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/RoyalBlue.rsc"
+    },
+    "/SaddleBrown": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SaddleBrown.rsc"
+    },
+    "/Salmon": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Salmon.rsc"
+    },
+    "/SandyBrown": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SandyBrown.rsc"
+    },
+    "/SeaGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SeaGreen.rsc"
+    },
+    "/SeaShell": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SeaShell.rsc"
+    },
+    "/Sienna": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Sienna.rsc"
+    },
+    "/Silver": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Silver.rsc"
+    },
+    "/SkyBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SkyBlue.rsc"
+    },
+    "/SlateBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SlateBlue.rsc"
+    },
+    "/SlateGrey": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SlateGrey.rsc"
+    },
+    "/Snow": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Snow.rsc"
+    },
+    "/SpringGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SpringGreen.rsc"
+    },
+    "/SteelBlue": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/SteelBlue.rsc"
+    },
+    "/Tan": { "initialRevalidateSeconds": false, "srcRoute": "/[color]", "dataRoute": "/Tan.rsc" },
+    "/Teal": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Teal.rsc"
+    },
+    "/Thistle": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Thistle.rsc"
+    },
+    "/Tomato": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Tomato.rsc"
+    },
+    "/Turquoise": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Turquoise.rsc"
+    },
+    "/Violet": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Violet.rsc"
+    },
+    "/Wheat": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Wheat.rsc"
+    },
+    "/White": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/White.rsc"
+    },
+    "/WhiteSmoke": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/WhiteSmoke.rsc"
+    },
+    "/Yellow": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/Yellow.rsc"
+    },
+    "/YellowGreen": {
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/[color]",
+      "dataRoute": "/YellowGreen.rsc"
+    }
+  },
+  "dynamicRoutes": {
+    "/[color]": {
+      "routeRegex": "^/([^/]+?)(?:/)?$",
+      "dataRoute": "/[color].rsc",
+      "fallback": null,
+      "dataRouteRegex": "^/([^/]+?)\\.rsc$"
+    }
+  },
+  "notFoundRoutes": [],
+  "preview": {
+    "previewModeId": "75b6e60af36b478cc330dd277e1907c3",
+    "previewModeSigningKey": "e86ef557ca737287bfefef35903f3b756861083bdf428f04e376b3e63601cb15",
+    "previewModeEncryptionKey": "c4dd73b92544bbe22a7b498b65d112f6a1e9087006dc15d1116760a017313a5b"
+  }
+}
