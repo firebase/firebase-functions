@@ -37,8 +37,7 @@ const ttOnStart = extRef1.onStart((event) => {
 exports.ttOnStart = ttOnStart;
 
 // A Firebase extension by localPath
-const extLocal2 = backfill("extLocal2", {
+exports.extLocal2 = backfill("extLocal2", {
     DO_BACKFILL: "False",
     LOCATION: "us-central1",
 });
-exports.extLocal2 = extLocal2;

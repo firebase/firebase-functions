@@ -437,6 +437,8 @@ describe("loadStack", () => {
             { name: "INT_PARAM", type: "int" },
             { name: "BOOLEAN_PARAM", type: "boolean" },
           ],
+          requiredAPIs: [],
+          extensions: {},
           endpoints: {
             v1http: {
               ...MINIMAL_V1_ENDPOINT,
@@ -462,19 +464,6 @@ describe("loadStack", () => {
               omit: new BooleanParam("BOOLEAN_PARAM"),
               labels: {},
               httpsTrigger: {},
-            },
-            ttOnStart: {
-              ...MINIMAL_V2_ENDPOINT,
-              entryPoint: "ttOnStart",
-              eventTrigger: {
-                channel: "projects/locations/us-central1/channels/firebase",
-                eventFilters: {},
-                eventType: "firebase.extensions.firestore-translate-text.v1.onStart",
-                retry: false,
-              },
-              labels: {},
-              platform: "gcfv2",
-              region: ["us-central1"],
             },
           },
         },
