@@ -1,1 +1,0 @@
-- Future Extensions support (#1590)
