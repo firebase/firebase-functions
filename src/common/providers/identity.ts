@@ -488,11 +488,11 @@ export type MaybeAsync<T> = T | Promise<T>;
 export type HandlerV1 = (
   userOrContext: AuthUserRecord | AuthEventContext,
   context?: AuthEventContext
-) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>;
 
 export type HandlerV2 = (
   event: AuthBlockingEvent
-) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>;
 
 export type AuthBlockingEventHandler = (HandlerV1 | HandlerV2) & {
   // Specify the GCF gen of the trigger that the auth blocking event handler was written for
