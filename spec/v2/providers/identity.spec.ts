@@ -52,7 +52,6 @@ const BEFORE_EMAIL_TRIGGER = {
   options: {},
 };
 
-
 const BEFORE_SMS_TRIGGER = {
   eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
   options: {},
@@ -238,11 +237,11 @@ describe("identity", () => {
       ]);
     });
   });
-  
+
   describe("beforeSmsSent", () => {
     it("should accept a handler", () => {
       const fn = identity.beforeSmsSent(() => Promise.resolve());
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -256,13 +255,13 @@ describe("identity", () => {
         },
       ]);
     });
-  
+
     it("should accept options and a handler", () => {
       const fn = identity.beforeSmsSent(
         { region: opts.region, minInstances: opts.minInstances },
         () => Promise.resolve()
       );
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -280,7 +279,7 @@ describe("identity", () => {
         },
       ]);
     });
-  });  
+  });
 
   describe("beforeOperation", () => {
     it("should handle eventType and handler for before create events", () => {

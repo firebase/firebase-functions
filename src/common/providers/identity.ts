@@ -55,7 +55,11 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSendEmail" | "beforeSendSms";
+export type AuthBlockingEventType =
+  | "beforeCreate"
+  | "beforeSignIn"
+  | "beforeSendEmail"
+  | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
@@ -488,11 +492,15 @@ export type MaybeAsync<T> = T | Promise<T>;
 export type HandlerV1 = (
   userOrContext: AuthUserRecord | AuthEventContext,
   context?: AuthEventContext
-) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>;
+) => MaybeAsync<
+  BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+>;
 
 export type HandlerV2 = (
   event: AuthBlockingEvent
-) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>;
+) => MaybeAsync<
+  BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+>;
 
 export type AuthBlockingEventHandler = (HandlerV1 | HandlerV2) & {
   // Specify the GCF gen of the trigger that the auth blocking event handler was written for
