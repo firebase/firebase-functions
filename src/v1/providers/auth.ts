@@ -181,7 +181,7 @@ export class UserBuilder {
   ): BlockingFunction {
     return this.beforeOperation(handler, "beforeSendEmail");
   }
-  
+
   beforeSms(
     handler: (context: AuthEventContext) => MaybeAsync<BeforeSmsResponse | void>
   ): BlockingFunction {

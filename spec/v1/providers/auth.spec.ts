@@ -394,11 +394,11 @@ describe("Auth Functions", () => {
         ]);
       });
     });
-    
+
     describe("beforeSms", () => {
       it("should create function without options", () => {
         const fn = auth.user().beforeSms(() => Promise.resolve());
-    
+
         expect(fn.__trigger).to.deep.equal({
           labels: {},
           blockingTrigger: {
@@ -430,7 +430,7 @@ describe("Auth Functions", () => {
           },
         ]);
       });
-    
+
       it("should create the function with options", () => {
         const fn = functions
           .region("us-east1")
@@ -445,7 +445,7 @@ describe("Auth Functions", () => {
             },
           })
           .beforeSms(() => Promise.resolve());
-    
+
         expect(fn.__trigger).to.deep.equal({
           labels: {},
           regions: ["us-east1"],
@@ -483,7 +483,7 @@ describe("Auth Functions", () => {
           },
         ]);
       });
-    });    
+    });
 
     describe("#_dataConstructor", () => {
       let cloudFunctionDelete: CloudFunction<UserRecord>;

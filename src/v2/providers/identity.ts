@@ -299,13 +299,17 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>),
+      ) => MaybeAsync<
+        BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+      >),
   handler: HandlerV2
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void>;
+    ) => MaybeAsync<
+      BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+    >;
     optsOrHandler = {};
   }
 
