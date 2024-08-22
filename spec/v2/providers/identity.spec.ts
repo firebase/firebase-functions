@@ -22,6 +22,9 @@
 import { expect } from "chai";
 import * as identity from "../../../src/v2/providers/identity";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { onInit } from "../../../src/v2/core";
+import { MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
 
 const BEFORE_CREATE_TRIGGER = {
   eventType: "providers/cloud.auth/eventTypes/user.beforeCreate",
@@ -91,6 +94,27 @@ describe("identity", () => {
         },
       ]);
     });
+
+    it("calls init function", async () => {
+      const func = identity.beforeUserCreated(() => null);
+
+      const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          "content-type": "application/json",
+          origin: "example.com",
+        }
+      );
+      req.method = "POST";
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await runHandler(func, req as any);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("beforeUserSignedIn", () => {
@@ -134,6 +158,27 @@ describe("identity", () => {
           reason: "Needed for auth blocking functions",
         },
       ]);
+    });
+
+    it("calls init function", async () => {
+      const func = identity.beforeUserSignedIn(() => null);
+
+      const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          "content-type": "application/json",
+          origin: "example.com",
+        }
+      );
+      req.method = "POST";
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await runHandler(func, req as any);
+      expect(hello).to.equal("world");
     });
   });
 
