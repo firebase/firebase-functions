@@ -1,0 +1,1 @@
+- Expose retry configuration in v2 RTDB trigger (#1588)
