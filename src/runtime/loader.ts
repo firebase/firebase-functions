@@ -22,7 +22,12 @@
 import * as path from "path";
 import * as url from "url";
 
-import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "./manifest";
+import {
+  ManifestEndpoint,
+  ManifestExtension,
+  ManifestRequiredAPI,
+  ManifestStack,
+} from "./manifest";
 
 import * as params from "../params";
 
@@ -59,6 +64,7 @@ export function extractStack(
   module,
   endpoints: Record<string, ManifestEndpoint>,
   requiredAPIs: ManifestRequiredAPI[],
+  extensions: Record<string, ManifestExtension>,
   prefix = ""
 ) {
   for (const [name, valAsUnknown] of Object.entries(module)) {
@@ -73,11 +79,95 @@ export function extractStack(
       if (val.__requiredAPIs && Array.isArray(val.__requiredAPIs)) {
         requiredAPIs.push(...val.__requiredAPIs);
       }
-    } else if (typeof val === "object" && val !== null) {
-      extractStack(val, endpoints, requiredAPIs, prefix + name + "-");
+    } else if (isFirebaseRefExtension(val)) {
+      extensions[val.instanceId] = {
+        params: convertExtensionParams(val.params),
+        ref: val.FIREBASE_EXTENSION_REFERENCE,
+        events: val.events || [],
+      };
+    } else if (isFirebaseLocalExtension(val)) {
+      extensions[val.instanceId] = {
+        params: convertExtensionParams(val.params),
+        localPath: val.FIREBASE_EXTENSION_LOCAL_PATH,
+        events: val.events || [],
+      };
+    } else if (isObject(val)) {
+      extractStack(val, endpoints, requiredAPIs, extensions, prefix + name + "-");
     }
   }
 }
+
+function toTitleCase(txt: string): string {
+  return txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase();
+}
+
+function snakeToCamelCase(txt: string): string {
+  let ret = txt.toLowerCase();
+  ret = ret.replace(/_/g, " ");
+  ret = ret.replace(/\w\S*/g, toTitleCase);
+  ret = ret.charAt(0).toLowerCase() + ret.substring(1);
+  return ret;
+}
+
+function convertExtensionParams(params: object): Record<string, string> {
+  const systemPrefixes: Record<string, string> = {
+    FUNCTION: "firebaseextensions.v1beta.function",
+    V2FUNCTION: "firebaseextensions.v1beta.v2function",
+  };
+  const converted: Record<string, string> = {};
+  for (const [rawKey, paramVal] of Object.entries(params)) {
+    let key = rawKey;
+    if (rawKey.startsWith("_") && rawKey !== "_EVENT_ARC_REGION") {
+      const prefix = rawKey.substring(1).split("_")[0];
+      const suffix = rawKey.substring(2 + prefix.length); // 2 for underscores
+      key = `${systemPrefixes[prefix]}/${snakeToCamelCase(suffix)}`;
+    }
+    if (Array.isArray(paramVal)) {
+      converted[key] = paramVal.join(",");
+    } else {
+      converted[key] = paramVal as string;
+    }
+  }
+  return converted;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+interface FirebaseLocalExtension {
+  FIREBASE_EXTENSION_LOCAL_PATH: string;
+  instanceId: string;
+  params: Record<string, unknown>;
+  events?: string[];
+}
+
+const isFirebaseLocalExtension = (val: unknown): val is FirebaseLocalExtension => {
+  return (
+    isObject(val) &&
+    typeof val.FIREBASE_EXTENSION_LOCAL_PATH === "string" &&
+    typeof val.instanceId === "string" &&
+    isObject(val.params) &&
+    (!val.events || Array.isArray(val.events))
+  );
+};
+
+interface FirebaseRefExtension {
+  FIREBASE_EXTENSION_REFERENCE: string;
+  instanceId: string;
+  params: Record<string, unknown>;
+  events?: string[];
+}
+
+const isFirebaseRefExtension = (val: unknown): val is FirebaseRefExtension => {
+  return (
+    isObject(val) &&
+    typeof val.FIREBASE_EXTENSION_REFERENCE === "string" &&
+    typeof val.instanceId === "string" &&
+    isObject(val.params) &&
+    (!val.events || Array.isArray(val.events))
+  );
+};
 
 /* @internal */
 export function mergeRequiredAPIs(requiredAPIs: ManifestRequiredAPI[]): ManifestRequiredAPI[] {
@@ -99,14 +189,16 @@ export function mergeRequiredAPIs(requiredAPIs: ManifestRequiredAPI[]): Manifest
 export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   const endpoints: Record<string, ManifestEndpoint> = {};
   const requiredAPIs: ManifestRequiredAPI[] = [];
+  const extensions: Record<string, ManifestExtension> = {};
   const mod = await loadModule(functionsDir);
 
-  extractStack(mod, endpoints, requiredAPIs);
+  extractStack(mod, endpoints, requiredAPIs, extensions);
 
   const stack: ManifestStack = {
     endpoints,
     specVersion: "v1alpha1",
     requiredAPIs: mergeRequiredAPIs(requiredAPIs),
+    extensions,
   };
   if (params.declaredParams.length > 0) {
     stack.params = params.declaredParams.map((p) => p.toSpec());
