@@ -26,6 +26,29 @@ const DEFAULT_V1_OPTIONS = { ...DEFAULT_OPTIONS };
 
 const DEFAULT_V2_OPTIONS = { ...DEFAULT_OPTIONS, concurrency: null };
 
+const BASE_EXTENSIONS = {
+  extRef1: {
+    params: {
+      COLLECTION_PATH: "collection1",
+      INPUT_FIELD_NAME: "input1",
+      LANGUAGES: "de,es",
+      OUTPUT_FIELD_NAME: "translated",
+      _EVENT_ARC_REGION: "us-central1",
+      "firebaseextensions.v1beta.function/location": "us-central1",
+    },
+    ref: "firebase/firestore-translate-text@0.1.18",
+    events: ["firebase.extensions.firestore-translate-text.v1.onStart"],
+  },
+  extLocal2: {
+    params: {
+      DO_BACKFILL: "False",
+      LOCATION: "us-central1",
+    },
+    localPath: "./functions/generated/extensions/local/backfill/0.0.2/src",
+    events: [],
+  },
+};
+
 const BASE_STACK = {
   endpoints: {
     v1http: {
@@ -55,9 +78,28 @@ const BASE_STACK = {
       labels: {},
       callableTrigger: {},
     },
+    ttOnStart: {
+      ...DEFAULT_V2_OPTIONS,
+      platform: "gcfv2",
+      entryPoint: "ttOnStart",
+      labels: {},
+      region: ["us-central1"],
+      eventTrigger: {
+        eventType: "firebase.extensions.firestore-translate-text.v1.onStart",
+        eventFilters: {},
+        retry: false,
+        channel: "projects/locations/us-central1/channels/firebase",
+      },
+    },
   },
-  requiredAPIs: [],
+  requiredAPIs: [
+    {
+      api: "eventarcpublishing.googleapis.com",
+      reason: "Needed for custom event functions",
+    },
+  ],
   specVersion: "v1alpha1",
+  extensions: BASE_EXTENSIONS,
 };
 
 interface Testcase {
@@ -108,10 +150,15 @@ async function startBin(
       FUNCTIONS_CONTROL_API: "true",
     },
   });
-
   if (!proc) {
     throw new Error("Failed to start firebase functions");
   }
+  proc.stdout?.on("data", (chunk: Buffer) => {
+    console.log(chunk.toString("utf8"));
+  });
+  proc.stderr?.on("data", (chunk: Buffer) => {
+    console.log(chunk.toString("utf8"));
+  });
 
   await retryUntil(async () => {
     try {
@@ -246,9 +293,27 @@ describe("functions.yaml", function () {
               labels: {},
               httpsTrigger: {},
             },
+            ttOnStart: {
+              platform: "gcfv2",
+              entryPoint: "ttOnStart",
+              labels: {},
+              region: ["us-central1"],
+              eventTrigger: {
+                eventType: "firebase.extensions.firestore-translate-text.v1.onStart",
+                eventFilters: {},
+                retry: false,
+                channel: "projects/locations/us-central1/channels/firebase",
+              },
+            },
           },
-          requiredAPIs: [],
+          requiredAPIs: [
+            {
+              api: "eventarcpublishing.googleapis.com",
+              reason: "Needed for custom event functions",
+            },
+          ],
           specVersion: "v1alpha1",
+          extensions: BASE_EXTENSIONS,
         },
       },
     ];
