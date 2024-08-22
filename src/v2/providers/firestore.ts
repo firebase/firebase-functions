@@ -532,13 +532,14 @@ function getPath(event: RawFirestoreEvent): string {
 /** @internal */
 export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
   if (event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data)) {
-    return createSnapshotFromProtobuf(event.data as Uint8Array, getPath(event));
+    return createSnapshotFromProtobuf(event.data as Uint8Array, getPath(event), event.database);
   } else if (event.datacontenttype?.includes("application/json")) {
     return createSnapshotFromJson(
       event.data,
       event.source,
       (event.data as RawFirestoreData).value?.createTime,
-      (event.data as RawFirestoreData).value?.updateTime
+      (event.data as RawFirestoreData).value?.updateTime,
+      event.database
     );
   } else {
     logger.error(
@@ -551,13 +552,18 @@ export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot 
 /** @internal */
 export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
   if (event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data)) {
-    return createBeforeSnapshotFromProtobuf(event.data as Uint8Array, getPath(event));
+    return createBeforeSnapshotFromProtobuf(
+      event.data as Uint8Array,
+      getPath(event),
+      event.database
+    );
   } else if (event.datacontenttype?.includes("application/json")) {
     return createBeforeSnapshotFromJson(
       event.data,
       event.source,
       (event.data as RawFirestoreData).oldValue?.createTime,
-      (event.data as RawFirestoreData).oldValue?.updateTime
+      (event.data as RawFirestoreData).oldValue?.updateTime,
+      event.database
     );
   } else {
     logger.error(
