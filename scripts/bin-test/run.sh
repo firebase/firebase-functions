@@ -5,10 +5,17 @@ set -ex # Immediately exit on failure
 npm run build
 npm link
 
-# Link local SDK to all test sources.
+# Link the extensions SDKs for the testing environment.
+(cd scripts/bin-test/extsdks/local && npm link)
+(cd scripts/bin-test/extsdks/translate && npm link)
+(cd scripts/bin-test/extsdks/translate && npm link firebase-functions)
+
+# Link SDKs to all test sources.
 for f in scripts/bin-test/sources/*; do
     if [ -d "$f" ]; then
         (cd "$f" && npm link firebase-functions)
+        (cd "$f" && npm link @firebase-extensions/firebase-firestore-translate-text-sdk)
+        (cd "$f" && npm link @firebase-extensions/local-backfill-sdk)
     fi
 done
 
