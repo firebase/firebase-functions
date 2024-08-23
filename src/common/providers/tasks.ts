@@ -98,8 +98,8 @@ export interface TaskContext {
   /**
    * The "short" name of the task, or, if no name was specified at creation, a unique
    * system-generated id.
-   * This is the my-task-id value in the complete task name, ie, task_name =
-   * projects/my-project-id/locations/my-location/queues/my-queue-id/tasks/my-task-id.
+   * This is the "my-task-id" value in the complete task name, such as "task_name =
+   * projects/my-project-id/locations/my-location/queues/my-queue-id/tasks/my-task-id."
    * Populated via the `X-CloudTasks-TaskName` header.
    */
   id: string;

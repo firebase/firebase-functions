@@ -1,2 +1,2 @@
-- Add features to task queue functions. (#1423)
-- Add traces to V2 Firestore trigger logs. (#1440)
+- Fix retry in event triggered functions. (#1463)
+- Expose retry configuration in v2 RTDB trigger (#1588)

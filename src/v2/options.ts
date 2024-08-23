@@ -260,7 +260,7 @@ export function getGlobalOptions(): GlobalOptions {
  * Additional fields that can be set on any event-handling function.
  */
 export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck"> {
-   /** Type of the event. Valid values are TODO */
+  /** Type of the event. Valid values are TODO */
   eventType?: string;
 
   /** TODO */

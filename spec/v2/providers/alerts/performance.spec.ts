@@ -3,6 +3,7 @@ import * as alerts from "../../../../src/v2/providers/alerts";
 import * as performance from "../../../../src/v2/providers/alerts/performance";
 import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
+import { CloudEvent, onInit } from "../../../../src/v2/core";
 
 const APPID = "123456789";
 const myHandler = () => 42;
@@ -44,6 +45,23 @@ describe("performance", () => {
           },
           retry: false,
         },
+      });
+
+      it("calls init function", async () => {
+        const event: CloudEvent<string> = {
+          specversion: "1.0",
+          id: "id",
+          source: "source",
+          type: "type",
+          time: "now",
+          data: "data",
+        };
+
+        let hello: string;
+        onInit(() => (hello = "world"));
+        expect(hello).to.be.undefined;
+        await performance.onThresholdAlertPublished(() => null)(event);
+        expect(hello).to.equal("world");
       });
     });
 

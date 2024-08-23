@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CloudEvent } from "../../../../src/v2";
+import { CloudEvent, onInit } from "../../../../src/v2";
 import * as options from "../../../../src/v2/options";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import { FULL_OPTIONS } from "../fixtures";
@@ -210,5 +210,22 @@ describe("alerts", () => {
         appId: "my-app",
       });
     });
+  });
+
+  it("calls init function", async () => {
+    const event: CloudEvent<string> = {
+      specversion: "1.0",
+      id: "id",
+      source: "source",
+      type: "type",
+      time: "now",
+      data: "data",
+    };
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await alerts.onAlertPublished("alert", () => null)(event);
+    expect(hello).to.equal("world");
   });
 });
