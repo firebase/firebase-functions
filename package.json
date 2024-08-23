@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "4.4.1",
+  "version": "5.1.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -110,6 +110,9 @@
       "v2": [
         "lib/v2"
       ],
+      "v2/core": [
+        "lib/v2/core"
+      ],
       "v2/alerts": [
         "lib/v2/providers/alerts"
       ],
@@ -198,7 +201,6 @@
     "@types/express": "4.17.3",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "node-fetch": "^2.6.7",
     "protobufjs": "^7.2.2"
   },
   "devDependencies": {
@@ -225,7 +227,7 @@
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-jsdoc": "^39.2.9",
     "eslint-plugin-prettier": "^4.0.0",
-    "firebase-admin": "^11.8.0",
+    "firebase-admin": "^12.1.0",
     "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^9.0.0",
@@ -245,7 +247,7 @@
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
-    "firebase-admin": "^10.0.0 || ^11.0.0"
+    "firebase-admin": "^11.10.0 || ^12.0.0"
   },
   "engines": {
     "node": ">=14.10.0"

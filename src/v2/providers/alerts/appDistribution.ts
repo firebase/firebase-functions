@@ -32,6 +32,7 @@ import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
 import { SecretParam } from "../../../params/types";
+import { withInit } from "../../../common/onInit";
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
@@ -250,7 +251,7 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(
+    return wrapTraceContext(withInit(handler))(
       convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>
     );
   };
@@ -315,7 +316,7 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(
+    return wrapTraceContext(withInit(handler))(
       convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>
     );
   };

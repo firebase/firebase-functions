@@ -27,6 +27,7 @@ import { Expression } from "../../../params";
 import { wrapTraceContext } from "../../trace";
 import * as options from "../../options";
 import { SecretParam } from "../../../params/types";
+import { withInit } from "../../../common/onInit";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
@@ -215,7 +216,7 @@ export function onAlertPublished<T extends { ["@type"]: string } = any>(
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(convertAlertAndApp(raw) as AlertEvent<T>);
+    return wrapTraceContext(withInit(handler))(convertAlertAndApp(raw) as AlertEvent<T>);
   };
 
   func.run = handler;

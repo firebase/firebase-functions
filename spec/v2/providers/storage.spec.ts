@@ -3,6 +3,7 @@ import * as config from "../../../src/common/config";
 import * as options from "../../../src/v2/options";
 import * as storage from "../../../src/v2/providers/storage";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
+import { CloudEvent, onInit } from "../../../src/v2/core";
 
 const EVENT_TRIGGER = {
   eventType: "event-type",
@@ -312,6 +313,23 @@ describe("v2/storage", () => {
         region: ["us-west1"],
       });
     });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await storage.onObjectArchived("bucket", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onObjectFinalized", () => {
@@ -429,6 +447,23 @@ describe("v2/storage", () => {
         region: ["us-west1"],
       });
     });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await storage.onObjectFinalized("bucket", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onObjectDeleted", () => {
@@ -542,6 +577,23 @@ describe("v2/storage", () => {
         },
         region: ["us-west1"],
       });
+    });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await storage.onObjectDeleted("bucket", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 
@@ -660,6 +712,23 @@ describe("v2/storage", () => {
         },
         region: ["us-west1"],
       });
+    });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await storage.onObjectMetadataUpdated("bucket", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 });
