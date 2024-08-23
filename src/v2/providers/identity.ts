@@ -40,6 +40,7 @@ import { Expression } from "../../params";
 import { initV2Endpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
@@ -282,7 +283,7 @@ export function beforeOperation(
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
   const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const func: any = wrapTraceContext(wrapHandler(eventType, wrappedHandler));
+  const func: any = wrapTraceContext(withInit(wrapHandler(eventType, wrappedHandler)));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

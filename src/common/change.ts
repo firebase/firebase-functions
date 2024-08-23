@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 /**
- * `ChangeJson` is the JSON format used to construct a Change object.
+ * `ChangeJson` is the JSON format used to construct a `Change` object.
  */
 export interface ChangeJson {
   /**
@@ -64,8 +64,8 @@ export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string)
 }
 
 /**
- * The Functions interface for events that change state, such as
- * Realtime Database or Cloud Firestore `onWrite` and `onUpdate`.
+ * The Cloud Functions interface for events that change state, such as
+ * Realtime Database or Cloud Firestore `onWrite` and `onUpdate` events.
  *
  * For more information about the format used to construct `Change` objects, see
  * {@link ChangeJson} below.
@@ -73,7 +73,7 @@ export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string)
  */
 export class Change<T> {
   /**
-   * Factory method for creating a Change from a `before` object and an `after`
+   * Factory method for creating a `Change` from a `before` object and an `after`
    * object.
    */
   static fromObjects<T>(before: T, after: T) {
@@ -81,7 +81,7 @@ export class Change<T> {
   }
 
   /**
-   * Factory method for creating a Change from a JSON and an optional customizer
+   * Factory method for creating a `Change` from JSON and an optional customizer
    * function to be applied to both the `before` and the `after` fields.
    */
   static fromJSON<T>(json: ChangeJson, customizer: (x: any) => T = (x) => x as T): Change<T> {

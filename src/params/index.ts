@@ -38,13 +38,23 @@ import {
   InternalExpression,
 } from "./types";
 
+export {
+  BUCKET_PICKER,
+  TextInput,
+  SelectInput,
+  SelectOptions,
+  MultiSelectInput,
+  select,
+  multiSelect,
+} from "./types";
+
 export { ParamOptions, Expression };
 
 type SecretOrExpr = Param<any> | SecretParam;
 export const declaredParams: SecretOrExpr[] = [];
 
 /**
- * Use a helper to manage the list such that params are uniquely
+ * Use a helper to manage the list such that parameters are uniquely
  * registered once only but order is preserved.
  * @internal
  */
@@ -66,7 +76,7 @@ export function clearParams() {
 }
 
 /**
- * A builtin param that resolves to the default RTDB database URL associated
+ * A built-in parameter that resolves to the default RTDB database URL associated
  * with the project, without prompting the deployer. Empty string if none exists.
  */
 export const databaseURL: Param<string> = new InternalExpression(
@@ -74,7 +84,7 @@ export const databaseURL: Param<string> = new InternalExpression(
   (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.databaseURL || ""
 );
 /**
- * A builtin param that resolves to the Cloud project ID associated with
+ * A built-in parameter that resolves to the Cloud project ID associated with
  * the project, without prompting the deployer.
  */
 export const projectID: Param<string> = new InternalExpression(
@@ -82,7 +92,7 @@ export const projectID: Param<string> = new InternalExpression(
   (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
 );
 /**
- * A builtin param that resolves to the Cloud project ID, without prompting
+ * A built-in parameter that resolves to the Cloud project ID, without prompting
  * the deployer.
  */
 export const gcloudProject: Param<string> = new InternalExpression(
@@ -90,7 +100,7 @@ export const gcloudProject: Param<string> = new InternalExpression(
   (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
 );
 /**
- * A builtin param that resolves to the Cloud storage bucket associated
+ * A builtin parameter that resolves to the Cloud storage bucket associated
  * with the function, without prompting the deployer. Empty string if not
  * defined.
  */
@@ -101,11 +111,11 @@ export const storageBucket: Param<string> = new InternalExpression(
 
 /**
  * Declares a secret param, that will persist values only in Cloud Secret Manager.
- * Secrets are stored interally as bytestrings. Use ParamOptions.`as` to provide type
+ * Secrets are stored interally as bytestrings. Use `ParamOptions.as` to provide type
  * hinting during parameter resolution.
  *
- * @param name The name of the environment variable to use to load the param.
- * @returns A Param with a `string` return type for `.value`.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @returns A parameter with a `string` return type for `.value`.
  */
 export function defineSecret(name: string): SecretParam {
   const param = new SecretParam(name);
@@ -114,11 +124,11 @@ export function defineSecret(name: string): SecretParam {
 }
 
 /**
- * Declare a string param.
+ * Declare a string parameter.
  *
- * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
- * @returns A Param with a `string` return type for `.value`.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @param options Configuration options for the parameter.
+ * @returns A parameter with a `string` return type for `.value`.
  */
 export function defineString(name: string, options: ParamOptions<string> = {}): StringParam {
   const param = new StringParam(name, options);
@@ -127,11 +137,11 @@ export function defineString(name: string, options: ParamOptions<string> = {}): 
 }
 
 /**
- * Declare a boolean param.
+ * Declare a boolean parameter.
  *
- * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
- * @returns A Param with a `boolean` return type for `.value`.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @param options Configuration options for the parameter.
+ * @returns A parameter with a `boolean` return type for `.value`.
  */
 export function defineBoolean(name: string, options: ParamOptions<boolean> = {}): BooleanParam {
   const param = new BooleanParam(name, options);
@@ -140,11 +150,11 @@ export function defineBoolean(name: string, options: ParamOptions<boolean> = {})
 }
 
 /**
- * Declare an integer param.
+ * Declare an integer parameter.
  *
- * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
- * @returns A Param with a `number` return type for `.value`.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @param options Configuration options for the parameter.
+ * @returns A parameter with a `number` return type for `.value`.
  */
 export function defineInt(name: string, options: ParamOptions<number> = {}): IntParam {
   const param = new IntParam(name, options);
@@ -153,11 +163,11 @@ export function defineInt(name: string, options: ParamOptions<number> = {}): Int
 }
 
 /**
- * Declare a float param.
+ * Declare a float parameter.
  *
- * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
- * @returns A Param with a `number` return type for `.value`.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @param options Configuration options for the parameter.
+ * @returns A parameter with a `number` return type for `.value`.
  *
  * @internal
  */
@@ -168,11 +178,11 @@ export function defineFloat(name: string, options: ParamOptions<number> = {}): F
 }
 
 /**
- * Declare a list param.
+ * Declare a list parameter.
  *
- * @param name The name of the environment variable to use to load the param.
- * @param options Configuration options for the param.
- * @returns A Param with a `string[]` return type for `.value`.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @param options Configuration options for the parameter.
+ * @returns A parameter with a `string[]` return type for `.value`.
  */
 export function defineList(name: string, options: ParamOptions<string[]> = {}): ListParam {
   const param = new ListParam(name, options);

@@ -25,6 +25,7 @@ import * as options from "../../../src/v2/options";
 import * as eventarc from "../../../src/v2/providers/eventarc";
 import { FULL_OPTIONS } from "./fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { CloudEvent, onInit } from "../../../src/v2/core";
 
 const ENDPOINT_EVENT_TRIGGER = {
   eventType: "event-type",
@@ -148,6 +149,23 @@ describe("v2/eventarc", () => {
           channel: "locations/us-west1/channels/my-channel",
         },
       });
+    });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await eventarc.onCustomEventPublished("type", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 });
