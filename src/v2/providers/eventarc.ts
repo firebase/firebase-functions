@@ -217,7 +217,7 @@ export function onCustomEventPublished<T = any>(
     eventTrigger: {
       eventType: opts.eventType,
       eventFilters: {},
-      retry: opts.retry || false,
+      retry: opts.retry ?? false,
       channel,
     },
   };

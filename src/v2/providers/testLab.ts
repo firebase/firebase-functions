@@ -207,7 +207,7 @@ export function onTestMatrixCompleted(
     eventTrigger: {
       eventType,
       eventFilters: {},
-      retry: optsOrHandler.retry || false,
+      retry: optsOrHandler.retry ?? false,
     },
   };
   func.__endpoint = ep;
