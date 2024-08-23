@@ -280,6 +280,40 @@ describe("database", () => {
         },
       });
     });
+
+    it("should supply retry", () => {
+      const func = database.onChangedOperation(
+        database.writtenEventType,
+        {
+          ref: "/foo/{path=**}/{bar}/",
+          instance: "my-instance",
+          region: "us-central1",
+          cpu: "gcf_gen1",
+          minInstances: 2,
+          retry: true,
+        },
+        () => 2
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        cpu: "gcf_gen1",
+        minInstances: 2,
+        region: ["us-central1"],
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {
+            instance: "my-instance",
+          },
+          eventFilterPathPatterns: {
+            ref: "foo/{path=**}/{bar}",
+          },
+          retry: true,
+        },
+      });
+    });
   });
 
   describe("onOperation", () => {

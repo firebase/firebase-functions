@@ -447,7 +447,7 @@ export function makeEndpoint(
       eventType,
       eventFilters,
       eventFilterPathPatterns,
-      retry: false,
+      retry: opts.retry ?? false,
     },
   };
 }
