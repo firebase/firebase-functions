@@ -26,6 +26,14 @@ import { firebaseConfig } from "../../common/config";
 import { joinPath, pathParts } from "../../common/utilities/path";
 
 /**
+ * Pulled from @firebase/database-types, make sure the interface is updated on dependencies upgrades.
+ * Represents a child snapshot of a `Reference` that is being iterated over. The key will never be undefined.
+ */
+interface IteratedDataSnapshot extends DataSnapshot {
+  key: string; // key of the location of this snapshot.
+}
+
+/**
  * Interface representing a Firebase Realtime database data snapshot.
  */
 export class DataSnapshot implements database.DataSnapshot {
@@ -50,10 +58,7 @@ export class DataSnapshot implements database.DataSnapshot {
     instance?: string
   ) {
     const config = firebaseConfig();
-    if (app?.options?.databaseURL?.startsWith("http:")) {
-      // In this case we're dealing with an emulator
-      this.instance = app.options.databaseURL;
-    } else if (instance) {
+    if (instance) {
       // SDK always supplies instance, but user's unit tests may not
       this.instance = instance;
     } else if (app) {
@@ -123,6 +128,9 @@ export class DataSnapshot implements database.DataSnapshot {
     let source = this._data;
     if (parts.length) {
       for (const part of parts) {
+        if (source[part] === undefined) {
+          return null;
+        }
         source = source[part];
       }
     }
@@ -162,7 +170,7 @@ export class DataSnapshot implements database.DataSnapshot {
    */
   exists(): boolean {
     const val = this.val();
-    if (!val || val === null) {
+    if (typeof val === "undefined" || val === null) {
       return false;
     }
     if (typeof val === "object" && Object.keys(val).length === 0) {
@@ -207,7 +215,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * @return `true` if enumeration was canceled due to your callback
    *   returning `true`.
    */
-  forEach(action: (a: DataSnapshot) => boolean | void): boolean {
+  forEach(action: (a: IteratedDataSnapshot) => boolean | void): boolean {
     const val = this.val() || {};
     if (typeof val === "object") {
       return Object.keys(val).some((key) => action(this.child(key)) === true);

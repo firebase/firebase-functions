@@ -40,6 +40,7 @@ import { Expression } from "../../params";
 import { initV2Endpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
@@ -72,7 +73,7 @@ export interface BlockingOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -142,7 +143,7 @@ export interface BlockingOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -282,7 +283,7 @@ export function beforeOperation(
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
   const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const func: any = wrapTraceContext(wrapHandler(eventType, wrappedHandler));
+  const func: any = wrapTraceContext(withInit(wrapHandler(eventType, wrappedHandler)));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

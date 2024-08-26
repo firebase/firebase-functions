@@ -134,7 +134,7 @@ describe("onMessagePublished", () => {
     expect(res).to.equal("input");
   });
 
-  it("should parse pubsub messages", () => {
+  it("should parse pubsub messages", async () => {
     let json: unknown;
     const messageJSON = {
       messageId: "uuid",
@@ -161,7 +161,7 @@ describe("onMessagePublished", () => {
       return event;
     });
 
-    const eventAgain = func(event);
+    const eventAgain = await func(event);
 
     // Deep equal uses JSON equality, so we'll still match even though
     // Message is a class and we passed an interface.

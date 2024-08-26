@@ -32,6 +32,7 @@ import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
 import { SecretParam } from "../../../params/types";
+import { withInit } from "../../../common/onInit";
 
 /**
  * The internal payload object for adding a new tester device to app distribution.
@@ -105,7 +106,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -175,7 +176,7 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -250,7 +251,7 @@ export function onNewTesterIosDevicePublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(
+    return wrapTraceContext(withInit(handler))(
       convertAlertAndApp(raw) as AppDistributionEvent<NewTesterDevicePayload>
     );
   };
@@ -315,7 +316,7 @@ export function onInAppFeedbackPublished(
   const [opts, appId] = getOptsAndApp(appIdOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(
+    return wrapTraceContext(withInit(handler))(
       convertAlertAndApp(raw) as AppDistributionEvent<InAppFeedbackPayload>
     );
   };

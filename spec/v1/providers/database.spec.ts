@@ -458,6 +458,7 @@ describe("DataSnapshot", () => {
       populate(applyChange({ a: 23 }, { b: 33 }));
       expect(subject.child("a/b").val()).to.be.null;
       expect(subject.child("b/c").val()).to.be.null;
+      expect(subject.child("a/b/c").val()).to.be.null;
     });
 
     it("should return a leaf value", () => {
@@ -579,6 +580,15 @@ describe("DataSnapshot", () => {
 
       populate({ a: [{}] });
       expect(subject.child("a").exists()).to.be.false;
+    });
+
+    it("should be true for a falsy value (other than null)", () => {
+      populate({ num: 0, bool: false, n: null });
+      expect(subject.exists()).to.be.true;
+      expect(subject.child("num").exists()).to.be.true;
+      expect(subject.child("bool").exists()).to.be.true;
+      expect(subject.child("n").exists()).to.be.false;
+      expect(subject.child("missing").exists()).to.be.false;
     });
   });
 

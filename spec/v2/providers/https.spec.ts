@@ -29,6 +29,7 @@ import * as https from "../../../src/v2/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
+import { onInit } from "../../../src/v2/core";
 
 describe("onRequest", () => {
   beforeEach(() => {
@@ -37,6 +38,7 @@ describe("onRequest", () => {
   });
 
   afterEach(() => {
+    options.setGlobalOptions({});
     delete process.env.GCLOUD_PROJECT;
   });
 
@@ -132,6 +134,33 @@ describe("onRequest", () => {
       concurrency: 20,
       minInstances: 3,
       region: ["us-west1", "us-central1"],
+      labels: {},
+    });
+  });
+
+  it("should take globalOptions invoker", () => {
+    options.setGlobalOptions({
+      invoker: "private",
+    });
+
+    const result = https.onRequest((req, res) => {
+      res.send();
+    });
+
+    expect(result.__trigger).to.deep.eq({
+      platform: "gcfv2",
+      httpsTrigger: {
+        allowInsecure: false,
+        invoker: ["private"],
+      },
+      labels: {},
+    });
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      httpsTrigger: {
+        invoker: ["private"],
+      },
       labels: {},
     });
   });
@@ -242,6 +271,28 @@ describe("onRequest", () => {
 
     sinon.restore();
   });
+
+  it("calls init function", async () => {
+    const func = https.onRequest((req, res) => {
+      res.status(200).send("Good");
+    });
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "origin",
+        origin: "example.com",
+      }
+    );
+    req.method = "OPTIONS";
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await runHandler(func, req as any);
+    expect(hello).to.equal("world");
+  });
 });
 
 describe("onCall", () => {
@@ -335,7 +386,7 @@ describe("onCall", () => {
     });
   });
 
-  it("has a .run method", () => {
+  it("has a .run method", async () => {
     const cf = https.onCall((request) => {
       return request;
     });
@@ -348,7 +399,7 @@ describe("onCall", () => {
         token: "token",
       },
     };
-    expect(cf.run(request)).to.deep.equal(request);
+    await expect(cf.run(request)).to.eventually.deep.equal(request);
   });
 
   it("should be an express handler", async () => {
@@ -458,5 +509,26 @@ describe("onCall", () => {
     https.onCall<string>((request: https.CallableRequest) => `hello, ${request.data}!`);
     https.onCall((request: https.CallableRequest<string>) => `Hello, ${request.data}`);
     https.onCall((request: https.CallableRequest) => `Hello, ${request.data}`);
+  });
+
+  it("calls init function", async () => {
+    const func = https.onCall(() => 42);
+
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        "content-type": "application/json",
+        origin: "example.com",
+      }
+    );
+    req.method = "POST";
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await runHandler(func, req as any);
+    expect(hello).to.equal("world");
   });
 });
