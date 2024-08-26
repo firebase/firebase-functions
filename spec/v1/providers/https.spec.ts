@@ -35,6 +35,7 @@ import {
 import { runHandler } from "../../helper";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { CALLABLE_AUTH_HEADER, ORIGINAL_AUTH_HEADER } from "../../../src/common/providers/https";
+import { onInit } from "../../../src/v1";
 
 describe("CloudHttpsBuilder", () => {
   describe("#onRequest", () => {
@@ -69,6 +70,26 @@ describe("CloudHttpsBuilder", () => {
       expect(fn.__endpoint.availableMemoryMb).to.deep.equal(256);
       expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
       expect(fn.__endpoint.httpsTrigger.invoker).to.deep.equal(["private"]);
+    });
+
+    it("calls init function", async () => {
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      const fn = functions.https.onRequest((_req, res) => {
+        res.send(200);
+      });
+      const req = new MockRequest(
+        {
+          data: { foo: "bar" },
+        },
+        {
+          "content-type": "application/json",
+        }
+      );
+      req.method = "POST";
+      await runHandler(fn, req as any);
+      expect(hello).to.equal("world");
     });
   });
 });
@@ -114,7 +135,7 @@ describe("#onCall", () => {
     expect(fn.__endpoint.timeoutSeconds).to.deep.equal(90);
   });
 
-  it("has a .run method", () => {
+  it("has a .run method", async () => {
     const cf = https.onCall((d, c) => {
       return { data: d, context: c };
     });
@@ -127,7 +148,8 @@ describe("#onCall", () => {
         token: "token",
       },
     };
-    expect(cf.run(data, context)).to.deep.equal({ data, context });
+
+    await expect(cf.run(data, context)).to.eventually.deep.equal({ data, context });
   });
 
   // Regression test for firebase-functions#947
@@ -150,6 +172,25 @@ describe("#onCall", () => {
     const response = await runHandler(func, req as any);
     expect(response.status).to.equal(200);
     expect(gotData).to.deep.equal({ foo: "bar" });
+  });
+
+  it("should call initializer", async () => {
+    const func = https.onCall(() => null);
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        "content-type": "application/json",
+      }
+    );
+    req.method = "POST";
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await runHandler(func, req as any);
+    expect(hello).to.equal("world");
   });
 
   // Test for firebase-tools#5210

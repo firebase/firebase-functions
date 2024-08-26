@@ -63,18 +63,19 @@ const EVENT_MAPPING: Record<string, string> = {
 };
 
 /**
- * The UserRecord passed to Cloud Functions is the same UserRecord that is returned by the Firebase Admin
- * SDK.
+ * The `UserRecord` passed to Cloud Functions is the same
+ * {@link https://firebase.google.com/docs/reference/admin/node/firebase-admin.auth.userrecord | UserRecord}
+ * that is returned by the Firebase Admin SDK.
  */
 export type UserRecord = auth.UserRecord;
 
 /**
- * UserInfo that is part of the UserRecord
+ * `UserInfo` that is part of the `UserRecord`.
  */
 export type UserInfo = auth.UserInfo;
 
 /**
- * Helper class to create the user metadata in a UserRecord object
+ * Helper class to create the user metadata in a `UserRecord` object.
  */
 export class UserRecordMetadata implements auth.UserMetadata {
   constructor(public creationTime: string, public lastSignInTime: string) {}
@@ -89,9 +90,9 @@ export class UserRecordMetadata implements auth.UserMetadata {
 }
 
 /**
- * Helper function that creates a UserRecord Class from data sent over the wire.
+ * Helper function that creates a `UserRecord` class from data sent over the wire.
  * @param wireData data sent over the wire
- * @returns an instance of UserRecord with correct toJSON functions
+ * @returns an instance of `UserRecord` with correct toJSON functions
  */
 export function userRecordConstructor(wireData: Record<string, unknown>): UserRecord {
   // Falsey values from the wire format proto get lost when converted to JSON, this adds them back.
@@ -157,7 +158,7 @@ export function userRecordConstructor(wireData: Record<string, unknown>): UserRe
 }
 
 /**
- * User info that is part of the AuthUserRecord
+ * User info that is part of the `AuthUserRecord`.
  */
 export interface AuthUserInfo {
   /**
@@ -237,7 +238,7 @@ export interface AuthMultiFactorSettings {
 }
 
 /**
- * The UserRecord passed to auth blocking Cloud Functions from the identity platform.
+ * The `UserRecord` passed to auth blocking functions from the identity platform.
  */
 export interface AuthUserRecord {
   /**
@@ -310,6 +311,7 @@ export interface AdditionalUserInfo {
   profile?: any;
   username?: string;
   isNewUser: boolean;
+  recaptchaScore?: number;
 }
 
 /** The credential component of the auth event context */
@@ -333,21 +335,27 @@ export interface AuthEventContext extends EventContext {
   credential?: Credential;
 }
 
-/** Defines the auth event for v2 blocking events */
+/** Defines the auth event for 2nd gen blocking events */
 export interface AuthBlockingEvent extends AuthEventContext {
   data: AuthUserRecord;
 }
 
-/** The handler response type for beforeCreate blocking events */
+/**
+ * The reCAPTCHA action options.
+ */
+export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
+
+/** The handler response type for `beforeCreate` blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
   disabled?: boolean;
   emailVerified?: boolean;
   photoURL?: string;
   customClaims?: object;
+  recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
-/** The handler response type for beforeSignIn blocking events */
+/** The handler response type for `beforeSignIn` blocking events */
 export interface BeforeSignInResponse extends BeforeCreateResponse {
   sessionClaims?: object;
 }
@@ -423,7 +431,24 @@ export interface DecodedPayload {
   oauth_refresh_token?: string;
   oauth_token_secret?: string;
   oauth_expires_in?: number;
+  recaptcha_score?: number;
   [key: string]: any;
+}
+
+/**
+ * Internal definition to include all the fields that can be sent as
+ * a response from the blocking function to the backend.
+ * This is added mainly to have a type definition for 'generateResponsePayload'
+ * @internal */
+export interface ResponsePayload {
+  userRecord?: UserRecordResponsePayload;
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
+
+/** @internal */
+export interface UserRecordResponsePayload
+  extends Omit<BeforeSignInResponse, "recaptchaActionOverride"> {
+  updateMask?: string;
 }
 
 type HandlerV1 = (
@@ -448,7 +473,7 @@ type HandlerV2 = (
   | Promise<void>;
 
 /**
- * Checks for a valid identity platform web request, otherwise throws an HttpsError
+ * Checks for a valid identity platform web request, otherwise throws an HttpsError.
  * @internal
  */
 export function isValidRequest(req: express.Request): boolean {
@@ -484,15 +509,15 @@ function unsafeDecodeAuthBlockingToken(token: string): DecodedPayload {
 }
 
 /**
- * Helper function to parse the decoded metadata object into a UserMetaData object
+ * Helper function to parse the decoded metadata object into a `UserMetaData` object
  * @internal
  */
 export function parseMetadata(metadata: DecodedPayloadUserRecordMetadata): AuthUserMetadata {
   const creationTime = metadata?.creation_time
-    ? new Date(metadata.creation_time * 1000).toUTCString()
+    ? new Date(metadata.creation_time).toUTCString()
     : null;
   const lastSignInTime = metadata?.last_sign_in_time
-    ? new Date(metadata.last_sign_in_time * 1000).toUTCString()
+    ? new Date(metadata.last_sign_in_time).toUTCString()
     : null;
   return {
     creationTime,
@@ -501,7 +526,7 @@ export function parseMetadata(metadata: DecodedPayloadUserRecordMetadata): AuthU
 }
 
 /**
- * Helper function to parse the decoded user info array into an AuthUserInfo array
+ * Helper function to parse the decoded user info array into an `AuthUserInfo` array.
  * @internal
  */
 export function parseProviderData(
@@ -522,7 +547,7 @@ export function parseProviderData(
 }
 
 /**
- * Helper function to parse the date into a UTC string
+ * Helper function to parse the date into a UTC string.
  * @internal
  */
 export function parseDate(tokensValidAfterTime?: number): string | null {
@@ -615,7 +640,7 @@ export function parseAuthUserRecord(
   };
 }
 
-/** Helper to get the AdditionalUserInfo from the decoded jwt */
+/** Helper to get the `AdditionalUserInfo` from the decoded JWT */
 function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo {
   let profile;
   let username;
@@ -640,10 +665,40 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
     profile,
     username,
     isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
+    recaptchaScore: decodedJWT.recaptcha_score,
   };
 }
 
-/** Helper to get the Credential from the decoded jwt */
+/**
+ * Helper to generate a response from the blocking function to the Firebase Auth backend.
+ * @internal
+ */
+export function generateResponsePayload(
+  authResponse?: BeforeCreateResponse | BeforeSignInResponse
+): ResponsePayload {
+  if (!authResponse) {
+    return {};
+  }
+
+  const { recaptchaActionOverride, ...formattedAuthResponse } = authResponse;
+  const result = {} as ResponsePayload;
+  const updateMask = getUpdateMask(formattedAuthResponse);
+
+  if (updateMask.length !== 0) {
+    result.userRecord = {
+      ...formattedAuthResponse,
+      updateMask,
+    };
+  }
+
+  if (recaptchaActionOverride !== undefined) {
+    result.recaptchaActionOverride = recaptchaActionOverride;
+  }
+
+  return result;
+}
+
+/** Helper to get the Credential from the decoded JWT */
 function parseAuthCredential(decodedJWT: DecodedPayload, time: number): Credential {
   if (
     !decodedJWT.sign_in_attributes &&
@@ -801,7 +856,6 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
         : handler.length === 2
         ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
-
       const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
 
@@ -818,16 +872,7 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
       }
 
       validateAuthResponse(eventType, authResponse);
-      const updateMask = getUpdateMask(authResponse);
-      const result =
-        updateMask.length === 0
-          ? {}
-          : {
-              userRecord: {
-                ...authResponse,
-                updateMask,
-              },
-            };
+      const result = generateResponsePayload(authResponse);
 
       res.status(200);
       res.setHeader("Content-Type", "application/json");

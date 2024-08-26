@@ -22,10 +22,21 @@
 
 import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
 import { Expression } from "../params";
-import { WireParamSpec } from "../params/types";
+import { WireParamSpec, SecretParam } from "../params/types";
 
 /**
- * An definition of a function as appears in the Manifest.
+ * A definition of an extension as appears in the Manifest.
+ * Exactly one of ref or localPath must be present.
+ */
+export interface ManifestExtension {
+  params: Record<string, string | SecretParam>;
+  ref?: string;
+  localPath?: string;
+  events: string[];
+}
+
+/**
+ * A definition of a function as appears in the Manifest.
  *
  * @alpha
  */
@@ -113,7 +124,8 @@ export interface ManifestRequiredAPI {
 }
 
 /**
- * An definition of a function deployment as appears in the Manifest.
+ * A definition of a function/extension deployment as appears in the Manifest.
+ *
  * @alpha
  */
 export interface ManifestStack {
@@ -121,6 +133,7 @@ export interface ManifestStack {
   params?: WireParamSpec<any>[];
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
+  extensions?: Record<string, ManifestExtension>;
 }
 
 /**

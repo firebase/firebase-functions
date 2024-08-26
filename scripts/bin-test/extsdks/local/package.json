@@ -1,0 +1,4 @@
+{
+    "name": "@firebase-extensions/local-backfill-sdk",
+    "main": "./index.js"
+  }

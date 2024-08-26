@@ -13,7 +13,7 @@
   "main": "lib/index.js",
   "devDependencies": {
     "@types/node-fetch": "^2.6.1",
-    "typescript": "~4.2.2"
+    "typescript": "^4.3.5"
   },
   "engines": {
     "node": "__NODE_VERSION__"

@@ -25,6 +25,7 @@ import { PathPattern } from "../../../src/common/utilities/path-pattern";
 import * as database from "../../../src/v2/providers/database";
 import { expectType } from "../../common/metaprogramming";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
+import { CloudEvent, onInit } from "../../../src/v2/core";
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -279,6 +280,40 @@ describe("database", () => {
         },
       });
     });
+
+    it("should supply retry", () => {
+      const func = database.onChangedOperation(
+        database.writtenEventType,
+        {
+          ref: "/foo/{path=**}/{bar}/",
+          instance: "my-instance",
+          region: "us-central1",
+          cpu: "gcf_gen1",
+          minInstances: 2,
+          retry: true,
+        },
+        () => 2
+      );
+
+      expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        cpu: "gcf_gen1",
+        minInstances: 2,
+        region: ["us-central1"],
+        labels: {},
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {
+            instance: "my-instance",
+          },
+          eventFilterPathPatterns: {
+            ref: "foo/{path=**}/{bar}",
+          },
+          retry: true,
+        },
+      });
+    });
   });
 
   describe("onOperation", () => {
@@ -409,6 +444,23 @@ describe("database", () => {
         },
       });
     });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await database.onValueWritten("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onValueCreated", () => {
@@ -469,6 +521,23 @@ describe("database", () => {
         },
       });
     });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await database.onValueCreated("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onValueUpdated", () => {
@@ -526,6 +595,23 @@ describe("database", () => {
         },
       });
     });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await database.onValueUpdated("path", () => null)(event);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onValueDeleted", () => {
@@ -582,6 +668,23 @@ describe("database", () => {
           retry: false,
         },
       });
+    });
+
+    it("calls init function", async () => {
+      const event: CloudEvent<string> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: "data",
+      };
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await database.onValueDeleted("path", () => null)(event);
+      expect(hello).to.equal("world");
     });
   });
 });
