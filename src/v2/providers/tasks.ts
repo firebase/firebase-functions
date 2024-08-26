@@ -282,6 +282,7 @@ export function onTaskDispatched<Args = any>(
     convertInvoker
   );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
+  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retry", "retry");
 
   func.__requiredAPIs = [
     {
