@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { withInit } from "../../common/onInit";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
@@ -190,7 +191,7 @@ export function onTestMatrixCompleted(
   const specificOpts = optionsToEndpoint(optsOrHandler);
 
   const func: any = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(raw as CloudEvent<TestMatrixCompletedData>);
+    return wrapTraceContext(withInit(handler))(raw as CloudEvent<TestMatrixCompletedData>);
   };
   func.run = handler;
 
@@ -206,7 +207,7 @@ export function onTestMatrixCompleted(
     eventTrigger: {
       eventType,
       eventFilters: {},
-      retry: !!optsOrHandler.retry,
+      retry: optsOrHandler.retry ?? false,
     },
   };
   func.__endpoint = ep;

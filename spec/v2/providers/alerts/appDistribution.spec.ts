@@ -3,6 +3,7 @@ import * as alerts from "../../../../src/v2/providers/alerts";
 import * as appDistribution from "../../../../src/v2/providers/alerts/appDistribution";
 import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
+import { onInit } from "../../../../src/v2/core";
 
 const APPID = "123456789";
 const myHandler = () => 42;
@@ -91,6 +92,16 @@ describe("appDistribution", () => {
 
       expect(res).to.equal("input");
     });
+
+    it("calls init function", async () => {
+      const func = appDistribution.onNewTesterIosDevicePublished(APPID, (event) => event);
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await func({ data: "test" } as any);
+      expect(hello).to.equal("world");
+    });
   });
 
   describe("onInAppfeedbackPublished", () => {
@@ -171,6 +182,16 @@ describe("appDistribution", () => {
       const res = func.run("input" as any);
 
       expect(res).to.equal("input");
+    });
+
+    it("calls init function", async () => {
+      const func = appDistribution.onInAppFeedbackPublished(APPID, (event) => event);
+
+      let hello;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await func({ data: "test" } as any);
+      expect(hello).to.equal("world");
     });
   });
 

@@ -33,6 +33,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -303,7 +304,7 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return wrapTraceContext(handler)(raw as CloudEvent<MessagePublishedData<T>>);
+    return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
   };
 
   func.run = handler;
@@ -344,7 +345,7 @@ export function onMessagePublished<T = any>(
     eventTrigger: {
       eventType: "google.cloud.pubsub.topic.v1.messagePublished",
       eventFilters: { topic },
-      retry: false,
+      retry: opts.retry ?? false,
     },
   };
   copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
