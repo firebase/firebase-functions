@@ -85,7 +85,7 @@ describe("Analytics Functions", () => {
     });
 
     describe("#dataConstructor", () => {
-      it("should handle an event with the appropriate fields", () => {
+      it("should handle an event with the appropriate fields", async () => {
         const cloudFunction = analytics
           .event("first_open")
           .onLog((data: analytics.AnalyticsEvent) => data);
@@ -109,7 +109,7 @@ describe("Analytics Functions", () => {
           },
         };
 
-        return expect(cloudFunction(event.data, event.context)).to.eventually.deep.equal({
+        await expect(cloudFunction(event.data, event.context)).to.eventually.deep.equal({
           params: {},
           user: {
             userId: "hi!",

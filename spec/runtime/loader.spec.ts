@@ -3,7 +3,12 @@ import * as path from "path";
 
 import * as functions from "../../src/v1";
 import * as loader from "../../src/runtime/loader";
-import { ManifestEndpoint, ManifestRequiredAPI, ManifestStack } from "../../src/runtime/manifest";
+import {
+  ManifestEndpoint,
+  ManifestExtension,
+  ManifestRequiredAPI,
+  ManifestStack,
+} from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
@@ -31,8 +36,9 @@ describe("extractStack", () => {
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: ManifestRequiredAPI[] = [];
+    const extensions: Record<string, ManifestExtension> = {};
 
-    loader.extractStack(module, endpoints, requiredAPIs);
+    loader.extractStack(module, endpoints, requiredAPIs, extensions);
 
     expect(endpoints).to.be.deep.equal({
       http: {
@@ -57,8 +63,9 @@ describe("extractStack", () => {
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: ManifestRequiredAPI[] = [];
+    const extensions: Record<string, ManifestExtension> = {};
 
-    loader.extractStack(module, endpoints, requiredAPIs);
+    loader.extractStack(module, endpoints, requiredAPIs, extensions);
 
     expect(endpoints).to.be.deep.equal({
       taskq: {
@@ -87,8 +94,9 @@ describe("extractStack", () => {
 
     const endpoints: Record<string, ManifestEndpoint> = {};
     const requiredAPIs: ManifestRequiredAPI[] = [];
+    const extensions: Record<string, ManifestExtension> = {};
 
-    loader.extractStack(module, endpoints, requiredAPIs);
+    loader.extractStack(module, endpoints, requiredAPIs, extensions);
 
     expect(endpoints).to.be.deep.equal({
       fn1: {
@@ -125,8 +133,9 @@ describe("extractStack", () => {
 
       const endpoints: Record<string, ManifestEndpoint> = {};
       const requiredAPIs: ManifestRequiredAPI[] = [];
+      const extensions: Record<string, ManifestExtension> = {};
 
-      loader.extractStack(module, endpoints, requiredAPIs);
+      loader.extractStack(module, endpoints, requiredAPIs, extensions);
 
       expect(endpoints).to.be.deep.equal({
         fn: {
@@ -152,8 +161,9 @@ describe("extractStack", () => {
 
       const endpoints: Record<string, ManifestEndpoint> = {};
       const requiredAPIs: ManifestRequiredAPI[] = [];
+      const extensions: Record<string, ManifestExtension> = {};
 
-      loader.extractStack(module, endpoints, requiredAPIs);
+      loader.extractStack(module, endpoints, requiredAPIs, extensions);
 
       expect(endpoints).to.be.deep.equal({
         scheduled: {
@@ -259,8 +269,48 @@ describe("loadStack", () => {
         labels: {},
         callableTrigger: {},
       },
+      ttOnStart: {
+        ...MINIMAL_V2_ENDPOINT,
+        entryPoint: "ttOnStart",
+        eventTrigger: {
+          channel: "projects/locations/us-central1/channels/firebase",
+          eventFilters: {},
+          eventType: "firebase.extensions.firestore-translate-text.v1.onStart",
+          retry: false,
+        },
+        labels: {},
+        platform: "gcfv2",
+        region: ["us-central1"],
+      },
     },
-    requiredAPIs: [],
+    requiredAPIs: [
+      {
+        api: "eventarcpublishing.googleapis.com",
+        reason: "Needed for custom event functions",
+      },
+    ],
+    extensions: {
+      extRef1: {
+        params: {
+          COLLECTION_PATH: "collection1",
+          INPUT_FIELD_NAME: "input1",
+          LANGUAGES: "de,es",
+          OUTPUT_FIELD_NAME: "translated",
+          "firebaseextensions.v1beta.function/location": "us-central1",
+          _EVENT_ARC_REGION: "us-central1",
+        },
+        ref: "firebase/firestore-translate-text@0.1.18",
+        events: ["firebase.extensions.firestore-translate-text.v1.onStart"],
+      },
+      extLocal2: {
+        params: {
+          DO_BACKFILL: "False",
+          LOCATION: "us-central1",
+        },
+        localPath: "./functions/generated/extensions/local/backfill/0.0.2/src",
+        events: [],
+      },
+    },
     specVersion: "v1alpha1",
   };
 
@@ -387,6 +437,8 @@ describe("loadStack", () => {
             { name: "INT_PARAM", type: "int" },
             { name: "BOOLEAN_PARAM", type: "boolean" },
           ],
+          requiredAPIs: [],
+          extensions: {},
           endpoints: {
             v1http: {
               ...MINIMAL_V1_ENDPOINT,

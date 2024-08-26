@@ -28,6 +28,7 @@ import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
+import { onInit } from "../../../src/v2/core";
 
 const MINIMIAL_TASK_QUEUE_TRIGGER: ManifestEndpoint["taskQueueTrigger"] = {
   rateLimits: {
@@ -298,5 +299,26 @@ describe("onTaskDispatched", () => {
     onTaskDispatched((request: Request) => {
       console.log(`Hello, ${request.data}`);
     });
+  });
+
+  it("calls init function", async () => {
+    const func = onTaskDispatched(() => null);
+
+    const req = new MockRequest(
+      {
+        data: {},
+      },
+      {
+        "content-type": "application/json",
+        origin: "example.com",
+      }
+    );
+    req.method = "POST";
+
+    let hello;
+    onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await runHandler(func, req as any);
+    expect(hello).to.equal("world");
   });
 });
