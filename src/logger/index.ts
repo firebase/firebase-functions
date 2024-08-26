@@ -94,9 +94,7 @@ export function write(entry: LogEntry) {
     ] = `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
   }
 
-  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](
-    JSON.stringify(removeCircular(entry))
-  );
+  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(removeCircular(entry)));
 }
 
 /**
@@ -153,11 +151,7 @@ export function error(...args: any[]) {
 function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];
-  if (
-    lastArg &&
-    typeof lastArg === "object" &&
-    lastArg.constructor === Object
-  ) {
+  if (lastArg && typeof lastArg === "object" && lastArg.constructor === Object) {
     entry = args.pop();
   }
 
