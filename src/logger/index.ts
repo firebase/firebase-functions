@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import {format} from "util";
-import {traceContext} from "../common/trace";
+import { format } from "util";
+import { traceContext } from "../common/trace";
 
-import {CONSOLE_SEVERITY, UNPATCHED_CONSOLE} from "./common";
+import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).
@@ -94,7 +94,9 @@ export function write(entry: LogEntry) {
     ] = `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
   }
 
-  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(removeCircular(entry)));
+  UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](
+    JSON.stringify(removeCircular(entry))
+  );
 }
 
 /**
@@ -151,7 +153,11 @@ export function error(...args: any[]) {
 function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];
-  if (lastArg && typeof lastArg === "object" && lastArg.constructor === Object) {
+  if (
+    lastArg &&
+    typeof lastArg === "object" &&
+    lastArg.constructor === Object
+  ) {
     entry = args.pop();
   }
 
