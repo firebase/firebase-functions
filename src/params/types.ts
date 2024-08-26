@@ -175,7 +175,7 @@ type ParamValueType = "string" | "list" | "boolean" | "int" | "float" | "secret"
 /** Create a select input from a series of values. */
 export function select<T>(options: T[]): SelectInput<T>;
 
-/** Create a select input from a map of labels to vaues. */
+/** Create a select input from a map of labels to values. */
 export function select<T>(optionsWithLabels: Record<string, T>): SelectInput<T>;
 
 /** Create a select input from a series of values or a map of labels to values */

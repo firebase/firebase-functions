@@ -111,7 +111,7 @@ export const storageBucket: Param<string> = new InternalExpression(
 
 /**
  * Declares a secret param, that will persist values only in Cloud Secret Manager.
- * Secrets are stored interally as bytestrings. Use `ParamOptions.as` to provide type
+ * Secrets are stored internally as bytestrings. Use `ParamOptions.as` to provide type
  * hinting during parameter resolution.
  *
  * @param name The name of the environment variable to use to load the parameter.
