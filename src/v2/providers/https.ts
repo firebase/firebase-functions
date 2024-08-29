@@ -50,7 +50,7 @@ export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 /**
  * Options that can be set on an onRequest HTTPS function.
  */
-export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
+export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceAppCheck"> {
   /**
    * If true, do not deploy or emulate this function.
    */
@@ -375,7 +375,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // on the origin header of the request. If there is only one element in the
   // array, this is unnecessary.
   if (Array.isArray(origin) && origin.length === 1) {
-    origin = origin[1];
+    origin = origin[0];
   }
 
   // onCallHandler sniffs the function length to determine which API to present.

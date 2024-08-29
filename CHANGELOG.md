@@ -1,1 +1,4 @@
-- Future Extensions support (#1590)
+- Fix retry in event triggered functions. (#1463)
+- Expose retry configuration in v2 RTDB trigger (#1588)
+- Fix CORS options for v2 callable functions (#1564)
+- Remove invalid `enforceAppCheck` option for v2 onRequest trigger (#1477)
