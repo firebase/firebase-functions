@@ -55,12 +55,17 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn" | "beforeSendEmail";
+export type AuthBlockingEventType =
+  | "beforeCreate"
+  | "beforeSignIn"
+  | "beforeSendEmail"
+  | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
   beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
   beforeSendEmail: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+  beforeSendSms: "providers/cloud.auth/eventTypes/user.beforeSendSms",
 };
 
 /**
@@ -314,6 +319,7 @@ export interface AdditionalUserInfo {
   isNewUser: boolean;
   recaptchaScore?: number;
   email?: string;
+  phoneNumber?: string;
 }
 
 /** The credential component of the auth event context */
@@ -331,6 +337,14 @@ export interface Credential {
 /** Possible types of emails as described by the GCIP backend. */
 export type EmailType = "EMAIL_SIGNIN" | "PASSWORD_RESET";
 
+/**
+ * The type of SMS message
+ */
+export type SmsType =
+  | "SIGN_IN_OR_SIGN_UP" // A sign-in or sign up SMS message
+  | "MULTI_FACTOR_SIGN_IN" // A multi-factor sign-in SMS message
+  | "MULTI_FACTOR_ENROLLMENT"; // A multi-factor enrollment SMS message
+
 /** Defines the auth event context for blocking events */
 export interface AuthEventContext extends EventContext {
   locale?: string;
@@ -339,6 +353,7 @@ export interface AuthEventContext extends EventContext {
   additionalUserInfo?: AdditionalUserInfo;
   credential?: Credential;
   emailType?: EmailType;
+  smsType?: SmsType;
 }
 
 /** Defines the auth event for 2nd gen blocking events */
@@ -351,6 +366,11 @@ export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
 
 /** The handler response type for `beforeEmailSent` blocking events */
 export interface BeforeEmailResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
+
+/** The handler response type for `beforeSmsSent` blocking events */
+export interface BeforeSmsResponse {
   recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
@@ -443,6 +463,8 @@ export interface DecodedPayload {
   recaptcha_score?: number;
   email?: string;
   email_type?: string;
+  phone_number?: string;
+  sms_type?: string;
   [key: string]: any;
 }
 
@@ -470,11 +492,15 @@ export type MaybeAsync<T> = T | Promise<T>;
 export type HandlerV1 = (
   userOrContext: AuthUserRecord | AuthEventContext,
   context?: AuthEventContext
-) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+) => MaybeAsync<
+  BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+>;
 
 export type HandlerV2 = (
   event: AuthBlockingEvent
-) => MaybeAsync<BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | void>;
+) => MaybeAsync<
+  BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+>;
 
 export type AuthBlockingEventHandler = (HandlerV1 | HandlerV2) & {
   // Specify the GCF gen of the trigger that the auth blocking event handler was written for
@@ -676,6 +702,7 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
     isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
     recaptchaScore: decodedJWT.recaptcha_score,
     email: decodedJWT.email,
+    phoneNumber: decodedJWT.phone_number,
   };
 }
 
@@ -763,6 +790,7 @@ export function parseAuthEventContext(
     additionalUserInfo: parseAdditionalUserInfo(decodedJWT),
     credential: parseAuthCredential(decodedJWT, time),
     emailType: decodedJWT.email_type as EmailType,
+    smsType: decodedJWT.sms_type as SmsType,
     params: {},
   };
 }

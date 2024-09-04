@@ -52,6 +52,11 @@ const BEFORE_EMAIL_TRIGGER = {
   options: {},
 };
 
+const BEFORE_SMS_TRIGGER = {
+  eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
+  options: {},
+};
+
 const opts: identity.BlockingOptions = {
   accessToken: true,
   refreshToken: false,
@@ -233,6 +238,49 @@ describe("identity", () => {
     });
   });
 
+  describe("beforeSmsSent", () => {
+    it("should accept a handler", () => {
+      const fn = identity.beforeSmsSent(() => Promise.resolve());
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        blockingTrigger: BEFORE_SMS_TRIGGER,
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: IDENTITY_TOOLKIT_API,
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+
+    it("should accept options and a handler", () => {
+      const fn = identity.beforeSmsSent(
+        { region: opts.region, minInstances: opts.minInstances },
+        () => Promise.resolve()
+      );
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        minInstances: 1,
+        region: [REGION],
+        blockingTrigger: {
+          ...BEFORE_SMS_TRIGGER,
+        },
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: IDENTITY_TOOLKIT_API,
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+  });
+
   describe("beforeOperation", () => {
     it("should handle eventType and handler for before create events", () => {
       const fn = identity.beforeOperation("beforeCreate", () => Promise.resolve(), undefined);
@@ -276,6 +324,23 @@ describe("identity", () => {
         platform: "gcfv2",
         labels: {},
         blockingTrigger: BEFORE_EMAIL_TRIGGER,
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: IDENTITY_TOOLKIT_API,
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+
+    it("should handle eventType and handler for before SMS events", () => {
+      const fn = identity.beforeOperation("beforeSendSms", () => Promise.resolve(), undefined);
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        blockingTrigger: BEFORE_SMS_TRIGGER,
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
@@ -346,6 +411,27 @@ describe("identity", () => {
         region: [REGION],
         blockingTrigger: {
           ...BEFORE_EMAIL_TRIGGER,
+        },
+      });
+      expect(fn.__requiredAPIs).to.deep.equal([
+        {
+          api: IDENTITY_TOOLKIT_API,
+          reason: "Needed for auth blocking functions",
+        },
+      ]);
+    });
+
+    it("should handle eventType, options, and handler for before send SMS events", () => {
+      const fn = identity.beforeOperation("beforeSendSms", opts, () => Promise.resolve());
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        minInstances: 1,
+        region: [REGION],
+        blockingTrigger: {
+          ...BEFORE_SMS_TRIGGER,
         },
       });
       expect(fn.__requiredAPIs).to.deep.equal([
