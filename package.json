@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "5.0.1",
+  "version": "5.1.1",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -182,7 +182,7 @@
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown --project functions && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
     "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
-    "build:release": "npm ci --production && npm install --no-save typescript firebase-admin && tsc -p tsconfig.release.json",
+    "build:release": "npm ci --production && npm install --no-save typescript && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "build:watch": "npm run build -- -w",
     "format": "npm run format:ts && npm run format:other",
