@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import * as functionsv2 from "firebase-functions/v2";
 import { firestoreTranslateText } from "@firebase-extensions/firebase-firestore-translate-text-sdk";
 import { backfill } from "@firebase-extensions/local-backfill-sdk";

@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const functionsv2 = require("firebase-functions/v2");
 const firestoreTranslateText = require("@firebase-extensions/firebase-firestore-translate-text-sdk").firestoreTranslateText;
 const backfill = require("@firebase-extensions/local-backfill-sdk").backfill;

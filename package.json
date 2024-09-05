@@ -22,13 +22,12 @@
     "lib",
     "protos"
   ],
-  "main": "lib/v1/index.js",
+  "main": "lib/v2/index.js",
   "bin": {
     "firebase-functions": "./lib/bin/firebase-functions.js"
   },
-  "types": "lib/v1/index.d.ts",
+  "types": "lib/v2/index.d.ts",
   "exports": {
-    ".": "./lib/v1/index.js",
     "./logger/compat": "./lib/logger/compat.js",
     "./logger": "./lib/logger/index.js",
     "./params": "./lib/params/index.js",
@@ -43,6 +42,25 @@
     "./v1/storage": "./lib/v1/providers/storage.js",
     "./v1/tasks": "./lib/v1/providers/tasks.js",
     "./v1/testLab": "./lib/v1/providers/testLab.js",
+    ".": "./lib/v2/index.js",
+    "./core": "./lib/v2/core.js",
+    "./options": "./lib/v2/options.js",
+    "./https": "./lib/v2/providers/https.js",
+    "./pubsub": "./lib/v2/providers/pubsub.js",
+    "./storage": "./lib/v2/providers/storage.js",
+    "./tasks": "./lib/v2/providers/tasks.js",
+    "./alerts": "./lib/v2/providers/alerts/index.js",
+    "./alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
+    "./alerts/billing": "./lib/v2/providers/alerts/billing.js",
+    "./alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
+    "./alerts/performance": "./lib/v2/providers/alerts/performance.js",
+    "./eventarc": "./lib/v2/providers/eventarc.js",
+    "./identity": "./lib/v2/providers/identity.js",
+    "./database": "./lib/v2/providers/database.js",
+    "./scheduler": "./lib/v2/providers/scheduler.js",
+    "./remoteConfig": "./lib/v2/providers/remoteConfig.js",
+    "./testLab": "./lib/v2/providers/testLab.js",
+    "./firestore": "./lib/v2/providers/firestore.js",
     "./v2": "./lib/v2/index.js",
     "./v2/core": "./lib/v2/core.js",
     "./v2/options": "./lib/v2/options.js",
@@ -106,6 +124,60 @@
       ],
       "v1/testLab": [
         "lib/v1/providers/testLab"
+      ],
+      "core": [
+        "./lib/v2/core"
+      ],
+      "options": [
+        "./lib/v2/options"
+      ],
+      "https": [
+        "./lib/v2/providers/https"
+      ],
+      "pubsub": [
+        "./lib/v2/providers/pubsub"
+      ],
+      "storage": [
+        "./lib/v2/providers/storage"
+      ],
+      "tasks": [
+        "./lib/v2/providers/tasks"
+      ],
+      "alerts": [
+        "./lib/v2/providers/alerts/index"
+      ],
+      "alerts/appDistribution": [
+        "./lib/v2/providers/alerts/appDistribution"
+      ],
+      "alerts/billing": [
+        "./lib/v2/providers/alerts/billing"
+      ],
+      "alerts/crashlytics": [
+        "./lib/v2/providers/alerts/crashlytics"
+      ],
+      "alerts/performance": [
+        "./lib/v2/providers/alerts/performance"
+      ],
+      "eventarc": [
+        "./lib/v2/providers/eventarc"
+      ],
+      "identity": [
+        "./lib/v2/providers/identity"
+      ],
+      "database": [
+        "./lib/v2/providers/database"
+      ],
+      "scheduler": [
+        "./lib/v2/providers/scheduler"
+      ],
+      "remoteConfig": [
+        "./lib/v2/providers/remoteConfig"
+      ],
+      "testLab": [
+        "./lib/v2/providers/testLab"
+      ],
+      "firestore": [
+        "./lib/v2/providers/firestore"
       ],
       "v2": [
         "lib/v2"
