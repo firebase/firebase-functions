@@ -28,7 +28,6 @@
   },
   "types": "lib/v2/index.d.ts",
   "exports": {
-    ".": "./lib/v2/index.js",
     "./logger/compat": "./lib/logger/compat.js",
     "./logger": "./lib/logger/index.js",
     "./params": "./lib/params/index.js",
@@ -43,6 +42,7 @@
     "./v1/storage": "./lib/v1/providers/storage.js",
     "./v1/tasks": "./lib/v1/providers/tasks.js",
     "./v1/testLab": "./lib/v1/providers/testLab.js",
+    ".": "./lib/v2/index.js",
     "./core": "./lib/v2/core.js",
     "./options": "./lib/v2/options.js",
     "./https": "./lib/v2/providers/https.js",
@@ -91,6 +91,39 @@
       ],
       "params": [
         "lib/params"
+      ],
+      "v1": [
+        "lib/v1"
+      ],
+      "v1/analytics": [
+        "lib/v1/providers/analytics"
+      ],
+      "v1/auth": [
+        "lib/v1/providers/auth"
+      ],
+      "v1/database": [
+        "lib/v1/privders/database"
+      ],
+      "v1/firestore": [
+        "lib/v1/providers/firestore"
+      ],
+      "v1/https": [
+        "./lib/v1/providers/https"
+      ],
+      "v1/pubsub": [
+        "lib/v1/providers/pubsub"
+      ],
+      "v1/remoteConfig": [
+        "lib/v1/providers/remoteConfig"
+      ],
+      "v1/storage": [
+        "lib/v1/providers/storage"
+      ],
+      "v1/tasks": [
+        "lib/v1/providers/tasks"
+      ],
+      "v1/testLab": [
+        "lib/v1/providers/testLab"
       ],
       "core": [
         "./lib/v2/core"
@@ -145,39 +178,6 @@
       ],
       "firestore": [
         "./lib/v2/providers/firestore"
-      ],
-      "v1": [
-        "lib/v1"
-      ],
-      "v1/analytics": [
-        "lib/v1/providers/analytics"
-      ],
-      "v1/auth": [
-        "lib/v1/providers/auth"
-      ],
-      "v1/database": [
-        "lib/v1/privders/database"
-      ],
-      "v1/firestore": [
-        "lib/v1/providers/firestore"
-      ],
-      "v1/https": [
-        "./lib/v1/providers/https"
-      ],
-      "v1/pubsub": [
-        "lib/v1/providers/pubsub"
-      ],
-      "v1/remoteConfig": [
-        "lib/v1/providers/remoteConfig"
-      ],
-      "v1/storage": [
-        "lib/v1/providers/storage"
-      ],
-      "v1/tasks": [
-        "lib/v1/providers/tasks"
-      ],
-      "v1/testLab": [
-        "lib/v1/providers/testLab"
       ],
       "v2": [
         "lib/v2"
