@@ -39,7 +39,7 @@ export function resetCache(): void {
  * Firebase CLI as described in
  * https://firebase.google.com/docs/functions/config-env.
  *
- * @deprecated Using Cloud Runtime Configuration API is discouraged. See https://firebase.google.com/docs/functions/config-env#migrating_from_environment_configuration
+ * @deprecated Using functions.config() is discouraged. See https://firebase.google.com/docs/functions/config-env.
  */
 export function config(): Record<string, any> {
   // K_CONFIGURATION is only set in GCFv2
