@@ -1,2 +1,0 @@
-- **Breaking:** Change default entrypoint of the firebase-functions package to v2 instead of v1 (#1594)
-- Add @deprecated annotation on functions.config() API (#1604)
