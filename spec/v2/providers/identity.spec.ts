@@ -284,7 +284,7 @@ describe("identity", () => {
   describe("beforeOperation", () => {
     it("should handle eventType and handler for before create events", () => {
       const fn = identity.beforeOperation("beforeCreate", () => Promise.resolve(), undefined);
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -298,10 +298,10 @@ describe("identity", () => {
         },
       ]);
     });
-  
+
     it("should handle eventType and handler for before sign in events", () => {
       const fn = identity.beforeOperation("beforeSignIn", () => Promise.resolve(), undefined);
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -315,10 +315,10 @@ describe("identity", () => {
         },
       ]);
     });
-  
+
     it("should handle eventType and handler for before email events", () => {
       const fn = identity.beforeOperation("beforeSendEmail", () => Promise.resolve(), undefined);
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -351,7 +351,7 @@ describe("identity", () => {
     });
     it("should handle eventType, options, and handler for before create events", () => {
       const fn = identity.beforeOperation("beforeCreate", opts, () => Promise.resolve());
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -373,10 +373,10 @@ describe("identity", () => {
         },
       ]);
     });
-  
+
     it("should handle eventType, options, and handler for before sign in events", () => {
       const fn = identity.beforeOperation("beforeSignIn", opts, () => Promise.resolve());
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
@@ -398,10 +398,10 @@ describe("identity", () => {
         },
       ]);
     });
-  
+
     it("should handle eventType, options, and handler for before send email events", () => {
       const fn = identity.beforeOperation("beforeSendEmail", opts, () => Promise.resolve());
-  
+
       expect(fn.__endpoint).to.deep.equal({
         ...MINIMAL_V2_ENDPOINT,
         platform: "gcfv2",
