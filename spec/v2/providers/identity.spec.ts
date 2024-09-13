@@ -296,7 +296,7 @@ describe("identity", () => {
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: "identitytoolkit.googleapis.com",
+          api: IDENTITY_TOOLKIT_API,
           reason: "Needed for auth blocking functions",
         },
       ]);
@@ -381,7 +381,7 @@ describe("identity", () => {
         platform: "gcfv2",
         labels: {},
         minInstances: 1,
-        region: ["us-west1"],
+        region: [REGION],
         blockingTrigger: {
           ...BEFORE_EMAIL_TRIGGER,
           options: {
@@ -392,7 +392,7 @@ describe("identity", () => {
       });
       expect(fn.__requiredAPIs).to.deep.equal([
         {
-          api: "identitytoolkit.googleapis.com",
+          api: IDENTITY_TOOLKIT_API,
           reason: "Needed for auth blocking functions",
         },
       ]);

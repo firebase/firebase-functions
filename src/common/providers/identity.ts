@@ -400,7 +400,6 @@ interface DecodedPayloadUserRecordEnrolledFactors {
 export interface DecodedPayloadUserRecord {
   uid: string;
   email?: string;
-  email_type?: string;
   email_verified?: boolean;
   phone_number?: string;
   display_name?: string;
