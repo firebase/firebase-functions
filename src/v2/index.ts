@@ -77,3 +77,6 @@ export { params };
 // NOTE: Required to support the Functions Emulator which monkey patches `functions.config()`
 // TODO(danielylee): Remove in next major release.
 export { config } from "../v1/config";
+
+import { setApp as setEmulatedAdminApp } from "../common/app";
+export const app = { setEmulatedAdminApp };
