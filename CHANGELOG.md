@@ -1,1 +1,0 @@
-- Fix bug where v1 functions can't be emulated (#1615)
