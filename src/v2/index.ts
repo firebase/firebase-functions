@@ -78,5 +78,6 @@ export { params };
 // TODO(danielylee): Remove in next major release.
 export { config } from "../v1/config";
 
+// Required for v1 Emulator support.
 import { setApp as setEmulatedAdminApp } from "../common/app";
 export const app = { setEmulatedAdminApp };
