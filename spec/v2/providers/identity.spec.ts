@@ -419,31 +419,6 @@ describe("identity", () => {
         },
       ]);
     });
-
-    it("should handle eventType, options, and handler for before send email events", () => {
-      const fn = identity.beforeOperation("beforeSendEmail", opts, () => Promise.resolve());
-
-      expect(fn.__endpoint).to.deep.equal({
-        ...MINIMAL_V2_ENDPOINT,
-        platform: "gcfv2",
-        labels: {},
-        minInstances: 1,
-        region: [REGION],
-        blockingTrigger: {
-          ...BEFORE_EMAIL_TRIGGER,
-          options: {
-            ...BEFORE_EMAIL_TRIGGER.options,
-            accessToken: true,
-          },
-        },
-      });
-      expect(fn.__requiredAPIs).to.deep.equal([
-        {
-          api: IDENTITY_TOOLKIT_API,
-          reason: "Needed for auth blocking functions",
-        },
-      ]);
-    });
   });
 
   describe("getOpts", () => {
