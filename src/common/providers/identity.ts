@@ -335,7 +335,7 @@ export interface Credential {
 }
 
 /** Possible types of emails as described by the GCIP backend. */
-export type EmailType = "EMAIL_SIGNIN" | "PASSWORD_RESET";
+export type EmailType = "EMAIL_SIGN_IN" | "PASSWORD_RESET";
 
 /**
  * The type of SMS message
