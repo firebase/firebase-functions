@@ -7,12 +7,12 @@ import {
   onDocumentWritten,
 } from "firebase-functions/v2/firestore";
 import { sanitizeData } from "../utils";
-import { FIRESTORE_REGION } from "../region";
+import { REGION } from "../region";
 
 export const firestoreOnDocumentCreatedTests = onDocumentCreated(
   {
     document: "tests/{documentId}",
-    region: FIRESTORE_REGION,
+    region: REGION,
     timeoutSeconds: 540,
   },
   async (event) => {
@@ -37,7 +37,7 @@ export const firestoreOnDocumentCreatedTests = onDocumentCreated(
 export const firestoreOnDocumentDeletedTests = onDocumentDeleted(
   {
     document: "tests/{documentId}",
-    region: FIRESTORE_REGION,
+    region: REGION,
     timeoutSeconds: 540,
   },
   async (event) => {
@@ -62,7 +62,7 @@ export const firestoreOnDocumentDeletedTests = onDocumentDeleted(
 export const firestoreOnDocumentUpdatedTests = onDocumentUpdated(
   {
     document: "tests/{documentId}",
-    region: FIRESTORE_REGION,
+    region: REGION,
     timeoutSeconds: 540,
   },
   async (event) => {
@@ -87,7 +87,7 @@ export const firestoreOnDocumentUpdatedTests = onDocumentUpdated(
 export const firestoreOnDocumentWrittenTests = onDocumentWritten(
   {
     document: "tests/{documentId}",
-    region: FIRESTORE_REGION,
+    region: REGION,
     timeoutSeconds: 540,
   },
   async (event) => {
