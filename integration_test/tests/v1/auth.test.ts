@@ -1,9 +1,9 @@
-import admin from "firebase-admin";
-import { timeout } from "../utils";
-import { initializeFirebase } from "../firebaseSetup";
+import * as admin from "firebase-admin";
 import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { initializeApp } from "firebase/app";
-import { getAuth, createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
+import { createUserWithEmailAndPassword, getAuth, UserCredential } from "firebase/auth";
+import { initializeFirebase } from "../firebaseSetup";
+import { retry } from "../utils";
 
 describe("Firebase Auth (v1)", () => {
   let userIds: string[] = [];
@@ -49,21 +49,16 @@ describe("Firebase Auth (v1)", () => {
         displayName: `${testId}`,
       });
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("authUserOnCreateTests")
-        .doc(userRecord.uid)
-        .get();
-
-      loggedContext = logSnapshot.data();
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("authUserOnCreateTests")
+          .doc(userRecord.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
 
       userIds.push(userRecord.uid);
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     afterAll(async () => {
@@ -124,7 +119,6 @@ describe("Firebase Auth (v1)", () => {
 
   describe("user onDelete trigger", () => {
     let userRecord: UserRecord;
-    let logSnapshot;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -136,20 +130,16 @@ describe("Firebase Auth (v1)", () => {
 
       await admin.auth().deleteUser(userRecord.uid);
 
-      await timeout(20000);
-
-      logSnapshot = await admin
-        .firestore()
-        .collection("authUserOnDeleteTests")
-        .doc(userRecord.uid)
-        .get();
-      loggedContext = logSnapshot.data();
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("authUserOnDeleteTests")
+          .doc(userRecord.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
 
       userIds.push(userRecord.uid);
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     it("should have a project as resource", () => {
@@ -192,21 +182,16 @@ describe("Firebase Auth (v1)", () => {
         "secret"
       );
 
-      await timeout(15000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("authBeforeCreateTests")
-        .doc(userRecord.user.uid)
-        .get();
-
-      loggedContext = logSnapshot.data();
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("authBeforeCreateTests")
+          .doc(userRecord.user.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
 
       userIds.push(userRecord.user.uid);
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     afterAll(async () => {
@@ -243,15 +228,14 @@ describe("Firebase Auth (v1)", () => {
         "secret"
       );
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("authBeforeSignInTests")
-        .doc(userRecord.user.uid)
-        .get();
-
-      loggedContext = logSnapshot.data();
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("authBeforeSignInTests")
+          .doc(userRecord.user.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
 
       userIds.push(userRecord.user.uid);
 

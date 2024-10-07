@@ -155,3 +155,27 @@ export async function createTask(
     throw new Error("Unable to create task");
   }
 }
+
+export async function retry<T>(fn: () => Promise<T>, maxReties: number = 10): Promise<T> {
+  let count = 0;
+  let lastError: Error | undefined;
+
+  while (count < maxReties) {
+    try {
+      const result = await fn();
+      if (result) {
+        return result;
+      }
+    } catch (e) {
+      lastError = e;
+    }
+    await timeout(5000);
+    count++;
+  }
+
+  if (lastError) {
+    throw lastError;
+  }
+
+  throw new Error("Max retries exceeded");
+}

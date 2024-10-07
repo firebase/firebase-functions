@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
 import { initializeFirebase } from "../firebaseSetup";
-import { createTask, timeout } from "../utils";
+import { createTask, retry } from "../utils";
 
 describe("Cloud Tasks (v2)", () => {
   const region = process.env.REGION;
@@ -26,16 +26,15 @@ describe("Cloud Tasks (v2)", () => {
     beforeAll(async () => {
       const url = `https://${region}-${projectId}.cloudfunctions.net/${testId}-v2-tasksOnTaskDispatchedTests`;
       await createTask(projectId, queueName, region, url, { data: { testId } });
-      await timeout(20000);
-      const logSnapshot = await admin
-        .firestore()
-        .collection("tasksOnTaskDispatchedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("tasksOnTaskDispatchedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have correct event id", () => {

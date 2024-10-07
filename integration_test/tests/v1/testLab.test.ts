@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { startTestRun, timeout } from "../utils";
+import { retry, startTestRun } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
 describe("TestLab (v1)", () => {
@@ -24,16 +24,15 @@ describe("TestLab (v1)", () => {
     beforeAll(async () => {
       const accessToken = await admin.credential.applicationDefault().getAccessToken();
       await startTestRun(projectId, testId, accessToken.access_token);
-      await timeout(20000);
-      const logSnapshot = await admin
-        .firestore()
-        .collection("testLabOnCompleteTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("testLabOnCompleteTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have eventId", () => {
