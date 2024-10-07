@@ -7,14 +7,27 @@ const DIR = process.cwd();
 /**
  * Build SDK, and Functions
  */
-export default function setup(testRunId: string, nodeVersion: string, firebaseAdmin: string) {
-  buildSdk(testRunId);
-  createPackageJson(testRunId, nodeVersion, firebaseAdmin);
-  installDependencies();
-  buildFunctions();
+export default function setup(
+  testRuntime: "node" | "python",
+  testRunId: string,
+  nodeVersion: string,
+  firebaseAdmin: string
+) {
+  if (testRuntime === "node") {
+    buildNodeSdk(testRunId);
+    createPackageJson(testRunId, nodeVersion, firebaseAdmin);
+    installNodeDependencies();
+    buildNodeFunctions();
+  }
+
+  if (testRuntime === "python") {
+    buildPythonSdk();
+    createRequirementsTxt(firebaseAdmin);
+    installPythonDependencies();
+  }
 }
 
-function buildSdk(testRunId: string) {
+function buildNodeSdk(testRunId: string) {
   console.log("Building SDK...");
   process.chdir(path.join(DIR, "..")); // go up to root
 
@@ -46,6 +59,60 @@ function buildSdk(testRunId: string) {
   process.chdir(DIR); // go back to integration_test
 }
 
+function buildPythonSdk() {
+  console.log("Building SDK...");
+
+  process.chdir(path.join(DIR, "..")); // go up to root
+
+  // remove existing build
+
+  fs.rmSync("dist", { recursive: true, force: true });
+
+  // remove existing venv
+
+  fs.rmSync("venv", { recursive: true, force: true });
+
+  // make virtual environment for building
+
+  execSync("python3 -m venv venv", { stdio: "inherit" });
+
+  // build the package
+
+  execSync(
+    "source venv/bin/activate && python -m pip install --upgrade build",
+
+    { stdio: "inherit" }
+  );
+
+  execSync("source venv/bin/activate && python -m build -s", {
+    stdio: "inherit",
+  });
+
+  // move the generated tarball package to functions
+
+  const generatedFile = fs
+
+    .readdirSync("dist")
+
+    .find((file) => file.match(/^firebase_functions-.*\.tar\.gz$/));
+
+  if (generatedFile) {
+    const targetPath = path.join(
+      "integration_tests",
+
+      "functions",
+
+      `firebase_functions.tar.gz`
+    );
+
+    fs.renameSync(path.join("dist", generatedFile), targetPath);
+
+    console.log("SDK moved to", targetPath);
+  }
+
+  process.chdir(DIR); // go back to integration_test
+}
+
 function createPackageJson(testRunId: string, nodeVersion: string, firebaseAdmin: string) {
   console.log("Creating package.json...");
   const packageJsonTemplatePath = `${DIR}/package.json.template`;
@@ -64,7 +131,33 @@ function createPackageJson(testRunId: string, nodeVersion: string, firebaseAdmin
   fs.writeFileSync(packageJsonPath, packageJsonContent);
 }
 
-function installDependencies() {
+function createRequirementsTxt(firebaseAdmin: string) {
+  console.log("Creating requirements.txt...");
+
+  const requirementsTemplatePath = `${DIR}/requirements.txt.template`;
+
+  const requirementsPath = `${DIR}/functions/requirements.txt`;
+
+  fs.copyFileSync(requirementsTemplatePath, requirementsPath);
+
+  let requirementsContent = fs.readFileSync(requirementsPath, "utf8");
+
+  requirementsContent = requirementsContent.replace(
+    /__LOCAL_FIREBASE_FUNCTIONS__/g,
+
+    `firebase_functions.tar.gz`
+  );
+
+  requirementsContent = requirementsContent.replace(
+    /__FIREBASE_ADMIN__/g,
+
+    firebaseAdmin
+  );
+
+  fs.writeFileSync(requirementsPath, requirementsContent);
+}
+
+function installNodeDependencies() {
   console.log("Installing dependencies...");
   const functionsDir = "functions";
   process.chdir(functionsDir); // go to functions
@@ -78,7 +171,29 @@ function installDependencies() {
   process.chdir("../"); // go back to integration_test
 }
 
-function buildFunctions() {
+function installPythonDependencies() {
+  console.log("Installing dependencies...");
+
+  const functionsDir = "functions";
+
+  process.chdir(functionsDir); // go to functions
+
+  const venvPath = path.join("venv");
+
+  if (fs.existsSync(venvPath)) {
+    execSync(`rm -rf ${venvPath}`, { stdio: "inherit" });
+  }
+
+  execSync("python3 -m venv venv", { stdio: "inherit" });
+
+  execSync("source venv/bin/activate && python3 -m pip install -r requirements.txt", {
+    stdio: "inherit",
+  });
+
+  process.chdir("../"); // go back to integration_test
+}
+
+function buildNodeFunctions() {
   console.log("Building functions...");
   process.chdir(path.join(DIR, "functions")); // go to functions
 

@@ -70,3 +70,6 @@ node_modules/
 serviceAccount.json
 functions.yaml
 functions/src/package.json
+functions/package/
+
+.nvmrc

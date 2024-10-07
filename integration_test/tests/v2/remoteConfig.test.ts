@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { timeout } from "../utils";
+import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 import fetch from "node-fetch";
 
@@ -40,16 +40,15 @@ describe("Firebase Remote Config (v2)", () => {
       if (!resp.ok) {
         throw new Error(resp.statusText);
       }
-      await timeout(20000);
-      const logSnapshot = await admin
-        .firestore()
-        .collection("remoteConfigOnConfigUpdatedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("remoteConfigOnConfigUpdatedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have the right event type", () => {

@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import { timeout } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
+import { retry, timeout } from "../utils";
 
 async function uploadBufferToFirebase(buffer: Buffer, fileName: string) {
   const bucket = admin.storage().bucket();
@@ -39,16 +39,14 @@ describe("Firebase Storage (v2)", () => {
 
       await uploadBufferToFirebase(buffer, testId + ".txt");
 
-      await timeout(20000);
-      const logSnapshot = await admin
-        .firestore()
-        .collection("storageOnObjectFinalizedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("storageOnObjectFinalizedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     afterAll(async () => {
@@ -93,17 +91,14 @@ describe("Firebase Storage (v2)", () => {
         .file(testId + ".txt");
       await file.delete();
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("storageOnObjectDeletedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("storageOnObjectDeletedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have the right event type", () => {
@@ -135,17 +130,14 @@ describe("Firebase Storage (v2)", () => {
         .file(testId + ".txt");
       await file.setMetadata({ contentType: "application/json" });
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("storageOnObjectMetadataUpdatedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("storageOnObjectMetadataUpdatedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     afterAll(async () => {

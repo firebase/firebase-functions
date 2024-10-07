@@ -1,5 +1,5 @@
-import admin from "firebase-admin";
-import { timeout } from "../utils";
+import * as admin from "firebase-admin";
+import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 import { Reference } from "@firebase/database-types";
 
@@ -53,11 +53,7 @@ describe("Firebase Database (v1)", () => {
 
     beforeAll(async () => {
       ref = await setupRef(`dbTests/${testId}/start`);
-      await timeout(20000);
-      loggedContext = await getLoggedContext("databaseRefOnCreateTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() => getLoggedContext("databaseRefOnCreateTests", testId));
     });
 
     afterAll(async () => {
@@ -123,11 +119,7 @@ describe("Firebase Database (v1)", () => {
     beforeAll(async () => {
       ref = await setupRef(`dbTests/${testId}/start`);
       await ref.remove();
-      await timeout(20000);
-      loggedContext = await getLoggedContext("databaseRefOnDeleteTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() => getLoggedContext("databaseRefOnDeleteTests", testId));
     });
 
     it("should not have event.app", () => {
@@ -180,11 +172,7 @@ describe("Firebase Database (v1)", () => {
     beforeAll(async () => {
       ref = await setupRef(`dbTests/${testId}/start`);
       await ref.update({ updated: true });
-      await timeout(20000);
-      loggedContext = await getLoggedContext("databaseRefOnUpdateTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() => getLoggedContext("databaseRefOnUpdateTests", testId));
     });
 
     afterAll(async () => {
@@ -255,13 +243,7 @@ describe("Firebase Database (v1)", () => {
     beforeAll(async () => {
       ref = await setupRef(`dbTests/${testId}/start`);
 
-      await timeout(20000);
-
-      loggedContext = await getLoggedContext("databaseRefOnWriteTests", testId);
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() => getLoggedContext("databaseRefOnWriteTests", testId));
     });
 
     afterAll(async () => {

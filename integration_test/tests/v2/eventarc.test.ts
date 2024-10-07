@@ -1,7 +1,7 @@
 import admin from "firebase-admin";
 import { initializeFirebase } from "../firebaseSetup";
 import { CloudEvent, getEventarc } from "firebase-admin/eventarc";
-import { timeout } from "../utils";
+import { retry } from "../utils";
 
 describe("Eventarc (v2)", () => {
   const projectId = process.env.PROJECT_ID;
@@ -35,18 +35,14 @@ describe("Eventarc (v2)", () => {
       };
       await getEventarc().channel(`locations/${region}/channels/firebase`).publish(cloudEvent);
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("eventarcOnCustomEventPublishedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("eventarcOnCustomEventPublishedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have well-formed source", () => {

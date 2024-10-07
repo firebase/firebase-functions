@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { timeout } from "../utils";
+import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
 describe("Scheduler", () => {
@@ -39,18 +39,14 @@ describe("Scheduler", () => {
         throw new Error(`Failed request with status ${response.status}!`);
       }
 
-      await timeout(15000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("schedulerOnScheduleV2Tests")
-        .doc(jobName)
-        .get();
-      loggedContext = logSnapshot.data();
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("schedulerOnScheduleV2Tests")
+          .doc(jobName)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should trigger when the scheduler fires", () => {

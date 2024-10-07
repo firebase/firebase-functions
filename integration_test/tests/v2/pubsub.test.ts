@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { timeout } from "../utils";
+import { retry, timeout } from "../utils";
 import { PubSub } from "@google-cloud/pubsub";
 import { initializeFirebase } from "../firebaseSetup";
 
@@ -33,17 +33,14 @@ describe("Pub/Sub (v2)", () => {
 
       await topic.publish(Buffer.from(JSON.stringify({ testId })));
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("pubsubOnMessagePublishedTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("pubsubOnMessagePublishedTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have a topic as source", () => {
