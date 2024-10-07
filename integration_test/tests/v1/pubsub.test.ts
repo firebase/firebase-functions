@@ -1,7 +1,7 @@
-import admin from "firebase-admin";
-import { timeout } from "../utils";
 import { PubSub } from "@google-cloud/pubsub";
+import * as admin from "firebase-admin";
 import { initializeFirebase } from "../firebaseSetup";
+import { retry } from "../utils";
 
 describe("Pub/Sub (v1)", () => {
   const projectId = process.env.PROJECT_ID;
@@ -35,17 +35,14 @@ describe("Pub/Sub (v1)", () => {
 
       await topic.publish(Buffer.from(JSON.stringify({ testId })));
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("pubsubOnPublishTests")
-        .doc(testId)
-        .get();
-      loggedContext = logSnapshot.data();
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("pubsubOnPublishTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     it("should have a topic as resource", () => {
@@ -96,14 +93,14 @@ describe("Pub/Sub (v1)", () => {
 
       await pubsub.topic(topicName).publish(message);
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("pubsubScheduleTests")
-        .doc(topicName)
-        .get();
-      loggedContext = logSnapshot.data();
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("pubsubScheduleTests")
+          .doc(topicName)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
       if (!loggedContext) {
         throw new Error("loggedContext is undefined");
       }

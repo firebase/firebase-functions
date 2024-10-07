@@ -1,35 +1,18 @@
-import path from "path";
 import fs from "fs";
 import yaml from "js-yaml";
 import { spawn } from "child_process";
-import { fileURLToPath } from "url";
 import portfinder from "portfinder";
 import client from "firebase-tools";
 import { getRuntimeDelegate } from "firebase-tools/lib/deploy/functions/runtimes/index.js";
 import { detectFromPort } from "firebase-tools/lib/deploy/functions/runtimes/discovery/index.js";
 import setup from "./setup.js";
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-function loadEnv(): void {
-  try {
-    const envPath = path.resolve(process.cwd(), ".env");
-    console.log("Loading .env file from", envPath);
-    const envFileContent = fs.readFileSync(envPath, "utf-8");
-    envFileContent.split("\n").forEach((variable) => {
-      const [key, value] = variable.split("=");
-      if (key && value) process.env[key.trim()] = value.trim();
-    });
-  } catch (error: any) {
-    console.error("Error loading .env file:", error.message);
-  }
-}
+import { loadEnv } from "./utils.js";
 
 loadEnv();
 
-const {
+let {
   NODE_VERSION = "18",
-  FIREBASE_ADMIN = "^10.0.0",
+  FIREBASE_ADMIN,
   PROJECT_ID,
   DATABASE_URL,
   STORAGE_BUCKET,
@@ -38,6 +21,10 @@ const {
   FIREBASE_AUTH_DOMAIN,
   FIREBASE_API_KEY,
   GOOGLE_ANALYTICS_API_SECRET,
+  TEST_RUNTIME,
+  REGION = "us-central1",
+  FIRESTORE_REGION = "us-central1",
+  STORAGE_REGION = "us-central1",
 } = process.env;
 const TEST_RUN_ID = `t${Date.now()}`;
 
@@ -49,30 +36,51 @@ if (
   !FIREBASE_MEASUREMENT_ID ||
   !FIREBASE_AUTH_DOMAIN ||
   !FIREBASE_API_KEY ||
-  !GOOGLE_ANALYTICS_API_SECRET
+  !GOOGLE_ANALYTICS_API_SECRET ||
+  !TEST_RUNTIME
 ) {
   console.error("Required environment variables are not set. Exiting...");
   process.exit(1);
 }
 
-setup(TEST_RUN_ID, NODE_VERSION, FIREBASE_ADMIN);
+if (!["node", "python"].includes(TEST_RUNTIME)) {
+  console.error("Invalid TEST_RUNTIME. Must be either 'node' or 'python'. Exiting...");
+  process.exit(1);
+}
+
+if (!FIREBASE_ADMIN && TEST_RUNTIME === "node") {
+  FIREBASE_ADMIN = "^12.0.0";
+}
+
+if (!FIREBASE_ADMIN && TEST_RUNTIME === "python") {
+  FIREBASE_ADMIN = "6.5.0";
+}
+
+setup(TEST_RUNTIME as "node" | "python", TEST_RUN_ID, NODE_VERSION, FIREBASE_ADMIN!);
 
 const config = {
   projectId: PROJECT_ID,
   projectDir: process.cwd(),
   sourceDir: `${process.cwd()}/functions`,
-  runtime: "nodejs18",
+  runtime: TEST_RUNTIME === "node" ? "nodejs18" : "python",
 };
+
+console.log("Firebase config created: ");
+console.log(JSON.stringify(config, null, 2));
 
 const firebaseConfig = {
   databaseURL: DATABASE_URL,
   projectId: PROJECT_ID,
   storageBucket: STORAGE_BUCKET,
 };
+
 const env = {
   FIRESTORE_PREFER_REST: "true",
   GCLOUD_PROJECT: config.projectId,
   FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
+  REGION,
+  FIRESTORE_REGION,
+  STORAGE_REGION,
 };
 
 let modifiedYaml: any;
@@ -185,10 +193,18 @@ function cleanFiles(): void {
   try {
     const files = fs.readdirSync(".");
     files.forEach((file) => {
+      // For Node
       if (file.match(`firebase-functions-${TEST_RUN_ID}.tgz`)) {
         fs.rmSync(file);
       }
+      // For Python
+      if (file.match(`firebase_functions.tar.gz`)) {
+        fs.rmSync(file);
+      }
       if (file.match("package.json")) {
+        fs.rmSync(file);
+      }
+      if (file.match("requirements.txt")) {
         fs.rmSync(file);
       }
       if (file.match("firebase-debug.log")) {
@@ -199,8 +215,8 @@ function cleanFiles(): void {
       }
     });
 
-    fs.rmSync("lib", { recursive: true });
-    // fs.existsSync("node_modules") && fs.rmSync("node_modules", { recursive: true });
+    fs.rmSync("lib", { recursive: true, force: true });
+    fs.rmSync("venv", { recursive: true, force: true });
   } catch (error) {
     console.error("Error occurred while cleaning files:", error);
   }
@@ -232,20 +248,21 @@ const spawnAsync = (command: string, args: string[], options: any): Promise<stri
 };
 
 async function runTests(): Promise<void> {
+  const humanReadableRuntime = TEST_RUNTIME === "node" ? "Node.js" : "Python";
   try {
-    console.log("Starting Node.js Tests...");
+    console.log(`Starting ${humanReadableRuntime} Tests...`);
     const output = await spawnAsync("npm", ["test"], {
       env: {
         ...process.env,
-        GOOGLE_APPLICATION_CREDENTIALS: path.join(__dirname, "serviceAccount.json"),
         TEST_RUN_ID,
       },
       stdio: "inherit",
     });
     console.log(output);
-    console.log("Node.js Tests Completed.");
+    console.log(`${humanReadableRuntime} Tests Completed.`);
   } catch (error) {
     console.error("Error during testing:", error);
+    throw error;
   }
 }
 
@@ -274,6 +291,7 @@ async function runIntegrationTests(): Promise<void> {
     await runTests();
   } catch (err) {
     console.error("Error occurred during integration tests", err);
+    throw new Error("Integration tests failed");
   } finally {
     await handleCleanUp();
   }
@@ -284,4 +302,7 @@ runIntegrationTests()
     console.log("Integration tests completed");
     process.exit(0);
   })
-  .catch((error) => console.error("An error occurred during integration tests", error));
+  .catch((error) => {
+    console.error("An error occurred during integration tests", error);
+    process.exit(1);
+  });

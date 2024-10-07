@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { timeout } from "../utils";
+import { retry } from "../utils";
 import { initializeApp } from "firebase/app";
 import { initializeFirebase } from "../firebaseSetup";
 import { getAuth, createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
@@ -49,19 +49,14 @@ describe("Firebase Identity (v2)", () => {
 
       userIds.push(userRecord.user.uid);
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("identityBeforeUserCreatedTests")
-        .doc(userRecord.user.uid)
-        .get();
-
-      loggedContext = logSnapshot.data();
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("identityBeforeUserCreatedTests")
+          .doc(userRecord.user.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     afterAll(async () => {
@@ -100,19 +95,14 @@ describe("Firebase Identity (v2)", () => {
 
       userIds.push(userRecord.user.uid);
 
-      await timeout(20000);
-
-      const logSnapshot = await admin
-        .firestore()
-        .collection("identityBeforeUserSignedInTests")
-        .doc(userRecord.user.uid)
-        .get();
-
-      loggedContext = logSnapshot.data();
-
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("identityBeforeUserSignedInTests")
+          .doc(userRecord.user.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
     });
 
     afterAll(async () => {

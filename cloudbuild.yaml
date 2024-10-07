@@ -1,0 +1,16 @@
+steps:
+  - name: "node:18"
+    entrypoint: "npm"
+    dir: "integration_test"
+    args: ["install"]
+  - name: "node:18"
+    entrypoint: "npx"
+    dir: "integration_test"
+    args: ["firebase", "use", "cf3-integration-tests-d7be6"]
+  - name: "node:18"
+    entrypoint: "npm"
+    dir: "integration_test"
+    args: ["start"]
+
+options:
+  defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET

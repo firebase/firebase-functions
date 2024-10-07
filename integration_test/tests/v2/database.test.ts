@@ -1,5 +1,5 @@
 import admin from "firebase-admin";
-import { timeout } from "../utils";
+import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 import { Reference } from "@firebase/database-types";
 
@@ -38,13 +38,15 @@ describe("Firebase Database (v2)", () => {
     }
   }
 
-  function getLoggedContext(collectionName: string, testId: string) {
-    return admin
-      .firestore()
-      .collection(collectionName)
-      .doc(testId)
-      .get()
-      .then((logSnapshot) => logSnapshot.data());
+  async function getLoggedContext(collectionName: string, testId: string) {
+    return retry(() =>
+      admin
+        .firestore()
+        .collection(collectionName)
+        .doc(testId)
+        .get()
+        .then((logSnapshot) => logSnapshot.data())
+    );
   }
 
   describe("created trigger", () => {
@@ -53,11 +55,7 @@ describe("Firebase Database (v2)", () => {
 
     beforeAll(async () => {
       ref = await setupRef(`databaseCreatedTests/${testId}/start`);
-      await timeout(20000);
       loggedContext = await getLoggedContext("databaseCreatedTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     afterAll(async () => {
@@ -97,11 +95,7 @@ describe("Firebase Database (v2)", () => {
     beforeAll(async () => {
       ref = await setupRef(`databaseDeletedTests/${testId}/start`);
       await teardownRef(ref);
-      await timeout(20000);
       loggedContext = await getLoggedContext("databaseDeletedTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     it("should have a correct ref url", () => {
@@ -128,11 +122,7 @@ describe("Firebase Database (v2)", () => {
     beforeAll(async () => {
       ref = await setupRef(`databaseUpdatedTests/${testId}/start`);
       await ref.update({ updated: true });
-      await timeout(20000);
       loggedContext = await getLoggedContext("databaseUpdatedTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     afterAll(async () => {
@@ -176,11 +166,7 @@ describe("Firebase Database (v2)", () => {
 
     beforeAll(async () => {
       ref = await setupRef(`databaseWrittenTests/${testId}/start`);
-      await timeout(20000);
       loggedContext = await getLoggedContext("databaseWrittenTests", testId);
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
     afterAll(async () => {
