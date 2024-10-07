@@ -33,6 +33,8 @@ import {
 import { HttpsFunction, optionsToEndpoint, optionsToTrigger, Runnable } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 import { initV1Endpoint } from "../../runtime/manifest";
+import { withInit } from "../../common/onInit";
+import { wrapTraceContext } from "../../v2/trace";
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };
 
@@ -64,7 +66,7 @@ export function _onRequestWithOptions(
 ): HttpsFunction {
   // lets us add __endpoint without altering handler:
   const cloudFunction: any = (req: Request, res: express.Response) => {
-    return handler(req, res);
+    return wrapTraceContext(withInit(handler))(req, res);
   };
   cloudFunction.__trigger = {
     ...optionsToTrigger(options),
@@ -103,13 +105,18 @@ export function _onCallWithOptions(
   // onCallHandler sniffs the function length of the passed-in callback
   // and the user could have only tried to listen to data. Wrap their handler
   // in another handler to avoid accidentally triggering the v2 API
-  const fixedLen = (data: any, context: CallableContext) => handler(data, context);
-  const func: any = onCallHandler(
-    {
-      enforceAppCheck: options.enforceAppCheck,
-      cors: { origin: true, methods: "POST" },
-    },
-    fixedLen
+  const fixedLen = (data: any, context: CallableContext) => {
+    return withInit(handler)(data, context);
+  };
+  const func: any = wrapTraceContext(
+    onCallHandler(
+      {
+        enforceAppCheck: options.enforceAppCheck,
+        consumeAppCheckToken: options.consumeAppCheckToken,
+        cors: { origin: true, methods: "POST" },
+      },
+      fixedLen
+    )
   );
 
   func.__trigger = {
@@ -127,7 +134,7 @@ export function _onCallWithOptions(
     callableTrigger: {},
   };
 
-  func.run = handler;
+  func.run = fixedLen;
 
   return func;
 }

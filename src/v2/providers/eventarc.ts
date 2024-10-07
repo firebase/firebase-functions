@@ -33,6 +33,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {
@@ -70,7 +71,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -130,7 +131,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -140,7 +141,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -194,7 +195,7 @@ export function onCustomEventPublished<T = any>(
     opts = eventTypeOrOpts;
   }
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(raw as CloudEvent<T>);
+    return wrapTraceContext(withInit(handler))(raw as CloudEvent<T>);
   };
 
   func.run = handler;
@@ -216,7 +217,7 @@ export function onCustomEventPublished<T = any>(
     eventTrigger: {
       eventType: opts.eventType,
       eventFilters: {},
-      retry: false,
+      retry: opts.retry ?? false,
       channel,
     },
   };
@@ -224,6 +225,13 @@ export function onCustomEventPublished<T = any>(
   copyIfPresent(endpoint.eventTrigger, opts, "retry");
 
   func.__endpoint = endpoint;
+
+  func.__requiredAPIs = [
+    {
+      api: "eventarcpublishing.googleapis.com",
+      reason: "Needed for custom event functions",
+    },
+  ];
 
   return func;
 }

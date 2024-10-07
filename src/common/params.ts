@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { Expression } from "../params";
+
 /**
  * A type that splits literal string S with delimiter D.
  *
@@ -78,10 +80,17 @@ export type Extract<Part extends string> = Part extends `{${infer Param}=**}`
  *
  * For flexibility reasons, ParamsOf<string> is Record<string, string>
  */
-export type ParamsOf<PathPattern extends string> =
+export type ParamsOf<PathPattern extends string | Expression<string>> =
   // if we have lost type information, revert back to an untyped dictionary
-  string extends PathPattern
+  PathPattern extends Expression<string>
+    ? Record<string, string>
+    : string extends PathPattern
     ? Record<string, string>
     : {
-        [Key in Extract<Split<NullSafe<PathPattern>, "/">[number]>]: string;
+        // N.B. I'm not sure why PathPattern isn't detected to not be an
+        // Expression<string> per the check above. Since we have the check above
+        // The Exclude call should be safe.
+        [Key in Extract<
+          Split<NullSafe<Exclude<PathPattern, Expression<string>>>, "/">[number]
+        >]: string;
       };

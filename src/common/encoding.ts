@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { Expression } from "../params";
+
 // Copied from firebase-tools/src/gcp/proto
 
 /**
@@ -72,9 +74,13 @@ export function convertIfPresent<Src, Dest>(
   dest[destField] = converter(src[srcField]);
 }
 
-export function serviceAccountFromShorthand(serviceAccount: string): string | null {
+export function serviceAccountFromShorthand(
+  serviceAccount: string | Expression<string>
+): string | Expression<string> | null {
   if (serviceAccount === "default") {
     return null;
+  } else if (serviceAccount instanceof Expression) {
+    return serviceAccount;
   } else if (serviceAccount.endsWith("@")) {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error(

@@ -87,6 +87,13 @@ function removeCircular(obj: any, refs: any[] = []): any {
  * @public
  */
 export function write(entry: LogEntry) {
+  const ctx = traceContext.getStore();
+  if (ctx?.traceId) {
+    entry[
+      "logging.googleapis.com/trace"
+    ] = `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
+  }
+
   UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(removeCircular(entry)));
 }
 
@@ -147,19 +154,18 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   if (lastArg && typeof lastArg === "object" && lastArg.constructor === Object) {
     entry = args.pop();
   }
-  const ctx = traceContext.getStore();
 
   // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
   let message = format(...args);
   if (severity === "ERROR" && !args.find((arg) => arg instanceof Error)) {
     message = new Error(message).stack || message;
   }
-  return {
-    "logging.googleapis.com/trace": ctx?.traceId
-      ? `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`
-      : undefined,
+  const out: LogEntry = {
     ...entry,
     severity,
-    message,
   };
+  if (message) {
+    out.message = message;
+  }
+  return out;
 }

@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 /**
- * The V2 API for Cloud Functions for Firebase.
- * This SDK also supports deep imports. For example, the namespace
- * 'pubsub' is available at 'firebase-functions/v2' or is directly importable
- * from 'firebase-functions/v2/pubsub'.
+ * The 2nd gen API for Cloud Functions for Firebase.
+ * This SDK supports deep imports. For example, the namespace
+ * `pubsub` is available at `firebase-functions/v2` or is directly importable
+ * from `firebase-functions/v2/pubsub`.
  * @packageDocumentation
  */
 
@@ -40,6 +40,7 @@ import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
 import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
+import * as firestore from "./providers/firestore";
 
 export {
   alerts,
@@ -54,6 +55,7 @@ export {
   scheduler,
   remoteConfig,
   testLab,
+  firestore,
 };
 
 export {
@@ -66,5 +68,16 @@ export {
   EventHandlerOptions,
 } from "./options";
 
-export { CloudFunction, CloudEvent, ParamsOf } from "./core";
+export { CloudFunction, CloudEvent, ParamsOf, onInit } from "./core";
 export { Change } from "../common/change";
+// NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
+import * as params from "../params";
+export { params };
+
+// NOTE: Required to support the Functions Emulator which monkey patches `functions.config()`
+// TODO(danielylee): Remove in next major release.
+export { config } from "../v1/config";
+
+// Required for v1 Emulator support.
+import { setApp as setEmulatedAdminApp } from "../common/app";
+export const app = { setEmulatedAdminApp };

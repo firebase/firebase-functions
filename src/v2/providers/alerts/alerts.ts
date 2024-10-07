@@ -27,6 +27,7 @@ import { Expression } from "../../../params";
 import { wrapTraceContext } from "../../trace";
 import * as options from "../../options";
 import { SecretParam } from "../../../params/types";
+import { withInit } from "../../../common/onInit";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.
@@ -70,7 +71,7 @@ export type AlertType =
   | "crashlytics.velocity"
   | "crashlytics.newAnrIssue"
   | "billing.planUpdate"
-  | "billing.automatedPlanUpdate"
+  | "billing.planAutomatedUpdate"
   | "appDistribution.newTesterIosDevice"
   | "appDistribution.inAppFeedback"
   | "performance.threshold"
@@ -94,7 +95,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -151,7 +152,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * Connect cloud function to specified VPC connector.
    * A value of null removes the VPC connector
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -163,7 +164,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * Specific service account for the function to run as.
    * A value of null restores the default service account.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -215,7 +216,7 @@ export function onAlertPublished<T extends { ["@type"]: string } = any>(
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(handler)(convertAlertAndApp(raw) as AlertEvent<T>);
+    return wrapTraceContext(withInit(handler))(convertAlertAndApp(raw) as AlertEvent<T>);
   };
 
   func.run = handler;
@@ -249,7 +250,7 @@ export function getEndpointAnnotation(
       eventFilters: {
         alerttype: alertType,
       },
-      retry: !!opts.retry,
+      retry: opts.retry ?? false,
     },
   };
   if (appId) {

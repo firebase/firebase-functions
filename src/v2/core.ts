@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 /**
- * Core functionality of the Firebase Functions v2 SDK.
+ * Core functionality of the Cloud Functions for Firebase 2nd gen SDK.
  * @packageDocumentation
  */
 
@@ -31,6 +31,7 @@ import { ManifestEndpoint } from "../runtime/manifest";
 export { Change };
 
 export { ParamsOf } from "../common/params";
+export { onInit } from "../common/onInit";
 
 /** @internal */
 export interface TriggerAnnotation {
@@ -64,8 +65,8 @@ export interface TriggerAnnotation {
 }
 
 /**
- * A CloudEventBase is the base of a cross-platform format for encoding a serverless event.
- * More information can be found in https://github.com/cloudevents/spec
+ * A `CloudEventBase` is the base of a cross-platform format for encoding a serverless event.
+ * For more information, see https://github.com/cloudevents/spec.
  * @typeParam T - The type of the event data.
  * @beta
  */
@@ -76,10 +77,10 @@ export interface CloudEvent<T> {
   /** A globally unique ID for this event. */
   id: string;
 
-  /** The resource which published this event. */
+  /** The resource that published this event. */
   source: string;
 
-  /** The resource, provided by source, that this event relates to */
+  /** The resource, provided by source, that this event relates to. */
   subject?: string;
 
   /** The type of event that this represents. */
@@ -107,10 +108,10 @@ export interface CloudFunction<EventType extends CloudEvent<unknown>> {
   __endpoint: ManifestEndpoint;
 
   /**
-   * The callback passed to the CloudFunction constructor.
-   * Use run to test a CloudFunction
+   * The callback passed to the `CloudFunction` constructor.
+   * Use `run` to test a function.
    * @param event - The parsed event to handle.
-   * @returns Any return value. Google Cloud Functions awaits any promise
+   * @returns Any return value. Cloud Functions awaits any promise
    *          before shutting down your function. Resolved return values
    *          are only used for unit testing purposes.
    * @beta

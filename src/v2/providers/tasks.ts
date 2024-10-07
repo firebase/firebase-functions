@@ -40,8 +40,9 @@ import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
+import { withInit } from "../../common/onInit";
 
-export { AuthData, Request };
+export { AuthData, Request, RateLimits, RetryConfig };
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
@@ -68,7 +69,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -128,7 +129,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -138,7 +139,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -210,7 +211,7 @@ export function onTaskDispatched<Args = any>(
   // onDispatchHandler sniffs the function length to determine which API to present.
   // fix the length to prevent api versions from being mismatched.
   const fixedLen = (req: Request<Args>) => handler(req);
-  const func: any = wrapTraceContext(onDispatchHandler(fixedLen));
+  const func: any = wrapTraceContext(withInit(onDispatchHandler(fixedLen)));
 
   Object.defineProperty(func, "__trigger", {
     get: () => {
@@ -220,6 +221,13 @@ export function onTaskDispatched<Args = any>(
       const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
       const taskQueueTrigger: Record<string, unknown> = {};
       copyIfPresent(taskQueueTrigger, opts, "retryConfig", "rateLimits");
+      convertIfPresent(
+        taskQueueTrigger,
+        options.getGlobalOptions(),
+        "invoker",
+        "invoker",
+        convertInvoker
+      );
       convertIfPresent(taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
       return {
         platform: "gcfv2",
@@ -266,7 +274,15 @@ export function onTaskDispatched<Args = any>(
     "maxConcurrentDispatches",
     "maxDispatchesPerSecond"
   );
+  convertIfPresent(
+    func.__endpoint.taskQueueTrigger,
+    options.getGlobalOptions(),
+    "invoker",
+    "invoker",
+    convertInvoker
+  );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
+  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retry", "retry");
 
   func.__requiredAPIs = [
     {

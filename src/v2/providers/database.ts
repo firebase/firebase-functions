@@ -34,6 +34,7 @@ import { Expression } from "../../params";
 import { wrapTraceContext } from "../trace";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
+import { withInit } from "../../common/onInit";
 
 export { DataSnapshot };
 
@@ -106,7 +107,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /**
    * Region where functions should be deployed.
    */
-  region?: options.SupportedRegion | string;
+  region?: options.SupportedRegion | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
@@ -121,7 +122,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -166,7 +167,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /**
    * Connect cloud function to specified VPC connector.
    */
-  vpcConnector?: string | ResetValue;
+  vpcConnector?: string | Expression<string> | ResetValue;
 
   /**
    * Egress settings for VPC connector.
@@ -176,7 +177,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /**
    * Specific service account for the function to run as.
    */
-  serviceAccount?: string | ResetValue;
+  serviceAccount?: string | Expression<string> | ResetValue;
 
   /**
    * Ingress settings which control where this function can be called from.
@@ -446,7 +447,7 @@ export function makeEndpoint(
       eventType,
       eventFilters,
       eventFilterPathPatterns,
-      retry: false,
+      retry: opts.retry ?? false,
     },
   };
 }
@@ -465,10 +466,12 @@ export function onChangedOperation<Ref extends string>(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
-    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
-    return wrapTraceContext(handler)(databaseEvent);
+    // Intentionally put init in the context of traces in case there is something
+    // expensive to observe.
+    return wrapTraceContext(withInit(handler))(databaseEvent);
   };
 
   func.run = handler;
@@ -492,11 +495,11 @@ export function onOperation<Ref extends string>(
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
-    const instanceUrl = `https://${event.instance}.${event.firebasedatabasehost}`;
+    const instanceUrl = getInstance(event);
     const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
     const data = eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
-    return handler(databaseEvent);
+    return wrapTraceContext(withInit(handler))(databaseEvent);
   };
 
   func.run = handler;
@@ -504,4 +507,11 @@ export function onOperation<Ref extends string>(
   func.__endpoint = makeEndpoint(eventType, opts, pathPattern, instancePattern);
 
   return func;
+}
+
+function getInstance(event: RawRTDBCloudEvent) {
+  const emuHost = process.env.FIREBASE_DATABASE_EMULATOR_HOST;
+  return emuHost
+    ? `http://${emuHost}/?ns=${event.instance}`
+    : `https://${event.instance}.${event.firebasedatabasehost}`;
 }

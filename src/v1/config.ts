@@ -37,7 +37,9 @@ export function resetCache(): void {
  * Store and retrieve project configuration data such as third-party API
  * keys or other settings. You can set configuration values using the
  * Firebase CLI as described in
- * [Environment Configuration](/docs/functions/config-env).
+ * https://firebase.google.com/docs/functions/config-env.
+ *
+ * @deprecated Using functions.config() is discouraged. See https://firebase.google.com/docs/functions/config-env.
  */
 export function config(): Record<string, any> {
   // K_CONFIGURATION is only set in GCFv2

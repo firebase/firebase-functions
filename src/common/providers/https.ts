@@ -36,6 +36,11 @@ import { TaskContext } from "./tasks";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
+/** @internal */
+export const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
+/** @internal */
+export const ORIGINAL_AUTH_HEADER = "x-original-auth";
+
 /** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
   /** The wire format representation of the request body. */
@@ -46,8 +51,25 @@ export interface Request extends express.Request {
  * The interface for AppCheck tokens verified in Callable functions
  */
 export interface AppCheckData {
+  /**
+   * The app ID of a Firebase App attested by the App Check token.
+   */
   appId: string;
+  /**
+   * Decoded App Check token.
+   */
   token: DecodedAppCheckToken;
+  /**
+   * Indicates if the token has been consumed.
+   *
+   * @remarks
+   * `false` value indicates that this is the first time the App Check service has seen this token and marked the
+   * token as consumed for future use of the token.
+   *
+   * `true` value indicates the token has previously been marked as consumed by the App Check service. In this case,
+   *  consider taking extra precautions, such as rejecting the request or requiring additional security checks.
+   */
+  alreadyConsumed?: boolean;
 }
 
 /**
@@ -530,7 +552,11 @@ export function unsafeDecodeAppCheckToken(token: string): DecodedAppCheckToken {
  * @returns {CallableTokenStatus} Status of the token verifications.
  */
 /** @internal */
-async function checkTokens(req: Request, ctx: CallableContext): Promise<CallableTokenStatus> {
+async function checkTokens(
+  req: Request,
+  ctx: CallableContext,
+  options: CallableOptions
+): Promise<CallableTokenStatus> {
   const verifications: CallableTokenStatus = {
     app: "INVALID",
     auth: "INVALID",
@@ -541,7 +567,7 @@ async function checkTokens(req: Request, ctx: CallableContext): Promise<Callable
       verifications.auth = await checkAuthToken(req, ctx);
     }),
     Promise.resolve().then(async () => {
-      verifications.app = await checkAppCheckToken(req, ctx);
+      verifications.app = await checkAppCheckToken(req, ctx, options);
     }),
   ]);
 
@@ -602,23 +628,46 @@ export async function checkAuthToken(
 }
 
 /** @internal */
-async function checkAppCheckToken(req: Request, ctx: CallableContext): Promise<TokenStatus> {
-  const appCheck = req.header("X-Firebase-AppCheck");
-  if (!appCheck) {
+async function checkAppCheckToken(
+  req: Request,
+  ctx: CallableContext,
+  options: CallableOptions
+): Promise<TokenStatus> {
+  const appCheckToken = req.header("X-Firebase-AppCheck");
+  if (!appCheckToken) {
     return "MISSING";
   }
   try {
-    let appCheckData;
+    let appCheckData: AppCheckData;
     if (isDebugFeatureEnabled("skipTokenVerification")) {
-      const decodedToken = unsafeDecodeAppCheckToken(appCheck);
+      const decodedToken = unsafeDecodeAppCheckToken(appCheckToken);
       appCheckData = { appId: decodedToken.app_id, token: decodedToken };
+      if (options.consumeAppCheckToken) {
+        appCheckData.alreadyConsumed = false;
+      }
     } else {
-      appCheckData = await getAppCheck(getApp()).verifyToken(appCheck);
+      const appCheck = getAppCheck(getApp());
+      if (options.consumeAppCheckToken) {
+        if (appCheck.verifyToken?.length === 1) {
+          const errorMsg =
+            "Unsupported version of the Admin SDK." +
+            " App Check token will not be consumed." +
+            " Please upgrade the firebase-admin to the latest version.";
+          logger.error(errorMsg);
+          throw new HttpsError("internal", "Internal Error");
+        }
+        appCheckData = await getAppCheck(getApp()).verifyToken(appCheckToken, { consume: true });
+      } else {
+        appCheckData = await getAppCheck(getApp()).verifyToken(appCheckToken);
+      }
     }
     ctx.app = appCheckData;
     return "VALID";
   } catch (err) {
     logger.warn("Failed to validate AppCheck token.", err);
+    if (err instanceof HttpsError) {
+      throw err;
+    }
     return "INVALID";
   }
 }
@@ -630,6 +679,7 @@ type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
 export interface CallableOptions {
   cors: cors.CorsOptions;
   enforceAppCheck?: boolean;
+  consumeAppCheckToken?: boolean;
 }
 
 /** @internal */
@@ -661,7 +711,33 @@ function wrapOnCallHandler<Req = any, Res = any>(
       }
 
       const context: CallableContext = { rawRequest: req };
-      const tokenStatus = await checkTokens(req, context);
+
+      // TODO(colerogers): yank this when we release a breaking change of the CLI that removes
+      // our monkey-patching code referenced below and increases the minimum supported SDK version.
+      //
+      // Note: This code is needed to fix v1 callable functions in the emulator with a monorepo setup.
+      // The original monkey-patched code lived in the functionsEmulatorRuntime
+      // (link: https://github.com/firebase/firebase-tools/blob/accea7abda3cc9fa6bb91368e4895faf95281c60/src/emulator/functionsEmulatorRuntime.ts#L480)
+      // and was not compatible with how monorepos separate out packages (see https://github.com/firebase/firebase-tools/issues/5210).
+      if (isDebugFeatureEnabled("skipTokenVerification") && handler.length === 2) {
+        const authContext = context.rawRequest.header(CALLABLE_AUTH_HEADER);
+        if (authContext) {
+          logger.debug("Callable functions auth override", {
+            key: CALLABLE_AUTH_HEADER,
+            value: authContext,
+          });
+          context.auth = JSON.parse(decodeURIComponent(authContext));
+          delete context.rawRequest.headers[CALLABLE_AUTH_HEADER];
+        }
+
+        const originalAuth = context.rawRequest.header(ORIGINAL_AUTH_HEADER);
+        if (originalAuth) {
+          context.rawRequest.headers["authorization"] = originalAuth;
+          delete context.rawRequest.headers[ORIGINAL_AUTH_HEADER];
+        }
+      }
+
+      const tokenStatus = await checkTokens(req, context, options);
       if (tokenStatus.auth === "INVALID") {
         throw new HttpsError("unauthenticated", "Unauthenticated");
       }

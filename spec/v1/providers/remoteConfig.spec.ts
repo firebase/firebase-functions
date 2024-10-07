@@ -122,12 +122,14 @@ describe("RemoteConfig Functions", () => {
       delete process.env.GCLOUD_PROJECT;
     });
 
-    it("should unwrap the version in the event", () => {
-      return Promise.all([
-        cloudFunctionUpdate(event.data, event.context).then((data: any) => {
-          expect(data).to.deep.equal(constructVersion());
-        }),
-      ]);
+    it("should unwrap the version in the event", async () => {
+      let hello;
+      functions.onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await cloudFunctionUpdate(event.data, event.context).then((data: any) => {
+        expect(data).to.deep.equal(constructVersion());
+      });
+      expect(hello).to.equal("world");
     });
   });
 });
