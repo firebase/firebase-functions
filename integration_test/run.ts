@@ -23,7 +23,6 @@ let {
   GOOGLE_ANALYTICS_API_SECRET,
   TEST_RUNTIME,
   REGION = "us-central1",
-  FIRESTORE_REGION = "us-central1",
   STORAGE_REGION = "us-central1",
 } = process.env;
 const TEST_RUN_ID = `t${Date.now()}`;
@@ -79,7 +78,6 @@ const env = {
   GCLOUD_PROJECT: config.projectId,
   FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
   REGION,
-  FIRESTORE_REGION,
   STORAGE_REGION,
 };
 
