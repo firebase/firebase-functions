@@ -167,7 +167,7 @@ export interface BlockingOptions {
 
 /**
  * Handles an event that is triggered before a user is created.
- * @param handler - Event handler which is run every time before a user is created
+ * @param handler - Event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
   handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
@@ -175,8 +175,8 @@ export function beforeUserCreated(
 
 /**
  * Handles an event that is triggered before a user is created.
- * @param opts - Object containing function options
- * @param handler - Event handler which is run every time before a user is created
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
   opts: BlockingOptions,
@@ -184,9 +184,9 @@ export function beforeUserCreated(
 ): BlockingFunction;
 
 /**
- * Handles an event that is triggered before a user is created
- * @param optsOrHandler - Either an object containing function options, or an event handler (run before user creation)
- * @param handler? - If defined, an event handler which is run every time before a user is created
+ * Handles an event that is triggered before a user is created.
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user creation).
+ * @param handler? - If defined, an event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
   optsOrHandler:
@@ -199,7 +199,7 @@ export function beforeUserCreated(
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param handler - Event handler which is run every time before a user is signed in
+ * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
   handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
@@ -207,8 +207,8 @@ export function beforeUserSignedIn(
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param opts - Object containing function options
- * @param handler - Event handler which is run every time before a user is signed in
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
@@ -217,8 +217,8 @@ export function beforeUserSignedIn(
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param optsOrHandler - Either an object containing function options, or an event handler (run before user signin)
- * @param handler - Event handler which is run every time before a user is signed in
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user signin).
+ * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
   optsOrHandler:
@@ -239,7 +239,7 @@ export function beforeEmailSent(
 
 /**
  * Handles an event that is triggered before an email is sent to a user.
- * @param opts - Object containing function options
+ * @param opts - Object containing function options.
  * @param handler - Event handler that is run before an email is sent to a user.
  */
 export function beforeEmailSent(
@@ -270,7 +270,7 @@ export function beforeSmsSent(
 
 /**
  * Handles an event that is triggered before an SMS is sent to a user.
- * @param opts - Object containing function options
+ * @param opts - Object containing function options.
  * @param handler - Event handler that is run before an SMS is sent to a user.
  */
 export function beforeSmsSent(
@@ -317,7 +317,6 @@ export function beforeOperation(
 
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
-  // const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
   const annotatedHandler = Object.assign(handler, { platform: "gcfv2" as const });
   const func: any = wrapTraceContext(withInit(wrapHandler(eventType, annotatedHandler)));
 

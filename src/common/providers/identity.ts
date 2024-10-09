@@ -334,16 +334,20 @@ export interface Credential {
   signInMethod: string;
 }
 
-/** Possible types of emails as described by the GCIP backend. */
+/**
+ * Possible types of emails as described by the GCIP backend, which can be:
+ * - An sign-in email
+ * - A password reset email
+ */
 export type EmailType = "EMAIL_SIGN_IN" | "PASSWORD_RESET";
 
 /**
- * The type of SMS message
+ * The type of SMS message, which can be:
+ * - A sign-in or sign up SMS message
+ * - A multi-factor sign-in SMS message
+ * - A multi-factor enrollment SMS message
  */
-export type SmsType =
-  | "SIGN_IN_OR_SIGN_UP" // A sign-in or sign up SMS message
-  | "MULTI_FACTOR_SIGN_IN" // A multi-factor sign-in SMS message
-  | "MULTI_FACTOR_ENROLLMENT"; // A multi-factor enrollment SMS message
+export type SmsType = "SIGN_IN_OR_SIGN_UP" | "MULTI_FACTOR_SIGN_IN" | "MULTI_FACTOR_ENROLLMENT";
 
 /** Defines the auth event context for blocking events */
 export interface AuthEventContext extends EventContext {
@@ -374,7 +378,7 @@ export interface BeforeSmsResponse {
   recaptchaActionOverride?: RecaptchaActionOptions;
 }
 
-/** The handler response type for beforeCreate blocking events */
+/** The handler response type for `beforeCreate` blocking events */
 export interface BeforeCreateResponse {
   displayName?: string;
   disabled?: boolean;
@@ -472,7 +476,7 @@ export interface DecodedPayload {
  * Internal definition to include all the fields that can be sent as
  * a response from the blocking function to the backend.
  * This is added mainly to have a type definition for 'generateResponsePayload'
- * @internal */
+  @internal */
 export interface ResponsePayload {
   userRecord?: UserRecordResponsePayload;
   recaptchaActionOverride?: RecaptchaActionOptions;
