@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+import * as admin from "firebase-admin";
 import { initializeFirebase } from "../firebaseSetup";
 import { CloudEvent, getEventarc } from "firebase-admin/eventarc";
 import { retry } from "../utils";

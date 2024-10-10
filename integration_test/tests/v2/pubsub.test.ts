@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+import * as admin from "firebase-admin";
 import { retry, timeout } from "../utils";
 import { PubSub } from "@google-cloud/pubsub";
 import { initializeFirebase } from "../firebaseSetup";
