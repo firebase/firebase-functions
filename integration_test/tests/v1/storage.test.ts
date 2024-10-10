@@ -29,8 +29,7 @@ describe("Firebase Storage", () => {
     await admin.firestore().collection("storageOnMetadataUpdateTests").doc(testId).delete();
   });
 
-  // FIXME: Re-enable after fix
-  describe.skip("object onFinalize trigger", () => {
+  describe("object onFinalize trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -78,7 +77,7 @@ describe("Firebase Storage", () => {
     });
   });
 
-  // FIXME: Re-enable after fix
+  // TODO: (b/372315689) Re-enable function once bug is fixed
   describe.skip("object onDelete trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
