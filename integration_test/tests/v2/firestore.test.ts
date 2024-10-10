@@ -1,4 +1,4 @@
-import admin from "firebase-admin";
+import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 

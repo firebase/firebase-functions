@@ -199,13 +199,14 @@ describe("Cloud Firestore (v1)", () => {
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreDocumentOnWriteTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("firestoreDocumentOnWriteTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
       );
     });
 
