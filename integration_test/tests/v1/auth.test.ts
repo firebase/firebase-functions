@@ -1,5 +1,4 @@
 import * as admin from "firebase-admin";
-import { UserRecord } from "firebase-admin/lib/auth/user-record";
 import { initializeApp } from "firebase/app";
 import { createUserWithEmailAndPassword, getAuth, UserCredential } from "firebase/auth";
 import { initializeFirebase } from "../firebaseSetup";
@@ -39,7 +38,7 @@ describe("Firebase Auth (v1)", () => {
   });
 
   describe("user onCreate trigger", () => {
-    let userRecord: UserRecord;
+    let userRecord: admin.auth.UserRecord;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -118,7 +117,7 @@ describe("Firebase Auth (v1)", () => {
   });
 
   describe("user onDelete trigger", () => {
-    let userRecord: UserRecord;
+    let userRecord: admin.auth.UserRecord;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -130,13 +129,14 @@ describe("Firebase Auth (v1)", () => {
 
       await admin.auth().deleteUser(userRecord.uid);
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("authUserOnDeleteTests")
-          .doc(userRecord.uid)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("authUserOnDeleteTests")
+            .doc(userRecord.uid)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
       );
 
       userIds.push(userRecord.uid);

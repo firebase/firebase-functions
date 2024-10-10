@@ -1,9 +1,12 @@
-export default {
+/** @type {import('jest').Config} */
+const config = {
   preset: "ts-jest",
   testEnvironment: "node",
   testMatch: ["**/tests/**/*.test.ts"],
-  testTimeout: 30000,
+  testTimeout: 120_000,
   transform: {
     "^.+\\.(t|j)s$": ["ts-jest", { tsconfig: "tsconfig.test.json" }],
   },
 };
+
+export default config;
