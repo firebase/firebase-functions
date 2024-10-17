@@ -336,7 +336,7 @@ export interface Credential {
 
 /**
  * Possible types of emails as described by the GCIP backend, which can be:
- * - An sign-in email
+ * - A sign-in email
  * - A password reset email
  */
 export type EmailType = "EMAIL_SIGN_IN" | "PASSWORD_RESET";
