@@ -55,11 +55,17 @@ const CLAIMS_MAX_PAYLOAD_SIZE = 1000;
  * @hidden
  * @alpha
  */
-export type AuthBlockingEventType = "beforeCreate" | "beforeSignIn";
+export type AuthBlockingEventType =
+  | "beforeCreate"
+  | "beforeSignIn"
+  | "beforeSendEmail"
+  | "beforeSendSms";
 
 const EVENT_MAPPING: Record<string, string> = {
   beforeCreate: "providers/cloud.auth/eventTypes/user.beforeCreate",
   beforeSignIn: "providers/cloud.auth/eventTypes/user.beforeSignIn",
+  beforeSendEmail: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+  beforeSendSms: "providers/cloud.auth/eventTypes/user.beforeSendSms",
 };
 
 /**
@@ -307,11 +313,13 @@ export interface AuthUserRecord {
 
 /** The additional user info component of the auth event context */
 export interface AdditionalUserInfo {
-  providerId: string;
+  providerId?: string;
   profile?: any;
   username?: string;
   isNewUser: boolean;
   recaptchaScore?: number;
+  email?: string;
+  phoneNumber?: string;
 }
 
 /** The credential component of the auth event context */
@@ -326,6 +334,21 @@ export interface Credential {
   signInMethod: string;
 }
 
+/**
+ * Possible types of emails as described by the GCIP backend, which can be:
+ * - A sign-in email
+ * - A password reset email
+ */
+export type EmailType = "EMAIL_SIGN_IN" | "PASSWORD_RESET";
+
+/**
+ * The type of SMS message, which can be:
+ * - A sign-in or sign up SMS message
+ * - A multi-factor sign-in SMS message
+ * - A multi-factor enrollment SMS message
+ */
+export type SmsType = "SIGN_IN_OR_SIGN_UP" | "MULTI_FACTOR_SIGN_IN" | "MULTI_FACTOR_ENROLLMENT";
+
 /** Defines the auth event context for blocking events */
 export interface AuthEventContext extends EventContext {
   locale?: string;
@@ -333,17 +356,27 @@ export interface AuthEventContext extends EventContext {
   userAgent: string;
   additionalUserInfo?: AdditionalUserInfo;
   credential?: Credential;
+  emailType?: EmailType;
+  smsType?: SmsType;
 }
 
 /** Defines the auth event for 2nd gen blocking events */
 export interface AuthBlockingEvent extends AuthEventContext {
-  data: AuthUserRecord;
+  data?: AuthUserRecord; // will be undefined for beforeEmailSent and beforeSmsSent event types
 }
 
-/**
- * The reCAPTCHA action options.
- */
+/** The reCAPTCHA action options. */
 export type RecaptchaActionOptions = "ALLOW" | "BLOCK";
+
+/** The handler response type for `beforeEmailSent` blocking events */
+export interface BeforeEmailResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
+
+/** The handler response type for `beforeSmsSent` blocking events */
+export interface BeforeSmsResponse {
+  recaptchaActionOverride?: RecaptchaActionOptions;
+}
 
 /** The handler response type for `beforeCreate` blocking events */
 export interface BeforeCreateResponse {
@@ -413,7 +446,7 @@ export interface DecodedPayload {
   exp: number;
   iat: number;
   iss: string;
-  sub: string;
+  sub?: string;
   event_id: string;
   event_type: string;
   ip_address: string;
@@ -432,6 +465,10 @@ export interface DecodedPayload {
   oauth_token_secret?: string;
   oauth_expires_in?: number;
   recaptcha_score?: number;
+  email?: string;
+  email_type?: string;
+  phone_number?: string;
+  sms_type?: string;
   [key: string]: any;
 }
 
@@ -439,7 +476,7 @@ export interface DecodedPayload {
  * Internal definition to include all the fields that can be sent as
  * a response from the blocking function to the backend.
  * This is added mainly to have a type definition for 'generateResponsePayload'
- * @internal */
+  @internal */
 export interface ResponsePayload {
   userRecord?: UserRecordResponsePayload;
   recaptchaActionOverride?: RecaptchaActionOptions;
@@ -451,26 +488,28 @@ export interface UserRecordResponsePayload
   updateMask?: string;
 }
 
-type HandlerV1 = (
-  user: AuthUserRecord,
-  context: AuthEventContext
-) =>
-  | BeforeCreateResponse
-  | BeforeSignInResponse
-  | void
-  | Promise<BeforeCreateResponse>
-  | Promise<BeforeSignInResponse>
-  | Promise<void>;
+export type MaybeAsync<T> = T | Promise<T>;
 
-type HandlerV2 = (
+// N.B. As we add support for new auth blocking functions, some auth blocking event handlers
+// will not receive a user record object. However, we can't make the user record parameter
+// optional because it is listed before the required context parameter.
+export type HandlerV1 = (
+  userOrContext: AuthUserRecord | AuthEventContext,
+  context?: AuthEventContext
+) => MaybeAsync<
+  BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+>;
+
+export type HandlerV2 = (
   event: AuthBlockingEvent
-) =>
-  | BeforeCreateResponse
-  | BeforeSignInResponse
-  | void
-  | Promise<BeforeCreateResponse>
-  | Promise<BeforeSignInResponse>
-  | Promise<void>;
+) => MaybeAsync<
+  BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+>;
+
+export type AuthBlockingEventHandler = (HandlerV1 | HandlerV2) & {
+  // Specify the GCF gen of the trigger that the auth blocking event handler was written for
+  platform: "gcfv1" | "gcfv2";
+};
 
 /**
  * Checks for a valid identity platform web request, otherwise throws an HttpsError.
@@ -666,6 +705,8 @@ function parseAdditionalUserInfo(decodedJWT: DecodedPayload): AdditionalUserInfo
     username,
     isNewUser: decodedJWT.event_type === "beforeCreate" ? true : false,
     recaptchaScore: decodedJWT.recaptcha_score,
+    email: decodedJWT.email,
+    phoneNumber: decodedJWT.phone_number,
   };
 }
 
@@ -752,6 +793,8 @@ export function parseAuthEventContext(
     timestamp: new Date(decodedJWT.iat * 1000).toUTCString(),
     additionalUserInfo: parseAdditionalUserInfo(decodedJWT),
     credential: parseAuthCredential(decodedJWT, time),
+    emailType: decodedJWT.email_type as EmailType,
+    smsType: decodedJWT.sms_type as SmsType,
     params: {},
   };
 }
@@ -836,7 +879,7 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
 }
 
 /** @internal */
-export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1 | HandlerV2) {
+export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlockingEventHandler) {
   return async (req: express.Request, res: express.Response): Promise<void> => {
     try {
       const projectId = process.env.GCLOUD_PROJECT;
@@ -853,16 +896,23 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: HandlerV1
 
       const decodedPayload: DecodedPayload = isDebugFeatureEnabled("skipTokenVerification")
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
-        : handler.length === 2
+        : handler.platform === "gcfv1"
         ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
         : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
-      const authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
+      let authUserRecord: AuthUserRecord | undefined;
+      if (
+        decodedPayload.event_type === "beforeCreate" ||
+        decodedPayload.event_type === "beforeSignIn"
+      ) {
+        authUserRecord = parseAuthUserRecord(decodedPayload.user_record);
+      }
       const authEventContext = parseAuthEventContext(decodedPayload, projectId);
 
       let authResponse;
-      if (handler.length === 2) {
-        authResponse =
-          (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined;
+      if (handler.platform === "gcfv1") {
+        authResponse = authUserRecord
+          ? (await (handler as HandlerV1)(authUserRecord, authEventContext)) || undefined
+          : (await (handler as HandlerV1)(authEventContext)) || undefined;
       } else {
         authResponse =
           (await (handler as HandlerV2)({

@@ -528,6 +528,8 @@ describe("identity", () => {
         userAgent: "USER_AGENT",
         eventId: "EVENT_ID",
         eventType: EVENT,
+        emailType: undefined,
+        smsType: undefined,
         authType: "UNAUTHENTICATED",
         resource: {
           service: "identitytoolkit.googleapis.com",
@@ -540,6 +542,8 @@ describe("identity", () => {
           username: undefined,
           isNewUser: false,
           recaptchaScore: TEST_RECAPTCHA_SCORE,
+          email: undefined,
+          phoneNumber: undefined,
         },
         credential: null,
         params: {},
@@ -577,6 +581,8 @@ describe("identity", () => {
         userAgent: "USER_AGENT",
         eventId: "EVENT_ID",
         eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn:password",
+        emailType: undefined,
+        smsType: undefined,
         authType: "UNAUTHENTICATED",
         resource: {
           service: "identitytoolkit.googleapis.com",
@@ -589,6 +595,8 @@ describe("identity", () => {
           username: undefined,
           isNewUser: false,
           recaptchaScore: TEST_RECAPTCHA_SCORE,
+          email: undefined,
+          phoneNumber: undefined,
         },
         credential: {
           claims: undefined,
@@ -663,6 +671,8 @@ describe("identity", () => {
         userAgent: "USER_AGENT",
         eventId: "EVENT_ID",
         eventType: "providers/cloud.auth/eventTypes/user.beforeCreate:oidc.provider",
+        emailType: undefined,
+        smsType: undefined,
         authType: "USER",
         resource: {
           service: "identitytoolkit.googleapis.com",
@@ -675,6 +685,8 @@ describe("identity", () => {
           profile: rawUserInfo,
           isNewUser: true,
           recaptchaScore: TEST_RECAPTCHA_SCORE,
+          email: undefined,
+          phoneNumber: undefined,
         },
         credential: {
           claims: undefined,
@@ -686,6 +698,98 @@ describe("identity", () => {
           secret: "OAUTH_TOKEN_SECRET",
           signInMethod: "oidc.provider",
         },
+        params: {},
+      };
+
+      expect(identity.parseAuthEventContext(decodedJwt, "project-id", time)).to.deep.equal(context);
+    });
+
+    it("should parse a beforeSendEmail event", () => {
+      const time = now.getTime();
+      const decodedJwt = {
+        iss: "https://securetoken.google.com/project_id",
+        aud: "https://us-east1-project_id.cloudfunctions.net/function-1",
+        iat: 1,
+        exp: 60 * 60 + 1,
+        event_id: "EVENT_ID",
+        event_type: "beforeSendEmail",
+        user_agent: "USER_AGENT",
+        ip_address: "1.2.3.4",
+        locale: "en",
+        recaptcha_score: TEST_RECAPTCHA_SCORE,
+        email_type: "RESET_PASSWORD",
+        email: "johndoe@gmail.com",
+      };
+      const context = {
+        locale: "en",
+        ipAddress: "1.2.3.4",
+        userAgent: "USER_AGENT",
+        eventId: "EVENT_ID",
+        eventType: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+        emailType: "RESET_PASSWORD",
+        smsType: undefined,
+        authType: "UNAUTHENTICATED",
+        resource: {
+          service: "identitytoolkit.googleapis.com",
+          name: "projects/project-id",
+        },
+        timestamp: new Date(1000).toUTCString(),
+        additionalUserInfo: {
+          isNewUser: false,
+          profile: undefined,
+          providerId: undefined,
+          username: undefined,
+          recaptchaScore: TEST_RECAPTCHA_SCORE,
+          email: "johndoe@gmail.com",
+          phoneNumber: undefined,
+        },
+        credential: null,
+        params: {},
+      };
+
+      expect(identity.parseAuthEventContext(decodedJwt, "project-id", time)).to.deep.equal(context);
+    });
+
+    it("should parse a beforeSendSms event", () => {
+      const time = now.getTime();
+      const decodedJwt = {
+        iss: "https://securetoken.google.com/project_id",
+        aud: "https://us-east1-project_id.cloudfunctions.net/function-1",
+        iat: 1,
+        exp: 60 * 60 + 1,
+        event_id: "EVENT_ID",
+        event_type: "beforeSendSms",
+        user_agent: "USER_AGENT",
+        ip_address: "1.2.3.4",
+        locale: "en",
+        recaptcha_score: TEST_RECAPTCHA_SCORE,
+        sms_type: "SIGN_IN_OR_SIGN_UP",
+        phone_number: "+11234567890",
+      };
+      const context = {
+        locale: "en",
+        ipAddress: "1.2.3.4",
+        userAgent: "USER_AGENT",
+        eventId: "EVENT_ID",
+        eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
+        emailType: undefined,
+        smsType: "SIGN_IN_OR_SIGN_UP",
+        authType: "UNAUTHENTICATED",
+        resource: {
+          service: "identitytoolkit.googleapis.com",
+          name: "projects/project-id",
+        },
+        timestamp: new Date(1000).toUTCString(),
+        additionalUserInfo: {
+          isNewUser: false,
+          profile: undefined,
+          providerId: undefined,
+          username: undefined,
+          recaptchaScore: TEST_RECAPTCHA_SCORE,
+          email: undefined,
+          phoneNumber: "+11234567890",
+        },
+        credential: null,
         params: {},
       };
 
