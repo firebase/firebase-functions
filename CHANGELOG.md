@@ -1,0 +1,1 @@
+- Add support for beforeSmsSent auth blocking triggers. (#1589)
