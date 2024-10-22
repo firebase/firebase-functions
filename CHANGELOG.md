@@ -1,1 +1,3 @@
 - Bump express version to 4.19.2 (#1624)
+- Add support for beforeSmsSent auth blocking triggers. (#1589)
+
