@@ -276,7 +276,7 @@ describe("callable CORS", () => {
     const response = await runHandler(func, req as any);
 
     expect(response.status).to.equal(200);
-    expect(response.body).to.be.deep.equal({ result: 42 });
+    expect(response.body).to.be.deep.equal(JSON.stringify({ result: 42 }));
     expect(response.headers).to.deep.equal(expectedResponseHeaders);
   });
 });

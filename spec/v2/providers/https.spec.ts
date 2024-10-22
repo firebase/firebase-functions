@@ -417,7 +417,7 @@ describe("onCall", () => {
     req.method = "POST";
 
     const resp = await runHandler(func, req as any);
-    expect(resp.body).to.deep.equal({ result: 42 });
+    expect(resp.body).to.deep.equal(JSON.stringify({ result: 42 }));
   });
 
   it("should enforce CORS options", async () => {
@@ -496,7 +496,7 @@ describe("onCall", () => {
     const response = await runHandler(func, req as any);
 
     expect(response.status).to.equal(200);
-    expect(response.body).to.be.deep.equal({ result: 42 });
+    expect(response.body).to.be.deep.equal(JSON.stringify({ result: 42 }));
     expect(response.headers).to.deep.equal(expectedResponseHeaders);
   });
 
