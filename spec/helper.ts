@@ -47,6 +47,7 @@ export function runHandler(
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {
+      private sentBody = "";
       private statusCode = 0;
       private headers: { [name: string]: string } = {};
       private callback: () => void;
@@ -65,7 +66,10 @@ export function runHandler(
         return this.headers[name];
       }
 
-      public send(body: any) {
+      public send(sendBody: any) {
+        const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
+        const body = this.sentBody ? this.sentBody + (toSend || "") : toSend;
+
         resolve({
           status: this.statusCode,
           headers: this.headers,
@@ -74,6 +78,10 @@ export function runHandler(
         if (this.callback) {
           this.callback();
         }
+      }
+
+      public write(writeBody: any) {
+        this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
       }
 
       public end() {
