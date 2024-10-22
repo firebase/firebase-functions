@@ -761,7 +761,8 @@ describe("onCallHandler", () => {
     it("returns data in SSE format for requests Accept: text/event-stream header", async () => {
       const mockReq = mockRequest(
         { message: "hello streaming" },
-        "application/json", {},
+        "application/json",
+        {},
         { accept: "text/event-stream" }
       ) as any;
       const fn = https.onCallHandler(
@@ -769,17 +770,14 @@ describe("onCallHandler", () => {
           cors: { origin: true, methods: "POST" },
         },
         (req, resp) => {
-          resp.write("hello")
-          return 'world';
+          resp.write("hello");
+          return "world";
         },
         "v2"
       );
 
       const resp = await runHandler(fn, mockReq);
-      const data = [
-        `data: {"message":"hello"}`,
-        `data: {"result":"world"}`,
-      ]
+      const data = [`data: {"message":"hello"}`, `data: {"result":"world"}`];
       expect(resp.body).to.equal([...data, ""].join("\n"));
     });
 
@@ -794,16 +792,14 @@ describe("onCallHandler", () => {
         {
           cors: { origin: true, methods: "POST" },
         },
-        (req, resp) => {
-          throw new Error("BOOM")
+        (_req, _resp) => {
+          throw new Error("BOOM");
         },
         "v2"
       );
 
       const resp = await runHandler(fn, mockReq);
-      const data = [
-        `data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`,
-      ]
+      const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
       expect(resp.body).to.equal([...data, ""].join("\n"));
     });
   });

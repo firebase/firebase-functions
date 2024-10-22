@@ -68,7 +68,7 @@ export function runHandler(
 
       public send(sendBody: any) {
         const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
-        const body = this.sentBody ? this.sentBody + (toSend || "") : toSend;
+        const body = this.sentBody ? this.sentBody + ((toSend as string) || "") : toSend;
 
         resolve({
           status: this.statusCode,

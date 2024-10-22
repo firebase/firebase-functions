@@ -804,7 +804,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
         };
         if (acceptsStreaming) {
           // SSE always responds with 200
-          res.status(200)
+          res.status(200);
         }
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
@@ -817,7 +817,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
       if (acceptsStreaming) {
-        res.write(encodeSSE(responseBody))
+        res.write(encodeSSE(responseBody));
         res.end();
       } else {
         res.status(200).send(responseBody);
