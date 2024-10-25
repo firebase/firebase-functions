@@ -781,7 +781,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
         context.instanceIdToken = req.header("Firebase-Instance-ID-Token");
       }
 
-      const acceptsStreaming = version === "v2" && req.header("accept") === "text/event-stream";
+      const acceptsStreaming = req.header("accept") === "text/event-stream";
       const data: Req = decode(req.body.data);
       let result: Res;
       if (version === "v1") {
