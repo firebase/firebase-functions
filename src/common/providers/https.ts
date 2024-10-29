@@ -808,7 +808,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
         }
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
-        result = await (handler as v2CallableHandler<Req, Res>)(arg, responseProxy);
+        result = await (handler as any)(arg, responseProxy);
       }
 
       // Encode the result as JSON to preserve types like Dates.
