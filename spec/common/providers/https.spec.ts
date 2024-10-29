@@ -792,7 +792,7 @@ describe("onCallHandler", () => {
         {
           cors: { origin: true, methods: "POST" },
         },
-        (_req, _resp) => {
+        () => {
           throw new Error("BOOM");
         },
         "v2"
