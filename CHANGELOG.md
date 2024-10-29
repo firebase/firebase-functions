@@ -1,0 +1,2 @@
+- Add support for callable function to return streaming response (#1629)
+
