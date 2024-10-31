@@ -183,6 +183,7 @@ function installPythonDependencies() {
 
   execSync("source venv/bin/activate && python3 -m pip install -r requirements.txt", {
     stdio: "inherit",
+    shell: "bash",
   });
 
   process.chdir("../"); // go back to integration_test
