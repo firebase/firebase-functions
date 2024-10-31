@@ -11,6 +11,7 @@ import { loadEnv } from "./utils.js";
 loadEnv();
 
 let {
+  DEBUG,
   NODE_VERSION = "18",
   FIREBASE_ADMIN,
   PROJECT_ID,
@@ -74,6 +75,7 @@ const firebaseConfig = {
 };
 
 const env = {
+  DEBUG,
   FIRESTORE_PREFER_REST: "true",
   GCLOUD_PROJECT: config.projectId,
   FIREBASE_CONFIG: JSON.stringify(firebaseConfig),
