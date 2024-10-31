@@ -98,7 +98,7 @@ function buildPythonSdk() {
     .find((file) => file.match(/^firebase_functions-.*\.tar\.gz$/));
 
   if (generatedFile) {
-    const targetPath = path.join("integration_tests", "functions", `firebase_functions.tar.gz`);
+    const targetPath = path.join("integration_test", "functions", `firebase_functions.tar.gz`);
 
     fs.renameSync(path.join("dist", generatedFile), targetPath);
 
