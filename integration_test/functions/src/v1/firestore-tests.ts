@@ -1,15 +1,15 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
-export const firestoreDocumentOnCreateTests: any = functions
+export const firestoreDocumentOnCreateTests = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
   .firestore.document("tests/{testId}")
-  .onCreate(async (snapshot, context) => {
+  .onCreate(async (_snapshot, context) => {
     const testId = context.params.testId;
     await admin
       .firestore()
@@ -18,13 +18,13 @@ export const firestoreDocumentOnCreateTests: any = functions
       .set(sanitizeData(context));
   });
 
-export const firestoreDocumentOnDeleteTests: any = functions
+export const firestoreDocumentOnDeleteTests = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
   .firestore.document("tests/{testId}")
-  .onDelete(async (snapshot, context) => {
+  .onDelete(async (_snapshot, context) => {
     const testId = context.params.testId;
     await admin
       .firestore()
@@ -33,13 +33,13 @@ export const firestoreDocumentOnDeleteTests: any = functions
       .set(sanitizeData(context));
   });
 
-export const firestoreDocumentOnUpdateTests: any = functions
+export const firestoreDocumentOnUpdateTests = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
   .firestore.document("tests/{testId}")
-  .onUpdate(async (change, context) => {
+  .onUpdate(async (_change, context) => {
     const testId = context.params.testId;
     await admin
       .firestore()
@@ -48,13 +48,13 @@ export const firestoreDocumentOnUpdateTests: any = functions
       .set(sanitizeData(context));
   });
 
-export const firestoreDocumentOnWriteTests: any = functions
+export const firestoreDocumentOnWriteTests = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
   .firestore.document("tests/{testId}")
-  .onWrite(async (change, context) => {
+  .onWrite(async (_change, context) => {
     const testId = context.params.testId;
     await admin
       .firestore()

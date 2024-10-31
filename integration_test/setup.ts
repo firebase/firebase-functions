@@ -136,16 +136,13 @@ function createRequirementsTxt(firebaseAdmin: string) {
   fs.copyFileSync(requirementsTemplatePath, requirementsPath);
 
   let requirementsContent = fs.readFileSync(requirementsPath, "utf8");
-
   requirementsContent = requirementsContent.replace(
     /__LOCAL_FIREBASE_FUNCTIONS__/g,
-
     `firebase_functions.tar.gz`
   );
 
   requirementsContent = requirementsContent.replace(
     /__FIREBASE_ADMIN__/g,
-
     firebaseAdmin
   );
 

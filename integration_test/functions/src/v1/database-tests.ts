@@ -1,9 +1,9 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
-export const databaseRefOnCreateTests: any = functions
+export const databaseRefOnCreateTests = functions
   .region(REGION)
   .database.ref("dbTests/{testId}/start")
   .onCreate(async (snapshot, context) => {
@@ -21,7 +21,7 @@ export const databaseRefOnCreateTests: any = functions
       );
   });
 
-export const databaseRefOnDeleteTests: any = functions
+export const databaseRefOnDeleteTests = functions
   .region(REGION)
   .database.ref("dbTests/{testId}/start")
   .onDelete(async (snapshot, context) => {
@@ -39,12 +39,12 @@ export const databaseRefOnDeleteTests: any = functions
       );
   });
 
-export const databaseRefOnUpdateTests: any = functions
+export const databaseRefOnUpdateTests = functions
   .region(REGION)
   .database.ref("dbTests/{testId}/start")
   .onUpdate(async (change, context) => {
     const testId = context.params.testId;
-    const data = change.after.val();
+    const data = change.after.val() as unknown;
 
     await admin
       .firestore()
@@ -59,7 +59,7 @@ export const databaseRefOnUpdateTests: any = functions
       );
   });
 
-export const databaseRefOnWriteTests: any = functions
+export const databaseRefOnWriteTests = functions
   .region(REGION)
   .database.ref("dbTests/{testId}/start")
   .onWrite(async (change, context) => {

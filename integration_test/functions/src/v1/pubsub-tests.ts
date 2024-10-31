@@ -1,13 +1,13 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
-export const pubsubOnPublishTests: any = functions
+export const pubsubOnPublishTests = functions
   .region(REGION)
   .pubsub.topic("pubsubTests")
   .onPublish(async (message, context) => {
-    let testId = message.json?.testId;
+    const testId = (message.json as { testId?: string })?.testId;
     await admin
       .firestore()
       .collection("pubsubOnPublishTests")
@@ -20,7 +20,7 @@ export const pubsubOnPublishTests: any = functions
       );
   });
 
-export const pubsubScheduleTests: any = functions
+export const pubsubScheduleTests = functions
   .region(REGION)
   .pubsub.schedule("every 10 hours") // This is a dummy schedule, since we need to put a valid one in.
   // For the test, the job is triggered by the jobs:run api

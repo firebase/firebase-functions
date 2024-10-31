@@ -1,13 +1,7 @@
 {
+  /* Visit https://firebase.google.com/docs/database/security to learn more about security rules. */
   "rules": {
-    "dbTests": {
-      "$testId": {
-        "adminOnly": {
-          ".validate": false
-        }
-      }
-    },
-    ".read": "auth != null",
-    ".write": true
+    ".read": false,
+    ".write": false
   }
 }

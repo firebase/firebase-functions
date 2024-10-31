@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { REGION } from "../region";
 import { sanitizeData } from "../utils";
 
@@ -25,19 +25,24 @@ import { sanitizeData } from "../utils";
 //       .set(sanitizeData(context));
 //   });
 
-export const storageOnFinalizeTests: any = functions
+export const storageOnFinalizeTests = functions
   .runWith({
     timeoutSeconds: 540,
   })
   .region(REGION)
   .storage.bucket()
   .object()
-  .onFinalize(async (object, context) => {
-    const testId = object.name?.split(".")[0];
-    if (!testId) {
-      functions.logger.error("TestId not found for storage object finalize");
+  .onFinalize(async (object: unknown, context) => {
+    if (!object || typeof object !== "object" || !("name" in object)) {
+      functions.logger.error("Invalid object structure for storage object finalize");
       return;
     }
+    const name = (object as { name: string }).name;
+    if (!name || typeof name !== "string") {
+      functions.logger.error("Invalid name property for storage object finalize");
+      return;
+    }
+    const testId = name.split(".")[0];
 
     await admin
       .firestore()
@@ -46,7 +51,7 @@ export const storageOnFinalizeTests: any = functions
       .set(sanitizeData(context));
   });
 
-export const storageOnMetadataUpdateTests: any = functions
+export const storageOnMetadataUpdateTests = functions
   .runWith({
     timeoutSeconds: 540,
   })
