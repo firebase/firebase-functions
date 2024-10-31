@@ -61,7 +61,7 @@ const config = {
   projectId: PROJECT_ID,
   projectDir: process.cwd(),
   sourceDir: `${process.cwd()}/functions`,
-  runtime: TEST_RUNTIME === "node" ? "nodejs18" : "python",
+  runtime: TEST_RUNTIME === "node" ? "nodejs18" : "python311",
 };
 
 console.log("Firebase config created: ");
