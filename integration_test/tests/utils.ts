@@ -114,7 +114,7 @@ export async function createTask(
   payload: Record<string, any>
 ) {
   const client = new CloudTasksClient();
-  const queuePath = client.queuePath(project, location, queue);
+  // const queuePath = client.queuePath(project, location, queue);
   // try {
   //   await client.getQueue({ name: queuePath });
   // } catch (err: any) {
@@ -169,10 +169,11 @@ export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Pr
   let count = 0;
   let lastError: Error | undefined;
   const { maxRetries = 20, checkForUndefined = true } = options ?? {};
+  let result: Awaited<T> | null = null;
 
   while (count < maxRetries) {
     try {
-      const result = await fn();
+      result = await fn();
       if (!checkForUndefined || result) {
         return result;
       }
@@ -187,5 +188,5 @@ export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Pr
     throw lastError;
   }
 
-  throw new Error("Max retries exceeded");
+  throw new Error(`Max retries exceeded: result = ${result}`);
 }
