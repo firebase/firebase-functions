@@ -81,11 +81,12 @@ function buildPythonSdk() {
   execSync(
     "source venv/bin/activate && python -m pip install --upgrade build",
 
-    { stdio: "inherit" }
+    { stdio: "inherit", shell: "bash" }
   );
 
   execSync("source venv/bin/activate && python -m build -s", {
     stdio: "inherit",
+    shell: "bash",
   });
 
   // move the generated tarball package to functions
@@ -97,13 +98,7 @@ function buildPythonSdk() {
     .find((file) => file.match(/^firebase_functions-.*\.tar\.gz$/));
 
   if (generatedFile) {
-    const targetPath = path.join(
-      "integration_tests",
-
-      "functions",
-
-      `firebase_functions.tar.gz`
-    );
+    const targetPath = path.join("integration_tests", "functions", `firebase_functions.tar.gz`);
 
     fs.renameSync(path.join("dist", generatedFile), targetPath);
 

@@ -1,15 +1,18 @@
 steps:
   - name: "node:18"
-    entrypoint: "npm"
+    id: "Install dependencies"
     dir: "integration_test"
+    entrypoint: "npm"
     args: ["install"]
   - name: "node:18"
-    entrypoint: "npx"
+    id: "Set Project ID"
     dir: "integration_test"
+    entrypoint: "npx"
     args: ["firebase", "use", "cf3-integration-tests-d7be6"]
   - name: "node:18"
-    entrypoint: "npm"
+    id: "Run tests"
     dir: "integration_test"
+    entrypoint: "npm"
     args: ["start"]
 
 options:
