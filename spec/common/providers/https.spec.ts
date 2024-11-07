@@ -70,7 +70,7 @@ async function runCallableTest(test: CallTest): Promise<any> {
       expect(request.data).to.deep.equal(test.expectedData);
       return test.callableFunction2(request);
     },
-    "v2"
+    "gcfv2"
   );
 
   const responseV2 = await runHandler(callableFunctionV2, test.httpRequest);
@@ -773,7 +773,7 @@ describe("onCallHandler", () => {
           resp.write("hello");
           return "world";
         },
-        "v2"
+        "gcfv2"
       );
 
       const resp = await runHandler(fn, mockReq);
@@ -795,7 +795,7 @@ describe("onCallHandler", () => {
         () => {
           throw new Error("BOOM");
         },
-        "v2"
+        "gcfv2"
       );
 
       const resp = await runHandler(fn, mockReq);
