@@ -58,11 +58,11 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?:
-    | SupportedRegion
-    | string
-    | Array<SupportedRegion | string>
-    | Expression<string>
-    | ResetValue;
+  | SupportedRegion
+  | string
+  | Array<SupportedRegion | string>
+  | Expression<string>
+  | ResetValue;
 
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
@@ -390,7 +390,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
     fixedLen
   );
 
-  func = wrapTraceContext(func);
+  func = wrapTraceContext(withInit(func));
 
   Object.defineProperty(func, "__trigger", {
     get: () => {
