@@ -102,9 +102,8 @@ export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  // onCallHandler sniffs the function length of the passed-in callback
-  // and the user could have only tried to listen to data. Wrap their handler
-  // in another handler to avoid accidentally triggering the v2 API
+  // fix the length of handler to make the call to handler consistent
+  // in the onCallHandler
   const fixedLen = (data: any, context: CallableContext) => {
     return withInit(handler)(data, context);
   };
@@ -115,7 +114,8 @@ export function _onCallWithOptions(
         consumeAppCheckToken: options.consumeAppCheckToken,
         cors: { origin: true, methods: "POST" },
       },
-      fixedLen
+      fixedLen,
+      "gcfv1"
     )
   );
 

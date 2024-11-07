@@ -142,6 +142,15 @@ export interface CallableRequest<T = any> {
 }
 
 /**
+ * CallableProxyResponse exposes subset of express.Response object
+ * to allow writing partial, streaming responses back to the client.
+ */
+export interface CallableProxyResponse {
+  write: express.Response["write"];
+  acceptsStreaming: boolean;
+}
+
+/**
  * The set of Firebase Functions status codes. The codes are the same at the
  * ones exposed by {@link https://github.com/grpc/grpc/blob/master/doc/statuscodes.md | gRPC}.
  *
@@ -673,7 +682,10 @@ async function checkAppCheckToken(
 }
 
 type v1CallableHandler = (data: any, context: CallableContext) => any | Promise<any>;
-type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
+type v2CallableHandler<Req, Res> = (
+  request: CallableRequest<Req>,
+  response?: CallableProxyResponse
+) => Res;
 
 /** @internal **/
 export interface CallableOptions {
@@ -685,9 +697,10 @@ export interface CallableOptions {
 /** @internal */
 export function onCallHandler<Req = any, Res = any>(
   options: CallableOptions,
-  handler: v1CallableHandler | v2CallableHandler<Req, Res>
+  handler: v1CallableHandler | v2CallableHandler<Req, Res>,
+  version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
-  const wrapped = wrapOnCallHandler(options, handler);
+  const wrapped = wrapOnCallHandler(options, handler, version);
   return (req: Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on("finish", resolve);
@@ -698,10 +711,15 @@ export function onCallHandler<Req = any, Res = any>(
   };
 }
 
+function encodeSSE(data: unknown): string {
+  return `data: ${JSON.stringify(data)}\n`;
+}
+
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
   options: CallableOptions,
-  handler: v1CallableHandler | v2CallableHandler<Req, Res>
+  handler: v1CallableHandler | v2CallableHandler<Req, Res>,
+  version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
     try {
@@ -719,7 +737,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // The original monkey-patched code lived in the functionsEmulatorRuntime
       // (link: https://github.com/firebase/firebase-tools/blob/accea7abda3cc9fa6bb91368e4895faf95281c60/src/emulator/functionsEmulatorRuntime.ts#L480)
       // and was not compatible with how monorepos separate out packages (see https://github.com/firebase/firebase-tools/issues/5210).
-      if (isDebugFeatureEnabled("skipTokenVerification") && handler.length === 2) {
+      if (isDebugFeatureEnabled("skipTokenVerification") && version === "gcfv1") {
         const authContext = context.rawRequest.header(CALLABLE_AUTH_HEADER);
         if (authContext) {
           logger.debug("Callable functions auth override", {
@@ -763,18 +781,34 @@ function wrapOnCallHandler<Req = any, Res = any>(
         context.instanceIdToken = req.header("Firebase-Instance-ID-Token");
       }
 
+      const acceptsStreaming = req.header("accept") === "text/event-stream";
       const data: Req = decode(req.body.data);
       let result: Res;
-      if (handler.length === 2) {
-        result = await handler(data, context);
+      if (version === "gcfv1") {
+        result = await (handler as v1CallableHandler)(data, context);
       } else {
         const arg: CallableRequest<Req> = {
           ...context,
           data,
         };
+        // TODO: set up optional heartbeat
+        const responseProxy: CallableProxyResponse = {
+          write(chunk): boolean {
+            if (acceptsStreaming) {
+              const formattedData = encodeSSE({ message: chunk });
+              return res.write(formattedData);
+            }
+            // if client doesn't accept sse-protocol, response.write() is no-op.
+          },
+          acceptsStreaming,
+        };
+        if (acceptsStreaming) {
+          // SSE always responds with 200
+          res.status(200);
+        }
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
-        result = await (handler as any)(arg);
+        result = await (handler as any)(arg, responseProxy);
       }
 
       // Encode the result as JSON to preserve types like Dates.
@@ -782,7 +816,12 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
-      res.status(200).send(responseBody);
+      if (acceptsStreaming) {
+        res.write(encodeSSE(responseBody));
+        res.end();
+      } else {
+        res.status(200).send(responseBody);
+      }
     } catch (err) {
       let httpErr = err;
       if (!(err instanceof HttpsError)) {
@@ -793,8 +832,11 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       const { status } = httpErr.httpErrorCode;
       const body = { error: httpErr.toJSON() };
-
-      res.status(status).send(body);
+      if (req.header("accept") === "text/event-stream") {
+        res.send(encodeSSE(body));
+      } else {
+        res.status(status).send(body);
+      }
     }
   };
 }
