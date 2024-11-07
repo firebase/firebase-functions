@@ -1,0 +1,1 @@
+- Fix bug where wrapInit wasn't called on v2 callable functions. (#1634)
