@@ -389,7 +389,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
       consumeAppCheckToken: opts.consumeAppCheckToken,
     },
     fixedLen,
-    "v2"
+    "gcfv2"
   );
 
   func = wrapTraceContext(func);

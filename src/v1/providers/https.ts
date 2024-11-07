@@ -115,7 +115,7 @@ export function _onCallWithOptions(
         cors: { origin: true, methods: "POST" },
       },
       fixedLen,
-      "v1"
+      "gcfv1"
     )
   );
 

@@ -55,7 +55,7 @@ async function runCallableTest(test: CallTest): Promise<any> {
       expect(data).to.deep.equal(test.expectedData);
       return test.callableFunction(data, context);
     },
-    "v1"
+    "gcfv1"
   );
 
   const responseV1 = await runHandler(callableFunctionV1, test.httpRequest);

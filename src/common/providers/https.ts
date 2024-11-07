@@ -698,7 +698,7 @@ export interface CallableOptions {
 export function onCallHandler<Req = any, Res = any>(
   options: CallableOptions,
   handler: v1CallableHandler | v2CallableHandler<Req, Res>,
-  version: "v1" | "v2"
+  version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   const wrapped = wrapOnCallHandler(options, handler, version);
   return (req: Request, res: express.Response) => {
@@ -719,7 +719,7 @@ function encodeSSE(data: unknown): string {
 function wrapOnCallHandler<Req = any, Res = any>(
   options: CallableOptions,
   handler: v1CallableHandler | v2CallableHandler<Req, Res>,
-  version: "v1" | "v2"
+  version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
     try {
@@ -737,7 +737,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // The original monkey-patched code lived in the functionsEmulatorRuntime
       // (link: https://github.com/firebase/firebase-tools/blob/accea7abda3cc9fa6bb91368e4895faf95281c60/src/emulator/functionsEmulatorRuntime.ts#L480)
       // and was not compatible with how monorepos separate out packages (see https://github.com/firebase/firebase-tools/issues/5210).
-      if (isDebugFeatureEnabled("skipTokenVerification") && version === "v1") {
+      if (isDebugFeatureEnabled("skipTokenVerification") && version === "gcfv1") {
         const authContext = context.rawRequest.header(CALLABLE_AUTH_HEADER);
         if (authContext) {
           logger.debug("Callable functions auth override", {
@@ -784,7 +784,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
       const acceptsStreaming = req.header("accept") === "text/event-stream";
       const data: Req = decode(req.body.data);
       let result: Res;
-      if (version === "v1") {
+      if (version === "gcfv1") {
         result = await (handler as v1CallableHandler)(data, context);
       } else {
         const arg: CallableRequest<Req> = {
