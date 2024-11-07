@@ -49,25 +49,33 @@ async function runCallableTest(test: CallTest): Promise<any> {
     cors: { origin: true, methods: "POST" },
     ...test.callableOption,
   };
-  const callableFunctionV1 = https.onCallHandler(opts, (data, context) => {
-    expect(data).to.deep.equal(test.expectedData);
-    return test.callableFunction(data, context);
-  });
+  const callableFunctionV1 = https.onCallHandler(
+    opts,
+    (data, context) => {
+      expect(data).to.deep.equal(test.expectedData);
+      return test.callableFunction(data, context);
+    },
+    "gcfv1"
+  );
 
   const responseV1 = await runHandler(callableFunctionV1, test.httpRequest);
 
-  expect(responseV1.body).to.deep.equal(test.expectedHttpResponse.body);
+  expect(responseV1.body).to.deep.equal(JSON.stringify(test.expectedHttpResponse.body));
   expect(responseV1.headers).to.deep.equal(test.expectedHttpResponse.headers);
   expect(responseV1.status).to.equal(test.expectedHttpResponse.status);
 
-  const callableFunctionV2 = https.onCallHandler(opts, (request) => {
-    expect(request.data).to.deep.equal(test.expectedData);
-    return test.callableFunction2(request);
-  });
+  const callableFunctionV2 = https.onCallHandler(
+    opts,
+    (request) => {
+      expect(request.data).to.deep.equal(test.expectedData);
+      return test.callableFunction2(request);
+    },
+    "gcfv2"
+  );
 
   const responseV2 = await runHandler(callableFunctionV2, test.httpRequest);
 
-  expect(responseV2.body).to.deep.equal(test.expectedHttpResponse.body);
+  expect(responseV2.body).to.deep.equal(JSON.stringify(test.expectedHttpResponse.body));
   expect(responseV2.headers).to.deep.equal(test.expectedHttpResponse.headers);
   expect(responseV2.status).to.equal(test.expectedHttpResponse.status);
 }
@@ -165,7 +173,7 @@ describe("onCallHandler", () => {
         status: 400,
         headers: expectedResponseHeaders,
         body: {
-          error: { status: "INVALID_ARGUMENT", message: "Bad Request" },
+          error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
         },
       },
     });
@@ -203,7 +211,7 @@ describe("onCallHandler", () => {
         status: 400,
         headers: expectedResponseHeaders,
         body: {
-          error: { status: "INVALID_ARGUMENT", message: "Bad Request" },
+          error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
         },
       },
     });
@@ -225,7 +233,7 @@ describe("onCallHandler", () => {
         status: 400,
         headers: expectedResponseHeaders,
         body: {
-          error: { status: "INVALID_ARGUMENT", message: "Bad Request" },
+          error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
         },
       },
     });
@@ -244,7 +252,7 @@ describe("onCallHandler", () => {
       expectedHttpResponse: {
         status: 500,
         headers: expectedResponseHeaders,
-        body: { error: { status: "INTERNAL", message: "INTERNAL" } },
+        body: { error: { message: "INTERNAL", status: "INTERNAL" } },
       },
     });
   });
@@ -262,7 +270,7 @@ describe("onCallHandler", () => {
       expectedHttpResponse: {
         status: 500,
         headers: expectedResponseHeaders,
-        body: { error: { status: "INTERNAL", message: "INTERNAL" } },
+        body: { error: { message: "INTERNAL", status: "INTERNAL" } },
       },
     });
   });
@@ -280,7 +288,7 @@ describe("onCallHandler", () => {
       expectedHttpResponse: {
         status: 404,
         headers: expectedResponseHeaders,
-        body: { error: { status: "NOT_FOUND", message: "i am error" } },
+        body: { error: { message: "i am error", status: "NOT_FOUND" } },
       },
     });
   });
@@ -364,8 +372,8 @@ describe("onCallHandler", () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              status: "UNAUTHENTICATED",
               message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
             },
           },
         },
@@ -391,8 +399,8 @@ describe("onCallHandler", () => {
           headers: expectedResponseHeaders,
           body: {
             error: {
-              status: "UNAUTHENTICATED",
               message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
             },
           },
         },
@@ -461,8 +469,8 @@ describe("onCallHandler", () => {
             headers: expectedResponseHeaders,
             body: {
               error: {
-                status: "UNAUTHENTICATED",
                 message: "Unauthenticated",
+                status: "UNAUTHENTICATED",
               },
             },
           },
@@ -746,6 +754,53 @@ describe("onCallHandler", () => {
           },
         });
       });
+    });
+  });
+
+  describe("Streaming callables", () => {
+    it("returns data in SSE format for requests Accept: text/event-stream header", async () => {
+      const mockReq = mockRequest(
+        { message: "hello streaming" },
+        "application/json",
+        {},
+        { accept: "text/event-stream" }
+      ) as any;
+      const fn = https.onCallHandler(
+        {
+          cors: { origin: true, methods: "POST" },
+        },
+        (req, resp) => {
+          resp.write("hello");
+          return "world";
+        },
+        "gcfv2"
+      );
+
+      const resp = await runHandler(fn, mockReq);
+      const data = [`data: {"message":"hello"}`, `data: {"result":"world"}`];
+      expect(resp.body).to.equal([...data, ""].join("\n"));
+    });
+
+    it("returns error in SSE format", async () => {
+      const mockReq = mockRequest(
+        { message: "hello streaming" },
+        "application/json",
+        {},
+        { accept: "text/event-stream" }
+      ) as any;
+      const fn = https.onCallHandler(
+        {
+          cors: { origin: true, methods: "POST" },
+        },
+        () => {
+          throw new Error("BOOM");
+        },
+        "gcfv2"
+      );
+
+      const resp = await runHandler(fn, mockReq);
+      const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
+      expect(resp.body).to.equal([...data, ""].join("\n"));
     });
   });
 });
