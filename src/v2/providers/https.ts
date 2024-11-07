@@ -392,7 +392,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
     "gcfv2"
   );
 
-  func = wrapTraceContext(func);
+  func = wrapTraceContext(withInit(func));
 
   Object.defineProperty(func, "__trigger", {
     get: () => {
