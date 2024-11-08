@@ -764,7 +764,7 @@ describe("onCallHandler", () => {
         "application/json",
         {},
         { accept: "text/event-stream" }
-      ) as any;
+      );
       const fn = https.onCallHandler(
         {
           cors: { origin: true, methods: "POST" },
@@ -776,7 +776,7 @@ describe("onCallHandler", () => {
         "gcfv2"
       );
 
-      const resp = await runHandler(fn, mockReq);
+      const resp = await runHandler(fn, mockReq as any);
       const data = [`data: {"message":"hello"}`, `data: {"result":"world"}`];
       expect(resp.body).to.equal([...data, ""].join("\n"));
     });
@@ -787,7 +787,7 @@ describe("onCallHandler", () => {
         "application/json",
         {},
         { accept: "text/event-stream" }
-      ) as any;
+      );
       const fn = https.onCallHandler(
         {
           cors: { origin: true, methods: "POST" },
@@ -798,9 +798,74 @@ describe("onCallHandler", () => {
         "gcfv2"
       );
 
-      const resp = await runHandler(fn, mockReq);
+      const resp = await runHandler(fn, mockReq as any);
       const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
       expect(resp.body).to.equal([...data, ""].join("\n"));
+    });
+
+    describe("Heartbeats", () => {
+      let clock: sinon.SinonFakeTimers;
+
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+      });
+
+      afterEach(() => {
+        clock.restore();
+      });
+
+      it("sends heartbeat messages at specified interval", async () => {
+        const mockReq = mockRequest(
+          { message: "test heartbeat" },
+          "application/json",
+          {},
+          { accept: "text/event-stream" }
+        );
+
+        const fn = https.onCallHandler(
+          {
+            cors: { origin: true, methods: "POST" },
+            heartbeatSeconds: 5
+          },
+          async () => {
+            // Simulate long-running operation
+            await new Promise(resolve => setTimeout(resolve, 11_000));
+            return "done";
+          },
+          "gcfv2"
+        );
+
+        const handlerPromise = runHandler(fn, mockReq as any);
+        clock.tick(11_000);
+        const resp = await handlerPromise;
+        expect(resp.body).to.include(': ping\n: ping\ndata: {"result":"done"}');
+      });
+
+      it("respects null heartbeatSeconds option", async () => {
+        const mockReq = mockRequest(
+          { message: "test no heartbeat" },
+          "application/json",
+          {},
+          { accept: "text/event-stream" }
+        );
+
+        const fn = https.onCallHandler(
+          {
+            cors: { origin: true, methods: "POST" },
+            heartbeatSeconds: null
+          },
+          async () => {
+            await new Promise(resolve => setTimeout(resolve, 31_000));
+            return "done";
+          },
+          "gcfv2"
+        );
+
+        const handlerPromise = runHandler(fn, mockReq as any);
+        clock.tick(31_000);
+        const resp = await handlerPromise;
+        expect(resp.body).to.include('data: {"result":"done"}');
+      });
     });
   });
 });
