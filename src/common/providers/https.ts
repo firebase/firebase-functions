@@ -40,6 +40,8 @@ const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 export const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
 /** @internal */
 export const ORIGINAL_AUTH_HEADER = "x-original-auth";
+/** @internal */
+export const DEFAULT_HEARTBEAT_SECONDS = 30;
 
 /** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
@@ -146,8 +148,21 @@ export interface CallableRequest<T = any> {
  * to allow writing partial, streaming responses back to the client.
  */
 export interface CallableProxyResponse {
+  /**
+   * Writes a chunk of the response body to the client. This method can be called
+   * multiple times to stream data progressively.
+   */
   write: express.Response["write"];
+  /**
+   * Indicates whether the client has requested and can handle streaming responses.
+   * This should be checked before attempting to stream data to avoid compatibility issues.
+   */
   acceptsStreaming: boolean;
+  /**
+   * An AbortSignal that is triggered when the client disconnects or the
+   * request is terminated prematurely.
+   */
+  signal: AbortSignal;
 }
 
 /**
@@ -692,6 +707,13 @@ export interface CallableOptions {
   cors: cors.CorsOptions;
   enforceAppCheck?: boolean;
   consumeAppCheckToken?: boolean;
+  /**
+   * Time in seconds between sending heartbeat messages to keep the connection
+   * alive. Set to `null` to disable heartbeats.
+   *
+   * Defaults to 30 seconds.
+   */
+  heartbeatSeconds?: number | null
 }
 
 /** @internal */
@@ -722,6 +744,22 @@ function wrapOnCallHandler<Req = any, Res = any>(
   version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
+    const abortController = new AbortController();
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+
+    const cleanup = () => {
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+      req.removeAllListeners('close');
+    };
+
+    req.on('close', () => {
+      cleanup()
+      abortController.abort();
+    });
+
     try {
       if (!isValidRequest(req)) {
         logger.error("Invalid request, unable to process.");
@@ -791,24 +829,41 @@ function wrapOnCallHandler<Req = any, Res = any>(
           ...context,
           data,
         };
-        // TODO: set up optional heartbeat
         const responseProxy: CallableProxyResponse = {
           write(chunk): boolean {
-            if (acceptsStreaming) {
-              const formattedData = encodeSSE({ message: chunk });
-              return res.write(formattedData);
-            }
             // if client doesn't accept sse-protocol, response.write() is no-op.
+            if (!acceptsStreaming) {
+              return false
+            }
+            // if connection is already closed, response.write() is no-op.
+            if (abortController.signal.aborted) {
+              return false
+            }
+            const formattedData = encodeSSE({ message: chunk });
+            return res.write(formattedData);
           },
           acceptsStreaming,
+          signal: abortController.signal
         };
         if (acceptsStreaming) {
           // SSE always responds with 200
           res.status(200);
+          const heartbeatSeconds = options.heartbeatSeconds ?? DEFAULT_HEARTBEAT_SECONDS;
+          if (heartbeatSeconds !== null && heartbeatSeconds > 0) {
+            heartbeatInterval = setInterval(
+              () => res.write(": ping\n"),
+              heartbeatSeconds * 1000
+            );
+          }
         }
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
         result = await (handler as any)(arg, responseProxy);
+
+        if (heartbeatInterval) {
+          clearInterval(heartbeatInterval);
+          heartbeatInterval = null;
+        }
       }
 
       // Encode the result as JSON to preserve types like Dates.
@@ -837,6 +892,8 @@ function wrapOnCallHandler<Req = any, Res = any>(
       } else {
         res.status(status).send(body);
       }
+    } finally {
+      cleanup()
     }
   };
 }

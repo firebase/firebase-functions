@@ -198,6 +198,14 @@ export interface CallableOptions extends HttpsOptions {
    * further decisions, such as requiring additional security checks or rejecting the request.
    */
   consumeAppCheckToken?: boolean;
+
+  /**
+   * Time in seconds between sending heartbeat messages to keep the connection
+   * alive. Set to `null` to disable heartbeats.
+   *
+   * Defaults to 30 seconds.
+   */
+  heartbeatSeconds?: number | null
 }
 
 /**
