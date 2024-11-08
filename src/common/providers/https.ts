@@ -747,16 +747,15 @@ function wrapOnCallHandler<Req = any, Res = any>(
     const abortController = new AbortController();
     let heartbeatInterval: NodeJS.Timeout | null = null;
 
-    const cleanup = () => {
+    const clearHeartbeatInterval = () => {
       if (heartbeatInterval) {
         clearInterval(heartbeatInterval);
         heartbeatInterval = null;
       }
-      req.removeAllListeners('close');
-    };
+    }
 
     req.on('close', () => {
-      cleanup()
+      clearHeartbeatInterval();
       abortController.abort();
     });
 
@@ -859,24 +858,24 @@ function wrapOnCallHandler<Req = any, Res = any>(
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
         result = await (handler as any)(arg, responseProxy);
-
-        if (heartbeatInterval) {
-          clearInterval(heartbeatInterval);
-          heartbeatInterval = null;
-        }
+        clearHeartbeatInterval();
       }
 
-      // Encode the result as JSON to preserve types like Dates.
-      result = encode(result);
+      if (!abortController.signal.aborted) {
+        // Encode the result as JSON to preserve types like Dates.
+        result = encode(result);
 
-      // If there was some result, encode it in the body.
-      const responseBody: HttpResponseBody = { result };
+        // If there was some result, encode it in the body.
+        const responseBody: HttpResponseBody = { result };
 
-      if (acceptsStreaming) {
-        res.write(encodeSSE(responseBody));
-        res.end();
+        if (acceptsStreaming) {
+          res.write(encodeSSE(responseBody));
+          res.end();
+        } else {
+          res.status(200).send(responseBody);
+        }
       } else {
-        res.status(200).send(responseBody);
+        res.end();
       }
     } catch (err) {
       if (!abortController.signal.aborted) {
@@ -894,9 +893,11 @@ function wrapOnCallHandler<Req = any, Res = any>(
         } else {
           res.status(status).send(body);
         }
+      } else {
+        res.end();
       }
     } finally {
-      cleanup();
+      clearHeartbeatInterval();
     }
   };
 }
