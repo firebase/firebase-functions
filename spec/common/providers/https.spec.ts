@@ -803,6 +803,33 @@ describe("onCallHandler", () => {
       expect(resp.body).to.equal([...data, ""].join("\n"));
     });
 
+    it("stops processing when client disconnects", async () => {
+      const mockReq = mockRequest(
+        { message: "test abort" },
+        "application/json",
+        {},
+        { accept: "text/event-stream" }
+      ) as any;
+
+
+      const fn = https.onCallHandler(
+        {
+          cors: { origin: true, methods: "POST" },
+        },
+        async (req, resp) => {
+          resp.write("initial message");
+          mockReq.emit('close');
+          resp.write("should not be sent");
+          return "done";
+        },
+        "gcfv2"
+      );
+
+      const resp = await runHandler(fn, mockReq);
+
+      expect(resp.body).to.equal(`data: {"message":"initial message"}\n`);
+    });
+
     describe("Heartbeats", () => {
       let clock: sinon.SinonFakeTimers;
 
@@ -836,7 +863,7 @@ describe("onCallHandler", () => {
         );
 
         const handlerPromise = runHandler(fn, mockReq as any);
-        clock.tick(11_000);
+        await clock.tickAsync(11_000)
         const resp = await handlerPromise;
         expect(resp.body).to.include(': ping\n: ping\ndata: {"result":"done"}');
       });
@@ -862,7 +889,7 @@ describe("onCallHandler", () => {
         );
 
         const handlerPromise = runHandler(fn, mockReq as any);
-        clock.tick(31_000);
+        await clock.tickAsync(31_000);
         const resp = await handlerPromise;
         expect(resp.body).to.include('data: {"result":"done"}');
       });

@@ -52,6 +52,10 @@ export function runHandler(
       private headers: { [name: string]: string } = {};
       private callback: () => void;
 
+      constructor() {
+        request.on("close", () => this.end())
+      }
+
       public status(code: number) {
         this.statusCode = code;
         return this;

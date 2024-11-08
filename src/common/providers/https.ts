@@ -871,6 +871,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       // If there was some result, encode it in the body.
       const responseBody: HttpResponseBody = { result };
+
       if (acceptsStreaming) {
         res.write(encodeSSE(responseBody));
         res.end();
@@ -878,22 +879,24 @@ function wrapOnCallHandler<Req = any, Res = any>(
         res.status(200).send(responseBody);
       }
     } catch (err) {
-      let httpErr = err;
-      if (!(err instanceof HttpsError)) {
-        // This doesn't count as an 'explicit' error.
-        logger.error("Unhandled error", err);
-        httpErr = new HttpsError("internal", "INTERNAL");
-      }
+      if (!abortController.signal.aborted) {
+        let httpErr = err;
+        if (!(err instanceof HttpsError)) {
+          // This doesn't count as an 'explicit' error.
+          logger.error("Unhandled error", err);
+          httpErr = new HttpsError("internal", "INTERNAL");
+        }
 
-      const { status } = httpErr.httpErrorCode;
-      const body = { error: httpErr.toJSON() };
-      if (req.header("accept") === "text/event-stream") {
-        res.send(encodeSSE(body));
-      } else {
-        res.status(status).send(body);
+        const { status } = httpErr.httpErrorCode;
+        const body = { error: httpErr.toJSON() };
+        if (req.header("accept") === "text/event-stream") {
+          res.send(encodeSSE(body));
+        } else {
+          res.status(status).send(body);
+        }
       }
     } finally {
-      cleanup()
+      cleanup();
     }
   };
 }
