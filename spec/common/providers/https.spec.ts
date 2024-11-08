@@ -864,7 +864,37 @@ describe("onCallHandler", () => {
         const handlerPromise = runHandler(fn, mockReq as any);
         await clock.tickAsync(11_000);
         const resp = await handlerPromise;
-        expect(resp.body).to.include(': ping\n: ping\ndata: {"result":"done"}');
+        const data = [": ping", ": ping", `data: {"result":"done"}`];
+        expect(resp.body).to.equal([...data, ""].join("\n"));
+      });
+
+      it("doesn't send heartbeat messages if user writes data", async () => {
+        const mockReq = mockRequest(
+          { message: "test heartbeat" },
+          "application/json",
+          {},
+          { accept: "text/event-stream" }
+        );
+
+        const fn = https.onCallHandler(
+          {
+            cors: { origin: true, methods: "POST" },
+            heartbeatSeconds: 5,
+          },
+          async (resp, res) => {
+            await new Promise((resolve) => setTimeout(resolve, 3_000));
+            res.write("hello");
+            await new Promise((resolve) => setTimeout(resolve, 3_000));
+            return "done";
+          },
+          "gcfv2"
+        );
+
+        const handlerPromise = runHandler(fn, mockReq as any);
+        await clock.tickAsync(10_000);
+        const resp = await handlerPromise;
+        const data = [`data: {"message":"hello"}`, `data: {"result":"done"}`];
+        expect(resp.body).to.equal([...data, ""].join("\n"));
       });
 
       it("respects null heartbeatSeconds option", async () => {
@@ -890,7 +920,7 @@ describe("onCallHandler", () => {
         const handlerPromise = runHandler(fn, mockReq as any);
         await clock.tickAsync(31_000);
         const resp = await handlerPromise;
-        expect(resp.body).to.include('data: {"result":"done"}');
+        expect(resp.body).to.equal('data: {"result":"done"}\n');
       });
     });
   });

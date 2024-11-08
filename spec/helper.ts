@@ -86,6 +86,7 @@ export function runHandler(
 
       public write(writeBody: any) {
         this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        return true;
       }
 
       public end() {

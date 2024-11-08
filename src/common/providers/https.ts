@@ -747,15 +747,27 @@ function wrapOnCallHandler<Req = any, Res = any>(
     const abortController = new AbortController();
     let heartbeatInterval: NodeJS.Timeout | null = null;
 
-    const clearHeartbeatInterval = () => {
+    const clearScheduledHeartbeat = () => {
       if (heartbeatInterval) {
-        clearInterval(heartbeatInterval);
+        clearTimeout(heartbeatInterval);
         heartbeatInterval = null;
       }
     };
 
+    const scheduleHeartbeat = (heartbeatSeconds: number) => {
+      clearScheduledHeartbeat(); // Clear any existing timeout
+      if (!abortController.signal.aborted) {
+        heartbeatInterval = setTimeout(() => {
+          if (!abortController.signal.aborted) {
+            res.write(": ping\n");
+            scheduleHeartbeat(heartbeatSeconds);
+          }
+        }, heartbeatSeconds * 1000);
+      }
+    };
+
     req.on("close", () => {
-      clearHeartbeatInterval();
+      clearScheduledHeartbeat();
       abortController.abort();
     });
 
@@ -828,6 +840,12 @@ function wrapOnCallHandler<Req = any, Res = any>(
           ...context,
           data,
         };
+
+        const heartbeatSeconds =
+          options.heartbeatSeconds === undefined
+            ? DEFAULT_HEARTBEAT_SECONDS
+            : options.heartbeatSeconds;
+
         const responseProxy: CallableProxyResponse = {
           write(chunk): boolean {
             // if client doesn't accept sse-protocol, response.write() is no-op.
@@ -839,7 +857,13 @@ function wrapOnCallHandler<Req = any, Res = any>(
               return false;
             }
             const formattedData = encodeSSE({ message: chunk });
-            return res.write(formattedData);
+            const wrote = res.write(formattedData);
+            //
+            // Reset heartbeat timer after successful write
+            if (wrote && heartbeatInterval !== null && heartbeatSeconds > 0) {
+              scheduleHeartbeat(heartbeatSeconds);
+            }
+            return wrote;
           },
           acceptsStreaming,
           signal: abortController.signal,
@@ -847,15 +871,15 @@ function wrapOnCallHandler<Req = any, Res = any>(
         if (acceptsStreaming) {
           // SSE always responds with 200
           res.status(200);
-          const heartbeatSeconds = options.heartbeatSeconds ?? DEFAULT_HEARTBEAT_SECONDS;
+
           if (heartbeatSeconds !== null && heartbeatSeconds > 0) {
-            heartbeatInterval = setInterval(() => res.write(": ping\n"), heartbeatSeconds * 1000);
+            scheduleHeartbeat(heartbeatSeconds);
           }
         }
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
         result = await (handler as any)(arg, responseProxy);
-        clearHeartbeatInterval();
+        clearScheduledHeartbeat();
       }
 
       if (!abortController.signal.aborted) {
@@ -894,7 +918,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
         res.end();
       }
     } finally {
-      clearHeartbeatInterval();
+      clearScheduledHeartbeat();
     }
   };
 }
