@@ -205,7 +205,7 @@ export interface CallableOptions extends HttpsOptions {
    *
    * Defaults to 30 seconds.
    */
-  heartbeatSeconds?: number | null
+  heartbeatSeconds?: number | null;
 }
 
 /**

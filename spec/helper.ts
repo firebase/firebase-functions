@@ -53,7 +53,7 @@ export function runHandler(
       private callback: () => void;
 
       constructor() {
-        request.on("close", () => this.end())
+        request.on("close", () => this.end());
       }
 
       public status(code: number) {

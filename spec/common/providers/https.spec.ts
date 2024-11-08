@@ -811,14 +811,13 @@ describe("onCallHandler", () => {
         { accept: "text/event-stream" }
       ) as any;
 
-
       const fn = https.onCallHandler(
         {
           cors: { origin: true, methods: "POST" },
         },
-        async (req, resp) => {
+        (req, resp) => {
           resp.write("initial message");
-          mockReq.emit('close');
+          mockReq.emit("close");
           resp.write("should not be sent");
           return "done";
         },
@@ -852,18 +851,18 @@ describe("onCallHandler", () => {
         const fn = https.onCallHandler(
           {
             cors: { origin: true, methods: "POST" },
-            heartbeatSeconds: 5
+            heartbeatSeconds: 5,
           },
           async () => {
             // Simulate long-running operation
-            await new Promise(resolve => setTimeout(resolve, 11_000));
+            await new Promise((resolve) => setTimeout(resolve, 11_000));
             return "done";
           },
           "gcfv2"
         );
 
         const handlerPromise = runHandler(fn, mockReq as any);
-        await clock.tickAsync(11_000)
+        await clock.tickAsync(11_000);
         const resp = await handlerPromise;
         expect(resp.body).to.include(': ping\n: ping\ndata: {"result":"done"}');
       });
@@ -879,10 +878,10 @@ describe("onCallHandler", () => {
         const fn = https.onCallHandler(
           {
             cors: { origin: true, methods: "POST" },
-            heartbeatSeconds: null
+            heartbeatSeconds: null,
           },
           async () => {
-            await new Promise(resolve => setTimeout(resolve, 31_000));
+            await new Promise((resolve) => setTimeout(resolve, 31_000));
             return "done";
           },
           "gcfv2"

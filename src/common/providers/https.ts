@@ -713,7 +713,7 @@ export interface CallableOptions {
    *
    * Defaults to 30 seconds.
    */
-  heartbeatSeconds?: number | null
+  heartbeatSeconds?: number | null;
 }
 
 /** @internal */
@@ -752,9 +752,9 @@ function wrapOnCallHandler<Req = any, Res = any>(
         clearInterval(heartbeatInterval);
         heartbeatInterval = null;
       }
-    }
+    };
 
-    req.on('close', () => {
+    req.on("close", () => {
       clearHeartbeatInterval();
       abortController.abort();
     });
@@ -832,27 +832,24 @@ function wrapOnCallHandler<Req = any, Res = any>(
           write(chunk): boolean {
             // if client doesn't accept sse-protocol, response.write() is no-op.
             if (!acceptsStreaming) {
-              return false
+              return false;
             }
             // if connection is already closed, response.write() is no-op.
             if (abortController.signal.aborted) {
-              return false
+              return false;
             }
             const formattedData = encodeSSE({ message: chunk });
             return res.write(formattedData);
           },
           acceptsStreaming,
-          signal: abortController.signal
+          signal: abortController.signal,
         };
         if (acceptsStreaming) {
           // SSE always responds with 200
           res.status(200);
           const heartbeatSeconds = options.heartbeatSeconds ?? DEFAULT_HEARTBEAT_SECONDS;
           if (heartbeatSeconds !== null && heartbeatSeconds > 0) {
-            heartbeatInterval = setInterval(
-              () => res.write(": ping\n"),
-              heartbeatSeconds * 1000
-            );
+            heartbeatInterval = setInterval(() => res.write(": ping\n"), heartbeatSeconds * 1000);
           }
         }
         // For some reason the type system isn't picking up that the handler
