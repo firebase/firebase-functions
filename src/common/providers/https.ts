@@ -747,6 +747,11 @@ function wrapOnCallHandler<Req = any, Res = any>(
     const abortController = new AbortController();
     let heartbeatInterval: NodeJS.Timeout | null = null;
 
+    const heartbeatSeconds =
+      options.heartbeatSeconds === undefined
+        ? DEFAULT_HEARTBEAT_SECONDS
+        : options.heartbeatSeconds;
+
     const clearScheduledHeartbeat = () => {
       if (heartbeatInterval) {
         clearTimeout(heartbeatInterval);
@@ -754,19 +759,19 @@ function wrapOnCallHandler<Req = any, Res = any>(
       }
     };
 
-    const scheduleHeartbeat = (heartbeatSeconds: number) => {
-      clearScheduledHeartbeat(); // Clear any existing timeout
+    const scheduleHeartbeat = () => {
+      clearScheduledHeartbeat();
       if (!abortController.signal.aborted) {
         heartbeatInterval = setTimeout(() => {
           if (!abortController.signal.aborted) {
             res.write(": ping\n");
-            scheduleHeartbeat(heartbeatSeconds);
+            scheduleHeartbeat();
           }
         }, heartbeatSeconds * 1000);
       }
     };
 
-    req.on("close", () => {
+    res.on("close", () => {
       clearScheduledHeartbeat();
       abortController.abort();
     });
@@ -841,27 +846,24 @@ function wrapOnCallHandler<Req = any, Res = any>(
           data,
         };
 
-        const heartbeatSeconds =
-          options.heartbeatSeconds === undefined
-            ? DEFAULT_HEARTBEAT_SECONDS
-            : options.heartbeatSeconds;
-
         const responseProxy: CallableProxyResponse = {
           write(chunk): boolean {
             // if client doesn't accept sse-protocol, response.write() is no-op.
             if (!acceptsStreaming) {
               return false;
             }
+
             // if connection is already closed, response.write() is no-op.
             if (abortController.signal.aborted) {
               return false;
             }
+
             const formattedData = encodeSSE({ message: chunk });
             const wrote = res.write(formattedData);
-            //
+
             // Reset heartbeat timer after successful write
             if (wrote && heartbeatInterval !== null && heartbeatSeconds > 0) {
-              scheduleHeartbeat(heartbeatSeconds);
+              scheduleHeartbeat();
             }
             return wrote;
           },
@@ -873,7 +875,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
           res.status(200);
 
           if (heartbeatSeconds !== null && heartbeatSeconds > 0) {
-            scheduleHeartbeat(heartbeatSeconds);
+            scheduleHeartbeat();
           }
         }
         // For some reason the type system isn't picking up that the handler
