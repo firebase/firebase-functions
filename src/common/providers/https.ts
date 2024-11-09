@@ -748,9 +748,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
     let heartbeatInterval: NodeJS.Timeout | null = null;
 
     const heartbeatSeconds =
-      options.heartbeatSeconds === undefined
-        ? DEFAULT_HEARTBEAT_SECONDS
-        : options.heartbeatSeconds;
+      options.heartbeatSeconds === undefined ? DEFAULT_HEARTBEAT_SECONDS : options.heartbeatSeconds;
 
     const clearScheduledHeartbeat = () => {
       if (heartbeatInterval) {
