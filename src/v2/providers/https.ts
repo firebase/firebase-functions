@@ -33,6 +33,7 @@ import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
   CallableRequest,
+  CallableProxyResponse,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
@@ -50,7 +51,7 @@ export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 /**
  * Options that can be set on an onRequest HTTPS function.
  */
-export interface HttpsOptions extends Omit<GlobalOptions, "region"> {
+export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceAppCheck"> {
   /**
    * If true, do not deploy or emulate this function.
    */
@@ -269,7 +270,7 @@ export function onRequest(
     // on the origin header of the request. If there is only one element in the
     // array, this is unnecessary.
     if (Array.isArray(origin) && origin.length === 1) {
-      origin = origin[1];
+      origin = origin[0];
     }
     const middleware = cors({ origin });
 
@@ -347,7 +348,7 @@ export function onRequest(
  */
 export function onCall<T = any, Return = any | Promise<any>>(
   opts: CallableOptions,
-  handler: (request: CallableRequest<T>) => Return
+  handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
 
 /**
@@ -356,11 +357,11 @@ export function onCall<T = any, Return = any | Promise<any>>(
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
-  handler: (request: CallableRequest<T>) => Return
+  handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
 export function onCall<T = any, Return = any | Promise<any>>(
   optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
-  handler?: (request: CallableRequest<T>) => Return
+  handler?: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
   let opts: CallableOptions;
   if (arguments.length === 1) {
@@ -375,22 +376,23 @@ export function onCall<T = any, Return = any | Promise<any>>(
   // on the origin header of the request. If there is only one element in the
   // array, this is unnecessary.
   if (Array.isArray(origin) && origin.length === 1) {
-    origin = origin[1];
+    origin = origin[0];
   }
 
-  // onCallHandler sniffs the function length to determine which API to present.
-  // fix the length to prevent api versions from being mismatched.
-  const fixedLen = (req: CallableRequest<T>) => withInit(handler)(req);
+  // fix the length of handler to make the call to handler consistent
+  const fixedLen = (req: CallableRequest<T>, resp?: CallableProxyResponse) =>
+    withInit(handler)(req, resp);
   let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
       consumeAppCheckToken: opts.consumeAppCheckToken,
     },
-    fixedLen
+    fixedLen,
+    "gcfv2"
   );
 
-  func = wrapTraceContext(func);
+  func = wrapTraceContext(withInit(func));
 
   Object.defineProperty(func, "__trigger", {
     get: () => {

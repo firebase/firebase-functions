@@ -73,3 +73,11 @@ export { Change } from "../common/change";
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
 import * as params from "../params";
 export { params };
+
+// NOTE: Required to support the Functions Emulator which monkey patches `functions.config()`
+// TODO(danielylee): Remove in next major release.
+export { config } from "../v1/config";
+
+// Required for v1 Emulator support.
+import { setApp as setEmulatedAdminApp } from "../common/app";
+export const app = { setEmulatedAdminApp };
