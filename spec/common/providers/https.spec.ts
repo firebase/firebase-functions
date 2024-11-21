@@ -814,13 +814,18 @@ describe("onCallHandler", () => {
         {
           cors: { origin: true, methods: "POST" },
         },
-        (req, resp) => {
+        () => {
           return "hello world";
         },
         "gcfv1"
       );
       const resp = await runHandler(fn, mockReq);
-      expect(JSON.parse(resp.body)).to.deep.equal({ "error": { "status": "INVALID_ARGUMENT", "message": "Unsupported Accept header 'text/event-stream'" } });
+      expect(JSON.parse(resp.body)).to.deep.equal({
+        error: {
+          status: "INVALID_ARGUMENT",
+          message: "Unsupported Accept header 'text/event-stream'",
+        },
+      });
     });
   });
 });

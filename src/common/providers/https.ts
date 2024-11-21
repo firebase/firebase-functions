@@ -785,7 +785,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       if (acceptsStreaming && version === "gcfv1") {
         // streaming responses are not supported in v1 callable
-        throw new HttpsError('invalid-argument', "Unsupported Accept header 'text/event-stream'")
+        throw new HttpsError("invalid-argument", "Unsupported Accept header 'text/event-stream'");
       }
 
       const data: Req = decode(req.body.data);
@@ -844,5 +844,5 @@ function wrapOnCallHandler<Req = any, Res = any>(
         res.status(status).send(body);
       }
     }
-  }
-};
+  };
+}
