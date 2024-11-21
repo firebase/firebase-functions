@@ -788,7 +788,6 @@ function wrapOnCallHandler<Req = any, Res = any>(
         throw new HttpsError('invalid-argument', "Unsupported Accept header 'text/event-stream'")
       }
 
-
       const data: Req = decode(req.body.data);
       let result: Res;
       if (version === "gcfv1") {
@@ -839,11 +838,11 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       const { status } = httpErr.httpErrorCode;
       const body = { error: httpErr.toJSON() };
-      if (req.header("accept") === "text/event-stream") {
+      if (version === "gcfv2" && req.header("accept") === "text/event-stream") {
         res.send(encodeSSE(body));
       } else {
         res.status(status).send(body);
       }
     }
-  };
-}
+  }
+};
