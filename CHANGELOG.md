@@ -1,3 +1,0 @@
-- Fix bug where wrapInit wasn't called on v2 callable functions. (#1634)
-- Add support for callable function to return streaming response (#1629)
-- Add support for firebase-admin@13 (#1641)
