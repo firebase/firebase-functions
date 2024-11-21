@@ -802,6 +802,31 @@ describe("onCallHandler", () => {
       const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
       expect(resp.body).to.equal([...data, ""].join("\n"));
     });
+
+    it("always returns error for v1 callables", async () => {
+      const mockReq = mockRequest(
+        { message: "hello streaming" },
+        "application/json",
+        {},
+        { accept: "text/event-stream" }
+      ) as any;
+      const fn = https.onCallHandler(
+        {
+          cors: { origin: true, methods: "POST" },
+        },
+        () => {
+          return "hello world";
+        },
+        "gcfv1"
+      );
+      const resp = await runHandler(fn, mockReq);
+      expect(JSON.parse(resp.body)).to.deep.equal({
+        error: {
+          status: "INVALID_ARGUMENT",
+          message: "Unsupported Accept header 'text/event-stream'",
+        },
+      });
+    });
   });
 });
 
