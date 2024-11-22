@@ -12,7 +12,7 @@ if [[ "${PROJECT_ID}" == "" ]]; then
 fi
 
 # Directory where this script lives.
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 function announce {
   echo -e "\n\n##### $1"
@@ -92,8 +92,8 @@ function cleanup {
 build_sdk
 delete_all_functions
 
-for version in 14 16; do
-  create_package_json $TIMESTAMP $version "^10.0.0"
+for version in 20; do
+  create_package_json $TIMESTAMP $version "^13.0.0"
   install_deps
   announce "Re-deploying the same functions to Node $version runtime ..."
   deploy

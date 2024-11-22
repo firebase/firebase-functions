@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { REGION } from "../region";
 import { expectEq, TestSuite } from "../testing";
 import UserMetadata = admin.auth.UserRecord;

@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 import { REGION } from "../region";
 import { evaluate, expectEq, success, TestSuite } from "../testing";
 import PubsubMessage = functions.pubsub.Message;

@@ -1,5 +1,5 @@
 import * as firebase from "firebase-admin";
-import * as functions from "firebase-functions";
+import * as functions from "firebase-functions/v1";
 
 export type TestCase<T> = (data: T, context?: functions.EventContext) => any;
 export interface TestCaseMap<T> {
