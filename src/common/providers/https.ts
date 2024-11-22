@@ -856,15 +856,12 @@ function wrapOnCallHandler<Req = any, Res = any>(
             if (!acceptsStreaming) {
               return false;
             }
-
             // if connection is already closed, response.write() is no-op.
             if (abortController.signal.aborted) {
               return false;
             }
-
             const formattedData = encodeSSE({ message: chunk });
             const wrote = res.write(formattedData);
-
             // Reset heartbeat timer after successful write
             if (wrote && heartbeatInterval !== null && heartbeatSeconds > 0) {
               scheduleHeartbeat();
@@ -887,14 +884,11 @@ function wrapOnCallHandler<Req = any, Res = any>(
         result = await (handler as any)(arg, responseProxy);
         clearScheduledHeartbeat();
       }
-
       if (!abortController.signal.aborted) {
         // Encode the result as JSON to preserve types like Dates.
         result = encode(result);
-
         // If there was some result, encode it in the body.
         const responseBody: HttpResponseBody = { result };
-
         if (acceptsStreaming) {
           res.write(encodeSSE(responseBody));
           res.end();
