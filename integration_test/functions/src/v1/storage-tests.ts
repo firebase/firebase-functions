@@ -1,4 +1,4 @@
-import * as functions from "firebase-functions/v1";
+import * as functions from "firebase-functions";
 import { REGION } from "../region";
 import { expectEq, TestSuite } from "../testing";
 import ObjectMetadata = functions.storage.ObjectMetadata;

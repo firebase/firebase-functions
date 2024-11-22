@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions/v1";
+import * as functions from "firebase-functions";
 import { REGION } from "../region";
 import { expectDeepEq, expectEq, TestSuite } from "../testing";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;

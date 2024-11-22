@@ -1,7 +1,8 @@
 import { PubSub } from "@google-cloud/pubsub";
+import { GoogleAuth } from "google-auth-library";
 import { Request, Response } from "express";
 import * as admin from "firebase-admin";
-import * as functions from "firebase-functions/v1";
+import * as functions from "firebase-functions";
 import * as fs from "fs";
 import fetch from "node-fetch";
 
@@ -19,17 +20,55 @@ import * as testLab from "./v1/testLab-utils";
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
 admin.initializeApp();
 
+// Re-enable no-unused-var check once callable functions are testable again.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function callHttpsTrigger(name: string, data: any) {
   const url = `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/${name}`;
-  const resp = await fetch(url, {
+  const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
+  const resp = await client.request({
+    url,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ data }),
   });
-  if (!resp.ok) {
-    throw new Error(`Failed request with status ${resp.status}!`);
+  if (resp.status > 200) {
+    throw Error(resp.statusText);
+  }
+}
+
+// Re-enable no-unused-var check once callable functions are testable again.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function callV2HttpsTrigger(name: string, data: any, accessToken: string) {
+  const getFnResp = await fetch(
+    `https://cloudfunctions.googleapis.com/v2beta/projects/${firebaseConfig.projectId}/locations/${REGION}/functions/${name}`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  if (!getFnResp.ok) {
+    throw new Error(getFnResp.statusText);
+  }
+  const fn = await getFnResp.json();
+  const uri = fn.serviceConfig?.uri;
+  if (!uri) {
+    throw new Error(`Cannot call v2 https trigger ${name} - no uri found`);
+  }
+
+  const client = await new GoogleAuth().getIdTokenClient("32555940559.apps.googleusercontent.com");
+  const invokeFnREsp = await client.request({
+    url: uri,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ data }),
+  });
+  if (invokeFnREsp.status > 200) {
+    throw Error(invokeFnREsp.statusText);
   }
 }
 
@@ -111,7 +150,8 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
     // A firestore write to trigger the Cloud Firestore tests.
     admin.firestore().collection("tests").doc(testId).set({ test: testId }),
     // Invoke a callable HTTPS trigger.
-    callHttpsTrigger("v1-callableTests", { foo: "bar", testId }),
+    // TODO: Temporarily disable - doesn't work unless running on projects w/ permission to create public functions.
+    // callHttpsTrigger("v1-callableTests", { foo: "bar", testId }),
     // A Remote Config update to trigger the Remote Config tests.
     updateRemoteConfig(testId, accessToken),
     // A storage upload to trigger the Storage tests
@@ -129,7 +169,8 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
 function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
   return [
     // Invoke a callable HTTPS trigger.
-    callHttpsTrigger("v2-callabletests", { foo: "bar", testId }),
+    // TODO: Temporarily disable - doesn't work unless running on projects w/ permission to create public functions.
+    // callV2HttpsTrigger("v2-callabletests", { foo: "bar", testId }, accessToken),
     // Invoke a scheduled trigger.
     callV2ScheduleTrigger("v2-schedule", "us-central1", accessToken),
   ];
