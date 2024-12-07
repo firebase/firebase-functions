@@ -52,6 +52,10 @@ export function runHandler(
       private headers: { [name: string]: string } = {};
       private callback: () => void;
 
+      constructor() {
+        request.on("close", () => this.end());
+      }
+
       public status(code: number) {
         this.statusCode = code;
         return this;
@@ -82,6 +86,7 @@ export function runHandler(
 
       public write(writeBody: any) {
         this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        return true;
       }
 
       public end() {
@@ -89,8 +94,8 @@ export function runHandler(
       }
 
       public on(event: string, callback: () => void) {
-        if (event !== "finish") {
-          throw new Error("MockResponse only implements the finish event");
+        if (event !== "finish" && event !== "close") {
+          throw new Error("MockResponse only implements close and finish event");
         }
         this.callback = callback;
       }

@@ -198,6 +198,14 @@ export interface CallableOptions extends HttpsOptions {
    * further decisions, such as requiring additional security checks or rejecting the request.
    */
   consumeAppCheckToken?: boolean;
+
+  /**
+   * Time in seconds between sending heartbeat messages to keep the connection
+   * alive. Set to `null` to disable heartbeats.
+   *
+   * Defaults to 30 seconds.
+   */
+  heartbeatSeconds?: number | null;
 }
 
 /**
@@ -387,6 +395,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
       consumeAppCheckToken: opts.consumeAppCheckToken,
+      heartbeatSeconds: opts.heartbeatSeconds,
     },
     fixedLen,
     "gcfv2"
