@@ -1,1 +1,0 @@
-- Update callable function to better support long running requests (#1635)
