@@ -421,8 +421,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   }
 
   // fix the length of handler to make the call to handler consistent
-  const fixedLen = (req: CallableRequest<T>, resp?: CallableProxyResponse) =>
-    handler(req, resp);
+  const fixedLen = (req: CallableRequest<T>, resp?: CallableProxyResponse) => handler(req, resp);
   let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
