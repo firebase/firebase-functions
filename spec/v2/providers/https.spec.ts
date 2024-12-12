@@ -30,6 +30,7 @@ import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
+import { Handler } from "express";
 
 describe("onRequest", () => {
   beforeEach(() => {
@@ -530,5 +531,86 @@ describe("onCall", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req as any);
     expect(hello).to.equal("world");
+  });
+
+  describe("authPolicy", () => {
+    function req(data: any, auth?: Record<string, string>): any {
+      const headers = {
+        "content-type": "application/json"
+      };
+      if (auth) {
+        headers["authorization"] = `bearer ignored.${Buffer.from(JSON.stringify(auth), "utf-8").toString("base64")}.ignored`;
+      }
+      const ret = new MockRequest({ data }, headers);
+      ret.method = "POST";
+      return ret;
+    }
+
+    before(() => {
+      sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
+    });
+
+    after(() => {
+      sinon.restore();
+    })
+
+    it("should check isSignedIn", async () => {
+      const func = https.onCall(
+        {
+          authPolicy: https.isSignedIn(),
+        },
+        () => 42
+      );
+  
+      const authResp = await runHandler(func, req(null, { sub: "inlined" }));
+      expect(authResp.status).to.equal(200);
+
+      const anonResp = await runHandler(func, req(null, null));
+      expect(anonResp.status).to.equal(403);
+    });
+
+    it("should check hasClaim", async () => {
+      const anyValue = https.onCall(
+        {
+          authPolicy: https.hasClaim("meaning"),
+        },
+        () => "HHGTTG",
+      );
+      const specificValue = https.onCall(
+        {
+          authPolicy: https.hasClaim("meaning", "42"),
+        },
+        () => "HHGTG",
+      )
+
+      const cases: Array<{fn: Handler, auth: null | Record<string, string>, status: number}> = [
+        {fn: anyValue, auth: { meaning: "42"}, status: 200},
+        {fn: anyValue, auth: { meaning: "43"}, status: 200},
+        {fn: anyValue, auth: { order: "66"}, status: 403},
+        {fn: anyValue, auth: null, status: 403},
+        {fn: specificValue, auth: { meaning: "42"}, status: 200},
+        {fn: specificValue, auth: { meaning: "43"}, status: 403},
+        {fn: specificValue, auth: { order: "66", }, status: 403},
+        {fn: specificValue, auth: null, status: 403},
+      ];
+      for (const test of cases) {
+        const resp = await runHandler(test.fn, req(null, test.auth));
+        expect(resp.status).to.equal(test.status);
+      }
+    });
+
+    it("can be any callback", async () => {
+      const divTwo = https.onCall<number>(
+        {
+          authPolicy: (auth, data) => data % 2 === 0,
+        },
+        (req) => req.data / 2
+      );
+
+      const authorized = await runHandler(divTwo, req(2));
+      expect(authorized.status).to.equal(200);
+      const accessDenied = await runHandler(divTwo, req(1));
+      expect(accessDenied.status).to.equal(403);
+    });
   });
 });

@@ -38,6 +38,7 @@ import {
   HttpsError,
   onCallHandler,
   Request,
+  AuthData,
 } from "../../common/providers/https";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
@@ -166,7 +167,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 /**
  * Options that can be set on a callable HTTPS function.
  */
-export interface CallableOptions extends HttpsOptions {
+export interface CallableOptions<T = any> extends HttpsOptions {
   /**
    * Determines whether Firebase AppCheck is enforced.
    * When true, requests with invalid tokens autorespond with a 401
@@ -206,7 +207,38 @@ export interface CallableOptions extends HttpsOptions {
    * Defaults to 30 seconds.
    */
   heartbeatSeconds?: number | null;
+
+  /**
+   * Callback for whether a request is authorized.
+   *
+   * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
+   * isSignedIn and hasClaim.
+   */
+  authPolicy?: (auth: AuthData | null, data: T) => boolean | Promise<boolean>;
 }
+
+/**
+ * An auth policy that requires a user to be signed in.
+ */
+export const isSignedIn =
+  () =>
+  (auth: AuthData | null): boolean =>
+    !!auth;
+
+/**
+ * An auth policy that requires a user to be both signed in and have a specific claim (optionally with a specific value)
+ */
+export const hasClaim =
+  (claim: string, value?: string) =>
+  (auth: AuthData | null): boolean => {
+    if (!auth) {
+      return false;
+    }
+    if (!(claim in auth.token)) {
+      return false;
+    }
+    return !value || auth.token[claim] === value;
+  };
 
 /**
  * Handles HTTPS requests.
@@ -233,6 +265,7 @@ export interface CallableFunction<T, Return> extends HttpsFunction {
    */
   run(data: CallableRequest<T>): Return;
 }
+
 /**
  * Handles HTTPS requests.
  * @param opts - Options to set on this function
@@ -355,7 +388,7 @@ export function onRequest(
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>>(
-  opts: CallableOptions,
+  opts: CallableOptions<T>,
   handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
 
@@ -368,7 +401,7 @@ export function onCall<T = any, Return = any | Promise<any>>(
   handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
 export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
+  optsOrHandler: CallableOptions<T> | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
   let opts: CallableOptions;
@@ -389,13 +422,14 @@ export function onCall<T = any, Return = any | Promise<any>>(
 
   // fix the length of handler to make the call to handler consistent
   const fixedLen = (req: CallableRequest<T>, resp?: CallableProxyResponse) =>
-    withInit(handler)(req, resp);
+    handler(req, resp);
   let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
       consumeAppCheckToken: opts.consumeAppCheckToken,
       heartbeatSeconds: opts.heartbeatSeconds,
+      authPolicy: opts.authPolicy,
     },
     fixedLen,
     "gcfv2"
