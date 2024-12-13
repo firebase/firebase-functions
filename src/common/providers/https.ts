@@ -703,10 +703,11 @@ type v2CallableHandler<Req, Res> = (
 ) => Res;
 
 /** @internal **/
-export interface CallableOptions {
+export interface CallableOptions<T = any> {
   cors: cors.CorsOptions;
   enforceAppCheck?: boolean;
   consumeAppCheckToken?: boolean;
+  authPolicy?: (token: AuthData | null, data: T) => boolean | Promise<boolean>;
   /**
    * Time in seconds between sending heartbeat messages to keep the connection
    * alive. Set to `null` to disable heartbeats.
@@ -718,7 +719,7 @@ export interface CallableOptions {
 
 /** @internal */
 export function onCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
+  options: CallableOptions<Req>,
   handler: v1CallableHandler | v2CallableHandler<Req, Res>,
   version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
@@ -739,7 +740,7 @@ function encodeSSE(data: unknown): string {
 
 /** @internal */
 function wrapOnCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
+  options: CallableOptions<Req>,
   handler: v1CallableHandler | v2CallableHandler<Req, Res>,
   version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
@@ -841,6 +842,12 @@ function wrapOnCallHandler<Req = any, Res = any>(
       }
 
       const data: Req = decode(req.body.data);
+      if (options.authPolicy) {
+        const authorized = await options.authPolicy(context.auth ?? null, data);
+        if (!authorized) {
+          throw new HttpsError("permission-denied", "Permission Denied");
+        }
+      }
       let result: Res;
       if (version === "gcfv1") {
         result = await (handler as v1CallableHandler)(data, context);
