@@ -33,7 +33,7 @@ import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
   CallableRequest,
-  CallableProxyResponse,
+  CallableResponse,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
@@ -258,12 +258,17 @@ export type HttpsFunction = ((
 /**
  * Creates a callable method for clients to call using a Firebase SDK.
  */
-export interface CallableFunction<T, Return> extends HttpsFunction {
+export interface CallableFunction<T, Return, Stream = string> extends HttpsFunction {
   /** Executes the handler function with the provided data as input. Used for unit testing.
    * @param data - An input for the handler function.
    * @returns The output of the handler function.
    */
-  run(data: CallableRequest<T>): Return;
+  run(request: CallableRequest<T>): Return;
+
+  stream(
+    request: CallableRequest<T>,
+    response: CallableResponse<Stream>
+  ): { stream: AsyncIterator<Stream>; output: Return };
 }
 
 /**
@@ -387,22 +392,22 @@ export function onRequest(
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>>(
+export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
   opts: CallableOptions<T>,
-  handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
-): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
+  handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
+): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>, Stream>;
 
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>>(
-  handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
+export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
+  handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
-export function onCall<T = any, Return = any | Promise<any>>(
+export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
   optsOrHandler: CallableOptions<T> | ((request: CallableRequest<T>) => Return),
-  handler?: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
+  handler?: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
   let opts: CallableOptions;
   if (arguments.length === 1) {
@@ -421,7 +426,8 @@ export function onCall<T = any, Return = any | Promise<any>>(
   }
 
   // fix the length of handler to make the call to handler consistent
-  const fixedLen = (req: CallableRequest<T>, resp?: CallableProxyResponse) => handler(req, resp);
+  const fixedLen = (req: CallableRequest<T>, resp?: CallableResponse<Stream>) =>
+    handler(req, resp);
   let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
@@ -474,6 +480,17 @@ export function onCall<T = any, Return = any | Promise<any>>(
     callableTrigger: {},
   };
 
+  // TODO: in the next major version, do auth/appcheck in these helper methods too.
   func.run = withInit(handler);
+  func.stream = () => {
+    return {
+      stream: {
+        next(): Promise<IteratorResult<Stream>> {
+          return Promise.reject("Coming soon");
+        },
+      },
+      output: Promise.reject("Coming soon"),
+    };
+  };
   return func;
 }

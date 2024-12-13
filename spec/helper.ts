@@ -84,8 +84,10 @@ export function runHandler(
         }
       }
 
-      public write(writeBody: any) {
+      public write(writeBody: any, cb: () => void = () => {}) {
         this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        // N.B. setImmediate breaks sinon.
+        setImmediate(cb);
         return true;
       }
 
