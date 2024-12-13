@@ -156,7 +156,7 @@ export interface CallableRequest<T = any> {
  * CallableProxyResponse allows streaming response chunks and listening to signals
  * triggered in events such as a disconnect.
  */
-export interface CallableResponse<T = string> {
+export interface CallableResponse<T = unknown> {
   /**
    * Writes a chunk of the response body to the client. This method can be called
    * multiple times to stream data progressively.
@@ -721,7 +721,7 @@ export interface CallableOptions<T = any> {
 }
 
 /** @internal */
-export function onCallHandler<Req = any, Res = any, Stream = string>(
+export function onCallHandler<Req = any, Res = any, Stream = unknown>(
   options: CallableOptions<Req>,
   handler: v1CallableHandler | v2CallableHandler<Req, Res, Stream>,
   version: "gcfv1" | "gcfv2"
@@ -742,7 +742,7 @@ function encodeSSE(data: unknown): string {
 }
 
 /** @internal */
-function wrapOnCallHandler<Req = any, Res = any, Stream = string>(
+function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
   options: CallableOptions<Req>,
   handler: v1CallableHandler | v2CallableHandler<Req, Res, Stream>,
   version: "gcfv1" | "gcfv2"

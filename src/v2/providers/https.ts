@@ -258,7 +258,7 @@ export type HttpsFunction = ((
 /**
  * Creates a callable method for clients to call using a Firebase SDK.
  */
-export interface CallableFunction<T, Return, Stream = string> extends HttpsFunction {
+export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunction {
   /** Executes the handler function with the provided data as input. Used for unit testing.
    * @param data - An input for the handler function.
    * @returns The output of the handler function.
@@ -392,7 +392,7 @@ export function onRequest(
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
+export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   opts: CallableOptions<T>,
   handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>, Stream>;
@@ -402,10 +402,10 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
+export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
-export function onCall<T = any, Return = any | Promise<any>, Stream = string>(
+export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   optsOrHandler: CallableOptions<T> | ((request: CallableRequest<T>) => Return),
   handler?: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
