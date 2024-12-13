@@ -1,0 +1,1 @@
+- Add an authPolicy callback to CallableOptions for reusable auth middleware as well as helper auth policies (#1650)
