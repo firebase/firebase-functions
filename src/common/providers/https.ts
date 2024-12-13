@@ -843,8 +843,6 @@ function wrapOnCallHandler<Req = any, Res = any>(
 
       const data: Req = decode(req.body.data);
       if (options.authPolicy) {
-        // Don't ask me why, but Google decided not to disambiguate between unauthenticated and unauthorized
-        // in GRPC status codes, despite the pedantry to disambiguate the two in architecture design.
         const authorized = await options.authPolicy(context.auth ?? null, data);
         if (!authorized) {
           throw new HttpsError("permission-denied", "Permission Denied");
