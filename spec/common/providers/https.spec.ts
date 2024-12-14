@@ -770,7 +770,7 @@ describe("onCallHandler", () => {
           cors: { origin: true, methods: "POST" },
         },
         (req, resp) => {
-          resp.write("hello");
+          resp.sendChunk("hello");
           return "world";
         },
         "gcfv2"
@@ -840,10 +840,10 @@ describe("onCallHandler", () => {
         {
           cors: { origin: true, methods: "POST" },
         },
-        (req, resp) => {
-          resp.write("initial message");
-          mockReq.emit("close");
-          resp.write("should not be sent");
+        async (req, resp) => {
+          await resp.sendChunk("initial message");
+          await mockReq.emit("close");
+          await resp.sendChunk("should not be sent");
           return "done";
         },
         "gcfv2"
@@ -908,7 +908,7 @@ describe("onCallHandler", () => {
           },
           async (resp, res) => {
             await new Promise((resolve) => setTimeout(resolve, 3_000));
-            res.write("hello");
+            res.sendChunk("hello");
             await new Promise((resolve) => setTimeout(resolve, 3_000));
             return "done";
           },

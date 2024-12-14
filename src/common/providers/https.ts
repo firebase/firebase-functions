@@ -141,23 +141,30 @@ export interface CallableRequest<T = any> {
    * The raw request handled by the callable.
    */
   rawRequest: Request;
+
+  /**
+   * Whether this is a streaming request.
+   * Code can be optimized by not trying to generate a stream of chunks to
+   * call response.sendChunk on if request.acceptsStreaming is false.
+   * It is always safe, however, to call response.sendChunk as this will
+   * noop if acceptsStreaming is false.
+   */
+  acceptsStreaming: boolean;
 }
 
 /**
- * CallableProxyResponse exposes subset of express.Response object
- * to allow writing partial, streaming responses back to the client.
+ * CallableProxyResponse allows streaming response chunks and listening to signals
+ * triggered in events such as a disconnect.
  */
-export interface CallableProxyResponse {
+export interface CallableResponse<T = unknown> {
   /**
    * Writes a chunk of the response body to the client. This method can be called
    * multiple times to stream data progressively.
+   * Returns a promise of whether the data was written. This can be false, for example,
+   * if the request was not a streaming request. Rejects if there is a network error.
    */
-  write: express.Response["write"];
-  /**
-   * Indicates whether the client has requested and can handle streaming responses.
-   * This should be checked before attempting to stream data to avoid compatibility issues.
-   */
-  acceptsStreaming: boolean;
+  sendChunk: (chunk: T) => Promise<boolean>;
+
   /**
    * An AbortSignal that is triggered when the client disconnects or the
    * request is terminated prematurely.
@@ -586,13 +593,9 @@ async function checkTokens(
     auth: "INVALID",
   };
 
-  await Promise.all([
-    Promise.resolve().then(async () => {
-      verifications.auth = await checkAuthToken(req, ctx);
-    }),
-    Promise.resolve().then(async () => {
-      verifications.app = await checkAppCheckToken(req, ctx, options);
-    }),
+  [verifications.auth, verifications.app] = await Promise.all([
+    checkAuthToken(req, ctx),
+    checkAppCheckToken(req, ctx, options),
   ]);
 
   const logPayload = {
@@ -697,9 +700,9 @@ async function checkAppCheckToken(
 }
 
 type v1CallableHandler = (data: any, context: CallableContext) => any | Promise<any>;
-type v2CallableHandler<Req, Res> = (
+type v2CallableHandler<Req, Res, Stream> = (
   request: CallableRequest<Req>,
-  response?: CallableProxyResponse
+  response?: CallableResponse<Stream>
 ) => Res;
 
 /** @internal **/
@@ -718,9 +721,9 @@ export interface CallableOptions<T = any> {
 }
 
 /** @internal */
-export function onCallHandler<Req = any, Res = any>(
+export function onCallHandler<Req = any, Res = any, Stream = unknown>(
   options: CallableOptions<Req>,
-  handler: v1CallableHandler | v2CallableHandler<Req, Res>,
+  handler: v1CallableHandler | v2CallableHandler<Req, Res, Stream>,
   version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   const wrapped = wrapOnCallHandler(options, handler, version);
@@ -739,9 +742,9 @@ function encodeSSE(data: unknown): string {
 }
 
 /** @internal */
-function wrapOnCallHandler<Req = any, Res = any>(
+function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
   options: CallableOptions<Req>,
-  handler: v1CallableHandler | v2CallableHandler<Req, Res>,
+  handler: v1CallableHandler | v2CallableHandler<Req, Res, Stream>,
   version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
@@ -855,27 +858,41 @@ function wrapOnCallHandler<Req = any, Res = any>(
         const arg: CallableRequest<Req> = {
           ...context,
           data,
+          acceptsStreaming,
         };
 
-        const responseProxy: CallableProxyResponse = {
-          write(chunk): boolean {
+        const responseProxy: CallableResponse<Stream> = {
+          sendChunk(chunk: Stream): Promise<boolean> {
             // if client doesn't accept sse-protocol, response.write() is no-op.
             if (!acceptsStreaming) {
-              return false;
+              return Promise.resolve(false);
             }
             // if connection is already closed, response.write() is no-op.
             if (abortController.signal.aborted) {
-              return false;
+              return Promise.resolve(false);
             }
             const formattedData = encodeSSE({ message: chunk });
-            const wrote = res.write(formattedData);
+            let resolve: (wrote: boolean) => void;
+            let reject: (err: Error) => void;
+            const p = new Promise<boolean>((res, rej) => {
+              resolve = res;
+              reject = rej;
+            });
+            const wrote = res.write(formattedData, (error) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(wrote);
+            });
+
             // Reset heartbeat timer after successful write
             if (wrote && heartbeatInterval !== null && heartbeatSeconds > 0) {
               scheduleHeartbeat();
             }
-            return wrote;
+
+            return p;
           },
-          acceptsStreaming,
           signal: abortController.signal,
         };
         if (acceptsStreaming) {
