@@ -84,8 +84,11 @@ export function runHandler(
         }
       }
 
-      public write(writeBody: any) {
+      public write(writeBody: any, cb?: () => void) {
         this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        if (cb) {
+          setImmediate(cb);
+        }
         return true;
       }
 
