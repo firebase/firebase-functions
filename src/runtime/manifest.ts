@@ -67,7 +67,9 @@ export interface ManifestEndpoint {
     invoker?: string[];
   };
 
-  callableTrigger?: Record<string, never>;
+  callableTrigger?: {
+    genkitAction?: string;
+  }
 
   eventTrigger?: {
     eventFilters: Record<string, string | Expression<string>>;

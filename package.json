@@ -276,6 +276,7 @@
     "protobufjs": "^7.2.2"
   },
   "devDependencies": {
+    "genkit": "^1.0.0-rc.0",
     "@firebase/api-documenter": "^0.2.0",
     "@microsoft/api-documenter": "^7.13.45",
     "@microsoft/api-extractor": "^7.18.7",

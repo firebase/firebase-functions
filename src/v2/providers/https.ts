@@ -27,6 +27,8 @@
 
 import * as cors from "cors";
 import * as express from "express";
+import { type CallableFlow } from "genkit";
+import * as g from "genkit";
 import { convertIfPresent, convertInvoker } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
@@ -46,6 +48,7 @@ import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
+import * as logger from "../../logger";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -492,4 +495,36 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     };
   };
   return func;
+}
+
+type FlowInput<F extends CallableFlow<any, any, any>> = F extends CallableFlow<infer I, any, any> ? I : never;
+type FlowOutput<F extends CallableFlow<any, any, any>> = F extends CallableFlow<any, infer O, any> ? O extends Promise<infer O2> ? O2 : O : never;
+type FlowStream<F extends CallableFlow<any, any, any>> = F extends CallableFlow<any, any, infer S> ? S : never;
+
+export function onCallGenkit<F extends CallableFlow<any, any, any>>(flow: F): CallableFunction<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>;
+export function onCallGenkit<F extends CallableFlow<any, any, any>>(opts: CallableOptions<FlowInput<F>>, flow: F): CallableFunction<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>;
+export function onCallGenkit<F extends CallableFlow<any, any, any>>(optsOrFlow: F | CallableOptions<FlowInput<F>>, flow?: F): CallableFunction<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>> {
+  let opts: CallableOptions<FlowInput<F>>;
+  if (arguments.length === 2) {
+    opts = optsOrFlow as CallableOptions<FlowInput<F>>;
+  } else {
+    opts = {};
+    flow = optsOrFlow as F;
+  }
+  if (opts.secrets?.length === 0) {
+    logger.debug(`Genkit function for ${flow.flow.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`);
+  }
+  const cloudFunction = onCall<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>(opts, async (req, res) => {
+    if (req.acceptsStreaming) {
+      const { stream, output } = flow.stream(req.data);
+      for await (const chunk of stream) {
+        await res.sendChunk(chunk);
+      }
+      return output;
+    }
+    return flow(req.data);
+  });
+
+  cloudFunction.__endpoint.callableTrigger.genkitAction = flow.flow.name;
+  return cloudFunction; 
 }
