@@ -28,8 +28,7 @@
 import * as cors from "cors";
 import * as express from "express";
 import { type CallableFlow } from "genkit";
-import * as g from "genkit";
-import { convertIfPresent, convertInvoker } from "../../common/encoding";
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
@@ -515,14 +514,17 @@ export function onCallGenkit<F extends CallableFlow<any, any, any>>(optsOrFlow: 
     logger.debug(`Genkit function for ${flow.flow.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`);
   }
   const cloudFunction = onCall<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>(opts, async (req, res) => {
+    let context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
+    copyIfPresent(context, req, "auth", "app", "instanceIdToken");
+    
     if (req.acceptsStreaming) {
-      const { stream, output } = flow.stream(req.data);
+      const { stream, output } = flow.stream(req.data, { context });
       for await (const chunk of stream) {
         await res.sendChunk(chunk);
       }
       return output;
     }
-    return flow(req.data);
+    return flow(req.data, { context });
   });
 
   cloudFunction.__endpoint.callableTrigger.genkitAction = flow.flow.name;
