@@ -1,3 +1,0 @@
-- Add an authPolicy callback to CallableOptions for reusable auth middleware as well as helper auth policies (#1650)
-- Handle ESM functions codebases containing top-level awaits, which would break in node 22.12+ (#1651)
-- Multiple breaking changes to the not-yet-announced streaming feature for Callable Functions (#1652)
