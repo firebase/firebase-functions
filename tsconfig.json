@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "esModuleInterop": true,
     "resolveJsonModule": true,
     "sourceMap": true
   },
