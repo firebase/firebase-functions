@@ -738,7 +738,7 @@ export function onCallHandler<Req = any, Res = any, Stream = unknown>(
 }
 
 function encodeSSE(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n`;
+  return `data: ${JSON.stringify(data)}\n\n`;
 }
 
 /** @internal */
@@ -766,7 +766,7 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
       if (!abortController.signal.aborted) {
         heartbeatInterval = setTimeout(() => {
           if (!abortController.signal.aborted) {
-            res.write(": ping\n");
+            res.write(": ping\n\n");
             scheduleHeartbeat();
           }
         }, heartbeatSeconds * 1000);
