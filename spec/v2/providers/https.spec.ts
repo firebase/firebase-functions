@@ -31,6 +31,7 @@ import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
+import { genkit } from "genkit";
 
 function request(args: {
   data?: any;
@@ -619,7 +620,9 @@ describe("onCallGenkit", () => {
     );
   });
 
-  // TODO: Once genkit 1.0.0-rc.4 is released, add a type checking test that succeeds by compiling correctly.
-  // It should create a genkit resource and then call onCallGenkit with it. If the compiler fails, our typing
-  // needs to be updated.
+  it("Exports types that are compatible with the genkit library (compilation is success)", () => {
+    const ai = genkit({});
+    const flow = ai.defineFlow("test", () => 42);
+    https.onCallGenkit(flow);
+  })
 });
