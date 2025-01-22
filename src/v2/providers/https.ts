@@ -567,7 +567,7 @@ export function onCallGenkit<A extends GenkitAction>(
     opts = {};
     action = optsOrAction as A;
   }
-  if (opts.secrets?.length === 0) {
+  if (!opts.secrets?.length) {
     logger.debug(
       `Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`
     );
