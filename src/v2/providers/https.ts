@@ -506,22 +506,60 @@ interface GenkitRunOptions {
   context?: any;
 }
 
-type GenkitAction<I extends ZodType = ZodType<any>, O extends ZodType = ZodType<any>, S extends ZodType = ZodType<any>> = {
-  run(input: I["__output"], options: GenkitRunOptions): Promise<O["__output"]>;
-  stream(input: I["__output"], options: GenkitRunOptions): { stream: AsyncIterable<S["__output"]>, output: O["__output"] };
+type GenkitAction<
+  I extends ZodType = ZodType<any>,
+  O extends ZodType = ZodType<any>,
+  S extends ZodType = ZodType<any>
+> = {
+  // NOTE: The return type from run includes trace data that we may one day like to use.
+  run(input: I["__output"], options: GenkitRunOptions): Promise<{ result: O["__output"] }>;
+  stream(
+    input: I["__output"],
+    options: GenkitRunOptions
+  ): { stream: AsyncIterable<S["__output"]>; output: O["__output"] };
 
   __action: {
     name: string;
   };
-}
+};
 
-type ActionInput<F extends GenkitAction> = F extends GenkitAction<infer I extends ZodType<infer T>, any, any> ? T : never;
-type ActionOutput<F extends GenkitAction> = F extends GenkitAction<any, infer O extends ZodType<infer T>, any> ? T : never;
-type ActionStream<F extends GenkitAction> = F extends GenkitAction<any, any, infer S extends ZodType<infer T>> ? T : never;
+// Note: A double infer is required to extract the ZodType's native type from the GenkitAction, but triggers an
+// unused variable linter error for the ZodType wrapper.
+/* eslint-disable @typescript-eslint/no-unused-vars */
+type ActionInput<F extends GenkitAction> = F extends GenkitAction<
+  infer I extends ZodType<infer T>,
+  any,
+  any
+>
+  ? T
+  : never;
+type ActionOutput<F extends GenkitAction> = F extends GenkitAction<
+  any,
+  infer O extends ZodType<infer T>,
+  any
+>
+  ? T
+  : never;
+type ActionStream<F extends GenkitAction> = F extends GenkitAction<
+  any,
+  any,
+  infer S extends ZodType<infer T>
+>
+  ? T
+  : never;
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
-export function onCallGenkit<A extends GenkitAction>(action: A): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
-export function onCallGenkit<A extends GenkitAction>(opts: CallableOptions<ActionInput<A>>, flow: A): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
-export function onCallGenkit<A extends GenkitAction>(optsOrAction: A | CallableOptions<ActionInput<A>>, action?: A): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>> {
+export function onCallGenkit<A extends GenkitAction>(
+  action: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(
+  opts: CallableOptions<ActionInput<A>>,
+  flow: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(
+  optsOrAction: A | CallableOptions<ActionInput<A>>,
+  action?: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>> {
   let opts: CallableOptions<ActionInput<A>>;
   if (arguments.length === 2) {
     opts = optsOrAction as CallableOptions<ActionInput<A>>;
@@ -530,23 +568,29 @@ export function onCallGenkit<A extends GenkitAction>(optsOrAction: A | CallableO
     action = optsOrAction as A;
   }
   if (opts.secrets?.length === 0) {
-    logger.debug(`Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`);
+    logger.debug(
+      `Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`
+    );
   }
-  const cloudFunction = onCall<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>(opts, async (req, res) => {
-    let context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
-    copyIfPresent(context, req, "auth", "app", "instanceIdToken");
-    
-    if (!req.acceptsStreaming) {
-      return action.run(req.data, { context });
-    }
+  const cloudFunction = onCall<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>(
+    opts,
+    async (req, res) => {
+      const context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
+      copyIfPresent(context, req, "auth", "app", "instanceIdToken");
 
-    const { stream, output } = action.stream(req.data, { context });
-    for await (const chunk of stream) {
-      await res.sendChunk(chunk);
+      if (!req.acceptsStreaming) {
+        const { result } = await action.run(req.data, { context });
+        return result;
+      }
+
+      const { stream, output } = action.stream(req.data, { context });
+      for await (const chunk of stream) {
+        await res.sendChunk(chunk);
+      }
+      return output;
     }
-    return output;
-  });
+  );
 
   cloudFunction.__endpoint.callableTrigger.genkitAction = action.__action.name;
-  return cloudFunction; 
+  return cloudFunction;
 }

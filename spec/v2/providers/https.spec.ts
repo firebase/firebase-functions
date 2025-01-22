@@ -32,8 +32,13 @@ import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
 
-function request(args: { data?: any, auth?: Record<string, string>, headers?: Record<string, string>, method?: MockRequest["method"] }): any {
-  let headers: Record<string, string> = {}
+function request(args: {
+  data?: any;
+  auth?: Record<string, string>;
+  headers?: Record<string, string>;
+  method?: MockRequest["method"];
+}): any {
+  let headers: Record<string, string> = {};
   if (args.method !== "POST") {
     headers["content-type"] = "application/json";
   }
@@ -191,7 +196,7 @@ describe("onRequest", () => {
       res.send("Works");
     });
 
-    const req = request({ headers: { origin: "example.com" }});
+    const req = request({ headers: { origin: "example.com" } });
     const resp = await runHandler(func, req);
     expect(resp.body).to.equal("Works");
   });
@@ -208,9 +213,9 @@ describe("onRequest", () => {
         origin: "example.com",
       },
       method: "OPTIONS",
-    })
+    });
 
-    const resp = await runHandler(func, req as any);
+    const resp = await runHandler(func, req);
     expect(resp.status).to.equal(204);
     expect(resp.body).to.be.undefined;
     expect(resp.headers).to.deep.equal({
@@ -237,7 +242,7 @@ describe("onRequest", () => {
       method: "OPTIONS",
     });
 
-    const resp = await runHandler(func, req as any);
+    const resp = await runHandler(func, req);
     expect(resp.status).to.equal(204);
     expect(resp.body).to.be.undefined;
     expect(resp.headers).to.deep.equal({
@@ -266,7 +271,7 @@ describe("onRequest", () => {
       method: "OPTIONS",
     });
 
-    const resp = await runHandler(func, req as any);
+    const resp = await runHandler(func, req);
     expect(resp.status).to.equal(200);
     expect(resp.body).to.be.equal("Good");
     expect(resp.headers).to.deep.equal({});
@@ -289,7 +294,7 @@ describe("onRequest", () => {
     let hello;
     onInit(() => (hello = "world"));
     expect(hello).to.be.undefined;
-    await runHandler(func, req as any);
+    await runHandler(func, req);
     expect(hello).to.equal("world");
   });
 });
@@ -404,9 +409,9 @@ describe("onCall", () => {
   it("should be an express handler", async () => {
     const func = https.onCall(() => 42);
 
-    const req = request({ headers: { origin: "example.com" }});
+    const req = request({ headers: { origin: "example.com" } });
 
-    const resp = await runHandler(func, req as any);
+    const resp = await runHandler(func, req);
     expect(resp.body).to.deep.equal(JSON.stringify({ result: 42 }));
   });
 
@@ -424,7 +429,7 @@ describe("onCall", () => {
       method: "OPTIONS",
     });
 
-    const resp = await runHandler(func, req as any);
+    const resp = await runHandler(func, req);
     expect(resp.status).to.equal(204);
     expect(resp.body).to.be.undefined;
     expect(resp.headers).to.deep.equal({
@@ -450,7 +455,7 @@ describe("onCall", () => {
       method: "OPTIONS",
     });
 
-    const response = await runHandler(func, req as any);
+    const response = await runHandler(func, req);
 
     expect(response.status).to.equal(204);
     expect(response.body).to.be.undefined;
@@ -466,7 +471,7 @@ describe("onCall", () => {
 
   it("adds CORS headers", async () => {
     const func = https.onCall(() => 42);
-    const req = request({ headers: { origin: "example.com" }})
+    const req = request({ headers: { origin: "example.com" } });
     const response = await runHandler(func, req);
 
     expect(response.status).to.equal(200);
@@ -488,16 +493,15 @@ describe("onCall", () => {
   it("calls init function", async () => {
     const func = https.onCall(() => 42);
 
-    const req = request({ headers: { origin: "example.com" }});
+    const req = request({ headers: { origin: "example.com" } });
     let hello;
     onInit(() => (hello = "world"));
     expect(hello).to.be.undefined;
-    await runHandler(func, req as any);
+    await runHandler(func, req);
     expect(hello).to.equal("world");
   });
 
   describe("authPolicy", () => {
-
     before(() => {
       sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
     });
@@ -514,7 +518,7 @@ describe("onCall", () => {
         () => 42
       );
 
-      const authResp = await runHandler(func, request({ auth: { sub: "inlined" }}));
+      const authResp = await runHandler(func, request({ auth: { sub: "inlined" } }));
       expect(authResp.status).to.equal(200);
 
       const anonResp = await runHandler(func, request({}));
@@ -543,7 +547,7 @@ describe("onCall", () => {
         { fn: specificValue, auth: { meaning: "42" }, status: 200 },
         { fn: specificValue, auth: { meaning: "43" }, status: 403 },
         { fn: specificValue, auth: { order: "66" }, status: 403 },
-        { fn: specificValue, status: 403 }, 
+        { fn: specificValue, status: 403 },
       ];
       for (const test of cases) {
         const resp = await runHandler(test.fn, request({ auth: test.auth }));
@@ -579,13 +583,12 @@ describe("onCallGenkit", () => {
     flow.run.withArgs("answer").returns(42);
     flow.stream.onCall(0).throws("Unexpected stream");
 
-    const f = https.onCallGenkit(flow); 
+    const f = https.onCallGenkit(flow);
 
     const req = request({ data: "answer" });
     const res = await runHandler(f, req);
-    expect(JSON.parse(res.body)).to.deep.equal({"result":42});
+    expect(JSON.parse(res.body)).to.deep.equal({ result: 42 });
   });
-
 
   it("Streams with SSE requests", async () => {
     const flow = {
@@ -597,8 +600,10 @@ describe("onCallGenkit", () => {
     };
     flow.run.onFirstCall().throws();
     flow.stream.withArgs("answer").returns({
-      stream: (async function*() {
+      stream: (async function* () {
+        await Promise.resolve();
         yield 1;
+        await Promise.resolve();
         yield 2;
       })(),
       output: Promise.resolve(42),
@@ -607,11 +612,12 @@ describe("onCallGenkit", () => {
 
     const f = https.onCallGenkit(flow);
 
-    const req = request({ data: "answer", headers: { accept: "text/event-stream" }});
+    const req = request({ data: "answer", headers: { accept: "text/event-stream" } });
     const res = await runHandler(f, req);
-    expect(res.body).to.equal(['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}',''].join("\n"));
+    expect(res.body).to.equal(
+      ['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}', ""].join("\n")
+    );
   });
-
 
   // TODO: Once genkit 1.0.0-rc.4 is released, add a type checking test that succeeds by compiling correctly.
   // It should create a genkit resource and then call onCallGenkit with it. If the compiler fails, our typing

@@ -69,7 +69,7 @@ export interface ManifestEndpoint {
 
   callableTrigger?: {
     genkitAction?: string;
-  }
+  };
 
   eventTrigger?: {
     eventFilters: Record<string, string | Expression<string>>;
