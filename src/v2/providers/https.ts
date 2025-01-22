@@ -48,10 +48,6 @@ import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
-// Optional dependencies:
-import type { Action } from "genkit";
-import type { ZodAny } from "zod";
-
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
 /**
@@ -273,7 +269,7 @@ export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunc
   stream(
     request: CallableRequest<T>,
     response: CallableResponse<Stream>
-  ): { stream: AsyncIterator<Stream>; output: Return };
+  ): { stream: AsyncIterable<Stream>; output: Return };
 }
 
 /**
@@ -499,29 +495,49 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   return func;
 }
 
-type ActionInput<F extends Action<any, any, any>> = F extends Action<infer I extends ZodAny, ZodAny, ZodAny> ? I["_output"] : never;
-type ActionOutput<F extends Action<any, any, any>> = F extends Action<any, infer O extends ZodAny, any> ? O["_output"] : never;
-type ActionStream<F extends Action<any, any, any>> = F extends Action<any, any, infer S extends ZodAny> ? S["_output"] : never;
+// To avoid taking a strict dependency on Genkit we will redefine the limited portion of the interface we depend upon.
+// A unit test (dev dependency) will notify us of breaking changes.
+// TODO: Add unit test once RC.4 is released, because it otherwise requires updating tsconfig.
+interface ZodType<T = any> {
+  __output: T;
+}
 
-export function onCallGenkit<F extends Action<any, any, any>>(action: F): CallableFunction<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>>;
-export function onCallGenkit<F extends Action<any, any, any>>(opts: CallableOptions<ActionInput<F>>, flow: F): CallableFunction<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>>;
-export function onCallGenkit<F extends Action<any, any, any>>(optsOrAction: F | CallableOptions<ActionInput<F>>, action?: F): CallableFunction<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>> {
-  let opts: CallableOptions<ActionInput<F>>;
+interface GenkitRunOptions {
+  context?: any;
+}
+
+type GenkitAction<I extends ZodType = ZodType<any>, O extends ZodType = ZodType<any>, S extends ZodType = ZodType<any>> = {
+  run(input: I["__output"], options: GenkitRunOptions): Promise<O["__output"]>;
+  stream(input: I["__output"], options: GenkitRunOptions): { stream: AsyncIterable<S["__output"]>, output: O["__output"] };
+
+  __action: {
+    name: string;
+  };
+}
+
+type ActionInput<F extends GenkitAction> = F extends GenkitAction<infer I extends ZodType<infer T>, any, any> ? T : never;
+type ActionOutput<F extends GenkitAction> = F extends GenkitAction<any, infer O extends ZodType<infer T>, any> ? T : never;
+type ActionStream<F extends GenkitAction> = F extends GenkitAction<any, any, infer S extends ZodType<infer T>> ? T : never;
+
+export function onCallGenkit<A extends GenkitAction>(action: A): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(opts: CallableOptions<ActionInput<A>>, flow: A): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(optsOrAction: A | CallableOptions<ActionInput<A>>, action?: A): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>> {
+  let opts: CallableOptions<ActionInput<A>>;
   if (arguments.length === 2) {
-    opts = optsOrAction as CallableOptions<ActionInput<F>>;
+    opts = optsOrAction as CallableOptions<ActionInput<A>>;
   } else {
     opts = {};
-    action = optsOrAction as F;
+    action = optsOrAction as A;
   }
   if (opts.secrets?.length === 0) {
     logger.debug(`Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`);
   }
-  const cloudFunction = onCall<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>>(opts, async (req, res) => {
+  const cloudFunction = onCall<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>(opts, async (req, res) => {
     let context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
     copyIfPresent(context, req, "auth", "app", "instanceIdToken");
     
     if (!req.acceptsStreaming) {
-      return action(req.data, { context });
+      return action.run(req.data, { context });
     }
 
     const { stream, output } = action.stream(req.data, { context });

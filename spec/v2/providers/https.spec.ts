@@ -31,7 +31,6 @@ import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
-import { CallableFlow, z } from "genkit";
 
 function request(args: { data?: any, auth?: Record<string, string>, headers?: Record<string, string>, method?: MockRequest["method"] }): any {
   let headers: Record<string, string> = {}
@@ -569,17 +568,18 @@ describe("onCall", () => {
 });
 
 describe("onCallGenkit", () => {
-  interface Streamable {
-    stream: sinon.SinonStub;
-  }
   it("calls with JSON requests", async () => {
-    const flow = sinon.stub();
-    flow.withArgs("answer").returns(42);
-    (flow as any as Streamable).stream = sinon.stub();
-    (flow as any as Streamable).stream.onCall(0).throws("Unexpected stream");
-    (flow as any).flow = { name: "flows/test" };
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.withArgs("answer").returns(42);
+    flow.stream.onCall(0).throws("Unexpected stream");
 
-    const f = https.onCallGenkit(flow as any as CallableFlow<z.ZodString, z.ZodNumber>)
+    const f = https.onCallGenkit(flow); 
 
     const req = request({ data: "answer" });
     const res = await runHandler(f, req);
@@ -588,10 +588,15 @@ describe("onCallGenkit", () => {
 
 
   it("Streams with SSE requests", async () => {
-    const flow = sinon.stub();
-    flow.onFirstCall().throws();
-    (flow as any as Streamable).stream = sinon.stub();
-    (flow as any as Streamable).stream.withArgs("answer").returns({
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.onFirstCall().throws();
+    flow.stream.withArgs("answer").returns({
       stream: (async function*() {
         yield 1;
         yield 2;
@@ -600,7 +605,7 @@ describe("onCallGenkit", () => {
     });
     (flow as any).flow = { name: "flows/test" };
 
-    const f = https.onCallGenkit(flow as any as CallableFlow<z.ZodString, z.ZodNumber, z.ZodNumber>)
+    const f = https.onCallGenkit(flow);
 
     const req = request({ data: "answer", headers: { accept: "text/event-stream" }});
     const res = await runHandler(f, req);
