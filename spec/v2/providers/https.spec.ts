@@ -624,5 +624,5 @@ describe("onCallGenkit", () => {
     const ai = genkit({});
     const flow = ai.defineFlow("test", () => 42);
     https.onCallGenkit(flow);
-  })
+  });
 });
