@@ -580,8 +580,8 @@ describe("onCallGenkit", () => {
       run: sinon.stub(),
       stream: sinon.stub(),
     };
-    flow.run.withArgs("answer").returns(42);
-    flow.stream.onCall(0).throws("Unexpected stream");
+    flow.run.withArgs("answer").returns({ result: 42 });
+    flow.stream.throws("Unexpected stream");
 
     const f = https.onCallGenkit(flow);
 
