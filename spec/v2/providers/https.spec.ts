@@ -611,4 +611,9 @@ describe("onCallGenkit", () => {
     const res = await runHandler(f, req);
     expect(res.body).to.equal(['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}',''].join("\n"));
   });
+
+
+  // TODO: Once genkit 1.0.0-rc.4 is released, add a type checking test that succeeds by compiling correctly.
+  // It should create a genkit resource and then call onCallGenkit with it. If the compiler fails, our typing
+  // needs to be updated.
 });
