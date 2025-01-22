@@ -27,7 +27,6 @@
 
 import * as cors from "cors";
 import * as express from "express";
-import { type CallableFlow } from "genkit";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
@@ -48,6 +47,10 @@ import { SecretParam } from "../../params/types";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
+
+// Optional dependencies:
+import type { Action } from "genkit";
+import type { ZodAny } from "zod";
 
 export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
 
@@ -496,37 +499,38 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   return func;
 }
 
-type FlowInput<F extends CallableFlow<any, any, any>> = F extends CallableFlow<infer I, any, any> ? I : never;
-type FlowOutput<F extends CallableFlow<any, any, any>> = F extends CallableFlow<any, infer O, any> ? O extends Promise<infer O2> ? O2 : O : never;
-type FlowStream<F extends CallableFlow<any, any, any>> = F extends CallableFlow<any, any, infer S> ? S : never;
+type ActionInput<F extends Action<any, any, any>> = F extends Action<infer I extends ZodAny, ZodAny, ZodAny> ? I["_output"] : never;
+type ActionOutput<F extends Action<any, any, any>> = F extends Action<any, infer O extends ZodAny, any> ? O["_output"] : never;
+type ActionStream<F extends Action<any, any, any>> = F extends Action<any, any, infer S extends ZodAny> ? S["_output"] : never;
 
-export function onCallGenkit<F extends CallableFlow<any, any, any>>(flow: F): CallableFunction<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>;
-export function onCallGenkit<F extends CallableFlow<any, any, any>>(opts: CallableOptions<FlowInput<F>>, flow: F): CallableFunction<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>;
-export function onCallGenkit<F extends CallableFlow<any, any, any>>(optsOrFlow: F | CallableOptions<FlowInput<F>>, flow?: F): CallableFunction<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>> {
-  let opts: CallableOptions<FlowInput<F>>;
+export function onCallGenkit<F extends Action<any, any, any>>(action: F): CallableFunction<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>>;
+export function onCallGenkit<F extends Action<any, any, any>>(opts: CallableOptions<ActionInput<F>>, flow: F): CallableFunction<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>>;
+export function onCallGenkit<F extends Action<any, any, any>>(optsOrAction: F | CallableOptions<ActionInput<F>>, action?: F): CallableFunction<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>> {
+  let opts: CallableOptions<ActionInput<F>>;
   if (arguments.length === 2) {
-    opts = optsOrFlow as CallableOptions<FlowInput<F>>;
+    opts = optsOrAction as CallableOptions<ActionInput<F>>;
   } else {
     opts = {};
-    flow = optsOrFlow as F;
+    action = optsOrAction as F;
   }
   if (opts.secrets?.length === 0) {
-    logger.debug(`Genkit function for ${flow.flow.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`);
+    logger.debug(`Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`);
   }
-  const cloudFunction = onCall<FlowInput<F>, Promise<FlowOutput<F>>, FlowStream<F>>(opts, async (req, res) => {
+  const cloudFunction = onCall<ActionInput<F>, Promise<ActionOutput<F>>, ActionStream<F>>(opts, async (req, res) => {
     let context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
     copyIfPresent(context, req, "auth", "app", "instanceIdToken");
     
-    if (req.acceptsStreaming) {
-      const { stream, output } = flow.stream(req.data, { context });
-      for await (const chunk of stream) {
-        await res.sendChunk(chunk);
-      }
-      return output;
+    if (!req.acceptsStreaming) {
+      return action(req.data, { context });
     }
-    return flow(req.data, { context });
+
+    const { stream, output } = action.stream(req.data, { context });
+    for await (const chunk of stream) {
+      await res.sendChunk(chunk);
+    }
+    return output;
   });
 
-  cloudFunction.__endpoint.callableTrigger.genkitAction = flow.flow.name;
+  cloudFunction.__endpoint.callableTrigger.genkitAction = action.__action.name;
   return cloudFunction; 
 }
