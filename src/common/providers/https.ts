@@ -123,7 +123,7 @@ export interface CallableRequest<T = any> {
   data: T;
 
   /**
-   * The result of decoding and verifying a Firebase AppCheck token.
+   * The result of decoding and verifying a Firebase App Check token.
    */
   app?: AppCheckData;
 
@@ -145,15 +145,15 @@ export interface CallableRequest<T = any> {
   /**
    * Whether this is a streaming request.
    * Code can be optimized by not trying to generate a stream of chunks to
-   * call response.sendChunk on if request.acceptsStreaming is false.
-   * It is always safe, however, to call response.sendChunk as this will
-   * noop if acceptsStreaming is false.
+   * call `response.sendChunk` if `request.acceptsStreaming` is false.
+   * It is always safe, however, to call `response.sendChunk` as this will
+   * noop if `acceptsStreaming` is false.
    */
   acceptsStreaming: boolean;
 }
 
 /**
- * CallableProxyResponse allows streaming response chunks and listening to signals
+ * `CallableProxyResponse` allows streaming response chunks and listening to signals
  * triggered in events such as a disconnect.
  */
 export interface CallableResponse<T = unknown> {
@@ -166,7 +166,7 @@ export interface CallableResponse<T = unknown> {
   sendChunk: (chunk: T) => Promise<boolean>;
 
   /**
-   * An AbortSignal that is triggered when the client disconnects or the
+   * An `AbortSignal` that is triggered when the client disconnects or the
    * request is terminated prematurely.
    */
   signal: AbortSignal;
@@ -738,7 +738,7 @@ export function onCallHandler<Req = any, Res = any, Stream = unknown>(
 }
 
 function encodeSSE(data: unknown): string {
-  return `data: ${JSON.stringify(data)}\n`;
+  return `data: ${JSON.stringify(data)}\n\n`;
 }
 
 /** @internal */
@@ -766,7 +766,7 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
       if (!abortController.signal.aborted) {
         heartbeatInterval = setTimeout(() => {
           if (!abortController.signal.aborted) {
-            res.write(": ping\n");
+            res.write(": ping\n\n");
             scheduleHeartbeat();
           }
         }, heartbeatSeconds * 1000);
