@@ -616,7 +616,7 @@ describe("onCallGenkit", () => {
     const req = request({ data: "answer", headers: { accept: "text/event-stream" } });
     const res = await runHandler(f, req);
     expect(res.body).to.equal(
-      ['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}', ""].join("\n")
+      ['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}', ""].join("\n\n")
     );
   });
 
