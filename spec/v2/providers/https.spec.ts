@@ -609,7 +609,6 @@ describe("onCallGenkit", () => {
       })(),
       output: Promise.resolve(42),
     });
-    (flow as any).flow = { name: "flows/test" };
 
     const f = https.onCallGenkit(flow);
 
