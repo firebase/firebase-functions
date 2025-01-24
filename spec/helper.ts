@@ -47,10 +47,11 @@ export function runHandler(
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {
-      private sentBody = "";
+      private sentBody: string | undefined;
       private statusCode = 0;
       private headers: { [name: string]: string } = {};
       private callback: () => void;
+      private writeCalled = false;
 
       constructor() {
         request.on("close", () => this.end());
@@ -71,29 +72,42 @@ export function runHandler(
       }
 
       public send(sendBody: any) {
-        const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
-        const body = this.sentBody ? this.sentBody + ((toSend as string) || "") : toSend;
-
-        resolve({
-          status: this.statusCode,
-          headers: this.headers,
-          body,
-        });
-        if (this.callback) {
-          this.callback();
+        if (this.writeCalled) {
+          throw Error("Cannot set headers after they are sent to the client")
         }
+
+        const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
+        const body = typeof this.sentBody === 'undefined' ? toSend : this.sentBody + ((toSend as string) || "");
+        this.end(body);
       }
 
       public write(writeBody: any, cb?: () => void) {
-        this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        this.writeCalled = true;
+
+        if (typeof this.sentBody === 'undefined') {
+          this.sentBody = writeBody;
+        } else {
+          this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        }
         if (cb) {
           setImmediate(cb);
         }
         return true;
       }
 
-      public end() {
-        this.send(undefined);
+      public end(body?: unknown) {
+        if (body) {
+          this.write(body);
+        }
+        resolve({
+          status: this.statusCode,
+          headers: this.headers,
+          body: this.sentBody,
+        });
+
+        if (this.callback) {
+          this.callback();
+        }
       }
 
       public on(event: string, callback: () => void) {

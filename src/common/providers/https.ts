@@ -933,7 +933,8 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
         const { status } = httpErr.httpErrorCode;
         const body = { error: httpErr.toJSON() };
         if (version === "gcfv2" && req.header("accept") === "text/event-stream") {
-          res.send(encodeSSE(body));
+          res.write(encodeSSE(body));
+          res.end();
         } else {
           res.status(status).send(body);
         }
