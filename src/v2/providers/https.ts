@@ -27,7 +27,7 @@
 
 import * as cors from "cors";
 import * as express from "express";
-import { convertIfPresent, convertInvoker } from "../../common/encoding";
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
@@ -46,6 +46,7 @@ import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
+import * as logger from "../../logger";
 
 export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
 
@@ -268,7 +269,7 @@ export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunc
   stream(
     request: CallableRequest<T>,
     response: CallableResponse<Stream>
-  ): { stream: AsyncIterator<Stream>; output: Return };
+  ): { stream: AsyncIterable<Stream>; output: Return };
 }
 
 /**
@@ -492,4 +493,95 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     };
   };
   return func;
+}
+
+// To avoid taking a strict dependency on Genkit we will redefine the limited portion of the interface we depend upon.
+// A unit test (dev dependency) notifies us of breaking changes.
+interface ZodType<T = any> {
+  __output: T;
+}
+
+interface GenkitRunOptions {
+  context?: any;
+}
+
+type GenkitAction<
+  I extends ZodType = ZodType<any>,
+  O extends ZodType = ZodType<any>,
+  S extends ZodType = ZodType<any>
+> = {
+  // NOTE: The return type from run includes trace data that we may one day like to use.
+  run(input: I["__output"], options: GenkitRunOptions): Promise<{ result: O["__output"] }>;
+  stream(
+    input: I["__output"],
+    options: GenkitRunOptions
+  ): { stream: AsyncIterable<S["__output"]>; output: Promise<O["__output"]> };
+
+  __action: {
+    name: string;
+  };
+};
+
+type ActionInput<F extends GenkitAction> = F extends GenkitAction<infer I extends ZodType, any, any>
+  ? I["__output"]
+  : never;
+type ActionOutput<F extends GenkitAction> = F extends GenkitAction<
+  any,
+  infer O extends ZodType,
+  any
+>
+  ? O["__output"]
+  : never;
+type ActionStream<F extends GenkitAction> = F extends GenkitAction<
+  any,
+  any,
+  infer S extends ZodType
+>
+  ? S["__output"]
+  : never;
+
+export function onCallGenkit<A extends GenkitAction>(
+  action: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(
+  opts: CallableOptions<ActionInput<A>>,
+  flow: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(
+  optsOrAction: A | CallableOptions<ActionInput<A>>,
+  action?: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>> {
+  let opts: CallableOptions<ActionInput<A>>;
+  if (arguments.length === 2) {
+    opts = optsOrAction as CallableOptions<ActionInput<A>>;
+  } else {
+    opts = {};
+    action = optsOrAction as A;
+  }
+  if (!opts.secrets?.length) {
+    logger.debug(
+      `Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`
+    );
+  }
+  const cloudFunction = onCall<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>(
+    opts,
+    async (req, res) => {
+      const context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
+      copyIfPresent(context, req, "auth", "app", "instanceIdToken");
+
+      if (!req.acceptsStreaming) {
+        const { result } = await action.run(req.data, { context });
+        return result;
+      }
+
+      const { stream, output } = action.stream(req.data, { context });
+      for await (const chunk of stream) {
+        await res.sendChunk(chunk);
+      }
+      return output;
+    }
+  );
+
+  cloudFunction.__endpoint.callableTrigger.genkitAction = action.__action.name;
+  return cloudFunction;
 }
