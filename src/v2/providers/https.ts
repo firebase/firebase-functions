@@ -515,38 +515,30 @@ type GenkitAction<
   stream(
     input: I["__output"],
     options: GenkitRunOptions
-  ): { stream: AsyncIterable<S["__output"]>; output: O["__output"] };
+  ): { stream: AsyncIterable<S["__output"]>; output: Promise<O["__output"]> };
 
   __action: {
     name: string;
   };
 };
 
-// Note: A double infer is required to extract the ZodType's native type from the GenkitAction, but triggers an
-// unused variable linter error for the ZodType wrapper.
-/* eslint-disable @typescript-eslint/no-unused-vars */
-type ActionInput<F extends GenkitAction> = F extends GenkitAction<
-  infer I extends ZodType<infer T>,
-  any,
-  any
->
-  ? T
+type ActionInput<F extends GenkitAction> = F extends GenkitAction<infer I extends ZodType, any, any>
+  ? I["__output"]
   : never;
 type ActionOutput<F extends GenkitAction> = F extends GenkitAction<
   any,
-  infer O extends ZodType<infer T>,
+  infer O extends ZodType,
   any
 >
-  ? T
+  ? O["__output"]
   : never;
 type ActionStream<F extends GenkitAction> = F extends GenkitAction<
   any,
   any,
-  infer S extends ZodType<infer T>
+  infer S extends ZodType
 >
-  ? T
+  ? S["__output"]
   : never;
-/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export function onCallGenkit<A extends GenkitAction>(
   action: A
