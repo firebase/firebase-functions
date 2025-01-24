@@ -496,8 +496,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
 }
 
 // To avoid taking a strict dependency on Genkit we will redefine the limited portion of the interface we depend upon.
-// A unit test (dev dependency) will notify us of breaking changes.
-// TODO: Add unit test once RC.4 is released, because it otherwise requires updating tsconfig.
+// A unit test (dev dependency) notifies us of breaking changes.
 interface ZodType<T = any> {
   __output: T;
 }
