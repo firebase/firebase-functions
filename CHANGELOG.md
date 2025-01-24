@@ -1,1 +1,1 @@
-* Add onCallGenkit (#1655)
+- Add onCallGenkit (#1655)
