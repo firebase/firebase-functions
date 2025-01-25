@@ -73,18 +73,21 @@ export function runHandler(
 
       public send(sendBody: any) {
         if (this.writeCalled) {
-          throw Error("Cannot set headers after they are sent to the client")
+          throw Error("Cannot set headers after they are sent to the client");
         }
 
         const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
-        const body = typeof this.sentBody === 'undefined' ? toSend : this.sentBody + ((toSend as string) || "");
+        const body =
+          typeof this.sentBody === "undefined"
+            ? toSend
+            : this.sentBody + ((toSend as string) || "");
         this.end(body);
       }
 
       public write(writeBody: any, cb?: () => void) {
         this.writeCalled = true;
 
-        if (typeof this.sentBody === 'undefined') {
+        if (typeof this.sentBody === "undefined") {
           this.sentBody = writeBody;
         } else {
           this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
