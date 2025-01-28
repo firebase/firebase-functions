@@ -80,7 +80,7 @@ export function runHandler(
         const body =
           typeof this.sentBody === "undefined"
             ? toSend
-            : this.sentBody + ((toSend as string) || "");
+            : this.sentBody + String(toSend || "");
         this.end(body);
       }
 
