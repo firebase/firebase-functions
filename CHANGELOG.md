@@ -1,0 +1,1 @@
+- Fix bug where sse response hangs if handler threw an error. (#1668)
