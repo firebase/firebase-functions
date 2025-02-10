@@ -281,7 +281,6 @@ export function emailVerified(): AuthPolicy {
     if (!auth) {
       throw new Error("Must be signed in");
     }
-    console.log(auth)
     return hasClaim("email_verified")(auth, undefined);
   };
 }
