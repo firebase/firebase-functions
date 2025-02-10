@@ -536,6 +536,9 @@ describe("onCall", () => {
         const validResp = await runHandler(func, request({ auth: { meaning: "42" } }));
         expect(validResp.status).to.equal(200);
 
+        const wrongValResp = await runHandler(func, request({ auth: { meaning: "43" } }));
+        expect(wrongValResp.status).to.equal(403);
+
         const noClaimResp = await runHandler(func, request({ auth: {} }));
         expect(noClaimResp.status).to.equal(403);
       });
@@ -567,6 +570,7 @@ describe("onCall", () => {
           },
           () => true
         );
+
         const validResp = await runHandler(func, request({ auth: { pro: true, eap: true } }));
         expect(validResp.status).to.equal(200);
 
