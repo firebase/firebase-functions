@@ -846,9 +846,13 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
 
       const data: Req = decode(req.body.data);
       if (options.authPolicy) {
-        const authorized = await options.authPolicy(context.auth ?? null, data);
-        if (!authorized) {
-          throw new HttpsError("permission-denied", "Permission Denied");
+        try {
+          const authorized = await options.authPolicy(context.auth ?? null, data);
+          if (!authorized) {
+            throw new HttpsError("permission-denied", "Permission Denied");
+          }
+        } catch (e: unknown) {
+          throw new HttpsError("permission-denied", (e as any).message || "Permission Denied");
         }
       }
       let result: Res;

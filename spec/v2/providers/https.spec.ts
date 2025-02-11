@@ -30,12 +30,11 @@ import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
-import { Handler } from "express";
 import { genkit } from "genkit";
 
 function request(args: {
   data?: any;
-  auth?: Record<string, string>;
+  auth?: Record<string, any>;
   headers?: Record<string, string>;
   method?: MockRequest["method"];
 }): any {
@@ -526,34 +525,96 @@ describe("onCall", () => {
       expect(anonResp.status).to.equal(403);
     });
 
-    it("should check hasClaim", async () => {
-      const anyValue = https.onCall(
-        {
-          authPolicy: https.hasClaim("meaning"),
-        },
-        () => "HHGTTG"
-      );
-      const specificValue = https.onCall(
-        {
-          authPolicy: https.hasClaim("meaning", "42"),
-        },
-        () => "HHGTG"
-      );
+    describe("hasClaim", () => {
+      it("should check single claim with specific value", async () => {
+        const func = https.onCall(
+          {
+            authPolicy: https.hasClaim("meaning", "42"),
+          },
+          () => true
+        );
+        const validResp = await runHandler(func, request({ auth: { meaning: "42" } }));
+        expect(validResp.status).to.equal(200);
 
-      const cases: Array<{ fn: Handler; auth?: Record<string, string>; status: number }> = [
-        { fn: anyValue, auth: { meaning: "42" }, status: 200 },
-        { fn: anyValue, auth: { meaning: "43" }, status: 200 },
-        { fn: anyValue, auth: { order: "66" }, status: 403 },
-        { fn: anyValue, status: 403 },
-        { fn: specificValue, auth: { meaning: "42" }, status: 200 },
-        { fn: specificValue, auth: { meaning: "43" }, status: 403 },
-        { fn: specificValue, auth: { order: "66" }, status: 403 },
-        { fn: specificValue, status: 403 },
-      ];
-      for (const test of cases) {
-        const resp = await runHandler(test.fn, request({ auth: test.auth }));
-        expect(resp.status).to.equal(test.status);
-      }
+        const wrongValResp = await runHandler(func, request({ auth: { meaning: "43" } }));
+        expect(wrongValResp.status).to.equal(403);
+
+        const noClaimResp = await runHandler(func, request({ auth: {} }));
+        expect(noClaimResp.status).to.equal(403);
+      });
+
+      it("should check single claim with default value (truthy)", async () => {
+        const func = https.onCall(
+          {
+            authPolicy: https.hasClaim("admin"),
+          },
+          () => true
+        );
+        const validResp = await runHandler(func, request({ auth: { admin: true } }));
+        expect(validResp.status).to.equal(200);
+
+        const truthyResp = await runHandler(func, request({ auth: { admin: "true" } }));
+        expect(truthyResp.status).to.equal(200);
+
+        const falseResp = await runHandler(func, request({ auth: { admin: false } }));
+        expect(falseResp.status).to.equal(403);
+
+        const falseStrResp = await runHandler(func, request({ auth: { admin: "false" } }));
+        expect(falseStrResp.status).to.equal(403);
+
+        const noClaimResp = await runHandler(func, request({ auth: {} }));
+        expect(noClaimResp.status).to.equal(403);
+      });
+
+      it("should check multiple claims with default value (true)", async () => {
+        const func = https.onCall(
+          {
+            authPolicy: https.hasClaim(["pro", "eap"]),
+          },
+          () => true
+        );
+
+        const validResp = await runHandler(func, request({ auth: { pro: true, eap: true } }));
+        expect(validResp.status).to.equal(200);
+
+        const truthyResp = await runHandler(func, request({ auth: { pro: "true", eap: "abc" } }));
+        expect(truthyResp.status).to.equal(200);
+
+        const missingResp = await runHandler(func, request({ auth: { pro: true } }));
+        expect(missingResp.status).to.equal(403);
+
+        const noClaimResp = await runHandler(func, request({ auth: {} }));
+        expect(noClaimResp.status).to.equal(403);
+      });
+
+      it("should check multiple claims with specific values", async () => {
+        const func = https.onCall(
+          {
+            authPolicy: https.hasClaim({
+              meaning: 42,
+              animal: "dolphin",
+            }),
+          },
+          () => true
+        );
+        const validResp = await runHandler(
+          func,
+          request({ auth: { meaning: 42, animal: "dolphin" } })
+        );
+        expect(validResp.status).to.equal(200);
+
+        const wrongTypeResp = await runHandler(
+          func,
+          request({ auth: { meaning: "42", animal: "dolphin" } })
+        );
+        expect(wrongTypeResp.status).to.equal(403);
+
+        const missingResp = await runHandler(func, request({ auth: { meaing: 42 } }));
+        expect(missingResp.status).to.equal(403);
+
+        const noClaimResp = await runHandler(func, request({ auth: {} }));
+        expect(noClaimResp.status).to.equal(403);
+      });
     });
 
     it("can be any callback", async () => {
@@ -568,6 +629,24 @@ describe("onCall", () => {
       expect(authorized.status).to.equal(200);
       const accessDenied = await runHandler(divTwo, request({ data: 1 }));
       expect(accessDenied.status).to.equal(403);
+    });
+
+    it("should check emailVerified", async () => {
+      const func = https.onCall(
+        {
+          authPolicy: https.emailVerified(),
+        },
+        () => 42
+      );
+
+      const verifiedResp = await runHandler(func, request({ auth: { email_verified: true } }));
+      expect(verifiedResp.status).to.equal(200);
+
+      const unverifiedResp = await runHandler(func, request({ auth: { email_verified: false } }));
+      expect(unverifiedResp.status).to.equal(403);
+
+      const noAuthResp = await runHandler(func, request({ auth: {} }));
+      expect(noAuthResp.status).to.equal(403);
     });
   });
 });

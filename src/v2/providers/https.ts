@@ -61,11 +61,11 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?:
-    | SupportedRegion
-    | string
-    | Array<SupportedRegion | string>
-    | Expression<string>
-    | ResetValue;
+  | SupportedRegion
+  | string
+  | Array<SupportedRegion | string>
+  | Expression<string>
+  | ResetValue;
 
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
@@ -166,6 +166,12 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 }
 
 /**
+ *
+   Callback function to run before processing a request for callable functions to authorize the request.
+ */
+export type AuthPolicy<T = any> = (auth: AuthData | null, data: T) => boolean | Promise<boolean>;
+
+/**
  * Options that can be set on a callable HTTPS function.
  */
 export interface CallableOptions<T = any> extends HttpsOptions {
@@ -212,34 +218,79 @@ export interface CallableOptions<T = any> extends HttpsOptions {
   /**
    * Callback for whether a request is authorized.
    *
-   * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
-   * isSignedIn and hasClaim.
+   * Designed to allow reusable auth policies to be passed as an options object.
    */
-  authPolicy?: (auth: AuthData | null, data: T) => boolean | Promise<boolean>;
+  authPolicy?: AuthPolicy<T>;
 }
 
 /**
  * An auth policy that requires a user to be signed in.
  */
-export const isSignedIn =
-  () =>
-  (auth: AuthData | null): boolean =>
-    !!auth;
+export function isSignedIn(): AuthPolicy {
+  return (auth: AuthData | null): boolean => {
+    if (!auth) {
+      throw new Error("Must be signed in");
+    }
+    return true;
+  };
+}
+
+export function hasClaim(claim: string, value?: string): AuthPolicy;
+export function hasClaim(claims: string[]): AuthPolicy;
+export function hasClaim(claims: Record<string, unknown>): AuthPolicy;
+/**
+ * An auth policy that requires a user to be both signed in and have a specific claims (optionally with a specific value)
+ */
+export function hasClaim(
+  claimOrClaims: string | string[] | Record<string, unknown>,
+  value?: string
+): AuthPolicy {
+  let claimsToCheck: Record<string, unknown> = {};
+
+  if (typeof claimOrClaims === "string") {
+    claimsToCheck[claimOrClaims] = value;
+  } else if (Array.isArray(claimOrClaims)) {
+    for (const claim of claimOrClaims) {
+      claimsToCheck[claim] = undefined;
+    }
+  } else {
+    claimsToCheck = claimOrClaims;
+  }
+
+  return (auth: AuthData | null): boolean => {
+    if (!auth) {
+      throw new Error("Must be signed in");
+    }
+    for (const claim of Object.keys(claimsToCheck)) {
+      if (!(claim in auth.token)) {
+        throw new Error(`Missing claim '${claim}'`);
+      }
+      const expectedValue = claimsToCheck[claim];
+      const actualValue = auth.token[claim];
+
+      if (expectedValue === undefined) {
+        if (!actualValue || actualValue === "false") {
+          return false;
+        }
+      } else if (actualValue !== expectedValue) {
+        return false;
+      }
+    }
+    return true;
+  };
+}
 
 /**
- * An auth policy that requires a user to be both signed in and have a specific claim (optionally with a specific value)
+ * An auth policy that requires a user to be both signed in and have email verified
  */
-export const hasClaim =
-  (claim: string, value?: string) =>
-  (auth: AuthData | null): boolean => {
+export function emailVerified(): AuthPolicy {
+  return (auth: AuthData | null): boolean | Promise<boolean> => {
     if (!auth) {
-      return false;
+      throw new Error("Must be signed in");
     }
-    if (!(claim in auth.token)) {
-      return false;
-    }
-    return !value || auth.token[claim] === value;
+    return hasClaim("email_verified")(auth, undefined);
   };
+}
 
 /**
  * Handles HTTPS requests.
