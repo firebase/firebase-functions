@@ -61,11 +61,11 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?:
-    | SupportedRegion
-    | string
-    | Array<SupportedRegion | string>
-    | Expression<string>
-    | ResetValue;
+  | SupportedRegion
+  | string
+  | Array<SupportedRegion | string>
+  | Expression<string>
+  | ResetValue;
 
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
@@ -251,7 +251,7 @@ export function hasClaim(
     claimsToCheck[claimOrClaims] = value;
   } else if (Array.isArray(claimOrClaims)) {
     for (const claim of claimOrClaims) {
-      claimsToCheck[claim] = true;
+      claimsToCheck[claim] = undefined;
     }
   } else {
     claimsToCheck = claimOrClaims;
