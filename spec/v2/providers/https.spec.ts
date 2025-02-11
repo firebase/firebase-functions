@@ -577,10 +577,7 @@ describe("onCall", () => {
         const validResp = await runHandler(func, request({ auth: { pro: true, eap: true } }));
         expect(validResp.status).to.equal(200);
 
-        const truthyResp = await runHandler(
-          func,
-          request({ auth: { pro: "true", eap: "abc" } })
-        );
+        const truthyResp = await runHandler(func, request({ auth: { pro: "true", eap: "abc" } }));
         expect(truthyResp.status).to.equal(200);
 
         const missingResp = await runHandler(func, request({ auth: { pro: true } }));
