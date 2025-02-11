@@ -543,7 +543,7 @@ describe("onCall", () => {
         expect(noClaimResp.status).to.equal(403);
       });
 
-      it("should check single claim with default value (true)", async () => {
+      it("should check single claim with default value (truthy)", async () => {
         const func = https.onCall(
           {
             authPolicy: https.hasClaim("admin"),
@@ -553,11 +553,14 @@ describe("onCall", () => {
         const validResp = await runHandler(func, request({ auth: { admin: true } }));
         expect(validResp.status).to.equal(200);
 
-        const wrongTypeResp = await runHandler(func, request({ auth: { admin: "true" } }));
-        expect(wrongTypeResp.status).to.equal(403);
+        const truthyResp = await runHandler(func, request({ auth: { admin: "true" } }));
+        expect(truthyResp.status).to.equal(200);
 
         const falseResp = await runHandler(func, request({ auth: { admin: false } }));
         expect(falseResp.status).to.equal(403);
+
+        const falseStrResp = await runHandler(func, request({ auth: { admin: "false" } }));
+        expect(falseStrResp.status).to.equal(403);
 
         const noClaimResp = await runHandler(func, request({ auth: {} }));
         expect(noClaimResp.status).to.equal(403);

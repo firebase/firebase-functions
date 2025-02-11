@@ -248,7 +248,7 @@ export function hasClaim(
   let claimsToCheck: Record<string, unknown> = {};
 
   if (typeof claimOrClaims === "string") {
-    claimsToCheck[claimOrClaims] = value ?? true;
+    claimsToCheck[claimOrClaims] = value;
   } else if (Array.isArray(claimOrClaims)) {
     for (const claim of claimOrClaims) {
       claimsToCheck[claim] = true;
@@ -265,8 +265,15 @@ export function hasClaim(
       if (!(claim in auth.token)) {
         throw new Error(`Missing claim '${claim}'`);
       }
-      if (auth.token[claim] !== claimsToCheck[claim]) {
-        throw new Error(`Missing claim '${claim}' with value '${value}'`);
+      const expectedValue = claimsToCheck[claim];
+      const actualValue = auth.token[claim];
+
+      if (expectedValue === undefined) {
+        if (!actualValue || actualValue === "false") {
+          return false;
+        }
+      } else if (actualValue !== expectedValue) {
+        return false;
       }
     }
     return true;
