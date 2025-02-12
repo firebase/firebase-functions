@@ -210,6 +210,8 @@ export interface CallableOptions<T = any> extends HttpsOptions {
   heartbeatSeconds?: number | null;
 
   /**
+   * @deprecated
+   *
    * Callback for whether a request is authorized.
    *
    * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
@@ -219,6 +221,8 @@ export interface CallableOptions<T = any> extends HttpsOptions {
 }
 
 /**
+ * @deprecated
+ *
  * An auth policy that requires a user to be signed in.
  */
 export const isSignedIn =
@@ -227,6 +231,8 @@ export const isSignedIn =
     !!auth;
 
 /**
+ * @deprecated
+ *
  * An auth policy that requires a user to be both signed in and have a specific claim (optionally with a specific value)
  */
 export const hasClaim =

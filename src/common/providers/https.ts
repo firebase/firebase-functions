@@ -710,6 +710,7 @@ export interface CallableOptions<T = any> {
   cors: cors.CorsOptions;
   enforceAppCheck?: boolean;
   consumeAppCheckToken?: boolean;
+  /* @deprecated */
   authPolicy?: (token: AuthData | null, data: T) => boolean | Promise<boolean>;
   /**
    * Time in seconds between sending heartbeat messages to keep the connection
