@@ -61,11 +61,11 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 
   /** HTTP functions can override global options and can specify multiple regions to deploy to. */
   region?:
-    | SupportedRegion
-    | string
-    | Array<SupportedRegion | string>
-    | Expression<string>
-    | ResetValue;
+  | SupportedRegion
+  | string
+  | Array<SupportedRegion | string>
+  | Expression<string>
+  | ResetValue;
 
   /** If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
@@ -210,12 +210,14 @@ export interface CallableOptions<T = any> extends HttpsOptions {
   heartbeatSeconds?: number | null;
 
   /**
-   * @deprecated
+   * @internal
    *
    * Callback for whether a request is authorized.
    *
    * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
    * isSignedIn and hasClaim.
+   *
+   * @deprecated
    */
   authPolicy?: (auth: AuthData | null, data: T) => boolean | Promise<boolean>;
 }
@@ -227,8 +229,8 @@ export interface CallableOptions<T = any> extends HttpsOptions {
  */
 export const isSignedIn =
   () =>
-  (auth: AuthData | null): boolean =>
-    !!auth;
+    (auth: AuthData | null): boolean =>
+      !!auth;
 
 /**
  * @deprecated
@@ -237,15 +239,15 @@ export const isSignedIn =
  */
 export const hasClaim =
   (claim: string, value?: string) =>
-  (auth: AuthData | null): boolean => {
-    if (!auth) {
-      return false;
-    }
-    if (!(claim in auth.token)) {
-      return false;
-    }
-    return !value || auth.token[claim] === value;
-  };
+    (auth: AuthData | null): boolean => {
+      if (!auth) {
+        return false;
+      }
+      if (!(claim in auth.token)) {
+        return false;
+      }
+      return !value || auth.token[claim] === value;
+    };
 
 /**
  * Handles HTTPS requests.
