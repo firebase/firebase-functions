@@ -210,7 +210,7 @@ export interface CallableOptions<T = any> extends HttpsOptions {
   heartbeatSeconds?: number | null;
 
   /**
-   * @internal
+   * @beta
    *
    * Callback for whether a request is authorized.
    *
