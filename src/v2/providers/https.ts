@@ -210,8 +210,6 @@ export interface CallableOptions<T = any> extends HttpsOptions {
   heartbeatSeconds?: number | null;
 
   /**
-   * @beta
-   *
    * Callback for whether a request is authorized.
    *
    * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
