@@ -106,6 +106,8 @@ export interface EventContext<Params = Record<string, string>> {
   auth?: {
     token: object;
     uid: string;
+    /** If available, the unparsed ID token. */
+    rawToken?: string;
   };
 
   /**
