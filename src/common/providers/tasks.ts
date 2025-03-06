@@ -80,6 +80,7 @@ export interface RateLimits {
 export interface AuthData {
   uid: string;
   token: DecodedIdToken;
+  rawToken: string;
 }
 
 /** Metadata about a call to a Task Queue function. */
@@ -205,6 +206,7 @@ export function onDispatchHandler<Req = any>(
         context.auth = {
           uid: authToken.uid,
           token: authToken,
+          rawToken: token,
         };
       }
 
