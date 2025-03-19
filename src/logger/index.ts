@@ -61,7 +61,7 @@ function removeCircular(obj: any, refs: any[] = []): any {
     return obj.toJSON();
   }
   // Only check for circularity among ancestors in the recursion stack.
-  if (refs.indexOf(obj) !== -1) {
+  if (refs.includes(obj)) {
     return "[Circular]";
   }
   // Add the current object to the recursion stack.
@@ -69,10 +69,9 @@ function removeCircular(obj: any, refs: any[] = []): any {
 
   const returnObj: any = Array.isArray(obj) ? [] : {};
   for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      returnObj[key] = removeCircular(obj[key], refs);
-    }
+    returnObj[key] = removeCircular(obj[key], refs);
   }
+
   // Remove the current object from the stack once its properties are processed.
   refs.pop();
   return returnObj;
