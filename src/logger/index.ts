@@ -67,9 +67,17 @@ function removeCircular(obj: any, refs: any[] = []): any {
   // Add the current object to the recursion stack.
   refs.push(obj);
 
-  const returnObj: any = Array.isArray(obj) ? [] : {};
-  for (const key in obj) {
-    returnObj[key] = removeCircular(obj[key], refs);
+  // If the object is an array, run circular check on each element.
+  let returnObj: any;
+  if (Array.isArray(obj)) {
+    returnObj = obj.map((item) => removeCircular(item, refs));
+  }
+  // If the object is a Map, run circular check on each key and value.
+  else {
+    returnObj = {};
+    for (const key of Object.keys(obj)) {
+      returnObj[key] = removeCircular(obj[key], refs);
+    }
   }
 
   // Remove the current object from the stack once its properties are processed.
