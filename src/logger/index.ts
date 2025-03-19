@@ -56,31 +56,28 @@ function removeCircular(obj: any, refs: any[] = []): any {
   if (typeof obj !== "object" || !obj) {
     return obj;
   }
-  // If the object defines its own toJSON method, use it.
-  if (obj.toJSON && typeof obj.toJSON === "function") {
+  // If the object defines its own toJSON, prefer that.
+  if (obj.toJSON) {
     return obj.toJSON();
   }
-  // Only check for circularity among ancestors in the recursion stack.
   if (refs.includes(obj)) {
     return "[Circular]";
+  } else {
+    refs.push(obj);
   }
-  // Add the current object to the recursion stack.
-  refs.push(obj);
-
-  // If the object is an array, run circular check on each element.
   let returnObj: any;
   if (Array.isArray(obj)) {
-    returnObj = obj.map((item) => removeCircular(item, refs));
-  }
-  // If the object is a Map, run circular check on each key and value.
-  else {
+    returnObj = new Array(obj.length);
+  } else {
     returnObj = {};
-    for (const key of Object.keys(obj)) {
-      returnObj[key] = removeCircular(obj[key], refs);
+  }
+  for (const k in obj) {
+    if (refs.includes(obj[k])) {
+      returnObj[k] = "[Circular]";
+    } else {
+      returnObj[k] = removeCircular(obj[k], refs);
     }
   }
-
-  // Remove the current object from the stack once its properties are processed.
   refs.pop();
   return returnObj;
 }
