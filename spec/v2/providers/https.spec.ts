@@ -32,6 +32,7 @@ import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
 import { genkit } from "genkit";
+import { clearParams, defineList } from "../../../src/params";
 
 function request(args: {
   data?: any;
@@ -225,6 +226,46 @@ describe("onRequest", () => {
       "Content-Length": "0",
       Vary: "Origin, Access-Control-Request-Headers",
     });
+  });
+
+  it("should allow cors params", async () => {
+    const origins = defineList("ORIGINS");
+
+    try {
+      process.env.ORIGINS = '["example.com","example2.com"]';
+      const func = https.onRequest(
+        {
+          cors: origins,
+        },
+        (req, res) => {
+          res.send("42");
+        }
+      );
+      const req = new MockRequest(
+        {
+          data: {},
+        },
+        {
+          referrer: "example.com",
+          "content-type": "application/json",
+          origin: "example.com",
+        }
+      );
+      req.method = "OPTIONS";
+
+      const response = await runHandler(func, req as any);
+
+      expect(response.status).to.equal(204);
+      expect(response.headers).to.deep.equal({
+        "Access-Control-Allow-Origin": "example.com",
+        "Access-Control-Allow-Methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "Content-Length": "0",
+        Vary: "Origin, Access-Control-Request-Headers",
+      });
+    } finally {
+      delete process.env.ORIGINS;
+      clearParams();
+    }
   });
 
   it("should add CORS headers if debug feature is enabled", async () => {
