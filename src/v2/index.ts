@@ -58,6 +58,8 @@ export {
   firestore,
 };
 
+export { traceContext } from "../common/trace";
+
 export {
   setGlobalOptions,
   GlobalOptions,
