@@ -78,6 +78,7 @@ function removeCircular(obj: any, refs: any[] = []): any {
       returnObj[k] = removeCircular(obj[k], refs);
     }
   }
+  refs.pop();
   return returnObj;
 }
 
