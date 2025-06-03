@@ -263,10 +263,22 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   /** Type of the event. Valid values are TODO */
   eventType?: string;
 
-  /** TODO */
+  /**
+   * Filters events based on exact matches on the CloudEvents attributes.
+   *
+   * Each key-value pair represents an attribute name and its required value for exact matching.
+   * Events must match all specified filters to trigger the function.
+   */
   eventFilters?: Record<string, string | Expression<string>>;
 
-  /** TODO */
+  /**
+   * Filters events based on path pattern matching on the CloudEvents attributes.
+   *
+   * Similar to eventFilters, but supports wildcard patterns for flexible matching:
+   * - `*` matches any single path segment
+   * - `**` matches zero or more path segments
+   * - `{param}` captures a path segment as a parameter
+   */
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
@@ -288,7 +300,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
 ): TriggerAnnotation {
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
@@ -301,7 +313,7 @@ export function optionsToTriggerAnnotations(
     "labels",
     "vpcConnector",
     "vpcConnectorEgressSettings",
-    "secrets"
+    "secrets",
   );
   convertIfPresent(annotation, opts, "availableMemoryMb", "memory", (mem: MemoryOption) => {
     return MemoryOptionToMB[mem];
@@ -317,7 +329,7 @@ export function optionsToTriggerAnnotations(
     opts,
     "serviceAccountEmail",
     "serviceAccount",
-    serviceAccountFromShorthand
+    serviceAccountFromShorthand,
   );
   convertIfPresent(annotation, opts, "timeout", "timeoutSeconds", durationFromSeconds);
   convertIfPresent(
@@ -327,7 +339,7 @@ export function optionsToTriggerAnnotations(
     "retry",
     (retry: boolean) => {
       return retry ? { retry: true } : null;
-    }
+    },
   );
 
   return annotation;
@@ -338,7 +350,7 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
@@ -351,7 +363,7 @@ export function optionsToEndpoint(
     "ingressSettings",
     "labels",
     "timeoutSeconds",
-    "cpu"
+    "cpu",
   );
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
   if (opts.vpcConnector !== undefined) {
@@ -369,10 +381,10 @@ export function optionsToEndpoint(
     "availableMemoryMb",
     "memory",
     (
-      mem: MemoryOption | Expression<number> | ResetValue | null
+      mem: MemoryOption | Expression<number> | ResetValue | null,
     ): number | Expression<number> | null | ResetValue => {
       return typeof mem === "object" ? mem : MemoryOptionToMB[mem];
-    }
+    },
   );
   convertIfPresent(endpoint, opts, "region", "region", (region) => {
     if (typeof region === "string") {
@@ -386,7 +398,7 @@ export function optionsToEndpoint(
     "secretEnvironmentVariables",
     "secrets",
     (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
+      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret })),
   );
 
   return endpoint;
