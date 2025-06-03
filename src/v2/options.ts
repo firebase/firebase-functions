@@ -263,10 +263,22 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
   /** Type of the event. Valid values are TODO */
   eventType?: string;
 
-  /** TODO */
+  /**
+   * Filters events based on exact matches on the CloudEvents attributes.
+   *
+   * Each key-value pair represents an attribute name and its required value for exact matching.
+   * Events must match all specified filters to trigger the function.
+   */
   eventFilters?: Record<string, string | Expression<string>>;
 
-  /** TODO */
+  /**
+   * Filters events based on path pattern matching on the CloudEvents attributes.
+   *
+   * Similar to eventFilters, but supports wildcard patterns for flexible matching:
+   * - `*` matches any single path segment
+   * - `**` matches zero or more path segments
+   * - `{param}` captures a path segment as a parameter
+   */
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
