@@ -300,7 +300,7 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): TriggerAnnotation {
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
@@ -313,7 +313,7 @@ export function optionsToTriggerAnnotations(
     "labels",
     "vpcConnector",
     "vpcConnectorEgressSettings",
-    "secrets",
+    "secrets"
   );
   convertIfPresent(annotation, opts, "availableMemoryMb", "memory", (mem: MemoryOption) => {
     return MemoryOptionToMB[mem];
@@ -329,7 +329,7 @@ export function optionsToTriggerAnnotations(
     opts,
     "serviceAccountEmail",
     "serviceAccount",
-    serviceAccountFromShorthand,
+    serviceAccountFromShorthand
   );
   convertIfPresent(annotation, opts, "timeout", "timeoutSeconds", durationFromSeconds);
   convertIfPresent(
@@ -339,7 +339,7 @@ export function optionsToTriggerAnnotations(
     "retry",
     (retry: boolean) => {
       return retry ? { retry: true } : null;
-    },
+    }
   );
 
   return annotation;
@@ -350,7 +350,7 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
 ): ManifestEndpoint {
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
@@ -363,7 +363,7 @@ export function optionsToEndpoint(
     "ingressSettings",
     "labels",
     "timeoutSeconds",
-    "cpu",
+    "cpu"
   );
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
   if (opts.vpcConnector !== undefined) {
@@ -381,10 +381,10 @@ export function optionsToEndpoint(
     "availableMemoryMb",
     "memory",
     (
-      mem: MemoryOption | Expression<number> | ResetValue | null,
+      mem: MemoryOption | Expression<number> | ResetValue | null
     ): number | Expression<number> | null | ResetValue => {
       return typeof mem === "object" ? mem : MemoryOptionToMB[mem];
-    },
+    }
   );
   convertIfPresent(endpoint, opts, "region", "region", (region) => {
     if (typeof region === "string") {
@@ -398,7 +398,7 @@ export function optionsToEndpoint(
     "secretEnvironmentVariables",
     "secrets",
     (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret })),
+      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
   );
 
   return endpoint;
