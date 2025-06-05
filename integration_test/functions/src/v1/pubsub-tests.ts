@@ -19,16 +19,16 @@ export const pubsubTests: any = functions
 
     return new TestSuite<PubsubMessage>("pubsub onPublish")
       .it("should have a topic as resource", (message, context) =>
-        expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}/topics/pubsubTests`)
-      )
+        expectEq(
+          context.resource.name,
+          `projects/${process.env.GCLOUD_PROJECT}/topics/pubsubTests`
+        ))
 
       .it("should not have a path", (message, context) =>
-        expectEq((context as any).path, undefined)
-      )
+        expectEq((context as any).path, undefined))
 
       .it("should have the correct eventType", (message, context) =>
-        expectEq(context.eventType, "google.pubsub.topic.publish")
-      )
+        expectEq(context.eventType, "google.pubsub.topic.publish"))
 
       .it("should have an eventId", (message, context) => context.eventId)
 
@@ -37,8 +37,7 @@ export const pubsubTests: any = functions
       .it("should not have auth", (message, context) => expectEq((context as any).auth, undefined))
 
       .it("should not have action", (message, context) =>
-        expectEq((context as any).action, undefined)
-      )
+        expectEq((context as any).action, undefined))
 
       .it("should have pubsub data", (message) => {
         const decoded = new Buffer(message.data, "base64").toString();
@@ -47,8 +46,7 @@ export const pubsubTests: any = functions
       })
 
       .it("should decode JSON payloads with the json helper", (message) =>
-        evaluate(message.json.hasOwnProperty("testId"), message.json)
-      )
+        evaluate(message.json.hasOwnProperty("testId"), message.json))
 
       .run(testId, m, c);
   });

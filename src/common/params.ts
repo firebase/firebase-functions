@@ -27,23 +27,25 @@ import { Expression } from "../params";
  *
  * For example Split<"a/b/c", "/"> is ['a' | "b" | "c"]
  */
-export type Split<S extends string, D extends string> =
-  // A non-literal string splits into a string[]
-  string extends S
-    ? string[]
-    : // A literal empty string turns into a zero-tuple
+export type Split<
+  S extends string,
+  D extends string,
+> = // A non-literal string splits into a string[]
+string extends S
+  ? string[]
+  : // A literal empty string turns into a zero-tuple
     S extends ""
     ? []
     : // Split the string; Head may be the empty string
-    S extends `${D}${infer Tail}`
-    ? [...Split<Tail, D>]
-    : S extends `${infer Head}${D}${infer Tail}`
-    ? // Drop types that are exactly string; they'll eat up literal string types
-      string extends Head
+      S extends `${D}${infer Tail}`
       ? [...Split<Tail, D>]
-      : [Head, ...Split<Tail, D>]
-    : // A string without delimiters splits into an array of itself
-      [S];
+      : S extends `${infer Head}${D}${infer Tail}`
+        ? // Drop types that are exactly string; they'll eat up literal string types
+          string extends Head
+          ? [...Split<Tail, D>]
+          : [Head, ...Split<Tail, D>]
+        : // A string without delimiters splits into an array of itself
+          [S];
 
 /**
  * A type that ensure that type S is not null or undefined.
@@ -51,10 +53,10 @@ export type Split<S extends string, D extends string> =
 export type NullSafe<S extends null | undefined | string> = S extends null
   ? never
   : S extends undefined
-  ? never
-  : S extends string
-  ? S
-  : never;
+    ? never
+    : S extends string
+      ? S
+      : never;
 
 /**
  * A type that extracts parameter name enclosed in bracket as string.
@@ -67,10 +69,10 @@ export type NullSafe<S extends null | undefined | string> = S extends null
 export type Extract<Part extends string> = Part extends `{${infer Param}=**}`
   ? Param
   : Part extends `{${infer Param}=*}`
-  ? Param
-  : Part extends `{${infer Param}}`
-  ? Param
-  : never;
+    ? Param
+    : Part extends `{${infer Param}}`
+      ? Param
+      : never;
 
 /**
  * A type that maps all parameter capture gropus into keys of a record.
@@ -85,12 +87,12 @@ export type ParamsOf<PathPattern extends string | Expression<string>> =
   PathPattern extends Expression<string>
     ? Record<string, string>
     : string extends PathPattern
-    ? Record<string, string>
-    : {
-        // N.B. I'm not sure why PathPattern isn't detected to not be an
-        // Expression<string> per the check above. Since we have the check above
-        // The Exclude call should be safe.
-        [Key in Extract<
-          Split<NullSafe<Exclude<PathPattern, Expression<string>>>, "/">[number]
-        >]: string;
-      };
+      ? Record<string, string>
+      : {
+          // N.B. I'm not sure why PathPattern isn't detected to not be an
+          // Expression<string> per the check above. Since we have the check above
+          // The Exclude call should be safe.
+          [Key in Extract<
+            Split<NullSafe<Exclude<PathPattern, Expression<string>>>, "/">[number]
+          >]: string;
+        };

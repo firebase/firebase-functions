@@ -220,41 +220,38 @@ describe("Pubsub Functions", () => {
         expect(result.__endpoint.labels).to.be.empty;
       });
 
-      it(
-        "should return a trigger/endpoint with schedule, timeZone and retry config" +
-          "when called with retryConfig and timeout",
-        () => {
-          const retryConfig = {
-            retryCount: 3,
-            maxRetryDuration: "10 minutes",
-            minBackoffDuration: "10 minutes",
-            maxBackoffDuration: "10 minutes",
-            maxDoublings: 5,
-          };
-          const result = pubsub
-            .schedule("every 5 minutes")
-            .timeZone("America/New_York")
-            .retryConfig(retryConfig)
-            .onRun(() => null);
+      it("should return a trigger/endpoint with schedule, timeZone and retry config" +
+        "when called with retryConfig and timeout", () => {
+        const retryConfig = {
+          retryCount: 3,
+          maxRetryDuration: "10 minutes",
+          minBackoffDuration: "10 minutes",
+          maxBackoffDuration: "10 minutes",
+          maxDoublings: 5,
+        };
+        const result = pubsub
+          .schedule("every 5 minutes")
+          .timeZone("America/New_York")
+          .retryConfig(retryConfig)
+          .onRun(() => null);
 
-          expect(result.__trigger.schedule).to.deep.equal({
-            schedule: "every 5 minutes",
-            retryConfig,
-            timeZone: "America/New_York",
-          });
-          expect(result.__trigger.labels).to.deep.equal({
-            "deployment-scheduled": "true",
-          });
+        expect(result.__trigger.schedule).to.deep.equal({
+          schedule: "every 5 minutes",
+          retryConfig,
+          timeZone: "America/New_York",
+        });
+        expect(result.__trigger.labels).to.deep.equal({
+          "deployment-scheduled": "true",
+        });
 
-          expect(result.__endpoint.scheduleTrigger).to.deep.equal({
-            ...MINIMAL_SCHEDULE_TRIGGER,
-            schedule: "every 5 minutes",
-            retryConfig,
-            timeZone: "America/New_York",
-          });
-          expect(result.__endpoint.labels).to.be.empty;
-        }
-      );
+        expect(result.__endpoint.scheduleTrigger).to.deep.equal({
+          ...MINIMAL_SCHEDULE_TRIGGER,
+          schedule: "every 5 minutes",
+          retryConfig,
+          timeZone: "America/New_York",
+        });
+        expect(result.__endpoint.labels).to.be.empty;
+      });
 
       it("should return an appropriate trigger/endpoint when called with region and options", () => {
         const result = functions

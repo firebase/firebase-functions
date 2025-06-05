@@ -25,8 +25,7 @@ export const databaseTests: any = functions
         change.after.ref.parent
           .child("adminOnly")
           .update({ allowed: 1 })
-          .then(() => true)
-      )
+          .then(() => true))
 
       .it("should have a correct ref url", (change) => {
         const url = change.after.ref.toString();
@@ -50,24 +49,20 @@ export const databaseTests: any = functions
           new RegExp(
             `^projects/_/instances/${process.env.GCLOUD_PROJECT}(-default-rtdb)*/refs/dbTests/${context.params.testId}/start$`
           )
-        )
-      )
+        ))
 
       .it("should not include path", (change, context) =>
-        expectEq((context as any).path, undefined)
-      )
+        expectEq((context as any).path, undefined))
 
       .it("should have the right eventType", (change, context) =>
-        expectEq(context.eventType, "google.firebase.database.ref.write")
-      )
+        expectEq(context.eventType, "google.firebase.database.ref.write"))
 
       .it("should have eventId", (change, context) => context.eventId)
 
       .it("should have timestamp", (change, context) => context.timestamp)
 
       .it("should not have action", (change, context) =>
-        expectEq((context as any).action, undefined)
-      )
+        expectEq((context as any).action, undefined))
 
       .it("should have admin authType", (change, context) => expectEq(context.authType, "ADMIN"))
 

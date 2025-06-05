@@ -259,7 +259,7 @@
     "build:watch": "npm run build -- -w",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "lint": "biome check .",
+    "lint": "biome lint .",
     "lint:fix": "biome check --write .",
     "test": "mocha --file ./mocha/setup.ts \"spec/**/*.spec.ts\"",
     "test:bin": "./scripts/bin-test/run.sh",
