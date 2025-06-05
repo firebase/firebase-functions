@@ -1,0 +1,88 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "vcs": { 
+    "enabled": true, 
+    "clientKind": "git", 
+    "useIgnoreFile": true 
+  },
+  "files": { 
+    "ignoreUnknown": false, 
+    "ignore": [
+      "**/lib",
+      "**/node_modules",
+      "./coverage/",
+      "./docgen/",
+      "./v1/",
+      "./v2/",
+      "./logger/",
+      "./dist/",
+      "./spec/fixtures",
+      "./scripts/**/*.js",
+      "./protos/**/*",
+      "./mocha/",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "tslint.json"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 100,
+    "attributePosition": "auto",
+    "bracketSpacing": true
+  },
+  "organizeImports": {
+    "enabled": false
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "complexity": {
+        "noForEach": "off",
+        "useArrowFunction": "off",
+        "useLiteralKeys": "off",
+        "noUselessLoneBlockStatements": "off",
+        "useOptionalChain": "off"
+      },
+      "correctness": {
+        "noInnerDeclarations": "off",
+        "noUnusedVariables": "off",
+        "noSwitchDeclarations": "off"
+      },
+      "style": {
+        "all": false
+      },
+      "performance": {
+        "noDelete": "off"
+      },
+      "suspicious": {
+        "noExplicitAny": "off",
+        "noImplicitAnyLet": "off",
+        "noDoubleEquals": "off",
+        "noAssignInExpressions": "off",
+        "noConfusingVoidType": "off",
+        "noRedeclare": "off",
+        "noPrototypeBuiltins": "off",
+        "useDefaultSwitchClauseLast": "off",
+        "noExportsInTest": "off",
+        "noShadowRestrictedNames": "off",
+        "noThenProperty": "off",
+        "noGlobalIsNan": "off"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "always",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  }
+}
