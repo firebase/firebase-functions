@@ -25,7 +25,7 @@ import { pathParts } from "./path";
 /** https://cloud.google.com/eventarc/docs/path-patterns */
 
 /** @hidden */
-const WILDCARD_CAPTURE_REGEX = new RegExp("{[^/{}]+}", "g");
+const WILDCARD_CAPTURE_REGEX = /{[^\/{}]+}/g;
 
 /** @internal */
 export function trimParam(param: string) {
