@@ -48,7 +48,8 @@
         "useArrowFunction": "off",
         "useLiteralKeys": "off",
         "noUselessLoneBlockStatements": "off",
-        "useOptionalChain": "off"
+        "useOptionalChain": "off",
+        "noUselessTernary": "off"
       },
       "correctness": {
         "noInnerDeclarations": "off",
@@ -73,7 +74,8 @@
         "noExportsInTest": "off",
         "noShadowRestrictedNames": "off",
         "noThenProperty": "off",
-        "noGlobalIsNan": "off"
+        "noGlobalIsNan": "off",
+        "noApproximativeNumericConstant": "off"
       }
     }
   },
