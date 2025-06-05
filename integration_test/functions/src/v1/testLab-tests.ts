@@ -14,8 +14,7 @@ export const testLabTests: any = functions
       .it("should have eventId", (snap, context) => context.eventId)
 
       .it("should have right eventType", (_, context) =>
-        expectEq(context.eventType, "google.testing.testMatrix.complete")
-      )
+        expectEq(context.eventType, "google.testing.testMatrix.complete"))
 
       .it("should be in state 'INVALID'", (matrix) => expectEq(matrix.state, "INVALID"))
 

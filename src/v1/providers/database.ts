@@ -109,7 +109,10 @@ export function _instanceWithOptions(
  * Access via [`database.instance()`](providers_database_.html#instance).
  */
 export class InstanceBuilder {
-  constructor(private instance: string, private options: DeploymentOptions) {}
+  constructor(
+    private instance: string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * @returns Firebase Realtime Database reference builder interface.
@@ -167,7 +170,10 @@ export function _refWithOptions<Ref extends string>(
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
 export class RefBuilder<Ref extends string> {
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Realtime Database write

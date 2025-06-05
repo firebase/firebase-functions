@@ -17,8 +17,7 @@ export const storageTests: any = functions
       .it("should not have event.app", (data, context) => !(context as any).app)
 
       .it("should have the right eventType", (snap, context) =>
-        expectEq(context.eventType, "google.storage.object.finalize")
-      )
+        expectEq(context.eventType, "google.storage.object.finalize"))
 
       .it("should have eventId", (snap, context) => context.eventId)
 

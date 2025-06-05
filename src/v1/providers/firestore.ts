@@ -82,7 +82,10 @@ export function _documentWithOptions<Path extends string>(path: Path, options: D
 }
 
 export class DatabaseBuilder {
-  constructor(private database: string, private options: DeploymentOptions) {}
+  constructor(
+    private database: string,
+    private options: DeploymentOptions
+  ) {}
 
   namespace(namespace: string) {
     return new NamespaceBuilder(this.database, this.options, namespace);
@@ -144,7 +147,10 @@ function changeConstructor(raw: Event) {
 }
 
 export class DocumentBuilder<Path extends string> {
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {
     // TODO what validation do we want to do here?
   }
 
