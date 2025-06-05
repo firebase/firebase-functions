@@ -9,7 +9,7 @@ import fetch from "node-fetch";
 import * as v1 from "./v1";
 import * as v2 from "./v2";
 const getNumTests = (m: object): number => {
-  return Object.keys(m).filter((k) => ({}.hasOwnProperty.call(m[k], "__endpoint"))).length;
+  return Object.keys(m).filter((k) => ({}).hasOwnProperty.call(m[k], "__endpoint")).length;
 };
 const numTests = getNumTests(v1) + getNumTests(v2);
 export { v1, v2 };
@@ -132,9 +132,14 @@ async function updateRemoteConfig(testId: string, accessToken: string): Promise<
 function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
   return [
     // A database write to trigger the Firebase Realtime Database tests.
-    admin.database().ref(`dbTests/${testId}/start`).set({ ".sv": "timestamp" }),
+    admin
+      .database()
+      .ref(`dbTests/${testId}/start`)
+      .set({ ".sv": "timestamp" }),
     // A Pub/Sub publish to trigger the Cloud Pub/Sub tests.
-    new PubSub().topic("pubsubTests").publish(Buffer.from(JSON.stringify({ testId }))),
+    new PubSub()
+      .topic("pubsubTests")
+      .publish(Buffer.from(JSON.stringify({ testId }))),
     // A user creation to trigger the Firebase Auth user creation tests.
     admin
       .auth()
@@ -148,7 +153,11 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
         await admin.auth().deleteUser(userRecord.uid);
       }),
     // A firestore write to trigger the Cloud Firestore tests.
-    admin.firestore().collection("tests").doc(testId).set({ test: testId }),
+    admin
+      .firestore()
+      .collection("tests")
+      .doc(testId)
+      .set({ test: testId }),
     // Invoke a callable HTTPS trigger.
     // TODO: Temporarily disable - doesn't work unless running on projects w/ permission to create public functions.
     // callHttpsTrigger("v1-callableTests", { foo: "bar", testId }),

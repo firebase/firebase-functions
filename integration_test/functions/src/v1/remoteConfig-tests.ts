@@ -6,12 +6,10 @@ import TemplateVersion = functions.remoteConfig.TemplateVersion;
 export const remoteConfigTests: any = functions.region(REGION).remoteConfig.onUpdate((v, c) => {
   return new TestSuite<TemplateVersion>("remoteConfig onUpdate")
     .it("should have a project as resource", (version, context) =>
-      expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`)
-    )
+      expectEq(context.resource.name, `projects/${process.env.GCLOUD_PROJECT}`))
 
     .it("should have the correct eventType", (version, context) =>
-      expectEq(context.eventType, "google.firebase.remoteconfig.update")
-    )
+      expectEq(context.eventType, "google.firebase.remoteconfig.update"))
 
     .it("should have an eventId", (version, context) => context.eventId)
 
