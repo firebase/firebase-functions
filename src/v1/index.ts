@@ -35,8 +35,6 @@ import * as testLab from "./providers/testLab";
 
 import { setApp as setEmulatedAdminApp } from "../common/app";
 
-export { traceContext } from "../common/trace";
-
 export {
   analytics,
   auth,
