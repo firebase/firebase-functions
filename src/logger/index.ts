@@ -52,18 +52,18 @@ export interface LogEntry {
 }
 
 /** @internal */
-function removeCircular(obj: any, refs: any[] = []): any {
+function removeCircular(obj: any, refs: Set<any> = new Set()): any {
   if (typeof obj !== "object" || !obj) {
     return obj;
   }
   // If the object defines its own toJSON, prefer that.
-  if (obj.toJSON) {
+  if (obj.toJSON && typeof obj.toJSON === "function") {
     return obj.toJSON();
   }
-  if (refs.includes(obj)) {
+  if (refs.has(obj)) {
     return "[Circular]";
   } else {
-    refs.push(obj);
+    refs.add(obj);
   }
   let returnObj: any;
   if (Array.isArray(obj)) {
@@ -72,13 +72,17 @@ function removeCircular(obj: any, refs: any[] = []): any {
     returnObj = {};
   }
   for (const k in obj) {
-    if (refs.includes(obj[k])) {
-      returnObj[k] = "[Circular]";
-    } else {
-      returnObj[k] = removeCircular(obj[k], refs);
+    try {
+      if (refs.has(obj[k])) {
+        returnObj[k] = "[Circular]";
+      } else {
+        returnObj[k] = removeCircular(obj[k], refs);
+      }
+    } catch {
+      returnObj[k] = "[Error - cannot serialize]";
     }
   }
-  refs.pop();
+  refs.delete(obj);
   return returnObj;
 }
 
