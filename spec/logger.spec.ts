@@ -1,6 +1,7 @@
 import { expect } from "chai";
 
 import * as logger from "../src/logger";
+import { setGlobalOptions } from "../src/v2";
 
 describe("logger", () => {
   const stdoutWrite = process.stdout.write.bind(process.stdout);
@@ -215,6 +216,28 @@ describe("logger", () => {
             expectStderr(entry);
           });
         }
+      });
+    });
+  });
+
+  describe("error logging stacktrace", () => {
+    it("should include stacktrace in error logs", () => {
+      const message = "Test error with stacktrace";
+      logger.error(message);
+      const messageOutput = JSON.parse(lastErr.trim()).message;
+
+      expect(messageOutput).to.include(`Error: ${message}`);
+    });
+
+    it("when disableErrorLoggingTraceback is set to true, should not log stacktrace", () => {
+      const message = "Test error with traceback disabled";
+      setGlobalOptions({
+        disableErrorLoggingTraceback: true,
+      });
+      logger.error(message);
+      expectStderr({
+        severity: "ERROR",
+        message: message,
       });
     });
   });
