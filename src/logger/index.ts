@@ -24,6 +24,7 @@ import { format } from "util";
 import { traceContext } from "../common/trace";
 
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
+import { getGlobalOptions } from "../v2/options";
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).
@@ -158,7 +159,11 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
 
   // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
   let message = format(...args);
-  if (severity === "ERROR" && !args.find((arg) => arg instanceof Error)) {
+  if (
+    severity === "ERROR" &&
+    !getGlobalOptions().disableErrorLoggingTraceback &&
+    !args.find((arg) => arg instanceof Error)
+  ) {
     message = new Error(message).stack || message;
   }
   const out: LogEntry = {
