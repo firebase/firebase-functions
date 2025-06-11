@@ -72,14 +72,18 @@ function removeCircular(obj: any, refs: Set<any> = new Set()): any {
     returnObj = {};
   }
   for (const k in obj) {
-    try {
-      if (refs.has(obj[k])) {
-        returnObj[k] = "[Circular]";
-      } else {
-        returnObj[k] = removeCircular(obj[k], refs);
+    if (obj.hasOwnProperty(k)) {
+      try {
+        if (refs.has(obj[k])) {
+          returnObj[k] = "[Circular]";
+        } else {
+          returnObj[k] = removeCircular(obj[k], refs);
+        }
+      } catch {
+        returnObj[k] = "[Error - cannot serialize]";
       }
-    } catch {
-      returnObj[k] = "[Error - cannot serialize]";
+    } else {
+      returnObj[k] = "[Error - defined in the prototype but missing in the object]";
     }
   }
   refs.delete(obj);
