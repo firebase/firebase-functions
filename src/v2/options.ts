@@ -232,6 +232,15 @@ export interface GlobalOptions {
    * may inadvertently be wiped out.
    */
   preserveExternalChanges?: boolean;
+
+  /**
+   * Controls whether error logging should include the traceback of the error automatically.
+   * Defaults to false.
+   *
+   * @remarks
+   * When true, the error message will include not include the traceback of the error.
+   */
+  disableErrorLoggingTraceback?: boolean;
 }
 
 let globalOptions: GlobalOptions | undefined;
