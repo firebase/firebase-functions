@@ -70,6 +70,7 @@ export {
 
 export { CloudFunction, CloudEvent, ParamsOf, onInit } from "./core";
 export { Change } from "../common/change";
+export { traceContext } from "../common/trace";
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
 import * as params from "../params";
 export { params };
