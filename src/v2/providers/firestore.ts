@@ -693,7 +693,7 @@ export function makeEndpoint(
 /** @internal */
 export function onOperation<
   Document extends string,
-  Event extends FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>
+  Event extends FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>,
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -722,7 +722,7 @@ export function onOperation<
 /** @internal */
 export function onChangedOperation<
   Document extends string,
-  Event extends FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>
+  Event extends FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>,
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
