@@ -25,7 +25,6 @@ import { traceContext } from "../common/trace";
 
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 import { getGlobalOptions } from "../v2/options";
-import { getGlobalOptions } from "../v2/options";
 
 /**
  * `LogSeverity` indicates the detailed severity of the log entry. See [LogSeverity](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity).
