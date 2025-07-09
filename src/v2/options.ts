@@ -234,13 +234,13 @@ export interface GlobalOptions {
   preserveExternalChanges?: boolean;
 
   /**
-   * Controls whether error logging should include the traceback of the error automatically.
+   * Controls whether error logging should include the stacktrace of the error automatically.
    * Defaults to false.
    *
    * @remarks
-   * When true, the error message will include not include the traceback of the error.
+   * When true, the error message will not include the stacktrace of the error.
    */
-  disableErrorLoggingTraceback?: boolean;
+  disableErrorLoggingStacktrace?: boolean;
 }
 
 let globalOptions: GlobalOptions | undefined;

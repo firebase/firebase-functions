@@ -161,7 +161,7 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let message = format(...args);
   if (
     severity === "ERROR" &&
-    !getGlobalOptions().disableErrorLoggingTraceback &&
+    !getGlobalOptions().disableErrorLoggingStacktrace &&
     !args.find((arg) => arg instanceof Error)
   ) {
     message = new Error(message).stack || message;
