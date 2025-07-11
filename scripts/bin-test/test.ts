@@ -199,11 +199,46 @@ async function startBin(
   };
 }
 
+async function runStdioDiscovery(
+  modulePath: string
+): Promise<{ stdout: string; stderr: string; exitCode: number | null }> {
+  return new Promise((resolve, reject) => {
+    const proc = subprocess.spawn("npx", ["firebase-functions"], {
+      cwd: path.resolve(modulePath),
+      env: {
+        PATH: process.env.PATH,
+        GCLOUD_PROJECT: "test-project",
+        FUNCTIONS_CONTROL_API: "true",
+        FUNCTIONS_DISCOVERY_MODE: "stdio",
+      },
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString("utf8");
+    });
+
+    proc.stderr?.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString("utf8");
+    });
+
+    proc.on("close", (code) => {
+      resolve({ stdout, stderr, exitCode: code });
+    });
+
+    proc.on("error", (err) => {
+      reject(err);
+    });
+  });
+}
+
 describe("functions.yaml", function () {
   // eslint-disable-next-line @typescript-eslint/no-invalid-this
   this.timeout(TIMEOUT_XL);
 
-  function runTests(tc: Testcase) {
+  function runHttpDiscoveryTests(tc: Testcase) {
     let port: number;
     let cleanup: () => Promise<void>;
 
@@ -230,6 +265,31 @@ describe("functions.yaml", function () {
         throw new Error(`Failed to parse functions.yaml: ${err}`);
       }
       expect(parsed).to.be.deep.equal(tc.expected);
+    });
+  }
+
+  function runStdioDiscoveryTests(tc: Testcase) {
+    it("discovers functions via stdio", async function () {
+      // eslint-disable-next-line @typescript-eslint/no-invalid-this
+      this.timeout(TIMEOUT_M);
+
+      const result = await runStdioDiscovery(tc.modulePath);
+
+      // Should exit successfully
+      expect(result.exitCode).to.equal(0);
+
+      // Should not start HTTP server
+      expect(result.stdout).to.not.contain("Serving at port");
+
+      // Should output manifest to stderr
+      const manifestMatch = result.stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:(.+)/);
+      expect(manifestMatch).to.not.be.null;
+
+      // Decode and verify manifest
+      const base64 = manifestMatch![1];
+      const manifestJson = Buffer.from(base64, "base64").toString("utf8");
+      const manifest = JSON.parse(manifestJson);
+      expect(manifest).to.deep.equal(tc.expected);
     });
   }
 
@@ -320,7 +380,13 @@ describe("functions.yaml", function () {
 
     for (const tc of testcases) {
       describe(tc.name, () => {
-        runTests(tc);
+        describe("http discovery", () => {
+          runHttpDiscoveryTests(tc);
+        });
+        
+        describe("stdio discovery", () => {
+          runStdioDiscoveryTests(tc);
+        });
       });
     }
   });
@@ -350,8 +416,48 @@ describe("functions.yaml", function () {
 
     for (const tc of testcases) {
       describe(tc.name, () => {
-        runTests(tc);
+        describe("http discovery", () => {
+          runHttpDiscoveryTests(tc);
+        });
+        
+        describe("stdio discovery", () => {
+          runStdioDiscoveryTests(tc);
+        });
       });
     }
+  });
+  
+  describe("stdio discovery error handling", function () {
+    it("outputs error for broken module", async function () {
+      // Create a temporary broken module
+      const fs = require("fs");
+      const brokenModulePath = path.join(__dirname, "temp-broken-module");
+      
+      try {
+        // Create directory and files
+        fs.mkdirSync(brokenModulePath, { recursive: true });
+        fs.writeFileSync(
+          path.join(brokenModulePath, "package.json"),
+          JSON.stringify({ name: "broken-module", main: "index.js" })
+        );
+        fs.writeFileSync(
+          path.join(brokenModulePath, "index.js"),
+          "const functions = require('firebase-functions');\nsyntax error here"
+        );
+
+        const result = await runStdioDiscovery(brokenModulePath);
+
+        // Should exit with error
+        expect(result.exitCode).to.equal(1);
+
+        // Should output error to stderr
+        const errorMatch = result.stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:(.+)/);
+        expect(errorMatch).to.not.be.null;
+        expect(errorMatch![1]).to.contain("Unexpected identifier");
+      } finally {
+        // Cleanup
+        fs.rmSync(brokenModulePath, { recursive: true, force: true });
+      }
+    });
   });
 });

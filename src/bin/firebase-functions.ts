@@ -49,34 +49,53 @@ if (args.length > 1) {
   functionsDir = args[0];
 }
 
-let server: http.Server = undefined;
-const app = express();
-
-function handleQuitquitquit(req: express.Request, res: express.Response) {
-  res.send("ok");
-  server.close();
+async function runStdioDiscovery() {
+  try {
+    const stack = await loadStack(functionsDir);
+    const wireFormat = stackToWire(stack);
+    const manifestJson = JSON.stringify(wireFormat);
+    const base64 = Buffer.from(manifestJson).toString("base64");
+    process.stderr.write(`__FIREBASE_FUNCTIONS_MANIFEST__:${base64}\n`);
+    process.exit(0);
+  } catch (e) {
+    console.error("Failed to generate manifest from function source:", e);
+    process.stderr.write(`__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:${e.message}\n`);
+    process.exit(1);
+  }
 }
 
-app.get("/__/quitquitquit", handleQuitquitquit);
-app.post("/__/quitquitquit", handleQuitquitquit);
+if (process.env.FUNCTIONS_CONTROL_API === "true" && process.env.FUNCTIONS_DISCOVERY_MODE === "stdio") {
+  runStdioDiscovery();
+} else {
+  let server: http.Server = undefined;
+  const app = express();
 
-if (process.env.FUNCTIONS_CONTROL_API === "true") {
-  app.get("/__/functions.yaml", async (req, res) => {
-    try {
-      const stack = await loadStack(functionsDir);
-      res.setHeader("content-type", "text/yaml");
-      res.send(JSON.stringify(stackToWire(stack)));
-    } catch (e) {
-      console.error(e);
-      res.status(400).send(`Failed to generate manifest from function source: ${e}`);
-    }
-  });
+  function handleQuitquitquit(req: express.Request, res: express.Response) {
+    res.send("ok");
+    server.close();
+  }
+
+  app.get("/__/quitquitquit", handleQuitquitquit);
+  app.post("/__/quitquitquit", handleQuitquitquit);
+
+  if (process.env.FUNCTIONS_CONTROL_API === "true") {
+    app.get("/__/functions.yaml", async (req, res) => {
+      try {
+        const stack = await loadStack(functionsDir);
+        res.setHeader("content-type", "text/yaml");
+        res.send(JSON.stringify(stackToWire(stack)));
+      } catch (e) {
+        console.error(e);
+        res.status(400).send(`Failed to generate manifest from function source: ${e}`);
+      }
+    });
+  }
+
+  let port = 8080;
+  if (process.env.PORT) {
+    port = Number.parseInt(process.env.PORT);
+  }
+
+  console.log("Serving at port", port);
+  server = app.listen(port);
 }
-
-let port = 8080;
-if (process.env.PORT) {
-  port = Number.parseInt(process.env.PORT);
-}
-
-console.log("Serving at port", port);
-server = app.listen(port);
