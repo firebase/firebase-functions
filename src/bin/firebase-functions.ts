@@ -63,10 +63,8 @@ async function runStdioDiscovery() {
     process.stderr.write(`${MANIFEST_START_TAG}\n${base64}\n${MANIFEST_END_TAG}\n`);
     process.exitCode = 0;
   } catch (e) {
-    console.error("Failed to generate manifest from function source:", e);
-    const message = e instanceof Error ? e.message : String(e);
+    const message = `Failed to generate manifest from function source: ${e instanceof Error ? e.message : String(e)}`;
     process.stderr.write(`${MANIFEST_ERROR_START_TAG}\n${message}\n${MANIFEST_ERROR_END_TAG}\n`);
-    process.exitCode = 1;
   }
 }
 
