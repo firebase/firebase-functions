@@ -59,12 +59,12 @@ async function runStdioDiscovery() {
     const manifestJson = JSON.stringify(wireFormat);
     const base64 = Buffer.from(manifestJson).toString("base64");
     process.stderr.write(`${MANIFEST_PREFIX}${base64}\n`);
-    process.exit(0);
+    process.exitCode = 0;
   } catch (e) {
     console.error("Failed to generate manifest from function source:", e);
     const message = e instanceof Error ? e.message : String(e);
     process.stderr.write(`${MANIFEST_ERROR_PREFIX}${message}\n`);
-    process.exit(1);
+    process.exitCode = 1;
   }
 }
 

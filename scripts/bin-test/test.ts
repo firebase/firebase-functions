@@ -241,6 +241,11 @@ describe("functions.yaml", function () {
   // eslint-disable-next-line @typescript-eslint/no-invalid-this
   this.timeout(TIMEOUT_XL);
 
+  const discoveryMethods = [
+    { name: "http", fn: runHttpDiscovery },
+    { name: "stdio", fn: runStdioDiscovery },
+  ];
+
   function runDiscoveryTests(
     tc: Testcase,
     discoveryFn: (path: string) => Promise<DiscoveryResult>
@@ -340,11 +345,6 @@ describe("functions.yaml", function () {
       },
     ];
 
-    const discoveryMethods = [
-      { name: "http", fn: runHttpDiscovery },
-      { name: "stdio", fn: runStdioDiscovery },
-    ];
-
     for (const tc of testcases) {
       describe(tc.name, () => {
         for (const discovery of discoveryMethods) {
@@ -379,11 +379,6 @@ describe("functions.yaml", function () {
       },
     ];
 
-    const discoveryMethods = [
-      { name: "http", fn: runHttpDiscovery },
-      { name: "stdio", fn: runStdioDiscovery },
-    ];
-
     for (const tc of testcases) {
       describe(tc.name, () => {
         for (const discovery of discoveryMethods) {
@@ -402,11 +397,6 @@ describe("functions.yaml", function () {
         modulePath: "./scripts/bin-test/sources/broken-syntax",
         expectedError: "missing ) after argument list",
       },
-    ];
-
-    const discoveryMethods = [
-      { name: "http", fn: runHttpDiscovery },
-      { name: "stdio", fn: runStdioDiscovery },
     ];
 
     for (const tc of errorTestcases) {
