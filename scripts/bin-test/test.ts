@@ -140,7 +140,6 @@ async function retryUntil(
   await Promise.race([retry, timedOut]);
 }
 
-
 async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
   const getPort = promisify(portfinder.getPort) as () => Promise<number>;
   const port = await getPort();
@@ -174,7 +173,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
     const body = await res.text();
-    
+
     if (res.status === 200) {
       const manifest = yaml.load(body) as Record<string, unknown>;
       return { success: true, manifest };
@@ -206,7 +205,7 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     const timeoutId = setTimeout(() => {
       proc.kill(9);
-      reject(new Error("Stdio discovery timed out after " + TIMEOUT_M + "ms"));
+      reject(new Error(`Stdio discovery timed out after ${TIMEOUT_M}ms`));
     }, TIMEOUT_M);
 
     proc.on("close", () => {
@@ -220,14 +219,14 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
         resolve({ success: true, manifest });
         return;
       }
-      
+
       // Try to parse error
       const errorMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:([\s\S]+)/);
       if (errorMatch) {
         resolve({ success: false, error: errorMatch[1] });
         return;
       }
-      
+
       resolve({ success: false, error: "No manifest or error found" });
     });
 
@@ -243,7 +242,7 @@ describe("functions.yaml", function () {
   this.timeout(TIMEOUT_XL);
 
   function runDiscoveryTests(
-    tc: Testcase, 
+    tc: Testcase,
     discoveryFn: (path: string) => Promise<DiscoveryResult>
   ) {
     it("returns expected manifest", async function () {
@@ -395,8 +394,8 @@ describe("functions.yaml", function () {
       });
     }
   });
-  
-  describe("error handling", function () {
+
+  describe("error handling", () => {
     const errorTestcases = [
       {
         name: "broken syntax",
@@ -413,7 +412,7 @@ describe("functions.yaml", function () {
     for (const tc of errorTestcases) {
       describe(tc.name, () => {
         for (const discovery of discoveryMethods) {
-          it(`${discovery.name} discovery handles error correctly`, async function () {
+          it(`${discovery.name} discovery handles error correctly`, async () => {
             const result = await discovery.fn(tc.modulePath);
             expect(result.success).to.be.false;
             expect(result.error).to.include(tc.expectedError);
