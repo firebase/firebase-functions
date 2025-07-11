@@ -130,7 +130,7 @@ async function retryUntil(
     }, timeoutMs);
   });
   const retry = (async () => {
-    for (; ;) {
+    for (;;) {
       if (await fn()) {
         break;
       }
