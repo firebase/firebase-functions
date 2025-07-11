@@ -130,7 +130,7 @@ async function retryUntil(
     }, timeoutMs);
   });
   const retry = (async () => {
-    for (;;) {
+    for (; ;) {
       if (await fn()) {
         break;
       }
@@ -210,7 +210,6 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     proc.on("close", () => {
       clearTimeout(timeoutId);
-      // Try to parse manifest
       const manifestMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:([\s\S]+)/);
       if (manifestMatch) {
         const base64 = manifestMatch[1];
@@ -220,7 +219,6 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
         return;
       }
 
-      // Try to parse error
       const errorMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:([\s\S]+)/);
       if (errorMatch) {
         resolve({ success: false, error: errorMatch[1] });
