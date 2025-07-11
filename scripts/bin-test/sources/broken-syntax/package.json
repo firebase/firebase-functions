@@ -1,7 +1,3 @@
 {
-  "name": "broken-syntax",
-  "main": "index.js",
-  "dependencies": {
-    "firebase-functions": "file:../../../.."
-  }
+  "name": "broken-syntax"
 }
