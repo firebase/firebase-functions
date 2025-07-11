@@ -210,7 +210,7 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     proc.on("close", () => {
       clearTimeout(timeoutId);
-      const manifestMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:([\s\S]+)/);
+      const manifestMatch = stderr.match(/<FIREBASE_FUNCTIONS_MANIFEST>\n([\s\S]+?)\n<\/FIREBASE_FUNCTIONS_MANIFEST>/);
       if (manifestMatch) {
         const base64 = manifestMatch[1];
         const manifestJson = Buffer.from(base64, "base64").toString("utf8");
@@ -219,7 +219,7 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
         return;
       }
 
-      const errorMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:([\s\S]+)/);
+      const errorMatch = stderr.match(/<FIREBASE_FUNCTIONS_MANIFEST_ERROR>\n([\s\S]+?)\n<\/FIREBASE_FUNCTIONS_MANIFEST_ERROR>/);
       if (errorMatch) {
         resolve({ success: false, error: errorMatch[1] });
         return;

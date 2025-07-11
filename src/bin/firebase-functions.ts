@@ -49,8 +49,10 @@ if (args.length > 1) {
   functionsDir = args[0];
 }
 
-const MANIFEST_PREFIX = "__FIREBASE_FUNCTIONS_MANIFEST__:";
-const MANIFEST_ERROR_PREFIX = "__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:";
+const MANIFEST_START_TAG = "<FIREBASE_FUNCTIONS_MANIFEST>";
+const MANIFEST_END_TAG = "</FIREBASE_FUNCTIONS_MANIFEST>";
+const MANIFEST_ERROR_START_TAG = "<FIREBASE_FUNCTIONS_MANIFEST_ERROR>";
+const MANIFEST_ERROR_END_TAG = "</FIREBASE_FUNCTIONS_MANIFEST_ERROR>";
 
 async function runStdioDiscovery() {
   try {
@@ -58,12 +60,12 @@ async function runStdioDiscovery() {
     const wireFormat = stackToWire(stack);
     const manifestJson = JSON.stringify(wireFormat);
     const base64 = Buffer.from(manifestJson).toString("base64");
-    process.stderr.write(`${MANIFEST_PREFIX}${base64}\n`);
+    process.stderr.write(`${MANIFEST_START_TAG}\n${base64}\n${MANIFEST_END_TAG}\n`);
     process.exitCode = 0;
   } catch (e) {
     console.error("Failed to generate manifest from function source:", e);
     const message = e instanceof Error ? e.message : String(e);
-    process.stderr.write(`${MANIFEST_ERROR_PREFIX}${message}\n`);
+    process.stderr.write(`${MANIFEST_ERROR_START_TAG}\n${message}\n${MANIFEST_ERROR_END_TAG}\n`);
     process.exitCode = 1;
   }
 }
