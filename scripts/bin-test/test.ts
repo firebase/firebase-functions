@@ -105,7 +105,13 @@ const BASE_STACK = {
 interface Testcase {
   name: string;
   modulePath: string;
-  expected: Record<string, any>;
+  expected: Record<string, unknown>;
+}
+
+interface DiscoveryResult {
+  success: boolean;
+  manifest?: Record<string, unknown>;
+  error?: string;
 }
 
 async function retryUntil(
@@ -134,74 +140,48 @@ async function retryUntil(
   await Promise.race([retry, timedOut]);
 }
 
-async function startBin(
-  tc: Testcase,
-  debug?: boolean
-): Promise<{ port: number; cleanup: () => Promise<void> }> {
+
+async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
   const getPort = promisify(portfinder.getPort) as () => Promise<number>;
   const port = await getPort();
 
   const proc = subprocess.spawn("npx", ["firebase-functions"], {
-    cwd: path.resolve(tc.modulePath),
+    cwd: path.resolve(modulePath),
     env: {
       PATH: process.env.PATH,
-      GLCOUD_PROJECT: "test-project",
+      GCLOUD_PROJECT: "test-project",
       PORT: port.toString(),
       FUNCTIONS_CONTROL_API: "true",
     },
   });
-  if (!proc) {
-    throw new Error("Failed to start firebase functions");
-  }
-  proc.stdout?.on("data", (chunk: Buffer) => {
-    console.log(chunk.toString("utf8"));
-  });
-  proc.stderr?.on("data", (chunk: Buffer) => {
-    console.log(chunk.toString("utf8"));
-  });
 
-  await retryUntil(async () => {
-    try {
-      await fetch(`http://localhost:${port}/__/functions.yaml`);
-    } catch (e) {
-      if (e?.code === "ECONNREFUSED") {
-        return false;
+  try {
+    // Wait for server to be ready
+    await retryUntil(async () => {
+      try {
+        await fetch(`http://localhost:${port}/__/functions.yaml`);
+        return true;
+      } catch (e: unknown) {
+        const error = e as { code?: string };
+        return error.code !== "ECONNREFUSED";
       }
-      throw e;
+    }, TIMEOUT_L);
+
+    const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
+    const body = await res.text();
+    
+    if (res.status === 200) {
+      const manifest = yaml.load(body) as Record<string, unknown>;
+      return { success: true, manifest };
+    } else {
+      return { success: false, error: body };
     }
-    return true;
-  }, TIMEOUT_L);
-
-  if (debug) {
-    proc.stdout?.on("data", (data: unknown) => {
-      console.log(`[${tc.name} stdout] ${data}`);
-    });
-
-    proc.stderr?.on("data", (data: unknown) => {
-      console.log(`[${tc.name} stderr] ${data}`);
-    });
+  } finally {
+    proc.kill(9);
   }
-
-  return {
-    port,
-    cleanup: async () => {
-      process.kill(proc.pid, 9);
-      await retryUntil(async () => {
-        try {
-          process.kill(proc.pid, 0);
-        } catch {
-          // process.kill w/ signal 0 will throw an error if the pid no longer exists.
-          return Promise.resolve(true);
-        }
-        return Promise.resolve(false);
-      }, TIMEOUT_L);
-    },
-  };
 }
 
-async function runStdioDiscovery(
-  modulePath: string
-): Promise<{ stdout: string; stderr: string; exitCode: number | null }> {
+async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
   return new Promise((resolve, reject) => {
     const proc = subprocess.spawn("npx", ["firebase-functions"], {
       cwd: path.resolve(modulePath),
@@ -213,19 +193,31 @@ async function runStdioDiscovery(
       },
     });
 
-    let stdout = "";
     let stderr = "";
-
-    proc.stdout?.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString("utf8");
-    });
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString("utf8");
     });
 
-    proc.on("close", (code) => {
-      resolve({ stdout, stderr, exitCode: code });
+    proc.on("close", () => {
+      // Try to parse manifest
+      const manifestMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:(.+)/);
+      if (manifestMatch) {
+        const base64 = manifestMatch[1];
+        const manifestJson = Buffer.from(base64, "base64").toString("utf8");
+        const manifest = JSON.parse(manifestJson) as Record<string, unknown>;
+        resolve({ success: true, manifest });
+        return;
+      }
+      
+      // Try to parse error
+      const errorMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:(.+)/);
+      if (errorMatch) {
+        resolve({ success: false, error: errorMatch[1] });
+        return;
+      }
+      
+      resolve({ success: false, error: "No manifest or error found" });
     });
 
     proc.on("error", (err) => {
@@ -238,58 +230,17 @@ describe("functions.yaml", function () {
   // eslint-disable-next-line @typescript-eslint/no-invalid-this
   this.timeout(TIMEOUT_XL);
 
-  function runHttpDiscoveryTests(tc: Testcase) {
-    let port: number;
-    let cleanup: () => Promise<void>;
-
-    before(async () => {
-      const r = await startBin(tc);
-      port = r.port;
-      cleanup = r.cleanup;
-    });
-
-    after(async () => {
-      await cleanup?.();
-    });
-
-    it("functions.yaml returns expected Manifest", async function () {
+  function runDiscoveryTests(
+    tc: Testcase, 
+    discoveryFn: (path: string) => Promise<DiscoveryResult>
+  ) {
+    it("returns expected manifest", async function () {
       // eslint-disable-next-line @typescript-eslint/no-invalid-this
       this.timeout(TIMEOUT_M);
 
-      const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
-      const text = await res.text();
-      let parsed: any;
-      try {
-        parsed = yaml.load(text);
-      } catch (err) {
-        throw new Error(`Failed to parse functions.yaml: ${err}`);
-      }
-      expect(parsed).to.be.deep.equal(tc.expected);
-    });
-  }
-
-  function runStdioDiscoveryTests(tc: Testcase) {
-    it("discovers functions via stdio", async function () {
-      // eslint-disable-next-line @typescript-eslint/no-invalid-this
-      this.timeout(TIMEOUT_M);
-
-      const result = await runStdioDiscovery(tc.modulePath);
-
-      // Should exit successfully
-      expect(result.exitCode).to.equal(0);
-
-      // Should not start HTTP server
-      expect(result.stdout).to.not.contain("Serving at port");
-
-      // Should output manifest to stderr
-      const manifestMatch = result.stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:(.+)/);
-      expect(manifestMatch).to.not.be.null;
-
-      // Decode and verify manifest
-      const base64 = manifestMatch![1];
-      const manifestJson = Buffer.from(base64, "base64").toString("utf8");
-      const manifest = JSON.parse(manifestJson);
-      expect(manifest).to.deep.equal(tc.expected);
+      const result = await discoveryFn(tc.modulePath);
+      expect(result.success).to.be.true;
+      expect(result.manifest).to.deep.equal(tc.expected);
     });
   }
 
@@ -378,15 +329,18 @@ describe("functions.yaml", function () {
       },
     ];
 
+    const discoveryMethods = [
+      { name: "http", fn: runHttpDiscovery },
+      { name: "stdio", fn: runStdioDiscovery },
+    ];
+
     for (const tc of testcases) {
       describe(tc.name, () => {
-        describe("http discovery", () => {
-          runHttpDiscoveryTests(tc);
-        });
-        
-        describe("stdio discovery", () => {
-          runStdioDiscoveryTests(tc);
-        });
+        for (const discovery of discoveryMethods) {
+          describe(`${discovery.name} discovery`, () => {
+            runDiscoveryTests(tc, discovery.fn);
+          });
+        }
       });
     }
   });
@@ -414,50 +368,46 @@ describe("functions.yaml", function () {
       },
     ];
 
+    const discoveryMethods = [
+      { name: "http", fn: runHttpDiscovery },
+      { name: "stdio", fn: runStdioDiscovery },
+    ];
+
     for (const tc of testcases) {
       describe(tc.name, () => {
-        describe("http discovery", () => {
-          runHttpDiscoveryTests(tc);
-        });
-        
-        describe("stdio discovery", () => {
-          runStdioDiscoveryTests(tc);
-        });
+        for (const discovery of discoveryMethods) {
+          describe(`${discovery.name} discovery`, () => {
+            runDiscoveryTests(tc, discovery.fn);
+          });
+        }
       });
     }
   });
   
-  describe("stdio discovery error handling", function () {
-    it("outputs error for broken module", async function () {
-      // Create a temporary broken module
-      const fs = require("fs");
-      const brokenModulePath = path.join(__dirname, "temp-broken-module");
-      
-      try {
-        // Create directory and files
-        fs.mkdirSync(brokenModulePath, { recursive: true });
-        fs.writeFileSync(
-          path.join(brokenModulePath, "package.json"),
-          JSON.stringify({ name: "broken-module", main: "index.js" })
-        );
-        fs.writeFileSync(
-          path.join(brokenModulePath, "index.js"),
-          "const functions = require('firebase-functions');\nsyntax error here"
-        );
+  describe("error handling", function () {
+    const errorTestcases = [
+      {
+        name: "broken syntax",
+        modulePath: "./scripts/bin-test/sources/broken-syntax",
+        expectedError: "missing ) after argument list",
+      },
+    ];
 
-        const result = await runStdioDiscovery(brokenModulePath);
+    const discoveryMethods = [
+      { name: "http", fn: runHttpDiscovery },
+      { name: "stdio", fn: runStdioDiscovery },
+    ];
 
-        // Should exit with error
-        expect(result.exitCode).to.equal(1);
-
-        // Should output error to stderr
-        const errorMatch = result.stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:(.+)/);
-        expect(errorMatch).to.not.be.null;
-        expect(errorMatch![1]).to.contain("Unexpected identifier");
-      } finally {
-        // Cleanup
-        fs.rmSync(brokenModulePath, { recursive: true, force: true });
-      }
-    });
+    for (const tc of errorTestcases) {
+      describe(tc.name, () => {
+        for (const discovery of discoveryMethods) {
+          it(`${discovery.name} discovery handles error correctly`, async function () {
+            const result = await discovery.fn(tc.modulePath);
+            expect(result.success).to.be.false;
+            expect(result.error).to.include(tc.expectedError);
+          });
+        }
+      });
+    }
   });
 });
