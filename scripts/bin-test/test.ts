@@ -163,7 +163,12 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
         return true;
       } catch (e: unknown) {
         const error = e as { code?: string };
-        return error.code !== "ECONNREFUSED";
+        if (error.code === "ECONNREFUSED") {
+          // This is an expected error during server startup, so we should retry.
+          return false;
+        }
+        // Any other error is unexpected and should fail the test immediately.
+        throw e;
       }
     }, TIMEOUT_L);
 
@@ -199,9 +204,15 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
       stderr += chunk.toString("utf8");
     });
 
+    const timeoutId = setTimeout(() => {
+      proc.kill(9);
+      reject(new Error("Stdio discovery timed out after " + TIMEOUT_M + "ms"));
+    }, TIMEOUT_M);
+
     proc.on("close", () => {
+      clearTimeout(timeoutId);
       // Try to parse manifest
-      const manifestMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:(.+)/);
+      const manifestMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST__:([\s\S]+)/);
       if (manifestMatch) {
         const base64 = manifestMatch[1];
         const manifestJson = Buffer.from(base64, "base64").toString("utf8");
@@ -211,7 +222,7 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
       }
       
       // Try to parse error
-      const errorMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:(.+)/);
+      const errorMatch = stderr.match(/__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:([\s\S]+)/);
       if (errorMatch) {
         resolve({ success: false, error: errorMatch[1] });
         return;
@@ -221,6 +232,7 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
     });
 
     proc.on("error", (err) => {
+      clearTimeout(timeoutId);
       reject(err);
     });
   });

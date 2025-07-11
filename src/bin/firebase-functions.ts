@@ -49,18 +49,21 @@ if (args.length > 1) {
   functionsDir = args[0];
 }
 
+const MANIFEST_PREFIX = "__FIREBASE_FUNCTIONS_MANIFEST__:";
+const MANIFEST_ERROR_PREFIX = "__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:";
+
 async function runStdioDiscovery() {
   try {
     const stack = await loadStack(functionsDir);
     const wireFormat = stackToWire(stack);
     const manifestJson = JSON.stringify(wireFormat);
     const base64 = Buffer.from(manifestJson).toString("base64");
-    process.stderr.write(`__FIREBASE_FUNCTIONS_MANIFEST__:${base64}\n`);
+    process.stderr.write(`${MANIFEST_PREFIX}${base64}\n`);
     process.exit(0);
   } catch (e) {
     console.error("Failed to generate manifest from function source:", e);
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    process.stderr.write(`__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:${errorMessage}\n`);
+    const message = e instanceof Error ? e.message : String(e);
+    process.stderr.write(`${MANIFEST_ERROR_PREFIX}${message}\n`);
     process.exit(1);
   }
 }
