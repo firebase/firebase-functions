@@ -59,26 +59,31 @@ async function runStdioDiscovery() {
     process.exit(0);
   } catch (e) {
     console.error("Failed to generate manifest from function source:", e);
-    process.stderr.write(`__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:${e.message}\n`);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    process.stderr.write(`__FIREBASE_FUNCTIONS_MANIFEST_ERROR__:${errorMessage}\n`);
     process.exit(1);
   }
 }
 
-if (process.env.FUNCTIONS_CONTROL_API === "true" && process.env.FUNCTIONS_DISCOVERY_MODE === "stdio") {
-  runStdioDiscovery();
+function handleQuitquitquit(req: express.Request, res: express.Response, server: http.Server) {
+  res.send("ok");
+  server.close();
+}
+
+if (
+  process.env.FUNCTIONS_CONTROL_API === "true" &&
+  process.env.FUNCTIONS_DISCOVERY_MODE === "stdio"
+) {
+  void runStdioDiscovery();
 } else {
   let server: http.Server = undefined;
   const app = express();
 
-  function handleQuitquitquit(req: express.Request, res: express.Response) {
-    res.send("ok");
-    server.close();
-  }
-
-  app.get("/__/quitquitquit", handleQuitquitquit);
-  app.post("/__/quitquitquit", handleQuitquitquit);
+  app.get("/__/quitquitquit", (req, res) => handleQuitquitquit(req, res, server));
+  app.post("/__/quitquitquit", (req, res) => handleQuitquitquit(req, res, server));
 
   if (process.env.FUNCTIONS_CONTROL_API === "true") {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     app.get("/__/functions.yaml", async (req, res) => {
       try {
         const stack = await loadStack(functionsDir);
@@ -86,7 +91,8 @@ if (process.env.FUNCTIONS_CONTROL_API === "true" && process.env.FUNCTIONS_DISCOV
         res.send(JSON.stringify(stackToWire(stack)));
       } catch (e) {
         console.error(e);
-        res.status(400).send(`Failed to generate manifest from function source: ${e}`);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        res.status(400).send(`Failed to generate manifest from function source: ${errorMessage}`);
       }
     });
   }
