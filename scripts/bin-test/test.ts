@@ -189,7 +189,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
 async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
   const outputPath = path.join(os.tmpdir(), `firebase-functions-test-${Date.now()}.json`);
-  
+
   return new Promise((resolve, reject) => {
     const proc = subprocess.spawn("npx", ["firebase-functions"], {
       cwd: path.resolve(modulePath),
@@ -213,19 +213,21 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     proc.on("close", async (code) => {
       clearTimeout(timeoutId);
-      
+
       if (code === 0) {
         try {
           const manifestJson = await fs.readFile(outputPath, "utf8");
           const manifest = JSON.parse(manifestJson) as Record<string, unknown>;
-          await fs.unlink(outputPath).catch(() => {});
+          await fs.unlink(outputPath).catch(() => {
+            // Ignore errors
+          });
           resolve({ success: true, manifest });
         } catch (e) {
           resolve({ success: false, error: `Failed to read manifest file: ${e}` });
         }
       } else {
-        const errorLines = stderr.split('\n').filter(line => line.trim());
-        const errorMessage = errorLines.join(' ') || "No error message found";
+        const errorLines = stderr.split("\n").filter((line) => line.trim());
+        const errorMessage = errorLines.join(" ") || "No error message found";
         resolve({ success: false, error: errorMessage });
       }
     });
