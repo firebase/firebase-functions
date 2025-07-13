@@ -169,10 +169,77 @@ function v1Tests(testId: string, accessToken: string): Array<Promise<unknown>> {
 function v2Tests(testId: string, accessToken: string): Array<Promise<void>> {
   return [
     // Invoke a callable HTTPS trigger.
-    // TODO: Temporarily disable - doesn't work unless running on projects w/ permission to create public functions.
-    // callV2HttpsTrigger("v2-callabletests", { foo: "bar", testId }, accessToken),
+    callV2HttpsTrigger("v2-callabletests", { foo: "bar", testId }, accessToken),
+    // Test streaming callable function
+    callV2HttpsTrigger("v2-callabletestsstreaming", { testId, streaming: true }, accessToken),
+    // Test onRequest endpoints
+    fetch(
+      `https://${REGION}-${firebaseConfig.projectId}.cloudfunctions.net/v2-httpstests?testId=${testId}`
+    ).then((r) => r.text()),
     // Invoke a scheduled trigger.
     callV2ScheduleTrigger("v2-schedule", "us-central1", accessToken),
+    // Database triggers
+    admin.database().ref(`v2tests/${testId}/db/written`).set("world"),
+    admin.database().ref(`v2tests/${testId}/db/created`).set("created"),
+    admin
+      .database()
+      .ref(`v2tests/${testId}/db/updated`)
+      .set("original")
+      .then(() => admin.database().ref(`v2tests/${testId}/db/updated`).set("updated")),
+    admin
+      .database()
+      .ref(`v2tests/${testId}/db/toDelete`)
+      .set("willBeDeleted")
+      .then(() => admin.database().ref(`v2tests/${testId}/db/toDelete`).remove()),
+    // Storage triggers
+    admin
+      .storage()
+      .bucket()
+      .upload(`/tmp/${testId}.txt`, { destination: `v2tests/${testId}/test.txt` }),
+    // Firestore triggers
+    admin
+      .firestore()
+      .collection(`v2tests/${testId}/firestore`)
+      .doc("test")
+      .set({ value: "written" }),
+    admin
+      .firestore()
+      .collection(`v2tests/${testId}/firestore-created`)
+      .doc("test")
+      .set({ value: "created" }),
+    admin
+      .firestore()
+      .collection(`v2tests/${testId}/firestore-updated`)
+      .doc("test")
+      .set({ value: "original" })
+      .then(() =>
+        admin
+          .firestore()
+          .collection(`v2tests/${testId}/firestore-updated`)
+          .doc("test")
+          .update({ value: "updated" })
+      ),
+    admin
+      .firestore()
+      .collection(`v2tests/${testId}/firestore-to-delete`)
+      .doc("deleteMe")
+      .set({ value: "toBeDeleted" })
+      .then(() =>
+        admin
+          .firestore()
+          .collection(`v2tests/${testId}/firestore-to-delete`)
+          .doc("deleteMe")
+          .delete()
+      ),
+    // Pub/Sub triggers
+    new PubSub()
+      .topic("v2-pubsub-test-topic")
+      .publish(Buffer.from(JSON.stringify({ testId })), { testId }),
+    new PubSub()
+      .topic("v2-pubsub-test-retry-topic")
+      .publish(Buffer.from(JSON.stringify({ testRetry: true })), { testId, attempt: "1" }),
+    // Remote Config trigger
+    updateRemoteConfig(`v2-${testId}`, accessToken),
   ];
 }
 
