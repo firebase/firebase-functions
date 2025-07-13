@@ -183,12 +183,16 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
       return { success: false, error: body };
     }
   } finally {
-    proc.kill(9);
+    if (proc.pid) {
+      proc.kill(9);
+      await new Promise<void>((resolve) => proc.on("exit", resolve));
+    }
   }
 }
 
 async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
-  const outputPath = path.join(os.tmpdir(), `firebase-functions-test-${Date.now()}.json`);
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "firebase-functions-test-"));
+  const outputPath = path.join(tempDir, "manifest.json");
 
   return new Promise((resolve, reject) => {
     const proc = subprocess.spawn("npx", ["firebase-functions"], {
@@ -218,7 +222,7 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
         try {
           const manifestJson = await fs.readFile(outputPath, "utf8");
           const manifest = JSON.parse(manifestJson) as Record<string, unknown>;
-          await fs.unlink(outputPath).catch(() => {
+          await fs.rm(tempDir, { recursive: true }).catch(() => {
             // Ignore errors
           });
           resolve({ success: true, manifest });
@@ -234,6 +238,10 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     proc.on("error", (err) => {
       clearTimeout(timeoutId);
+      // Clean up temp directory on error
+      fs.rm(tempDir, { recursive: true }).catch(() => {
+        // Ignore errors
+      });
       reject(err);
     });
   });
