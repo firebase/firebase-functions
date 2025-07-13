@@ -1,6 +1,8 @@
 import * as subprocess from "child_process";
 import * as path from "path";
 import { promisify } from "util";
+import * as fs from "fs/promises";
+import * as os from "os";
 
 import { expect } from "chai";
 import * as yaml from "js-yaml";
@@ -185,15 +187,16 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
   }
 }
 
-async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
+async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
+  const outputPath = path.join(os.tmpdir(), `firebase-functions-test-${Date.now()}.json`);
+  
   return new Promise((resolve, reject) => {
     const proc = subprocess.spawn("npx", ["firebase-functions"], {
       cwd: path.resolve(modulePath),
       env: {
         PATH: process.env.PATH,
         GCLOUD_PROJECT: "test-project",
-        FUNCTIONS_CONTROL_API: "true",
-        FUNCTIONS_DISCOVERY_MODE: "stdio",
+        FUNCTIONS_MANIFEST_OUTPUT_PATH: outputPath,
       },
     });
 
@@ -205,31 +208,26 @@ async function runStdioDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     const timeoutId = setTimeout(() => {
       proc.kill(9);
-      reject(new Error(`Stdio discovery timed out after ${TIMEOUT_M}ms`));
+      resolve({ success: false, error: `File discovery timed out after ${TIMEOUT_M}ms` });
     }, TIMEOUT_M);
 
-    proc.on("close", () => {
+    proc.on("close", async (code) => {
       clearTimeout(timeoutId);
-      const manifestMatch = stderr.match(
-        /<FIREBASE_FUNCTIONS_MANIFEST>\n([\s\S]+?)\n<\/FIREBASE_FUNCTIONS_MANIFEST>/
-      );
-      if (manifestMatch) {
-        const base64 = manifestMatch[1];
-        const manifestJson = Buffer.from(base64, "base64").toString("utf8");
-        const manifest = JSON.parse(manifestJson) as Record<string, unknown>;
-        resolve({ success: true, manifest });
-        return;
+      
+      if (code === 0) {
+        try {
+          const manifestJson = await fs.readFile(outputPath, "utf8");
+          const manifest = JSON.parse(manifestJson) as Record<string, unknown>;
+          await fs.unlink(outputPath).catch(() => {});
+          resolve({ success: true, manifest });
+        } catch (e) {
+          resolve({ success: false, error: `Failed to read manifest file: ${e}` });
+        }
+      } else {
+        const errorLines = stderr.split('\n').filter(line => line.trim());
+        const errorMessage = errorLines.join(' ') || "No error message found";
+        resolve({ success: false, error: errorMessage });
       }
-
-      const errorMatch = stderr.match(
-        /<FIREBASE_FUNCTIONS_MANIFEST_ERROR>\n([\s\S]+?)\n<\/FIREBASE_FUNCTIONS_MANIFEST_ERROR>/
-      );
-      if (errorMatch) {
-        resolve({ success: false, error: errorMatch[1] });
-        return;
-      }
-
-      resolve({ success: false, error: "No manifest or error found" });
     });
 
     proc.on("error", (err) => {
@@ -245,7 +243,7 @@ describe("functions.yaml", function () {
 
   const discoveryMethods = [
     { name: "http", fn: runHttpDiscovery },
-    { name: "stdio", fn: runStdioDiscovery },
+    { name: "file", fn: runFileDiscovery },
   ];
 
   function runDiscoveryTests(

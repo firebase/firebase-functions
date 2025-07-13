@@ -24,6 +24,7 @@
 
 import * as http from "http";
 import * as express from "express";
+import * as fs from "fs/promises";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";
 
@@ -49,37 +50,33 @@ if (args.length > 1) {
   functionsDir = args[0];
 }
 
-const MANIFEST_START_TAG = "<FIREBASE_FUNCTIONS_MANIFEST>";
-const MANIFEST_END_TAG = "</FIREBASE_FUNCTIONS_MANIFEST>";
-const MANIFEST_ERROR_START_TAG = "<FIREBASE_FUNCTIONS_MANIFEST_ERROR>";
-const MANIFEST_ERROR_END_TAG = "</FIREBASE_FUNCTIONS_MANIFEST_ERROR>";
-
-async function runStdioDiscovery() {
-  try {
-    const stack = await loadStack(functionsDir);
-    const wireFormat = stackToWire(stack);
-    const manifestJson = JSON.stringify(wireFormat);
-    const base64 = Buffer.from(manifestJson).toString("base64");
-    process.stderr.write(`${MANIFEST_START_TAG}\n${base64}\n${MANIFEST_END_TAG}\n`);
-    process.exitCode = 0;
-  } catch (e) {
-    const message = `Failed to generate manifest from function source: ${
-      e instanceof Error ? e.message : String(e)
-    }`;
-    process.stderr.write(`${MANIFEST_ERROR_START_TAG}\n${message}\n${MANIFEST_ERROR_END_TAG}\n`);
-  }
-}
-
 function handleQuitquitquit(req: express.Request, res: express.Response, server: http.Server) {
   res.send("ok");
   server.close();
 }
 
-if (
-  process.env.FUNCTIONS_CONTROL_API === "true" &&
-  process.env.FUNCTIONS_DISCOVERY_MODE === "stdio"
-) {
-  void runStdioDiscovery();
+if (process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH) {
+  void (async () => {
+    try {
+      const stack = await loadStack(functionsDir);
+      const wireFormat = stackToWire(stack);
+      await fs.writeFile(
+        process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH,
+        JSON.stringify(wireFormat, null, 2)
+      );
+      process.exit(0);
+    } catch (e) {
+      console.error(
+        `Failed to generate manifest from function source: ${
+          e instanceof Error ? e.message : String(e)
+        }`
+      );
+      if (e instanceof Error && e.stack) {
+        console.error(e.stack);
+      }
+      process.exit(1);
+    }
+  })();
 } else {
   let server: http.Server = undefined;
   const app = express();
