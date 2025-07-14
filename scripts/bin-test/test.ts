@@ -210,8 +210,11 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
       stderr += chunk.toString("utf8");
     });
 
-    const timeoutId = setTimeout(() => {
-      proc.kill(9);
+    const timeoutId = setTimeout(async () => {
+      if (proc.pid) {
+        proc.kill(9);
+        await new Promise<void>((resolve) => proc.on("exit", resolve));
+      }
       resolve({ success: false, error: `File discovery timed out after ${TIMEOUT_M}ms` });
     }, TIMEOUT_M);
 
