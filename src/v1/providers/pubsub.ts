@@ -60,7 +60,10 @@ export function _topicWithOptions(topic: string, options: DeploymentOptions): To
  */
 export class TopicBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Cloud Pub/Sub message is
@@ -124,7 +127,10 @@ export function _scheduleWithOptions(
  */
 export class ScheduleBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
     this.options.schedule.retryConfig = config;

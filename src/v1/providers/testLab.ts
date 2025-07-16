@@ -48,7 +48,10 @@ export function _testMatrixWithOpts(opts: DeploymentOptions) {
 /** Builder used to create Cloud Functions for Test Lab test matrices events. */
 export class TestMatrixBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /** Handle a TestMatrix that reached a final test state. */
   onComplete(
