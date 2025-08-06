@@ -7,6 +7,7 @@ import { getRuntimeDelegate } from "firebase-tools/lib/deploy/functions/runtimes
 import { detectFromPort } from "firebase-tools/lib/deploy/functions/runtimes/discovery/index.js";
 import setup from "./setup.js";
 import { loadEnv } from "./utils.js";
+import { deployFunctionsWithRetry, postCleanup } from "./deployment-utils.js";
 
 loadEnv();
 
@@ -83,7 +84,18 @@ const env = {
   STORAGE_REGION,
 };
 
-let modifiedYaml: any;
+interface EndpointConfig {
+  project?: string;
+  runtime?: string;
+  [key: string]: unknown;
+}
+
+interface ModifiedYaml {
+  endpoints: Record<string, EndpointConfig>;
+  specVersion: string;
+}
+
+let modifiedYaml: ModifiedYaml | undefined;
 
 function generateUniqueHash(originalName: string): string {
   // Function name can only contain letters, numbers and hyphens and be less than 100 chars.
@@ -108,14 +120,19 @@ async function discoverAndModifyEndpoints() {
     const killServer = await delegate.serveAdmin(port.toString(), {}, env);
 
     console.log("Started on port", port);
-    const originalYaml = await detectFromPort(port, config.projectId, config.runtime, 10000);
+    const originalYaml = (await detectFromPort(
+      port,
+      config.projectId,
+      config.runtime,
+      10000
+    )) as ModifiedYaml;
 
     modifiedYaml = {
       ...originalYaml,
       endpoints: Object.fromEntries(
         Object.entries(originalYaml.endpoints).map(([key, value]) => {
           const modifiedKey = generateUniqueHash(key);
-          const modifiedValue: any = value;
+          const modifiedValue: EndpointConfig = { ...value };
           delete modifiedValue.project;
           delete modifiedValue.runtime;
           return [modifiedKey, modifiedValue];
@@ -145,17 +162,11 @@ function writeFunctionsYaml(filePath: string, data: any): void {
 async function deployModifiedFunctions(): Promise<void> {
   console.log("Deploying functions with id:", TEST_RUN_ID);
   try {
-    const targetNames = ["functions", "database", "firestore"];
-    const options = {
-      targetNames,
-      project: config.projectId,
-      config: "./firebase.json",
-      debug: true,
-      nonInteractive: true,
-      force: true,
-    };
+    // Get the function names that will be deployed
+    const functionNames = modifiedYaml ? Object.keys(modifiedYaml.endpoints) : [];
 
-    await client.deploy(options);
+    // Deploy with rate limiting and retry logic
+    await deployFunctionsWithRetry(client, functionNames);
 
     console.log("Functions have been deployed successfully.");
   } catch (err) {
@@ -229,9 +240,17 @@ const spawnAsync = (command: string, args: string[], options: any): Promise<stri
     const child = spawn(command, args, options);
 
     let output = "";
+    let errorOutput = "";
+
     if (child.stdout) {
       child.stdout.on("data", (data) => {
         output += data.toString();
+      });
+    }
+
+    if (child.stderr) {
+      child.stderr.on("data", (data) => {
+        errorOutput += data.toString();
       });
     }
 
@@ -241,8 +260,20 @@ const spawnAsync = (command: string, args: string[], options: any): Promise<stri
       if (code === 0) {
         resolve(output);
       } else {
-        reject(new Error(`Command failed with exit code ${code}`));
+        const errorMessage = `Command failed with exit code ${code}`;
+        const fullError = errorOutput ? `${errorMessage}\n\nSTDERR:\n${errorOutput}` : errorMessage;
+        reject(new Error(fullError));
       }
+    });
+
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      child.kill();
+      reject(new Error(`Command timed out after 5 minutes: ${command} ${args.join(" ")}`));
+    }, 5 * 60 * 1000); // 5 minutes
+
+    child.on("close", () => {
+      clearTimeout(timeout);
     });
   });
 };
@@ -251,26 +282,32 @@ async function runTests(): Promise<void> {
   const humanReadableRuntime = TEST_RUNTIME === "node" ? "Node.js" : "Python";
   try {
     console.log(`Starting ${humanReadableRuntime} Tests...`);
+    console.log("🔍 About to run: npm test");
+
     const output = await spawnAsync("npm", ["test"], {
       env: {
         ...process.env,
         TEST_RUN_ID,
       },
-      stdio: "inherit",
     });
+
+    console.log("📋 Test output received:");
     console.log(output);
     console.log(`${humanReadableRuntime} Tests Completed.`);
   } catch (error) {
-    console.error("Error during testing:", error);
+    console.error("❌ Error during testing:", error);
     throw error;
   }
 }
 
 async function handleCleanUp(): Promise<void> {
   console.log("Cleaning up...");
-  if (modifiedYaml) {
-    const endpoints = Object.keys(modifiedYaml.endpoints);
-    await removeDeployedFunctions(endpoints);
+  try {
+    // Use our new post-cleanup utility with rate limiting
+    await postCleanup(client, TEST_RUN_ID);
+  } catch (err) {
+    console.error("Error during post-cleanup:", err);
+    // Don't throw here to ensure files are still cleaned
   }
   cleanFiles();
 }
@@ -285,13 +322,17 @@ async function runIntegrationTests(): Promise<void> {
   process.on("SIGINT", gracefulShutdown);
 
   try {
+    // Skip pre-cleanup for now to test if the main flow works
+    console.log("⏭️ Skipping pre-cleanup for testing...");
+
     const killServer = await discoverAndModifyEndpoints();
     await deployModifiedFunctions();
     await killServer();
     await runTests();
   } catch (err) {
-    console.error("Error occurred during integration tests", err);
-    throw new Error("Integration tests failed");
+    console.error("Error occurred during integration tests:", err);
+    // Re-throw the original error instead of wrapping it
+    throw err;
   } finally {
     await handleCleanUp();
   }
