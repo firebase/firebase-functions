@@ -1,6 +1,6 @@
 import setup from "./setup";
-import { loadEnv } from "./utils";
+import * as dotenv from "dotenv";
 
-loadEnv();
+dotenv.config();
 
 setup("node", "local", "18", "^12.0.0");

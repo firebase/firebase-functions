@@ -6,10 +6,10 @@ import client from "firebase-tools";
 import { getRuntimeDelegate } from "firebase-tools/lib/deploy/functions/runtimes/index.js";
 import { detectFromPort } from "firebase-tools/lib/deploy/functions/runtimes/discovery/index.js";
 import setup from "./setup.js";
-import { loadEnv } from "./utils.js";
+import * as dotenv from "dotenv";
 import { deployFunctionsWithRetry, postCleanup } from "./deployment-utils.js";
 
-loadEnv();
+dotenv.config();
 
 let {
   DEBUG,
@@ -49,21 +49,26 @@ if (!["node", "python"].includes(TEST_RUNTIME)) {
   process.exit(1);
 }
 
-if (!FIREBASE_ADMIN && TEST_RUNTIME === "node") {
+// TypeScript type guard to ensure TEST_RUNTIME is the correct type
+const validRuntimes = ["node", "python"] as const;
+type ValidRuntime = (typeof validRuntimes)[number];
+const runtime: ValidRuntime = TEST_RUNTIME as ValidRuntime;
+
+if (!FIREBASE_ADMIN && runtime === "node") {
   FIREBASE_ADMIN = "^12.0.0";
-}
-
-if (!FIREBASE_ADMIN && TEST_RUNTIME === "python") {
+} else if (!FIREBASE_ADMIN && runtime === "python") {
   FIREBASE_ADMIN = "6.5.0";
+} else if (!FIREBASE_ADMIN) {
+  throw new Error("FIREBASE_ADMIN is not set");
 }
 
-setup(TEST_RUNTIME as "node" | "python", TEST_RUN_ID, NODE_VERSION, FIREBASE_ADMIN!);
+setup(runtime, TEST_RUN_ID, NODE_VERSION, FIREBASE_ADMIN);
 
 const config = {
   projectId: PROJECT_ID,
   projectDir: process.cwd(),
   sourceDir: `${process.cwd()}/functions`,
-  runtime: TEST_RUNTIME === "node" ? "nodejs18" : "python311",
+  runtime: runtime === "node" ? "nodejs18" : "python311",
 };
 
 console.log("Firebase config created: ");
@@ -172,28 +177,6 @@ async function deployModifiedFunctions(): Promise<void> {
   } catch (err) {
     console.error("Error deploying functions. Exiting.", err);
     throw err;
-  }
-}
-
-async function removeDeployedFunctions(functionNames: string[]): Promise<void> {
-  console.log("Removing deployed functions...");
-
-  try {
-    const options = {
-      project: config.projectId,
-      config: "./firebase.json",
-      debug: true,
-      nonInteractive: true,
-      force: true,
-    };
-
-    console.log("Removing functions with id:", TEST_RUN_ID);
-    await client.functions.delete(functionNames, options);
-
-    console.log("Deployed functions have been removed.");
-  } catch (err) {
-    console.error("Error removing deployed functions. Exiting.", err);
-    process.exit(1);
   }
 }
 
