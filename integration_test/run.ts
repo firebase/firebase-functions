@@ -299,11 +299,10 @@ async function runTests(): Promise<void> {
   const humanReadableRuntime = TEST_RUNTIME === "node" ? "Node.js" : "Python";
   try {
     logger.info(`Starting ${humanReadableRuntime} Tests...`);
-    logger.info("Running: database test only");
-    logger.info("Test file: integration_test/tests/v2/database.test.ts");
+    logger.info("Running all integration tests");
 
-    // Run only the database test
-    const output = await spawnAsync("npx", ["jest", "--testPathPattern=database.test.ts", "--verbose"], {
+    // Run all tests
+    const output = await spawnAsync("npx", ["jest", "--verbose"], {
       env: {
         ...process.env,
         TEST_RUN_ID,
@@ -315,8 +314,8 @@ async function runTests(): Promise<void> {
     
     // Check if tests passed
     if (output.includes("PASS") && !output.includes("FAIL")) {
-      logger.success("Database tests completed successfully!");
-      logger.success("All database function triggers are working correctly.");
+      logger.success("All tests completed successfully!");
+      logger.success("All function triggers are working correctly.");
     } else {
       logger.warning("Some tests may have failed. Check the output above.");
     }
