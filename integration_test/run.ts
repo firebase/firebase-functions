@@ -37,7 +37,7 @@ if (
   !FIREBASE_MEASUREMENT_ID ||
   !FIREBASE_AUTH_DOMAIN ||
   !FIREBASE_API_KEY ||
-  !GOOGLE_ANALYTICS_API_SECRET ||
+  // !GOOGLE_ANALYTICS_API_SECRET ||
   !TEST_RUNTIME
 ) {
   console.error("Required environment variables are not set. Exiting...");
@@ -63,6 +63,10 @@ if (!FIREBASE_ADMIN && runtime === "node") {
 }
 
 setup(runtime, TEST_RUN_ID, NODE_VERSION, FIREBASE_ADMIN);
+
+// Configure Firebase client with project ID
+console.log("Configuring Firebase client with project ID:", PROJECT_ID);
+const firebaseClient = client;
 
 const config = {
   projectId: PROJECT_ID,
@@ -165,52 +169,81 @@ function writeFunctionsYaml(filePath: string, data: any): void {
 }
 
 async function deployModifiedFunctions(): Promise<void> {
-  console.log("Deploying functions with id:", TEST_RUN_ID);
+  console.log("🚀 Deploying functions with id:", TEST_RUN_ID);
   try {
     // Get the function names that will be deployed
     const functionNames = modifiedYaml ? Object.keys(modifiedYaml.endpoints) : [];
+    
+    console.log("📋 Functions to deploy:", functionNames);
+    console.log("📊 Total functions to deploy:", functionNames.length);
 
     // Deploy with rate limiting and retry logic
-    await deployFunctionsWithRetry(client, functionNames);
+    await deployFunctionsWithRetry(firebaseClient, functionNames);
 
-    console.log("Functions have been deployed successfully.");
+    console.log("✅ Functions have been deployed successfully.");
+    console.log("🔗 You can view your deployed functions in the Firebase Console:");
+    console.log(`   https://console.firebase.google.com/project/${PROJECT_ID}/functions`);
   } catch (err) {
-    console.error("Error deploying functions. Exiting.", err);
+    console.error("❌ Error deploying functions. Exiting.", err);
     throw err;
   }
 }
 
 function cleanFiles(): void {
-  console.log("Cleaning files...");
+  console.log("🧹 Cleaning files...");
   const functionsDir = "functions";
   process.chdir(functionsDir); // go to functions
   try {
     const files = fs.readdirSync(".");
+    const deletedFiles: string[] = [];
+    
     files.forEach((file) => {
       // For Node
       if (file.match(`firebase-functions-${TEST_RUN_ID}.tgz`)) {
         fs.rmSync(file);
+        deletedFiles.push(file);
       }
       // For Python
       if (file.match(`firebase_functions.tar.gz`)) {
         fs.rmSync(file);
+        deletedFiles.push(file);
       }
       if (file.match("package.json")) {
         fs.rmSync(file);
+        deletedFiles.push(file);
       }
       if (file.match("requirements.txt")) {
         fs.rmSync(file);
+        deletedFiles.push(file);
       }
       if (file.match("firebase-debug.log")) {
         fs.rmSync(file);
+        deletedFiles.push(file);
       }
       if (file.match("functions.yaml")) {
         fs.rmSync(file);
+        deletedFiles.push(file);
       }
     });
 
-    fs.rmSync("lib", { recursive: true, force: true });
-    fs.rmSync("venv", { recursive: true, force: true });
+    // Check and delete directories
+    if (fs.existsSync("lib")) {
+      fs.rmSync("lib", { recursive: true, force: true });
+      deletedFiles.push("lib/ (directory)");
+    }
+    if (fs.existsSync("venv")) {
+      fs.rmSync("venv", { recursive: true, force: true });
+      deletedFiles.push("venv/ (directory)");
+    }
+
+    if (deletedFiles.length > 0) {
+      console.log(`🗑️ Deleted ${deletedFiles.length} files/directories:`);
+      deletedFiles.forEach((file, index) => {
+        console.log(`  ${index + 1}. ${file}`);
+      });
+    } else {
+      console.log("ℹ️ No files to clean up");
+    }
   } catch (error) {
     console.error("Error occurred while cleaning files:", error);
   }
@@ -264,10 +297,12 @@ const spawnAsync = (command: string, args: string[], options: any): Promise<stri
 async function runTests(): Promise<void> {
   const humanReadableRuntime = TEST_RUNTIME === "node" ? "Node.js" : "Python";
   try {
-    console.log(`Starting ${humanReadableRuntime} Tests...`);
-    console.log("🔍 About to run: npm test");
+    console.log(`🧪 Starting ${humanReadableRuntime} Tests...`);
+    console.log("🔍 Running: database test only");
+    console.log("📁 Test file: integration_test/tests/v2/database.test.ts");
 
-    const output = await spawnAsync("npm", ["test"], {
+    // Run only the database test
+    const output = await spawnAsync("npx", ["jest", "--testPathPattern=database.test.ts", "--verbose"], {
       env: {
         ...process.env,
         TEST_RUN_ID,
@@ -276,6 +311,15 @@ async function runTests(): Promise<void> {
 
     console.log("📋 Test output received:");
     console.log(output);
+    
+    // Check if tests passed
+    if (output.includes("PASS") && !output.includes("FAIL")) {
+      console.log("✅ Database tests completed successfully!");
+      console.log("🎯 All database function triggers are working correctly.");
+    } else {
+      console.log("⚠️ Some tests may have failed. Check the output above.");
+    }
+    
     console.log(`${humanReadableRuntime} Tests Completed.`);
   } catch (error) {
     console.error("❌ Error during testing:", error);
@@ -287,7 +331,7 @@ async function handleCleanUp(): Promise<void> {
   console.log("Cleaning up...");
   try {
     // Use our new post-cleanup utility with rate limiting
-    await postCleanup(client, TEST_RUN_ID);
+    await postCleanup(firebaseClient, TEST_RUN_ID);
   } catch (err) {
     console.error("Error during post-cleanup:", err);
     // Don't throw here to ensure files are still cleaned

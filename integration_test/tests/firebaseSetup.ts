@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import { logger } from "../src/logger";
 
 /**
  * Initializes Firebase Admin SDK.
@@ -18,7 +19,7 @@ export async function initializeFirebase(): Promise<admin.app.App> {
         projectId: process.env.PROJECT_ID,
       });
     } catch (error) {
-      console.error("Error initializing Firebase:", error);
+      logger.error("Error initializing Firebase:", error);
     }
   }
   return admin.app();
