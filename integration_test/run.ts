@@ -8,6 +8,7 @@ import { detectFromPort } from "firebase-tools/lib/deploy/functions/runtimes/dis
 import setup from "./setup.js";
 import * as dotenv from "dotenv";
 import { deployFunctionsWithRetry, postCleanup } from "./deployment-utils.js";
+import { logger } from "./src/logger.js";
 
 dotenv.config();
 
@@ -40,12 +41,12 @@ if (
   // !GOOGLE_ANALYTICS_API_SECRET ||
   !TEST_RUNTIME
 ) {
-  console.error("Required environment variables are not set. Exiting...");
+  logger.error("Required environment variables are not set. Exiting...");
   process.exit(1);
 }
 
 if (!["node", "python"].includes(TEST_RUNTIME)) {
-  console.error("Invalid TEST_RUNTIME. Must be either 'node' or 'python'. Exiting...");
+  logger.error("Invalid TEST_RUNTIME. Must be either 'node' or 'python'. Exiting...");
   process.exit(1);
 }
 
@@ -65,7 +66,7 @@ if (!FIREBASE_ADMIN && runtime === "node") {
 setup(runtime, TEST_RUN_ID, NODE_VERSION, FIREBASE_ADMIN);
 
 // Configure Firebase client with project ID
-console.log("Configuring Firebase client with project ID:", PROJECT_ID);
+logger.info("Configuring Firebase client with project ID:", PROJECT_ID);
 const firebaseClient = client;
 
 const config = {
@@ -75,8 +76,8 @@ const config = {
   runtime: runtime === "node" ? "nodejs18" : "python311",
 };
 
-console.log("Firebase config created: ");
-console.log(JSON.stringify(config, null, 2));
+logger.debug("Firebase config created: ");
+logger.debug(JSON.stringify(config, null, 2));
 
 const firebaseConfig = {
   databaseURL: DATABASE_URL,
@@ -122,13 +123,13 @@ function generateUniqueHash(originalName: string): string {
  * @returns A promise that resolves with a function to kill the server.
  */
 async function discoverAndModifyEndpoints() {
-  console.log("Discovering endpoints...");
+  logger.info("Discovering endpoints...");
   try {
     const port = await portfinder.getPortPromise({ port: 9000 });
     const delegate = await getRuntimeDelegate(config);
     const killServer = await delegate.serveAdmin(port.toString(), {}, env);
 
-    console.log("Started on port", port);
+    logger.info("Started on port", port);
     const originalYaml = (await detectFromPort(
       port,
       config.projectId,
@@ -154,7 +155,7 @@ async function discoverAndModifyEndpoints() {
 
     return killServer;
   } catch (err) {
-    console.error("Error discovering endpoints. Exiting.", err);
+    logger.error("Error discovering endpoints. Exiting.", err);
     process.exit(1);
   }
 }
@@ -163,34 +164,34 @@ function writeFunctionsYaml(filePath: string, data: any): void {
   try {
     fs.writeFileSync(filePath, yaml.dump(data));
   } catch (err) {
-    console.error("Error writing functions.yaml. Exiting.", err);
+    logger.error("Error writing functions.yaml. Exiting.", err);
     process.exit(1);
   }
 }
 
 async function deployModifiedFunctions(): Promise<void> {
-  console.log("🚀 Deploying functions with id:", TEST_RUN_ID);
+  logger.deployment(`Deploying functions with id: ${TEST_RUN_ID}`);
   try {
     // Get the function names that will be deployed
     const functionNames = modifiedYaml ? Object.keys(modifiedYaml.endpoints) : [];
     
-    console.log("📋 Functions to deploy:", functionNames);
-    console.log("📊 Total functions to deploy:", functionNames.length);
+    logger.deployment("Functions to deploy:", functionNames);
+    logger.deployment(`Total functions to deploy: ${functionNames.length}`);
 
     // Deploy with rate limiting and retry logic
     await deployFunctionsWithRetry(firebaseClient, functionNames);
 
-    console.log("✅ Functions have been deployed successfully.");
-    console.log("🔗 You can view your deployed functions in the Firebase Console:");
-    console.log(`   https://console.firebase.google.com/project/${PROJECT_ID}/functions`);
+    logger.success("Functions have been deployed successfully.");
+    logger.info("You can view your deployed functions in the Firebase Console:");
+    logger.info(`   https://console.firebase.google.com/project/${PROJECT_ID}/functions`);
   } catch (err) {
-    console.error("❌ Error deploying functions. Exiting.", err);
+    logger.error("Error deploying functions. Exiting.", err);
     throw err;
   }
 }
 
 function cleanFiles(): void {
-  console.log("🧹 Cleaning files...");
+  logger.cleanup("Cleaning files...");
   const functionsDir = "functions";
   process.chdir(functionsDir); // go to functions
   try {
@@ -237,15 +238,15 @@ function cleanFiles(): void {
     }
 
     if (deletedFiles.length > 0) {
-      console.log(`🗑️ Deleted ${deletedFiles.length} files/directories:`);
+      logger.cleanup(`Deleted ${deletedFiles.length} files/directories:`);
       deletedFiles.forEach((file, index) => {
-        console.log(`  ${index + 1}. ${file}`);
+        logger.debug(`  ${index + 1}. ${file}`);
       });
     } else {
-      console.log("ℹ️ No files to clean up");
+      logger.info("No files to clean up");
     }
   } catch (error) {
-    console.error("Error occurred while cleaning files:", error);
+    logger.error("Error occurred while cleaning files:", error);
   }
 
   process.chdir("../"); // go back to integration_test
@@ -297,9 +298,9 @@ const spawnAsync = (command: string, args: string[], options: any): Promise<stri
 async function runTests(): Promise<void> {
   const humanReadableRuntime = TEST_RUNTIME === "node" ? "Node.js" : "Python";
   try {
-    console.log(`🧪 Starting ${humanReadableRuntime} Tests...`);
-    console.log("🔍 Running: database test only");
-    console.log("📁 Test file: integration_test/tests/v2/database.test.ts");
+    logger.info(`Starting ${humanReadableRuntime} Tests...`);
+    logger.info("Running: database test only");
+    logger.info("Test file: integration_test/tests/v2/database.test.ts");
 
     // Run only the database test
     const output = await spawnAsync("npx", ["jest", "--testPathPattern=database.test.ts", "--verbose"], {
@@ -309,38 +310,38 @@ async function runTests(): Promise<void> {
       },
     });
 
-    console.log("📋 Test output received:");
-    console.log(output);
+    logger.info("Test output received:");
+    logger.debug(output);
     
     // Check if tests passed
     if (output.includes("PASS") && !output.includes("FAIL")) {
-      console.log("✅ Database tests completed successfully!");
-      console.log("🎯 All database function triggers are working correctly.");
+      logger.success("Database tests completed successfully!");
+      logger.success("All database function triggers are working correctly.");
     } else {
-      console.log("⚠️ Some tests may have failed. Check the output above.");
+      logger.warning("Some tests may have failed. Check the output above.");
     }
     
-    console.log(`${humanReadableRuntime} Tests Completed.`);
+    logger.info(`${humanReadableRuntime} Tests Completed.`);
   } catch (error) {
-    console.error("❌ Error during testing:", error);
+    logger.error("Error during testing:", error);
     throw error;
   }
 }
 
 async function handleCleanUp(): Promise<void> {
-  console.log("Cleaning up...");
+  logger.cleanup("Cleaning up...");
   try {
     // Use our new post-cleanup utility with rate limiting
     await postCleanup(firebaseClient, TEST_RUN_ID);
   } catch (err) {
-    console.error("Error during post-cleanup:", err);
+    logger.error("Error during post-cleanup:", err);
     // Don't throw here to ensure files are still cleaned
   }
   cleanFiles();
 }
 
 async function gracefulShutdown(): Promise<void> {
-  console.log("SIGINT received...");
+  logger.info("SIGINT received...");
   await handleCleanUp();
   process.exit(1);
 }
@@ -350,14 +351,14 @@ async function runIntegrationTests(): Promise<void> {
 
   try {
     // Skip pre-cleanup for now to test if the main flow works
-    console.log("⏭️ Skipping pre-cleanup for testing...");
+    logger.info("Skipping pre-cleanup for testing...");
 
     const killServer = await discoverAndModifyEndpoints();
     await deployModifiedFunctions();
     await killServer();
     await runTests();
   } catch (err) {
-    console.error("Error occurred during integration tests:", err);
+    logger.error("Error occurred during integration tests:", err);
     // Re-throw the original error instead of wrapping it
     throw err;
   } finally {
@@ -367,10 +368,10 @@ async function runIntegrationTests(): Promise<void> {
 
 runIntegrationTests()
   .then(() => {
-    console.log("Integration tests completed");
+    logger.success("Integration tests completed");
     process.exit(0);
   })
   .catch((error) => {
-    console.error("An error occurred during integration tests", error);
+    logger.error("An error occurred during integration tests", error);
     process.exit(1);
   });
