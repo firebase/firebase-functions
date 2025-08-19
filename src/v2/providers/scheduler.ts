@@ -61,22 +61,18 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
       opts: {} as options.GlobalOptions,
     };
   }
-  const retryConfig: any = {
-    retryCount: args.retryCount,
-    maxRetrySeconds: args.maxRetrySeconds,
-    minBackoffSeconds: args.minBackoffSeconds,
-    maxBackoffSeconds: args.maxBackoffSeconds,
-    maxDoublings: args.maxDoublings,
-  };
   
-  if (args.attemptDeadline !== undefined) {
-    retryConfig.attemptDeadline = args.attemptDeadline;
-  }
-
   return {
     schedule: args.schedule,
     timeZone: args.timeZone,
-    retryConfig,
+    retryConfig: {
+      retryCount: args.retryCount,
+      maxRetrySeconds: args.maxRetrySeconds,
+      minBackoffSeconds: args.minBackoffSeconds,
+      maxBackoffSeconds: args.maxBackoffSeconds,
+      maxDoublings: args.maxDoublings,
+      attemptDeadline: args.attemptDeadline,
+    },
     opts: args as options.GlobalOptions,
   };
 }

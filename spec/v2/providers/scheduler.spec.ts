@@ -60,6 +60,7 @@ describe("schedule", () => {
         minBackoffSeconds: 2,
         maxBackoffSeconds: 3,
         maxDoublings: 4,
+        attemptDeadline: "120s",
         memory: "128MiB",
         region: "us-central1",
       };
@@ -73,6 +74,7 @@ describe("schedule", () => {
           minBackoffSeconds: 2,
           maxBackoffSeconds: 3,
           maxDoublings: 4,
+          attemptDeadline: "120s",
         },
         opts: {
           ...options,
@@ -128,6 +130,7 @@ describe("schedule", () => {
           minBackoffSeconds: 11,
           maxBackoffSeconds: 12,
           maxDoublings: 2,
+          attemptDeadline: "120s",
           region: "us-central1",
           labels: { key: "val" },
         },
@@ -148,7 +151,7 @@ describe("schedule", () => {
             minBackoffSeconds: 11,
             maxBackoffSeconds: 12,
             maxDoublings: 2,
-            attemptDeadline: options.RESET_VALUE,
+            attemptDeadline: "120s",
           },
         },
       });
@@ -181,6 +184,7 @@ describe("schedule", () => {
             minBackoffSeconds: undefined,
             maxBackoffSeconds: undefined,
             maxDoublings: undefined,
+            attemptDeadline: undefined,
           },
         },
       });
