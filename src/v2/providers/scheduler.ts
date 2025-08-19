@@ -48,6 +48,7 @@ interface SeparatedOpts {
     minBackoffSeconds?: number | Expression<number> | ResetValue;
     maxBackoffSeconds?: number | Expression<number> | ResetValue;
     maxDoublings?: number | Expression<number> | ResetValue;
+    attemptDeadline?: string | Expression<string> | ResetValue;
   };
   opts: options.GlobalOptions;
 }
@@ -60,16 +61,22 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
       opts: {} as options.GlobalOptions,
     };
   }
+  const retryConfig: any = {
+    retryCount: args.retryCount,
+    maxRetrySeconds: args.maxRetrySeconds,
+    minBackoffSeconds: args.minBackoffSeconds,
+    maxBackoffSeconds: args.maxBackoffSeconds,
+    maxDoublings: args.maxDoublings,
+  };
+  
+  if (args.attemptDeadline !== undefined) {
+    retryConfig.attemptDeadline = args.attemptDeadline;
+  }
+
   return {
     schedule: args.schedule,
     timeZone: args.timeZone,
-    retryConfig: {
-      retryCount: args.retryCount,
-      maxRetrySeconds: args.maxRetrySeconds,
-      minBackoffSeconds: args.minBackoffSeconds,
-      maxBackoffSeconds: args.maxBackoffSeconds,
-      maxDoublings: args.maxDoublings,
-    },
+    retryConfig,
     opts: args as options.GlobalOptions,
   };
 }
@@ -125,6 +132,12 @@ export interface ScheduleOptions extends options.GlobalOptions {
 
   /** The time between will double max doublings times. */
   maxDoublings?: number | Expression<number> | ResetValue;
+
+  /**
+   * The deadline for each job attempt, specified as a duration string (e.g. "600s").
+   * See: https://cloud.google.com/scheduler/docs/reference/rest/v1/projects.locations.jobs#Job
+   */
+  attemptDeadline?: string | Expression<string> | ResetValue;
 }
 
 /**
@@ -204,7 +217,8 @@ export function onSchedule(
     "maxRetrySeconds",
     "minBackoffSeconds",
     "maxBackoffSeconds",
-    "maxDoublings"
+    "maxDoublings",
+    "attemptDeadline"
   );
   func.__endpoint = ep;
 

@@ -212,6 +212,7 @@ describe("makeCloudFunction", () => {
           maxDoublings: RESET_VALUE,
           maxRetryDuration: RESET_VALUE,
           minBackoffDuration: RESET_VALUE,
+          attemptDeadline: RESET_VALUE,
         },
       },
       labels: {},
