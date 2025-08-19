@@ -107,6 +107,7 @@ export interface ManifestEndpoint {
       maxRetryDuration?: string | Expression<string> | ResetValue;
       minBackoffDuration?: string | Expression<string> | ResetValue;
       maxBackoffDuration?: string | Expression<string> | ResetValue;
+      attemptDeadline?: string | Expression<string> | ResetValue;
     };
   };
 
@@ -254,6 +255,7 @@ const RESETTABLE_V1_SCHEDULE_OPTIONS: Omit<
   maxRetryDuration: null,
   maxBackoffDuration: null,
   minBackoffDuration: null,
+  attemptDeadline: null,
 };
 
 const RESETTABLE_V2_SCHEDULE_OPTIONS: Omit<
@@ -265,6 +267,7 @@ const RESETTABLE_V2_SCHEDULE_OPTIONS: Omit<
   maxRetrySeconds: null,
   minBackoffSeconds: null,
   maxBackoffSeconds: null,
+  attemptDeadline: null,
 };
 
 function initScheduleTrigger(

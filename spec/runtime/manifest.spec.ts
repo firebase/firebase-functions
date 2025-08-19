@@ -265,6 +265,7 @@ describe("initScheduleTrigger", () => {
         maxRetryDuration: RESET_VALUE,
         minBackoffDuration: RESET_VALUE,
         maxBackoffDuration: RESET_VALUE,
+        attemptDeadline: RESET_VALUE,
       },
     });
   });
@@ -292,6 +293,7 @@ describe("initScheduleTrigger", () => {
         maxRetrySeconds: RESET_VALUE,
         minBackoffSeconds: RESET_VALUE,
         maxBackoffSeconds: RESET_VALUE,
+        attemptDeadline: RESET_VALUE,
       },
     });
   });

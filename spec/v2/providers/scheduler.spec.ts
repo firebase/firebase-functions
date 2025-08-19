@@ -38,6 +38,7 @@ const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
     minBackoffSeconds: options.RESET_VALUE,
     maxBackoffSeconds: options.RESET_VALUE,
     maxDoublings: options.RESET_VALUE,
+    attemptDeadline: options.RESET_VALUE,
   },
 };
 
@@ -103,6 +104,20 @@ describe("schedule", () => {
       ]);
     });
 
+    it("should create a schedule function with attemptDeadline", () => {
+      const schfn = schedule.onSchedule(
+        {
+          schedule: "* * * * *",
+          attemptDeadline: "320s",
+        },
+        () => undefined
+      );
+
+      expect(schfn.__endpoint.scheduleTrigger?.retryConfig?.attemptDeadline).to.equal(
+        "320s"
+      );
+    });
+
     it("should create a schedule function given options", () => {
       const schfn = schedule.onSchedule(
         {
@@ -133,6 +148,7 @@ describe("schedule", () => {
             minBackoffSeconds: 11,
             maxBackoffSeconds: 12,
             maxDoublings: 2,
+            attemptDeadline: options.RESET_VALUE,
           },
         },
       });

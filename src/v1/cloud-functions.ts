@@ -487,7 +487,8 @@ export function makeCloudFunction<EventData>({
           "maxDoublings",
           "maxBackoffDuration",
           "maxRetryDuration",
-          "minBackoffDuration"
+          "minBackoffDuration",
+          "attemptDeadline"
         );
       } else {
         endpoint.eventTrigger = {
