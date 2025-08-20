@@ -1,113 +1,121 @@
-// import { PubSub } from "@google-cloud/pubsub";
-// import * as admin from "firebase-admin";
-// import { initializeFirebase } from "../firebaseSetup";
-// import { retry } from "../utils";
+import { PubSub } from "@google-cloud/pubsub";
+import * as admin from "firebase-admin";
+import { initializeFirebase } from "../firebaseSetup";
+import { retry } from "../utils";
 
-// describe("Pub/Sub (v1)", () => {
-//   const projectId = process.env.PROJECT_ID;
-//   const testId = process.env.TEST_RUN_ID;
-//   const region = process.env.REGION;
-//   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-//   const topicName = `firebase-schedule-${testId}-v1-pubsubScheduleTests-${region}`;
+describe("Pub/Sub (v1)", () => {
+  const projectId = process.env.PROJECT_ID;
+  const testId = process.env.TEST_RUN_ID;
+  const region = process.env.REGION;
+  const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  const topicName = `firebase-schedule-${testId}-v1-pubsubScheduleTests-${region}`;
 
-//   if (!testId || !projectId || !region || !serviceAccountPath) {
-//     throw new Error("Environment configured incorrectly.");
-//   }
+  if (!testId || !projectId || !region) {
+    throw new Error("Environment configured incorrectly.");
+  }
 
-//   beforeAll(async () => {
-//     await initializeFirebase();
-//   });
+  if (!serviceAccountPath) {
+    console.warn("GOOGLE_APPLICATION_CREDENTIALS not set, skipping Pub/Sub tests");
+    describe.skip("Pub/Sub (v1)", () => {
+      it("skipped due to missing credentials", () => {});
+    });
+    return;
+  }
 
-//   afterAll(async () => {
-//     await admin.firestore().collection("pubsubOnPublishTests").doc(testId).delete();
-//     await admin.firestore().collection("pubsubScheduleTests").doc(topicName).delete();
-//   });
+  beforeAll(async () => {
+    await initializeFirebase();
+  });
 
-//   describe("onPublish trigger", () => {
-//     let loggedContext: admin.firestore.DocumentData | undefined;
+  afterAll(async () => {
+    await admin.firestore().collection("pubsubOnPublishTests").doc(testId).delete();
+    await admin.firestore().collection("pubsubScheduleTests").doc(topicName).delete();
+  });
 
-//     beforeAll(async () => {
-//       const serviceAccount = await import(serviceAccountPath);
-//       const topic = new PubSub({
-//         credentials: serviceAccount.default,
-//         projectId,
-//       }).topic("pubsubTests");
+  describe("onPublish trigger", () => {
+    let loggedContext: admin.firestore.DocumentData | undefined;
 
-//       await topic.publish(Buffer.from(JSON.stringify({ testId })));
+    beforeAll(async () => {
+      const serviceAccount = await import(serviceAccountPath);
+      const topic = new PubSub({
+        credentials: serviceAccount.default,
+        projectId,
+      }).topic("pubsubTests");
 
-//       loggedContext = await retry(() =>
-//         admin
-//           .firestore()
-//           .collection("pubsubOnPublishTests")
-//           .doc(testId)
-//           .get()
-//           .then((logSnapshot) => logSnapshot.data())
-//       );
-//     });
+      await topic.publish(Buffer.from(JSON.stringify({ testId })));
 
-//     it("should have a topic as resource", () => {
-//       expect(loggedContext?.resource.name).toEqual(
-//         `projects/${process.env.PROJECT_ID}/topics/pubsubTests`
-//       );
-//     });
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("pubsubOnPublishTests")
+          .doc(testId)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
+    });
 
-//     it("should not have a path", () => {
-//       expect(loggedContext?.path).toBeUndefined();
-//     });
+    it("should have a topic as resource", () => {
+      expect(loggedContext?.resource.name).toEqual(
+        `projects/${process.env.PROJECT_ID}/topics/pubsubTests`
+      );
+    });
 
-//     it("should have the correct eventType", () => {
-//       expect(loggedContext?.eventType).toEqual("google.pubsub.topic.publish");
-//     });
+    it("should not have a path", () => {
+      expect(loggedContext?.path).toBeUndefined();
+    });
 
-//     it("should have an eventId", () => {
-//       expect(loggedContext?.eventId).toBeDefined();
-//     });
+    it("should have the correct eventType", () => {
+      expect(loggedContext?.eventType).toEqual("google.pubsub.topic.publish");
+    });
 
-//     it("should have timestamp", () => {
-//       expect(loggedContext?.timestamp).toBeDefined();
-//     });
+    it("should have an eventId", () => {
+      expect(loggedContext?.eventId).toBeDefined();
+    });
 
-//     it("should not have action", () => {
-//       expect(loggedContext?.action).toBeUndefined();
-//     });
+    it("should have timestamp", () => {
+      expect(loggedContext?.timestamp).toBeDefined();
+    });
 
-//     it("should have admin auth", () => {
-//       expect(loggedContext?.auth).toBeUndefined();
-//     });
+    it("should not have action", () => {
+      expect(loggedContext?.action).toBeUndefined();
+    });
 
-//     it("should have pubsub data", () => {
-//       const decodedMessage = JSON.parse(loggedContext?.message);
-//       const decoded = new Buffer(decodedMessage.data, "base64").toString();
-//       const parsed = JSON.parse(decoded);
-//       expect(parsed.testId).toEqual(testId);
-//     });
-//   });
+    it("should have admin auth", () => {
+      expect(loggedContext?.auth).toBeUndefined();
+    });
 
-//   describe("schedule trigger", () => {
-//     let loggedContext: admin.firestore.DocumentData | undefined;
+    it("should have pubsub data", () => {
+      const decodedMessage = JSON.parse(loggedContext?.message);
+      const decoded = new Buffer(decodedMessage.data, "base64").toString();
+      const parsed = JSON.parse(decoded);
+      expect(parsed.testId).toEqual(testId);
+    });
+  });
 
-//     beforeAll(async () => {
-//       const pubsub = new PubSub();
+  describe("schedule trigger", () => {
+    let loggedContext: admin.firestore.DocumentData | undefined;
 
-//       const message = Buffer.from(JSON.stringify({ testId }));
+    beforeAll(async () => {
+      const pubsub = new PubSub();
 
-//       await pubsub.topic(topicName).publish(message);
+      const message = Buffer.from(JSON.stringify({ testId }));
 
-//       loggedContext = await retry(() =>
-//         admin
-//           .firestore()
-//           .collection("pubsubScheduleTests")
-//           .doc(topicName)
-//           .get()
-//           .then((logSnapshot) => logSnapshot.data())
-//       );
-//       if (!loggedContext) {
-//         throw new Error("loggedContext is undefined");
-//       }
-//     });
+      await pubsub.topic(topicName).publish(message);
 
-//     it("should have been called", () => {
-//       expect(loggedContext).toBeDefined();
-//     });
-//   });
-// });
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("pubsubScheduleTests")
+          .doc(topicName)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
+      );
+      if (!loggedContext) {
+        throw new Error("loggedContext is undefined");
+      }
+    });
+
+    it("should have been called", () => {
+      expect(loggedContext).toBeDefined();
+    });
+  });
+});
