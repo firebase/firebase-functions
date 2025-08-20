@@ -206,13 +206,13 @@ describe("makeCloudFunction", () => {
       platform: "gcfv1",
       scheduleTrigger: {
         ...schedule,
+        attemptDeadline: RESET_VALUE,
         retryConfig: {
           ...schedule.retryConfig,
           maxBackoffDuration: RESET_VALUE,
           maxDoublings: RESET_VALUE,
           maxRetryDuration: RESET_VALUE,
           minBackoffDuration: RESET_VALUE,
-          attemptDeadline: RESET_VALUE,
         },
       },
       labels: {},

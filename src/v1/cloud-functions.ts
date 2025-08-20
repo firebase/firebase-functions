@@ -488,7 +488,6 @@ export function makeCloudFunction<EventData>({
           "maxBackoffDuration",
           "maxRetryDuration",
           "minBackoffDuration",
-          "attemptDeadline"
         );
       } else {
         endpoint.eventTrigger = {

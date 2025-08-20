@@ -217,7 +217,6 @@ describe("Pubsub Functions", () => {
           schedule: "every 5 minutes",
           retryConfig: {
             ...retryConfig,
-            attemptDeadline: RESET_VALUE,
           },
         });
         expect(result.__endpoint.labels).to.be.empty;
@@ -254,7 +253,6 @@ describe("Pubsub Functions", () => {
             schedule: "every 5 minutes",
             retryConfig: {
               ...retryConfig,
-              attemptDeadline: RESET_VALUE,
             },
             timeZone: "America/New_York",
           });
@@ -349,7 +347,6 @@ describe("Pubsub Functions", () => {
           timeZone: RESET_VALUE,
           retryConfig: {
             ...retryConfig,
-            attemptDeadline: RESET_VALUE,
           },
         });
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);
@@ -393,7 +390,6 @@ describe("Pubsub Functions", () => {
           timeZone: "America/New_York",
           retryConfig: {
             ...retryConfig,
-            attemptDeadline: RESET_VALUE,
           },
         });
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);

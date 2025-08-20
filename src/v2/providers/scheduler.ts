@@ -48,8 +48,8 @@ interface SeparatedOpts {
     minBackoffSeconds?: number | Expression<number> | ResetValue;
     maxBackoffSeconds?: number | Expression<number> | ResetValue;
     maxDoublings?: number | Expression<number> | ResetValue;
-    attemptDeadline?: string | Expression<string> | ResetValue;
   };
+  attemptDeadline?: string | Expression<string> | ResetValue;
   opts: options.GlobalOptions;
 }
 
@@ -71,8 +71,8 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
       minBackoffSeconds: args.minBackoffSeconds,
       maxBackoffSeconds: args.maxBackoffSeconds,
       maxDoublings: args.maxDoublings,
-      attemptDeadline: args.attemptDeadline,
     },
+    attemptDeadline: args.attemptDeadline,
     opts: args as options.GlobalOptions,
   };
 }
@@ -206,6 +206,7 @@ export function onSchedule(
   };
 
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
+  copyIfPresent(ep.scheduleTrigger, separatedOpts, "attemptDeadline");
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
     separatedOpts.retryConfig,
@@ -214,7 +215,6 @@ export function onSchedule(
     "minBackoffSeconds",
     "maxBackoffSeconds",
     "maxDoublings",
-    "attemptDeadline"
   );
   func.__endpoint = ep;
 

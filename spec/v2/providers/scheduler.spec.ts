@@ -38,8 +38,8 @@ const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
     minBackoffSeconds: options.RESET_VALUE,
     maxBackoffSeconds: options.RESET_VALUE,
     maxDoublings: options.RESET_VALUE,
-    attemptDeadline: options.RESET_VALUE,
   },
+  attemptDeadline: options.RESET_VALUE,
 };
 
 describe("schedule", () => {
@@ -74,8 +74,8 @@ describe("schedule", () => {
           minBackoffSeconds: 2,
           maxBackoffSeconds: 3,
           maxDoublings: 4,
-          attemptDeadline: "120s",
         },
+        attemptDeadline: "120s",
         opts: {
           ...options,
           memory: "128MiB",
@@ -115,7 +115,7 @@ describe("schedule", () => {
         () => undefined
       );
 
-      expect(schfn.__endpoint.scheduleTrigger?.retryConfig?.attemptDeadline).to.equal(
+      expect(schfn.__endpoint.scheduleTrigger?.attemptDeadline).to.equal(
         "320s"
       );
     });
@@ -151,8 +151,8 @@ describe("schedule", () => {
             minBackoffSeconds: 11,
             maxBackoffSeconds: 12,
             maxDoublings: 2,
-            attemptDeadline: "120s",
           },
+          attemptDeadline: "120s",
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
@@ -178,13 +178,13 @@ describe("schedule", () => {
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: undefined,
+          attemptDeadline: undefined,
           retryConfig: {
             retryCount: undefined,
             maxRetrySeconds: undefined,
             minBackoffSeconds: undefined,
             maxBackoffSeconds: undefined,
             maxDoublings: undefined,
-            attemptDeadline: undefined,
           },
         },
       });
