@@ -24,6 +24,8 @@
 
 import * as http from "http";
 import * as express from "express";
+import * as fs from "fs/promises";
+import * as path from "path";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";
 
@@ -49,34 +51,80 @@ if (args.length > 1) {
   functionsDir = args[0];
 }
 
-let server: http.Server = undefined;
-const app = express();
-
-function handleQuitquitquit(req: express.Request, res: express.Response) {
+function handleQuitquitquit(req: express.Request, res: express.Response, server: http.Server) {
   res.send("ok");
   server.close();
 }
 
-app.get("/__/quitquitquit", handleQuitquitquit);
-app.post("/__/quitquitquit", handleQuitquitquit);
-
-if (process.env.FUNCTIONS_CONTROL_API === "true") {
-  app.get("/__/functions.yaml", async (req, res) => {
+if (process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH) {
+  void (async () => {
+    const outputPath = process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH;
     try {
+      // Validate the output path
+      const dir = path.dirname(outputPath);
+      try {
+        await fs.access(dir, fs.constants.W_OK);
+      } catch (e) {
+        console.error(
+          `Error: Cannot write to directory '${dir}': ${e instanceof Error ? e.message : String(e)}`
+        );
+        console.error("Please ensure the directory exists and you have write permissions.");
+        process.exit(1);
+      }
+
       const stack = await loadStack(functionsDir);
-      res.setHeader("content-type", "text/yaml");
-      res.send(JSON.stringify(stackToWire(stack)));
-    } catch (e) {
-      console.error(e);
-      res.status(400).send(`Failed to generate manifest from function source: ${e}`);
+      const wireFormat = stackToWire(stack);
+      await fs.writeFile(outputPath, JSON.stringify(wireFormat, null, 2));
+      process.exit(0);
+    } catch (e: any) {
+      if (e.code === "ENOENT") {
+        console.error(`Error: Directory '${path.dirname(outputPath)}' does not exist.`);
+        console.error("Please create the directory or specify a valid path.");
+      } else if (e.code === "EACCES") {
+        console.error(`Error: Permission denied writing to '${outputPath}'.`);
+        console.error("Please check file permissions or choose a different location.");
+      } else if (e.message?.includes("Failed to generate manifest")) {
+        console.error(e.message);
+      } else {
+        console.error(
+          `Failed to generate manifest from function source: ${
+            e instanceof Error ? e.message : String(e)
+          }`
+        );
+      }
+      if (e instanceof Error && e.stack) {
+        console.error(e.stack);
+      }
+      process.exit(1);
     }
-  });
-}
+  })();
+} else {
+  let server: http.Server = undefined;
+  const app = express();
 
-let port = 8080;
-if (process.env.PORT) {
-  port = Number.parseInt(process.env.PORT);
-}
+  app.get("/__/quitquitquit", (req, res) => handleQuitquitquit(req, res, server));
+  app.post("/__/quitquitquit", (req, res) => handleQuitquitquit(req, res, server));
 
-console.log("Serving at port", port);
-server = app.listen(port);
+  if (process.env.FUNCTIONS_CONTROL_API === "true") {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    app.get("/__/functions.yaml", async (req, res) => {
+      try {
+        const stack = await loadStack(functionsDir);
+        res.setHeader("content-type", "text/yaml");
+        res.send(JSON.stringify(stackToWire(stack)));
+      } catch (e) {
+        console.error(e);
+        const errorMessage = e instanceof Error ? e.message : String(e);
+        res.status(400).send(`Failed to generate manifest from function source: ${errorMessage}`);
+      }
+    });
+  }
+
+  let port = 8080;
+  if (process.env.PORT) {
+    port = Number.parseInt(process.env.PORT);
+  }
+
+  console.log("Serving at port", port);
+  server = app.listen(port);
+}

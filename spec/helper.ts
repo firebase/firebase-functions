@@ -78,9 +78,7 @@ export function runHandler(
 
         const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
         const body =
-          typeof this.sentBody === "undefined"
-            ? toSend
-            : this.sentBody + String(toSend || "");
+          typeof this.sentBody === "undefined" ? toSend : this.sentBody + String(toSend || "");
         this.end(body);
       }
 

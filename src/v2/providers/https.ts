@@ -72,7 +72,13 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
    * If this is an `Array`, allows requests from domains matching at least one entry of the array.
    * Defaults to true for {@link https.CallableFunction} and false otherwise.
    */
-  cors?: string | boolean | RegExp | Array<string | RegExp>;
+  cors?:
+    | string
+    | Expression<string>
+    | Expression<string[]>
+    | boolean
+    | RegExp
+    | Array<string | RegExp>;
 
   /**
    * Amount of memory to allocate to a function.
@@ -210,15 +216,19 @@ export interface CallableOptions<T = any> extends HttpsOptions {
   heartbeatSeconds?: number | null;
 
   /**
-   * Callback for whether a request is authorized.
+   * (Deprecated) Callback for whether a request is authorized.
    *
    * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
    * isSignedIn and hasClaim.
+   *
+   * @deprecated
    */
   authPolicy?: (auth: AuthData | null, data: T) => boolean | Promise<boolean>;
 }
 
 /**
+ * @deprecated
+ *
  * An auth policy that requires a user to be signed in.
  */
 export const isSignedIn =
@@ -227,6 +237,8 @@ export const isSignedIn =
     !!auth;
 
 /**
+ * @deprecated
+ *
  * An auth policy that requires a user to be both signed in and have a specific claim (optionally with a specific value)
  */
 export const hasClaim =
@@ -308,7 +320,7 @@ export function onRequest(
   }
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors;
+    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
     if (isDebugFeatureEnabled("enableCors")) {
       // Respect `cors: false` to turn off cors even if debug feature is enabled.
       origin = opts.cors === false ? false : true;
@@ -418,7 +430,18 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     opts = optsOrHandler as CallableOptions;
   }
 
-  let origin = isDebugFeatureEnabled("enableCors") ? true : "cors" in opts ? opts.cors : true;
+  let cors: string | boolean | RegExp | Array<string | RegExp> | undefined;
+  if ("cors" in opts) {
+    if (opts.cors instanceof Expression) {
+      cors = opts.cors.value();
+    } else {
+      cors = opts.cors;
+    }
+  } else {
+    cors = true;
+  }
+
+  let origin = isDebugFeatureEnabled("enableCors") ? true : cors;
   // Arrays cause the access-control-allow-origin header to be dynamic based
   // on the origin header of the request. If there is only one element in the
   // array, this is unnecessary.
