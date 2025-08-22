@@ -48,8 +48,8 @@ async function loadModule(functionsDir: string) {
   try {
     return require(path.resolve(absolutePath));
   } catch (e) {
-    if (e.code === "ERR_REQUIRE_ESM") {
-      // This is an ESM package!
+    if (e.code === "ERR_REQUIRE_ESM" || e.code === "ERR_REQUIRE_ASYNC_MODULE") {
+      // This is an ESM package, or one containing top-level awaits!
       const modulePath = require.resolve(absolutePath);
       // Resolve module path to file:// URL. Required for windows support.
       const moduleURL = url.pathToFileURL(modulePath).href;

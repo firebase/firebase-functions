@@ -27,17 +27,18 @@
 
 import * as cors from "cors";
 import * as express from "express";
-import { convertIfPresent, convertInvoker } from "../../common/encoding";
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
   CallableRequest,
-  CallableProxyResponse,
+  CallableResponse,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
+  AuthData,
 } from "../../common/providers/https";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
@@ -45,8 +46,9 @@ import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
+import * as logger from "../../logger";
 
-export { Request, CallableRequest, FunctionsErrorCode, HttpsError };
+export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
@@ -70,7 +72,13 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
    * If this is an `Array`, allows requests from domains matching at least one entry of the array.
    * Defaults to true for {@link https.CallableFunction} and false otherwise.
    */
-  cors?: string | boolean | RegExp | Array<string | RegExp>;
+  cors?:
+    | string
+    | Expression<string>
+    | Expression<string[]>
+    | boolean
+    | RegExp
+    | Array<string | RegExp>;
 
   /**
    * Amount of memory to allocate to a function.
@@ -85,7 +93,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -166,7 +174,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
 /**
  * Options that can be set on a callable HTTPS function.
  */
-export interface CallableOptions extends HttpsOptions {
+export interface CallableOptions<T = any> extends HttpsOptions {
   /**
    * Determines whether Firebase AppCheck is enforced.
    * When true, requests with invalid tokens autorespond with a 401
@@ -198,7 +206,52 @@ export interface CallableOptions extends HttpsOptions {
    * further decisions, such as requiring additional security checks or rejecting the request.
    */
   consumeAppCheckToken?: boolean;
+
+  /**
+   * Time in seconds between sending heartbeat messages to keep the connection
+   * alive. Set to `null` to disable heartbeats.
+   *
+   * Defaults to 30 seconds.
+   */
+  heartbeatSeconds?: number | null;
+
+  /**
+   * (Deprecated) Callback for whether a request is authorized.
+   *
+   * Designed to allow reusable auth policies to be passed as an options object. Two built-in reusable policies exist:
+   * isSignedIn and hasClaim.
+   *
+   * @deprecated
+   */
+  authPolicy?: (auth: AuthData | null, data: T) => boolean | Promise<boolean>;
 }
+
+/**
+ * @deprecated
+ *
+ * An auth policy that requires a user to be signed in.
+ */
+export const isSignedIn =
+  () =>
+  (auth: AuthData | null): boolean =>
+    !!auth;
+
+/**
+ * @deprecated
+ *
+ * An auth policy that requires a user to be both signed in and have a specific claim (optionally with a specific value)
+ */
+export const hasClaim =
+  (claim: string, value?: string) =>
+  (auth: AuthData | null): boolean => {
+    if (!auth) {
+      return false;
+    }
+    if (!(claim in auth.token)) {
+      return false;
+    }
+    return !value || auth.token[claim] === value;
+  };
 
 /**
  * Handles HTTPS requests.
@@ -218,13 +271,19 @@ export type HttpsFunction = ((
 /**
  * Creates a callable method for clients to call using a Firebase SDK.
  */
-export interface CallableFunction<T, Return> extends HttpsFunction {
+export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunction {
   /** Executes the handler function with the provided data as input. Used for unit testing.
    * @param data - An input for the handler function.
    * @returns The output of the handler function.
    */
-  run(data: CallableRequest<T>): Return;
+  run(request: CallableRequest<T>): Return;
+
+  stream(
+    request: CallableRequest<T>,
+    response: CallableResponse<Stream>
+  ): { stream: AsyncIterable<Stream>; output: Return };
 }
+
 /**
  * Handles HTTPS requests.
  * @param opts - Options to set on this function
@@ -261,7 +320,7 @@ export function onRequest(
   }
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors;
+    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
     if (isDebugFeatureEnabled("enableCors")) {
       // Respect `cors: false` to turn off cors even if debug feature is enabled.
       origin = opts.cors === false ? false : true;
@@ -346,22 +405,22 @@ export function onRequest(
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>>(
-  opts: CallableOptions,
-  handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
-): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
+export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
+  opts: CallableOptions<T>,
+  handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
+): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>, Stream>;
 
 /**
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler - A function that takes a {@link https.CallableRequest}.
  * @returns A function that you can export and deploy.
  */
-export function onCall<T = any, Return = any | Promise<any>>(
-  handler: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
+export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
+  handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
-export function onCall<T = any, Return = any | Promise<any>>(
-  optsOrHandler: CallableOptions | ((request: CallableRequest<T>) => Return),
-  handler?: (request: CallableRequest<T>, response?: CallableProxyResponse) => Return
+export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
+  optsOrHandler: CallableOptions<T> | ((request: CallableRequest<T>) => Return),
+  handler?: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
   let opts: CallableOptions;
   if (arguments.length === 1) {
@@ -371,7 +430,18 @@ export function onCall<T = any, Return = any | Promise<any>>(
     opts = optsOrHandler as CallableOptions;
   }
 
-  let origin = isDebugFeatureEnabled("enableCors") ? true : "cors" in opts ? opts.cors : true;
+  let cors: string | boolean | RegExp | Array<string | RegExp> | undefined;
+  if ("cors" in opts) {
+    if (opts.cors instanceof Expression) {
+      cors = opts.cors.value();
+    } else {
+      cors = opts.cors;
+    }
+  } else {
+    cors = true;
+  }
+
+  let origin = isDebugFeatureEnabled("enableCors") ? true : cors;
   // Arrays cause the access-control-allow-origin header to be dynamic based
   // on the origin header of the request. If there is only one element in the
   // array, this is unnecessary.
@@ -380,13 +450,14 @@ export function onCall<T = any, Return = any | Promise<any>>(
   }
 
   // fix the length of handler to make the call to handler consistent
-  const fixedLen = (req: CallableRequest<T>, resp?: CallableProxyResponse) =>
-    withInit(handler)(req, resp);
+  const fixedLen = (req: CallableRequest<T>, resp?: CallableResponse<Stream>) => handler(req, resp);
   let func: any = onCallHandler(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
       consumeAppCheckToken: opts.consumeAppCheckToken,
+      heartbeatSeconds: opts.heartbeatSeconds,
+      authPolicy: opts.authPolicy,
     },
     fixedLen,
     "gcfv2"
@@ -432,6 +503,108 @@ export function onCall<T = any, Return = any | Promise<any>>(
     callableTrigger: {},
   };
 
+  // TODO: in the next major version, do auth/appcheck in these helper methods too.
   func.run = withInit(handler);
+  func.stream = () => {
+    return {
+      stream: {
+        next(): Promise<IteratorResult<Stream>> {
+          return Promise.reject("Coming soon");
+        },
+      },
+      output: Promise.reject("Coming soon"),
+    };
+  };
   return func;
+}
+
+// To avoid taking a strict dependency on Genkit we will redefine the limited portion of the interface we depend upon.
+// A unit test (dev dependency) notifies us of breaking changes.
+interface ZodType<T = any> {
+  __output: T;
+}
+
+interface GenkitRunOptions {
+  context?: any;
+}
+
+type GenkitAction<
+  I extends ZodType = ZodType<any>,
+  O extends ZodType = ZodType<any>,
+  S extends ZodType = ZodType<any>
+> = {
+  // NOTE: The return type from run includes trace data that we may one day like to use.
+  run(input: I["__output"], options: GenkitRunOptions): Promise<{ result: O["__output"] }>;
+  stream(
+    input: I["__output"],
+    options: GenkitRunOptions
+  ): { stream: AsyncIterable<S["__output"]>; output: Promise<O["__output"]> };
+
+  __action: {
+    name: string;
+  };
+};
+
+type ActionInput<F extends GenkitAction> = F extends GenkitAction<infer I extends ZodType, any, any>
+  ? I["__output"]
+  : never;
+type ActionOutput<F extends GenkitAction> = F extends GenkitAction<
+  any,
+  infer O extends ZodType,
+  any
+>
+  ? O["__output"]
+  : never;
+type ActionStream<F extends GenkitAction> = F extends GenkitAction<
+  any,
+  any,
+  infer S extends ZodType
+>
+  ? S["__output"]
+  : never;
+
+export function onCallGenkit<A extends GenkitAction>(
+  action: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(
+  opts: CallableOptions<ActionInput<A>>,
+  flow: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+export function onCallGenkit<A extends GenkitAction>(
+  optsOrAction: A | CallableOptions<ActionInput<A>>,
+  action?: A
+): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>> {
+  let opts: CallableOptions<ActionInput<A>>;
+  if (arguments.length === 2) {
+    opts = optsOrAction as CallableOptions<ActionInput<A>>;
+  } else {
+    opts = {};
+    action = optsOrAction as A;
+  }
+  if (!opts.secrets?.length) {
+    logger.debug(
+      `Genkit function for ${action.__action.name} is not bound to any secret. This may mean that you are not storing API keys as a secret or that you are not binding your secret to this function. See https://firebase.google.com/docs/functions/config-env?gen=2nd#secret_parameters for more information.`
+    );
+  }
+  const cloudFunction = onCall<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>(
+    opts,
+    async (req, res) => {
+      const context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
+      copyIfPresent(context, req, "auth", "app", "instanceIdToken");
+
+      if (!req.acceptsStreaming) {
+        const { result } = await action.run(req.data, { context });
+        return result;
+      }
+
+      const { stream, output } = action.stream(req.data, { context });
+      for await (const chunk of stream) {
+        await res.sendChunk(chunk);
+      }
+      return output;
+    }
+  );
+
+  cloudFunction.__endpoint.callableTrigger.genkitAction = action.__action.name;
+  return cloudFunction;
 }

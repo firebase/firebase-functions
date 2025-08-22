@@ -764,24 +764,46 @@ describe("onCallHandler", () => {
         "application/json",
         {},
         { accept: "text/event-stream" }
-      ) as any;
+      );
       const fn = https.onCallHandler(
         {
           cors: { origin: true, methods: "POST" },
         },
         (req, resp) => {
-          resp.write("hello");
+          resp.sendChunk("hello");
           return "world";
         },
         "gcfv2"
       );
 
-      const resp = await runHandler(fn, mockReq);
+      const resp = await runHandler(fn, mockReq as any);
       const data = [`data: {"message":"hello"}`, `data: {"result":"world"}`];
-      expect(resp.body).to.equal([...data, ""].join("\n"));
+      expect(resp.body).to.equal([...data, ""].join("\n\n"));
     });
 
     it("returns error in SSE format", async () => {
+      const mockReq = mockRequest(
+        { message: "hello streaming" },
+        "application/json",
+        {},
+        { accept: "text/event-stream" }
+      );
+      const fn = https.onCallHandler(
+        {
+          cors: { origin: true, methods: "POST" },
+        },
+        () => {
+          throw new Error("BOOM");
+        },
+        "gcfv2"
+      );
+
+      const resp = await runHandler(fn, mockReq as any);
+      const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
+      expect(resp.body).to.equal([...data, ""].join("\n\n"));
+    });
+
+    it("always returns error for v1 callables", async () => {
       const mockReq = mockRequest(
         { message: "hello streaming" },
         "application/json",
@@ -793,14 +815,138 @@ describe("onCallHandler", () => {
           cors: { origin: true, methods: "POST" },
         },
         () => {
-          throw new Error("BOOM");
+          return "hello world";
+        },
+        "gcfv1"
+      );
+      const resp = await runHandler(fn, mockReq);
+      expect(JSON.parse(resp.body)).to.deep.equal({
+        error: {
+          status: "INVALID_ARGUMENT",
+          message: "Unsupported Accept header 'text/event-stream'",
+        },
+      });
+    });
+
+    it("stops processing when client disconnects", async () => {
+      const mockReq = mockRequest(
+        { message: "test abort" },
+        "application/json",
+        {},
+        { accept: "text/event-stream" }
+      ) as any;
+
+      const fn = https.onCallHandler(
+        {
+          cors: { origin: true, methods: "POST" },
+        },
+        async (req, resp) => {
+          await resp.sendChunk("initial message");
+          await mockReq.emit("close");
+          await resp.sendChunk("should not be sent");
+          return "done";
         },
         "gcfv2"
       );
 
       const resp = await runHandler(fn, mockReq);
-      const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
-      expect(resp.body).to.equal([...data, ""].join("\n"));
+
+      expect(resp.body).to.equal(`data: {"message":"initial message"}\n\n`);
+    });
+
+    describe("Heartbeats", () => {
+      let clock: sinon.SinonFakeTimers;
+
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+      });
+
+      afterEach(() => {
+        clock.restore();
+      });
+
+      it("sends heartbeat messages at specified interval", async () => {
+        const mockReq = mockRequest(
+          { message: "test heartbeat" },
+          "application/json",
+          {},
+          { accept: "text/event-stream" }
+        );
+
+        const fn = https.onCallHandler(
+          {
+            cors: { origin: true, methods: "POST" },
+            heartbeatSeconds: 5,
+          },
+          async () => {
+            // Simulate long-running operation
+            await new Promise((resolve) => setTimeout(resolve, 11_000));
+            return "done";
+          },
+          "gcfv2"
+        );
+
+        const handlerPromise = runHandler(fn, mockReq as any);
+        await clock.tickAsync(11_000);
+        const resp = await handlerPromise;
+        const data = [": ping", ": ping", `data: {"result":"done"}`];
+        expect(resp.body).to.equal([...data, ""].join("\n\n"));
+      });
+
+      it("doesn't send heartbeat messages if user writes data", async () => {
+        const mockReq = mockRequest(
+          { message: "test heartbeat" },
+          "application/json",
+          {},
+          { accept: "text/event-stream" }
+        );
+
+        const fn = https.onCallHandler(
+          {
+            cors: { origin: true, methods: "POST" },
+            heartbeatSeconds: 5,
+          },
+          async (resp, res) => {
+            await new Promise((resolve) => setTimeout(resolve, 3_000));
+            res.sendChunk("hello");
+            await new Promise((resolve) => setTimeout(resolve, 3_000));
+            return "done";
+          },
+          "gcfv2"
+        );
+
+        const handlerPromise = runHandler(fn, mockReq as any);
+        await clock.tickAsync(10_000);
+        const resp = await handlerPromise;
+        const data = [`data: {"message":"hello"}`, `data: {"result":"done"}`];
+        expect(resp.body).to.equal([...data, ""].join("\n\n"));
+      });
+
+      it("respects null heartbeatSeconds option", async () => {
+        const mockReq = mockRequest(
+          { message: "test no heartbeat" },
+          "application/json",
+          {},
+          { accept: "text/event-stream" }
+        );
+
+        const fn = https.onCallHandler(
+          {
+            cors: { origin: true, methods: "POST" },
+            heartbeatSeconds: null,
+          },
+          async () => {
+            await new Promise((resolve) => setTimeout(resolve, 31_000));
+            return "done";
+          },
+          "gcfv2"
+        );
+
+        const handlerPromise = runHandler(fn, mockReq as any);
+        await clock.tickAsync(31_000);
+        const resp = await handlerPromise;
+        expect(resp.body).to.equal('data: {"result":"done"}\n\n');
+      });
     });
   });
 });
