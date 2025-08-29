@@ -4,7 +4,7 @@ import { logger } from "../src/logger";
 /**
  * Initializes Firebase Admin SDK.
  */
-export async function initializeFirebase(): Promise<admin.app.App> {
+export function initializeFirebase(): admin.app.App {
   if (admin.apps.length === 0) {
     try {
       // const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;

@@ -4,6 +4,15 @@ import { initializeApp } from "firebase/app";
 import { initializeFirebase } from "../firebaseSetup";
 import { getAuth, createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
 
+interface IdentityEventContext {
+  eventId: string;
+  eventType: string;
+  timestamp: string;
+  resource: {
+    name: string;
+  };
+}
+
 describe("Firebase Identity (v2)", () => {
   const userIds: string[] = [];
   const projectId = process.env.PROJECT_ID;
@@ -23,12 +32,12 @@ describe("Firebase Identity (v2)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
-    for (const userId in userIds) {
+    for (const userId of userIds) {
       await admin.firestore().collection("userProfiles").doc(userId).delete();
       await admin.firestore().collection("authUserOnCreateTests").doc(userId).delete();
       await admin.firestore().collection("authUserOnDeleteTests").doc(userId).delete();
@@ -38,7 +47,7 @@ describe("Firebase Identity (v2)", () => {
   });
   describe("beforeUserCreated trigger", () => {
     let userRecord: UserCredential;
-    let loggedContext: admin.firestore.DocumentData | undefined;
+    let loggedContext: IdentityEventContext | undefined;
 
     beforeAll(async () => {
       userRecord = await createUserWithEmailAndPassword(
@@ -55,7 +64,7 @@ describe("Firebase Identity (v2)", () => {
           .collection("identityBeforeUserCreatedTests")
           .doc(userRecord.user.uid)
           .get()
-          .then((logSnapshot) => logSnapshot.data())
+          .then((logSnapshot) => logSnapshot.data() as IdentityEventContext | undefined)
       );
     });
 

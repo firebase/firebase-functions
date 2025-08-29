@@ -5,7 +5,7 @@ import { initializeFirebase } from "../firebaseSetup";
 import { retry } from "../utils";
 
 describe("Firebase Auth (v1)", () => {
-  let userIds: string[] = [];
+  const userIds: string[] = [];
   const projectId = process.env.PROJECT_ID;
   const testId = process.env.TEST_RUN_ID;
   const config = {
@@ -23,12 +23,12 @@ describe("Firebase Auth (v1)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
-    for (const userId in userIds) {
+    for (const userId of userIds) {
       await admin.firestore().collection("userProfiles").doc(userId).delete();
       await admin.firestore().collection("authUserOnCreateTests").doc(userId).delete();
       await admin.firestore().collection("authUserOnDeleteTests").doc(userId).delete();
@@ -129,14 +129,13 @@ describe("Firebase Auth (v1)", () => {
 
       await admin.auth().deleteUser(userRecord.uid);
 
-      loggedContext = await retry(
-        () =>
-          admin
-            .firestore()
-            .collection("authUserOnDeleteTests")
-            .doc(userRecord.uid)
-            .get()
-            .then((logSnapshot) => logSnapshot.data()),
+      loggedContext = await retry(() =>
+        admin
+          .firestore()
+          .collection("authUserOnDeleteTests")
+          .doc(userRecord.uid)
+          .get()
+          .then((logSnapshot) => logSnapshot.data())
       );
 
       userIds.push(userRecord.uid);
@@ -150,7 +149,7 @@ describe("Firebase Auth (v1)", () => {
       expect(loggedContext?.path).toBeUndefined();
     });
 
-    it("should have the correct eventType", async () => {
+    it("should have the correct eventType", () => {
       expect(loggedContext?.eventType).toEqual("google.firebase.auth.user.delete");
     });
 

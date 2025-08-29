@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { retry, timeout } from "../utils";
+import { retry } from "../utils";
 import { PubSub } from "@google-cloud/pubsub";
 import { initializeFirebase } from "../firebaseSetup";
 
@@ -16,13 +16,15 @@ describe("Pub/Sub (v2)", () => {
   if (!serviceAccountPath) {
     console.warn("GOOGLE_APPLICATION_CREDENTIALS not set, skipping Pub/Sub tests");
     describe.skip("Pub/Sub (v2)", () => {
-      it("skipped due to missing credentials", () => {});
+      it("skipped due to missing credentials", () => {
+        expect(true).toBe(true);
+      });
     });
     return;
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {

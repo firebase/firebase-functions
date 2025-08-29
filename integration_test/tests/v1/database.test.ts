@@ -12,8 +12,8 @@ describe("Firebase Database (v1)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
@@ -39,8 +39,8 @@ describe("Firebase Database (v1)", () => {
     }
   }
 
-  function getLoggedContext(collectionName: string, testId: string) {
-    return admin
+  async function getLoggedContext(collectionName: string, testId: string) {
+    return await admin
       .firestore()
       .collection(collectionName)
       .doc(testId)
@@ -231,8 +231,8 @@ describe("Firebase Database (v1)", () => {
       expect(loggedContext?.authType).toEqual("ADMIN");
     });
 
-    it("should log onUpdate event with updated data", async () => {
-      const parsedData = JSON.parse(loggedContext?.data ?? {});
+    it("should log onUpdate event with updated data", () => {
+      const parsedData = JSON.parse(loggedContext?.data ?? "{}");
       expect(parsedData).toEqual({ updated: true });
     });
   });
@@ -302,5 +302,4 @@ describe("Firebase Database (v1)", () => {
       expect(loggedContext?.authType).toEqual("ADMIN");
     });
   });
-
 });

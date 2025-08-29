@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { retry, timeout } from "../utils";
+import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
 async function uploadBufferToFirebase(buffer: Buffer, fileName: string) {
@@ -19,8 +19,8 @@ describe("Firebase Storage", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
@@ -81,8 +81,7 @@ describe("Firebase Storage", () => {
     });
   });
 
-  // TODO: (b/372315689) Re-enable function once bug is fixed
-  describe.skip("object onDelete trigger", () => {
+  describe("object onDelete trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -91,7 +90,8 @@ describe("Firebase Storage", () => {
 
       await uploadBufferToFirebase(buffer, testId + ".txt");
 
-      await timeout(5000); // Short delay before delete
+      // Short delay before delete to ensure file is properly uploaded
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       try {
         const file = admin
@@ -103,7 +103,7 @@ describe("Firebase Storage", () => {
         console.warn("Failed to delete storage file for onDelete test:", (error as Error).message);
       }
 
-      const loggedContext = await retry(() =>
+      loggedContext = await retry(() =>
         admin
           .firestore()
           .collection("storageOnDeleteTests")

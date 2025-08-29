@@ -33,13 +33,13 @@ export async function getDeployedFunctions(client: FirebaseClient): Promise<stri
     logger.debug("Project ID:", process.env.PROJECT_ID);
     logger.debug("Working directory:", process.cwd());
     logger.debug("Config file:", "./firebase.json");
-    
+
     // Check if PROJECT_ID is set
     if (!process.env.PROJECT_ID) {
       logger.error("PROJECT_ID environment variable is not set");
       return [];
     }
-    
+
     // Try to list functions with explicit project ID
     const functions = await client.functions.list({
       project: process.env.PROJECT_ID,
@@ -47,30 +47,34 @@ export async function getDeployedFunctions(client: FirebaseClient): Promise<stri
       nonInteractive: true,
       cwd: process.cwd(),
     });
-    
+
     logger.success(`Successfully listed functions: ${functions.length}`);
     return functions.map((fn: { name: string }) => fn.name);
   } catch (error) {
     logger.warning("Could not list functions, assuming none deployed:", error);
-    
+
     // Provide more detailed error information
-    if (error && typeof error === 'object' && 'message' in error) {
+    if (error && typeof error === "object" && "message" in error) {
       const errorMessage = String(error.message);
       logger.debug("   Error message:", errorMessage);
-      if ('status' in error) logger.debug("   Error status:", error.status);
-      if ('exit' in error) logger.debug("   Error exit code:", error.exit);
-      
+      if ("status" in error) logger.debug("   Error status:", error.status);
+      if ("exit" in error) logger.debug("   Error exit code:", error.exit);
+
       // Check if it's an authentication error
       if (errorMessage.includes("not logged in") || errorMessage.includes("authentication")) {
-        logger.warning("This might be an authentication issue. Try running 'firebase login' first.");
+        logger.warning(
+          "This might be an authentication issue. Try running 'firebase login' first."
+        );
       }
-      
+
       // Check if it's a project access error
       if (errorMessage.includes("not found") || errorMessage.includes("access")) {
-        logger.warning("This might be a project access issue. Check if the project ID is correct and you have access to it.");
+        logger.warning(
+          "This might be a project access issue. Check if the project ID is correct and you have access to it."
+        );
       }
     }
-    
+
     return [];
   }
 }
@@ -112,9 +116,7 @@ async function deleteFunctionWithRetry(
       retries: MAX_RETRIES,
       onFailedAttempt: (error) => {
         logger.error(
-          `Failed to delete ${functionName} (attempt ${error.attemptNumber}/${
-            MAX_RETRIES + 1
-          }):`,
+          `Failed to delete ${functionName} (attempt ${error.attemptNumber}/${MAX_RETRIES + 1}):`,
           error.message
         );
       },
@@ -179,42 +181,42 @@ export async function deployFunctionsWithRetry(
   logger.deployment(`Deploying ${functionsToDeploy.length} functions with rate limiting...`);
   logger.deployment(`Functions to deploy:`, functionsToDeploy);
   logger.deployment(`Project ID: ${process.env.PROJECT_ID}`);
-  logger.deployment(`Region: ${process.env.REGION || 'us-central1'}`);
+  logger.deployment(`Region: ${process.env.REGION || "us-central1"}`);
   logger.deployment(`Runtime: ${process.env.TEST_RUNTIME}`);
-  
+
   // Pre-deployment checks
   logger.group("Pre-deployment checks");
   logger.debug(`- Project ID set: ${!!process.env.PROJECT_ID}`);
   logger.debug(`- Working directory: ${process.cwd()}`);
-  
+
   // Import fs dynamically for ES modules
-  const fs = await import('fs');
-  
-  logger.debug(`- Functions directory exists: ${fs.existsSync('./functions')}`);
-  logger.debug(`- Functions.yaml exists: ${fs.existsSync('./functions/functions.yaml')}`);
-  logger.debug(`- Package.json exists: ${fs.existsSync('./functions/package.json')}`);
-  
+  const fs = await import("fs");
+
+  logger.debug(`- Functions directory exists: ${fs.existsSync("./functions")}`);
+  logger.debug(`- Functions.yaml exists: ${fs.existsSync("./functions/functions.yaml")}`);
+  logger.debug(`- Package.json exists: ${fs.existsSync("./functions/package.json")}`);
+
   if (!process.env.PROJECT_ID) {
     throw new Error("PROJECT_ID environment variable is not set");
   }
-  
-  if (!fs.existsSync('./functions')) {
+
+  if (!fs.existsSync("./functions")) {
     throw new Error("Functions directory does not exist");
   }
-  
-  if (!fs.existsSync('./functions/functions.yaml')) {
+
+  if (!fs.existsSync("./functions/functions.yaml")) {
     throw new Error("functions.yaml file does not exist in functions directory");
   }
-  
+
   // Check functions.yaml content
   try {
-    const functionsYaml = fs.readFileSync('./functions/functions.yaml', 'utf8');
+    const functionsYaml = fs.readFileSync("./functions/functions.yaml", "utf8");
     logger.debug(`   - Functions.yaml content preview:`);
     logger.debug(`     ${functionsYaml.substring(0, 200)}...`);
   } catch (error: any) {
     logger.warning(`   - Error reading functions.yaml: ${error.message}`);
   }
-  
+
   // Set up Firebase project configuration
   logger.debug(`   - Setting up Firebase project configuration...`);
   process.env.FIREBASE_PROJECT = process.env.PROJECT_ID;
@@ -241,7 +243,7 @@ export async function deployFunctionsWithRetry(
             logger.deployment(`Project ID: ${process.env.PROJECT_ID}`);
             logger.deployment(`Working directory: ${process.cwd()}`);
             logger.deployment(`Functions source: ${process.cwd()}/functions`);
-            
+
             const deployOptions = {
               only: "functions",
               force: true,
@@ -250,9 +252,9 @@ export async function deployFunctionsWithRetry(
               nonInteractive: true,
               cwd: process.cwd(),
             };
-            
+
             logger.debug(`Deploy options:`, JSON.stringify(deployOptions, null, 2));
-            
+
             try {
               await client.deploy(deployOptions);
               logger.success(`Deployment command completed successfully`);
@@ -261,13 +263,13 @@ export async function deployFunctionsWithRetry(
               logger.error(`   Error type: ${deployError.constructor.name}`);
               logger.error(`   Error message: ${deployError.message}`);
               logger.error(`   Error stack: ${deployError.stack}`);
-              
+
               // Log all properties of the error object
               logger.debug(`   Error properties:`);
-              Object.keys(deployError).forEach(key => {
+              Object.keys(deployError).forEach((key) => {
                 try {
                   const value = deployError[key];
-                  if (typeof value === 'object' && value !== null) {
+                  if (typeof value === "object" && value !== null) {
                     logger.debug(`     ${key}: ${JSON.stringify(value, null, 4)}`);
                   } else {
                     logger.debug(`     ${key}: ${value}`);
@@ -276,7 +278,7 @@ export async function deployFunctionsWithRetry(
                   logger.debug(`     ${key}: [Error serializing property]`);
                 }
               });
-              
+
               throw deployError;
             }
           });
@@ -287,7 +289,7 @@ export async function deployFunctionsWithRetry(
             logger.error(`Deployment failed (attempt ${error.attemptNumber}/${MAX_RETRIES + 1}):`);
             logger.error(`   Error message: ${error.message}`);
             logger.error(`   Error type: ${error.constructor.name}`);
-            
+
             // Log detailed error information during retries
             if (error.children && error.children.length > 0) {
               logger.debug("Detailed deployment errors:");
@@ -304,7 +306,7 @@ export async function deployFunctionsWithRetry(
                 }
               });
             }
-            
+
             // Log the full error structure for debugging
             logger.debug("Full error details:");
             logger.debug(`  - Message: ${error.message}`);
@@ -312,12 +314,12 @@ export async function deployFunctionsWithRetry(
             logger.debug(`  - Exit code: ${error.exit}`);
             logger.debug(`  - Attempt: ${error.attemptNumber}`);
             logger.debug(`  - Retries left: ${error.retriesLeft}`);
-            
+
             // Log error context if available
             if (error.context) {
               logger.debug(`  - Context: ${JSON.stringify(error.context, null, 2)}`);
             }
-            
+
             // Log error body if available
             if (error.body) {
               logger.debug(`  - Body: ${JSON.stringify(error.body, null, 2)}`);
@@ -338,7 +340,7 @@ export async function deployFunctionsWithRetry(
       logger.error(`   Error type: ${error.constructor.name}`);
       logger.error(`   Error message: ${error.message}`);
       logger.error(`   Error stack: ${error.stack}`);
-      
+
       // Log detailed error information
       if (error.children && error.children.length > 0) {
         logger.debug("Detailed deployment errors:");
@@ -351,7 +353,7 @@ export async function deployFunctionsWithRetry(
           }
         });
       }
-      
+
       // Log the full error structure for debugging
       logger.debug("Final error details:");
       logger.debug(`  - Message: ${error.message}`);
@@ -359,23 +361,23 @@ export async function deployFunctionsWithRetry(
       logger.debug(`  - Exit code: ${error.exit}`);
       logger.debug(`  - Attempt: ${error.attemptNumber}`);
       logger.debug(`  - Retries left: ${error.retriesLeft}`);
-      
+
       // Log error context if available
       if (error.context) {
         logger.debug(`  - Context: ${JSON.stringify(error.context, null, 2)}`);
       }
-      
+
       // Log error body if available
       if (error.body) {
         logger.debug(`  - Body: ${JSON.stringify(error.body, null, 2)}`);
       }
-      
+
       // Log all error properties
       logger.debug(`  - All error properties:`);
-      Object.keys(error).forEach(key => {
+      Object.keys(error).forEach((key) => {
         try {
           const value = error[key];
-          if (typeof value === 'object' && value !== null) {
+          if (typeof value === "object" && value !== null) {
             logger.debug(`     ${key}: ${JSON.stringify(value, null, 4)}`);
           } else {
             logger.debug(`     ${key}: ${value}`);
@@ -384,7 +386,7 @@ export async function deployFunctionsWithRetry(
           logger.debug(`     ${key}: [Error serializing property]`);
         }
       });
-      
+
       throw error;
     }
   }

@@ -17,13 +17,15 @@ describe("Cloud Tasks (v2)", () => {
   if (!serviceAccountPath) {
     console.warn("GOOGLE_APPLICATION_CREDENTIALS not set, skipping Tasks tests");
     describe.skip("Cloud Tasks (v2)", () => {
-      it("skipped due to missing credentials", () => {});
+      it("skipped due to missing credentials", () => {
+        expect(true).toBe(true);
+      });
     });
     return;
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {

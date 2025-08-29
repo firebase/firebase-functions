@@ -17,13 +17,15 @@ describe("Pub/Sub (v1)", () => {
   if (!serviceAccountPath) {
     console.warn("GOOGLE_APPLICATION_CREDENTIALS not set, skipping Pub/Sub tests");
     describe.skip("Pub/Sub (v1)", () => {
-      it("skipped due to missing credentials", () => {});
+      it("skipped due to missing credentials", () => {
+        expect(true).toBe(true); // Placeholder assertion
+      });
     });
     return;
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {

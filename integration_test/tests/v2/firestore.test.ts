@@ -10,8 +10,8 @@ describe("Cloud Firestore (v2)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
@@ -127,18 +127,13 @@ describe("Cloud Firestore (v2)", () => {
 
   describe("Document updated trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
-    let dataSnapshot: admin.firestore.DocumentSnapshot<admin.firestore.DocumentData>;
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
       docRef = admin.firestore().collection("tests").doc(testId);
       await docRef.set({});
-      dataSnapshot = await docRef.get();
 
       await docRef.update({ test: testId });
-
-      // Refresh snapshot
-      dataSnapshot = await docRef.get();
 
       loggedContext = await retry(() =>
         admin

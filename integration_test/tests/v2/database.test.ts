@@ -12,19 +12,19 @@ describe("Firebase Database (v2)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
     console.log("🧹 Cleaning up test data...");
     const collectionsToClean = [
       "databaseCreatedTests",
-      "databaseDeletedTests", 
+      "databaseDeletedTests",
       "databaseUpdatesTests",
-      "databaseWrittenTests"
+      "databaseWrittenTests",
     ];
-    
+
     for (const collection of collectionsToClean) {
       try {
         await admin.firestore().collection(collection).doc(testId).delete();
@@ -167,8 +167,8 @@ describe("Firebase Database (v2)", () => {
       expect(loggedContext?.time).toBeDefined();
     });
 
-    it("should have updated data", async () => {
-      const parsedData = JSON.parse(loggedContext?.data ?? {});
+    it("should have updated data", () => {
+      const parsedData = JSON.parse(loggedContext?.data ?? "{}");
       expect(parsedData).toEqual({ updated: true });
     });
   });

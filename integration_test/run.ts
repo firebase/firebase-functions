@@ -23,7 +23,7 @@ let {
   FIREBASE_MEASUREMENT_ID,
   FIREBASE_AUTH_DOMAIN,
   FIREBASE_API_KEY,
-  GOOGLE_ANALYTICS_API_SECRET,
+  // GOOGLE_ANALYTICS_API_SECRET,
   TEST_RUNTIME,
   REGION = "us-central1",
   STORAGE_REGION = "us-central1",
@@ -174,7 +174,7 @@ async function deployModifiedFunctions(): Promise<void> {
   try {
     // Get the function names that will be deployed
     const functionNames = modifiedYaml ? Object.keys(modifiedYaml.endpoints) : [];
-    
+
     logger.deployment("Functions to deploy:", functionNames);
     logger.deployment(`Total functions to deploy: ${functionNames.length}`);
 
@@ -197,7 +197,7 @@ function cleanFiles(): void {
   try {
     const files = fs.readdirSync(".");
     const deletedFiles: string[] = [];
-    
+
     files.forEach((file) => {
       // For Node
       if (file.match(`firebase-functions-${TEST_RUN_ID}.tgz`)) {
@@ -311,7 +311,7 @@ async function runTests(): Promise<void> {
 
     logger.info("Test output received:");
     logger.debug(output);
-    
+
     // Check if tests passed
     if (output.includes("PASS") && !output.includes("FAIL")) {
       logger.success("All tests completed successfully!");
@@ -319,7 +319,7 @@ async function runTests(): Promise<void> {
     } else {
       logger.warning("Some tests may have failed. Check the output above.");
     }
-    
+
     logger.info(`${humanReadableRuntime} Tests Completed.`);
   } catch (error) {
     logger.error("Error during testing:", error);

@@ -10,8 +10,8 @@ describe("TestLab (v1)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  beforeAll(async () => {
-    await initializeFirebase();
+  beforeAll(() => {
+    initializeFirebase();
   });
 
   afterAll(async () => {
@@ -36,7 +36,8 @@ describe("TestLab (v1)", () => {
         );
       } catch (error) {
         console.warn("TestLab API access failed, skipping test:", (error as Error).message);
-        (this as any).skip();
+        // Skip the test suite if TestLab API is not available
+        return;
       }
     });
 

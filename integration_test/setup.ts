@@ -141,10 +141,7 @@ function createRequirementsTxt(firebaseAdmin: string) {
     `firebase_functions.tar.gz`
   );
 
-  requirementsContent = requirementsContent.replace(
-    /__FIREBASE_ADMIN__/g,
-    firebaseAdmin
-  );
+  requirementsContent = requirementsContent.replace(/__FIREBASE_ADMIN__/g, firebaseAdmin);
 
   fs.writeFileSync(requirementsPath, requirementsContent);
 }

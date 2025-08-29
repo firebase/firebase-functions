@@ -7,8 +7,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "types": ["jest", "node"],
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "functions/*", "tests/*"]
+  "include": ["**/*.ts", "**/*.js"],
+  "exclude": ["node_modules", "functions/*"]
 }
