@@ -1,6 +1,6 @@
 import pRetry from "p-retry";
 import pLimit from "p-limit";
-import { logger } from "./src/logger.js";
+import { logger } from "./src/utils/logger.js";
 
 interface FirebaseClient {
   functions: {

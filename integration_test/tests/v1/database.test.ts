@@ -2,7 +2,7 @@ import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 import { Reference } from "@firebase/database-types";
-import { logger } from "../../src/logger";
+import { logger } from "../../src/utils/logger";
 
 describe("Firebase Database (v1)", () => {
   const projectId = process.env.PROJECT_ID;

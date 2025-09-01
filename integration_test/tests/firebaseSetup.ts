@@ -1,5 +1,5 @@
 import * as admin from "firebase-admin";
-import { logger } from "../src/logger";
+import { logger } from "../src/utils/logger";
 
 /**
  * Initializes Firebase Admin SDK.
