@@ -239,6 +239,9 @@
       ],
       "v2/firestore": [
         "lib/v2/providers/firestore"
+      ],
+      "v2/dataconnect": [
+        "lib/v2/providers/dataconnect"
       ]
     }
   },
