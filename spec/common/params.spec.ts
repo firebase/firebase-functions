@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ignoreUnusedWarning OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Extract, ParamsOf, Split } from "../../src/common/params";
+import { VarName, ParamsOf, Split } from "../../src/common/params";
 import { expectNever, expectType } from "./metaprogramming";
 
 describe("Params namespace", () => {
@@ -56,21 +56,21 @@ describe("Params namespace", () => {
     });
   });
 
-  describe("Extract", () => {
+  describe("VarName", () => {
     it("extracts nothing from strings without params", () => {
-      expectNever<Extract<"uid">>();
+      expectNever<VarName<"uid">>();
     });
 
     it("extracts {segment} captures", () => {
-      expectType<Extract<"{uid}">>("uid");
+      expectType<VarName<"{uid}">>("uid");
     });
 
     it("extracts {segment=*} captures", () => {
-      expectType<Extract<"{uid=*}">>("uid");
+      expectType<VarName<"{uid=*}">>("uid");
     });
 
     it("extracts {segment=**} captures", () => {
-      expectType<Extract<"{uid=**}">>("uid");
+      expectType<VarName<"{uid=**}">>("uid");
     });
   });
 
