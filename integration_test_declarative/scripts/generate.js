@@ -27,20 +27,7 @@ if (!suiteName) {
   process.exit(1);
 }
 
-// Generate unique TEST_RUN_ID if not provided
-const testRunId = process.env.TEST_RUN_ID ||
-  `t_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-
-const projectId = process.env.PROJECT_ID || 'demo-test';
-const region = process.env.REGION || 'us-central1';
-const sdkTarball = process.env.SDK_TARBALL || 'file:../../firebase-functions-local.tgz';
-
-console.log(`🚀 Generating suite: ${suiteName}`);
-console.log(`   TEST_RUN_ID: ${testRunId}`);
-console.log(`   PROJECT_ID: ${projectId}`);
-console.log(`   REGION: ${region}`);
-
-// Load suite configuration
+// Load suite configuration first to get project settings
 const configPath = join(ROOT_DIR, 'config', 'suites', `${suiteName}.yaml`);
 if (!existsSync(configPath)) {
   console.error(`❌ Suite configuration not found: ${configPath}`);
@@ -48,6 +35,20 @@ if (!existsSync(configPath)) {
 }
 
 const suiteConfig = parse(readFileSync(configPath, 'utf8'));
+
+// Generate unique TEST_RUN_ID if not provided
+const testRunId = process.env.TEST_RUN_ID ||
+  `t_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+
+// Use projectId from suite config, then env var, then default
+const projectId = suiteConfig.suite.projectId || process.env.PROJECT_ID || 'demo-test';
+const region = suiteConfig.suite.region || process.env.REGION || 'us-central1';
+const sdkTarball = process.env.SDK_TARBALL || 'file:../../firebase-functions-local.tgz';
+
+console.log(`🚀 Generating suite: ${suiteName}`);
+console.log(`   TEST_RUN_ID: ${testRunId}`);
+console.log(`   PROJECT_ID: ${projectId} ${suiteConfig.suite.projectId ? '(from suite config)' : '(from env/default)'}`);
+console.log(`   REGION: ${region} ${suiteConfig.suite.region ? '(from suite config)' : '(from env/default)'}`)
 
 // Process dependencies to replace {{sdkTarball}} placeholder
 const dependencies = { ...suiteConfig.suite.dependencies };

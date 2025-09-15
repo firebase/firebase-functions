@@ -1,5 +1,7 @@
 suite:
   name: v1_firestore
+  projectId: functions-integration-tests
+  region: us-central1
   description: "V1 Firestore trigger tests"
   version: v1
 
