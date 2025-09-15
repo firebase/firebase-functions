@@ -6,8 +6,12 @@
   "scripts": {
     "generate": "node scripts/generate.js",
     "test": "jest",
-    "test:firestore": "npm run generate v1_firestore && ./scripts/deploy.sh && ./scripts/test.sh v1_firestore",
-    "clean": "rm -rf generated/*"
+    "run-suite": "./scripts/run-suite.sh",
+    "test:firestore": "./scripts/run-suite.sh v1_firestore",
+    "cleanup": "./scripts/cleanup-suite.sh",
+    "cleanup:list": "./scripts/cleanup-suite.sh --list-artifacts",
+    "clean": "rm -rf generated/*",
+    "hard-reset": "./scripts/hard-reset.sh"
   },
   "dependencies": {
     "firebase-admin": "^12.0.0"

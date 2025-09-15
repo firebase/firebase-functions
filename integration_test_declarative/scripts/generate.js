@@ -119,6 +119,13 @@ generateFromTemplate(
   context
 );
 
+// Generate firebase.json
+generateFromTemplate(
+  'firebase.json.hbs',
+  'firebase.json',
+  context
+);
+
 // Write a metadata file for reference
 const metadata = {
   suite: suiteName,

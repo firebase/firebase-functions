@@ -1,5 +1,6 @@
 node_modules/
 generated/
+.test-artifacts/
 *.log
 .DS_Store
 package-lock.json
