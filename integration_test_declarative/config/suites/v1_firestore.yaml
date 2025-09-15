@@ -1,0 +1,36 @@
+suite:
+  name: v1_firestore
+  description: "V1 Firestore trigger tests"
+  version: v1
+
+  functions:
+    - name: firestoreDocumentOnCreateTests
+      trigger: onCreate
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreDocumentOnCreateTests
+
+    - name: firestoreDocumentOnDeleteTests
+      trigger: onDelete
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreDocumentOnDeleteTests
+
+    - name: firestoreDocumentOnUpdateTests
+      trigger: onUpdate
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreDocumentOnUpdateTests
+
+    - name: firestoreDocumentOnWriteTests
+      trigger: onWrite
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreDocumentOnWriteTests
+
+  dependencies:
+    firebase-admin: "^12.0.0"
+    firebase-functions: "{{sdkTarball}}"
+
+  devDependencies:
+    typescript: "^4.9.5"

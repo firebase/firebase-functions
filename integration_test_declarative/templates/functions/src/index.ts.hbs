@@ -1,0 +1,21 @@
+import * as admin from "firebase-admin";
+
+// Initialize admin SDK
+const projectId = process.env.PROJECT_ID || process.env.GCLOUD_PROJECT || "{{projectId}}";
+
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      projectId: projectId
+    });
+  } catch (error) {
+    console.log("Admin SDK initialization skipped:", error.message);
+  }
+}
+
+// Export functions for suite: {{name}}
+{{#if (eq version "v1")}}
+export * from "./v1/firestore-tests";
+{{else}}
+export * from "./v2/firestore-tests";
+{{/if}}

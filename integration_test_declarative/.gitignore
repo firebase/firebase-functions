@@ -1,0 +1,7 @@
+node_modules/
+generated/
+*.log
+.DS_Store
+package-lock.json
+firebase-debug.log
+sa.json
