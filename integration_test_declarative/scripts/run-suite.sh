@@ -13,16 +13,28 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Check arguments
-SUITE_NAME="${1}"
-SAVE_ARTIFACT="${2}"  # Optional: --save-artifact
-
-if [ -z "$SUITE_NAME" ]; then
-  echo -e "${RED}❌ Suite name required${NC}"
-  echo "Usage: $0 <suite-name> [--save-artifact]"
+if [ $# -lt 1 ]; then
+  echo -e "${RED}❌ At least one suite name required${NC}"
+  echo "Usage: $0 <suite-name> [<suite-name> ...] [--save-artifact]"
   echo "Example: $0 v1_firestore"
-  echo "         $0 v1_firestore --save-artifact"
+  echo "         $0 v1_firestore v1_database"
+  echo "         $0 v1_firestore v1_database --save-artifact"
   exit 1
 fi
+
+# Parse arguments - collect suite names and check for --save-artifact flag
+SUITE_NAMES=()
+SAVE_ARTIFACT=""
+for arg in "$@"; do
+  if [ "$arg" = "--save-artifact" ]; then
+    SAVE_ARTIFACT="--save-artifact"
+  else
+    SUITE_NAMES+=("$arg")
+  fi
+done
+
+# Join suite names for display
+SUITE_DISPLAY="${SUITE_NAMES[*]}"
 
 # Get directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -32,7 +44,7 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 export TEST_RUN_ID="t_$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}🚀 Running Integration Test Suite: ${SUITE_NAME}${NC}"
+echo -e "${GREEN}🚀 Running Integration Test Suite(s): ${SUITE_DISPLAY}${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}📋 Test Run ID: ${TEST_RUN_ID}${NC}"
 echo ""
@@ -92,7 +104,7 @@ echo -e "${GREEN}📦 Step 1/4: Generating functions${NC}"
 echo -e "${BLUE}──────────────────────────────────────────────────────────${NC}"
 
 cd "$ROOT_DIR"
-npm run generate "$SUITE_NAME"
+npm run generate "${SUITE_NAMES[@]}"
 
 # Extract project ID from metadata
 METADATA_FILE="$ROOT_DIR/generated/.metadata.json"
@@ -171,36 +183,74 @@ fi
 # Run the tests
 export GOOGLE_APPLICATION_CREDENTIALS="$ROOT_DIR/sa.json"
 
-# Determine which test file to run based on suite name
-case "$SUITE_NAME" in
-  v1_firestore)
-    TEST_FILE="tests/v1/firestore.test.ts"
-    ;;
-  v1_database)
-    TEST_FILE="tests/v1/database.test.ts"
-    ;;
-  v1_storage)
-    TEST_FILE="tests/v1/storage.test.ts"
-    ;;
-  v1_auth)
-    TEST_FILE="tests/v1/auth.test.ts"
-    ;;
-  v1_pubsub)
-    TEST_FILE="tests/v1/pubsub.test.ts"
-    ;;
-  v2_firestore)
-    TEST_FILE="tests/v2/firestore.test.ts"
-    ;;
-  *)
-    echo -e "${YELLOW}⚠️  No test file mapping for suite: $SUITE_NAME${NC}"
-    echo -e "${YELLOW}   Running all tests...${NC}"
-    TEST_FILE=""
-    ;;
-esac
+# Collect test files for all suites
+TEST_FILES=()
+for SUITE_NAME in "${SUITE_NAMES[@]}"; do
+  case "$SUITE_NAME" in
+    v1_firestore)
+      TEST_FILES+=("tests/v1/firestore.test.ts")
+      ;;
+    v1_database)
+      TEST_FILES+=("tests/v1/database.test.ts")
+      ;;
+    v1_pubsub)
+      TEST_FILES+=("tests/v1/pubsub.test.ts")
+      ;;
+    v1_storage)
+      TEST_FILES+=("tests/v1/storage.test.ts")
+      ;;
+    v1_tasks)
+      TEST_FILES+=("tests/v1/tasks.test.ts")
+      ;;
+    v1_remoteconfig)
+      TEST_FILES+=("tests/v1/remoteconfig.test.ts")
+      ;;
+    v1_testlab)
+      TEST_FILES+=("tests/v1/testlab.test.ts")
+      ;;
+    v1_auth)
+      TEST_FILES+=("tests/v1/auth.test.ts")
+      ;;
+    v2_database)
+      TEST_FILES+=("tests/v2/database.test.ts")
+      ;;
+    v2_pubsub)
+      TEST_FILES+=("tests/v2/pubsub.test.ts")
+      ;;
+    v2_storage)
+      TEST_FILES+=("tests/v2/storage.test.ts")
+      ;;
+    v2_tasks)
+      TEST_FILES+=("tests/v2/tasks.test.ts")
+      ;;
+    v2_scheduler)
+      TEST_FILES+=("tests/v2/scheduler.test.ts")
+      ;;
+    v2_remoteconfig)
+      TEST_FILES+=("tests/v2/remoteconfig.test.ts")
+      ;;
+    v2_testlab)
+      TEST_FILES+=("tests/v2/testlab.test.ts")
+      ;;
+    v2_identity)
+      TEST_FILES+=("tests/v2/identity.test.ts")
+      ;;
+    v2_eventarc)
+      TEST_FILES+=("tests/v2/eventarc.test.ts")
+      ;;
+    v2_firestore)
+      TEST_FILES+=("tests/v2/firestore.test.ts")
+      ;;
+    *)
+      echo -e "${YELLOW}⚠️  No test file mapping for suite: $SUITE_NAME${NC}"
+      ;;
+  esac
+done
 
-if [ -n "$TEST_FILE" ]; then
-  npm test -- "$TEST_FILE"
+if [ ${#TEST_FILES[@]} -gt 0 ]; then
+  npm test -- "${TEST_FILES[@]}"
 else
+  echo -e "${YELLOW}   No test files found. Running all tests...${NC}"
   npm test
 fi
 

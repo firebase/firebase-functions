@@ -14,6 +14,7 @@
     "hard-reset": "./scripts/hard-reset.sh"
   },
   "dependencies": {
+    "chalk": "^4.1.2",
     "firebase-admin": "^12.0.0"
   },
   "devDependencies": {

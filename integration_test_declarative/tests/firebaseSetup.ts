@@ -10,11 +10,13 @@ export function initializeFirebase(): admin.app.App {
       const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS ||
         "/Users/jacob/firebase-functions/integration_test_declarative/sa.json";
 
+      const projectId = process.env.PROJECT_ID || "functions-integration-tests";
+
       return admin.initializeApp({
         credential: admin.credential.applicationDefault(),
-        databaseURL: process.env.DATABASE_URL,
-        storageBucket: process.env.STORAGE_BUCKET,
-        projectId: process.env.PROJECT_ID,
+        databaseURL: process.env.DATABASE_URL || "https://functions-integration-tests-default-rtdb.firebaseio.com/",
+        storageBucket: process.env.STORAGE_BUCKET || "gs://functions-integration-tests.firebasestorage.app",
+        projectId: projectId,
       });
     } catch (error) {
       console.error("Error initializing Firebase:", error);

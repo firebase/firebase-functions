@@ -13,9 +13,7 @@ if (!admin.apps.length) {
   }
 }
 
-// Export functions for suite: {{name}}
-{{#if (eq version "v1")}}
-export * from "./v1/firestore-tests";
-{{else}}
-export * from "./v2/firestore-tests";
-{{/if}}
+// Export all generated test suites
+{{#each suites}}
+export * from "./{{this.version}}/{{this.service}}-tests"; // {{this.name}}
+{{/each}}
