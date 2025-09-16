@@ -82,14 +82,67 @@ function generateFromTemplate(templatePath, outputPath, context) {
   console.log(`   ✅ Generated: ${outputPath}`);
 }
 
+// Template mapping for service types and versions
+const templateMap = {
+  firestore: {
+    v1: 'functions/src/v1/firestore-tests.ts.hbs',
+    v2: 'functions/src/v2/firestore-tests.ts.hbs'
+  },
+  database: {
+    v1: 'functions/src/v1/database-tests.ts.hbs',
+    v2: 'functions/src/v2/database-tests.ts.hbs'
+  },
+  pubsub: {
+    v1: 'functions/src/v1/pubsub-tests.ts.hbs',
+    v2: 'functions/src/v2/pubsub-tests.ts.hbs'
+  },
+  storage: {
+    v1: 'functions/src/v1/storage-tests.ts.hbs',
+    v2: 'functions/src/v2/storage-tests.ts.hbs'
+  },
+  auth: {
+    v1: 'functions/src/v1/auth-tests.ts.hbs',
+    v2: 'functions/src/v2/auth-tests.ts.hbs'
+  },
+  tasks: {
+    v1: 'functions/src/v1/tasks-tests.ts.hbs',
+    v2: 'functions/src/v2/tasks-tests.ts.hbs'
+  },
+  remoteconfig: {
+    v1: 'functions/src/v1/remoteconfig-tests.ts.hbs',
+    v2: 'functions/src/v2/remoteconfig-tests.ts.hbs'
+  },
+  testlab: {
+    v1: 'functions/src/v1/testlab-tests.ts.hbs',
+    v2: 'functions/src/v2/testlab-tests.ts.hbs'
+  }
+};
+
+// Determine service and version for template selection
+const service = suiteConfig.suite.service || 'firestore'; // Default to 'firestore' for backward compatibility
+const version = suiteConfig.suite.version || 'v1'; // Default to 'v1'
+
+// Select the appropriate template
+const templatePath = templateMap[service]?.[version];
+if (!templatePath) {
+  console.error(`❌ No template found for service '${service}' version '${version}'`);
+  console.error(`Available templates:`);
+  Object.entries(templateMap).forEach(([svc, versions]) => {
+    Object.keys(versions).forEach(ver => {
+      console.error(`  - ${svc} ${ver}`);
+    });
+  });
+  process.exit(1);
+}
+
+console.log(`📋 Using service: ${service}, version: ${version}`);
+console.log(`📄 Template: ${templatePath}`);
+
 console.log('\n📁 Generating functions...');
 
-// Generate function files
-generateFromTemplate(
-  'functions/src/v1/firestore-tests.ts.hbs',
-  'functions/src/v1/firestore-tests.ts',
-  context
-);
+// Generate function files using selected template
+const outputPath = `functions/src/${version}/${service}-tests.ts`;
+generateFromTemplate(templatePath, outputPath, context);
 
 // Generate utils (no templating needed, just copy)
 generateFromTemplate(

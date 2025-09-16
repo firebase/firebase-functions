@@ -4,6 +4,7 @@ suite:
   region: us-central1
   description: "V1 Firestore trigger tests"
   version: v1
+  service: firestore
 
   functions:
     - name: firestoreDocumentOnCreateTests
