@@ -11,7 +11,7 @@ export const {{name}}{{../testRunId}} = functions
   })
   .region(REGION)
   .firestore.document("{{document}}")
-  .{{trigger}}(async ({{#if (eq trigger "onUpdate")}}change{{else if (eq trigger "onWrite")}}change{{else}}snapshot{{/if}}, context) => {
+  .{{trigger}}(async ({{#if (eq trigger "onUpdate")}}_change{{else if (eq trigger "onWrite")}}_change{{else}}_snapshot{{/if}}, context) => {
     const testId = context.params.testId;
     await admin
       .firestore()

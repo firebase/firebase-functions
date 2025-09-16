@@ -267,10 +267,10 @@ for SUITE_NAME in "${SUITE_NAMES[@]}"; do
 done
 
 if [ ${#TEST_FILES[@]} -gt 0 ]; then
-  npm test -- "${TEST_FILES[@]}"
+  TEST_RUN_ID="$TEST_RUN_ID" npm test -- "${TEST_FILES[@]}"
 else
   echo -e "${YELLOW}   No test files found. Running all tests...${NC}"
-  npm test
+  TEST_RUN_ID="$TEST_RUN_ID" npm test
 fi
 
 echo ""
