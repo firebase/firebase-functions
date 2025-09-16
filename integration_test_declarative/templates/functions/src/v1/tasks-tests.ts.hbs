@@ -10,9 +10,14 @@ export const {{name}}{{../testRunId}} = functions
     timeoutSeconds: {{timeout}}
   })
   .region(REGION)
-  .firestore.document("{{document}}")
-  .{{trigger}}(async ({{#if (eq trigger "onUpdate")}}change{{else if (eq trigger "onWrite")}}change{{else}}snapshot{{/if}}, context) => {
-    const testId = context.params.testId;
+  .tasks.taskQueue()
+  .onDispatch(async (data: unknown, context) => {
+    if (!data || typeof data !== "object" || !("testId" in data)) {
+      console.error("Invalid data structure for tasks onDispatch");
+      return;
+    }
+    const testId = (data as { testId: string }).testId;
+
     await admin
       .firestore()
       .collection("{{collection}}")

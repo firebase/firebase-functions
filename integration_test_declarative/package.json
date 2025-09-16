@@ -8,6 +8,11 @@
     "test": "jest",
     "run-suite": "./scripts/run-suite.sh",
     "test:firestore": "./scripts/run-suite.sh v1_firestore",
+    "test:v1": "./scripts/run-suite.sh v1_firestore v1_database v1_pubsub v1_storage v1_tasks v1_remoteconfig v1_testlab v1_auth_nonblocking",
+    "test:v1:all": "node scripts/generate.js v1_firestore v1_database v1_pubsub v1_storage v1_tasks v1_remoteconfig v1_testlab v1_auth_nonblocking && ./scripts/run-suite.sh v1_firestore v1_database v1_pubsub v1_storage v1_tasks v1_remoteconfig v1_testlab v1_auth_nonblocking",
+    "test:v1:all:save": "npm run test:v1:all 2>&1 | tee test-output-$(date +%Y%m%d-%H%M%S).log",
+    "test:v1:auth-before-create": "node scripts/generate.js v1_auth_before_create && ./scripts/run-suite.sh v1_auth_before_create",
+    "test:v1:auth-before-signin": "node scripts/generate.js v1_auth_before_signin && ./scripts/run-suite.sh v1_auth_before_signin",
     "cleanup": "./scripts/cleanup-suite.sh",
     "cleanup:list": "./scripts/cleanup-suite.sh --list-artifacts",
     "clean": "rm -rf generated/*",
@@ -19,8 +24,10 @@
     "firebase-admin": "^12.0.0"
   },
   "devDependencies": {
+    "@google-cloud/tasks": "^6.2.0",
     "@types/jest": "^29.5.11",
     "@types/node": "^20.10.5",
+    "firebase": "^12.2.1",
     "handlebars": "^4.7.8",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",

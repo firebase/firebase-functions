@@ -8,7 +8,7 @@ describe("Pub/Sub (v1)", () => {
   const testId = process.env.TEST_RUN_ID;
   const region = process.env.REGION || "us-central1";
   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const topicName = `firebase-schedule-pubsubScheduleTests_${testId}-${region}`;
+  const topicName = `firebase-schedule-pubsubScheduleTests${testId}-${region}`;
 
   if (!testId || !projectId) {
     throw new Error("Environment configured incorrectly.");

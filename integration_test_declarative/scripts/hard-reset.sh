@@ -124,6 +124,10 @@ if [ -d "$ROOT_DIR/generated" ]; then
   echo "   Cleaned generated/ directory"
 fi
 
+# Clean up all test auth users
+echo -e "${YELLOW}🔑 Cleaning up test auth users...${NC}"
+node "$SCRIPT_DIR/cleanup-all-test-users.cjs" <<< "yes" 2>/dev/null || true
+
 echo -e "${GREEN}✅ Hard reset complete!${NC}"
 echo -e "${GREEN}   All test functions and data have been removed from project: $PROJECT_ID${NC}"
 echo ""

@@ -6,3 +6,4 @@ generated/
 package-lock.json
 firebase-debug.log
 sa.json
+test-config.json

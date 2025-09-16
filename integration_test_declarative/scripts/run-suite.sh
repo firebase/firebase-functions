@@ -41,7 +41,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Generate unique TEST_RUN_ID (short to avoid 63-char function name limit)
-export TEST_RUN_ID="t_$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
+# No underscores or hyphens - just letters and numbers for compatibility with both JS identifiers and Cloud Tasks
+export TEST_RUN_ID="t$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}🚀 Running Integration Test Suite(s): ${SUITE_DISPLAY}${NC}"
@@ -64,13 +65,22 @@ cleanup() {
       # Delete deployed functions using metadata
       echo -e "${YELLOW}   Deleting functions with TEST_RUN_ID: $TEST_RUN_ID${NC}"
 
-      # Extract function names from metadata
-      FUNCTIONS=$(grep -o '"[^"]*_'${TEST_RUN_ID}'"' "$ROOT_DIR/generated/.metadata.json" 2>/dev/null | tr -d '"' || true)
+      # Extract function names from metadata (handles both underscore and no-separator patterns)
+      # Matches functions ending with either _testRunId or just testRunId
+      FUNCTIONS=$(grep -oE '"[^"]*[_]?'${TEST_RUN_ID}'"' "$ROOT_DIR/generated/.metadata.json" 2>/dev/null | tr -d '"' || true)
 
       if [ -n "$FUNCTIONS" ]; then
+        # Default region if not found in metadata
+        REGION="us-central1"
+
         for FUNCTION in $FUNCTIONS; do
           echo "   Deleting function: $FUNCTION"
-          firebase functions:delete "$FUNCTION" --project "$PROJECT_ID" --force 2>/dev/null || true
+          # Try Firebase CLI first
+          if ! firebase functions:delete "$FUNCTION" --project "$PROJECT_ID" --region "$REGION" --force 2>/dev/null; then
+            # If Firebase CLI fails (e.g., due to invalid queue names), try gcloud
+            echo "   Firebase CLI failed, trying gcloud..."
+            gcloud functions delete "$FUNCTION" --region="$REGION" --project="$PROJECT_ID" --quiet 2>/dev/null || true
+          fi
         done
       fi
 
@@ -79,6 +89,15 @@ cleanup() {
       for COLLECTION in firestoreDocumentOnCreateTests firestoreDocumentOnDeleteTests firestoreDocumentOnUpdateTests firestoreDocumentOnWriteTests; do
         firebase firestore:delete "$COLLECTION/$TEST_RUN_ID" --project "$PROJECT_ID" --yes 2>/dev/null || true
       done
+
+      # Clean up auth test data from Firestore
+      for COLLECTION in authUserOnCreateTests authUserOnDeleteTests authBeforeCreateTests authBeforeSignInTests; do
+        firebase firestore:delete "$COLLECTION/$TEST_RUN_ID" --project "$PROJECT_ID" --yes 2>/dev/null || true
+      done
+
+      # Clean up auth users created during tests
+      echo -e "${YELLOW}   Cleaning up auth test users...${NC}"
+      node "$SCRIPT_DIR/cleanup-auth-users.cjs" "$TEST_RUN_ID" 2>/dev/null || true
     fi
   fi
 
@@ -208,7 +227,7 @@ for SUITE_NAME in "${SUITE_NAMES[@]}"; do
     v1_testlab)
       TEST_FILES+=("tests/v1/testlab.test.ts")
       ;;
-    v1_auth)
+    v1_auth | v1_auth_nonblocking | v1_auth_before_create | v1_auth_before_signin)
       TEST_FILES+=("tests/v1/auth.test.ts")
       ;;
     v2_database)

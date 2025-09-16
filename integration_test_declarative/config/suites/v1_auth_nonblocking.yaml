@@ -1,0 +1,25 @@
+suite:
+  name: v1_auth_nonblocking
+  projectId: functions-integration-tests
+  region: us-central1
+  description: "V1 Auth trigger tests (non-blocking only)"
+  version: v1
+  service: auth
+
+  functions:
+    - name: authUserOnCreateTests
+      trigger: onCreate
+      timeout: 540
+      collection: authUserOnCreateTests
+
+    - name: authUserOnDeleteTests
+      trigger: onDelete
+      timeout: 540
+      collection: authUserOnDeleteTests
+
+  dependencies:
+    firebase-admin: "^12.0.0"
+    firebase-functions: "{{sdkTarball}}"
+
+  devDependencies:
+    typescript: "^4.9.5"

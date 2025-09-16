@@ -6,7 +6,7 @@ const REGION = "{{region}}";
 
 {{#each functions}}
 {{#if schedule}}
-export const {{name}}_{{../testRunId}} = functions
+export const {{name}}{{../testRunId}} = functions
   .runWith({
     timeoutSeconds: {{timeout}}
   })
@@ -16,7 +16,7 @@ export const {{name}}_{{../testRunId}} = functions
     const topicName = /\/topics\/([a-zA-Z0-9\-\_]+)/gi.exec(context.resource.name)?.[1];
 
     if (!topicName) {
-      functions.logger.error(
+      console.error(
         "Topic name not found in resource name for scheduled function execution"
       );
       return;
@@ -29,7 +29,7 @@ export const {{name}}_{{../testRunId}} = functions
       .set(sanitizeData(context));
   });
 {{else}}
-export const {{name}}_{{../testRunId}} = functions
+export const {{name}}{{../testRunId}} = functions
   .runWith({
     timeoutSeconds: {{timeout}}
   })

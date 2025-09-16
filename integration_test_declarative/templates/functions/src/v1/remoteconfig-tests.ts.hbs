@@ -10,9 +10,13 @@ export const {{name}}{{../testRunId}} = functions
     timeoutSeconds: {{timeout}}
   })
   .region(REGION)
-  .firestore.document("{{document}}")
-  .{{trigger}}(async ({{#if (eq trigger "onUpdate")}}change{{else if (eq trigger "onWrite")}}change{{else}}snapshot{{/if}}, context) => {
-    const testId = context.params.testId;
+  .remoteConfig.onUpdate(async (version, context) => {
+    const testId = version.description;
+    if (!testId) {
+      console.error("TestId not found in remoteConfig version description");
+      return;
+    }
+
     await admin
       .firestore()
       .collection("{{collection}}")

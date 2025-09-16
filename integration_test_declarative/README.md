@@ -22,6 +22,9 @@ This framework uses a template-based code generation approach where:
 ## Quick Start
 
 ```bash
+# Run all v1 tests (generate, deploy, test)
+npm run test:v1:all
+
 # Run a single test suite
 ./scripts/run-suite.sh v1_firestore
 
@@ -34,6 +37,38 @@ This framework uses a template-based code generation approach where:
 # Clean up a specific test run
 ./scripts/cleanup-suite.sh t_1757979490_xkyqun
 ```
+
+## Configuration
+
+### Auth Tests Configuration
+
+Auth tests require Firebase client SDK credentials. Create a `test-config.json` file in the project root:
+
+```bash
+cp test-config.json.example test-config.json
+# Edit test-config.json with your Firebase project credentials
+```
+
+You can get these values from the Firebase Console:
+1. Go to Project Settings → General
+2. Scroll down to "Your apps" → Web app
+3. Copy the configuration values
+
+The file is already in `.gitignore` to prevent accidental commits.
+
+### Auth Blocking Functions Limitation
+
+Firebase has a limitation where **only ONE blocking auth function can be deployed per project at any time**. This means:
+- You cannot deploy `beforeCreate` and `beforeSignIn` together
+- You cannot run these tests in parallel with other test runs
+- Each blocking function must be tested separately
+
+To work around this:
+- `npm run test:v1:all` - Runs all v1 tests with non-blocking auth functions only (onCreate, onDelete)
+- `npm run test:v1:auth-before-create` - Tests ONLY the beforeCreate blocking function (run separately)
+- `npm run test:v1:auth-before-signin` - Tests ONLY the beforeSignIn blocking function (run separately)
+
+**Important**: Run the blocking function tests one at a time, and ensure no other test deployments are running.
 
 ## Architecture
 

@@ -5,7 +5,7 @@ import { sanitizeData } from "../utils";
 const REGION = "{{region}}";
 
 {{#each functions}}
-export const {{name}}_{{../testRunId}} = functions
+export const {{name}}{{../testRunId}} = functions
   .runWith({
     timeoutSeconds: {{timeout}}
   })
@@ -15,7 +15,7 @@ export const {{name}}_{{../testRunId}} = functions
     const testId = context.params.testId;
     {{#if (eq trigger "onWrite")}}
     if (change.after.val() === null) {
-      functions.logger.info(`Event for ${testId} is null; presuming data cleanup, so skipping.`);
+      console.log(`Event for ${testId} is null; presuming data cleanup, so skipping.`);
       return;
     }
     {{/if}}
