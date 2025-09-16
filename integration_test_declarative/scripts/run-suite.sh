@@ -28,8 +28,8 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
-# Generate unique TEST_RUN_ID
-export TEST_RUN_ID="t_$(date +%s)_$(head -c 6 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 6)"
+# Generate unique TEST_RUN_ID (short to avoid 63-char function name limit)
+export TEST_RUN_ID="t_$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}🚀 Running Integration Test Suite: ${SUITE_NAME}${NC}"

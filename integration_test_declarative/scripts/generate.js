@@ -36,9 +36,9 @@ if (!existsSync(configPath)) {
 
 const suiteConfig = parse(readFileSync(configPath, 'utf8'));
 
-// Generate unique TEST_RUN_ID if not provided
+// Generate unique TEST_RUN_ID if not provided (short to avoid 63-char function name limit)
 const testRunId = process.env.TEST_RUN_ID ||
-  `t_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+  `t_${Math.random().toString(36).substring(2, 10)}`;
 
 // Use projectId from suite config, then env var, then default
 const projectId = suiteConfig.suite.projectId || process.env.PROJECT_ID || 'demo-test';
@@ -130,6 +130,7 @@ generateFromTemplate(
 const metadata = {
   suite: suiteName,
   testRunId,
+  timestamp: Date.now(),  // Keep full timestamp here for tracking
   projectId,
   region,
   generatedAt: new Date().toISOString(),
