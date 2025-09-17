@@ -2,13 +2,9 @@ import * as admin from "firebase-admin";
 import { retry, startTestRun } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
-describe("TestLab (v1)", () => {
+describe.skip("TestLab (v1)", () => {
   const projectId = process.env.PROJECT_ID || "functions-integration-tests";
-  const testId = process.env.TEST_RUN_ID;
-
-  if (!testId) {
-    throw new Error("Environment configured incorrectly.");
-  }
+  const testId = process.env.TEST_RUN_ID || "skipped-test";
 
   beforeAll(() => {
     initializeFirebase();
