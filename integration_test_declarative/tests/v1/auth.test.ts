@@ -1,6 +1,11 @@
 import * as admin from "firebase-admin";
 import { initializeApp } from "firebase/app";
-import { createUserWithEmailAndPassword, getAuth, UserCredential } from "firebase/auth";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  getAuth,
+  UserCredential,
+} from "firebase/auth";
 import { initializeFirebase } from "../firebaseSetup";
 import { retry } from "../utils";
 
@@ -8,6 +13,7 @@ describe("Firebase Auth (v1)", () => {
   const userIds: string[] = [];
   const projectId = process.env.PROJECT_ID || "functions-integration-tests";
   const testId = process.env.TEST_RUN_ID;
+  const deployedFunctions = process.env.DEPLOYED_FUNCTIONS?.split(",") || [];
 
   if (!testId) {
     throw new Error("Environment configured incorrectly.");
@@ -17,13 +23,15 @@ describe("Firebase Auth (v1)", () => {
   let config;
   try {
     // Try to load from test-config.json first
-    config = require('../../test-config.json');
+    config = require("../../test-config.json");
     config.projectId = config.projectId || projectId;
   } catch {
     // Fall back to environment variables
     const apiKey = process.env.FIREBASE_API_KEY;
     if (!apiKey) {
-      console.warn("Skipping Auth tests: No test-config.json found and FIREBASE_API_KEY not configured");
+      console.warn(
+        "Skipping Auth tests: No test-config.json found and FIREBASE_API_KEY not configured"
+      );
       test.skip("Auth tests require Firebase client SDK configuration", () => {});
       return;
     }
@@ -161,6 +169,11 @@ describe("Firebase Auth (v1)", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
+      if (!deployedFunctions.includes("beforeCreate")) {
+        console.log("⏭️  Skipping beforeCreate tests - function not deployed in this suite");
+        return;
+      }
+
       const auth = getAuth(app);
       userCredential = await createUserWithEmailAndPassword(
         auth,
@@ -184,14 +197,26 @@ describe("Firebase Auth (v1)", () => {
     });
 
     it("should have the correct eventType", () => {
+      if (!deployedFunctions.includes("beforeCreate")) {
+        pending("beforeCreate function not deployed in this suite");
+        return;
+      }
       expect(loggedContext?.eventType).toEqual("providers/cloud.auth/eventTypes/user.beforeCreate");
     });
 
     it("should have an eventId", () => {
+      if (!deployedFunctions.includes("beforeCreate")) {
+        pending("beforeCreate function not deployed in this suite");
+        return;
+      }
       expect(loggedContext?.eventId).toBeDefined();
     });
 
     it("should have a timestamp", () => {
+      if (!deployedFunctions.includes("beforeCreate")) {
+        pending("beforeCreate function not deployed in this suite");
+        return;
+      }
       expect(loggedContext?.timestamp).toBeDefined();
     });
   });
@@ -202,6 +227,11 @@ describe("Firebase Auth (v1)", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
+      if (!deployedFunctions.includes("beforeSignIn")) {
+        console.log("⏭️  Skipping beforeSignIn tests - function not deployed in this suite");
+        return;
+      }
+
       userRecord = await admin.auth().createUser({
         email: `${testId}@beforesignin.com`,
         password: "secret456",
@@ -210,7 +240,8 @@ describe("Firebase Auth (v1)", () => {
       userIds.push(userRecord.uid);
 
       const auth = getAuth(app);
-      userCredential = await createUserWithEmailAndPassword(
+      // Fix: Use signInWithEmailAndPassword instead of createUserWithEmailAndPassword
+      userCredential = await signInWithEmailAndPassword(
         auth,
         `${testId}@beforesignin.com`,
         "secret456"
@@ -231,14 +262,26 @@ describe("Firebase Auth (v1)", () => {
     });
 
     it("should have the correct eventType", () => {
+      if (!deployedFunctions.includes("beforeSignIn")) {
+        pending("beforeSignIn function not deployed in this suite");
+        return;
+      }
       expect(loggedContext?.eventType).toEqual("providers/cloud.auth/eventTypes/user.beforeSignIn");
     });
 
     it("should have an eventId", () => {
+      if (!deployedFunctions.includes("beforeSignIn")) {
+        pending("beforeSignIn function not deployed in this suite");
+        return;
+      }
       expect(loggedContext?.eventId).toBeDefined();
     });
 
     it("should have a timestamp", () => {
+      if (!deployedFunctions.includes("beforeSignIn")) {
+        pending("beforeSignIn function not deployed in this suite");
+        return;
+      }
       expect(loggedContext?.timestamp).toBeDefined();
     });
   });

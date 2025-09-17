@@ -10,7 +10,7 @@ export const {{name}}{{../testRunId}} = functions
     timeoutSeconds: {{timeout}}
   })
   .region(REGION)
-  .storage.bucket("functions-integration-tests.firebasestorage.app")
+  .storage.bucket("{{../projectId}}.firebasestorage.app")
   .object()
   .{{trigger}}(async (object{{#if (eq trigger "onFinalize")}}: unknown{{/if}}, context) => {
     {{#if (eq trigger "onFinalize")}}

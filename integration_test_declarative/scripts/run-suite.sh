@@ -173,12 +173,17 @@ echo -e "${GREEN}☁️  Step 3/4: Deploying to Firebase${NC}"
 echo -e "${BLUE}──────────────────────────────────────────────────────────${NC}"
 
 cd "$ROOT_DIR/generated"
-firebase deploy --only functions --project "$PROJECT_ID" || {
+
+# Source the utility functions for retry logic
+source "$ROOT_DIR/scripts/util.sh"
+
+# Deploy with exponential backoff retry
+retry_with_backoff 3 30 120 600 firebase deploy --only functions --project "$PROJECT_ID" || {
   # Check if it's just the cleanup policy warning
   if firebase functions:list --project "$PROJECT_ID" 2>/dev/null | grep -q "$TEST_RUN_ID"; then
     echo -e "${YELLOW}⚠️  Functions deployed with warnings (cleanup policy)${NC}"
   else
-    echo -e "${RED}❌ Deployment failed${NC}"
+    echo -e "${RED}❌ Deployment failed after all retry attempts${NC}"
     exit 1
   fi
 }
@@ -201,6 +206,25 @@ fi
 
 # Run the tests
 export GOOGLE_APPLICATION_CREDENTIALS="$ROOT_DIR/sa.json"
+
+# Extract deployed functions from suite names
+DEPLOYED_FUNCTIONS=""
+for SUITE_NAME in "${SUITE_NAMES[@]}"; do
+  case "$SUITE_NAME" in
+    v1_auth_nonblocking)
+      DEPLOYED_FUNCTIONS="${DEPLOYED_FUNCTIONS},onCreate,onDelete"
+      ;;
+    v1_auth_before_create)
+      DEPLOYED_FUNCTIONS="${DEPLOYED_FUNCTIONS},beforeCreate"
+      ;;
+    v1_auth_before_signin)
+      DEPLOYED_FUNCTIONS="${DEPLOYED_FUNCTIONS},beforeSignIn"
+      ;;
+  esac
+done
+
+# Remove leading comma
+DEPLOYED_FUNCTIONS="${DEPLOYED_FUNCTIONS#,}"
 
 # Collect test files for all suites
 TEST_FILES=()
@@ -267,10 +291,10 @@ for SUITE_NAME in "${SUITE_NAMES[@]}"; do
 done
 
 if [ ${#TEST_FILES[@]} -gt 0 ]; then
-  TEST_RUN_ID="$TEST_RUN_ID" npm test -- "${TEST_FILES[@]}"
+  DEPLOYED_FUNCTIONS="$DEPLOYED_FUNCTIONS" TEST_RUN_ID="$TEST_RUN_ID" npm test -- "${TEST_FILES[@]}"
 else
   echo -e "${YELLOW}   No test files found. Running all tests...${NC}"
-  TEST_RUN_ID="$TEST_RUN_ID" npm test
+  DEPLOYED_FUNCTIONS="$DEPLOYED_FUNCTIONS" TEST_RUN_ID="$TEST_RUN_ID" npm test
 fi
 
 echo ""

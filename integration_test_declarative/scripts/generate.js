@@ -155,6 +155,11 @@ for (const suite of suites) {
     timestamp: new Date().toISOString(),
   };
 
+  // Debug: Log the context for storage templates
+  if (service === "storage") {
+    console.log("   🔍 Debug - Template context:", JSON.stringify(context, null, 2));
+  }
+
   // Generate the test file for this suite
   generateFromTemplate(templatePath, `functions/src/${version}/${service}-tests.ts`, context);
 
