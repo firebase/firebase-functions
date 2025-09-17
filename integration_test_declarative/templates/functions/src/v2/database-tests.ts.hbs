@@ -1,0 +1,96 @@
+import * as admin from "firebase-admin";
+import { onValueCreated, onValueDeleted, onValueUpdated, onValueWritten } from "firebase-functions/v2/database";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+{{#if (eq trigger "onValueCreated")}}
+export const {{name}}{{../testRunId}} = onValueCreated({
+  ref: "{{path}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(
+      sanitizeData({
+        ...event,
+        url: event.data.ref.toString(),
+      })
+    );
+});
+{{/if}}
+
+{{#if (eq trigger "onValueDeleted")}}
+export const {{name}}{{../testRunId}} = onValueDeleted({
+  ref: "{{path}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(
+      sanitizeData({
+        ...event,
+        url: event.data.ref.toString(),
+      })
+    );
+});
+{{/if}}
+
+{{#if (eq trigger "onValueUpdated")}}
+export const {{name}}{{../testRunId}} = onValueUpdated({
+  ref: "{{path}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(
+      sanitizeData({
+        ...event,
+        url: event.data.after.ref.toString(),
+        data: event.data.after.val() ? JSON.stringify(event.data.after.val()) : null,
+      })
+    );
+});
+{{/if}}
+
+{{#if (eq trigger "onValueWritten")}}
+export const {{name}}{{../testRunId}} = onValueWritten({
+  ref: "{{path}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+
+  // Skip if data is being deleted (cleanup)
+  if (event.data.after.val() === null) {
+    console.log(`Event for ${testId} is null; presuming data cleanup, so skipping.`);
+    return;
+  }
+
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(
+      sanitizeData({
+        ...event,
+        url: event.data.after.ref.toString(),
+      })
+    );
+});
+{{/if}}
+
+{{/each}}

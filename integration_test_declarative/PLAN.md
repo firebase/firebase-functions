@@ -20,17 +20,17 @@ Each service needs:
 - Test file in `tests/v2/`
 
 Services to migrate:
-- [ ] **Firestore V2** - Document triggers with namespaces
-- [ ] **Database V2** - Realtime database with new API
-- [ ] **PubSub V2** - Topic and message handling
-- [ ] **Storage V2** - Object lifecycle events
-- [ ] **Tasks V2** - Task queue with new options
-- [ ] **Scheduler V2** - Cron jobs with timezone support
-- [ ] **RemoteConfig V2** - Configuration updates
-- [ ] **TestLab V2** - Test matrix completion
-- [ ] **Identity V2** - Replaces Auth with beforeUserCreated/beforeUserSignedIn
-- [ ] **EventArc V2** - Custom event handling
-- [ ] **Alerts V2** - Firebase Alerts integration (if needed)
+- [x] **Firestore V2** - Document triggers with namespaces
+- [x] **Database V2** - Realtime database with new API
+- [x] **PubSub V2** - Topic and message handling
+- [x] **Storage V2** - Object lifecycle events
+- [x] **Tasks V2** - Task queue with new options
+- [x] **Scheduler V2** - Cron jobs with timezone support
+- [x] **RemoteConfig V2** - Configuration updates
+- [x] **TestLab V2** - Test matrix completion
+- [x] **Identity V2** - Replaces Auth with beforeUserCreated/beforeUserSignedIn
+- [x] **EventArc V2** - Custom event handling
+- [x] **Alerts V2** - Firebase Alerts integration (if needed)
 
 ### 1.2 Project Setup Strategy
 
@@ -88,24 +88,10 @@ options:
 ### 2.2 CI Orchestration Script (`scripts/run-ci-tests.sh`)
 
 Features needed:
-- Parallel execution of non-conflicting test suites
-- Sequential execution of blocking functions
+- Sequential execution of test suites
 - Proper error handling and aggregation
 - Test result artifact storage
 - Comprehensive cleanup on success or failure
-
-#### Execution Strategy
-
-**Parallel Groups** (can run simultaneously):
-- Group 1: Firestore, Database, Storage, RemoteConfig, TestLab
-- Group 2: PubSub, Scheduler, Tasks, EventArc
-- Group 3: Non-blocking Auth/Identity functions
-
-**Sequential Tests** (must run alone):
-- V1 auth.beforeCreate
-- V1 auth.beforeSignIn
-- V2 identity.beforeUserCreated
-- V2 identity.beforeUserSignedIn
 
 ## Phase 3: Documentation
 

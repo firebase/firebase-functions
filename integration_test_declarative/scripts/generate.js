@@ -115,6 +115,18 @@ const templateMap = {
     v1: "functions/src/v1/testlab-tests.ts.hbs",
     v2: "functions/src/v2/testlab-tests.ts.hbs",
   },
+  scheduler: {
+    v2: "functions/src/v2/scheduler-tests.ts.hbs",
+  },
+  identity: {
+    v2: "functions/src/v2/identity-tests.ts.hbs",
+  },
+  eventarc: {
+    v2: "functions/src/v2/eventarc-tests.ts.hbs",
+  },
+  alerts: {
+    v2: "functions/src/v2/alerts-tests.ts.hbs",
+  },
 };
 
 console.log("\n📁 Generating functions...");

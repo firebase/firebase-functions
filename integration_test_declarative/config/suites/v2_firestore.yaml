@@ -1,0 +1,39 @@
+suite:
+  name: v2_firestore
+  projectId: functions-integration-tests
+  region: us-central1
+  description: "V2 Firestore trigger tests"
+  version: v2
+  service: firestore
+
+  functions:
+    - name: firestoreOnDocumentCreatedTests
+      trigger: onDocumentCreated
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreOnDocumentCreatedTests
+
+    - name: firestoreOnDocumentDeletedTests
+      trigger: onDocumentDeleted
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreOnDocumentDeletedTests
+
+    - name: firestoreOnDocumentUpdatedTests
+      trigger: onDocumentUpdated
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreOnDocumentUpdatedTests
+
+    - name: firestoreOnDocumentWrittenTests
+      trigger: onDocumentWritten
+      document: "tests/{testId}"
+      timeout: 540
+      collection: firestoreOnDocumentWrittenTests
+
+  dependencies:
+    firebase-admin: "^12.0.0"
+    firebase-functions: "{{sdkTarball}}"
+
+  devDependencies:
+    typescript: "^4.9.5"

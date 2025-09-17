@@ -1,0 +1,222 @@
+// import * as admin from "firebase-admin";
+import { onAlertPublished } from "firebase-functions/v2/alerts";
+import {
+  onInAppFeedbackPublished,
+  onNewTesterIosDevicePublished,
+} from "firebase-functions/v2/alerts/appDistribution";
+import {
+  onPlanAutomatedUpdatePublished,
+  onPlanUpdatePublished,
+} from "firebase-functions/v2/alerts/billing";
+import {
+  onNewAnrIssuePublished,
+  onNewFatalIssuePublished,
+  onNewNonfatalIssuePublished,
+  onRegressionAlertPublished,
+  onStabilityDigestPublished,
+  onVelocityAlertPublished,
+} from "firebase-functions/v2/alerts/crashlytics";
+import { onThresholdAlertPublished } from "firebase-functions/v2/alerts/performance";
+
+const REGION = "{{region}}";
+
+// TODO: All this does is test that the function is deployable.
+// Since you cannot directly trigger alerts in a CI environment, we cannot test
+// the internals without mocking.
+
+{{#each functions}}
+{{#if (eq trigger "onAlertPublished")}}
+export const {{name}}{{../testRunId}} = onAlertPublished(
+  "{{alertType}}",
+  {
+    region: REGION,
+    timeoutSeconds: {{timeout}}
+  },
+  async (event) => {
+    // const testId = event.data.payload.testId;
+    // await admin
+    //   .firestore()
+    //   .collection("{{name}}")
+    //   .doc(testId)
+    //   .set({ event: JSON.stringify(event) });
+  }
+);
+{{/if}}
+
+{{#if (eq trigger "onInAppFeedbackPublished")}}
+export const {{name}}{{../testRunId}} = onInAppFeedbackPublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.text;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onNewTesterIosDevicePublished")}}
+export const {{name}}{{../testRunId}} = onNewTesterIosDevicePublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.testerName;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onPlanAutomatedUpdatePublished")}}
+export const {{name}}{{../testRunId}} = onPlanAutomatedUpdatePublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.billingPlan;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onPlanUpdatePublished")}}
+export const {{name}}{{../testRunId}} = onPlanUpdatePublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.billingPlan;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onNewAnrIssuePublished")}}
+export const {{name}}{{../testRunId}} = onNewAnrIssuePublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.issue.title;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onNewFatalIssuePublished")}}
+export const {{name}}{{../testRunId}} = onNewFatalIssuePublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.issue.title;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onNewNonfatalIssuePublished")}}
+export const {{name}}{{../testRunId}} = onNewNonfatalIssuePublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.issue.title;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onRegressionAlertPublished")}}
+export const {{name}}{{../testRunId}} = onRegressionAlertPublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.issue.title;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onStabilityDigestPublished")}}
+export const {{name}}{{../testRunId}} = onStabilityDigestPublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.trendingIssues[0].issue.title;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onVelocityAlertPublished")}}
+export const {{name}}{{../testRunId}} = onVelocityAlertPublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.issue.title;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{#if (eq trigger "onThresholdAlertPublished")}}
+export const {{name}}{{../testRunId}} = onThresholdAlertPublished({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  // const testId = event.data.payload.eventName;
+  // await admin
+  //   .firestore()
+  //   .collection("{{name}}")
+  //   .doc(testId)
+  //   .set({
+  //     event: JSON.stringify(event),
+  //   });
+});
+{{/if}}
+
+{{/each}}
