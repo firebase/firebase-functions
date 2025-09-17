@@ -193,32 +193,30 @@ describe("Firebase Auth (v1)", () => {
     });
 
     afterAll(async () => {
-      await admin.auth().deleteUser(userCredential.user.uid);
+      if (userCredential?.user?.uid) {
+        await admin.auth().deleteUser(userCredential.user.uid);
+      }
     });
 
-    it("should have the correct eventType", () => {
-      if (!deployedFunctions.includes("beforeCreate")) {
-        pending("beforeCreate function not deployed in this suite");
-        return;
-      }
-      expect(loggedContext?.eventType).toEqual("providers/cloud.auth/eventTypes/user.beforeCreate");
-    });
+    if (deployedFunctions.includes("beforeCreate")) {
+      it("should have the correct eventType", () => {
+        expect(loggedContext?.eventType).toEqual(
+          "providers/cloud.auth/eventTypes/user.beforeCreate"
+        );
+      });
 
-    it("should have an eventId", () => {
-      if (!deployedFunctions.includes("beforeCreate")) {
-        pending("beforeCreate function not deployed in this suite");
-        return;
-      }
-      expect(loggedContext?.eventId).toBeDefined();
-    });
+      it("should have an eventId", () => {
+        expect(loggedContext?.eventId).toBeDefined();
+      });
 
-    it("should have a timestamp", () => {
-      if (!deployedFunctions.includes("beforeCreate")) {
-        pending("beforeCreate function not deployed in this suite");
-        return;
-      }
-      expect(loggedContext?.timestamp).toBeDefined();
-    });
+      it("should have a timestamp", () => {
+        expect(loggedContext?.timestamp).toBeDefined();
+      });
+    } else {
+      it.skip("should have the correct eventType - beforeCreate function not deployed", () => {});
+      it.skip("should have an eventId - beforeCreate function not deployed", () => {});
+      it.skip("should have a timestamp - beforeCreate function not deployed", () => {});
+    }
   });
 
   describe("blocking beforeSignIn function", () => {
@@ -258,12 +256,14 @@ describe("Firebase Auth (v1)", () => {
     });
 
     afterAll(async () => {
-      await admin.auth().deleteUser(userRecord.uid);
+      if (userRecord?.uid) {
+        await admin.auth().deleteUser(userRecord.uid);
+      }
     });
 
     it("should have the correct eventType", () => {
       if (!deployedFunctions.includes("beforeSignIn")) {
-        pending("beforeSignIn function not deployed in this suite");
+        test.skip("beforeSignIn function not deployed in this suite", () => {});
         return;
       }
       expect(loggedContext?.eventType).toEqual("providers/cloud.auth/eventTypes/user.beforeSignIn");
@@ -271,7 +271,7 @@ describe("Firebase Auth (v1)", () => {
 
     it("should have an eventId", () => {
       if (!deployedFunctions.includes("beforeSignIn")) {
-        pending("beforeSignIn function not deployed in this suite");
+        test.skip("beforeSignIn function not deployed in this suite", () => {});
         return;
       }
       expect(loggedContext?.eventId).toBeDefined();
@@ -279,7 +279,7 @@ describe("Firebase Auth (v1)", () => {
 
     it("should have a timestamp", () => {
       if (!deployedFunctions.includes("beforeSignIn")) {
-        pending("beforeSignIn function not deployed in this suite");
+        test.skip("beforeSignIn function not deployed in this suite", () => {});
         return;
       }
       expect(loggedContext?.timestamp).toBeDefined();
