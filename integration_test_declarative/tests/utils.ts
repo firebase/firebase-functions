@@ -38,26 +38,42 @@ export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Pr
   throw new Error(`Max retries exceeded: result = ${result}`);
 }
 
-export async function createTask(queueName: string, testId: string): Promise<string> {
-  const GCLOUD_PROJECT = process.env.GCLOUD_PROJECT || "functions-integration-tests";
-  const REGION = "us-central1";
-  const cloudTasksClient = new CloudTasksClient();
+export async function createTask(
+  project: string,
+  queue: string,
+  location: string,
+  url: string,
+  payload: Record<string, any>
+): Promise<string> {
+  const client = new CloudTasksClient();
+  const parent = client.queuePath(project, location, queue);
 
-  const parent = cloudTasksClient.queuePath(GCLOUD_PROJECT, REGION, queueName);
+  const serviceAccountPath =
+    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+    "/Users/jacob/firebase-functions/integration_test_declarative/sa.json";
+  if (!serviceAccountPath) {
+    throw new Error("Environment configured incorrectly.");
+  }
+  const serviceAccount = await import(serviceAccountPath);
+
   const task = {
     httpRequest: {
       httpMethod: "POST" as const,
-      url: `https://${REGION}-${GCLOUD_PROJECT}.cloudfunctions.net/${queueName}`,
+      url,
       oidcToken: {
-        serviceAccountEmail: `${GCLOUD_PROJECT}@appspot.gserviceaccount.com`,
+        serviceAccountEmail: serviceAccount.client_email,
       },
-      body: Buffer.from(JSON.stringify({ testId })).toString("base64"),
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: Buffer.from(JSON.stringify(payload)).toString("base64"),
     },
   };
 
-  const request = { parent, task };
-  const [response] = await cloudTasksClient.createTask(request);
+  const [response] = await client.createTask({ parent, task });
+  if (!response) {
+    throw new Error("Unable to create task");
+  }
   return response.name || "";
 }
 
@@ -88,7 +104,7 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
   if (!resp.ok) {
     throw new Error(resp.statusText);
   }
-  const data = await resp.json() as any;
+  const data = (await resp.json()) as any;
   const models = data?.androidDeviceCatalog?.models || [];
   const defaultModels = models.filter(
     (m: any) =>
