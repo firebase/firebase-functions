@@ -39,9 +39,11 @@ describe("Firebase Auth (v1)", () => {
     }
   });
 
-  describe("user onCreate trigger", () => {
-    let userRecord: admin.auth.UserRecord;
-    let loggedContext: admin.firestore.DocumentData | undefined;
+  // Only run onCreate tests if the onCreate function is deployed
+  if (deployedFunctions.includes("onCreate")) {
+    describe("user onCreate trigger", () => {
+      let userRecord: admin.auth.UserRecord;
+      let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
       userRecord = await admin.auth().createUser({
@@ -103,8 +105,13 @@ describe("Firebase Auth (v1)", () => {
       expect(loggedContext?.action).toBeUndefined();
     });
   });
+  } else {
+    describe.skip("user onCreate trigger - function not deployed", () => {});
+  }
 
-  describe("user onDelete trigger", () => {
+  // Only run onDelete tests if the onDelete function is deployed
+  if (deployedFunctions.includes("onDelete")) {
+    describe("user onDelete trigger", () => {
     let userRecord: admin.auth.UserRecord;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
@@ -140,6 +147,9 @@ describe("Firebase Auth (v1)", () => {
       expect(loggedContext?.timestamp).toBeDefined();
     });
   });
+  } else {
+    describe.skip("user onDelete trigger - function not deployed", () => {});
+  }
 
   describe("blocking beforeCreate function", () => {
     let userCredential: UserCredential;
@@ -177,8 +187,9 @@ describe("Firebase Auth (v1)", () => {
 
     if (deployedFunctions.includes("beforeCreate")) {
       it("should have the correct eventType", () => {
-        expect(loggedContext?.eventType).toEqual(
-          "providers/cloud.auth/eventTypes/user.beforeCreate"
+        // beforeCreate eventType can include the auth method (e.g., :password, :oauth, etc.)
+        expect(loggedContext?.eventType).toMatch(
+          /^providers\/cloud\.auth\/eventTypes\/user\.beforeCreate/
         );
       });
 
@@ -238,28 +249,25 @@ describe("Firebase Auth (v1)", () => {
       }
     });
 
-    it("should have the correct eventType", () => {
-      if (!deployedFunctions.includes("beforeSignIn")) {
-        test.skip("beforeSignIn function not deployed in this suite", () => {});
-        return;
-      }
-      expect(loggedContext?.eventType).toEqual("providers/cloud.auth/eventTypes/user.beforeSignIn");
-    });
+    if (deployedFunctions.includes("beforeSignIn")) {
+      it("should have the correct eventType", () => {
+        // beforeSignIn eventType can include the auth method (e.g., :password, :oauth, etc.)
+        expect(loggedContext?.eventType).toMatch(
+          /^providers\/cloud\.auth\/eventTypes\/user\.beforeSignIn/
+        );
+      });
 
-    it("should have an eventId", () => {
-      if (!deployedFunctions.includes("beforeSignIn")) {
-        test.skip("beforeSignIn function not deployed in this suite", () => {});
-        return;
-      }
-      expect(loggedContext?.eventId).toBeDefined();
-    });
+      it("should have an eventId", () => {
+        expect(loggedContext?.eventId).toBeDefined();
+      });
 
-    it("should have a timestamp", () => {
-      if (!deployedFunctions.includes("beforeSignIn")) {
-        test.skip("beforeSignIn function not deployed in this suite", () => {});
-        return;
-      }
-      expect(loggedContext?.timestamp).toBeDefined();
-    });
+      it("should have a timestamp", () => {
+        expect(loggedContext?.timestamp).toBeDefined();
+      });
+    } else {
+      it.skip("should have the correct eventType - beforeSignIn function not deployed", () => {});
+      it.skip("should have an eventId - beforeSignIn function not deployed", () => {});
+      it.skip("should have a timestamp - beforeSignIn function not deployed", () => {});
+    }
   });
 });

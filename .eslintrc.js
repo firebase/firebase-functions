@@ -28,6 +28,9 @@ module.exports = {
   overrides: [
     {
       files: ["*.ts"],
+      parserOptions: {
+        project: "tsconfig.json",
+      },
       rules: {
         "jsdoc/require-param-type": "off",
         "jsdoc/require-returns-type": "off",
@@ -62,9 +65,6 @@ module.exports = {
     },
   ],
   globals: {},
-  parserOptions: {
-    project: "tsconfig.json",
-  },
   plugins: ["prettier", "@typescript-eslint", "jsdoc"],
   parser: "@typescript-eslint/parser",
 };
