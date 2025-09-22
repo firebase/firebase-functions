@@ -1,9 +1,0 @@
-{
-  "apiKey": "your-firebase-api-key",
-  "authDomain": "functions-integration-tests.firebaseapp.com",
-  "databaseURL": "https://functions-integration-tests-default-rtdb.firebaseio.com",
-  "projectId": "functions-integration-tests",
-  "storageBucket": "functions-integration-tests.firebasestorage.app",
-  "appId": "your-app-id",
-  "measurementId": "your-measurement-id"
-}

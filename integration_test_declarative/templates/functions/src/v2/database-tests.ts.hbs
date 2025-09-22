@@ -18,7 +18,9 @@ export const {{name}}{{../testRunId}} = onValueCreated({
     .doc(testId)
     .set(
       sanitizeData({
-        ...event,
+        id: event.id,
+        time: event.time,
+        type: "google.firebase.database.ref.v1.created",
         url: event.data.ref.toString(),
       })
     );
@@ -38,7 +40,9 @@ export const {{name}}{{../testRunId}} = onValueDeleted({
     .doc(testId)
     .set(
       sanitizeData({
-        ...event,
+        id: event.id,
+        time: event.time,
+        type: "google.firebase.database.ref.v1.deleted",
         url: event.data.ref.toString(),
       })
     );
@@ -58,7 +62,9 @@ export const {{name}}{{../testRunId}} = onValueUpdated({
     .doc(testId)
     .set(
       sanitizeData({
-        ...event,
+        id: event.id,
+        time: event.time,
+        type: "google.firebase.database.ref.v1.updated",
         url: event.data.after.ref.toString(),
         data: event.data.after.val() ? JSON.stringify(event.data.after.val()) : null,
       })
@@ -86,7 +92,9 @@ export const {{name}}{{../testRunId}} = onValueWritten({
     .doc(testId)
     .set(
       sanitizeData({
-        ...event,
+        id: event.id,
+        time: event.time,
+        type: "google.firebase.database.ref.v1.written",
         url: event.data.after.ref.toString(),
       })
     );

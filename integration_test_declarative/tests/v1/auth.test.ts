@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { initializeFirebase } from "../firebaseSetup";
 import { retry } from "../utils";
+import { getFirebaseClientConfig } from "../firebaseClientConfig";
 
 describe("Firebase Auth (v1)", () => {
   const userIds: string[] = [];
@@ -19,32 +20,8 @@ describe("Firebase Auth (v1)", () => {
     throw new Error("Environment configured incorrectly.");
   }
 
-  // Try to load config from test-config.json or environment variables
-  let config;
-  try {
-    // Try to load from test-config.json first
-    config = require("../../test-config.json");
-    config.projectId = config.projectId || projectId;
-  } catch {
-    // Fall back to environment variables
-    const apiKey = process.env.FIREBASE_API_KEY;
-    if (!apiKey) {
-      console.warn(
-        "Skipping Auth tests: No test-config.json found and FIREBASE_API_KEY not configured"
-      );
-      test.skip("Auth tests require Firebase client SDK configuration", () => {});
-      return;
-    }
-    config = {
-      apiKey,
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com`,
-      databaseURL: process.env.DATABASE_URL,
-      projectId,
-      storageBucket: process.env.STORAGE_BUCKET,
-      appId: process.env.FIREBASE_APP_ID || "test-app-id",
-      measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-    };
-  }
+  // Use hardcoded Firebase client config (safe to expose publicly)
+  const config = getFirebaseClientConfig(projectId);
 
   const app = initializeApp(config);
 

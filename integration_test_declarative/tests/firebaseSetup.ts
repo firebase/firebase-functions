@@ -6,15 +6,21 @@ import * as admin from "firebase-admin";
 export function initializeFirebase(): admin.app.App {
   if (admin.apps.length === 0) {
     try {
-      // Using the service account file in the project root
-      const serviceAccountPath =
-        process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-        "/Users/jacob/firebase-functions/integration_test_declarative/sa.json";
-
       const projectId = process.env.PROJECT_ID || "functions-integration-tests";
 
+      // Check if we're in Cloud Build (ADC available) or local (need service account file)
+      let credential;
+      if (process.env.GOOGLE_APPLICATION_CREDENTIALS && process.env.GOOGLE_APPLICATION_CREDENTIALS !== '{}') {
+        // Use service account file if specified and not a dummy file
+        const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        credential = admin.credential.cert(serviceAccountPath);
+      } else {
+        // Use Application Default Credentials (for Cloud Build)
+        credential = admin.credential.applicationDefault();
+      }
+
       return admin.initializeApp({
-        credential: admin.credential.cert(serviceAccountPath),
+        credential: credential,
         databaseURL:
           process.env.DATABASE_URL ||
           "https://functions-integration-tests-default-rtdb.firebaseio.com/",

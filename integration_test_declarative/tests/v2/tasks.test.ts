@@ -6,7 +6,7 @@ describe("Cloud Tasks (v2)", () => {
   const region = process.env.REGION;
   const testId = process.env.TEST_RUN_ID;
   const projectId = process.env.PROJECT_ID;
-  const queueName = `${testId}-v2-tasksOnTaskDispatchedTests`;
+  const queueName = `tasksOnTaskDispatchedTests${testId}`;
 
   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
@@ -36,7 +36,7 @@ describe("Cloud Tasks (v2)", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
-      const url = `https://${region}-${projectId}.cloudfunctions.net/${testId}-v2-tasksOnTaskDispatchedTests`;
+      const url = `https://${region}-${projectId}.cloudfunctions.net/tasksOnTaskDispatchedTests${testId}`;
       await createTask(projectId, queueName, region, url, { data: { testId } });
 
       loggedContext = await retry(() =>

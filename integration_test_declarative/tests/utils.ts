@@ -48,20 +48,31 @@ export async function createTask(
   const client = new CloudTasksClient();
   const parent = client.queuePath(project, location, queue);
 
-  const serviceAccountPath =
-    process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-    "/Users/jacob/firebase-functions/integration_test_declarative/sa.json";
-  if (!serviceAccountPath) {
-    throw new Error("Environment configured incorrectly.");
+  // Try to get service account email from various sources
+  let serviceAccountEmail: string;
+
+  // First, check if we have a service account file
+  const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (serviceAccountPath && serviceAccountPath !== '{}') {
+    try {
+      const serviceAccount = await import(serviceAccountPath);
+      serviceAccountEmail = serviceAccount.client_email;
+    } catch (e) {
+      // Fall back to using project default service account
+      serviceAccountEmail = `${project}@appspot.gserviceaccount.com`;
+    }
+  } else {
+    // Use project's default App Engine service account when using ADC
+    // This is what Cloud Build and other Google Cloud services will use
+    serviceAccountEmail = `${project}@appspot.gserviceaccount.com`;
   }
-  const serviceAccount = await import(serviceAccountPath);
 
   const task = {
     httpRequest: {
       httpMethod: "POST" as const,
       url,
       oidcToken: {
-        serviceAccountEmail: serviceAccount.client_email,
+        serviceAccountEmail,
       },
       headers: {
         "Content-Type": "application/json",

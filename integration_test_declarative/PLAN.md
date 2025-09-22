@@ -1,250 +1,217 @@
 # Firebase Functions Integration Test CI/CD Implementation Plan
 
 ## Overview
-This document outlines the plan for completing the migration of Firebase Functions integration tests to a declarative framework and setting up automated CI/CD using Google Cloud Build.
+This document outlines the current state and future plans for the Firebase Functions integration test framework using a declarative approach with YAML configurations and Handlebars templates.
 
-## Current State
-- ✅ V1 services migrated to declarative framework
-- ✅ Multi-suite generation and deployment working
-- ✅ Cleanup mechanisms in place (functions, Firestore, auth users)
-- ⏳ V2 services need migration
-- ⏳ Cloud Build CI/CD setup needed
-- ⏳ Documentation needed
+## Current State (as of 2025-09-17)
 
-## Phase 1: Complete V2 Test Migration
+### ✅ Completed Migrations
 
-### 1.1 Migrate V2 Services to Declarative Framework
-Each service needs:
-- Handlebars template in `templates/functions/src/v2/`
-- YAML suite configuration in `config/suites/`
-- Test file in `tests/v2/`
+#### V1 Test Suites (11 suites)
+- `v1_firestore` - Firestore document triggers
+- `v1_database` - Realtime Database triggers
+- `v1_pubsub` - PubSub message handling
+- `v1_storage` - Storage object lifecycle
+- `v1_tasks` - Cloud Tasks queue operations
+- `v1_remoteconfig` - Remote Config updates
+- `v1_testlab` - Test Lab matrix completion
+- `v1_auth` - Combined auth triggers (onCreate, onDelete)
+- `v1_auth_nonblocking` - Non-blocking auth triggers
+- `v1_auth_before_create` - beforeCreate blocking function
+- `v1_auth_before_signin` - beforeSignIn blocking function
 
-Services to migrate:
-- [x] **Firestore V2** - Document triggers with namespaces
-- [x] **Database V2** - Realtime database with new API
-- [x] **PubSub V2** - Topic and message handling
-- [x] **Storage V2** - Object lifecycle events
-- [x] **Tasks V2** - Task queue with new options
-- [x] **Scheduler V2** - Cron jobs with timezone support
-- [x] **RemoteConfig V2** - Configuration updates
-- [x] **TestLab V2** - Test matrix completion
-- [x] **Identity V2** - Replaces Auth with beforeUserCreated/beforeUserSignedIn
-- [x] **EventArc V2** - Custom event handling
-- [x] **Alerts V2** - Firebase Alerts integration (if needed)
+#### V2 Test Suites (11 suites)
+- `v2_firestore` - Firestore v2 with namespaces
+- `v2_database` - Realtime Database v2 API
+- `v2_pubsub` - PubSub v2 with new options
+- `v2_storage` - Storage v2 object events
+- `v2_tasks` - Tasks v2 with queue options
+- `v2_scheduler` - Scheduler v2 with timezone support
+- `v2_remoteconfig` - Remote Config v2 API
+- `v2_identity` - Identity Platform triggers (replaces v1 auth blocking)
+- `v2_alerts` - Firebase Alerts integration
+- `v2_eventarc` - EventArc custom events
+- `v2_testlab` - Test Lab v2 triggers
 
-### 1.2 Project Setup Strategy
+### Key Scripts
+- `scripts/generate.js` - Generates functions from YAML configs and templates
+- `scripts/run-suite.sh` - Runs integration tests for specified suites
+- `scripts/cleanup-all-test-users.cjs` - Cleans up test auth users
+- `scripts/hard-reset.sh` - Complete project cleanup
 
-#### Two Separate Projects Required
-- **V1 Project**: `functions-integration-tests` (existing)
-  - Uses Firebase Auth with `auth.onCreate`, `auth.onDelete`, `auth.beforeCreate`, `auth.beforeSignIn`
-  - Node.js 18 runtime
-  - 1st gen Cloud Functions
+### Test Execution
+```bash
+# Run individual suite
+./scripts/run-suite.sh v1_firestore
 
-- **V2 Project**: `functions-integration-tests-v2` (new)
-  - Uses Identity Platform with `identity.beforeUserCreated`, `identity.beforeUserSignedIn`
-  - Node.js 18+ runtime
-  - 2nd gen Cloud Functions
-  - Reason: V2 blocking functions conflict with V1 auth blocking functions
+# Run multiple suites
+./scripts/run-suite.sh v1_firestore v1_database v1_pubsub
 
-## Phase 2: Cloud Build CI Setup
+# Run all v1 tests
+./scripts/run-suite.sh v1_*
 
-### 2.1 Cloud Build Configuration (`cloudbuild.yaml`)
-
-```yaml
-steps:
-  # Install dependencies
-  - name: 'node:18'
-    entrypoint: 'npm'
-    args: ['ci']
-
-  # Run V1 tests
-  - name: 'gcr.io/firebase-tools'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        export PROJECT_ID=functions-integration-tests
-        ./scripts/run-ci-tests.sh v1
-
-  # Run V2 tests (separate project)
-  - name: 'gcr.io/firebase-tools'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        export PROJECT_ID=functions-integration-tests-v2
-        ./scripts/run-ci-tests.sh v2
-
-  # Generate and store test report
-  - name: 'node:18'
-    entrypoint: 'bash'
-    args: ['./scripts/generate-test-report.sh']
-
-timeout: '3600s'
-options:
-  machineType: 'E2_HIGHCPU_8'
+# Run all v2 tests
+./scripts/run-suite.sh v2_*
 ```
 
-### 2.2 CI Orchestration Script (`scripts/run-ci-tests.sh`)
+## Phase 1: Cloud Build CI Setup
 
-Features needed:
-- Sequential execution of test suites
-- Proper error handling and aggregation
-- Test result artifact storage
-- Comprehensive cleanup on success or failure
+### 1.1 Cloud Build Configuration Strategy
 
-## Phase 3: Documentation
+Create `cloudbuild.yaml` with separate steps per suite for:
+- Better visibility of which tests fail
+- Parallel execution where possible
+- Easier debugging and re-runs
+- Granular timeout control
 
-### 3.1 Project Setup Guide (`docs/PROJECT_SETUP.md`)
+### 1.2 Implementation Approach
 
-Must document:
-- Creating Firebase projects for V1 and V2
-- Enabling required Firebase services:
-  - Firestore
-  - Realtime Database
-  - Cloud Storage
-  - Cloud Functions
-  - Cloud Tasks
-  - Cloud Scheduler
-  - Pub/Sub
-  - Remote Config
-  - Test Lab
-  - Identity Platform (V2 only)
-  - Eventarc (V2 only)
-- Service account creation with proper roles:
-  - Firebase Admin
-  - Cloud Functions Admin
-  - Cloud Tasks Admin
-  - Pub/Sub Admin
-  - Storage Admin
-- API enablement checklist
-- Firebase client SDK configuration (`test-config.json`)
-- Authentication setup for client-side tests
+Two approaches for CI:
 
-### 3.2 CI/CD Setup Guide (`docs/CI_SETUP.md`)
+#### Option A: Sequential Suite Execution (Recommended for stability)
+- Run each suite as a separate Cloud Build step
+- Ensures proper cleanup between suites
+- Easier to identify failures
+- Total time: ~30-45 minutes
 
-Must document:
-- Cloud Build trigger configuration (manual trigger)
-- Required environment variables:
-  - `FIREBASE_API_KEY`
-  - `FIREBASE_AUTH_DOMAIN`
-  - `FIREBASE_PROJECT_ID`
-  - Service account credentials
-- Secrets management using Google Secret Manager
-- IAM roles required for Cloud Build service account
-- Monitoring test runs in Cloud Build console
-- Debugging failed tests from logs
+#### Option B: Parallel Execution Groups
+- Group non-conflicting suites for parallel execution
+- Faster total execution time
+- More complex error handling
+- Total time: ~15-20 minutes
 
-### 3.3 Local Development Guide (`docs/LOCAL_DEVELOPMENT.md`)
+### 1.3 Suite Grouping for Parallel Execution
 
-Must document:
-- Prerequisites and setup
-- Running individual test suites
-- Running full V1 or V2 test suites
-- Debugging test failures
-- Adding new test suites
-- Creating new templates
-- Testing template changes
-- Manual cleanup procedures
+If using parallel execution, these groups can run simultaneously:
 
-## Phase 4: Implementation Details
+**Group 1: Data Services**
+- v1_firestore, v2_firestore
+- v1_database, v2_database
 
-### 4.1 Resource Management
+**Group 2: Messaging & Tasks**
+- v1_pubsub, v2_pubsub
+- v1_tasks, v2_tasks
+- v2_scheduler
 
-#### Cleanup Strategy
-- **Immediate**: Clean up after each test run via trap in bash
-- **Daily**: Scheduled Cloud Function to clean orphaned resources
-- **Manual**: Scripts for emergency cleanup:
-  - `cleanup-all-test-users.cjs` - Remove all test auth users
-  - `hard-reset.sh` - Complete project cleanup
+**Group 3: Storage & Config**
+- v1_storage, v2_storage
+- v1_remoteconfig, v2_remoteconfig
 
-#### Cost Control
-- Automatic resource cleanup
-- Function timeout limits (540s default)
-- Cloud Build timeout (1 hour)
-- Daily cost monitoring alerts
+**Group 4: Auth & Identity**
+- v1_auth_* (all auth suites)
+- v2_identity
 
-### 4.2 Error Handling
+**Group 5: Monitoring & Events**
+- v2_alerts
+- v2_eventarc
+- v1_testlab, v2_testlab
 
-- Retry mechanism for flaky tests (3 attempts)
-- Detailed error logging with test context
-- Failed test artifacts saved to Cloud Storage
-- Slack/email notifications for CI failures
+## Phase 2: Cloud Build Implementation
 
-### 4.3 Security Considerations
+### 2.1 Environment Setup
 
-- Service accounts with minimal required permissions
-- Secrets stored in Google Secret Manager
-- No hardcoded credentials in code
-- Separate projects for isolation
-- Regular security audits of test code
+Required environment variables:
+- `PROJECT_ID` - Firebase project ID
+- `REGION` - Deployment region (default: us-central1)
+- `GOOGLE_APPLICATION_CREDENTIALS` - Service account path
 
-## Phase 5: Testing & Validation
+### 2.2 Service Account Requirements
 
-### 5.1 End-to-End Testing
-- [ ] Run full V1 suite in Cloud Build
-- [ ] Run full V2 suite in Cloud Build
-- [ ] Verify cleanup works properly
-- [ ] Test failure scenarios
-- [ ] Validate reporting accuracy
+The Cloud Build service account needs:
+- Firebase Admin
+- Cloud Functions Admin
+- Cloud Tasks Admin
+- Cloud Scheduler Admin
+- Pub/Sub Admin
+- Storage Admin
+- Firestore/Database Admin
 
-### 5.2 Performance Benchmarks
-- Target: < 30 minutes for full suite
-- Measure and optimize:
-  - Function deployment time
-  - Test execution time
-  - Cleanup time
-  - Resource usage
+### 2.3 Build Steps Structure
+
+Each test suite step should:
+1. Generate functions for the suite
+2. Deploy functions
+3. Run tests
+4. Clean up resources
+5. Report results
+
+## Phase 3: Monitoring & Reporting
+
+### 3.1 Test Results Collection
+- Store test results in Cloud Storage
+- Generate HTML/JSON reports
+- Track success/failure rates
+- Monitor execution times
+
+### 3.2 Alerting
+- Slack notifications for failures
+- Email summaries for test runs
+- Dashboard for test history
+
+## Phase 4: Documentation Updates
+
+### 4.1 User Guide (`README.md`)
+- Quick start guide
+- Suite descriptions
+- Local development workflow
+- Troubleshooting common issues
+
+### 4.2 CI/CD Guide (`docs/CI_SETUP.md`)
+- Cloud Build trigger setup
+- Environment configuration
+- Secret management
+- Monitoring setup
+
+### 4.3 Suite Development Guide (`docs/ADDING_SUITES.md`)
+- Creating new test suites
+- Template development
+- Test writing best practices
+- Debugging techniques
 
 ## Implementation Timeline
 
-### Week 1-2: V2 Migration
-- Migrate all V2 services to declarative framework
-- Create and configure V2 project
-- Test each V2 service individually
+### Week 1: Cloud Build Setup
+- [x] All V1 and V2 suites migrated
+- [ ] Create `cloudbuild.yaml` with individual steps
+- [ ] Configure Cloud Build triggers
+- [ ] Set up service accounts and permissions
 
-### Week 3: CI/CD Setup
-- Create Cloud Build configuration
-- Write CI orchestration scripts
-- Set up manual triggers
-- Configure secrets and permissions
+### Week 2: Testing & Optimization
+- [ ] Run full test suite in Cloud Build
+- [ ] Optimize failing tests
+- [ ] Implement retry logic
+- [ ] Performance tuning
 
-### Week 4: Documentation & Testing
-- Write comprehensive documentation
-- End-to-end testing
-- Performance optimization
-- Team training
+### Week 3: Monitoring & Documentation
+- [ ] Set up monitoring dashboards
+- [ ] Configure alerting
+- [ ] Write comprehensive documentation
+- [ ] Team training
 
-## Success Criteria
+## Success Metrics
 
-1. **All tests migrated**: V1 and V2 tests using declarative framework
-2. **CI/CD operational**: Manual trigger runs all tests successfully
-3. **Proper cleanup**: No resource leaks after test runs
-4. **Documentation complete**: Setup reproducible by other team members
-5. **Performance targets met**: Full suite runs in < 30 minutes
-6. **Error handling robust**: Failed tests don't block CI pipeline
+1. **Reliability**: 95% pass rate for non-flaky tests
+2. **Performance**: Full suite completes in < 45 minutes
+3. **Visibility**: Clear reporting of failures with logs
+4. **Maintainability**: Easy to add new test suites
+5. **Cost**: < $50/day for CI runs
 
-## Risks & Mitigations
+## Known Issues & Limitations
 
-| Risk | Mitigation |
-|------|------------|
-| Blocking function conflicts | Separate V1 and V2 projects |
-| Resource leaks | Multiple cleanup mechanisms |
-| Test flakiness | Retry logic and better error handling |
-| Long execution times | Parallel execution where possible |
-| Secret exposure | Google Secret Manager usage |
-| Cost overruns | Resource limits and monitoring |
+1. **V1 Auth Blocking Functions**: Cannot run in same project as V2 Identity
+2. **Cloud Tasks**: Requires queue creation before tests
+3. **Scheduler**: May have timing issues in CI environment
+4. **TestLab**: Currently skipped due to complexity
 
 ## Next Steps
 
-1. Review and approve this plan
-2. Create V2 project in Firebase Console
-3. Begin V2 service migration
-4. Implement CI/CD pipeline
-5. Document everything
-6. Deploy to production
+1. Create `cloudbuild.yaml` with separate steps per suite
+2. Test Cloud Build configuration locally
+3. Set up Cloud Build triggers
+4. Document the CI process
+5. Train team on new workflow
 
 ---
 
-*Last Updated: 2025-09-16*
-*Status: Planning Phase*
+*Last Updated: 2025-09-17*
+*Status: Implementation Phase - Cloud Build Setup*

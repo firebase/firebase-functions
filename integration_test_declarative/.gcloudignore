@@ -1,0 +1,24 @@
+# .gcloudignore for integration test Cloud Build
+# Include all files needed for the build
+
+# Ignore node_modules as we'll install them fresh
+node_modules/
+generated/
+
+# Ignore local auth files (we'll use secrets instead)
+sa.json
+sa-v2.json
+test-config.json
+
+# Ignore local test artifacts
+test_failures.txt
+*.log
+
+# Keep git info for reference
+.git
+.gitignore
+
+# Ignore temp files
+*.tmp
+*~
+.DS_Store

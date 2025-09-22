@@ -1,0 +1,39 @@
+# Simplified Cloud Build configuration for Firebase Functions Integration Tests
+# Runs all test suites sequentially to avoid rate limits
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '3600s'
+
+substitutions:
+  _PROJECT_ID: 'functions-integration-tests'
+  _REGION: 'us-central1'
+
+steps:
+  # Single step: Run all v1 test suites sequentially and cleanup
+  - name: 'node:18'
+    id: 'test-v1-all'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Install dependencies
+        npm ci
+        # Install firebase-tools globally
+        npm install -g firebase-tools
+        # Verify firebase is installed
+        firebase --version
+        # Use Application Default Credentials (Cloud Build service account)
+        export PROJECT_ID=${_PROJECT_ID}
+        export REGION=${_REGION}
+        # Run all v1 tests sequentially (includes cleanup between suites)
+        npm run test:v1:all
+
+# Artifacts to store
+artifacts:
+  objects:
+    location: 'gs://${PROJECT_ID}-test-results/${BUILD_ID}'
+    paths:
+      - 'logs/**/*.log'

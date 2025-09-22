@@ -205,7 +205,12 @@ if [ ! -f "$ROOT_DIR/sa.json" ]; then
 fi
 
 # Run the tests
-export GOOGLE_APPLICATION_CREDENTIALS="$ROOT_DIR/sa.json"
+# Only set GOOGLE_APPLICATION_CREDENTIALS if sa.json exists (for local runs)
+# In Cloud Build, we use Application Default Credentials
+if [ -f "$ROOT_DIR/sa.json" ]; then
+  export GOOGLE_APPLICATION_CREDENTIALS="$ROOT_DIR/sa.json"
+fi
+export REGION="us-central1"
 
 # Extract deployed functions from suite names
 DEPLOYED_FUNCTIONS=""
@@ -283,6 +288,30 @@ for SUITE_NAME in "${SUITE_NAMES[@]}"; do
       ;;
     v2_firestore)
       TEST_FILES+=("tests/v2/firestore.test.ts")
+      ;;
+    v2_database)
+      TEST_FILES+=("tests/v2/database.test.ts")
+      ;;
+    v2_pubsub)
+      TEST_FILES+=("tests/v2/pubsub.test.ts")
+      ;;
+    v2_storage)
+      TEST_FILES+=("tests/v2/storage.test.ts")
+      ;;
+    v2_tasks)
+      TEST_FILES+=("tests/v2/tasks.test.ts")
+      ;;
+    v2_scheduler)
+      TEST_FILES+=("tests/v2/scheduler.test.ts")
+      ;;
+    v2_remoteconfig)
+      TEST_FILES+=("tests/v2/remoteconfig.test.ts")
+      ;;
+    v2_alerts)
+      TEST_FILES+=("tests/v2/alerts.test.ts")
+      ;;
+    v2_testlab)
+      TEST_FILES+=("tests/v2/testLab.test.ts")
       ;;
     *)
       echo -e "${YELLOW}⚠️  No test file mapping for suite: $SUITE_NAME${NC}"

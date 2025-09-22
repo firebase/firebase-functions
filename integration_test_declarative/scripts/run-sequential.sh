@@ -3,7 +3,8 @@
 # Sequential test suite runner
 # Runs each suite individually to avoid Firebase infrastructure conflicts
 
-set -e
+# Don't exit on error - we want to run all suites and report at the end
+# set -e
 
 # Colors for output
 RED='\033[0;31m'

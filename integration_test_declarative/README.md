@@ -42,19 +42,9 @@ npm run test:v1:all
 
 ### Auth Tests Configuration
 
-Auth tests require Firebase client SDK credentials. Create a `test-config.json` file in the project root:
+Auth tests use Firebase client SDK configuration that is hardcoded in `tests/firebaseClientConfig.ts`. This configuration is safe to expose publicly as Firebase client SDK configuration is designed to be public. Security comes from Firebase Security Rules, not config secrecy.
 
-```bash
-cp test-config.json.example test-config.json
-# Edit test-config.json with your Firebase project credentials
-```
-
-You can get these values from the Firebase Console:
-1. Go to Project Settings → General
-2. Scroll down to "Your apps" → Web app
-3. Copy the configuration values
-
-The file is already in `.gitignore` to prevent accidental commits.
+The configuration is automatically used by auth tests and no additional setup is required.
 
 ### Auth Blocking Functions Limitation
 

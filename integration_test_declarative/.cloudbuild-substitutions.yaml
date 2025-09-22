@@ -1,0 +1,4 @@
+substitutions:
+  _PROJECT_ID: 'functions-integration-tests'
+  _PROJECT_ID_V2: 'functions-integration-tests-v2'
+  _REGION: 'us-central1'
