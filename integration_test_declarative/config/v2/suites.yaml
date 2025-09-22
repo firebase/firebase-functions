@@ -1,0 +1,176 @@
+# Firebase Functions V2 Integration Test Suites Configuration
+# This unified configuration consolidates all v2 test suite definitions
+# Common values are defined in the defaults section to reduce duplication
+
+defaults:
+  projectId: functions-integration-tests
+  region: us-central1
+  timeout: 540
+  dependencies:
+    firebase-admin: "^12.0.0"
+    firebase-functions: "{{sdkTarball}}"
+  devDependencies:
+    typescript: "^4.9.5"
+
+suites:
+  # Firestore triggers
+  - name: v2_firestore
+    description: "V2 Firestore trigger tests"
+    version: v2
+    service: firestore
+    functions:
+      - name: firestoreOnDocumentCreatedTests
+        trigger: onDocumentCreated
+        document: "tests/{testId}"
+      - name: firestoreOnDocumentDeletedTests
+        trigger: onDocumentDeleted
+        document: "tests/{testId}"
+      - name: firestoreOnDocumentUpdatedTests
+        trigger: onDocumentUpdated
+        document: "tests/{testId}"
+      - name: firestoreOnDocumentWrittenTests
+        trigger: onDocumentWritten
+        document: "tests/{testId}"
+
+  # Realtime Database triggers
+  - name: v2_database
+    description: "V2 Realtime Database trigger tests"
+    version: v2
+    service: database
+    functions:
+      - name: databaseCreatedTests
+        trigger: onValueCreated
+        path: "databaseCreatedTests/{testId}/start"
+      - name: databaseDeletedTests
+        trigger: onValueDeleted
+        path: "databaseDeletedTests/{testId}/start"
+      - name: databaseUpdatedTests
+        trigger: onValueUpdated
+        path: "databaseUpdatedTests/{testId}/start"
+      - name: databaseWrittenTests
+        trigger: onValueWritten
+        path: "databaseWrittenTests/{testId}/start"
+
+  # Pub/Sub triggers
+  - name: v2_pubsub
+    description: "V2 Pub/Sub trigger tests"
+    version: v2
+    service: pubsub
+    functions:
+      - name: pubsubOnMessagePublishedTests
+        trigger: onMessagePublished
+        topic: "custom_message_tests"
+
+  # Storage triggers
+  - name: v2_storage
+    description: "V2 Storage trigger tests"
+    version: v2
+    service: storage
+    functions:
+      - name: storageOnObjectFinalizedTests
+        trigger: onObjectFinalized
+      - name: storageOnObjectDeletedTests
+        trigger: onObjectDeleted
+      - name: storageOnObjectMetadataUpdatedTests
+        trigger: onObjectMetadataUpdated
+
+  # Cloud Tasks triggers
+  - name: v2_tasks
+    description: "V2 Cloud Tasks trigger tests"
+    version: v2
+    service: tasks
+    functions:
+      - name: tasksOnTaskDispatchedTests
+        trigger: onTaskDispatched
+
+  # Cloud Scheduler triggers
+  - name: v2_scheduler
+    description: "V2 Scheduler trigger tests"
+    version: v2
+    service: scheduler
+    functions:
+      - name: schedule
+        trigger: onSchedule
+        schedule: "every 10 hours"
+        collection: schedulerOnScheduleV2Tests
+
+  # Remote Config triggers
+  - name: v2_remoteconfig
+    description: "V2 Remote Config trigger tests"
+    version: v2
+    service: remoteconfig
+    functions:
+      - name: remoteConfigOnConfigUpdatedTests
+        trigger: onConfigUpdated
+
+  # Test Lab triggers
+  - name: v2_testlab
+    description: "V2 Test Lab trigger tests"
+    version: v2
+    service: testlab
+    functions:
+      - name: testLabOnTestMatrixCompletedTests
+        trigger: onTestMatrixCompleted
+
+  # Identity Platform triggers (replaces v1 auth blocking)
+  - name: v2_identity
+    projectId: functions-integration-tests-v2  # Override default project
+    description: "V2 Identity trigger tests"
+    version: v2
+    service: identity
+    functions:
+      - name: identityBeforeUserCreatedTests
+        type: beforeUserCreated
+      - name: identityBeforeUserSignedInTests
+        type: beforeUserSignedIn
+
+  # EventArc triggers
+  - name: v2_eventarc
+    projectId: functions-integration-tests-v2  # Override default project
+    description: "V2 Eventarc trigger tests"
+    version: v2
+    service: eventarc
+    functions:
+      - name: eventarcOnCustomEventPublishedTests
+        eventType: achieved-leaderboard
+
+  # Firebase Alerts triggers
+  - name: v2_alerts
+    description: "V2 Alerts trigger tests (deployment only)"
+    version: v2
+    service: alerts
+    functions:
+      # Generic alert
+      - name: alertsOnAlertPublishedTests
+        trigger: onAlertPublished
+        alertType: "crashlytics.newFatalIssue"
+
+      # App Distribution alerts
+      - name: alertsOnInAppFeedbackPublishedTests
+        trigger: onInAppFeedbackPublished
+      - name: alertsOnNewTesterIosDevicePublishedTests
+        trigger: onNewTesterIosDevicePublished
+
+      # Billing alerts
+      - name: alertsOnPlanAutomatedUpdatePublishedTests
+        trigger: onPlanAutomatedUpdatePublished
+      - name: alertsOnPlanUpdatePublishedTests
+        trigger: onPlanUpdatePublished
+
+      # Crashlytics alerts
+      - name: alertsOnNewAnrIssuePublishedTests
+        trigger: onNewAnrIssuePublished
+      - name: alertsOnNewFatalIssuePublishedTests
+        trigger: onNewFatalIssuePublished
+      - name: alertsOnNewNonFatalIssuePublishedTests
+        trigger: onNewNonfatalIssuePublished
+      - name: alertsOnRegressionAlertPublishedTests
+        trigger: onRegressionAlertPublished
+      - name: alertsOnStabilityDigestPublishedTests
+        trigger: onStabilityDigestPublished
+      - name: alertsOnVelocityAlertPublishedTests
+        trigger: onVelocityAlertPublished
+
+      # Performance alerts
+      - name: alertsOnThresholdAlertPublishedTests
+        trigger: onThresholdAlertPublished

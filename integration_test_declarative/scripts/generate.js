@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 
+/**
+ * Function Generator Script
+ * Generates Firebase Functions from unified YAML configuration using templates
+ */
+
 import Handlebars from "handlebars";
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
-import { parse } from "yaml";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { getSuiteConfig, getSuitesByPattern, listAvailableSuites } from "./config-loader.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,58 +25,145 @@ Handlebars.registerHelper("unless", function (conditional, options) {
   return options.inverse(this);
 });
 
-// Get command line arguments (can now be multiple suites)
-const suiteNames = process.argv.slice(2);
-if (suiteNames.length === 0) {
-  console.error("Usage: node generate.js <suite-name> [<suite-name> ...]");
-  console.error("Example: node generate.js v1_firestore");
-  console.error("Example: node generate.js v1_firestore v1_database v1_storage");
-  process.exit(1);
+// Parse command line arguments
+const args = process.argv.slice(2);
+if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  console.log("Usage: node generate.js <suite-names...> [options]");
+  console.log("\nExamples:");
+  console.log("  node generate.js v1_firestore                     # Single suite");
+  console.log("  node generate.js v1_firestore v1_database         # Multiple suites");
+  console.log("  node generate.js 'v1_*'                          # All v1 suites (pattern)");
+  console.log("  node generate.js 'v2_*'                          # All v2 suites (pattern)");
+  console.log("  node generate.js --list                          # List available suites");
+  console.log("  node generate.js --config config/v1/suites.yaml v1_firestore");
+  console.log("\nOptions:");
+  console.log("  --config <path>    Path to configuration file (default: auto-detect)");
+  console.log("  --list            List all available suites");
+  console.log("  --help, -h        Show this help message");
+  console.log("\nEnvironment variables:");
+  console.log("  TEST_RUN_ID       Override test run ID (default: auto-generated)");
+  console.log("  PROJECT_ID        Override project ID from config");
+  console.log("  REGION           Override region from config");
+  console.log("  SDK_TARBALL      Path to Firebase Functions SDK tarball");
+  process.exit(0);
 }
 
-// Generate unique TEST_RUN_ID if not provided (short to avoid 63-char function name limit)
-// Note: Use hyphens for Cloud Tasks compatibility, but we need underscores for valid JS identifiers
-// So we'll use a different format: just letters and numbers
+// Handle --list option
+if (args.includes("--list")) {
+  // Determine config path - check both v1 and v2
+  const v1ConfigPath = join(ROOT_DIR, "config", "v1", "suites.yaml");
+  const v2ConfigPath = join(ROOT_DIR, "config", "v2", "suites.yaml");
+
+  console.log("\nAvailable test suites:");
+
+  if (existsSync(v1ConfigPath)) {
+    console.log("\n📁 V1 Suites (config/v1/suites.yaml):");
+    const v1Suites = listAvailableSuites(v1ConfigPath);
+    v1Suites.forEach(suite => console.log(`  - ${suite}`));
+  }
+
+  if (existsSync(v2ConfigPath)) {
+    console.log("\n📁 V2 Suites (config/v2/suites.yaml):");
+    const v2Suites = listAvailableSuites(v2ConfigPath);
+    v2Suites.forEach(suite => console.log(`  - ${suite}`));
+  }
+
+  process.exit(0);
+}
+
+// Parse config path if provided
+let configPath = null;
+const configIndex = args.indexOf("--config");
+if (configIndex !== -1 && configIndex < args.length - 1) {
+  configPath = args[configIndex + 1];
+  args.splice(configIndex, 2); // Remove --config and path from args
+}
+
+// Remaining args are suite names/patterns
+const suitePatterns = args;
+
+// Generate unique TEST_RUN_ID if not provided
 const testRunId = process.env.TEST_RUN_ID || `t${Math.random().toString(36).substring(2, 10)}`;
 
-console.log(`🚀 Generating ${suiteNames.length} suite(s): ${suiteNames.join(", ")}`);
+console.log(`🚀 Generating suites: ${suitePatterns.join(", ")}`);
 console.log(`   TEST_RUN_ID: ${testRunId}`);
 
-// Load all suite configurations
+// Load suite configurations
 const suites = [];
 let projectId, region;
 
-for (const suiteName of suiteNames) {
-  const configPath = join(ROOT_DIR, "config", "suites", `${suiteName}.yaml`);
-  if (!existsSync(configPath)) {
-    console.error(`❌ Suite configuration not found: ${configPath}`);
+for (const pattern of suitePatterns) {
+  try {
+    let suitesToAdd = [];
+
+    // Check if it's a pattern (contains * or ?)
+    if (pattern.includes("*") || pattern.includes("?")) {
+      // If no config path specified, try to auto-detect based on pattern
+      if (!configPath) {
+        if (pattern.startsWith("v1")) {
+          configPath = join(ROOT_DIR, "config", "v1", "suites.yaml");
+        } else if (pattern.startsWith("v2")) {
+          configPath = join(ROOT_DIR, "config", "v2", "suites.yaml");
+        } else {
+          throw new Error(`Cannot auto-detect config file for pattern '${pattern}'. Use --config option.`);
+        }
+      }
+      suitesToAdd = getSuitesByPattern(pattern, configPath);
+    } else {
+      // Single suite name
+      if (!configPath) {
+        // Auto-detect config based on suite name
+        if (pattern.startsWith("v1_")) {
+          configPath = join(ROOT_DIR, "config", "v1", "suites.yaml");
+        } else if (pattern.startsWith("v2_")) {
+          configPath = join(ROOT_DIR, "config", "v2", "suites.yaml");
+        } else {
+          throw new Error(`Cannot auto-detect config file for suite '${pattern}'. Use --config option.`);
+        }
+      }
+      suitesToAdd = [getSuiteConfig(pattern, configPath)];
+    }
+
+    // Add suites and extract project/region from first suite
+    for (const suite of suitesToAdd) {
+      if (!projectId) {
+        projectId = suite.projectId || process.env.PROJECT_ID || "demo-test";
+        region = suite.region || process.env.REGION || "us-central1";
+      }
+      suites.push(suite);
+    }
+
+    // Reset configPath for next pattern (allows mixing v1 and v2)
+    if (!args.includes("--config")) {
+      configPath = null;
+    }
+  } catch (error) {
+    console.error(`❌ Error loading suite(s) '${pattern}': ${error.message}`);
     process.exit(1);
   }
+}
 
-  const suiteConfig = parse(readFileSync(configPath, "utf8"));
-
-  // Use first suite's project settings as defaults
-  if (!projectId) {
-    projectId = suiteConfig.suite.projectId || process.env.PROJECT_ID || "demo-test";
-    region = suiteConfig.suite.region || process.env.REGION || "us-central1";
-  }
-
-  suites.push({
-    name: suiteName,
-    config: suiteConfig,
-    service: suiteConfig.suite.service || "firestore",
-    version: suiteConfig.suite.version || "v1",
-  });
+if (suites.length === 0) {
+  console.error("❌ No suites found to generate");
+  process.exit(1);
 }
 
 console.log(`   PROJECT_ID: ${projectId}`);
 console.log(`   REGION: ${region}`);
+console.log(`   Loaded ${suites.length} suite(s)`);
 
-const sdkTarball = process.env.SDK_TARBALL || "latest";
+// Use SDK tarball from environment or default to latest published version
+const sdkTarball = process.env.SDK_TARBALL || "^5.0.0";
 
 // Helper function to generate from template
 function generateFromTemplate(templatePath, outputPath, context) {
-  const templateContent = readFileSync(join(ROOT_DIR, "templates", templatePath), "utf8");
+  const fullTemplatePath = join(ROOT_DIR, "templates", templatePath);
+  if (!existsSync(fullTemplatePath)) {
+    console.error(`❌ Template not found: ${fullTemplatePath}`);
+    return false;
+  }
+
+  const templateContent = readFileSync(fullTemplatePath, "utf8");
   const template = Handlebars.compile(templateContent);
   const output = template(context);
 
@@ -79,6 +171,7 @@ function generateFromTemplate(templatePath, outputPath, context) {
   mkdirSync(dirname(outputFullPath), { recursive: true });
   writeFileSync(outputFullPath, output);
   console.log(`   ✅ Generated: ${outputPath}`);
+  return true;
 }
 
 // Template mapping for service types and versions
@@ -138,7 +231,7 @@ const allDevDependencies = {};
 // Generate test files for each suite
 const generatedSuites = [];
 for (const suite of suites) {
-  const { name, config, service, version } = suite;
+  const { name, service, version } = suite;
 
   // Select the appropriate template
   const templatePath = templateMap[service]?.[version];
@@ -150,42 +243,39 @@ for (const suite of suites) {
         console.error(`  - ${svc} ${ver}`);
       });
     });
-    process.exit(1);
+    continue; // Skip this suite but continue with others
   }
 
   console.log(`   📋 ${name}: Using service: ${service}, version: ${version}`);
 
   // Create context for this suite's template
+  // The suite already has defaults applied from config-loader
   const context = {
-    ...config.suite,
-    service,
-    version,
+    ...suite,
     testRunId,
     sdkTarball,
-    projectId,
-    region,
     timestamp: new Date().toISOString(),
   };
 
-  // Debug: Log the context for storage templates
-  if (service === "storage") {
-    console.log("   🔍 Debug - Template context:", JSON.stringify(context, null, 2));
-  }
-
   // Generate the test file for this suite
-  generateFromTemplate(templatePath, `functions/src/${version}/${service}-tests.ts`, context);
+  if (generateFromTemplate(templatePath, `functions/src/${version}/${service}-tests.ts`, context)) {
+    // Collect dependencies
+    Object.assign(allDependencies, suite.dependencies || {});
+    Object.assign(allDevDependencies, suite.devDependencies || {});
 
-  // Collect dependencies
-  Object.assign(allDependencies, config.suite.dependencies || {});
-  Object.assign(allDevDependencies, config.suite.devDependencies || {});
+    // Track generated suite info for index.ts
+    generatedSuites.push({
+      name,
+      service,
+      version,
+      functions: suite.functions.map((f) => `${f.name}${testRunId}`),
+    });
+  }
+}
 
-  // Track generated suite info for index.ts
-  generatedSuites.push({
-    name,
-    service,
-    version,
-    functions: config.suite.functions.map((f) => `${f.name}${testRunId}`),
-  });
+if (generatedSuites.length === 0) {
+  console.error("❌ No functions were generated");
+  process.exit(1);
 }
 
 // Generate shared files (only once)
@@ -215,12 +305,23 @@ const indexContext = {
 generateFromTemplate("functions/src/index.ts.hbs", "functions/src/index.ts", indexContext);
 
 // Generate package.json with merged dependencies
+// Replace {{sdkTarball}} placeholder in all dependencies
+const processedDependencies = {};
+for (const [key, value] of Object.entries(allDependencies)) {
+  if (typeof value === 'string' && value.includes('{{sdkTarball}}')) {
+    processedDependencies[key] = value.replace('{{sdkTarball}}', sdkTarball);
+  } else {
+    processedDependencies[key] = value;
+  }
+}
+
 const packageContext = {
   ...sharedContext,
   dependencies: {
-    ...allDependencies,
-    // Replace SDK tarball placeholder
-    "firebase-functions": sdkTarball,
+    ...processedDependencies,
+    // Ensure we have the required dependencies
+    "firebase-functions": processedDependencies["firebase-functions"] || sdkTarball,
+    "firebase-admin": processedDependencies["firebase-admin"] || "^12.0.0",
   },
   devDependencies: allDevDependencies,
 };
@@ -244,7 +345,8 @@ const metadata = {
 
 writeFileSync(join(ROOT_DIR, "generated", ".metadata.json"), JSON.stringify(metadata, null, 2));
 console.log("\n✨ Generation complete!");
+console.log(`   Generated ${generatedSuites.length} suite(s) with ${generatedSuites.reduce((acc, s) => acc + s.functions.length, 0)} function(s)`);
 console.log("\nNext steps:");
 console.log("  1. cd generated/functions && npm install");
 console.log("  2. npm run build");
-console.log("  3. firebase deploy --project", projectId);
+console.log(`  3. firebase deploy --project ${projectId}`);

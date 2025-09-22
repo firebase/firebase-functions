@@ -11,6 +11,6 @@
     "types": ["jest", "node"],
     "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["**/*.ts", "**/*.js"],
+  "include": ["**/*.ts"],
   "exclude": ["node_modules", "functions/*", "generated/*"]
 }

@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# Complete integration test runner for a single suite
-# Usage: ./scripts/run-suite.sh <suite-name>
+# Complete integration test runner for suites
+# Supports patterns and unified configuration
+# Usage: ./scripts/run-suite.sh <suite-names-or-patterns...> [options]
 
 set -e
 
@@ -12,40 +13,65 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Check arguments
-if [ $# -lt 1 ]; then
-  echo -e "${RED}❌ At least one suite name required${NC}"
-  echo "Usage: $0 <suite-name> [<suite-name> ...] [--save-artifact]"
-  echo "Example: $0 v1_firestore"
-  echo "         $0 v1_firestore v1_database"
-  echo "         $0 v1_firestore v1_database --save-artifact"
-  exit 1
-fi
-
-# Parse arguments - collect suite names and check for --save-artifact flag
-SUITE_NAMES=()
-SAVE_ARTIFACT=""
-for arg in "$@"; do
-  if [ "$arg" = "--save-artifact" ]; then
-    SAVE_ARTIFACT="--save-artifact"
-  else
-    SUITE_NAMES+=("$arg")
-  fi
-done
-
-# Join suite names for display
-SUITE_DISPLAY="${SUITE_NAMES[*]}"
-
 # Get directories
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Check for help or list options first
+if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+  echo -e "${BLUE}Usage: $0 <suite-names-or-patterns...> [options]${NC}"
+  echo ""
+  echo "Examples:"
+  echo "  $0 v1_firestore                    # Single suite"
+  echo "  $0 v1_firestore v1_database        # Multiple suites"
+  echo "  $0 'v1_*'                          # All v1 suites (pattern)"
+  echo "  $0 'v2_*'                          # All v2 suites (pattern)"
+  echo "  $0 --list                          # List available suites"
+  echo ""
+  echo "Options:"
+  echo "  --save-artifact    Save test metadata for future cleanup"
+  echo "  --list            List all available suites"
+  echo "  --help, -h        Show this help message"
+  exit 0
+fi
+
+# Handle --list option
+if [ "$1" = "--list" ]; then
+  node "$SCRIPT_DIR/generate.js" --list
+  exit 0
+fi
+
+# Parse arguments - collect suite patterns and check for flags
+SUITE_PATTERNS=()
+SAVE_ARTIFACT=""
+for arg in "$@"; do
+  if [ "$arg" = "--save-artifact" ]; then
+    SAVE_ARTIFACT="--save-artifact"
+  elif [[ "$arg" != --* ]]; then
+    SUITE_PATTERNS+=("$arg")
+  fi
+done
+
+if [ ${#SUITE_PATTERNS[@]} -eq 0 ]; then
+  echo -e "${RED}❌ At least one suite name or pattern required${NC}"
+  echo "Use $0 --help for usage information"
+  exit 1
+fi
+
 # Generate unique TEST_RUN_ID (short to avoid 63-char function name limit)
-# No underscores or hyphens - just letters and numbers for compatibility with both JS identifiers and Cloud Tasks
 export TEST_RUN_ID="t$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
 
+# Verify TEST_RUN_ID was generated successfully
+if [ -z "$TEST_RUN_ID" ] || [ "$TEST_RUN_ID" = "t" ]; then
+  echo -e "${RED}❌ Failed to generate TEST_RUN_ID${NC}"
+  echo -e "${YELLOW}   This may be due to missing /dev/urandom or base64 utilities${NC}"
+  # Fallback to timestamp-based ID
+  export TEST_RUN_ID="t$(date +%s | tail -c 8)"
+  echo -e "${YELLOW}   Using fallback TEST_RUN_ID: ${TEST_RUN_ID}${NC}"
+fi
+
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
-echo -e "${GREEN}🚀 Running Integration Test Suite(s): ${SUITE_DISPLAY}${NC}"
+echo -e "${GREEN}🚀 Running Integration Test Suite(s)${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}📋 Test Run ID: ${TEST_RUN_ID}${NC}"
 echo ""
@@ -56,48 +82,73 @@ cleanup() {
   echo ""
   echo -e "${YELLOW}🧹 Running cleanup...${NC}"
 
+  # Verify TEST_RUN_ID is available for cleanup
+  if [ -z "$TEST_RUN_ID" ]; then
+    echo -e "${YELLOW}   Warning: TEST_RUN_ID not set, cleanup may be incomplete${NC}"
+  fi
+
   # Check if metadata exists
   if [ -f "$ROOT_DIR/generated/.metadata.json" ]; then
     # Extract project ID from metadata
     PROJECT_ID=$(grep '"projectId"' "$ROOT_DIR/generated/.metadata.json" | cut -d'"' -f4)
+    REGION=$(grep '"region"' "$ROOT_DIR/generated/.metadata.json" | cut -d'"' -f4 | head -1)
+
+    # Set default region if not found
+    [ -z "$REGION" ] && REGION="us-central1"
 
     if [ -n "$PROJECT_ID" ]; then
-      # Delete deployed functions using metadata
-      echo -e "${YELLOW}   Deleting functions with TEST_RUN_ID: $TEST_RUN_ID${NC}"
+      # Only delete functions if deployment was successful
+      if [ "$DEPLOYMENT_SUCCESS" = true ]; then
+        echo -e "${YELLOW}   Deleting deployed functions with TEST_RUN_ID: $TEST_RUN_ID${NC}"
 
-      # Extract function names from metadata (handles both underscore and no-separator patterns)
-      # Matches functions ending with either _testRunId or just testRunId
-      FUNCTIONS=$(grep -oE '"[^"]*[_]?'${TEST_RUN_ID}'"' "$ROOT_DIR/generated/.metadata.json" 2>/dev/null | tr -d '"' || true)
+        # Extract function names from metadata
+        if command -v jq &> /dev/null; then
+          # Use jq if available for precise extraction
+          FUNCTIONS=$(jq -r '.suites[].functions[]' "$ROOT_DIR/generated/.metadata.json" 2>/dev/null || true)
+        else
+          # Fallback to grep-based extraction, excluding the testRunId field
+          FUNCTIONS=$(grep '"functions"' -A 20 "$ROOT_DIR/generated/.metadata.json" | grep -oE '"[a-zA-Z]+[a-zA-Z0-9]*'${TEST_RUN_ID}'"' | tr -d '"' || true)
+        fi
 
-      if [ -n "$FUNCTIONS" ]; then
-        # Default region if not found in metadata
-        REGION="us-central1"
-
-        for FUNCTION in $FUNCTIONS; do
-          echo "   Deleting function: $FUNCTION"
-          # Try Firebase CLI first
-          if ! firebase functions:delete "$FUNCTION" --project "$PROJECT_ID" --region "$REGION" --force 2>/dev/null; then
-            # If Firebase CLI fails (e.g., due to invalid queue names), try gcloud
-            echo "   Firebase CLI failed, trying gcloud..."
-            gcloud functions delete "$FUNCTION" --region="$REGION" --project="$PROJECT_ID" --quiet 2>/dev/null || true
-          fi
-        done
+        if [ -n "$FUNCTIONS" ]; then
+          for FUNCTION in $FUNCTIONS; do
+            echo "   Deleting function: $FUNCTION"
+            # Try Firebase CLI first
+            if ! firebase functions:delete "$FUNCTION" --project "$PROJECT_ID" --region "$REGION" --force 2>/dev/null; then
+              # If Firebase CLI fails, try gcloud
+              echo "   Firebase CLI failed, trying gcloud..."
+              gcloud functions delete "$FUNCTION" --region="$REGION" --project="$PROJECT_ID" --quiet 2>/dev/null || true
+            fi
+          done
+        fi
+      else
+        echo -e "${YELLOW}   Skipping function deletion (deployment was not successful)${NC}"
       fi
 
-      # Clean up test data from Firestore
+      # Clean up test data from Firestore - extract collections from metadata
       echo -e "${YELLOW}   Cleaning up Firestore test data...${NC}"
-      for COLLECTION in firestoreDocumentOnCreateTests firestoreDocumentOnDeleteTests firestoreDocumentOnUpdateTests firestoreDocumentOnWriteTests; do
-        firebase firestore:delete "$COLLECTION/$TEST_RUN_ID" --project "$PROJECT_ID" --yes 2>/dev/null || true
-      done
 
-      # Clean up auth test data from Firestore
-      for COLLECTION in authUserOnCreateTests authUserOnDeleteTests authBeforeCreateTests authBeforeSignInTests; do
-        firebase firestore:delete "$COLLECTION/$TEST_RUN_ID" --project "$PROJECT_ID" --yes 2>/dev/null || true
+      # Extract all unique collection names from the metadata
+      COLLECTIONS=$(grep -oE '"collection"[[:space:]]*:[[:space:]]*"[^"]*"' "$ROOT_DIR/generated/.metadata.json" 2>/dev/null | cut -d'"' -f4 | sort -u || true)
+
+      # Also check for functions that default to their name as collection
+      FUNCTION_NAMES=$(grep -oE '"name"[[:space:]]*:[[:space:]]*"[^"]*Tests"' "$ROOT_DIR/generated/.metadata.json" 2>/dev/null | cut -d'"' -f4 | sed "s/${TEST_RUN_ID}$//" | sort -u || true)
+
+      # Combine and deduplicate
+      ALL_COLLECTIONS=$(echo -e "$COLLECTIONS\n$FUNCTION_NAMES" | grep -v '^$' | sort -u)
+
+      for COLLECTION in $ALL_COLLECTIONS; do
+        if [ -n "$COLLECTION" ]; then
+          echo "   Cleaning collection: $COLLECTION/$TEST_RUN_ID"
+          firebase firestore:delete "$COLLECTION/$TEST_RUN_ID" --project "$PROJECT_ID" --yes 2>/dev/null || true
+        fi
       done
 
       # Clean up auth users created during tests
-      echo -e "${YELLOW}   Cleaning up auth test users...${NC}"
-      node "$SCRIPT_DIR/cleanup-auth-users.cjs" "$TEST_RUN_ID" 2>/dev/null || true
+      if grep -q "auth" "$ROOT_DIR/generated/.metadata.json" 2>/dev/null; then
+        echo -e "${YELLOW}   Cleaning up auth test users...${NC}"
+        node "$SCRIPT_DIR/cleanup-auth-users.cjs" "$TEST_RUN_ID" 2>/dev/null || true
+      fi
     fi
   fi
 
@@ -114,6 +165,9 @@ cleanup() {
   exit $exit_code
 }
 
+# Track deployment status
+DEPLOYMENT_SUCCESS=false
+
 # Set trap to run cleanup on exit
 trap cleanup EXIT INT TERM
 
@@ -123,9 +177,9 @@ echo -e "${GREEN}📦 Step 1/4: Generating functions${NC}"
 echo -e "${BLUE}──────────────────────────────────────────────────────────${NC}"
 
 cd "$ROOT_DIR"
-npm run generate "${SUITE_NAMES[@]}"
+npm run generate "${SUITE_PATTERNS[@]}"
 
-# Extract project ID from metadata
+# Extract project ID and suite info from metadata
 METADATA_FILE="$ROOT_DIR/generated/.metadata.json"
 if [ ! -f "$METADATA_FILE" ]; then
   echo -e "${RED}❌ Metadata file not found after generation${NC}"
@@ -135,8 +189,12 @@ fi
 PROJECT_ID=$(grep '"projectId"' "$METADATA_FILE" | cut -d'"' -f4)
 export PROJECT_ID
 
+# Extract actual suite names that were generated
+GENERATED_SUITES=$(grep -oE '"name"[[:space:]]*:[[:space:]]*"v[12]_[^"]*"' "$METADATA_FILE" | cut -d'"' -f4 | sort -u)
+SUITE_COUNT=$(echo "$GENERATED_SUITES" | wc -l | tr -d ' ')
+
 echo ""
-echo -e "${GREEN}✓ Functions generated for project: ${PROJECT_ID}${NC}"
+echo -e "${GREEN}✓ Generated $SUITE_COUNT suite(s) for project: ${PROJECT_ID}${NC}"
 
 # Save artifact if requested
 if [ "$SAVE_ARTIFACT" == "--save-artifact" ]; then
@@ -154,11 +212,16 @@ echo -e "${BLUE}─────────────────────�
 
 cd "$ROOT_DIR/generated/functions"
 
-# Update package.json to use published version if local tarball doesn't exist
-if ! [ -f "../../firebase-functions-local.tgz" ]; then
-  echo "   Using published firebase-functions package"
-  sed -i.bak 's|"firebase-functions": "file:../../firebase-functions-local.tgz"|"firebase-functions": "^4.5.0"|' package.json
+# Check if using local tarball
+if [ -n "$SDK_TARBALL" ] && [ -f "$SDK_TARBALL" ]; then
+  echo "   Using SDK tarball: $SDK_TARBALL"
+elif [ -f "../../firebase-functions-local.tgz" ]; then
+  echo "   Using local firebase-functions tarball"
+  # Update package.json to use local tarball
+  sed -i.bak 's|"firebase-functions": "[^"]*"|"firebase-functions": "file:../../firebase-functions-local.tgz"|' package.json
   rm package.json.bak
+else
+  echo "   Using published firebase-functions package"
 fi
 
 npm install
@@ -182,12 +245,15 @@ retry_with_backoff 3 30 120 600 firebase deploy --only functions --project "$PRO
   # Check if it's just the cleanup policy warning
   if firebase functions:list --project "$PROJECT_ID" 2>/dev/null | grep -q "$TEST_RUN_ID"; then
     echo -e "${YELLOW}⚠️  Functions deployed with warnings (cleanup policy)${NC}"
+    DEPLOYMENT_SUCCESS=true
   else
     echo -e "${RED}❌ Deployment failed after all retry attempts${NC}"
     exit 1
   fi
 }
 
+# Mark deployment as successful if we reach here
+DEPLOYMENT_SUCCESS=true
 echo -e "${GREEN}✓ Functions deployed successfully${NC}"
 
 # Step 4: Run tests
@@ -205,16 +271,80 @@ if [ ! -f "$ROOT_DIR/sa.json" ]; then
 fi
 
 # Run the tests
-# Only set GOOGLE_APPLICATION_CREDENTIALS if sa.json exists (for local runs)
-# In Cloud Build, we use Application Default Credentials
 if [ -f "$ROOT_DIR/sa.json" ]; then
   export GOOGLE_APPLICATION_CREDENTIALS="$ROOT_DIR/sa.json"
 fi
 export REGION="us-central1"
 
-# Extract deployed functions from suite names
+# Function to map suite name to test file path
+get_test_file() {
+  local suite_name="$1"
+  local service="${suite_name#*_}"  # Extract service name after underscore
+  local version="${suite_name%%_*}"  # Extract version (v1 or v2)
+
+  case "$suite_name" in
+    v1_auth*)
+      echo "tests/v1/auth.test.ts"
+      ;;
+    v2_alerts)
+      # v2_alerts doesn't have tests (deployment only)
+      echo ""
+      ;;
+    *)
+      # Map service names to test files
+      case "$service" in
+        firestore)
+          echo "tests/$version/firestore.test.ts"
+          ;;
+        database)
+          echo "tests/$version/database.test.ts"
+          ;;
+        pubsub)
+          echo "tests/$version/pubsub.test.ts"
+          ;;
+        storage)
+          echo "tests/$version/storage.test.ts"
+          ;;
+        tasks)
+          echo "tests/$version/tasks.test.ts"
+          ;;
+        remoteconfig)
+          # Handle case sensitivity issue
+          if [ "$version" = "v1" ]; then
+            echo "tests/v1/remoteconfig.test.ts"
+          else
+            echo "tests/v2/remoteConfig.test.ts"
+          fi
+          ;;
+        testlab)
+          # Handle case sensitivity issue
+          if [ "$version" = "v1" ]; then
+            echo "tests/v1/testlab.test.ts"
+          else
+            echo "tests/v2/testLab.test.ts"
+          fi
+          ;;
+        scheduler)
+          echo "tests/v2/scheduler.test.ts"
+          ;;
+        identity)
+          echo "tests/v2/identity.test.ts"
+          ;;
+        eventarc)
+          echo "tests/v2/eventarc.test.ts"
+          ;;
+        *)
+          echo -e "${YELLOW}⚠️  No test file mapping for suite: $suite_name${NC}" >&2
+          echo ""
+          ;;
+      esac
+      ;;
+  esac
+}
+
+# Extract deployed functions info for auth tests
 DEPLOYED_FUNCTIONS=""
-for SUITE_NAME in "${SUITE_NAMES[@]}"; do
+for SUITE_NAME in $GENERATED_SUITES; do
   case "$SUITE_NAME" in
     v1_auth_nonblocking)
       DEPLOYED_FUNCTIONS="${DEPLOYED_FUNCTIONS},onCreate,onDelete"
@@ -231,99 +361,39 @@ done
 # Remove leading comma
 DEPLOYED_FUNCTIONS="${DEPLOYED_FUNCTIONS#,}"
 
-# Collect test files for all suites
+# Collect test files for all generated suites
 TEST_FILES=()
-for SUITE_NAME in "${SUITE_NAMES[@]}"; do
-  case "$SUITE_NAME" in
-    v1_firestore)
-      TEST_FILES+=("tests/v1/firestore.test.ts")
-      ;;
-    v1_database)
-      TEST_FILES+=("tests/v1/database.test.ts")
-      ;;
-    v1_pubsub)
-      TEST_FILES+=("tests/v1/pubsub.test.ts")
-      ;;
-    v1_storage)
-      TEST_FILES+=("tests/v1/storage.test.ts")
-      ;;
-    v1_tasks)
-      TEST_FILES+=("tests/v1/tasks.test.ts")
-      ;;
-    v1_remoteconfig)
-      TEST_FILES+=("tests/v1/remoteconfig.test.ts")
-      ;;
-    v1_testlab)
-      TEST_FILES+=("tests/v1/testlab.test.ts")
-      ;;
-    v1_auth | v1_auth_nonblocking | v1_auth_before_create | v1_auth_before_signin)
-      TEST_FILES+=("tests/v1/auth.test.ts")
-      ;;
-    v2_database)
-      TEST_FILES+=("tests/v2/database.test.ts")
-      ;;
-    v2_pubsub)
-      TEST_FILES+=("tests/v2/pubsub.test.ts")
-      ;;
-    v2_storage)
-      TEST_FILES+=("tests/v2/storage.test.ts")
-      ;;
-    v2_tasks)
-      TEST_FILES+=("tests/v2/tasks.test.ts")
-      ;;
-    v2_scheduler)
-      TEST_FILES+=("tests/v2/scheduler.test.ts")
-      ;;
-    v2_remoteconfig)
-      TEST_FILES+=("tests/v2/remoteconfig.test.ts")
-      ;;
-    v2_testlab)
-      TEST_FILES+=("tests/v2/testlab.test.ts")
-      ;;
-    v2_identity)
-      TEST_FILES+=("tests/v2/identity.test.ts")
-      ;;
-    v2_eventarc)
-      TEST_FILES+=("tests/v2/eventarc.test.ts")
-      ;;
-    v2_firestore)
-      TEST_FILES+=("tests/v2/firestore.test.ts")
-      ;;
-    v2_database)
-      TEST_FILES+=("tests/v2/database.test.ts")
-      ;;
-    v2_pubsub)
-      TEST_FILES+=("tests/v2/pubsub.test.ts")
-      ;;
-    v2_storage)
-      TEST_FILES+=("tests/v2/storage.test.ts")
-      ;;
-    v2_tasks)
-      TEST_FILES+=("tests/v2/tasks.test.ts")
-      ;;
-    v2_scheduler)
-      TEST_FILES+=("tests/v2/scheduler.test.ts")
-      ;;
-    v2_remoteconfig)
-      TEST_FILES+=("tests/v2/remoteconfig.test.ts")
-      ;;
-    v2_alerts)
-      TEST_FILES+=("tests/v2/alerts.test.ts")
-      ;;
-    v2_testlab)
-      TEST_FILES+=("tests/v2/testLab.test.ts")
-      ;;
-    *)
-      echo -e "${YELLOW}⚠️  No test file mapping for suite: $SUITE_NAME${NC}"
-      ;;
-  esac
+SEEN_FILES=()
+for SUITE_NAME in $GENERATED_SUITES; do
+  TEST_FILE=$(get_test_file "$SUITE_NAME")
+
+  if [ -n "$TEST_FILE" ]; then
+    # Check if we've already added this test file (for auth suites)
+    if [[ ! " ${SEEN_FILES[@]} " =~ " ${TEST_FILE} " ]]; then
+      if [ -f "$ROOT_DIR/$TEST_FILE" ]; then
+        TEST_FILES+=("$TEST_FILE")
+        SEEN_FILES+=("$TEST_FILE")
+      else
+        echo -e "${YELLOW}⚠️  Test file not found: $TEST_FILE${NC}"
+      fi
+    fi
+  fi
 done
 
 if [ ${#TEST_FILES[@]} -gt 0 ]; then
+  # Final verification that TEST_RUN_ID is set before running tests
+  if [ -z "$TEST_RUN_ID" ]; then
+    echo -e "${RED}❌ TEST_RUN_ID is not set. Cannot run tests.${NC}"
+    exit 1
+  fi
+
+  echo -e "${GREEN}Running tests: ${TEST_FILES[*]}${NC}"
+  echo -e "${GREEN}TEST_RUN_ID: ${TEST_RUN_ID}${NC}"
   DEPLOYED_FUNCTIONS="$DEPLOYED_FUNCTIONS" TEST_RUN_ID="$TEST_RUN_ID" npm test -- "${TEST_FILES[@]}"
 else
-  echo -e "${YELLOW}   No test files found. Running all tests...${NC}"
-  DEPLOYED_FUNCTIONS="$DEPLOYED_FUNCTIONS" TEST_RUN_ID="$TEST_RUN_ID" npm test
+  echo -e "${YELLOW}⚠️  No test files found for the generated suites.${NC}"
+  echo -e "${YELLOW}   Generated suites: $GENERATED_SUITES${NC}"
+  echo -e "${GREEN}   Skipping test execution (deployment-only suites).${NC}"
 fi
 
 echo ""
