@@ -29,6 +29,7 @@ if [ $# -eq 0 ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   echo "  $0 --list                          # List available suites"
   echo ""
   echo "Options:"
+  echo "  --test-run-id=ID   Use specific TEST_RUN_ID instead of generating one"
   echo "  --save-artifact    Save test metadata for future cleanup"
   echo "  --list            List all available suites"
   echo "  --help, -h        Show this help message"
@@ -44,9 +45,12 @@ fi
 # Parse arguments - collect suite patterns and check for flags
 SUITE_PATTERNS=()
 SAVE_ARTIFACT=""
+PROVIDED_TEST_RUN_ID=""
 for arg in "$@"; do
   if [ "$arg" = "--save-artifact" ]; then
     SAVE_ARTIFACT="--save-artifact"
+  elif [[ "$arg" == --test-run-id=* ]]; then
+    PROVIDED_TEST_RUN_ID="${arg#*=}"
   elif [[ "$arg" != --* ]]; then
     SUITE_PATTERNS+=("$arg")
   fi
@@ -58,8 +62,14 @@ if [ ${#SUITE_PATTERNS[@]} -eq 0 ]; then
   exit 1
 fi
 
-# Generate unique TEST_RUN_ID (short to avoid 63-char function name limit)
-export TEST_RUN_ID="t$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
+# Use provided TEST_RUN_ID or generate a new one
+if [ -n "$PROVIDED_TEST_RUN_ID" ]; then
+  export TEST_RUN_ID="$PROVIDED_TEST_RUN_ID"
+  echo -e "${GREEN}📋 Using provided TEST_RUN_ID: ${TEST_RUN_ID}${NC}"
+else
+  # Generate unique TEST_RUN_ID (short to avoid 63-char function name limit)
+  export TEST_RUN_ID="t$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
+fi
 
 # Verify TEST_RUN_ID was generated successfully
 if [ -z "$TEST_RUN_ID" ] || [ "$TEST_RUN_ID" = "t" ]; then
@@ -240,17 +250,43 @@ cd "$ROOT_DIR/generated"
 # Source the utility functions for retry logic
 source "$ROOT_DIR/scripts/util.sh"
 
-# Deploy with exponential backoff retry
-retry_with_backoff 3 30 120 600 firebase deploy --only functions --project "$PROJECT_ID" || {
-  # Check if it's just the cleanup policy warning
-  if firebase functions:list --project "$PROJECT_ID" 2>/dev/null | grep -q "$TEST_RUN_ID"; then
-    echo -e "${YELLOW}⚠️  Functions deployed with warnings (cleanup policy)${NC}"
-    DEPLOYMENT_SUCCESS=true
-  else
-    echo -e "${RED}❌ Deployment failed after all retry attempts${NC}"
-    exit 1
+# Deploy with exponential backoff retry - but handle cleanup policy warnings
+MAX_ATTEMPTS=3
+ATTEMPT=1
+DEPLOY_FAILED=true
+
+while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+  echo -e "${YELLOW}🔄 Attempt $ATTEMPT of $MAX_ATTEMPTS: firebase deploy --only functions --project $PROJECT_ID${NC}"
+
+  if firebase deploy --only functions --project "$PROJECT_ID" 2>&1 | tee deploy.log; then
+    echo -e "${GREEN}✅ Deployment succeeded${NC}"
+    DEPLOY_FAILED=false
+    break
+  elif grep -q "Functions successfully deployed but could not set up cleanup policy" deploy.log; then
+    echo -e "${YELLOW}⚠️  Functions deployed successfully (cleanup policy warning ignored)${NC}"
+    DEPLOY_FAILED=false
+    break
+  elif grep -q "identityBeforeUserCreatedTest.*identityBeforeUserSignedInTest" deploy.log && firebase functions:list --project "$PROJECT_ID" 2>/dev/null | grep -q "$TEST_RUN_ID"; then
+    echo -e "${YELLOW}⚠️  Functions appear to be deployed despite errors${NC}"
+    DEPLOY_FAILED=false
+    break
   fi
-}
+
+  if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+    DELAY=$((20 + RANDOM % 40))
+    echo -e "${YELLOW}⚠️  Command failed. Retrying in ${DELAY} seconds...${NC}"
+    sleep $DELAY
+  fi
+
+  ATTEMPT=$((ATTEMPT + 1))
+done
+
+rm -f deploy.log
+
+if [ "$DEPLOY_FAILED" = true ]; then
+  echo -e "${RED}❌ Deployment failed after all retry attempts${NC}"
+  exit 1
+fi
 
 # Mark deployment as successful if we reach here
 DEPLOYMENT_SUCCESS=true

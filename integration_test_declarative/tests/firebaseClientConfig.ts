@@ -17,13 +17,23 @@ export const FIREBASE_CLIENT_CONFIG = {
   measurementId: "G-DS379RHF58",
 };
 
+export const FIREBASE_V2_CLIENT_CONFIG = {
+  apiKey: "AIzaSyCuJHyzpwIkQbxvJdKAzXg3sHUBOcTmsTI",
+  authDomain: "functions-integration-tests-v2.firebaseapp.com",
+  projectId: "functions-integration-tests-v2",
+  storageBucket: "functions-integration-tests-v2.firebasestorage.app",
+  messagingSenderId: "404926458259",
+  appId: "1:404926458259:web:eaab8474bc5a6833c66066",
+  measurementId: "G-D64JVJJSX7",
+};
+
 /**
  * Get Firebase client config for a specific project
  * Falls back to default config if project-specific config not found
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function getFirebaseClientConfig(_projectId?: string) {
-  // For now, we only have one test project config
-  // In the future, you could add project-specific configs here
+export function getFirebaseClientConfig(projectId?: string) {
+  if (projectId === "functions-integration-tests-v2") {
+    return FIREBASE_V2_CLIENT_CONFIG;
+  }
   return FIREBASE_CLIENT_CONFIG;
 }

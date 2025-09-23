@@ -1,5 +1,5 @@
-# Simplified Cloud Build configuration for Firebase Functions Integration Tests
-# Runs all test suites sequentially to avoid rate limits
+# Cloud Build configuration for Firebase Functions Integration Tests
+# Runs all enabled test suites sequentially to avoid rate limits
 
 options:
   machineType: 'E2_HIGHCPU_8'
@@ -12,24 +12,39 @@ substitutions:
   _REGION: 'us-central1'
 
 steps:
-  # Single step: Run all v1 test suites sequentially and cleanup
+  # Build SDK and run all enabled test suites sequentially
   - name: 'node:18'
-    id: 'test-v1-all'
+    id: 'build-sdk-and-test'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # Install dependencies
+        # Step 1: Build and pack the firebase-functions SDK from source
+        echo "Building firebase-functions SDK from source..."
+        npm ci
+        npm run build
+        npm pack
+        # Move the tarball to where integration tests expect it
+        mv firebase-functions-*.tgz integration_test_declarative/firebase-functions-local.tgz
+        echo "SDK built and packed successfully"
+
+        # Step 2: Run integration tests with the local SDK
+        cd integration_test_declarative
+        echo "Installing test dependencies..."
         npm ci
         # Install firebase-tools globally
         npm install -g firebase-tools
         # Verify firebase is installed
         firebase --version
         # Use Application Default Credentials (Cloud Build service account)
-        export PROJECT_ID=${_PROJECT_ID}
-        export REGION=${_REGION}
-        # Run all v1 tests sequentially (includes cleanup between suites)
-        npm run test:v1:all
+        # Don't set PROJECT_ID or REGION - let each suite use values defined in its YAML config
+        # Some suites use functions-integration-tests, others use functions-integration-tests-v2
+        # All suites currently use us-central1, but this keeps YAML as single source of truth
+        # Run all enabled tests sequentially (reads from YAML configs)
+        # This will run all suites defined in config/v1/suites.yaml and config/v2/suites.yaml
+        # Commented out suites in YAML will be automatically skipped
+        # The tests will automatically use the firebase-functions-local.tgz we just created
+        npm run test:all:sequential
 
 # Artifacts to store
 artifacts:

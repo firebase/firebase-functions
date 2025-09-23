@@ -1,7 +1,6 @@
 import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
-import fetch from "node-fetch";
 
 describe("Scheduler", () => {
   const projectId = process.env.PROJECT_ID;

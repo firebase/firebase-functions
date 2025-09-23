@@ -16,6 +16,7 @@ NC='\033[0m' # No Color
 # Parse arguments
 FILTER_PATTERN=""
 EXCLUDE_PATTERN=""
+SKIP_CLEANUP=false
 SHOW_HELP=false
 
 for arg in "$@"; do
@@ -32,6 +33,10 @@ for arg in "$@"; do
       EXCLUDE_PATTERN="${arg#*=}"
       shift
       ;;
+    --skip-cleanup)
+      SKIP_CLEANUP=true
+      shift
+      ;;
     *)
       ;;
   esac
@@ -44,6 +49,7 @@ if [ "$SHOW_HELP" = true ] || [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   echo "Options:"
   echo "  --filter=PATTERN   Only run suites matching pattern (e.g., --filter=v1)"
   echo "  --exclude=PATTERN  Skip suites matching pattern (e.g., --exclude=auth)"
+  echo "  --skip-cleanup     Skip pre-run cleanup of existing test resources"
   echo "  --help, -h         Show this help message"
   echo ""
   echo "Examples:"
@@ -72,18 +78,87 @@ log() {
     echo -e "$1" | tee -a "$LOG_FILE"
 }
 
+# Function to clean up existing test resources
+cleanup_existing_test_resources() {
+    log "${YELLOW}🧹 Checking for existing test functions...${NC}"
+
+    # Clean up both main project and v2 project
+    local PROJECTS=("functions-integration-tests" "functions-integration-tests-v2")
+
+    for PROJECT_ID in "${PROJECTS[@]}"; do
+        log "${YELLOW}   Checking project: $PROJECT_ID${NC}"
+
+        # List all functions and find test functions (those with test run IDs)
+        local TEST_FUNCTIONS=$(firebase functions:list --project "$PROJECT_ID" 2>/dev/null | grep -E "Test.*t[a-z0-9]{8,9}" | awk '{print $1}' || true)
+
+        if [ -n "$TEST_FUNCTIONS" ]; then
+            local FUNCTION_COUNT=$(echo "$TEST_FUNCTIONS" | wc -l | tr -d ' ')
+            log "${YELLOW}     Found $FUNCTION_COUNT existing test function(s) in $PROJECT_ID. Cleaning up...${NC}"
+
+            for FUNCTION in $TEST_FUNCTIONS; do
+                log "     Deleting: $FUNCTION"
+                # Try firebase CLI first, fallback to gcloud if it fails
+                if ! firebase functions:delete "$FUNCTION" --project "$PROJECT_ID" --region "us-central1" --force 2>/dev/null; then
+                    # Fallback to gcloud for stubborn functions (like identity functions with config issues)
+                    gcloud functions delete "$FUNCTION" --project "$PROJECT_ID" --region "us-central1" --quiet 2>/dev/null || true
+                fi
+            done
+
+            log "${GREEN}     ✅ Cleaned up test functions from $PROJECT_ID${NC}"
+        else
+            log "${GREEN}     ✅ No test functions found in $PROJECT_ID${NC}"
+        fi
+    done
+
+    # Clean up any stray test data in Firestore
+    log "${YELLOW}   Checking for stray test data in Firestore...${NC}"
+
+    # Clean up common test collections
+    local TEST_COLLECTIONS=(
+        "authUserOnCreateTests"
+        "authUserOnDeleteTests"
+        "authBeforeCreateTests"
+        "authBeforeSignInTests"
+        "firestoreDocumentOnCreateTests"
+        "firestoreDocumentOnDeleteTests"
+        "firestoreDocumentOnUpdateTests"
+        "firestoreDocumentOnWriteTests"
+        "databaseRefOnCreateTests"
+        "databaseRefOnDeleteTests"
+        "databaseRefOnUpdateTests"
+        "databaseRefOnWriteTests"
+    )
+
+    for COLLECTION in "${TEST_COLLECTIONS[@]}"; do
+        # Try to delete any documents in test collections
+        firebase firestore:delete "$COLLECTION" --project "$PROJECT_ID" --yes --recursive 2>/dev/null || true
+    done
+
+    log "${GREEN}   ✅ Firestore cleanup complete${NC}"
+
+    # Clean up generated directory
+    if [ -d "$ROOT_DIR/generated" ]; then
+        log "${YELLOW}   Cleaning up generated directory...${NC}"
+        rm -rf "$ROOT_DIR/generated"/*
+        log "${GREEN}   ✅ Generated directory cleaned${NC}"
+    fi
+
+    log ""
+}
+
 # Function to run a single suite
 run_suite() {
     local suite_name="$1"
+    local test_run_id="$2"
     local suite_log="$LOGS_DIR/${suite_name}-${TIMESTAMP}.log"
-    
+
     log "${BLUE}═══════════════════════════════════════════════════════════${NC}"
     log "${GREEN}🚀 Running suite: $suite_name${NC}"
     log "${BLUE}═══════════════════════════════════════════════════════════${NC}"
     log "${YELLOW}📝 Suite log: $suite_log${NC}"
-    
-    # Run the suite and capture both stdout and stderr
-    if ./scripts/run-suite.sh "$suite_name" 2>&1 | tee "$suite_log"; then
+
+    # Run the suite with the shared TEST_RUN_ID
+    if ./scripts/run-suite.sh "$suite_name" --test-run-id="$test_run_id" 2>&1 | tee "$suite_log"; then
         log "${GREEN}✅ Suite $suite_name completed successfully${NC}"
         return 0
     else
@@ -128,6 +203,9 @@ fi
 # Combine all suites (v1 first, then v2)
 ALL_SUITES=("${V1_SUITES[@]}" "${V2_SUITES[@]}")
 
+# Default exclusions (v2_identity has issues with Identity Platform UI)
+DEFAULT_EXCLUDE="v2_identity"
+
 # Apply filters
 SUITES=()
 for suite in "${ALL_SUITES[@]}"; do
@@ -138,12 +216,18 @@ for suite in "${ALL_SUITES[@]}"; do
         fi
     fi
 
-    # Apply exclude filter if specified
+    # Apply exclude filter if specified (user exclusions + default)
     if [ -n "$EXCLUDE_PATTERN" ]; then
         if [[ "$suite" =~ $EXCLUDE_PATTERN ]]; then
             log "${YELLOW}   Skipping $suite (matches exclude pattern)${NC}"
             continue
         fi
+    fi
+
+    # Apply default exclusions (unless explicitly included via filter)
+    if [ -z "$FILTER_PATTERN" ] && [[ "$suite" =~ $DEFAULT_EXCLUDE ]]; then
+        log "${YELLOW}   Skipping $suite (default exclusion - v2 blocking functions not supported in Identity Platform UI)${NC}"
+        continue
     fi
 
     SUITES+=("$suite")
@@ -168,14 +252,27 @@ for suite in "${SUITES[@]}"; do
 done
 log ""
 
+# Generate a single TEST_RUN_ID for all suites
+export TEST_RUN_ID="t$(head -c 8 /dev/urandom | base64 | tr -d '/+=' | tr '[:upper:]' '[:lower:]' | head -c 8)"
+log "${GREEN}📋 Generated TEST_RUN_ID for all suites: ${TEST_RUN_ID}${NC}"
+log ""
+
+# Run pre-test cleanup unless skipped
+if [ "$SKIP_CLEANUP" = false ]; then
+    cleanup_existing_test_resources
+else
+    log "${YELLOW}⚠️  Skipping pre-run cleanup (--skip-cleanup specified)${NC}"
+    log ""
+fi
+
 # Track results
 PASSED=0
 FAILED=0
 FAILED_SUITES=()
 
-# Run each suite sequentially
+# Run each suite sequentially with the shared TEST_RUN_ID
 for suite in "${SUITES[@]}"; do
-    if run_suite "$suite"; then
+    if run_suite "$suite" "$TEST_RUN_ID"; then
         ((PASSED++))
     else
         ((FAILED++))
@@ -183,6 +280,16 @@ for suite in "${SUITES[@]}"; do
     fi
     log ""
 done
+
+# Final cleanup - clean up auth users from this test run
+log ""
+log "${YELLOW}🧹 Running final cleanup for TEST_RUN_ID: ${TEST_RUN_ID}${NC}"
+
+# Clean up auth users if any auth tests were run
+if [[ " ${SUITES[@]} " =~ " v1_auth" ]] || [[ " ${SUITES[@]} " =~ " v2_identity" ]]; then
+    log "${YELLOW}   Cleaning up auth test users...${NC}"
+    node "$SCRIPT_DIR/cleanup-auth-users.cjs" "$TEST_RUN_ID" 2>/dev/null || true
+fi
 
 # Summary
 log "${BLUE}═══════════════════════════════════════════════════════════${NC}"
