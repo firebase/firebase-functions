@@ -247,6 +247,8 @@ Functions and test data are automatically cleaned up:
 ## Commands
 
 ### Running Tests
+
+#### Local Testing
 ```bash
 # Run all tests sequentially
 npm run test:all:sequential
@@ -264,6 +266,20 @@ npm run run-tests v1_database # Direct suite name
 # Run with options
 npm run run-tests -- --sequential v1_firestore v1_database
 npm run run-tests -- --filter=v2 --exclude=auth
+```
+
+#### Cloud Build Testing
+```bash
+# Run V1 tests in Cloud Build
+npm run cloudbuild:v1
+
+# Run V2 tests in Cloud Build
+npm run cloudbuild:v2
+
+# Run both V1 and V2 tests in parallel
+npm run cloudbuild:both
+# or
+npm run cloudbuild:all
 ```
 
 ### Generate Functions Only
@@ -335,32 +351,84 @@ Cloud Build uses Application Default Credentials (ADC) automatically. However, t
 - `roles/cloudtestservice.testAdmin` - For Firebase Test Lab integration tests
 - `roles/firebase.admin` - For Firebase services (already included)
 - `roles/pubsub.publisher` - For Pub/Sub integration tests (already included)
+- `roles/iam.serviceAccountUser` - For Firebase Functions deployment (Service Account User)
 
 **Multi-Project Setup:**
-Tests deploy to multiple projects (typically one for V1 tests and one for V2 tests). The Cloud Build service account needs the above permissions on **all target projects**:
+Tests deploy to multiple projects (V1 tests to `functions-integration-tests`, V2 tests to `functions-integration-tests-v2`). Each Cloud Build runs on its own project, so **no cross-project permissions are needed**.
 
+**V1 Project Setup:**
 ```bash
-# Grant permissions to each target project
-gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+# Grant permissions to V1 project (functions-integration-tests)
+gcloud projects add-iam-policy-binding functions-integration-tests \
   --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
   --role="roles/cloudtasks.admin"
 
-gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+gcloud projects add-iam-policy-binding functions-integration-tests \
   --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
   --role="roles/cloudscheduler.admin"
 
-gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+gcloud projects add-iam-policy-binding functions-integration-tests \
   --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
   --role="roles/cloudtestservice.testAdmin"
 
-gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+gcloud projects add-iam-policy-binding functions-integration-tests \
   --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
   --role="roles/firebase.admin"
+
+gcloud projects add-iam-policy-binding functions-integration-tests \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
 ```
 
-Replace:
-- `TARGET_PROJECT_ID` with each project where tests will be deployed
-- `CLOUD_BUILD_PROJECT_NUMBER` with the project number where Cloud Build runs
+**V2 Project Setup:**
+```bash
+# Grant permissions to V2 project (functions-integration-tests-v2)
+gcloud projects add-iam-policy-binding functions-integration-tests-v2 \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/cloudtasks.admin"
+
+gcloud projects add-iam-policy-binding functions-integration-tests-v2 \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/cloudscheduler.admin"
+
+gcloud projects add-iam-policy-binding functions-integration-tests-v2 \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/cloudtestservice.testAdmin"
+
+gcloud projects add-iam-policy-binding functions-integration-tests-v2 \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/firebase.admin"
+
+gcloud projects add-iam-policy-binding functions-integration-tests-v2 \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/iam.serviceAccountUser"
+```
+
+Replace `CLOUD_BUILD_PROJECT_NUMBER` with the project number where Cloud Build runs.
+
+#### Running Cloud Build
+
+The integration tests use **separate Cloud Build configurations** for V1 and V2 tests to avoid cross-project permission complexity:
+
+**V1 Tests:**
+```bash
+# Run V1 tests on functions-integration-tests project
+gcloud builds submit --config=integration_test/cloudbuild-v1.yaml
+```
+
+**V2 Tests:**
+```bash
+# Run V2 tests on functions-integration-tests-v2 project
+gcloud builds submit --config=integration_test/cloudbuild-v2.yaml
+```
+
+**Both Tests (Parallel):**
+```bash
+# Run both V1 and V2 tests simultaneously
+gcloud builds submit --config=integration_test/cloudbuild-v1.yaml &
+gcloud builds submit --config=integration_test/cloudbuild-v2.yaml &
+wait
+```
 
 #### Running Cloud Build with Custom Projects
 
@@ -378,9 +446,13 @@ To use your own projects, edit the YAML configuration files:
      projectId: your-v2-project-id
    ```
 
-3. **Run Cloud Build**:
+3. **Run Cloud Build** (use the appropriate config for your target project):
    ```bash
-   gcloud builds submit --config=integration_test/cloudbuild.yaml
+   # For V1 tests
+   gcloud builds submit --config=integration_test/cloudbuild-v1.yaml
+   
+   # For V2 tests  
+   gcloud builds submit --config=integration_test/cloudbuild-v2.yaml
    ```
 
 **Default behavior (Firebase team):**
@@ -447,6 +519,11 @@ If you see authentication errors like "Could not refresh access token" or "Permi
   gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
     --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
     --role="roles/firebase.admin"
+  
+  # For Service Account User (required for Functions deployment)
+  gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+    --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/iam.serviceAccountUser"
   ```
 
 ### Cleanup Issues

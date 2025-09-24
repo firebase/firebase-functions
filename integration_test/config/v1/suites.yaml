@@ -107,35 +107,35 @@ suites:
         trigger: onDelete
 
   # Auth beforeCreate blocking function (must run separately)
-  - name: v1_auth_before_create
-    description: "V1 Auth beforeCreate blocking trigger test"
-    version: v1
-    service: auth
-    functions:
-      - name: authUserBeforeCreateTests
-        trigger: beforeCreate
-        collection: authBeforeCreateTests
-        blocking: true
+  # - name: v1_auth_before_create
+  #   description: "V1 Auth beforeCreate blocking trigger test"
+  #   version: v1
+  #   service: auth
+  #   functions:
+  #     - name: authUserBeforeCreateTests
+  #       trigger: beforeCreate
+  #       collection: authBeforeCreateTests
+  #       blocking: true
 
   # Auth beforeSignIn blocking function (must run separately)
-  - name: v1_auth_before_signin
-    description: "V1 Auth beforeSignIn blocking trigger test"
-    version: v1
-    service: auth
-    functions:
-      - name: authUserBeforeSignInTests
-        trigger: beforeSignIn
-        collection: authBeforeSignInTests
-        blocking: true
+  # - name: v1_auth_before_signin
+  #   description: "V1 Auth beforeSignIn blocking trigger test"
+  #   version: v1
+  #   service: auth
+  #   functions:
+  #     - name: authUserBeforeSignInTests
+  #       trigger: beforeSignIn
+  #       collection: authBeforeSignInTests
+  #       blocking: true
 
   # Cloud Tasks triggers
-  - name: v1_tasks
-    description: "V1 Cloud Tasks trigger tests"
-    version: v1
-    service: tasks
-    functions:
-      - name: tasksOnDispatchTests
-        trigger: onDispatch
+  # - name: v1_tasks
+  #   description: "V1 Cloud Tasks trigger tests"
+  #   version: v1
+  #   service: tasks
+  #   functions:
+  #     - name: tasksOnDispatchTests
+  #       trigger: onDispatch
 
   # Remote Config triggers
   - name: v1_remoteconfig

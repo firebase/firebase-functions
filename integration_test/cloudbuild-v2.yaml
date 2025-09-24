@@ -1,0 +1,50 @@
+# Cloud Build configuration for Firebase Functions V2 Integration Tests
+# Runs all V2 test suites sequentially to avoid rate limits
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '3600s'
+
+steps:
+  # Build SDK and run all V2 test suites sequentially
+  - name: 'node:20'
+    id: 'build-sdk-and-test-v2'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Step 1: Build and pack the firebase-functions SDK from source
+        echo "Building firebase-functions SDK from source..."
+        npm ci
+        npm run build
+        npm pack
+        # Move the tarball to where integration tests expect it
+        mv firebase-functions-*.tgz integration_test/firebase-functions-local.tgz
+        echo "SDK built and packed successfully"
+
+        # Step 2: Run V2 integration tests with the local SDK
+        cd integration_test
+        echo "Installing test dependencies..."
+        npm ci
+        # Install firebase-tools globally
+        npm install -g firebase-tools
+        # Install gcloud CLI for Cloud Tasks cleanup
+        curl https://sdk.cloud.google.com | bash
+        export PATH="$PATH:/root/google-cloud-sdk/bin"
+        # Verify tools are installed
+        firebase --version
+        gcloud --version
+        # V2 tests use functions-integration-tests-v2 project
+        echo "Running V2 tests on project: functions-integration-tests-v2"
+        # Use Application Default Credentials (Cloud Build service account)
+        # Run all V2 test suites sequentially
+        node scripts/run-tests.js --sequential --filter=v2 --use-published-sdk=file:firebase-functions-local.tgz
+
+# Artifacts to store
+artifacts:
+  objects:
+    location: 'gs://${PROJECT_ID}-test-results/${BUILD_ID}'
+    paths:
+      - 'logs/**/*.log'
