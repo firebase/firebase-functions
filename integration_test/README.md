@@ -248,7 +248,44 @@ Add test file mapping in the case statement (lines 175-199).
 
 ## Authentication
 
+### Local Development
 Place your service account key at `sa.json` in the root directory. This file is git-ignored.
+
+### Cloud Build
+Cloud Build uses Application Default Credentials (ADC) automatically. However, the Cloud Build service account requires specific permissions for the Google Cloud services used in tests:
+
+**Required IAM Roles for Cloud Build Service Account:**
+- `roles/cloudtasks.admin` - For Cloud Tasks integration tests
+- `roles/cloudscheduler.admin` - For Cloud Scheduler integration tests  
+- `roles/cloudtestservice.testAdmin` - For Firebase Test Lab integration tests
+- `roles/firebase.admin` - For Firebase services (already included)
+- `roles/pubsub.publisher` - For Pub/Sub integration tests (already included)
+
+**Multi-Project Setup:**
+Tests deploy to multiple projects (typically one for V1 tests and one for V2 tests). The Cloud Build service account needs the above permissions on **all target projects**:
+
+```bash
+# Grant permissions to each target project
+gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/cloudtasks.admin"
+
+gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/cloudscheduler.admin"
+
+gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/cloudtestservice.testAdmin"
+
+gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+  --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+  --role="roles/firebase.admin"
+```
+
+Replace:
+- `TARGET_PROJECT_ID` with each project where tests will be deployed
+- `CLOUD_BUILD_PROJECT_NUMBER` with the project number where Cloud Build runs
 
 ## Test Isolation
 
@@ -284,10 +321,37 @@ Format: `t_<timestamp>_<random>` (e.g., `t_1757979490_xkyqun`)
 - Ensure TEST_RUN_ID environment variable is set
 - Check test logs in logs/ directory
 
+### Permission Errors in Cloud Build
+If you see authentication errors like "Could not refresh access token" or "Permission denied":
+- Verify Cloud Build service account has required IAM roles on all target projects
+- Check project numbers: `gcloud projects describe PROJECT_ID --format="value(projectNumber)"`
+- Grant missing permissions to each target project:
+  ```bash
+  # For Cloud Tasks
+  gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+    --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/cloudtasks.admin"
+  
+  # For Cloud Scheduler  
+  gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+    --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/cloudscheduler.admin"
+  
+  # For Test Lab
+  gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+    --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/cloudtestservice.testAdmin"
+  
+  # For Firebase services
+  gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
+    --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
+    --role="roles/firebase.admin"
+  ```
+
 ### Cleanup Issues
 - Use `npm run cleanup:list` to find orphaned test runs
 - Manual cleanup: `firebase functions:delete <function-name> --project <project-id> --force`
-- Check for leftover test functions: `firebase functions:list --project functions-integration-tests | grep Test`
+- Check for leftover test functions: `firebase functions:list --project PROJECT_ID | grep Test`
 - Check Firestore/Database console for orphaned test data
 
 ## Benefits

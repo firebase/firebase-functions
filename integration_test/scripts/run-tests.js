@@ -621,6 +621,51 @@ class TestRunner {
         // Ignore cleanup errors
       }
     }
+
+    // Clean up Cloud Tasks queues if tasks tests were run
+    if (metadata.suites.some((s) => s.name.includes("tasks"))) {
+      await this.cleanupCloudTasksQueues(metadata);
+    }
+  }
+
+  /**
+   * Clean up Cloud Tasks queues created by tests
+   */
+  async cleanupCloudTasksQueues(metadata) {
+    this.log("   Cleaning up Cloud Tasks queues...", "warn");
+
+    const region = metadata.region || DEFAULT_REGION;
+    const projectId = metadata.projectId;
+
+    // Extract queue names from metadata (function names become queue names in v1)
+    const queueNames = new Set();
+    for (const suite of metadata.suites || []) {
+      if (suite.name.includes("tasks")) {
+        for (const func of suite.functions || []) {
+          if (func.name && func.name.includes("Tests")) {
+            // Function name becomes the queue name in v1
+            queueNames.add(func.name);
+          }
+        }
+      }
+    }
+
+    // Delete each queue
+    for (const queueName of queueNames) {
+      try {
+        this.log(`   Deleting Cloud Tasks queue: ${queueName}`, "warn");
+
+        // Try gcloud command to delete the queue
+        await this.exec(
+          `gcloud tasks queues delete ${queueName} --location=${region} --project=${projectId} --quiet`,
+          { silent: true }
+        );
+        this.log(`   ✅ Deleted Cloud Tasks queue: ${queueName}`);
+      } catch (error) {
+        // Queue might not exist or already deleted, ignore errors
+        this.log(`   ⚠️  Could not delete queue ${queueName}: ${error.message}`, "warn");
+      }
+    }
   }
 
   /**
@@ -719,10 +764,73 @@ class TestRunner {
       }
     }
 
+    // Clean up orphaned Cloud Tasks queues
+    await this.cleanupOrphanedCloudTasksQueues();
+
     // Clean up generated directory
     if (existsSync(GENERATED_DIR)) {
       this.log("   Cleaning up generated directory...", "warn");
       rmSync(GENERATED_DIR, { recursive: true, force: true });
+    }
+  }
+
+  /**
+   * Clean up orphaned Cloud Tasks queues from previous test runs
+   */
+  async cleanupOrphanedCloudTasksQueues() {
+    this.log("   Checking for orphaned Cloud Tasks queues...", "warn");
+
+    const projects = ["functions-integration-tests", "functions-integration-tests-v2"];
+    const region = DEFAULT_REGION;
+
+    for (const projectId of projects) {
+      this.log(`   Checking Cloud Tasks queues in project: ${projectId}`, "warn");
+
+      try {
+        // List all queues in the project
+        const result = await this.exec(
+          `gcloud tasks queues list --location=${region} --project=${projectId} --format="value(name)"`,
+          { silent: true }
+        );
+
+        const queueNames = result.stdout
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line.length > 0);
+
+        // Find test queues (containing "Tests" and test run ID pattern)
+        const testQueues = queueNames.filter((queueName) => {
+          const queueId = queueName.split("/").pop(); // Extract queue ID from full path
+          return queueId && queueId.match(/Tests.*t[a-z0-9]{7,10}/);
+        });
+
+        if (testQueues.length > 0) {
+          this.log(
+            `   Found ${testQueues.length} orphaned test queue(s) in ${projectId}. Cleaning up...`,
+            "warn"
+          );
+
+          for (const queuePath of testQueues) {
+            try {
+              const queueId = queuePath.split("/").pop();
+              this.log(`   Deleting orphaned queue: ${queueId}`, "warn");
+
+              await this.exec(
+                `gcloud tasks queues delete ${queueId} --location=${region} --project=${projectId} --quiet`,
+                { silent: true }
+              );
+              this.log(`   ✅ Deleted orphaned queue: ${queueId}`);
+            } catch (error) {
+              this.log(`   ⚠️  Could not delete queue ${queuePath}: ${error.message}`, "warn");
+            }
+          }
+        } else {
+          this.log(`   ✅ No orphaned test queues found in ${projectId}`, "success");
+        }
+      } catch (e) {
+        // Project might not be accessible or Cloud Tasks API not enabled
+        this.log(`   ⚠️  Could not check queues in ${projectId}: ${e.message}`, "warn");
+      }
     }
   }
 
