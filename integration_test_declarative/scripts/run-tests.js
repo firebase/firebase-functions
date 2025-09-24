@@ -5,13 +5,13 @@
  * Combines functionality from run-suite.sh and run-sequential.sh into a single JavaScript runner
  */
 
-import { spawn } from 'child_process';
-import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, renameSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import chalk from 'chalk';
-import { getSuitesByPattern, listAvailableSuites } from './config-loader.js';
-import { generateFunctions } from './generate.js';
+import { spawn } from "child_process";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, renameSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
+import chalk from "chalk";
+import { getSuitesByPattern, listAvailableSuites } from "./config-loader.js";
+import { generateFunctions } from "./generate.js";
 
 // Get directory paths
 const __filename = fileURLToPath(import.meta.url);
@@ -19,17 +19,18 @@ const __dirname = dirname(__filename);
 const ROOT_DIR = dirname(__dirname);
 
 // Configuration paths
-const V1_CONFIG_PATH = join(ROOT_DIR, 'config', 'v1', 'suites.yaml');
-const V2_CONFIG_PATH = join(ROOT_DIR, 'config', 'v2', 'suites.yaml');
-const ARTIFACTS_DIR = join(ROOT_DIR, '.test-artifacts');
-const LOGS_DIR = join(ROOT_DIR, 'logs');
-const GENERATED_DIR = join(ROOT_DIR, 'generated');
-const SA_JSON_PATH = join(ROOT_DIR, 'sa.json');
+const V1_CONFIG_PATH = join(ROOT_DIR, "config", "v1", "suites.yaml");
+const V2_CONFIG_PATH = join(ROOT_DIR, "config", "v2", "suites.yaml");
+const ARTIFACTS_DIR = join(ROOT_DIR, ".test-artifacts");
+const LOGS_DIR = join(ROOT_DIR, "logs");
+const GENERATED_DIR = join(ROOT_DIR, "generated");
+const SA_JSON_PATH = join(ROOT_DIR, "sa.json");
 
 // Default configurations
-const DEFAULT_REGION = 'us-central1';
+const DEFAULT_REGION = "us-central1";
 const MAX_DEPLOY_ATTEMPTS = 3;
-const DEPLOY_RETRY_DELAY = 20000; // Base delay in ms
+const DEFAULT_BASE_DELAY = 5000; // Base delay in ms (5 seconds)
+const DEFAULT_MAX_DELAY = 60000; // Max delay in ms (60 seconds)
 
 class TestRunner {
   constructor(options = {}) {
@@ -37,10 +38,12 @@ class TestRunner {
     this.sequential = options.sequential || false;
     this.saveArtifact = options.saveArtifact || false;
     this.skipCleanup = options.skipCleanup || false;
-    this.filter = options.filter || '';
-    this.exclude = options.exclude || '';
+    this.filter = options.filter || "";
+    this.exclude = options.exclude || "";
     this.usePublishedSDK = options.usePublishedSDK || null;
-    this.timestamp = new Date().toISOString().replace(/[:.]/g, '-').substring(0, 19);
+    this.verbose = options.verbose || false;
+    this.cleanupOrphaned = options.cleanupOrphaned || false;
+    this.timestamp = new Date().toISOString().replace(/[:.]/g, "-").substring(0, 19);
     this.logFile = join(LOGS_DIR, `test-run-${this.timestamp}.log`);
     this.deploymentSuccess = false;
     this.results = { passed: [], failed: [] };
@@ -51,8 +54,8 @@ class TestRunner {
    * Generate a unique test run ID
    */
   generateTestRunId() {
-    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-    let id = 't';
+    const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    let id = "t";
     for (let i = 0; i < 8; i++) {
       id += chars.charAt(Math.floor(Math.random() * chars.length));
     }
@@ -60,9 +63,72 @@ class TestRunner {
   }
 
   /**
+   * Calculate exponential backoff delay with jitter
+   * Based on util.sh exponential_backoff function
+   */
+  calculateBackoffDelay(attempt, baseDelay = DEFAULT_BASE_DELAY, maxDelay = DEFAULT_MAX_DELAY) {
+    // Calculate delay: baseDelay * 2^(attempt-1)
+    let delay = baseDelay * Math.pow(2, attempt - 1);
+
+    // Cap at maxDelay
+    if (delay > maxDelay) {
+      delay = maxDelay;
+    }
+
+    // Add jitter (±25% random variation)
+    const jitter = delay / 4;
+    const randomJitter = Math.random() * jitter * 2 - jitter;
+    delay = delay + randomJitter;
+
+    // Ensure minimum delay of 1 second
+    if (delay < 1000) {
+      delay = 1000;
+    }
+
+    return Math.round(delay);
+  }
+
+  /**
+   * Retry function with exponential backoff
+   * Based on util.sh retry_with_backoff function
+   */
+  async retryWithBackoff(
+    operation,
+    maxAttempts = MAX_DEPLOY_ATTEMPTS,
+    baseDelay = DEFAULT_BASE_DELAY,
+    maxDelay = DEFAULT_MAX_DELAY
+  ) {
+    let attempt = 1;
+
+    while (attempt <= maxAttempts) {
+      this.log(`🔄 Attempt ${attempt} of ${maxAttempts}`, "warn");
+
+      try {
+        const result = await operation();
+        this.log("✅ Operation succeeded", "success");
+        return result;
+      } catch (error) {
+        if (attempt < maxAttempts) {
+          const delay = this.calculateBackoffDelay(attempt, baseDelay, maxDelay);
+          this.log(
+            `⚠️  Operation failed. Retrying in ${Math.round(delay / 1000)} seconds...`,
+            "warn"
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        } else {
+          this.log(`❌ Operation failed after ${maxAttempts} attempts`, "error");
+          throw error;
+        }
+      }
+
+      attempt++;
+    }
+  }
+
+  /**
    * Log message to console and file
    */
-  log(message, level = 'info') {
+  log(message, level = "info") {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] ${message}`;
 
@@ -73,23 +139,23 @@ class TestRunner {
 
     // Write to log file
     try {
-      writeFileSync(this.logFile, logEntry + '\n', { flag: 'a' });
+      writeFileSync(this.logFile, logEntry + "\n", { flag: "a" });
     } catch (e) {
       // Ignore file write errors
     }
 
     // Console output with colors
-    switch(level) {
-      case 'error':
+    switch (level) {
+      case "error":
         console.log(chalk.red(message));
         break;
-      case 'warn':
+      case "warn":
         console.log(chalk.yellow(message));
         break;
-      case 'success':
+      case "success":
         console.log(chalk.green(message));
         break;
-      case 'info':
+      case "info":
         console.log(chalk.blue(message));
         break;
       default:
@@ -106,30 +172,40 @@ class TestRunner {
         shell: true,
         cwd: options.cwd || ROOT_DIR,
         env: { ...process.env, ...options.env },
-        stdio: options.silent ? 'pipe' : 'inherit'
+        stdio: options.silent ? "pipe" : ["inherit", "pipe", "pipe"],
       });
 
-      let stdout = '';
-      let stderr = '';
+      let stdout = "";
+      let stderr = "";
 
-      if (options.silent) {
-        child.stdout.on('data', (data) => {
-          stdout += data.toString();
-        });
-        child.stderr.on('data', (data) => {
-          stderr += data.toString();
-        });
-      }
-
-      child.on('exit', (code) => {
-        if (code === 0) {
-          resolve({ stdout, stderr, code });
-        } else {
-          reject(new Error(`Command failed with code ${code}: ${command}\n${stderr}`));
+      // Always capture output for error reporting, even when not silent
+      child.stdout.on("data", (data) => {
+        const output = data.toString();
+        stdout += output;
+        if (!options.silent) {
+          process.stdout.write(output);
         }
       });
 
-      child.on('error', (error) => {
+      child.stderr.on("data", (data) => {
+        const output = data.toString();
+        stderr += output;
+        if (!options.silent) {
+          process.stderr.write(output);
+        }
+      });
+
+      child.on("exit", (code) => {
+        if (code === 0) {
+          resolve({ stdout, stderr, code });
+        } else {
+          // Include both stdout and stderr in error message for better debugging
+          const errorOutput = stderr || stdout || "No output captured";
+          reject(new Error(`Command failed with code ${code}: ${command}\n${errorOutput}`));
+        }
+      });
+
+      child.on("error", (error) => {
         reject(error);
       });
     });
@@ -147,7 +223,7 @@ class TestRunner {
         const v1Suites = listAvailableSuites(V1_CONFIG_PATH);
         suites.push(...v1Suites);
       } catch (e) {
-        this.log(`Warning: Could not load V1 suites: ${e.message}`, 'warn');
+        this.log(`Warning: Could not load V1 suites: ${e.message}`, "warn");
       }
     }
 
@@ -157,7 +233,7 @@ class TestRunner {
         const v2Suites = listAvailableSuites(V2_CONFIG_PATH);
         suites.push(...v2Suites);
       } catch (e) {
-        this.log(`Warning: Could not load V2 suites: ${e.message}`, 'warn');
+        this.log(`Warning: Could not load V2 suites: ${e.message}`, "warn");
       }
     }
 
@@ -172,15 +248,15 @@ class TestRunner {
 
     // If patterns include wildcards, get matching suites
     for (const pattern of suitePatterns) {
-      if (pattern.includes('*') || pattern.includes('?')) {
+      if (pattern.includes("*") || pattern.includes("?")) {
         // Check both v1 and v2 configs
         if (existsSync(V1_CONFIG_PATH)) {
           const v1Matches = getSuitesByPattern(pattern, V1_CONFIG_PATH);
-          suites.push(...v1Matches.map(s => s.name));
+          suites.push(...v1Matches.map((s) => s.name));
         }
         if (existsSync(V2_CONFIG_PATH)) {
           const v2Matches = getSuitesByPattern(pattern, V2_CONFIG_PATH);
-          suites.push(...v2Matches.map(s => s.name));
+          suites.push(...v2Matches.map((s) => s.name));
         }
       } else {
         // Direct suite name
@@ -193,12 +269,12 @@ class TestRunner {
 
     // Apply filter pattern if specified
     if (this.filter) {
-      suites = suites.filter(suite => suite.includes(this.filter));
+      suites = suites.filter((suite) => suite.includes(this.filter));
     }
 
     // Apply exclusions
     if (this.exclude) {
-      suites = suites.filter(suite => !suite.match(new RegExp(this.exclude)));
+      suites = suites.filter((suite) => !suite.match(new RegExp(this.exclude)));
     }
 
     return suites;
@@ -208,17 +284,17 @@ class TestRunner {
    * Pack the local Firebase Functions SDK
    */
   async packLocalSDK() {
-    this.log('📦 Packing local firebase-functions SDK...', 'info');
+    this.log("📦 Packing local firebase-functions SDK...", "info");
 
-    const parentDir = join(ROOT_DIR, '..');
-    const targetPath = join(ROOT_DIR, 'firebase-functions-local.tgz');
+    const parentDir = join(ROOT_DIR, "..");
+    const targetPath = join(ROOT_DIR, "firebase-functions-local.tgz");
 
     try {
       // Run npm pack in parent directory
-      const result = await this.exec('npm pack', { cwd: parentDir, silent: true });
+      const result = await this.exec("npm pack", { cwd: parentDir, silent: true });
 
       // Find the generated tarball name (last line of output)
-      const tarballName = result.stdout.trim().split('\n').pop();
+      const tarballName = result.stdout.trim().split("\n").pop();
 
       // Move to expected location
       const sourcePath = join(parentDir, tarballName);
@@ -231,7 +307,7 @@ class TestRunner {
 
         // Move new tarball
         renameSync(sourcePath, targetPath);
-        this.log('✓ Local SDK packed successfully', 'success');
+        this.log("✓ Local SDK packed successfully", "success");
         return targetPath;
       } else {
         throw new Error(`Tarball not found at ${sourcePath}`);
@@ -245,22 +321,22 @@ class TestRunner {
    * Generate functions from templates
    */
   async generateFunctions(suiteNames) {
-    this.log('📦 Generating functions...', 'info');
+    this.log("📦 Generating functions...", "info");
 
     // Pack local SDK unless using published version
     let sdkTarball;
     if (this.usePublishedSDK) {
       sdkTarball = this.usePublishedSDK;
-      this.log(`   Using published SDK: ${sdkTarball}`, 'info');
+      this.log(`   Using published SDK: ${sdkTarball}`, "info");
     } else if (this.sdkTarballPath) {
       // Use already packed SDK
       sdkTarball = `file:firebase-functions-local.tgz`;
-      this.log(`   Using already packed SDK: ${this.sdkTarballPath}`, 'info');
+      this.log(`   Using already packed SDK: ${this.sdkTarballPath}`, "info");
     } else {
       // Pack the local SDK for the first time
       this.sdkTarballPath = await this.packLocalSDK();
       sdkTarball = `file:firebase-functions-local.tgz`;
-      this.log(`   Using local SDK: ${this.sdkTarballPath}`, 'info');
+      this.log(`   Using local SDK: ${this.sdkTarballPath}`, "info");
     }
 
     try {
@@ -268,14 +344,17 @@ class TestRunner {
       const metadata = await generateFunctions(suiteNames, {
         testRunId: this.testRunId,
         sdkTarball: sdkTarball,
-        quiet: true  // Suppress console output since we have our own logging
+        quiet: true, // Suppress console output since we have our own logging
       });
 
       // Store project info
       this.projectId = metadata.projectId;
       this.region = metadata.region || DEFAULT_REGION;
 
-      this.log(`✓ Generated ${suiteNames.length} suite(s) for project: ${this.projectId}`, 'success');
+      this.log(
+        `✓ Generated ${suiteNames.length} suite(s) for project: ${this.projectId}`,
+        "success"
+      );
 
       // Save artifact if requested
       if (this.saveArtifact) {
@@ -292,66 +371,85 @@ class TestRunner {
    * Build generated functions
    */
   async buildFunctions() {
-    this.log('🔨 Building functions...', 'info');
+    this.log("🔨 Building functions...", "info");
 
-    const functionsDir = join(GENERATED_DIR, 'functions');
+    const functionsDir = join(GENERATED_DIR, "functions");
 
     // Install and build
-    await this.exec('npm install', { cwd: functionsDir });
-    await this.exec('npm run build', { cwd: functionsDir });
+    await this.exec("npm install", { cwd: functionsDir });
+    await this.exec("npm run build", { cwd: functionsDir });
 
-    this.log('✓ Functions built successfully', 'success');
+    this.log("✓ Functions built successfully", "success");
   }
 
   /**
    * Deploy functions to Firebase with retry logic
    */
   async deployFunctions() {
-    this.log('☁️  Deploying to Firebase...', 'info');
+    this.log("☁️  Deploying to Firebase...", "info");
 
-    let attempt = 1;
-    let deployed = false;
-
-    while (attempt <= MAX_DEPLOY_ATTEMPTS && !deployed) {
-      this.log(`🔄 Attempt ${attempt} of ${MAX_DEPLOY_ATTEMPTS}`, 'warn');
-
-      try {
+    try {
+      await this.retryWithBackoff(async () => {
         const result = await this.exec(
-          `firebase deploy --only functions --project ${this.projectId}`,
-          { cwd: GENERATED_DIR, silent: true }
+          `firebase deploy --only functions --project ${this.projectId} --force`,
+          { cwd: GENERATED_DIR, silent: !this.verbose }
         );
 
         // Check for successful deployment or acceptable warnings
         const output = result.stdout + result.stderr;
-        if (output.includes('Deploy complete!') ||
-            output.includes('Functions successfully deployed but could not set up cleanup policy')) {
-          deployed = true;
+        if (
+          output.includes("Deploy complete!") ||
+          output.includes("Functions successfully deployed but could not set up cleanup policy")
+        ) {
           this.deploymentSuccess = true;
-          this.log('✅ Deployment succeeded', 'success');
+          this.log("✅ Deployment succeeded", "success");
+          return result;
         } else {
           // Log output for debugging if deployment didn't match expected success patterns
-          this.log('⚠️  Deployment output did not match success patterns', 'warn');
-          this.log(`Stdout: ${result.stdout.substring(0, 500)}...`, 'warn');
-          this.log(`Stderr: ${result.stderr.substring(0, 500)}...`, 'warn');
+          this.log("⚠️  Deployment output did not match success patterns", "warn");
+          this.log(`Stdout: ${result.stdout.substring(0, 500)}...`, "warn");
+          this.log(`Stderr: ${result.stderr.substring(0, 500)}...`, "warn");
+          throw new Error("Deployment output did not match success patterns");
         }
-      } catch (error) {
-        // Log the actual error details for debugging
-        this.log(`❌ Deployment error: ${error.message}`, 'error');
+      });
+    } catch (error) {
+      // Enhanced error logging with full details
+      this.log(`❌ Deployment error: ${error.message}`, "error");
 
-        if (attempt < MAX_DEPLOY_ATTEMPTS) {
-          const delay = DEPLOY_RETRY_DELAY + Math.random() * 20000;
-          this.log(`⚠️  Deployment failed. Retrying in ${Math.round(delay/1000)} seconds...`, 'warn');
-          await new Promise(resolve => setTimeout(resolve, delay));
+      // Try to extract more details from the error
+      if (error.message.includes("Command failed with code 1")) {
+        this.log("🔍 Full deployment command output:", "error");
+
+        // Extract the actual Firebase CLI error from the error message
+        const errorLines = error.message.split("\n");
+        const firebaseError = errorLines.slice(1).join("\n").trim(); // Skip the first line which is our generic message
+
+        if (firebaseError) {
+          this.log("   Actual Firebase CLI error:", "error");
+          this.log(`   ${firebaseError}`, "error");
         } else {
-          throw new Error(`Deployment failed after ${MAX_DEPLOY_ATTEMPTS} attempts: ${error.message}`);
+          this.log("   No detailed error output captured", "error");
         }
+
+        this.log("   Common causes:", "error");
+        this.log("   - Authentication issues (run: firebase login)", "error");
+        this.log("   - Project permissions (check project access)", "error");
+        this.log("   - Function code errors (check generated code)", "error");
+        this.log("   - Resource limits (too many functions)", "error");
+        this.log("   - Network issues", "error");
       }
 
-      attempt++;
-    }
-
-    if (!deployed) {
-      throw new Error('Deployment failed');
+      // On final failure, provide more detailed error information
+      this.log("🔍 Final deployment attempt failed. Debugging information:", "error");
+      this.log(`   Project: ${this.projectId}`, "error");
+      this.log(`   Region: ${this.region}`, "error");
+      this.log(`   Generated directory: ${GENERATED_DIR}`, "error");
+      this.log("   Try running manually:", "error");
+      this.log(
+        `   cd ${GENERATED_DIR} && firebase deploy --only functions --project ${this.projectId}`,
+        "error"
+      );
+      throw new Error(`Deployment failed after ${MAX_DEPLOY_ATTEMPTS} attempts: ${error.message}`);
     }
   }
 
@@ -359,14 +457,14 @@ class TestRunner {
    * Map suite name to test file path
    */
   getTestFile(suiteName) {
-    const service = suiteName.split('_').slice(1).join('_');
-    const version = suiteName.split('_')[0];
+    const service = suiteName.split("_").slice(1).join("_");
+    const version = suiteName.split("_")[0];
 
     // Special cases
-    if (suiteName.startsWith('v1_auth')) {
-      return 'tests/v1/auth.test.ts';
+    if (suiteName.startsWith("v1_auth")) {
+      return "tests/v1/auth.test.ts";
     }
-    if (suiteName === 'v2_alerts') {
+    if (suiteName === "v2_alerts") {
       return null; // Deployment only, no tests
     }
 
@@ -377,11 +475,12 @@ class TestRunner {
       pubsub: `tests/${version}/pubsub.test.ts`,
       storage: `tests/${version}/storage.test.ts`,
       tasks: `tests/${version}/tasks.test.ts`,
-      remoteconfig: version === 'v1' ? 'tests/v1/remoteconfig.test.ts' : 'tests/v2/remoteConfig.test.ts',
-      testlab: version === 'v1' ? 'tests/v1/testlab.test.ts' : 'tests/v2/testLab.test.ts',
-      scheduler: 'tests/v2/scheduler.test.ts',
-      identity: 'tests/v2/identity.test.ts',
-      eventarc: 'tests/v2/eventarc.test.ts'
+      remoteconfig:
+        version === "v1" ? "tests/v1/remoteconfig.test.ts" : "tests/v2/remoteConfig.test.ts",
+      testlab: version === "v1" ? "tests/v1/testlab.test.ts" : "tests/v2/testLab.test.ts",
+      scheduler: "tests/v2/scheduler.test.ts",
+      identity: "tests/v2/identity.test.ts",
+      eventarc: "tests/v2/eventarc.test.ts",
     };
 
     return serviceMap[service] || null;
@@ -391,11 +490,14 @@ class TestRunner {
    * Run tests for deployed functions
    */
   async runTests(suiteNames) {
-    this.log('🧪 Running tests...', 'info');
+    this.log("🧪 Running tests...", "info");
 
     // Check for service account
     if (!existsSync(SA_JSON_PATH)) {
-      this.log('⚠️  Warning: sa.json not found. Tests may fail without proper authentication.', 'warn');
+      this.log(
+        "⚠️  Warning: sa.json not found. Tests may fail without proper authentication.",
+        "warn"
+      );
     }
 
     // Collect test files for all suites
@@ -405,12 +507,12 @@ class TestRunner {
 
     for (const suiteName of suiteNames) {
       // Track deployed auth functions
-      if (suiteName === 'v1_auth_nonblocking') {
-        deployedFunctions.push('onCreate', 'onDelete');
-      } else if (suiteName === 'v1_auth_before_create') {
-        deployedFunctions.push('beforeCreate');
-      } else if (suiteName === 'v1_auth_before_signin') {
-        deployedFunctions.push('beforeSignIn');
+      if (suiteName === "v1_auth_nonblocking") {
+        deployedFunctions.push("onCreate", "onDelete");
+      } else if (suiteName === "v1_auth_before_create") {
+        deployedFunctions.push("beforeCreate");
+      } else if (suiteName === "v1_auth_before_signin") {
+        deployedFunctions.push("beforeSignIn");
       }
 
       const testFile = this.getTestFile(suiteName);
@@ -424,8 +526,8 @@ class TestRunner {
     }
 
     if (testFiles.length === 0) {
-      this.log('⚠️  No test files found for the generated suites.', 'warn');
-      this.log('   Skipping test execution (deployment-only suites).', 'success');
+      this.log("⚠️  No test files found for the generated suites.", "warn");
+      this.log("   Skipping test execution (deployment-only suites).", "success");
       return;
     }
 
@@ -434,33 +536,33 @@ class TestRunner {
       TEST_RUN_ID: this.testRunId,
       PROJECT_ID: this.projectId,
       REGION: this.region,
-      DEPLOYED_FUNCTIONS: deployedFunctions.join(','),
-      ...process.env
+      DEPLOYED_FUNCTIONS: deployedFunctions.join(","),
+      ...process.env,
     };
 
     if (existsSync(SA_JSON_PATH)) {
       env.GOOGLE_APPLICATION_CREDENTIALS = SA_JSON_PATH;
     }
 
-    this.log(`Running tests: ${testFiles.join(', ')}`, 'info');
-    this.log(`TEST_RUN_ID: ${this.testRunId}`, 'info');
+    this.log(`Running tests: ${testFiles.join(", ")}`, "info");
+    this.log(`TEST_RUN_ID: ${this.testRunId}`, "info");
 
-    await this.exec(`npm test -- ${testFiles.join(' ')}`, { env });
+    await this.exec(`npm test -- ${testFiles.join(" ")}`, { env });
   }
 
   /**
    * Clean up deployed functions and test data
    */
   async cleanup() {
-    this.log('🧹 Running cleanup...', 'warn');
+    this.log("🧹 Running cleanup...", "warn");
 
-    const metadataPath = join(GENERATED_DIR, '.metadata.json');
+    const metadataPath = join(GENERATED_DIR, ".metadata.json");
     if (!existsSync(metadataPath)) {
-      this.log('   No metadata found, skipping cleanup', 'warn');
+      this.log("   No metadata found, skipping cleanup", "warn");
       return;
     }
 
-    const metadata = JSON.parse(readFileSync(metadataPath, 'utf8'));
+    const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
 
     // Only delete functions if deployment was successful
     if (this.deploymentSuccess) {
@@ -471,7 +573,7 @@ class TestRunner {
     await this.cleanupTestData(metadata);
 
     // Clean up generated files
-    this.log('   Cleaning up generated files...', 'warn');
+    this.log("   Cleaning up generated files...", "warn");
     if (existsSync(GENERATED_DIR)) {
       rmSync(GENERATED_DIR, { recursive: true, force: true });
       mkdirSync(GENERATED_DIR, { recursive: true });
@@ -482,7 +584,7 @@ class TestRunner {
    * Delete deployed functions
    */
   async cleanupFunctions(metadata) {
-    this.log('   Deleting deployed functions...', 'warn');
+    this.log("   Deleting deployed functions...", "warn");
 
     // Extract function names from metadata
     const functions = [];
@@ -495,7 +597,9 @@ class TestRunner {
     for (const functionName of functions) {
       try {
         await this.exec(
-          `firebase functions:delete ${functionName} --project ${metadata.projectId} --region ${metadata.region || DEFAULT_REGION} --force`,
+          `firebase functions:delete ${functionName} --project ${metadata.projectId} --region ${
+            metadata.region || DEFAULT_REGION
+          } --force`,
           { silent: true }
         );
         this.log(`   Deleted function: ${functionName}`);
@@ -503,7 +607,9 @@ class TestRunner {
         // Try gcloud as fallback
         try {
           await this.exec(
-            `gcloud functions delete ${functionName} --region=${metadata.region || DEFAULT_REGION} --project=${metadata.projectId} --quiet`,
+            `gcloud functions delete ${functionName} --region=${
+              metadata.region || DEFAULT_REGION
+            } --project=${metadata.projectId} --quiet`,
             { silent: true }
           );
         } catch (e) {
@@ -517,7 +623,7 @@ class TestRunner {
    * Clean up test data from Firestore
    */
   async cleanupTestData(metadata) {
-    this.log('   Cleaning up Firestore test data...', 'warn');
+    this.log("   Cleaning up Firestore test data...", "warn");
 
     // Extract collection names from metadata
     const collections = new Set();
@@ -528,8 +634,8 @@ class TestRunner {
           collections.add(func.collection);
         }
         // Also add function name without TEST_RUN_ID as collection
-        const baseName = func.name ? func.name.replace(this.testRunId, '') : null;
-        if (baseName && baseName.includes('Tests')) {
+        const baseName = func.name ? func.name.replace(this.testRunId, "") : null;
+        if (baseName && baseName.includes("Tests")) {
           collections.add(baseName);
         }
       }
@@ -548,13 +654,12 @@ class TestRunner {
     }
 
     // Clean up auth users if auth tests were run
-    if (metadata.suites.some(s => s.name.includes('auth') || s.name.includes('identity'))) {
-      this.log('   Cleaning up auth test users...', 'warn');
+    if (metadata.suites.some((s) => s.name.includes("auth") || s.name.includes("identity"))) {
+      this.log("   Cleaning up auth test users...", "warn");
       try {
-        await this.exec(
-          `node ${join(__dirname, 'cleanup-auth-users.cjs')} ${this.testRunId}`,
-          { silent: true }
-        );
+        await this.exec(`node ${join(__dirname, "cleanup-auth-users.cjs")} ${this.testRunId}`, {
+          silent: true,
+        });
       } catch (e) {
         // Ignore cleanup errors
       }
@@ -571,57 +676,86 @@ class TestRunner {
 
     const artifactPath = join(ARTIFACTS_DIR, `${this.testRunId}.json`);
     writeFileSync(artifactPath, JSON.stringify(metadata, null, 2));
-    this.log(`✓ Saved artifact for future cleanup: ${this.testRunId}.json`, 'success');
+    this.log(`✓ Saved artifact for future cleanup: ${this.testRunId}.json`, "success");
   }
 
   /**
    * Clean up existing test resources before running
    */
   async cleanupExistingResources() {
-    this.log('🧹 Checking for existing test functions...', 'warn');
+    this.log("🧹 Checking for existing test functions...", "warn");
 
-    const projects = ['functions-integration-tests', 'functions-integration-tests-v2'];
+    const projects = ["functions-integration-tests", "functions-integration-tests-v2"];
 
     for (const projectId of projects) {
-      this.log(`   Checking project: ${projectId}`, 'warn');
+      this.log(`   Checking project: ${projectId}`, "warn");
 
       try {
         // List functions and find test functions
-        const result = await this.exec(
-          `firebase functions:list --project ${projectId}`,
-          { silent: true }
-        );
+        const result = await this.exec(`firebase functions:list --project ${projectId}`, {
+          silent: true,
+        });
 
-        const testFunctions = result.stdout
-          .split('\n')
-          .filter(line => line.match(/Test.*t[a-z0-9]{8,9}/))
-          .map(line => line.split(/\s+/)[0])
-          .filter(Boolean);
+        // Parse the table output from firebase functions:list
+        const lines = result.stdout.split("\n");
+        const testFunctions = [];
 
-        if (testFunctions.length > 0) {
-          this.log(`   Found ${testFunctions.length} test function(s) in ${projectId}. Cleaning up...`, 'warn');
-
-          for (const func of testFunctions) {
-            try {
-              await this.exec(
-                `firebase functions:delete ${func} --project ${projectId} --region ${DEFAULT_REGION} --force`,
-                { silent: true }
-              );
-              this.log(`   Deleted: ${func}`);
-            } catch (e) {
-              // Try gcloud as fallback
-              try {
-                await this.exec(
-                  `gcloud functions delete ${func} --project ${projectId} --region ${DEFAULT_REGION} --quiet`,
-                  { silent: true }
-                );
-              } catch (err) {
-                // Ignore
+        for (const line of lines) {
+          // Look for table rows with function names (containing │)
+          if (line.includes("│") && line.includes("Test")) {
+            const parts = line.split("│");
+            if (parts.length >= 2) {
+              const functionName = parts[1].trim();
+              // Check if it's a test function (contains Test + test run ID pattern)
+              if (functionName.match(/Test.*t[a-z0-9]{7,10}/)) {
+                testFunctions.push(functionName);
               }
             }
           }
+        }
+
+        if (testFunctions.length > 0) {
+          this.log(
+            `   Found ${testFunctions.length} test function(s) in ${projectId}. Cleaning up...`,
+            "warn"
+          );
+
+          for (const func of testFunctions) {
+            try {
+              // Function names from firebase functions:list are just the name, no region suffix
+              const functionName = func.trim();
+              const region = DEFAULT_REGION;
+
+              this.log(`   Deleting function: ${functionName} in region: ${region}`, "warn");
+
+              // Try Firebase CLI first
+              try {
+                await this.exec(
+                  `firebase functions:delete ${functionName} --project ${projectId} --region ${region} --force`,
+                  { silent: true }
+                );
+                this.log(`   ✅ Deleted via Firebase CLI: ${functionName}`);
+              } catch (firebaseError) {
+                // If Firebase CLI fails, try gcloud as fallback
+                this.log(`   Firebase CLI failed, trying gcloud for: ${functionName}`, "warn");
+                try {
+                  await this.exec(
+                    `gcloud functions delete ${functionName} --region=${region} --project=${projectId} --quiet`,
+                    { silent: true }
+                  );
+                  this.log(`   ✅ Deleted via gcloud: ${functionName}`);
+                } catch (gcloudError) {
+                  this.log(`   ❌ Failed to delete: ${functionName}`, "error");
+                  this.log(`   Firebase error: ${firebaseError.message}`, "error");
+                  this.log(`   Gcloud error: ${gcloudError.message}`, "error");
+                }
+              }
+            } catch (e) {
+              this.log(`   ❌ Unexpected error deleting ${func}: ${e.message}`, "error");
+            }
+          }
         } else {
-          this.log(`   ✅ No test functions found in ${projectId}`, 'success');
+          this.log(`   ✅ No test functions found in ${projectId}`, "success");
         }
       } catch (e) {
         // Project might not be accessible
@@ -630,7 +764,7 @@ class TestRunner {
 
     // Clean up generated directory
     if (existsSync(GENERATED_DIR)) {
-      this.log('   Cleaning up generated directory...', 'warn');
+      this.log("   Cleaning up generated directory...", "warn");
       rmSync(GENERATED_DIR, { recursive: true, force: true });
     }
   }
@@ -639,23 +773,20 @@ class TestRunner {
    * Run a single suite
    */
   async runSuite(suiteName) {
-    const suiteLog = join(LOGS_DIR, `${suiteName}-${this.timestamp}.log`);
-
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log(`🚀 Running suite: ${suiteName}`, 'success');
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log(`📝 Suite log: ${suiteLog}`, 'warn');
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log(`🚀 Running suite: ${suiteName}`, "success");
+    this.log("═══════════════════════════════════════════════════════════", "info");
 
     try {
       // Generate functions
       const metadata = await this.generateFunctions([suiteName]);
 
       // Find this suite's specific projectId and region
-      const suiteMetadata = metadata.suites.find(s => s.name === suiteName);
+      const suiteMetadata = metadata.suites.find((s) => s.name === suiteName);
       if (suiteMetadata) {
         this.projectId = suiteMetadata.projectId || metadata.projectId;
         this.region = suiteMetadata.region || metadata.region || DEFAULT_REGION;
-        this.log(`   Using project: ${this.projectId}, region: ${this.region}`, 'info');
+        this.log(`   Using project: ${this.projectId}, region: ${this.region}`, "info");
       }
 
       // Build functions
@@ -668,11 +799,11 @@ class TestRunner {
       await this.runTests([suiteName]);
 
       this.results.passed.push(suiteName);
-      this.log(`✅ Suite ${suiteName} completed successfully`, 'success');
+      this.log(`✅ Suite ${suiteName} completed successfully`, "success");
       return true;
     } catch (error) {
       this.results.failed.push(suiteName);
-      this.log(`❌ Suite ${suiteName} failed: ${error.message}`, 'error');
+      this.log(`❌ Suite ${suiteName} failed: ${error.message}`, "error");
       return false;
     } finally {
       // Always run cleanup
@@ -684,19 +815,19 @@ class TestRunner {
    * Run multiple suites sequentially
    */
   async runSequential(suiteNames) {
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log('🚀 Starting Sequential Test Suite Execution', 'success');
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log(`📋 Test Run ID: ${this.testRunId}`, 'success');
-    this.log(`📝 Main log: ${this.logFile}`, 'warn');
-    this.log(`📁 Logs directory: ${LOGS_DIR}`, 'warn');
-    this.log('');
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log("🚀 Starting Sequential Test Suite Execution", "success");
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log(`📋 Test Run ID: ${this.testRunId}`, "success");
+    this.log(`📝 Main log: ${this.logFile}`, "warn");
+    this.log(`📁 Logs directory: ${LOGS_DIR}`, "warn");
+    this.log("");
 
-    this.log(`📋 Running ${suiteNames.length} suite(s) sequentially:`, 'success');
+    this.log(`📋 Running ${suiteNames.length} suite(s) sequentially:`, "success");
     for (const suite of suiteNames) {
       this.log(`   - ${suite}`);
     }
-    this.log('');
+    this.log("");
 
     // Clean up existing resources unless skipped
     if (!this.skipCleanup) {
@@ -705,15 +836,15 @@ class TestRunner {
 
     // Pack the SDK once for all suites (unless using published SDK)
     if (!this.usePublishedSDK && !this.sdkTarballPath) {
-      this.log('📦 Packing SDK once for all suites...', 'info');
+      this.log("📦 Packing SDK once for all suites...", "info");
       this.sdkTarballPath = await this.packLocalSDK();
-      this.log(`✓ SDK packed and will be reused for all suites`, 'success');
+      this.log(`✓ SDK packed and will be reused for all suites`, "success");
     }
 
     // Run each suite
     for (const suite of suiteNames) {
       await this.runSuite(suite);
-      this.log('');
+      this.log("");
     }
 
     // Final summary
@@ -724,11 +855,11 @@ class TestRunner {
    * Run multiple suites in parallel
    */
   async runParallel(suiteNames) {
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log('🚀 Running Test Suite(s)', 'success');
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log(`📋 Test Run ID: ${this.testRunId}`, 'success');
-    this.log('');
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log("🚀 Running Test Suite(s)", "success");
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log(`📋 Test Run ID: ${this.testRunId}`, "success");
+    this.log("");
 
     // First, generate functions to get metadata with projectIds
     const metadata = await this.generateFunctions(suiteNames);
@@ -745,19 +876,22 @@ class TestRunner {
 
     const projectCount = Object.keys(suitesByProject).length;
     if (projectCount > 1) {
-      this.log(`📊 Found ${projectCount} different projects. Running each group separately:`, 'warn');
+      this.log(
+        `📊 Found ${projectCount} different projects. Running each group separately:`,
+        "warn"
+      );
       for (const [projectId, suites] of Object.entries(suitesByProject)) {
-        this.log(`   - ${projectId}: ${suites.join(', ')}`);
+        this.log(`   - ${projectId}: ${suites.join(", ")}`);
       }
-      this.log('');
+      this.log("");
 
       // Run each project group separately
       for (const [projectId, projectSuites] of Object.entries(suitesByProject)) {
-        this.log(`🚀 Running suites for project: ${projectId}`, 'info');
+        this.log(`🚀 Running suites for project: ${projectId}`, "info");
 
         // Set project context for this group
         this.projectId = projectId;
-        const suiteMetadata = metadata.suites.find(s => projectSuites.includes(s.name));
+        const suiteMetadata = metadata.suites.find((s) => projectSuites.includes(s.name));
         this.region = suiteMetadata?.region || metadata.region || DEFAULT_REGION;
 
         try {
@@ -773,7 +907,7 @@ class TestRunner {
           this.results.passed.push(...projectSuites);
         } catch (error) {
           this.results.failed.push(...projectSuites);
-          this.log(`❌ Tests failed for ${projectId}: ${error.message}`, 'error');
+          this.log(`❌ Tests failed for ${projectId}: ${error.message}`, "error");
         }
 
         // Cleanup after each project group
@@ -792,10 +926,10 @@ class TestRunner {
         await this.runTests(suiteNames);
 
         this.results.passed = suiteNames;
-        this.log('✅ All tests passed!', 'success');
+        this.log("✅ All tests passed!", "success");
       } catch (error) {
         this.results.failed = suiteNames;
-        this.log(`❌ Tests failed: ${error.message}`, 'error');
+        this.log(`❌ Tests failed: ${error.message}`, "error");
         throw error;
       } finally {
         // Always run cleanup
@@ -808,17 +942,17 @@ class TestRunner {
    * Print test results summary
    */
   printSummary() {
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log('📊 Test Suite Summary', 'success');
-    this.log('═══════════════════════════════════════════════════════════', 'info');
-    this.log(`✅ Passed: ${this.results.passed.length} suite(s)`, 'success');
-    this.log(`❌ Failed: ${this.results.failed.length} suite(s)`, 'error');
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log("📊 Test Suite Summary", "success");
+    this.log("═══════════════════════════════════════════════════════════", "info");
+    this.log(`✅ Passed: ${this.results.passed.length} suite(s)`, "success");
+    this.log(`❌ Failed: ${this.results.failed.length} suite(s)`, "error");
 
     if (this.results.failed.length > 0) {
-      this.log(`Failed suites: ${this.results.failed.join(', ')}`, 'error');
-      this.log(`📝 Check individual suite logs in: ${LOGS_DIR}`, 'warn');
+      this.log(`Failed suites: ${this.results.failed.join(", ")}`, "error");
+      this.log(`📝 Check main log: ${this.logFile}`, "warn");
     } else {
-      this.log('🎉 All suites passed!', 'success');
+      this.log("🎉 All suites passed!", "success");
     }
   }
 }
@@ -834,12 +968,14 @@ async function main() {
     sequential: false,
     saveArtifact: false,
     skipCleanup: false,
-    filter: '',
-    exclude: '',
+    filter: "",
+    exclude: "",
     testRunId: null,
     usePublishedSDK: null,
+    verbose: false,
+    cleanupOrphaned: false,
     list: false,
-    help: false
+    help: false,
   };
 
   const suitePatterns = [];
@@ -847,51 +983,59 @@ async function main() {
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
 
-    if (arg === '--help' || arg === '-h') {
+    if (arg === "--help" || arg === "-h") {
       options.help = true;
-    } else if (arg === '--list') {
+    } else if (arg === "--list") {
       options.list = true;
-    } else if (arg === '--sequential') {
+    } else if (arg === "--sequential") {
       options.sequential = true;
-    } else if (arg === '--save-artifact') {
+    } else if (arg === "--save-artifact") {
       options.saveArtifact = true;
-    } else if (arg === '--skip-cleanup') {
+    } else if (arg === "--skip-cleanup") {
       options.skipCleanup = true;
-    } else if (arg.startsWith('--filter=')) {
-      options.filter = arg.split('=')[1];
-    } else if (arg.startsWith('--exclude=')) {
-      options.exclude = arg.split('=')[1];
-    } else if (arg.startsWith('--test-run-id=')) {
-      options.testRunId = arg.split('=')[1];
-    } else if (arg.startsWith('--use-published-sdk=')) {
-      options.usePublishedSDK = arg.split('=')[1];
-    } else if (!arg.startsWith('-')) {
+    } else if (arg === "--verbose" || arg === "-v") {
+      options.verbose = true;
+    } else if (arg === "--cleanup-orphaned") {
+      options.cleanupOrphaned = true;
+    } else if (arg.startsWith("--filter=")) {
+      options.filter = arg.split("=")[1];
+    } else if (arg.startsWith("--exclude=")) {
+      options.exclude = arg.split("=")[1];
+    } else if (arg.startsWith("--test-run-id=")) {
+      options.testRunId = arg.split("=")[1];
+    } else if (arg.startsWith("--use-published-sdk=")) {
+      options.usePublishedSDK = arg.split("=")[1];
+    } else if (!arg.startsWith("-")) {
       suitePatterns.push(arg);
     }
   }
 
   // Show help
   if (options.help || (args.length === 0 && !options.list)) {
-    console.log(chalk.blue('Usage: node run-tests.js [suites...] [options]'));
-    console.log('');
-    console.log('Examples:');
-    console.log('  node run-tests.js v1_firestore                    # Single suite');
-    console.log('  node run-tests.js v1_firestore v2_database       # Multiple suites');
+    console.log(chalk.blue("Usage: node run-tests.js [suites...] [options]"));
+    console.log("");
+    console.log("Examples:");
+    console.log("  node run-tests.js v1_firestore                    # Single suite");
+    console.log("  node run-tests.js v1_firestore v2_database       # Multiple suites");
     console.log('  node run-tests.js "v1_*"                         # All v1 suites (pattern)');
     console.log('  node run-tests.js --sequential "v2_*"            # Sequential execution');
-    console.log('  node run-tests.js --filter=v2 --exclude=auth     # Filter suites');
-    console.log('  node run-tests.js --list                         # List available suites');
-    console.log('');
-    console.log('Options:');
-    console.log('  --sequential              Run suites sequentially instead of in parallel');
-    console.log('  --filter=PATTERN          Only run suites matching pattern');
-    console.log('  --exclude=PATTERN         Skip suites matching pattern');
-    console.log('  --test-run-id=ID          Use specific TEST_RUN_ID');
-    console.log('  --use-published-sdk=VER   Use published SDK version instead of local (default: pack local)');
-    console.log('  --save-artifact           Save test metadata for future cleanup');
-    console.log('  --skip-cleanup            Skip pre-run cleanup (sequential mode only)');
-    console.log('  --list                    List all available suites');
-    console.log('  --help, -h                Show this help message');
+    console.log("  node run-tests.js --filter=v2 --exclude=auth     # Filter suites");
+    console.log("  node run-tests.js --list                         # List available suites");
+    console.log("");
+    console.log("Options:");
+    console.log("  --sequential              Run suites sequentially instead of in parallel");
+    console.log("  --filter=PATTERN          Only run suites matching pattern");
+    console.log("  --exclude=PATTERN         Skip suites matching pattern");
+    console.log("  --test-run-id=ID          Use specific TEST_RUN_ID");
+    console.log(
+      "  --use-published-sdk=VER   Use published SDK version instead of local (default: pack local)"
+    );
+    console.log("  --save-artifact           Save test metadata for future cleanup");
+    console.log("  --skip-cleanup            Skip pre-run cleanup (sequential mode only)");
+    console.log("  --verbose, -v             Show detailed Firebase CLI output during deployment");
+    console.log("  --cleanup-orphaned        Clean up orphaned test functions and exit");
+    console.log("  --list                    List all available suites");
+    console.log("  --help, -h                Show this help message");
     process.exit(0);
   }
 
@@ -900,20 +1044,20 @@ async function main() {
     const runner = new TestRunner();
     const allSuites = runner.getAllSuites();
 
-    console.log(chalk.blue('\nAvailable test suites:'));
-    console.log(chalk.blue('─────────────────────'));
+    console.log(chalk.blue("\nAvailable test suites:"));
+    console.log(chalk.blue("─────────────────────"));
 
-    const v1Suites = allSuites.filter(s => s.startsWith('v1_'));
-    const v2Suites = allSuites.filter(s => s.startsWith('v2_'));
+    const v1Suites = allSuites.filter((s) => s.startsWith("v1_"));
+    const v2Suites = allSuites.filter((s) => s.startsWith("v2_"));
 
     if (v1Suites.length > 0) {
-      console.log(chalk.green('\n📁 V1 Suites:'));
-      v1Suites.forEach(suite => console.log(`  - ${suite}`));
+      console.log(chalk.green("\n📁 V1 Suites:"));
+      v1Suites.forEach((suite) => console.log(`  - ${suite}`));
     }
 
     if (v2Suites.length > 0) {
-      console.log(chalk.green('\n📁 V2 Suites:'));
-      v2Suites.forEach(suite => console.log(`  - ${suite}`));
+      console.log(chalk.green("\n📁 V2 Suites:"));
+      v2Suites.forEach((suite) => console.log(`  - ${suite}`));
     }
 
     process.exit(0);
@@ -922,23 +1066,31 @@ async function main() {
   // Create runner instance
   const runner = new TestRunner(options);
 
+  // Handle cleanup-orphaned option
+  if (options.cleanupOrphaned) {
+    console.log(chalk.blue("🧹 Cleaning up orphaned test functions..."));
+    await runner.cleanupExistingResources();
+    console.log(chalk.green("✅ Orphaned function cleanup completed"));
+    process.exit(0);
+  }
+
   // Get filtered suite list
   let suites;
   if (suitePatterns.length === 0 && options.sequential) {
     // No patterns specified in sequential mode, run all suites
     suites = runner.getAllSuites();
     if (options.filter) {
-      suites = suites.filter(s => s.includes(options.filter));
+      suites = suites.filter((s) => s.includes(options.filter));
     }
     if (options.exclude) {
-      suites = suites.filter(s => !s.match(new RegExp(options.exclude)));
+      suites = suites.filter((s) => !s.match(new RegExp(options.exclude)));
     }
   } else {
     suites = runner.filterSuites(suitePatterns);
   }
 
   if (suites.length === 0) {
-    console.log(chalk.red('❌ No test suites found matching criteria'));
+    console.log(chalk.red("❌ No test suites found matching criteria"));
     process.exit(1);
   }
 
@@ -962,8 +1114,8 @@ async function main() {
 }
 
 // Handle uncaught errors
-process.on('unhandledRejection', (error) => {
-  console.error(chalk.red('❌ Unhandled error:'), error);
+process.on("unhandledRejection", (error) => {
+  console.error(chalk.red("❌ Unhandled error:"), error);
   process.exit(1);
 });
 

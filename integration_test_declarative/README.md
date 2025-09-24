@@ -19,23 +19,41 @@ This framework uses a template-based code generation approach where:
 3. Generated code has static exports that Firebase CLI can discover
 4. Each test run gets isolated function instances
 
+## Prerequisites
+
+Before running integration tests, ensure the Firebase Functions SDK is built and packaged:
+
+```bash
+# From the root firebase-functions directory
+npm run pack-for-integration-tests
+```
+
+This creates `integration_test_declarative/firebase-functions-local.tgz` which is used by all test suites.
+
 ## Quick Start
 
 ```bash
-# Run all v1 tests (generate, deploy, test)
+# Run all tests sequentially (recommended)
+npm run test:all:sequential
+
+# Run all v1 tests sequentially
 npm run test:v1:all
 
-# Run a single test suite
-./scripts/run-suite.sh v1_firestore
+# Run all v2 tests sequentially
+npm run test:v2:all
 
-# Run with artifact saving (for later cleanup)
-./scripts/run-suite.sh v1_firestore --save-artifact
+# Run tests in parallel (faster but may hit rate limits)
+npm run test:v1:all:parallel
+npm run test:v2:all:parallel
+
+# Run a single test suite
+npm run test:firestore  # Runs v1_firestore
 
 # Clean up after a test run
-./scripts/cleanup-suite.sh
+npm run cleanup
 
-# Clean up a specific test run
-./scripts/cleanup-suite.sh t_1757979490_xkyqun
+# List saved test artifacts
+npm run cleanup:list
 ```
 
 ## Configuration
@@ -65,25 +83,31 @@ To work around this:
 ```
 integration_test_declarative/
 ├── config/
-│   ├── suites/           # YAML suite definitions
-│   │   └── v1_firestore.yaml
-│   └── templates/        # Handlebars templates
-│       ├── functions/
-│       │   ├── index.ts.hbs
-│       │   └── firestore/
-│       │       └── onCreate.ts.hbs
-│       └── firebase.json.hbs
+│   ├── v1/
+│   │   └── suites.yaml   # All v1 suite definitions
+│   ├── v2/
+│   │   └── suites.yaml   # All v2 suite definitions
+│   └── suites.schema.json # YAML schema definition
+├── templates/            # Handlebars templates
+│   └── functions/
+│       ├── package.json.hbs
+│       ├── tsconfig.json.hbs
+│       └── src/
+│           ├── v1/       # V1 function templates
+│           └── v2/       # V2 function templates
 ├── generated/            # Generated code (git-ignored)
 │   ├── functions/        # Generated function code
+│   │   └── firebase-functions-local.tgz  # SDK tarball (copied)
 │   ├── firebase.json     # Generated Firebase config
 │   └── .metadata.json    # Generation metadata
 ├── scripts/
 │   ├── generate.js       # Template generation script
-│   ├── run-suite.sh      # Full test orchestration
+│   ├── run-tests.js      # Unified test runner
+│   ├── config-loader.js  # YAML configuration loader
 │   └── cleanup-suite.sh  # Cleanup utilities
 └── tests/               # Jest test files
-    └── v1/
-        └── firestore.test.ts
+    ├── v1/              # V1 test suites
+    └── v2/              # V2 test suites
 ```
 
 ## How It Works
@@ -106,40 +130,66 @@ suite:
       document: "tests/{testId}"
 ```
 
-### 2. Code Generation
+### 2. SDK Preparation
+
+The Firebase Functions SDK is packaged once:
+- Built from source in the parent directory
+- Packed as `firebase-functions-local.tgz`
+- Copied into each generated/functions directory during generation
+- Referenced locally in package.json as `file:firebase-functions-local.tgz`
+
+This ensures the SDK is available during both local builds and Firebase cloud deployments.
+
+### 3. Code Generation
 
 The `generate.js` script:
-- Reads the suite YAML configuration
+- Reads the suite YAML configuration from config/v1/ or config/v2/
 - Generates a unique TEST_RUN_ID
 - Applies Handlebars templates with the configuration
 - Outputs static TypeScript code with baked-in TEST_RUN_ID
+- Copies the SDK tarball into the functions directory
 
-Generated functions have names like: `firestoreDocumentOnCreateTests_t_1757979490_xkyqun`
+Generated functions have names like: `firestoreDocumentOnCreateTeststoi5krf7a`
 
-### 3. Deployment & Testing
+### 4. Deployment & Testing
 
-The `run-suite.sh` script orchestrates:
-1. **Generate**: Create function code from templates
-2. **Build**: Compile TypeScript to JavaScript
-3. **Deploy**: Deploy to Firebase with unique function names
-4. **Test**: Run Jest tests against deployed functions
-5. **Cleanup**: Automatic cleanup on exit (success or failure)
+The `run-tests.js` script orchestrates:
+1. **Pack SDK**: Package the SDK once at the start (if not already done)
+2. **Generate**: Create function code from templates for each suite
+3. **Build**: Compile TypeScript to JavaScript
+4. **Deploy**: Deploy to Firebase with unique function names
+5. **Test**: Run Jest tests against deployed functions
+6. **Cleanup**: Automatic cleanup after each suite (functions and generated files)
 
-### 4. Cleanup
+### 5. Cleanup
 
 Functions and test data are automatically cleaned up:
-- On test completion (via bash trap)
-- Manually via `cleanup-suite.sh`
-- Using saved artifacts for orphaned deployments
+- After each suite completes (success or failure)
+- Generated directory is cleared and recreated
+- Deployed functions are deleted if deployment was successful
+- Test data in Firestore/Database is cleaned up
 
 ## Commands
 
-### Run Test Suite
+### Running Tests
 ```bash
-./scripts/run-suite.sh <suite-name> [--save-artifact]
+# Run all tests sequentially
+npm run test:all:sequential
+
+# Run specific version tests
+npm run test:v1:all           # All v1 tests sequentially
+npm run test:v2:all           # All v2 tests sequentially
+npm run test:v1:all:parallel  # All v1 tests in parallel
+npm run test:v2:all:parallel  # All v2 tests in parallel
+
+# Run individual suites
+npm run test:firestore        # Runs v1_firestore
+npm run run-tests v1_database # Direct suite name
+
+# Run with options
+npm run run-tests -- --sequential v1_firestore v1_database
+npm run run-tests -- --filter=v2 --exclude=auth
 ```
-- Runs complete test flow: generate → build → deploy → test → cleanup
-- `--save-artifact` saves metadata for future cleanup
 
 ### Generate Functions Only
 ```bash
@@ -150,20 +200,16 @@ npm run generate <suite-name>
 
 ### Cleanup Functions
 ```bash
-# Clean current deployment
-./scripts/cleanup-suite.sh
+# Clean up current test run
+npm run cleanup
 
-# Clean specific test run
+# List saved test artifacts
+npm run cleanup:list
+
+# Manual cleanup with cleanup-suite.sh
 ./scripts/cleanup-suite.sh <TEST_RUN_ID>
-
-# List saved artifacts
 ./scripts/cleanup-suite.sh --list-artifacts
-
-# Clean all saved test runs
 ./scripts/cleanup-suite.sh --clean-artifacts
-
-# Clean by pattern
-./scripts/cleanup-suite.sh --pattern <pattern> <project-id>
 ```
 
 ## Adding New Test Suites
@@ -216,19 +262,32 @@ Format: `t_<timestamp>_<random>` (e.g., `t_1757979490_xkyqun`)
 
 ## Troubleshooting
 
+### SDK Tarball Not Found
+- Run `npm run pack-for-integration-tests` from the root firebase-functions directory
+- This creates `integration_test_declarative/firebase-functions-local.tgz`
+- The SDK is packed once and reused for all suites
+
 ### Functions Not Deploying
-- Check that templates generate valid TypeScript
-- Verify project ID in suite YAML
-- Ensure Firebase CLI is authenticated
+- Check that the SDK tarball exists and was copied to generated/functions/
+- Verify project ID in suite YAML configuration
+- Ensure Firebase CLI is authenticated: `firebase projects:list`
+- Check deployment logs for specific errors
+
+### Deployment Fails with "File not found" Error
+- The SDK tarball must be in generated/functions/ directory
+- Package.json should reference `file:firebase-functions-local.tgz` (local path)
+- Run `npm run generate <suite>` to regenerate with correct paths
 
 ### Tests Failing
-- Verify `sa.json` exists with proper permissions
-- Check that functions deployed successfully
+- Verify `sa.json` exists in integration_test_declarative/ directory
+- Check that functions deployed successfully: `firebase functions:list --project <project-id>`
 - Ensure TEST_RUN_ID environment variable is set
+- Check test logs in logs/ directory
 
 ### Cleanup Issues
-- Use `--list-artifacts` to find orphaned test runs
-- Manual cleanup: `firebase functions:delete <function-name> --project <project-id>`
+- Use `npm run cleanup:list` to find orphaned test runs
+- Manual cleanup: `firebase functions:delete <function-name> --project <project-id> --force`
+- Check for leftover test functions: `firebase functions:list --project functions-integration-tests | grep Test`
 - Check Firestore/Database console for orphaned test data
 
 ## Benefits
