@@ -277,7 +277,12 @@
                   "if": {
                     "properties": {
                       "trigger": {
-                        "enum": ["onDocumentCreated", "onDocumentDeleted", "onDocumentUpdated", "onDocumentWritten"]
+                        "enum": [
+                          "onDocumentCreated",
+                          "onDocumentDeleted",
+                          "onDocumentUpdated",
+                          "onDocumentWritten"
+                        ]
                       }
                     },
                     "required": ["trigger"]
@@ -322,7 +327,12 @@
                   "if": {
                     "properties": {
                       "trigger": {
-                        "enum": ["onValueCreated", "onValueDeleted", "onValueUpdated", "onValueWritten"]
+                        "enum": [
+                          "onValueCreated",
+                          "onValueDeleted",
+                          "onValueUpdated",
+                          "onValueWritten"
+                        ]
                       }
                     },
                     "required": ["trigger"]

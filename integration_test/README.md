@@ -30,6 +30,81 @@ npm run pack-for-integration-tests
 
 This creates `integration_test_declarative/firebase-functions-local.tgz` which is used by all test suites.
 
+### Project Setup
+
+The integration tests require two Firebase projects:
+- **V1 Project**: For testing Firebase Functions v1 triggers
+- **V2 Project**: For testing Firebase Functions v2 triggers
+
+#### Default Projects (Firebase Team)
+The framework uses these projects by default:
+- V1: `functions-integration-tests`
+- V2: `functions-integration-tests-v2`
+
+#### Custom Projects (External Users)
+To use your own projects, you'll need to:
+
+1. **Create Firebase Projects**:
+   ```bash
+   # Create V1 project
+   firebase projects:create your-v1-project-id
+   
+   # Create V2 project  
+   firebase projects:create your-v2-project-id
+   ```
+
+2. **Enable Required APIs**:
+   ```bash
+   # Enable APIs for both projects
+   gcloud services enable cloudfunctions.googleapis.com --project=your-v1-project-id
+   gcloud services enable cloudfunctions.googleapis.com --project=your-v2-project-id
+   gcloud services enable cloudtasks.googleapis.com --project=your-v1-project-id
+   gcloud services enable cloudtasks.googleapis.com --project=your-v2-project-id
+   gcloud services enable cloudscheduler.googleapis.com --project=your-v2-project-id
+   gcloud services enable cloudtestservice.googleapis.com --project=your-v1-project-id
+   gcloud services enable cloudtestservice.googleapis.com --project=your-v2-project-id
+   ```
+
+3. **Set Up Cloud Build Permissions** (if using Cloud Build):
+   ```bash
+   # Get your Cloud Build project number
+   CLOUD_BUILD_PROJECT_NUMBER=$(gcloud projects describe YOUR_CLOUD_BUILD_PROJECT --format="value(projectNumber)")
+   
+   # Grant permissions to your V1 project
+   gcloud projects add-iam-policy-binding your-v1-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/cloudtasks.admin"
+   
+   gcloud projects add-iam-policy-binding your-v1-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/cloudscheduler.admin"
+   
+   gcloud projects add-iam-policy-binding your-v1-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/cloudtestservice.testAdmin"
+   
+   gcloud projects add-iam-policy-binding your-v1-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/firebase.admin"
+   
+   # Repeat for your V2 project
+   gcloud projects add-iam-policy-binding your-v2-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/cloudtasks.admin"
+   
+   gcloud projects add-iam-policy-binding your-v2-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/cloudscheduler.admin"
+   
+   gcloud projects add-iam-policy-binding your-v2-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/cloudtestservice.testAdmin"
+   
+   gcloud projects add-iam-policy-binding your-v2-project-id \
+     --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
+     --role="roles/firebase.admin"
+   ```
+
 ## Quick Start
 
 ```bash
@@ -286,6 +361,32 @@ gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
 Replace:
 - `TARGET_PROJECT_ID` with each project where tests will be deployed
 - `CLOUD_BUILD_PROJECT_NUMBER` with the project number where Cloud Build runs
+
+#### Running Cloud Build with Custom Projects
+
+To use your own projects, edit the YAML configuration files:
+
+1. **Edit V1 project ID**: Update `config/v1/suites.yaml`:
+   ```yaml
+   defaults:
+     projectId: your-v1-project-id
+   ```
+
+2. **Edit V2 project ID**: Update `config/v2/suites.yaml`:
+   ```yaml
+   defaults:
+     projectId: your-v2-project-id
+   ```
+
+3. **Run Cloud Build**:
+   ```bash
+   gcloud builds submit --config=integration_test/cloudbuild.yaml
+   ```
+
+**Default behavior (Firebase team):**
+The YAML files are pre-configured with:
+- V1 tests: `functions-integration-tests`
+- V2 tests: `functions-integration-tests-v2`
 
 ## Test Isolation
 

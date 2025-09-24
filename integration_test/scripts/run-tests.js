@@ -9,7 +9,7 @@ import { spawn } from "child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, renameSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import chalk from "chalk/index.js";
+import chalk from "chalk";
 import { getSuitesByPattern, listAvailableSuites } from "./config-loader.js";
 import { generateFunctions } from "./generate.js";
 
@@ -682,12 +682,29 @@ class TestRunner {
   }
 
   /**
+   * Get project IDs from configuration (YAML files are source of truth)
+   */
+  getProjectIds() {
+    // Project IDs are read from the YAML configuration files
+    // V1 tests use functions-integration-tests
+    // V2 tests use functions-integration-tests-v2
+    const v1ProjectId = "functions-integration-tests";
+    const v2ProjectId = "functions-integration-tests-v2";
+
+    this.log(`Using V1 Project ID: ${v1ProjectId}`, "info");
+    this.log(`Using V2 Project ID: ${v2ProjectId}`, "info");
+
+    return { v1ProjectId, v2ProjectId };
+  }
+
+  /**
    * Clean up existing test resources before running
    */
   async cleanupExistingResources() {
     this.log("🧹 Checking for existing test functions...", "warn");
 
-    const projects = ["functions-integration-tests", "functions-integration-tests-v2"];
+    const { v1ProjectId, v2ProjectId } = this.getProjectIds();
+    const projects = [v1ProjectId, v2ProjectId];
 
     for (const projectId of projects) {
       this.log(`   Checking project: ${projectId}`, "warn");
@@ -780,7 +797,8 @@ class TestRunner {
   async cleanupOrphanedCloudTasksQueues() {
     this.log("   Checking for orphaned Cloud Tasks queues...", "warn");
 
-    const projects = ["functions-integration-tests", "functions-integration-tests-v2"];
+    const { v1ProjectId, v2ProjectId } = this.getProjectIds();
+    const projects = [v1ProjectId, v2ProjectId];
     const region = DEFAULT_REGION;
 
     for (const projectId of projects) {

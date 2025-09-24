@@ -44,7 +44,7 @@ export async function generateFunctions(suitePatterns, options = {}) {
     projectId: overrideProjectId = process.env.PROJECT_ID,
     region: overrideRegion = process.env.REGION,
     sdkTarball = process.env.SDK_TARBALL || "file:firebase-functions-local.tgz",
-    quiet = false
+    quiet = false,
   } = options;
 
   const log = quiet ? () => {} : console.log.bind(console);
@@ -71,7 +71,9 @@ export async function generateFunctions(suitePatterns, options = {}) {
           } else if (pattern.startsWith("v2")) {
             configPath = join(ROOT_DIR, "config", "v2", "suites.yaml");
           } else {
-            throw new Error(`Cannot auto-detect config file for pattern '${pattern}'. Use --config option.`);
+            throw new Error(
+              `Cannot auto-detect config file for pattern '${pattern}'. Use --config option.`
+            );
           }
         }
         suitesToAdd = getSuitesByPattern(pattern, configPath);
@@ -84,7 +86,9 @@ export async function generateFunctions(suitePatterns, options = {}) {
           } else if (pattern.startsWith("v2_")) {
             configPath = join(ROOT_DIR, "config", "v2", "suites.yaml");
           } else {
-            throw new Error(`Cannot auto-detect config file for suite '${pattern}'. Use --config option.`);
+            throw new Error(
+              `Cannot auto-detect config file for suite '${pattern}'. Use --config option.`
+            );
           }
         }
         suitesToAdd = [getSuiteConfig(pattern, configPath)];
@@ -217,10 +221,14 @@ export async function generateFunctions(suitePatterns, options = {}) {
       testRunId,
       sdkTarball,
       timestamp: new Date().toISOString(),
+      v1ProjectId: "functions-integration-tests",
+      v2ProjectId: "functions-integration-tests-v2",
     };
 
     // Generate the test file for this suite
-    if (generateFromTemplate(templatePath, `functions/src/${version}/${service}-tests.ts`, context)) {
+    if (
+      generateFromTemplate(templatePath, `functions/src/${version}/${service}-tests.ts`, context)
+    ) {
       // Collect dependencies
       Object.assign(allDependencies, suite.dependencies || {});
       Object.assign(allDevDependencies, suite.devDependencies || {});
@@ -230,8 +238,8 @@ export async function generateFunctions(suitePatterns, options = {}) {
         name,
         service,
         version,
-        projectId: suite.projectId,  // Store projectId per suite
-        region: suite.region,        // Store region per suite
+        projectId: suite.projectId, // Store projectId per suite
+        region: suite.region, // Store region per suite
         functions: suite.functions.map((f) => `${f.name}${testRunId}`),
       });
     }
@@ -271,8 +279,8 @@ export async function generateFunctions(suitePatterns, options = {}) {
   // Replace {{sdkTarball}} placeholder in all dependencies
   const processedDependencies = {};
   for (const [key, value] of Object.entries(allDependencies)) {
-    if (typeof value === 'string' && value.includes('{{sdkTarball}}')) {
-      processedDependencies[key] = value.replace('{{sdkTarball}}', sdkTarball);
+    if (typeof value === "string" && value.includes("{{sdkTarball}}")) {
+      processedDependencies[key] = value.replace("{{sdkTarball}}", sdkTarball);
     } else {
       processedDependencies[key] = value;
     }
@@ -311,7 +319,12 @@ export async function generateFunctions(suitePatterns, options = {}) {
   // Copy the SDK tarball into the functions directory if using local SDK
   if (sdkTarball.startsWith("file:")) {
     const tarballSourcePath = join(ROOT_DIR, "firebase-functions-local.tgz");
-    const tarballDestPath = join(ROOT_DIR, "generated", "functions", "firebase-functions-local.tgz");
+    const tarballDestPath = join(
+      ROOT_DIR,
+      "generated",
+      "functions",
+      "firebase-functions-local.tgz"
+    );
 
     if (existsSync(tarballSourcePath)) {
       copyFileSync(tarballSourcePath, tarballDestPath);
@@ -323,7 +336,12 @@ export async function generateFunctions(suitePatterns, options = {}) {
   }
 
   log("\n✨ Generation complete!");
-  log(`   Generated ${generatedSuites.length} suite(s) with ${generatedSuites.reduce((acc, s) => acc + s.functions.length, 0)} function(s)`);
+  log(
+    `   Generated ${generatedSuites.length} suite(s) with ${generatedSuites.reduce(
+      (acc, s) => acc + s.functions.length,
+      0
+    )} function(s)`
+  );
   log("\nNext steps:");
   log("  1. cd generated/functions && npm install");
   log("  2. npm run build");
@@ -369,13 +387,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     if (existsSync(v1ConfigPath)) {
       console.log("\n📁 V1 Suites (config/v1/suites.yaml):");
       const v1Suites = listAvailableSuites(v1ConfigPath);
-      v1Suites.forEach(suite => console.log(`  - ${suite}`));
+      v1Suites.forEach((suite) => console.log(`  - ${suite}`));
     }
 
     if (existsSync(v2ConfigPath)) {
       console.log("\n📁 V2 Suites (config/v2/suites.yaml):");
       const v2Suites = listAvailableSuites(v2ConfigPath);
-      v2Suites.forEach(suite => console.log(`  - ${suite}`));
+      v2Suites.forEach((suite) => console.log(`  - ${suite}`));
     }
 
     process.exit(0);
@@ -391,9 +409,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
 
   // Check for --use-published-sdk
-  const sdkIndex = args.findIndex(arg => arg.startsWith("--use-published-sdk="));
+  const sdkIndex = args.findIndex((arg) => arg.startsWith("--use-published-sdk="));
   if (sdkIndex !== -1) {
-    usePublishedSDK = args[sdkIndex].split('=')[1];
+    usePublishedSDK = args[sdkIndex].split("=")[1];
     args.splice(sdkIndex, 1);
   }
 
@@ -419,11 +437,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     configPath,
     projectId: process.env.PROJECT_ID,
     region: process.env.REGION,
-    sdkTarball
+    sdkTarball,
   })
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(`❌ ${error.message}`);
-    process.exit(1);
-  });
+    .then(() => process.exit(0))
+    .catch((error) => {
+      console.error(`❌ ${error.message}`);
+      process.exit(1);
+    });
 }

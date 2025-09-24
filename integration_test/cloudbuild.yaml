@@ -7,8 +7,6 @@ options:
 
 timeout: '3600s'
 
-# No substitutions needed - each test suite uses its own project from YAML config
-
 steps:
   # Build SDK and run all enabled test suites sequentially
   - name: 'node:20'
@@ -23,21 +21,22 @@ steps:
         npm run build
         npm pack
         # Move the tarball to where integration tests expect it
-        mv firebase-functions-*.tgz integration_test_declarative/firebase-functions-local.tgz
+        mv firebase-functions-*.tgz integration_test/firebase-functions-local.tgz
         echo "SDK built and packed successfully"
 
         # Step 2: Run integration tests with the local SDK
-        cd integration_test_declarative
+        cd integration_test
         echo "Installing test dependencies..."
         npm ci
         # Install firebase-tools globally
         npm install -g firebase-tools
         # Verify firebase is installed
         firebase --version
+        # Project IDs are configured in the YAML files (config/v1/suites.yaml and config/v2/suites.yaml)
+        echo "Project IDs are configured in YAML files:"
+        echo "  V1 tests: functions-integration-tests"
+        echo "  V2 tests: functions-integration-tests-v2"
         # Use Application Default Credentials (Cloud Build service account)
-        # Don't set PROJECT_ID or REGION - let each suite use values defined in its YAML config
-        # Some suites use functions-integration-tests, others use functions-integration-tests-v2
-        # All suites currently use us-central1, but this keeps YAML as single source of truth
         # Run all enabled tests sequentially (reads from YAML configs)
         # This will run all suites defined in config/v1/suites.yaml and config/v2/suites.yaml
         # Commented out suites in YAML will be automatically skipped
