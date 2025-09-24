@@ -13,7 +13,7 @@ async function uploadBufferToFirebase(buffer: Buffer, fileName: string) {
   });
 }
 
-describe("Firebase Storage", () => {
+describe("Firebase Storage (v1)", () => {
   const testId = process.env.TEST_RUN_ID;
   if (!testId) {
     throw new Error("Environment configured incorrectly.");
@@ -25,7 +25,8 @@ describe("Firebase Storage", () => {
 
   afterAll(async () => {
     await admin.firestore().collection("storageOnFinalizeTests").doc(testId).delete();
-    await admin.firestore().collection("storageOnDeleteTests").doc(testId).delete();
+    // Note: onDelete tests are disabled due to bug b/372315689
+    // await admin.firestore().collection("storageOnDeleteTests").doc(testId).delete();
     await admin.firestore().collection("storageOnMetadataUpdateTests").doc(testId).delete();
   });
 
@@ -81,54 +82,10 @@ describe("Firebase Storage", () => {
     });
   });
 
-  describe("object onDelete trigger", () => {
-    let loggedContext: admin.firestore.DocumentData | undefined;
-
-    beforeAll(async () => {
-      const testContent = testId;
-      const buffer = Buffer.from(testContent, "utf-8");
-
-      await uploadBufferToFirebase(buffer, testId + ".txt");
-
-      // Short delay before delete to ensure file is properly uploaded
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-
-      try {
-        const file = admin
-          .storage()
-          .bucket()
-          .file(testId + ".txt");
-        await file.delete();
-      } catch (error) {
-        console.warn("Failed to delete storage file for onDelete test:", (error as Error).message);
-      }
-
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("storageOnDeleteTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
-      );
-    });
-
-    it("should not have event.app", () => {
-      expect(loggedContext?.app).toBeUndefined();
-    });
-
-    it("should have the right eventType", () => {
-      expect(loggedContext?.eventType).toEqual("google.storage.object.delete");
-    });
-
-    it("should have eventId", () => {
-      expect(loggedContext?.eventId).toBeDefined();
-    });
-
-    it("should have timestamp", () => {
-      expect(loggedContext?.timestamp).toBeDefined();
-    });
-  });
+  // Note: onDelete tests are disabled due to bug b/372315689
+  // describe("object onDelete trigger", () => {
+  //   ...
+  // });
 
   describe("object onMetadataUpdate trigger", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
@@ -139,12 +96,21 @@ describe("Firebase Storage", () => {
 
       await uploadBufferToFirebase(buffer, testId + ".txt");
 
-      // Trigger metadata update
+      // Short delay to ensure file is ready
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      // Update metadata to trigger the function
       const file = admin
         .storage()
         .bucket()
         .file(testId + ".txt");
-      await file.setMetadata({ contentType: "application/json" });
+
+      await file.setMetadata({
+        metadata: {
+          updated: "true",
+          testId: testId,
+        },
+      });
 
       loggedContext = await retry(() =>
         admin

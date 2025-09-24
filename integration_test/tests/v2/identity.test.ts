@@ -3,6 +3,7 @@ import { retry } from "../utils";
 import { initializeApp } from "firebase/app";
 import { initializeFirebase } from "../firebaseSetup";
 import { getAuth, createUserWithEmailAndPassword, UserCredential } from "firebase/auth";
+import { getFirebaseClientConfig } from "../firebaseClientConfig";
 
 interface IdentityEventContext {
   eventId: string;
@@ -15,17 +16,10 @@ interface IdentityEventContext {
 
 describe("Firebase Identity (v2)", () => {
   const userIds: string[] = [];
-  const projectId = process.env.PROJECT_ID;
+  const projectId = process.env.PROJECT_ID || "functions-integration-tests-v2";
   const testId = process.env.TEST_RUN_ID;
-  const config = {
-    apiKey: process.env.FIREBASE_API_KEY,
-    authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-    databaseURL: process.env.DATABASE_URL,
-    projectId,
-    storageBucket: process.env.STORAGE_BUCKET,
-    appId: process.env.FIREBASE_APP_ID,
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID,
-  };
+  // Use hardcoded Firebase client config (safe to expose publicly)
+  const config = getFirebaseClientConfig(projectId);
   const app = initializeApp(config);
 
   if (!testId || !projectId) {

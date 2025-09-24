@@ -2,7 +2,6 @@ import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 import { Reference } from "@firebase/database-types";
-import { logger } from "../../src/utils/logger";
 
 describe("Firebase Database (v1)", () => {
   const projectId = process.env.PROJECT_ID;
@@ -34,7 +33,7 @@ describe("Firebase Database (v1)", () => {
       try {
         await ref.remove();
       } catch (err) {
-        logger.error("Teardown error", err);
+        console.error("Teardown error", err);
       }
     }
   }

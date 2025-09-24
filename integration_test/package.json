@@ -1,32 +1,42 @@
 {
-  "name": "integration_test",
-  "module": "index.ts",
+  "name": "integration-test-declarative",
+  "version": "1.0.0",
   "type": "module",
-  "dependencies": {
-    "@google-cloud/eventarc": "^3.1.0",
-    "@google-cloud/tasks": "^5.1.0",
-    "firebase": "^12.0.0",
-    "firebase-admin": "^12.6.0",
-    "firebase-tools": "^13.20.2",
-    "js-yaml": "^4.1.0",
-    "node-fetch": "2"
-  },
+  "description": "Declarative Firebase Functions integration tests",
   "scripts": {
-    "build": "tsc -p tsconfig.test.json",
-    "test": "jest --detectOpenHandles",
-    "start": "npm run build && node dist/run.js"
+    "generate": "node scripts/generate.js",
+    "test": "jest --forceExit",
+    "run-tests": "node scripts/run-tests.js",
+    "run-suite": "./scripts/run-suite.sh",
+    "test:firestore": "node scripts/run-tests.js v1_firestore",
+    "test:v1": "node scripts/run-tests.js v1_firestore v1_database v1_pubsub v1_storage v1_tasks v1_remoteconfig v1_testlab v1_auth_nonblocking",
+    "test:v1:all": "node scripts/run-tests.js --sequential 'v1_*'",
+    "test:v1:all:parallel": "node scripts/run-tests.js 'v1_*'",
+    "test:v2:all": "node scripts/run-tests.js --sequential 'v2_*'",
+    "test:v2:all:parallel": "node scripts/run-tests.js 'v2_*'",
+    "test:all:sequential": "node scripts/run-tests.js --sequential",
+    "test:v1:auth-before-create": "node scripts/run-tests.js v1_auth_before_create",
+    "test:v1:auth-before-signin": "node scripts/run-tests.js v1_auth_before_signin",
+    "cleanup": "./scripts/cleanup-suite.sh",
+    "cleanup:list": "./scripts/cleanup-suite.sh --list-artifacts",
+    "clean": "rm -rf generated/*",
+    "hard-reset": "./scripts/hard-reset.sh"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.0.0",
+    "ajv": "^8.17.1",
+    "chalk": "^4.1.2",
+    "firebase-admin": "^12.0.0"
   },
   "devDependencies": {
+    "@google-cloud/tasks": "^6.2.0",
     "@types/jest": "^29.5.11",
-    "@types/js-yaml": "^4.0.9",
-    "@types/node-fetch": "^2.6.11",
-    "chalk": "^4.1.2",
-    "dotenv": "^17.2.1",
-    "eslint-plugin-jest": "^29.0.1",
+    "@types/node": "^20.10.5",
+    "firebase": "^12.2.1",
+    "handlebars": "^4.7.8",
     "jest": "^29.7.0",
-    "p-limit": "^6.2.0",
-    "p-retry": "^6.2.1",
     "ts-jest": "^29.1.1",
-    "zod": "^4.0.17"
+    "typescript": "^5.3.3",
+    "yaml": "^2.3.4"
   }
 }

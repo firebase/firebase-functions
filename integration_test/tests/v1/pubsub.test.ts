@@ -6,11 +6,11 @@ import { retry } from "../utils";
 describe("Pub/Sub (v1)", () => {
   const projectId = process.env.PROJECT_ID;
   const testId = process.env.TEST_RUN_ID;
-  const region = process.env.REGION;
+  const region = process.env.REGION || "us-central1";
   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  const topicName = `firebase-schedule-${testId}-v1-pubsubScheduleTests-${region}`;
+  const topicName = `firebase-schedule-pubsubScheduleTests${testId}-${region}`;
 
-  if (!testId || !projectId || !region) {
+  if (!testId || !projectId) {
     throw new Error("Environment configured incorrectly.");
   }
 
@@ -57,7 +57,7 @@ describe("Pub/Sub (v1)", () => {
 
     it("should have a topic as resource", () => {
       expect(loggedContext?.resource.name).toEqual(
-        `projects/${process.env.PROJECT_ID}/topics/pubsubTests`
+        `projects/${projectId}/topics/pubsubTests`
       );
     });
 
@@ -87,7 +87,7 @@ describe("Pub/Sub (v1)", () => {
 
     it("should have pubsub data", () => {
       const decodedMessage = JSON.parse(loggedContext?.message);
-      const decoded = new Buffer(decodedMessage.data, "base64").toString();
+      const decoded = Buffer.from(decodedMessage.data, "base64").toString();
       const parsed = JSON.parse(decoded);
       expect(parsed.testId).toEqual(testId);
     });
@@ -99,9 +99,11 @@ describe("Pub/Sub (v1)", () => {
     beforeAll(async () => {
       const pubsub = new PubSub();
 
-      const message = Buffer.from(JSON.stringify({ testId }));
+      // Publish a message to trigger the scheduled function
+      // The Cloud Scheduler will create a topic with the function name
+      const scheduleTopic = pubsub.topic(topicName);
 
-      await pubsub.topic(topicName).publish(message);
+      await scheduleTopic.publish(Buffer.from(JSON.stringify({ testId })));
 
       loggedContext = await retry(() =>
         admin
@@ -111,13 +113,35 @@ describe("Pub/Sub (v1)", () => {
           .get()
           .then((logSnapshot) => logSnapshot.data())
       );
-      if (!loggedContext) {
-        throw new Error("loggedContext is undefined");
-      }
     });
 
-    it("should have been called", () => {
-      expect(loggedContext).toBeDefined();
+    it("should have correct resource name", () => {
+      expect(loggedContext?.resource.name).toContain("topics/");
+      expect(loggedContext?.resource.name).toContain("pubsubScheduleTests");
+    });
+
+    it("should not have a path", () => {
+      expect(loggedContext?.path).toBeUndefined();
+    });
+
+    it("should have the correct eventType", () => {
+      expect(loggedContext?.eventType).toEqual("google.pubsub.topic.publish");
+    });
+
+    it("should have an eventId", () => {
+      expect(loggedContext?.eventId).toBeDefined();
+    });
+
+    it("should have timestamp", () => {
+      expect(loggedContext?.timestamp).toBeDefined();
+    });
+
+    it("should not have action", () => {
+      expect(loggedContext?.action).toBeUndefined();
+    });
+
+    it("should not have auth", () => {
+      expect(loggedContext?.auth).toBeUndefined();
     });
   });
 });

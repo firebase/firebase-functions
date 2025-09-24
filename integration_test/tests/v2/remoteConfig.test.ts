@@ -1,7 +1,6 @@
 import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
-import fetch from "node-fetch";
 
 describe("Firebase Remote Config (v2)", () => {
   const projectId = process.env.PROJECT_ID;

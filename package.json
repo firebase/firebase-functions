@@ -257,7 +257,7 @@
     "build:release": "npm ci --production && npm install --no-save typescript && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "build:watch": "npm run build -- -w",
-    "pack-for-integration-tests": "echo 'Building firebase-functions SDK from source...' && npm ci && npm run build && npm pack && mv firebase-functions-*.tgz integration_test_declarative/firebase-functions-local.tgz && echo 'SDK built and packed successfully'",
+    "pack-for-integration-tests": "echo 'Building firebase-functions SDK from source...' && npm ci && npm run build && npm pack && mv firebase-functions-*.tgz integration_test/firebase-functions-local.tgz && echo 'SDK built and packed successfully'",
     "format": "npm run format:ts && npm run format:other",
     "format:other": "npm run lint:other -- --write",
     "format:ts": "npm run lint:ts -- --fix --quiet",

@@ -1,13 +1,12 @@
 import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
-import fetch from "node-fetch";
 
 describe("Firebase Remote Config (v1)", () => {
-  const projectId = process.env.PROJECT_ID;
+  const projectId = process.env.PROJECT_ID || "functions-integration-tests";
   const testId = process.env.TEST_RUN_ID;
 
-  if (!testId || !projectId) {
+  if (!testId) {
     throw new Error("Environment configured incorrectly.");
   }
 
@@ -57,7 +56,7 @@ describe("Firebase Remote Config (v1)", () => {
     });
 
     it("should have refs resources", () =>
-      expect(loggedContext?.resource.name).toMatch(`projects/${process.env.PROJECT_ID}`));
+      expect(loggedContext?.resource.name).toMatch(`projects/${projectId}`));
 
     it("should have the right eventType", () => {
       expect(loggedContext?.eventType).toEqual("google.firebase.remoteconfig.update");

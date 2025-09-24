@@ -21,7 +21,7 @@ describe("Firebase Database (v2)", () => {
     const collectionsToClean = [
       "databaseCreatedTests",
       "databaseDeletedTests",
-      "databaseUpdatesTests",
+      "databaseUpdatedTests",
       "databaseWrittenTests",
     ];
 

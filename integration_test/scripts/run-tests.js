@@ -9,7 +9,7 @@ import { spawn } from "child_process";
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, renameSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import chalk from "chalk";
+import chalk from "chalk/index.js";
 import { getSuitesByPattern, listAvailableSuites } from "./config-loader.js";
 import { generateFunctions } from "./generate.js";
 
