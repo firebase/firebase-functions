@@ -413,20 +413,20 @@ The integration tests use **separate Cloud Build configurations** for V1 and V2 
 **V1 Tests:**
 ```bash
 # Run V1 tests on functions-integration-tests project
-gcloud builds submit --config=integration_test/cloudbuild-v1.yaml
+gcloud builds submit --config=integration_test/cloudbuild-v1.yaml --project=functions-integration-tests
 ```
 
 **V2 Tests:**
 ```bash
 # Run V2 tests on functions-integration-tests-v2 project
-gcloud builds submit --config=integration_test/cloudbuild-v2.yaml
+gcloud builds submit --config=integration_test/cloudbuild-v2.yaml --project=functions-integration-tests-v2
 ```
 
 **Both Tests (Parallel):**
 ```bash
 # Run both V1 and V2 tests simultaneously
-gcloud builds submit --config=integration_test/cloudbuild-v1.yaml &
-gcloud builds submit --config=integration_test/cloudbuild-v2.yaml &
+gcloud builds submit --config=integration_test/cloudbuild-v1.yaml --project=functions-integration-tests &
+gcloud builds submit --config=integration_test/cloudbuild-v2.yaml --project=functions-integration-tests-v2 &
 wait
 ```
 
