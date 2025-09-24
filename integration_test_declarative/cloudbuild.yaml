@@ -7,13 +7,11 @@ options:
 
 timeout: '3600s'
 
-substitutions:
-  _PROJECT_ID: 'functions-integration-tests'
-  _REGION: 'us-central1'
+# No substitutions needed - each test suite uses its own project from YAML config
 
 steps:
   # Build SDK and run all enabled test suites sequentially
-  - name: 'node:18'
+  - name: 'node:20'
     id: 'build-sdk-and-test'
     entrypoint: 'bash'
     args:
@@ -44,7 +42,8 @@ steps:
         # This will run all suites defined in config/v1/suites.yaml and config/v2/suites.yaml
         # Commented out suites in YAML will be automatically skipped
         # The tests will automatically use the firebase-functions-local.tgz we just created
-        npm run test:all:sequential
+        # Use the already-packed SDK instead of packing again
+        node scripts/run-tests.js --sequential --use-published-sdk=file:firebase-functions-local.tgz
 
 # Artifacts to store
 artifacts:

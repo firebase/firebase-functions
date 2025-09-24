@@ -47,7 +47,6 @@ class TestRunner {
     this.logFile = join(LOGS_DIR, `test-run-${this.timestamp}.log`);
     this.deploymentSuccess = false;
     this.results = { passed: [], failed: [] };
-    this.sdkTarballPath = null; // Store the SDK tarball path to avoid repacking
   }
 
   /**
@@ -281,62 +280,20 @@ class TestRunner {
   }
 
   /**
-   * Pack the local Firebase Functions SDK
-   */
-  async packLocalSDK() {
-    this.log("📦 Packing local firebase-functions SDK...", "info");
-
-    const parentDir = join(ROOT_DIR, "..");
-    const targetPath = join(ROOT_DIR, "firebase-functions-local.tgz");
-
-    try {
-      // Run npm pack in parent directory
-      const result = await this.exec("npm pack", { cwd: parentDir, silent: true });
-
-      // Find the generated tarball name (last line of output)
-      const tarballName = result.stdout.trim().split("\n").pop();
-
-      // Move to expected location
-      const sourcePath = join(parentDir, tarballName);
-
-      if (existsSync(sourcePath)) {
-        // Remove old tarball if exists
-        if (existsSync(targetPath)) {
-          rmSync(targetPath);
-        }
-
-        // Move new tarball
-        renameSync(sourcePath, targetPath);
-        this.log("✓ Local SDK packed successfully", "success");
-        return targetPath;
-      } else {
-        throw new Error(`Tarball not found at ${sourcePath}`);
-      }
-    } catch (error) {
-      throw new Error(`Failed to pack local SDK: ${error.message}`);
-    }
-  }
-
-  /**
    * Generate functions from templates
    */
   async generateFunctions(suiteNames) {
     this.log("📦 Generating functions...", "info");
 
-    // Pack local SDK unless using published version
+    // Use SDK tarball (must be provided via --use-published-sdk or pre-packed)
     let sdkTarball;
     if (this.usePublishedSDK) {
       sdkTarball = this.usePublishedSDK;
-      this.log(`   Using published SDK: ${sdkTarball}`, "info");
-    } else if (this.sdkTarballPath) {
-      // Use already packed SDK
-      sdkTarball = `file:firebase-functions-local.tgz`;
-      this.log(`   Using already packed SDK: ${this.sdkTarballPath}`, "info");
+      this.log(`   Using provided SDK: ${sdkTarball}`, "info");
     } else {
-      // Pack the local SDK for the first time
-      this.sdkTarballPath = await this.packLocalSDK();
+      // Default to local tarball (should be pre-packed by Cloud Build or manually)
       sdkTarball = `file:firebase-functions-local.tgz`;
-      this.log(`   Using local SDK: ${this.sdkTarballPath}`, "info");
+      this.log(`   Using local SDK: firebase-functions-local.tgz`, "info");
     }
 
     try {
@@ -834,11 +791,9 @@ class TestRunner {
       await this.cleanupExistingResources();
     }
 
-    // Pack the SDK once for all suites (unless using published SDK)
-    if (!this.usePublishedSDK && !this.sdkTarballPath) {
-      this.log("📦 Packing SDK once for all suites...", "info");
-      this.sdkTarballPath = await this.packLocalSDK();
-      this.log(`✓ SDK packed and will be reused for all suites`, "success");
+    // SDK should be pre-packed (by Cloud Build or manually)
+    if (!this.usePublishedSDK) {
+      this.log("📦 Using pre-packed SDK for all suites...", "info");
     }
 
     // Run each suite
@@ -1028,7 +983,7 @@ async function main() {
     console.log("  --exclude=PATTERN         Skip suites matching pattern");
     console.log("  --test-run-id=ID          Use specific TEST_RUN_ID");
     console.log(
-      "  --use-published-sdk=VER   Use published SDK version instead of local (default: pack local)"
+      "  --use-published-sdk=VER   Use published SDK version instead of local (default: use pre-packed local)"
     );
     console.log("  --save-artifact           Save test metadata for future cleanup");
     console.log("  --skip-cleanup            Skip pre-run cleanup (sequential mode only)");

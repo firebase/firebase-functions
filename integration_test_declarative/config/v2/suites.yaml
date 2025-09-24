@@ -3,7 +3,7 @@
 # Common values are defined in the defaults section to reduce duplication
 
 defaults:
-  projectId: functions-integration-tests
+  projectId: functions-integration-tests-v2
   region: us-central1
   timeout: 540
   dependencies:
@@ -114,7 +114,6 @@ suites:
 
   # Identity Platform triggers (replaces v1 auth blocking)
   - name: v2_identity
-    projectId: functions-integration-tests-v2  # Override default project
     description: "V2 Identity trigger tests"
     version: v2
     service: identity
@@ -126,7 +125,6 @@ suites:
 
   # EventArc triggers
   - name: v2_eventarc
-    projectId: functions-integration-tests-v2  # Override default project
     description: "V2 Eventarc trigger tests"
     version: v2
     service: eventarc
