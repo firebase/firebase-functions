@@ -3,6 +3,7 @@ module.exports = {
     es6: true,
     node: true,
   },
+  ignorePatterns: ["integration_test/**/*"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
@@ -28,9 +29,6 @@ module.exports = {
   overrides: [
     {
       files: ["*.ts"],
-      parserOptions: {
-        project: "tsconfig.json",
-      },
       rules: {
         "jsdoc/require-param-type": "off",
         "jsdoc/require-returns-type": "off",
@@ -65,6 +63,9 @@ module.exports = {
     },
   ],
   globals: {},
+  parserOptions: {
+    project: "tsconfig.json",
+  },
   plugins: ["prettier", "@typescript-eslint", "jsdoc"],
   parser: "@typescript-eslint/parser",
 };

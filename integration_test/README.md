@@ -7,6 +7,7 @@ This framework provides a declarative approach to Firebase Functions integration
 ### Problem Solved
 
 The original integration tests used runtime TEST_RUN_ID injection for function isolation, which caused Firebase CLI deployment failures:
+
 - Dynamic CommonJS exports couldn't be re-exported through ES6 modules
 - Firebase CLI requires static function names at deployment time
 - Runtime function naming prevented proper function discovery
@@ -14,6 +15,7 @@ The original integration tests used runtime TEST_RUN_ID injection for function i
 ### Solution
 
 This framework uses a template-based code generation approach where:
+
 1. Test suites are defined declaratively in YAML
 2. Functions are generated from Handlebars templates with TEST_RUN_ID baked in
 3. Generated code has static exports that Firebase CLI can discover
@@ -33,27 +35,33 @@ This creates `integration_test_declarative/firebase-functions-local.tgz` which i
 ### Project Setup
 
 The integration tests require two Firebase projects:
+
 - **V1 Project**: For testing Firebase Functions v1 triggers
 - **V2 Project**: For testing Firebase Functions v2 triggers
 
 #### Default Projects (Firebase Team)
+
 The framework uses these projects by default:
+
 - V1: `functions-integration-tests`
 - V2: `functions-integration-tests-v2`
 
 #### Custom Projects (External Users)
+
 To use your own projects, you'll need to:
 
 1. **Create Firebase Projects**:
+
    ```bash
    # Create V1 project
    firebase projects:create your-v1-project-id
-   
-   # Create V2 project  
+
+   # Create V2 project
    firebase projects:create your-v2-project-id
    ```
 
 2. **Enable Required APIs**:
+
    ```bash
    # Enable APIs for both projects
    gcloud services enable cloudfunctions.googleapis.com --project=your-v1-project-id
@@ -66,40 +74,41 @@ To use your own projects, you'll need to:
    ```
 
 3. **Set Up Cloud Build Permissions** (if using Cloud Build):
+
    ```bash
    # Get your Cloud Build project number
    CLOUD_BUILD_PROJECT_NUMBER=$(gcloud projects describe YOUR_CLOUD_BUILD_PROJECT --format="value(projectNumber)")
-   
+
    # Grant permissions to your V1 project
    gcloud projects add-iam-policy-binding your-v1-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/cloudtasks.admin"
-   
+
    gcloud projects add-iam-policy-binding your-v1-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/cloudscheduler.admin"
-   
+
    gcloud projects add-iam-policy-binding your-v1-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/cloudtestservice.testAdmin"
-   
+
    gcloud projects add-iam-policy-binding your-v1-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/firebase.admin"
-   
+
    # Repeat for your V2 project
    gcloud projects add-iam-policy-binding your-v2-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/cloudtasks.admin"
-   
+
    gcloud projects add-iam-policy-binding your-v2-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/cloudscheduler.admin"
-   
+
    gcloud projects add-iam-policy-binding your-v2-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/cloudtestservice.testAdmin"
-   
+
    gcloud projects add-iam-policy-binding your-v2-project-id \
      --member="serviceAccount:${CLOUD_BUILD_PROJECT_NUMBER}@cloudbuild.gserviceaccount.com" \
      --role="roles/firebase.admin"
@@ -142,11 +151,13 @@ The configuration is automatically used by auth tests and no additional setup is
 ### Auth Blocking Functions Limitation
 
 Firebase has a limitation where **only ONE blocking auth function can be deployed per project at any time**. This means:
+
 - You cannot deploy `beforeCreate` and `beforeSignIn` together
 - You cannot run these tests in parallel with other test runs
 - Each blocking function must be tested separately
 
 To work around this:
+
 - `npm run test:v1:all` - Runs all v1 tests with non-blocking auth functions only (onCreate, onDelete)
 - `npm run test:v1:auth-before-create` - Tests ONLY the beforeCreate blocking function (run separately)
 - `npm run test:v1:auth-before-signin` - Tests ONLY the beforeSignIn blocking function (run separately)
@@ -190,6 +201,7 @@ integration_test_declarative/
 ### 1. Suite Definition (YAML)
 
 Each test suite is defined in a YAML file specifying:
+
 - Project ID for deployment
 - Functions to generate
 - Trigger types and paths
@@ -208,6 +220,7 @@ suite:
 ### 2. SDK Preparation
 
 The Firebase Functions SDK is packaged once:
+
 - Built from source in the parent directory
 - Packed as `firebase-functions-local.tgz`
 - Copied into each generated/functions directory during generation
@@ -218,6 +231,7 @@ This ensures the SDK is available during both local builds and Firebase cloud de
 ### 3. Code Generation
 
 The `generate.js` script:
+
 - Reads the suite YAML configuration from config/v1/ or config/v2/
 - Generates a unique TEST_RUN_ID
 - Applies Handlebars templates with the configuration
@@ -229,6 +243,7 @@ Generated functions have names like: `firestoreDocumentOnCreateTeststoi5krf7a`
 ### 4. Deployment & Testing
 
 The `run-tests.js` script orchestrates:
+
 1. **Pack SDK**: Package the SDK once at the start (if not already done)
 2. **Generate**: Create function code from templates for each suite
 3. **Build**: Compile TypeScript to JavaScript
@@ -239,6 +254,7 @@ The `run-tests.js` script orchestrates:
 ### 5. Cleanup
 
 Functions and test data are automatically cleaned up:
+
 - After each suite completes (success or failure)
 - Generated directory is cleared and recreated
 - Deployed functions are deleted if deployment was successful
@@ -249,6 +265,7 @@ Functions and test data are automatically cleaned up:
 ### Running Tests
 
 #### Local Testing
+
 ```bash
 # Run all tests sequentially
 npm run test:all:sequential
@@ -269,6 +286,7 @@ npm run run-tests -- --filter=v2 --exclude=auth
 ```
 
 #### Cloud Build Testing
+
 ```bash
 # Run V1 tests in Cloud Build
 npm run cloudbuild:v1
@@ -283,13 +301,16 @@ npm run cloudbuild:all
 ```
 
 ### Generate Functions Only
+
 ```bash
 npm run generate <suite-name>
 ```
+
 - Generates function code without deployment
 - Useful for debugging templates
 
 ### Cleanup Functions
+
 ```bash
 # Clean up current test run
 npm run cleanup
@@ -308,6 +329,7 @@ npm run cleanup:list
 ### 1. Create Suite Configuration
 
 Create `config/suites/your_suite.yaml`:
+
 ```yaml
 suite:
   name: your_suite
@@ -340,14 +362,17 @@ Add test file mapping in the case statement (lines 175-199).
 ## Authentication
 
 ### Local Development
+
 Place your service account key at `sa.json` in the root directory. This file is git-ignored.
 
 ### Cloud Build
+
 Cloud Build uses Application Default Credentials (ADC) automatically. However, the Cloud Build service account requires specific permissions for the Google Cloud services used in tests:
 
 **Required IAM Roles for Cloud Build Service Account:**
+
 - `roles/cloudtasks.admin` - For Cloud Tasks integration tests
-- `roles/cloudscheduler.admin` - For Cloud Scheduler integration tests  
+- `roles/cloudscheduler.admin` - For Cloud Scheduler integration tests
 - `roles/cloudtestservice.testAdmin` - For Firebase Test Lab integration tests
 - `roles/firebase.admin` - For Firebase services (already included)
 - `roles/pubsub.publisher` - For Pub/Sub integration tests (already included)
@@ -357,6 +382,7 @@ Cloud Build uses Application Default Credentials (ADC) automatically. However, t
 Tests deploy to multiple projects (V1 tests to `functions-integration-tests`, V2 tests to `functions-integration-tests-v2`). Each Cloud Build runs on its own project, so **no cross-project permissions are needed**.
 
 **V1 Project Setup:**
+
 ```bash
 # Grant permissions to V1 project (functions-integration-tests)
 gcloud projects add-iam-policy-binding functions-integration-tests \
@@ -381,6 +407,7 @@ gcloud projects add-iam-policy-binding functions-integration-tests \
 ```
 
 **V2 Project Setup:**
+
 ```bash
 # Grant permissions to V2 project (functions-integration-tests-v2)
 gcloud projects add-iam-policy-binding functions-integration-tests-v2 \
@@ -411,18 +438,21 @@ Replace `CLOUD_BUILD_PROJECT_NUMBER` with the project number where Cloud Build r
 The integration tests use **separate Cloud Build configurations** for V1 and V2 tests to avoid cross-project permission complexity:
 
 **V1 Tests:**
+
 ```bash
 # Run V1 tests on functions-integration-tests project
 gcloud builds submit --config=integration_test/cloudbuild-v1.yaml --project=functions-integration-tests
 ```
 
 **V2 Tests:**
+
 ```bash
 # Run V2 tests on functions-integration-tests-v2 project
 gcloud builds submit --config=integration_test/cloudbuild-v2.yaml --project=functions-integration-tests-v2
 ```
 
 **Both Tests (Parallel):**
+
 ```bash
 # Run both V1 and V2 tests simultaneously
 gcloud builds submit --config=integration_test/cloudbuild-v1.yaml --project=functions-integration-tests &
@@ -435,34 +465,39 @@ wait
 To use your own projects, edit the YAML configuration files:
 
 1. **Edit V1 project ID**: Update `config/v1/suites.yaml`:
+
    ```yaml
    defaults:
      projectId: your-v1-project-id
    ```
 
 2. **Edit V2 project ID**: Update `config/v2/suites.yaml`:
+
    ```yaml
    defaults:
      projectId: your-v2-project-id
    ```
 
 3. **Run Cloud Build** (use the appropriate config for your target project):
+
    ```bash
    # For V1 tests
    gcloud builds submit --config=integration_test/cloudbuild-v1.yaml
-   
-   # For V2 tests  
+
+   # For V2 tests
    gcloud builds submit --config=integration_test/cloudbuild-v2.yaml
    ```
 
 **Default behavior (Firebase team):**
 The YAML files are pre-configured with:
+
 - V1 tests: `functions-integration-tests`
 - V2 tests: `functions-integration-tests-v2`
 
 ## Test Isolation
 
 Each test run gets a unique TEST_RUN_ID that:
+
 - Is embedded in function names at generation time
 - Isolates test data in collections/paths
 - Enables parallel test execution
@@ -473,53 +508,60 @@ Format: `t_<timestamp>_<random>` (e.g., `t_1757979490_xkyqun`)
 ## Troubleshooting
 
 ### SDK Tarball Not Found
+
 - Run `npm run pack-for-integration-tests` from the root firebase-functions directory
 - This creates `integration_test_declarative/firebase-functions-local.tgz`
 - The SDK is packed once and reused for all suites
 
 ### Functions Not Deploying
+
 - Check that the SDK tarball exists and was copied to generated/functions/
 - Verify project ID in suite YAML configuration
 - Ensure Firebase CLI is authenticated: `firebase projects:list`
 - Check deployment logs for specific errors
 
 ### Deployment Fails with "File not found" Error
+
 - The SDK tarball must be in generated/functions/ directory
 - Package.json should reference `file:firebase-functions-local.tgz` (local path)
 - Run `npm run generate <suite>` to regenerate with correct paths
 
 ### Tests Failing
+
 - Verify `sa.json` exists in integration_test_declarative/ directory
 - Check that functions deployed successfully: `firebase functions:list --project <project-id>`
 - Ensure TEST_RUN_ID environment variable is set
 - Check test logs in logs/ directory
 
 ### Permission Errors in Cloud Build
+
 If you see authentication errors like "Could not refresh access token" or "Permission denied":
+
 - Verify Cloud Build service account has required IAM roles on all target projects
 - Check project numbers: `gcloud projects describe PROJECT_ID --format="value(projectNumber)"`
 - Grant missing permissions to each target project:
+
   ```bash
   # For Cloud Tasks
   gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
     --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
     --role="roles/cloudtasks.admin"
-  
-  # For Cloud Scheduler  
+
+  # For Cloud Scheduler
   gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
     --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
     --role="roles/cloudscheduler.admin"
-  
+
   # For Test Lab
   gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
     --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
     --role="roles/cloudtestservice.testAdmin"
-  
+
   # For Firebase services
   gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
     --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
     --role="roles/firebase.admin"
-  
+
   # For Service Account User (required for Functions deployment)
   gcloud projects add-iam-policy-binding TARGET_PROJECT_ID \
     --member="serviceAccount:CLOUD_BUILD_PROJECT_NUMBER@cloudbuild.gserviceaccount.com" \
@@ -527,6 +569,7 @@ If you see authentication errors like "Could not refresh access token" or "Permi
   ```
 
 ### Cleanup Issues
+
 - Use `npm run cleanup:list` to find orphaned test runs
 - Manual cleanup: `firebase functions:delete <function-name> --project <project-id> --force`
 - Check for leftover test functions: `firebase functions:list --project PROJECT_ID | grep Test`
@@ -550,6 +593,7 @@ If you see authentication errors like "Could not refresh access token" or "Permi
 ## Contributing
 
 To add support for new Firebase features:
+
 1. Add trigger templates in `config/templates/functions/`
 2. Update suite YAML schema as needed
 3. Add corresponding test files

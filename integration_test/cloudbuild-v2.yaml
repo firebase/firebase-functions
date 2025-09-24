@@ -2,18 +2,18 @@
 # Runs all V2 test suites sequentially to avoid rate limits
 
 options:
-  machineType: 'E2_HIGHCPU_8'
+  machineType: "E2_HIGHCPU_8"
   logging: CLOUD_LOGGING_ONLY
 
-timeout: '3600s'
+timeout: "3600s"
 
 steps:
   # Build SDK and run all V2 test suites sequentially
-  - name: 'node:20'
-    id: 'build-sdk-and-test-v2'
-    entrypoint: 'bash'
+  - name: "node:20"
+    id: "build-sdk-and-test-v2"
+    entrypoint: "bash"
     args:
-      - '-c'
+      - "-c"
       - |
         # Step 1: Build and pack the firebase-functions SDK from source
         echo "Building firebase-functions SDK from source..."
@@ -33,6 +33,8 @@ steps:
         # Install gcloud CLI for Cloud Tasks cleanup
         curl https://sdk.cloud.google.com | bash
         export PATH="$$PATH:/root/google-cloud-sdk/bin"
+        # Source the gcloud environment
+        source /root/google-cloud-sdk/path.bash.inc
         # Verify tools are installed
         firebase --version
         gcloud --version
@@ -45,6 +47,6 @@ steps:
 # Artifacts to store
 artifacts:
   objects:
-    location: 'gs://${PROJECT_ID}-test-results/${BUILD_ID}'
+    location: "gs://${PROJECT_ID}-test-results/${BUILD_ID}"
     paths:
-      - 'logs/**/*.log'
+      - "logs/**/*.log"
