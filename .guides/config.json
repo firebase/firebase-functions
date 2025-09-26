@@ -1,0 +1,9 @@
+{
+  "description": "A set of guides for Cloud Functions for Firebase.",
+  "mcpServers": {
+    "firebase": {
+      "command": "firebase",
+      "args": ["mcp:server"]
+    }
+  }
+}
