@@ -1,1 +1,0 @@
-- Add @deprecated annotation to callable functions's auth policy.

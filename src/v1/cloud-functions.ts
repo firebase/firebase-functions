@@ -104,8 +104,8 @@ export interface EventContext<Params = Record<string, string>> {
    * does not exist.
    */
   auth?: {
-    token: object;
     uid: string;
+    token: EventContextAuthToken;
     /** If available, the unparsed ID token. */
     rawToken?: string;
   };
@@ -207,6 +207,29 @@ export interface EventContext<Params = Record<string, string>> {
    * Timestamp for the event as an {@link https://www.ietf.org/rfc/rfc3339.txt | RFC 3339} string.
    */
   timestamp: string;
+}
+
+/**
+ * https://firebase.google.com/docs/reference/security/database#authtoken
+ */
+export interface EventContextAuthToken {
+  iss: string;
+  aud: string;
+  auth_time: number;
+  iat: number;
+  exp: number;
+  sub: string;
+  email?: string;
+  email_verified?: boolean;
+  phone_number?: string;
+  name?: string;
+  firebase?: {
+    identities?: {
+      [key: string]: string[];
+    };
+    sign_in_provider?: string;
+    tenant?: string;
+  };
 }
 
 /**
