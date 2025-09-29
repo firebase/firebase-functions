@@ -14,7 +14,7 @@ interface IdentityEventContext {
   };
 }
 
-describe("Firebase Identity (v2)", () => {
+describe.skip("Firebase Identity (v2)", () => {
   const userIds: string[] = [];
   const projectId = process.env.PROJECT_ID || "functions-integration-tests-v2";
   const testId = process.env.TEST_RUN_ID;

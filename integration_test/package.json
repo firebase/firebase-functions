@@ -20,11 +20,9 @@
     "cloudbuild:v1": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests",
     "cloudbuild:v2": "gcloud builds submit --config=cloudbuild-v2.yaml --project=functions-integration-tests-v2",
     "cloudbuild:both": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests & gcloud builds submit --config=cloudbuild-v2.yaml --project=functions-integration-tests-v2 & wait",
-    "cloudbuild:all": "npm run cloudbuild:both",
     "cleanup": "./scripts/cleanup-suite.sh",
     "cleanup:list": "./scripts/cleanup-suite.sh --list-artifacts",
-    "clean": "rm -rf generated/*",
-    "hard-reset": "./scripts/hard-reset.sh"
+    "clean": "rm -rf generated/*"
   },
   "dependencies": {
     "@google-cloud/pubsub": "^4.0.0",

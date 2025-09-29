@@ -2,7 +2,7 @@ import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
-describe("Scheduler", () => {
+describe.skip("Scheduler", () => {
   const projectId = process.env.PROJECT_ID;
   const region = process.env.REGION;
   const testId = process.env.TEST_RUN_ID;

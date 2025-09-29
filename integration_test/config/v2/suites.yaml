@@ -120,8 +120,10 @@ suites:
     functions:
       - name: identityBeforeUserCreatedTests
         type: beforeUserCreated
+        collection: identityBeforeUserCreatedTests
       - name: identityBeforeUserSignedInTests
         type: beforeUserSignedIn
+        collection: identityBeforeUserSignedInTests
 
   # EventArc triggers
   - name: v2_eventarc
@@ -139,36 +141,36 @@ suites:
     service: alerts
     functions:
       # Generic alert
-      - name: alertsOnAlertPublishedTests
+      - name: alertsGeneric
         trigger: onAlertPublished
         alertType: "crashlytics.newFatalIssue"
 
       # App Distribution alerts
-      - name: alertsOnInAppFeedbackPublishedTests
+      - name: alertsInAppFeedback
         trigger: onInAppFeedbackPublished
-      - name: alertsOnNewTesterIosDevicePublishedTests
+      - name: alertsNewTesterIos
         trigger: onNewTesterIosDevicePublished
 
       # Billing alerts
-      - name: alertsOnPlanAutomatedUpdatePublishedTests
+      - name: alertsPlanAutoUpdate
         trigger: onPlanAutomatedUpdatePublished
-      - name: alertsOnPlanUpdatePublishedTests
+      - name: alertsPlanUpdate
         trigger: onPlanUpdatePublished
 
       # Crashlytics alerts
-      - name: alertsOnNewAnrIssuePublishedTests
+      - name: alertsNewAnr
         trigger: onNewAnrIssuePublished
-      - name: alertsOnNewFatalIssuePublishedTests
+      - name: alertsNewFatal
         trigger: onNewFatalIssuePublished
-      - name: alertsOnNewNonFatalIssuePublishedTests
+      - name: alertsNewNonFatal
         trigger: onNewNonfatalIssuePublished
-      - name: alertsOnRegressionAlertPublishedTests
+      - name: alertsRegression
         trigger: onRegressionAlertPublished
-      - name: alertsOnStabilityDigestPublishedTests
+      - name: alertsStability
         trigger: onStabilityDigestPublished
-      - name: alertsOnVelocityAlertPublishedTests
+      - name: alertsVelocity
         trigger: onVelocityAlertPublished
 
       # Performance alerts
-      - name: alertsOnThresholdAlertPublishedTests
+      - name: alertsThreshold
         trigger: onThresholdAlertPublished

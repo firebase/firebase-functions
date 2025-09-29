@@ -27,7 +27,6 @@ const REGION = "{{region}}";
 {{#each functions}}
 {{#if (eq trigger "onAlertPublished")}}
 export const {{name}}{{../testRunId}} = onAlertPublished(
-  "{{alertType}}",
   {
     region: REGION,
     timeoutSeconds: {{timeout}}

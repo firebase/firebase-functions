@@ -30,7 +30,7 @@ Before running integration tests, ensure the Firebase Functions SDK is built and
 npm run pack-for-integration-tests
 ```
 
-This creates `integration_test_declarative/firebase-functions-local.tgz` which is used by all test suites.
+This creates `integration_test/firebase-functions-local.tgz` which is used by all test suites.
 
 ### Project Setup
 
@@ -164,10 +164,20 @@ To work around this:
 
 **Important**: Run the blocking function tests one at a time, and ensure no other test deployments are running.
 
+### V2 Identity Platform Tests (Currently Skipped)
+
+The v2_identity tests are currently skipped due to issues with Identity Platform blocking functions not triggering correctly in the test environment. These tests deploy successfully but the blocking functions (beforeUserCreated, beforeUserSignedIn) don't execute when users are created programmatically, possibly due to:
+
+- Missing Identity Platform configuration in the test project
+- Blocking functions requiring specific enablement steps
+- Test authentication method not triggering blocking functions
+
+These tests remain in the codebase but are marked with `describe.skip()` until the underlying issue is resolved.
+
 ## Architecture
 
 ```
-integration_test_declarative/
+integration_test/
 ├── config/
 │   ├── v1/
 │   │   └── suites.yaml   # All v1 suite definitions
@@ -296,8 +306,6 @@ npm run cloudbuild:v2
 
 # Run both V1 and V2 tests in parallel
 npm run cloudbuild:both
-# or
-npm run cloudbuild:all
 ```
 
 ### Generate Functions Only
@@ -349,9 +357,9 @@ Add templates in `config/templates/functions/` for new trigger types.
 
 Create `tests/your_suite.test.ts` with Jest tests.
 
-### 4. Update run-suite.sh
+### 4. Add Test File
 
-Add test file mapping in the case statement (lines 175-199).
+Create `tests/your_suite.test.ts` with Jest tests for your new suite.
 
 ## Environment Variables
 
@@ -363,7 +371,7 @@ Add test file mapping in the case statement (lines 175-199).
 
 ### Local Development
 
-Place your service account key at `sa.json` in the root directory. This file is git-ignored.
+Place your service account key at `sa.json` in the integration_test directory. This file is git-ignored.
 
 ### Cloud Build
 
@@ -510,7 +518,7 @@ Format: `t_<timestamp>_<random>` (e.g., `t_1757979490_xkyqun`)
 ### SDK Tarball Not Found
 
 - Run `npm run pack-for-integration-tests` from the root firebase-functions directory
-- This creates `integration_test_declarative/firebase-functions-local.tgz`
+- This creates `integration_test/firebase-functions-local.tgz`
 - The SDK is packed once and reused for all suites
 
 ### Functions Not Deploying
@@ -528,7 +536,7 @@ Format: `t_<timestamp>_<random>` (e.g., `t_1757979490_xkyqun`)
 
 ### Tests Failing
 
-- Verify `sa.json` exists in integration_test_declarative/ directory
+- Verify `sa.json` exists in integration_test/ directory
 - Check that functions deployed successfully: `firebase functions:list --project <project-id>`
 - Ensure TEST_RUN_ID environment variable is set
 - Check test logs in logs/ directory
