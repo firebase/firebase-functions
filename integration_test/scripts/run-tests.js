@@ -28,9 +28,9 @@ const SA_JSON_PATH = join(ROOT_DIR, "sa.json");
 
 // Default configurations
 const DEFAULT_REGION = "us-central1";
-const MAX_DEPLOY_ATTEMPTS = 3;
-const DEFAULT_BASE_DELAY = 5000; // Base delay in ms (5 seconds)
-const DEFAULT_MAX_DELAY = 60000; // Max delay in ms (60 seconds)
+const MAX_DEPLOY_ATTEMPTS = 5;
+const DEFAULT_BASE_DELAY = 30000; // Base delay in ms (30 seconds)
+const DEFAULT_MAX_DELAY = 120000; // Max delay in ms (120 seconds/2 minutes)
 
 class TestRunner {
   constructor(options = {}) {
@@ -553,6 +553,9 @@ class TestRunner {
     }
 
     for (const functionName of functions) {
+      let deleted = false;
+
+      // Try Firebase CLI first
       try {
         await this.exec(
           `firebase functions:delete ${functionName} --project ${metadata.projectId} --region ${
@@ -560,18 +563,44 @@ class TestRunner {
           } --force`,
           { silent: true }
         );
-        this.log(`   Deleted function: ${functionName}`);
+        this.log(`   ✅ Deleted function via Firebase CLI: ${functionName}`, "success");
+        deleted = true;
       } catch (error) {
-        // Try gcloud as fallback
-        try {
-          await this.exec(
-            `gcloud functions delete ${functionName} --region=${
-              metadata.region || DEFAULT_REGION
-            } --project=${metadata.projectId} --quiet`,
-            { silent: true }
-          );
-        } catch (e) {
-          // Ignore cleanup errors
+        this.log(`   ⚠️ Firebase CLI delete failed for ${functionName}: ${error.message}`, "warn");
+
+        // For v2 functions, if Firebase fails (likely due to missing scheduler job),
+        // try to delete the Cloud Run service directly
+        if (metadata.projectId === "functions-integration-tests-v2") {
+          this.log(`   Attempting Cloud Run service deletion for v2 function...`, "warn");
+          try {
+            await this.exec(
+              `gcloud run services delete ${functionName} --region=${
+                metadata.region || DEFAULT_REGION
+              } --project=${metadata.projectId} --quiet`,
+              { silent: true }
+            );
+            this.log(`   ✅ Deleted function as Cloud Run service: ${functionName}`, "success");
+            deleted = true;
+          } catch (runError) {
+            this.log(`   ⚠️ Cloud Run delete failed: ${runError.message}`, "warn");
+          }
+        }
+
+        // If still not deleted, try gcloud functions delete as last resort
+        if (!deleted) {
+          try {
+            await this.exec(
+              `gcloud functions delete ${functionName} --region=${
+                metadata.region || DEFAULT_REGION
+              } --project=${metadata.projectId} --quiet`,
+              { silent: true }
+            );
+            this.log(`   ✅ Deleted function via gcloud: ${functionName}`, "success");
+            deleted = true;
+          } catch (e) {
+            this.log(`   ❌ Failed to delete function ${functionName} via any method`, "error");
+            this.log(`   Last error: ${e.message}`, "error");
+          }
         }
       }
     }
@@ -705,15 +734,14 @@ class TestRunner {
     this.log("🧹 Checking for existing test functions...", "warn");
 
     // Determine which project(s) to clean up based on the filter
-    const { getProjectIds } = await import("./generate.js");
-    const projectIds = getProjectIds();
+    const projectIds = this.getProjectIds();
 
     let projectsToCheck = [];
     if (this.filter.includes("v1") || (!this.filter && !this.exclude)) {
-      projectsToCheck.push(projectIds.v1);
+      projectsToCheck.push(projectIds.v1ProjectId);
     }
     if (this.filter.includes("v2") || (!this.filter && !this.exclude)) {
-      projectsToCheck.push(projectIds.v2);
+      projectsToCheck.push(projectIds.v2ProjectId);
     }
 
     // If no filter, check both projects
@@ -736,12 +764,14 @@ class TestRunner {
 
         for (const line of lines) {
           // Look for table rows with function names (containing │)
-          if (line.includes("│") && line.includes("Test")) {
+          // Skip header rows and empty lines
+          if (line.includes("│") && !line.includes("Function") && !line.includes("────")) {
             const parts = line.split("│");
             if (parts.length >= 2) {
               const functionName = parts[1].trim();
-              // Check if it's a test function (contains Test + test run ID pattern)
-              if (functionName.match(/Test.*t[a-z0-9]{7,10}/)) {
+              // Add ALL functions for cleanup (not just test functions)
+              // This ensures a clean slate for testing
+              if (functionName && functionName.length > 0) {
                 testFunctions.push(functionName);
               }
             }
@@ -750,7 +780,7 @@ class TestRunner {
 
         if (testFunctions.length > 0) {
           this.log(
-            `   Found ${testFunctions.length} test function(s) in ${projectId}. Cleaning up...`,
+            `   Found ${testFunctions.length} function(s) in ${projectId}. Cleaning up ALL functions...`,
             "warn"
           );
 
@@ -789,7 +819,7 @@ class TestRunner {
             }
           }
         } else {
-          this.log(`   ✅ No test functions found in ${projectId}`, "success");
+          this.log(`   ✅ No functions found in ${projectId}`, "success");
         }
       } catch (e) {
         this.log(`   ⚠️  Could not check functions in ${projectId}: ${e.message}`, "warn");
@@ -814,15 +844,14 @@ class TestRunner {
     this.log("   Checking for orphaned Cloud Tasks queues...", "warn");
 
     // Determine which project(s) to clean up based on the filter
-    const { getProjectIds } = await import("./generate.js");
-    const projectIds = getProjectIds();
+    const projectIds = this.getProjectIds();
 
     let projectsToCheck = [];
     if (this.filter.includes("v1") || (!this.filter && !this.exclude)) {
-      projectsToCheck.push(projectIds.v1);
+      projectsToCheck.push(projectIds.v1ProjectId);
     }
     if (this.filter.includes("v2") || (!this.filter && !this.exclude)) {
-      projectsToCheck.push(projectIds.v2);
+      projectsToCheck.push(projectIds.v2ProjectId);
     }
 
     // If no filter, check both projects
@@ -954,7 +983,8 @@ class TestRunner {
     }
 
     // Run each suite
-    for (const suite of suiteNames) {
+    for (let i = 0; i < suiteNames.length; i++) {
+      const suite = suiteNames[i];
       await this.runSuite(suite);
       this.log("");
     }

@@ -17,6 +17,8 @@ steps:
       - |
         # Step 1: Build and pack the firebase-functions SDK from source
         echo "Building firebase-functions SDK from source..."
+        pwd
+        ls -la
         npm ci
         npm run build
         npm pack
@@ -30,14 +32,13 @@ steps:
         npm ci
         # Install firebase-tools globally
         npm install -g firebase-tools
-        # Install gcloud CLI for Cloud Tasks cleanup
-        curl https://sdk.cloud.google.com | bash
-        export PATH="$$PATH:/root/google-cloud-sdk/bin"
-        # Source the gcloud environment
-        source /root/google-cloud-sdk/path.bash.inc
+        # gcloud is pre-installed in Cloud Build, just set the project
+        gcloud config set project functions-integration-tests-v2
         # Verify tools are installed
         firebase --version
         gcloud --version
+        # Verify gcloud project is set correctly
+        gcloud config get-value project
         # V2 tests use functions-integration-tests-v2 project
         echo "Running V2 tests on project: functions-integration-tests-v2"
         # Use Application Default Credentials (Cloud Build service account)
