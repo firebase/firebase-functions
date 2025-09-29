@@ -560,16 +560,38 @@ class TestRunner {
         await this.exec(
           `firebase functions:delete ${functionName} --project ${metadata.projectId} --region ${
             metadata.region || DEFAULT_REGION
-          } --force`,
-          { silent: true }
+          } --force`
         );
-        this.log(`   ✅ Deleted function via Firebase CLI: ${functionName}`, "success");
-        deleted = true;
+
+        // Verify the function was actually deleted
+        this.log(`   Verifying deletion of ${functionName}...`, "info");
+        try {
+          const listResult = await this.exec(
+            `firebase functions:list --project ${metadata.projectId}`,
+            { silent: true }
+          );
+
+          // Check if function still exists in the list
+          const functionStillExists = listResult.stdout.includes(functionName);
+
+          if (!functionStillExists) {
+            this.log(`   ✅ Verified: Function deleted via Firebase CLI: ${functionName}`, "success");
+            deleted = true;
+          } else {
+            this.log(`   ⚠️ Function still exists after Firebase CLI delete: ${functionName}`, "warn");
+          }
+        } catch (listError) {
+          // If we can't list functions, assume deletion worked
+          this.log(`   ✅ Deleted function via Firebase CLI (unverified): ${functionName}`, "success");
+          deleted = true;
+        }
       } catch (error) {
         this.log(`   ⚠️ Firebase CLI delete failed for ${functionName}: ${error.message}`, "warn");
+      }
 
-        // For v2 functions, if Firebase fails (likely due to missing scheduler job),
-        // try to delete the Cloud Run service directly
+      // If not deleted yet, try alternative methods
+      if (!deleted) {
+        // For v2 functions, try to delete the Cloud Run service directly
         if (metadata.projectId === "functions-integration-tests-v2") {
           this.log(`   Attempting Cloud Run service deletion for v2 function...`, "warn");
           try {
@@ -579,8 +601,22 @@ class TestRunner {
               } --project=${metadata.projectId} --quiet`,
               { silent: true }
             );
-            this.log(`   ✅ Deleted function as Cloud Run service: ${functionName}`, "success");
-            deleted = true;
+
+            // Verify deletion
+            try {
+              await this.exec(
+                `gcloud run services describe ${functionName} --region=${
+                  metadata.region || DEFAULT_REGION
+                } --project=${metadata.projectId}`,
+                { silent: true }
+              );
+              // If describe succeeds, function still exists
+              this.log(`   ⚠️ Cloud Run service still exists after deletion: ${functionName}`, "warn");
+            } catch {
+              // If describe fails, function was deleted
+              this.log(`   ✅ Deleted function as Cloud Run service: ${functionName}`, "success");
+              deleted = true;
+            }
           } catch (runError) {
             this.log(`   ⚠️ Cloud Run delete failed: ${runError.message}`, "warn");
           }
@@ -595,8 +631,23 @@ class TestRunner {
               } --project=${metadata.projectId} --quiet`,
               { silent: true }
             );
-            this.log(`   ✅ Deleted function via gcloud: ${functionName}`, "success");
-            deleted = true;
+
+            // Verify deletion
+            try {
+              await this.exec(
+                `gcloud functions describe ${functionName} --region=${
+                  metadata.region || DEFAULT_REGION
+                } --project=${metadata.projectId}`,
+                { silent: true }
+              );
+              // If describe succeeds, function still exists
+              this.log(`   ⚠️ Function still exists after gcloud delete: ${functionName}`, "warn");
+              deleted = false;
+            } catch {
+              // If describe fails, function was deleted
+              this.log(`   ✅ Deleted function via gcloud: ${functionName}`, "success");
+              deleted = true;
+            }
           } catch (e) {
             this.log(`   ❌ Failed to delete function ${functionName} via any method`, "error");
             this.log(`   Last error: ${e.message}`, "error");
