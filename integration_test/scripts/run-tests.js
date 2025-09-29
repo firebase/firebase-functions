@@ -989,6 +989,10 @@ class TestRunner {
       // Deploy functions
       await this.deployFunctions();
 
+      // Wait for functions to become fully available
+      this.log("⏳ Waiting 20 seconds for functions to become fully available...", "info");
+      await new Promise(resolve => setTimeout(resolve, 20000));
+
       // Run tests
       await this.runTests([suiteName]);
 
@@ -1094,6 +1098,10 @@ class TestRunner {
           // Deploy functions
           await this.deployFunctions();
 
+          // Wait for functions to become fully available
+          this.log("⏳ Waiting 20 seconds for functions to become fully available...", "info");
+          await new Promise(resolve => setTimeout(resolve, 20000));
+
           // Run tests for this project's suites
           await this.runTests(projectSuites);
 
@@ -1114,6 +1122,10 @@ class TestRunner {
 
         // Deploy functions
         await this.deployFunctions();
+
+        // Wait for functions to become fully available
+        this.log("⏳ Waiting 20 seconds for functions to become fully available...", "info");
+        await new Promise(resolve => setTimeout(resolve, 20000));
 
         // Run tests
         await this.runTests(suiteNames);
