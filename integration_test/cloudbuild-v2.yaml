@@ -8,6 +8,23 @@ options:
 timeout: "3600s"
 
 steps:
+  # Create storage bucket for test results if it doesn't exist
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:stable"
+    id: "create-bucket"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        # Create bucket for test results if it doesn't exist
+        BUCKET_NAME="gs://functions-integration-tests-v2-test-results"
+        echo "Checking if bucket $$BUCKET_NAME exists..."
+        if ! gsutil ls "$$BUCKET_NAME" &>/dev/null; then
+          echo "Creating bucket $$BUCKET_NAME..."
+          gsutil mb -p "functions-integration-tests-v2" "$$BUCKET_NAME"
+        else
+          echo "Bucket $$BUCKET_NAME already exists"
+        fi
+
   # Build SDK and run all V2 test suites sequentially
   # Using the official Google Cloud SDK image which includes gcloud pre-installed
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:stable"
@@ -58,6 +75,6 @@ steps:
 # Artifacts to store
 artifacts:
   objects:
-    location: "gs://${PROJECT_ID}-test-results/${BUILD_ID}"
+    location: "gs://functions-integration-tests-v2-test-results/${BUILD_ID}"
     paths:
       - "logs/**/*.log"
