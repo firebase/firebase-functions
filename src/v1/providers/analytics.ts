@@ -179,8 +179,34 @@ export class UserDimensions {
     // The following fields do need transformations of some sort.
     copyTimestampToString(wireFormat, this, "firstOpenTimestampMicros", "firstOpenTime");
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, "userProperties", (r) => {
-      const entries = Object.entries(r).map(([k, v]) => [k, new UserPropertyValue(v)]);
+    copyField(wireFormat, this, "userProperties", (r: unknown) => {
+      const entries = Object.entries(r as Record<string, unknown>)
+        .filter(([, v]) => {
+          if (v === null || v === undefined) {
+            return false;
+          }
+          if (typeof v !== "object") {
+            return false;
+          }
+          const vObj = v as Record<string, unknown>;
+          // Filter out empty objects
+          if (Object.keys(vObj).length === 0) {
+            return false;
+          }
+          // Filter if 'value' property exists but is null/undefined/empty object
+          if ("value" in vObj) {
+            const value = vObj.value;
+            if (
+              value === null ||
+              value === undefined ||
+              (typeof value === "object" && value !== null && Object.keys(value).length === 0)
+            ) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .map(([k, v]) => [k, new UserPropertyValue(v)]);
       return Object.fromEntries(entries);
     });
     copyField(wireFormat, this, "bundleInfo", (r) => new ExportBundleInfo(r) as any);
@@ -454,9 +480,20 @@ function mapKeys<Obj, Transform extends (key: keyof Obj) => any>(
 // method always returns a string, similarly to avoid loss of precision, unlike the less-conservative
 // 'unwrapValue' method just below.
 /** @hidden */
-function unwrapValueAsString(wrapped: any): string {
-  const key: string = Object.keys(wrapped)[0];
-  return wrapped[key].toString();
+function unwrapValueAsString(wrapped: unknown): string {
+  if (!wrapped || typeof wrapped !== "object") {
+    return "";
+  }
+  const keys = Object.keys(wrapped);
+  if (keys.length === 0) {
+    return "";
+  }
+  const key: string = keys[0];
+  const value = (wrapped as Record<string, unknown>)[key];
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return value.toString();
 }
 
 // Ditto as the method above, but returning the values in the idiomatic JavaScript type (string for strings,
