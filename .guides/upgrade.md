@@ -4,9 +4,10 @@ This guide provides a step-by-step process for migrating a single Cloud Function
 
 ## 1. Identify a 1st-gen function to upgrade
 
-Find all 1st-gen functions in the directory. 1st-gen functions used a namespaced API like this: 
+Find all 1st-gen functions in the directory. 1st-gen functions used a namespaced API like this:
 
 **Before (1st Gen):**
+
 ```typescript
 import * as functions from "firebase-functions";
 
@@ -28,8 +29,9 @@ Ensure your `firebase-functions` and `firebase-admin` SDKs are up-to-date, and y
 Update your import statements to use the top-level modules.
 
 **After (2nd Gen):**
+
 ```typescript
-import {onRequest} from "firebase-functions/https";
+import { onRequest } from "firebase-functions/https";
 ```
 
 ## 4. Update Trigger Definition
@@ -37,6 +39,7 @@ import {onRequest} from "firebase-functions/https";
 The SDK is now more modular. Update your trigger definition accordingly.
 
 **After (2nd Gen):**
+
 ```typescript
 export const webhook = onRequest((request, response) => {
   // ...
@@ -48,6 +51,7 @@ Here are other examples of trigger changes:
 ### Callable Triggers
 
 **Before (1st Gen):**
+
 ```typescript
 export const getprofile = functions.https.onCall((data, context) => {
   // ...
@@ -55,8 +59,9 @@ export const getprofile = functions.https.onCall((data, context) => {
 ```
 
 **After (2nd Gen):**
+
 ```typescript
-import {onCall} from "firebase-functions/https";
+import { onCall } from "firebase-functions/https";
 
 export const getprofile = onCall((request) => {
   // ...
@@ -66,6 +71,7 @@ export const getprofile = onCall((request) => {
 ### Background Triggers (Pub/Sub)
 
 **Before (1st Gen):**
+
 ```typescript
 export const hellopubsub = functions.pubsub.topic("topic-name").onPublish((message) => {
   // ...
@@ -73,8 +79,9 @@ export const hellopubsub = functions.pubsub.topic("topic-name").onPublish((messa
 ```
 
 **After (2nd Gen):**
+
 ```typescript
-import {onMessagePublished} from "firebase-functions/pubsub";
+import { onMessagePublished } from "firebase-functions/pubsub";
 
 export const hellopubsub = onMessagePublished("topic-name", (event) => {
   // ...
@@ -86,6 +93,7 @@ export const hellopubsub = onMessagePublished("topic-name", (event) => {
 Migrate from `functions.config()` to the new `params` module for environment configuration.
 
 **Before (`.runtimeconfig.json`):**
+
 ```json
 {
   "someservice": {
@@ -93,7 +101,9 @@ Migrate from `functions.config()` to the new `params` module for environment con
   }
 }
 ```
+
 **And in code (1st Gen):**
+
 ```typescript
 const SKEY = functions.config().someservice.key;
 ```
@@ -102,19 +112,23 @@ const SKEY = functions.config().someservice.key;
 Define params in your code and set their values during deployment.
 
 **In `index.ts`:**
+
 ```typescript
-import {defineString} from "firebase-functions/params";
+import { defineString } from "firebase-functions/params";
 
 const SOMESERVICE_KEY = defineString("SOMESERVICE_KEY");
 ```
+
 Use `SOMESERVICE_KEY.value()` to access the value. For secrets like API keys, use `defineSecret`.
 
 **In `index.ts`:**
+
 ```typescript
-import {defineSecret} from "firebase-functions/params";
+import { defineSecret } from "firebase-functions/params";
 
 const SOMESERVICE_KEY = defineSecret("SOMESERVICE_KEY");
 ```
+
 You will be prompted to set the value on deployment, which is stored securely in Cloud Secret Manager.
 
 ## 6. Update Runtime Options
@@ -122,6 +136,7 @@ You will be prompted to set the value on deployment, which is stored securely in
 Runtime options are now set directly within the function definition.
 
 **Before (1st Gen):**
+
 ```typescript
 export const func = functions
   .runWith({
@@ -134,8 +149,9 @@ export const func = functions
 ```
 
 **After (2nd Gen):**
+
 ```typescript
-import {onRequest} from "firebase-functions/https";
+import { onRequest } from "firebase-functions/https";
 
 export const func = onRequest(
   {
@@ -153,6 +169,7 @@ export const func = onRequest(
 Tell the user these steps to migrate safely:
 
 > To migrate traffic safely:
+>
 > 1.  Rename your new 2nd gen function with a different name.
 > 2.  Comment out any existing `minInstances` or `maxInstances` config and instead set `maxInstances` to `1` while testing.
 > 3.  Deploy it alongside the old 1st gen function.
