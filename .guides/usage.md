@@ -66,16 +66,14 @@ To interact with Firebase services like Firestore, Auth, or RTDB from within you
 ```typescript
 import { onRequest, onCall, onCallGenkit } from "firebase-functions/https";
 import { onDocumentUpdated } from "firebase-functions/firestore";
-import {
-  onNewFatalIssuePublished,
-} from "firebase-functions/alerts/crashlytics";
+import { onNewFatalIssuePublished } from "firebase-functions/alerts/crashlytics";
 import { onValueWritten } from "firebase-functions/database";
 import { onSchedule } from "firebase-functions/scheduler";
-const {onTaskDispatched} = require("firebase-functions/tasks");
+const { onTaskDispatched } = require("firebase-functions/tasks");
 import { onObjectFinalized } from "firebase-functions/storage";
 import { onMessagePublished } from "firebase-functions/pubsub";
 import { beforeUserSignedIn } from "firebase-functions/identity";
-import {onTestMatrixCompleted} from "firebase-functions/testLab";
+import { onTestMatrixCompleted } from "firebase-functions/testLab";
 import { logger, onInit } from "firebase-functions";
 import { defineString, defineSecret } from "firebase-functions/params";
 ```
