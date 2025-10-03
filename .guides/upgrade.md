@@ -175,4 +175,4 @@ A human should follow these steps to migrate safely:
 > 3.  Deploy it alongside the old 1st gen function.
 > 4.  Gradually introduce traffic to the new function (e.g., via client-side changes or by calling it from the 1st gen function).
 > 5.  As traffic ramps up to the new 2nd gen function, scale it up by adding back the original `minInstances` and `maxInstances` settings to the 2nd gen function. Reduce the `minInstances` and `maxInstances` settings for the 1st gen function as traffic decreases.
-> 6.  Once you are confident, you can delete the 1st gen function.
+> 6.  The 1st gen function can be deleted once it has stopped receiving traffic.
