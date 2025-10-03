@@ -1,9 +1,9 @@
 ## Key Guidelines
 
 - Always use 2nd-gen functions for new development.
-- Use 1st-gen functions _only_ for Analytics and basic Auth triggers.
+- Use 1st-gen functions _only_ for Analytics and basic Auth triggers, since those aren't supported by 2nd gen.
 - Use `firebase-functions` SDK version 6.0.0 and above
-- Use top-level imports (e.g., `firebase-functions/https`). These are 2nd gen by default.
+- Use top-level imports (e.g., `firebase-functions/https`). These are 2nd gen by default. If 1st gen is required (Analytics or basic Auth triggers), import from the `firebase-functions/v1` import path.
 
 ## Configuration: Use Secret Params for API Keys
 
@@ -30,7 +30,7 @@ export const callLlm = onRequest({ secrets: [LLM_API_KEY] }, async (req, res) =>
 });
 ```
 
-When you deploy a function with `secrets`, the CLI will prompt you to enter the secret's value. Alternatively, a human can set the secret using the Firebase CLI command:
+The CLI will prompt for secret's value at deploy time. Alternatively, a human can set the secret using the Firebase CLI command:
 
 ```bash
 firebase functions:secrets:set <SECRET_NAME>
