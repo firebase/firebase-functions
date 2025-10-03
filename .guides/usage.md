@@ -30,7 +30,11 @@ export const callLlm = onRequest({ secrets: [LLM_API_KEY] }, async (req, res) =>
 });
 ```
 
-When you deploy a function with `secrets`, the CLI will prompt you to enter the secret's value.
+When you deploy a function with `secrets`, the CLI will prompt you to enter the secret's value. Alternatively, you can instruct the user to set the secret using the Firebase CLI command:
+
+```bash
+firebase functions:secrets:set <SECRET_NAME>
+```
 
 If you see an API key being accessed with `functions.config` in the user's code, instruct them to upgrade to params.
 
