@@ -1,46 +1,47 @@
-# Upgrading Firebase Functions to 2nd Gen
+# Upgrading a Firebase Function to 2nd Gen
 
-This guide summarizes the process of migrating Cloud Functions from 1st to 2nd generation. You can migrate functions incrementally, running both generations side-by-side.
+This guide provides a step-by-step process for migrating a single Cloud Function from 1st to 2nd generation. Migrate functions incrementally, running both generations side-by-side.
 
-## 1. Update Dependencies
+## 1. Identify a v1 function to upgrade
 
-Update your `firebase-functions` and `firebase-admin` SDKs, and ensure you are using a recent version of the Firebase CLI.
-
-## 2. Modify Imports
-
-Update your import statements to use the `v2` subpackage.
+Let's say you have a 1st gen HTTP function like this:
 
 **Before (1st Gen):**
 ```typescript
 import * as functions from "firebase-functions";
-```
 
-**After (2nd Gen):**
-```typescript
-import * as functions from "firebase-functions/v2";
-```
-
-## 3. Update Trigger Definitions
-
-The SDK is now more modular. Update your trigger definitions accordingly.
-
-### HTTP Triggers
-
-**Before (1st Gen):**
-```typescript
 export const webhook = functions.https.onRequest((request, response) => {
   // ...
 });
 ```
 
+Now, let's upgrade it to 2nd gen.
+
+## 2. Update Dependencies
+
+Ensure your `firebase-functions` and `firebase-admin` SDKs are up-to-date, and you are using a recent version of the Firebase CLI.
+
+## 3. Modify Imports
+
+Update your import statements to use the top-level modules.
+
 **After (2nd Gen):**
 ```typescript
-import {onRequest} from "firebase-functions/v2/https";
+import {onRequest} from "firebase-functions/https";
+```
 
+## 4. Update Trigger Definition
+
+The SDK is now more modular. Update your trigger definition accordingly.
+
+**After (2nd Gen):**
+```typescript
 export const webhook = onRequest((request, response) => {
   // ...
 });
 ```
+
+Here are other examples of trigger changes:
 
 ### Callable Triggers
 
@@ -53,7 +54,7 @@ export const getprofile = functions.https.onCall((data, context) => {
 
 **After (2nd Gen):**
 ```typescript
-import {onCall} from "firebase-functions/v2/https";
+import {onCall} from "firebase-functions/https";
 
 export const getprofile = onCall((request) => {
   // ...
@@ -64,23 +65,23 @@ export const getprofile = onCall((request) => {
 
 **Before (1st Gen):**
 ```typescript
-export consthellopubsub = functions.pubsub.topic("topic-name").onPublish((message) => {
+export const hellopubsub = functions.pubsub.topic("topic-name").onPublish((message) => {
   // ...
 });
 ```
 
 **After (2nd Gen):**
 ```typescript
-import {onMessagePublished} from "firebase-functions/v2/pubsub";
+import {onMessagePublished} from "firebase-functions/pubsub";
 
-export consthellopubsub = onMessagePublished("topic-name", (event) => {
+export const hellopubsub = onMessagePublished("topic-name", (event) => {
   // ...
 });
 ```
 
-## 4. Use Parameterized Configuration
+## 5. Use Parameterized Configuration
 
-Migrate from `functions.config()` to the new `params` module for environment configuration. This provides strong typing and validation.
+Migrate from `functions.config()` to the new `params` module for environment configuration.
 
 **Before (`.runtimeconfig.json`):**
 ```json
@@ -114,7 +115,7 @@ const SOMESERVICE_KEY = defineSecret("SOMESERVICE_KEY");
 ```
 You will be prompted to set the value on deployment, which is stored securely in Cloud Secret Manager.
 
-## 5. Update Runtime Options
+## 6. Update Runtime Options
 
 Runtime options are now set directly within the function definition.
 
@@ -132,7 +133,7 @@ export const func = functions
 
 **After (2nd Gen):**
 ```typescript
-import {onRequest} from "firebase-functions/v2/https";
+import {onRequest} from "firebase-functions/https";
 
 export const func = onRequest(
   {
@@ -145,10 +146,12 @@ export const func = onRequest(
 );
 ```
 
-## 6. Traffic Migration
+## 7. Traffic Migration
 
 To migrate traffic safely:
 1.  Rename your new 2nd gen function with a different name.
-2.  Deploy it alongside the old 1st gen function.
-3.  Gradually introduce traffic to the new function (e.g., via client-side changes or by calling it from the 1st gen function).
-4.  Once you are confident, you can delete the 1st gen function.
+2.  Comment out any existing `minInstances` or `maxInstances` config and instead set `maxInstances` to `1` while testing.
+3.  Deploy it alongside the old 1st gen function.
+4.  Gradually introduce traffic to the new function (e.g., via client-side changes or by calling it from the 1st gen function).
+5.  Add back the original `minInstances` and `maxInstances` settings to the 2nd gen function.
+6.  Once you are confident, you can delete the 1st gen function.

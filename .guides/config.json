@@ -1,9 +1,9 @@
 {
-  "description": "A set of guides for Cloud Functions for Firebase.",
+  "description": "Use this library to build serverless functions for event triggers and HTTP using Firebase and Cloud Run Functions",
   "mcpServers": {
     "firebase": {
-      "command": "firebase",
-      "args": ["mcp:server"]
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "experimental:mcp"]
     }
   }
 }
