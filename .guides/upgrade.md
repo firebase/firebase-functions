@@ -2,9 +2,9 @@
 
 This guide provides a step-by-step process for migrating a single Cloud Function from 1st to 2nd generation. Migrate functions incrementally, running both generations side-by-side.
 
-## 1. Identify a v1 function to upgrade
+## 1. Identify a 1st-gen function to upgrade
 
-Let's say you have a 1st gen HTTP function like this:
+Find all 1st-gen functions in the directory. 1st-gen functions used a namespaced API like this: 
 
 **Before (1st Gen):**
 ```typescript
@@ -15,7 +15,9 @@ export const webhook = functions.https.onRequest((request, response) => {
 });
 ```
 
-Now, let's upgrade it to 2nd gen.
+Sometimes, they'll explicitly import from the `firebase-functions/v1` subpackage, but not always.
+
+Ask the user to pick a **single** function to upgrade from the list of 1st gen functions you found.
 
 ## 2. Update Dependencies
 
@@ -148,10 +150,12 @@ export const func = onRequest(
 
 ## 7. Traffic Migration
 
-To migrate traffic safely:
-1.  Rename your new 2nd gen function with a different name.
-2.  Comment out any existing `minInstances` or `maxInstances` config and instead set `maxInstances` to `1` while testing.
-3.  Deploy it alongside the old 1st gen function.
-4.  Gradually introduce traffic to the new function (e.g., via client-side changes or by calling it from the 1st gen function).
-5.  Add back the original `minInstances` and `maxInstances` settings to the 2nd gen function.
-6.  Once you are confident, you can delete the 1st gen function.
+Tell the user these steps to migrate safely:
+
+> To migrate traffic safely:
+> 1.  Rename your new 2nd gen function with a different name.
+> 2.  Comment out any existing `minInstances` or `maxInstances` config and instead set `maxInstances` to `1` while testing.
+> 3.  Deploy it alongside the old 1st gen function.
+> 4.  Gradually introduce traffic to the new function (e.g., via client-side changes or by calling it from the 1st gen function).
+> 5.  Add back the original `minInstances` and `maxInstances` settings to the 2nd gen function.
+> 6.  Once you are confident, you can delete the 1st gen function.
