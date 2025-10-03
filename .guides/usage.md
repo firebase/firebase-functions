@@ -32,6 +32,10 @@ export const callLlm = onRequest({ secrets: [LLM_API_KEY] }, async (req, res) =>
 
 When you deploy a function with `secrets`, the CLI will prompt you to enter the secret's value.
 
+Alternatively, you can instruct the user to set the secret using the Firebase CLI command:
+
+firebase functions:secrets:set <NAME>
+
 ## Use the Firebase Admin SDK
 
 To interact with Firebase services like Firestore, Auth, or RTDB from within your functions, you need to initialize the Firebase Admin SDK. Call `initializeApp` without any arguments so that Application Default Credentials are used.
