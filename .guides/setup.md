@@ -8,16 +8,26 @@ Replace the contents of `src/index.ts` (or `index.js`) with the following code t
 
 ```typescript
 import { onRequest } from "firebase-functions/https";
+import { onDocumentCreated } from "firebase-functions/firestore";
 import * as logger from "firebase-functions/logger";
-import { defineString } from "firebase-functions/params";
+import { defineString, defineInt } from "firebase-functions/params";
 
-// Define a configuration parameter for a greeting
+// Configurable parameters
+const scaleLimit = defineInt("MAX_INSTANCES", { default: 1 });
 const greeting = defineString("GREETING", { default: "Hello" });
 
-export const helloWorld = onRequest({ maxInstances: 1 }, async (request, response) => {
-  logger.info("Request received!", { structuredData: true });
+export const helloWorld = onRequest({ maxInstances: scaleLimit }, async (request, response) => {
+  logger.info("Request received!", request);
   response.send(`${greeting.value()} from Firebase!`);
 });
+
+export const newDoc = onDocumentCreated(
+  { maxInstances: scaleLimit },
+  "/words/{wordId}",
+  async (event) => {
+    logger.info("New word!", event.data.data());
+  }
+);
 ```
 
 **Key points for the agent:**
