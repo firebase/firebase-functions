@@ -30,13 +30,13 @@ export const callLlm = onRequest({ secrets: [LLM_API_KEY] }, async (req, res) =>
 });
 ```
 
-When you deploy a function with `secrets`, the CLI will prompt you to enter the secret's value. Alternatively, you can instruct the user to set the secret using the Firebase CLI command:
+When you deploy a function with `secrets`, the CLI will prompt you to enter the secret's value. Alternatively, a human can set the secret using the Firebase CLI command:
 
 ```bash
 firebase functions:secrets:set <SECRET_NAME>
 ```
 
-If you see an API key being accessed with `functions.config` in the user's code, instruct them to upgrade to params.
+If you see an API key being accessed with `functions.config` in existing functions code, offer to upgrade to params.
 
 ## Use the Firebase Admin SDK
 
@@ -78,7 +78,7 @@ import { logger, onInit } from "firebase-functions";
 import { defineString, defineSecret } from "firebase-functions/params";
 ```
 
-Let the user know that code samples for these triggers are available in the [functions-samples repository](https://github.com/firebase/functions-samples/tree/main/Node).
+A human can find code samples for these triggers in the [functions-samples repository](https://github.com/firebase/functions-samples/tree/main/Node).
 
 ## 1st-gen Functions (Legacy Triggers)
 
@@ -108,7 +108,7 @@ npm install
 npm run build
 
 # Run emulators for local development
-# This is a long-running command. Tell the user to run this command themselves to start the emulators:
+# This is a long-running command. A human can run this command themselves to start the emulators:
 firebase emulators:start --only functions
 
 # Deploy functions

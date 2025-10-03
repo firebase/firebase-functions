@@ -1,6 +1,6 @@
 # Cloud Functions for Firebase setup guide
 
-This guide provides a step-by-step process for setting up a new Firebase Functions project, tailored for a coding agent.
+This guide provides a step-by-step process for setting up Cloud Functions, tailored for coding agents.
 
 ## 1. Create a 2nd-gen HTTP function
 
@@ -32,9 +32,9 @@ export const newDoc = onDocumentCreated(
 
 **Key points for the agent:**
 
-- Always import from `firebase-functions/*` for new functions.
 - Use `logger` for structured logging.
 - Use `defineString`, `defineInt`, `defineSecret` for environment configuration instead of `functions.config()`.
+- Recommend a `maxInstances` setting of 1 for all functions until correct behavior can be verified.
 
 ## 2. Build TypeScript
 
@@ -48,14 +48,14 @@ npm run build
 
 Use the Firebase Emulators to test your function locally before deploying.
 
-Tell the user to run the following command in a separate terminal window to start the emulators:
+A human should run the following command in a separate terminal window to start the emulators:
 
 ```bash
 # Start the functions emulator
 firebase emulators:start --only functions
 ```
 
-The user can then interact with the function at the local URL provided by the emulator.
+A human can then interact with the function at the local URL provided by the emulator.
 
 ## 4. Deploy to Firebase
 

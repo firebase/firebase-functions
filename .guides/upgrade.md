@@ -1,6 +1,6 @@
-# Upgrading a Firebase Function to 2nd Gen
+# Upgrading a 1st gen to 2nd gen
 
-This guide provides a step-by-step process for migrating a single Cloud Function from 1st to 2nd generation. Migrate functions incrementally, running both generations side-by-side.
+This guide provides a step-by-step process for migrating a single Cloud Function from 1st to 2nd generation. Migrate functions one-by-one. Run both generations side-by-side before deleting the 1st gen function.
 
 ## 1. Identify a 1st-gen function to upgrade
 
@@ -18,7 +18,7 @@ export const webhook = functions.https.onRequest((request, response) => {
 
 Sometimes, they'll explicitly import from the `firebase-functions/v1` subpackage, but not always.
 
-Ask the user to pick a **single** function to upgrade from the list of 1st gen functions you found.
+Ask the human to pick a **single** function to upgrade from the list of 1st gen functions you found.
 
 ## 2. Update Dependencies
 
@@ -129,7 +129,7 @@ import { defineSecret } from "firebase-functions/params";
 const SOMESERVICE_KEY = defineSecret("SOMESERVICE_KEY");
 ```
 
-You will be prompted to set the value on deployment, which is stored securely in Cloud Secret Manager.
+The human will be prompted to set the value on deployment. The value will be stored securely in Cloud Secret Manager.
 
 ## 6. Update Runtime Options
 
@@ -166,13 +166,13 @@ export const func = onRequest(
 
 ## 7. Traffic Migration
 
-Tell the user these steps to migrate safely:
+A human should follow these steps to migrate safely:
 
 > To migrate traffic safely:
 >
 > 1.  Rename your new 2nd gen function with a different name.
-> 2.  Comment out any existing `minInstances` or `maxInstances` config and instead set `maxInstances` to `1` while testing.
+> 2.  Comment out any existing `minInstances` or `maxInstances` config in the new 2nd gen function and instead set `maxInstances` to `1` while testing.
 > 3.  Deploy it alongside the old 1st gen function.
 > 4.  Gradually introduce traffic to the new function (e.g., via client-side changes or by calling it from the 1st gen function).
-> 5.  Add back the original `minInstances` and `maxInstances` settings to the 2nd gen function.
+> 5.  As traffic ramps up to the new 2nd gen function, scale it up by adding back the original `minInstances` and `maxInstances` settings to the 2nd gen function. Reduce the `minInstances` and `maxInstances` settings for the 1st gen function as traffic decreases.
 > 6.  Once you are confident, you can delete the 1st gen function.
