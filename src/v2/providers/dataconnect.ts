@@ -75,7 +75,17 @@ export interface RawDataConnectEvent<T> extends CloudEvent<T> {
   schema: string;
   connector: string;
   operation: string;
+  authtype: AuthType;
+  authid?: string;
 }
+
+/**
+ * AuthType defines the possible values for the authType field in a Firebase Data Connect event.
+ * - app_user: an end user of an application..
+ * - admin: an admin user of an application. In the context of impersonate endpoints used by the admin SDK, the impersonator.
+ * - unknown: a general type to capture all other principals not captured in the other auth types.
+ */
+export type AuthType = "app_user" | "admin" | "unknown";
 
 /** OperationOptions extend EventHandlerOptions with a provided service, connector, and operation. */
 export interface OperationOptions extends EventHandlerOptions {
@@ -97,6 +107,10 @@ export interface DataConnectEvent<T, Params = Record<string, string>> extends Cl
    * Only named capture groups will be populated - {key}, {key=*}, {key=**}.
    */
   params: Params;
+  /** The type of principal that triggered the event */
+  authType: AuthType;
+  /** The unique identifier for the principal */
+  authId?: string;
 }
 
 /**
@@ -261,8 +275,12 @@ function onOperation<V, R>(
 
     const dataConnectEvent: DataConnectEvent<MutationEventData<V, R>> = {
       ...event,
+      authType: event.authtype,
+      authId: event.authid,
       params,
     };
+    delete (dataConnectEvent as any).authtype;
+    delete (dataConnectEvent as any).authid;
 
     return wrapTraceContext(withInit(handler))(dataConnectEvent);
   };
