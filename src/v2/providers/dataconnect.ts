@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { CloudEvent, CloudFunction } from "../core";
-import { ParamsOf } from "../../common/params";
+import { ParamsOf, VarName } from "../../common/params";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 import { normalizePath } from "../../common/utilities/path";
 import { wrapTraceContext } from "../trace";
@@ -88,16 +88,23 @@ export interface RawDataConnectEvent<T> extends CloudEvent<T> {
 export type AuthType = "app_user" | "admin" | "unknown";
 
 /** OperationOptions extend EventHandlerOptions with a provided service, connector, and operation. */
-export interface OperationOptions extends EventHandlerOptions {
-  /** Firebase Data Connect service ID */
-  service: string;
-  /** Firebase Data Connect connector ID */
-  connector: string;
-  /** Name of the operation */
-  operation: string;
+export interface OperationOptions<Service extends string = string, Connector extends string = string, Operation extends string = string> extends EventHandlerOptions{
+    /** Firebase Data Connect service ID */
+    service?: Service;
+    /** Firebase Data Connect connector ID */
+    connector?: Connector;
+    /** Name of the operation */
+    operation?: Operation;
 }
 
-export interface DataConnectEvent<T, Params = Record<string, string>> extends CloudEvent<T> {
+export type DataConnectParams<PathPatternOrOptions extends string | OperationOptions> =
+    PathPatternOrOptions extends string
+    ? ParamsOf<PathPatternOrOptions>
+    : PathPatternOrOptions extends OperationOptions<infer Service extends string, infer Connector extends string, infer Operation extends string>
+    ? Record<VarName<Service> | VarName<Connector> | VarName<Operation>, string>
+    : never;
+
+export interface DataConnectEvent<T, Params extends Record<never, string>> extends CloudEvent<T> {
   /** The location of the Firebase Data Connect instance */
   location: string;
   /** The project identifier */
@@ -126,9 +133,9 @@ export function onMutationExecuted<
 >(
   mutation: Mutation,
   handler: (
-    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, ParamsOf<Mutation>>
+    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>
   ) => unknown | Promise<unknown>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, ParamsOf<Mutation>>>;
+): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>>;
 
 /**
  * Event handler that triggers when a mutation is executed in Firebase Data Connect.
@@ -137,15 +144,15 @@ export function onMutationExecuted<
  * @param handler - Event handler which is run every time a mutation is executed.
  */
 export function onMutationExecuted<
-  Mutation extends string,
+  Options extends OperationOptions,
   Variables = unknown,
   ResponseData = unknown
 >(
-  opts: OperationOptions,
+  opts: Options,
   handler: (
-    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, ParamsOf<Mutation>>
+    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>
   ) => unknown | Promise<unknown>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, ParamsOf<Mutation>>>;
+): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>>;
 
 /**
  * Event handler that triggers when a mutation is executed in Firebase Data Connect.
@@ -154,16 +161,16 @@ export function onMutationExecuted<
  * @param handler - Event handler which is run every time a mutation is executed.
  */
 export function onMutationExecuted<
-  Mutation extends string,
+  PathPatternOrOptions extends string | OperationOptions<string, string, string>,
   Variables = unknown,
   ResponseData = unknown
 >(
-  mutationOrOpts: Mutation | OperationOptions,
+  mutationOrOpts: PathPatternOrOptions,
   handler: (
-    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, ParamsOf<Mutation>>
+    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>
   ) => unknown | Promise<unknown>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, ParamsOf<Mutation>>> {
-  return onOperation<Variables, ResponseData>(mutationExecutedEventType, mutationOrOpts, handler);
+): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>> {
+  return onOperation<Variables, ResponseData, PathPatternOrOptions>(mutationExecutedEventType, mutationOrOpts, handler);
 }
 
 function getOpts(mutationOrOpts: string | OperationOptions) {
@@ -257,11 +264,11 @@ function makeParams<V, R>(
   };
 }
 
-function onOperation<V, R>(
+function onOperation<Variables, ResponseData, PathPatternOrOptions>(
   eventType: string,
-  mutationOrOpts: string | OperationOptions,
-  handler: (event: DataConnectEvent<MutationEventData<V, R>>) => any | Promise<any>
-): CloudFunction<DataConnectEvent<MutationEventData<V, R>>> {
+  mutationOrOpts: PathPatternOrOptions,
+  handler: (event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>) => any | Promise<any>
+): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>> {
   const { service, connector, operation, opts } = getOpts(mutationOrOpts);
 
   const servicePattern = new PathPattern(service);
@@ -270,14 +277,14 @@ function onOperation<V, R>(
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawDataConnectEvent<MutationEventData<V, R>>;
-    const params = makeParams<V, R>(event, servicePattern, connectorPattern, operationPattern);
+    const event = raw as RawDataConnectEvent<MutationEventData<Variables, ResponseData>>;
+    const params = makeParams<Variables, ResponseData>(event, servicePattern, connectorPattern, operationPattern);
 
-    const dataConnectEvent: DataConnectEvent<MutationEventData<V, R>> = {
+    const dataConnectEvent: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>> = {
       ...event,
       authType: event.authtype,
       authId: event.authid,
-      params,
+      params: params as DataConnectParams<PathPatternOrOptions>,
     };
     delete (dataConnectEvent as any).authtype;
     delete (dataConnectEvent as any).authid;
