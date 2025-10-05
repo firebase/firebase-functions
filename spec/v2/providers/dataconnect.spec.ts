@@ -24,6 +24,7 @@ import { expect } from "chai";
 import * as dataconnect from "../../../src/v2/providers/dataconnect";
 import { CloudEvent } from "../../../src/v2";
 import { onInit } from "../../../src/v2/core";
+import { expectExtends } from "../../common/metaprogramming";
 
 const expectedEndpointBase = {
   platform: "gcfv2",
@@ -51,6 +52,81 @@ function makeExpectedEndpoint(eventType: string, eventFilters, eventFilterPathPa
 }
 
 describe("dataconnect", () => {
+  describe("params", () => {
+    it("extracts {segment} captures", () => {
+      expectExtends<
+        Record<"myConnector", string>,
+        dataconnect.DataConnectParams<"/{myConnector}">
+      >();
+    });
+
+    it("extracts nothing from strings without params", () => {
+      expectExtends<Record<never, string>, dataconnect.DataConnectParams<"foo/bar">>();
+      expectExtends<Record<never, string>, dataconnect.DataConnectParams<"/foo/bar">>();
+    });
+
+    it("extracts {segment} captures from options", () => {
+      expectExtends<
+        Record<"myService", string>,
+        dataconnect.DataConnectParams<{
+          service: "{myService}";
+          connector: "connector";
+          operation: "operation";
+        }>
+      >();
+
+      expectExtends<
+        { myService: string; [key: string]: string },
+        dataconnect.DataConnectParams<
+          dataconnect.OperationOptions<"{myService}", "connector", "operation">
+        >
+      >();
+    });
+
+    it("extracts {segment=*} captures from options", () => {
+      expectExtends<
+        Record<"myConnector", string>,
+        dataconnect.DataConnectParams<
+          dataconnect.OperationOptions<string, "{myConnector=*}", string>
+        >
+      >();
+    });
+
+    it("extracts {segment=**} captures from options", () => {
+      expectExtends<
+        Record<"myOperation", string>,
+        dataconnect.DataConnectParams<
+          dataconnect.OperationOptions<string, "unused", "{myOperation=**}">
+        >
+      >();
+    });
+
+    it("extracts multiple captures from options", () => {
+      expectExtends<
+        Record<"myService" | "myConnector" | "myOperation", string>,
+        dataconnect.DataConnectParams<
+          dataconnect.OperationOptions<"{myService}", "{myConnector=*}", "{myOperation=**}">
+        >
+      >();
+    });
+
+    it("extracts nothing from options without params", () => {
+      expectExtends<
+        Record<never, string>,
+        dataconnect.DataConnectParams<{
+          service: "service";
+          connector: "connector";
+          operation: "operation";
+        }>
+      >();
+
+      expectExtends<
+        Record<never, string>,
+        dataconnect.DataConnectParams<dataconnect.OperationOptions<string, string, string>>
+      >();
+    });
+  });
+
   describe("onMutationExecuted", () => {
     it("should create a func", () => {
       const expectedEndpoint = makeExpectedEndpoint(
@@ -421,6 +497,21 @@ describe("dataconnect", () => {
         },
         () => true
       );
+      expect(func.__endpoint).to.deep.eq(expectedEndpoint);
+    });
+
+    it("should create a func in the absence of param opts", () => {
+      const expectedEndpoint = makeExpectedEndpoint(
+        dataconnect.mutationExecutedEventType,
+        {
+          connector: undefined,
+          operation: undefined,
+          service: undefined,
+        },
+        {}
+      );
+
+      const func = dataconnect.onMutationExecuted({}, () => true);
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
     });
 
