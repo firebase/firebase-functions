@@ -32,15 +32,15 @@ import * as logger from "../logger";
 import * as alerts from "./providers/alerts";
 import * as database from "./providers/database";
 import * as eventarc from "./providers/eventarc";
+import * as firestore from "./providers/firestore";
 import * as https from "./providers/https";
 import * as identity from "./providers/identity";
 import * as pubsub from "./providers/pubsub";
+import * as remoteConfig from "./providers/remoteConfig";
 import * as scheduler from "./providers/scheduler";
 import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
-import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
-import * as firestore from "./providers/firestore";
 
 export {
   alerts,
@@ -58,19 +58,19 @@ export {
   firestore,
 };
 
-export {
-  setGlobalOptions,
-  GlobalOptions,
-  SupportedRegion,
-  MemoryOption,
-  VpcEgressSetting,
-  IngressSetting,
-  EventHandlerOptions,
-} from "./options";
-
-export { CloudFunction, CloudEvent, ParamsOf, onInit } from "./core";
 export { Change } from "../common/change";
 export { traceContext } from "../common/trace";
+export { CloudEvent, CloudFunction, onInit, ParamsOf } from "./core";
+export {
+  EventHandlerOptions,
+  GlobalOptions,
+  IngressSetting,
+  MemoryOption,
+  SupportedRegion,
+  setGlobalOptions,
+  VpcEgressSetting,
+} from "./options";
+
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
 import * as params from "../params";
 export { params };

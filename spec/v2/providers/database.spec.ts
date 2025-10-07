@@ -22,10 +22,10 @@
 
 import { expect } from "chai";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
+import { CloudEvent, onInit } from "../../../src/v2/core";
 import * as database from "../../../src/v2/providers/database";
 import { expectType } from "../../common/metaprogramming";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
-import { CloudEvent, onInit } from "../../../src/v2/core";
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {

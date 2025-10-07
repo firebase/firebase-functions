@@ -22,7 +22,7 @@
 
 import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
 import { Expression } from "../params";
-import { WireParamSpec, SecretParam } from "../params/types";
+import { SecretParam, WireParamSpec } from "../params/types";
 
 /**
  * A definition of an extension as appears in the Manifest.

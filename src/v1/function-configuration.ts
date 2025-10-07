@@ -1,5 +1,5 @@
-import { Expression } from "../params";
 import { ResetValue } from "../common/options";
+import { Expression } from "../params";
 import { SecretParam } from "../params/types";
 
 export { RESET_VALUE } from "../common/options";

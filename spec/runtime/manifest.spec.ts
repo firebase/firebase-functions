@@ -1,16 +1,16 @@
 import { expect } from "chai";
-import {
-  stackToWire,
-  ManifestStack,
-  initV2ScheduleTrigger,
-  initV1ScheduleTrigger,
-  initTaskQueueTrigger,
-} from "../../src/runtime/manifest";
 import { RESET_VALUE } from "../../src/common/options";
 import * as params from "../../src/params";
-import * as optsv2 from "../../src/v2/options";
+import {
+  initTaskQueueTrigger,
+  initV1ScheduleTrigger,
+  initV2ScheduleTrigger,
+  ManifestStack,
+  stackToWire,
+} from "../../src/runtime/manifest";
 import * as v1 from "../../src/v1";
 import { DeploymentOptions } from "../../src/v1";
+import * as optsv2 from "../../src/v2/options";
 
 describe("stackToWire", () => {
   afterEach(() => {

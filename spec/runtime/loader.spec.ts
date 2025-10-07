@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import * as path from "path";
-
-import * as functions from "../../src/v1";
+import { clearParams } from "../../src/params";
+import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
 import * as loader from "../../src/runtime/loader";
 import {
   ManifestEndpoint,
@@ -9,10 +9,9 @@ import {
   ManifestRequiredAPI,
   ManifestStack,
 } from "../../src/runtime/manifest";
-import { clearParams } from "../../src/params";
+import * as functions from "../../src/v1";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
-import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
 
 describe("extractStack", () => {
   const httpFn = functions.https.onRequest(() => undefined);

@@ -31,8 +31,8 @@ import {
   TaskContext,
 } from "../../common/providers/tasks";
 import {
-  initV1Endpoint,
   initTaskQueueTrigger,
+  initV1Endpoint,
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";

@@ -21,18 +21,17 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import { Handler } from "express";
+import { genkit } from "genkit";
 import * as sinon from "sinon";
-
 import * as debug from "../../../src/common/debug";
+import { clearParams, defineList, Expression } from "../../../src/params";
+import { onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as https from "../../../src/v2/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
-import { onInit } from "../../../src/v2/core";
-import { Handler } from "express";
-import { genkit } from "genkit";
-import { clearParams, defineList, Expression } from "../../../src/params";
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER, MINIMAL_V2_ENDPOINT } from "./fixtures";
 
 function request(args: {
   data?: any;

@@ -27,14 +27,14 @@
 
 import { firebaseConfig } from "../../common/config";
 import { copyIfPresent } from "../../common/encoding";
+import { withInit } from "../../common/onInit";
 import { ResetValue } from "../../common/options";
+import { Expression } from "../../params";
+import { SecretParam } from "../../params/types";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
-import { wrapTraceContext } from "../trace";
-import { Expression } from "../../params";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
-import { withInit } from "../../common/onInit";
+import { wrapTraceContext } from "../trace";
 
 /**
  * An object within Google Cloud Storage.

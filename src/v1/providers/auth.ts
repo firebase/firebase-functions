@@ -33,10 +33,11 @@ import {
   MaybeAsync,
   UserInfo,
   UserRecord,
-  userRecordConstructor,
   UserRecordMetadata,
+  userRecordConstructor,
   wrapHandler,
 } from "../../common/providers/identity";
+import { initV1Endpoint } from "../../runtime/manifest";
 import {
   BlockingFunction,
   CloudFunction,
@@ -47,7 +48,6 @@ import {
   optionsToTrigger,
 } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
-import { initV1Endpoint } from "../../runtime/manifest";
 
 // TODO: yank in next breaking change release
 export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };

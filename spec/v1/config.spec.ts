@@ -23,6 +23,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as process from "process";
+
 import Sinon = require("sinon");
 
 import { config, resetCache } from "../../src/v1/config";

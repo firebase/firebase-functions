@@ -22,14 +22,11 @@
 
 import * as cors from "cors";
 import * as express from "express";
-import { DecodedAppCheckToken } from "firebase-admin/app-check";
-
-import * as logger from "../../logger";
-
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
-import { getAppCheck } from "firebase-admin/app-check";
+import { DecodedAppCheckToken, getAppCheck } from "firebase-admin/app-check";
 import { DecodedIdToken, getAuth } from "firebase-admin/auth";
+import * as logger from "../../logger";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
 import { TaskContext } from "./tasks";

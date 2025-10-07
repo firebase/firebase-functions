@@ -21,22 +21,22 @@
 // SOFTWARE.
 
 import * as firestore from "firebase-admin/firestore";
-import * as logger from "../../logger";
+import { withInit } from "../../common/onInit";
 import { ParamsOf } from "../../common/params";
-import { normalizePath } from "../../common/utilities/path";
-import { PathPattern } from "../../common/utilities/path-pattern";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { Change, CloudEvent, CloudFunction } from "../core";
-import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 import {
   createBeforeSnapshotFromJson,
   createBeforeSnapshotFromProtobuf,
   createSnapshotFromJson,
   createSnapshotFromProtobuf,
 } from "../../common/providers/firestore";
-import { wrapTraceContext } from "../trace";
-import { withInit } from "../../common/onInit";
+import { normalizePath } from "../../common/utilities/path";
+import { PathPattern } from "../../common/utilities/path-pattern";
+import * as logger from "../../logger";
 import { Expression } from "../../params";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { Change, CloudEvent, CloudFunction } from "../core";
+import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
+import { wrapTraceContext } from "../trace";
 
 export { Change };
 

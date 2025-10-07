@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import { expect } from "chai";
+import { onInit } from "../../../src/v2/core";
 import * as identity from "../../../src/v2/providers/identity";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
-import { onInit } from "../../../src/v2/core";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 

@@ -25,14 +25,14 @@
  * @packageDocumentation
  */
 
+import { withInit } from "../../../common/onInit";
 import { ResetValue } from "../../../common/options";
 import { Expression } from "../../../params";
+import { SecretParam } from "../../../params/types";
 import { CloudEvent, CloudFunction } from "../../core";
+import * as options from "../../options";
 import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
-import * as options from "../../options";
-import { SecretParam } from "../../../params/types";
-import { withInit } from "../../../common/onInit";
 
 /** Generic Crashlytics issue interface */
 export interface Issue {

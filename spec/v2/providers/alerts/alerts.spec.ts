@@ -2,8 +2,8 @@ import { expect } from "chai";
 import { CloudEvent, onInit } from "../../../../src/v2";
 import * as options from "../../../../src/v2/options";
 import * as alerts from "../../../../src/v2/providers/alerts";
-import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
+import { FULL_OPTIONS } from "../fixtures";
 
 const ALERT_TYPE = "new-alert-type";
 const APPID = "123456789";

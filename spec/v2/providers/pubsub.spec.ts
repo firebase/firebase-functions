@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { CloudEvent } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as pubsub from "../../../src/v2/providers/pubsub";
-import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
+import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER, MINIMAL_V2_ENDPOINT } from "./fixtures";
 
 const EVENT_TRIGGER = {
   eventType: "google.cloud.pubsub.topic.v1.messagePublished",

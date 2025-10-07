@@ -25,26 +25,27 @@ import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
   DeploymentOptions,
-  RESET_VALUE,
   FailurePolicy,
+  RESET_VALUE,
   Schedule,
 } from "./function-configuration";
 export { Request, Response };
+
 import {
   convertIfPresent,
   copyIfPresent,
-  serviceAccountFromShorthand,
   durationFromSeconds,
+  serviceAccountFromShorthand,
 } from "../common/encoding";
+import { withInit } from "../common/onInit";
+import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 import {
   initV1Endpoint,
   initV1ScheduleTrigger,
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../runtime/manifest";
-import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
-import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
 

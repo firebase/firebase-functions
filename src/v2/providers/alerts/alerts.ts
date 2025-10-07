@@ -20,14 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
-import { ResetValue } from "../../../common/options";
-import { CloudEvent, CloudFunction } from "../../core";
-import { Expression } from "../../../params";
-import { wrapTraceContext } from "../../trace";
-import * as options from "../../options";
-import { SecretParam } from "../../../params/types";
 import { withInit } from "../../../common/onInit";
+import { ResetValue } from "../../../common/options";
+import { Expression } from "../../../params";
+import { SecretParam } from "../../../params/types";
+import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../../core";
+import * as options from "../../options";
+import { wrapTraceContext } from "../../trace";
 
 /**
  * The CloudEvent data emitted by Firebase Alerts.

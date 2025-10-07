@@ -21,15 +21,13 @@
 // SOFTWARE.
 import * as path from "path";
 import * as url from "url";
-
+import * as params from "../params";
 import {
   ManifestEndpoint,
   ManifestExtension,
   ManifestRequiredAPI,
   ManifestStack,
 } from "./manifest";
-
-import * as params from "../params";
 
 /**
  * Dynamically load import function to prevent TypeScript from

@@ -25,8 +25,8 @@ import { expect } from "chai";
 import * as functions from "../../../src/v1";
 import { Event } from "../../../src/v1/cloud-functions";
 import * as analytics from "../../../src/v1/providers/analytics";
-import * as analyticsSpecInput from "./analytics.spec.input";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
+import * as analyticsSpecInput from "./analytics.spec.input";
 
 describe("Analytics Functions", () => {
   describe("EventBuilder", () => {

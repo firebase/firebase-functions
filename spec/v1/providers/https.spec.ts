@@ -21,11 +21,13 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-
-import * as functions from "../../../src/v1";
-import * as https from "../../../src/v1/providers/https";
-import * as debug from "../../../src/common/debug";
 import * as sinon from "sinon";
+import * as debug from "../../../src/common/debug";
+import { CALLABLE_AUTH_HEADER, ORIGINAL_AUTH_HEADER } from "../../../src/common/providers/https";
+import * as functions from "../../../src/v1";
+import { onInit } from "../../../src/v1";
+import * as https from "../../../src/v1/providers/https";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import {
   expectedResponseHeaders,
   generateUnsignedIdToken,
@@ -33,9 +35,6 @@ import {
   mockRequest,
 } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
-import { CALLABLE_AUTH_HEADER, ORIGINAL_AUTH_HEADER } from "../../../src/common/providers/https";
-import { onInit } from "../../../src/v1";
 
 describe("CloudHttpsBuilder", () => {
   describe("#onRequest", () => {

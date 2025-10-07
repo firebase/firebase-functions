@@ -1,9 +1,9 @@
 import { expect } from "chai";
+import { onInit } from "../../../../src/v2/core";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import * as crashlytics from "../../../../src/v2/providers/alerts/crashlytics";
-import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
-import { onInit } from "../../../../src/v2/core";
+import { FULL_OPTIONS } from "../fixtures";
 
 const ALERT_TYPE = "new-alert-type";
 const APPID = "123456789";

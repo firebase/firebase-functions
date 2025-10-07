@@ -1,9 +1,9 @@
 import { expect } from "chai";
+import { CloudEvent, onInit } from "../../../../src/v2/core";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import * as performance from "../../../../src/v2/providers/alerts/performance";
-import { FULL_OPTIONS } from "../fixtures";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";
-import { CloudEvent, onInit } from "../../../../src/v2/core";
+import { FULL_OPTIONS } from "../fixtures";
 
 const APPID = "123456789";
 const myHandler = () => 42;

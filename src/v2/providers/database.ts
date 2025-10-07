@@ -22,19 +22,19 @@
 
 import { getApp } from "../../common/app";
 import { Change } from "../../common/change";
-import { ParamsOf } from "../../common/params";
+import { withInit } from "../../common/onInit";
 import { ResetValue } from "../../common/options";
+import { ParamsOf } from "../../common/params";
 import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { PathPattern } from "../../common/utilities/path-pattern";
 import { applyChange } from "../../common/utilities/utils";
+import { Expression } from "../../params";
+import { SecretParam } from "../../params/types";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
-import { Expression } from "../../params";
-import { wrapTraceContext } from "../trace";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
-import { withInit } from "../../common/onInit";
+import { wrapTraceContext } from "../trace";
 
 export { DataSnapshot };
 

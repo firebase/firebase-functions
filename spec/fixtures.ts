@@ -19,8 +19,9 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import { ManifestEndpoint } from "../src/runtime/manifest";
+
 import { RESET_VALUE } from "../src/common/options";
+import { ManifestEndpoint } from "../src/runtime/manifest";
 
 export const MINIMAL_V2_ENDPOINT: ManifestEndpoint = {
   availableMemoryMb: RESET_VALUE,

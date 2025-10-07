@@ -30,8 +30,8 @@ import { ManifestEndpoint } from "../runtime/manifest";
 
 export { Change };
 
-export { ParamsOf } from "../common/params";
 export { onInit } from "../common/onInit";
+export { ParamsOf } from "../common/params";
 
 /** @internal */
 export interface TriggerAnnotation {

@@ -23,6 +23,7 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as process from "process";
+
 import Sinon = require("sinon");
 
 import { firebaseConfig, resetCache } from "../../src/common/config";

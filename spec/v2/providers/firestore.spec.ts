@@ -21,12 +21,12 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { google } from "../../../protos/compiledFirestore";
 import { Timestamp } from "firebase-admin/firestore";
-import * as firestore from "../../../src/v2/providers/firestore";
+import { google } from "../../../protos/compiledFirestore";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
-import { onInit } from "../../../src/v2/core";
 import * as params from "../../../src/params";
+import { onInit } from "../../../src/v2/core";
+import * as firestore from "../../../src/v2/providers/firestore";
 
 /** static-complied protobuf */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
