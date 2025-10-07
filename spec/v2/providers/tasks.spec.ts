@@ -22,10 +22,10 @@
 
 import { expect } from "chai";
 
-import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import type { ManifestEndpoint } from "../../../src/runtime/manifest";
 import { onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
-import { onTaskDispatched, Request } from "../../../src/v2/providers/tasks";
+import { onTaskDispatched, type Request } from "../../../src/v2/providers/tasks";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER, MINIMAL_V2_ENDPOINT } from "./fixtures";

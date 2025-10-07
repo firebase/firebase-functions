@@ -22,7 +22,7 @@
 
 import { expect } from "chai";
 import * as functions from "../../../src/v1";
-import { Event, RESET_VALUE } from "../../../src/v1";
+import { type Event, RESET_VALUE } from "../../../src/v1";
 import * as pubsub from "../../../src/v1/providers/pubsub";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER } from "./fixtures";

@@ -1,8 +1,8 @@
-import * as firestore from "firebase-admin/firestore";
+import type * as firestore from "firebase-admin/firestore";
 
-import { Expression } from "../../../params";
-import { CloudEvent } from "../../core";
-import { EventHandlerOptions } from "../../options";
+import type { Expression } from "../../../params";
+import type { CloudEvent } from "../../core";
+import type { EventHandlerOptions } from "../../options";
 
 /** @internal */
 export const writtenEventType = "google.cloud.firestore.document.v1.written";

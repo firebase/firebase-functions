@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import { withInit } from "../../common/onInit";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { CloudEvent, CloudFunction } from "../core";
-import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
+import { initV2Endpoint, type ManifestEndpoint } from "../../runtime/manifest";
+import type { CloudEvent, CloudFunction } from "../core";
+import { type EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 import { wrapTraceContext } from "../trace";
 
 /** @internal */

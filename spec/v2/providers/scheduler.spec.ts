@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import type { ManifestEndpoint } from "../../../src/runtime/manifest";
 import { onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as schedule from "../../../src/v2/providers/scheduler";

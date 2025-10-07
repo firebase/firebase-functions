@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import type * as express from "express";
 
 import { convertIfPresent, convertInvoker } from "../../common/encoding";
 import { withInit } from "../../common/onInit";
@@ -33,8 +33,13 @@ import {
 } from "../../common/providers/https";
 import { initV1Endpoint } from "../../runtime/manifest";
 import { wrapTraceContext } from "../../v2/trace";
-import { HttpsFunction, optionsToEndpoint, optionsToTrigger, Runnable } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import {
+  type HttpsFunction,
+  optionsToEndpoint,
+  optionsToTrigger,
+  type Runnable,
+} from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 export { Request, CallableContext, FunctionsErrorCode, HttpsError };
 

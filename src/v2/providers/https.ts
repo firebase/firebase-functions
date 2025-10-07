@@ -26,13 +26,13 @@
  */
 
 import * as cors from "cors";
-import * as express from "express";
+import type * as express from "express";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { withInit } from "../../common/onInit";
-import { ResetValue } from "../../common/options";
+import type { ResetValue } from "../../common/options";
 import {
-  AuthData,
+  type AuthData,
   CallableRequest,
   CallableResponse,
   FunctionsErrorCode,
@@ -42,10 +42,10 @@ import {
 } from "../../common/providers/https";
 import * as logger from "../../logger";
 import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
+import type { SecretParam } from "../../params/types";
+import { initV2Endpoint, type ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
-import { GlobalOptions, SupportedRegion } from "../options";
+import type { GlobalOptions, SupportedRegion } from "../options";
 import { wrapTraceContext } from "../trace";
 
 export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };

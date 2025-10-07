@@ -1,23 +1,23 @@
 import { withInit } from "../../../common/onInit";
-import { ParamsOf } from "../../../common/params";
+import type { ParamsOf } from "../../../common/params";
 import { normalizePath } from "../../../common/utilities/path";
 import { PathPattern } from "../../../common/utilities/path-pattern";
-import { Expression } from "../../../params";
-import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
-import { Change, CloudEvent, CloudFunction } from "../../core";
-import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../../options";
+import type { Expression } from "../../../params";
+import { initV2Endpoint, type ManifestEndpoint } from "../../../runtime/manifest";
+import type { Change, CloudEvent, CloudFunction } from "../../core";
+import { type EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../../options";
 import { wrapTraceContext } from "../../trace";
 import { createBeforeSnapshot, createChangeSnapshot, createSnapshot } from "./snapshots";
 import {
   createdEventType,
   createdEventWithAuthContextType,
-  DocumentOptions,
-  DocumentSnapshot,
-  FirestoreAuthEvent,
-  FirestoreEvent,
-  QueryDocumentSnapshot,
-  RawFirestoreAuthEvent,
-  RawFirestoreEvent,
+  type DocumentOptions,
+  type DocumentSnapshot,
+  type FirestoreAuthEvent,
+  type FirestoreEvent,
+  type QueryDocumentSnapshot,
+  type RawFirestoreAuthEvent,
+  type RawFirestoreEvent,
 } from "./types";
 
 export function getOpts(documentOrOpts: string | DocumentOptions) {

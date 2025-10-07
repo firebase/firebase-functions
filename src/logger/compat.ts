@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { format } from "util";
+import { format } from "node:util";
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
 /** @hidden */

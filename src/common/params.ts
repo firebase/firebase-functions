@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Expression } from "../params";
+import type { Expression } from "../params";
 
 /**
  * A type that splits literal string S with delimiter D.

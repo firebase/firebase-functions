@@ -1,15 +1,15 @@
-import { ParamsOf } from "../../../common/params";
-import { Change, CloudFunction } from "../../core";
+import type { ParamsOf } from "../../../common/params";
+import type { Change, CloudFunction } from "../../core";
 import { onChangedOperation, onOperation } from "./helpers";
 import {
   createdEventType,
   createdEventWithAuthContextType,
-  DocumentOptions,
+  type DocumentOptions,
   deletedEventType,
   deletedEventWithAuthContextType,
-  FirestoreAuthEvent,
-  FirestoreEvent,
-  QueryDocumentSnapshot,
+  type FirestoreAuthEvent,
+  type FirestoreEvent,
+  type QueryDocumentSnapshot,
   updatedEventType,
   updatedEventWithAuthContextType,
   writtenEventType,

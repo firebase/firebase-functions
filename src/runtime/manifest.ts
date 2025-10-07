@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
+import { RESET_VALUE, type ResettableKeys, ResetValue } from "../common/options";
 import { Expression } from "../params";
-import { SecretParam, WireParamSpec } from "../params/types";
+import type { SecretParam, WireParamSpec } from "../params/types";
 
 /**
  * A definition of an extension as appears in the Manifest.

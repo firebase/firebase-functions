@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { CloudEvent, onInit } from "../../../src/v2/core";
+import { type CloudEvent, onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as eventarc from "../../../src/v2/providers/eventarc";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";

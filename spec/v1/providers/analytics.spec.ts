@@ -23,7 +23,7 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { Event } from "../../../src/v1/cloud-functions";
+import type { Event } from "../../../src/v1/cloud-functions";
 import * as analytics from "../../../src/v1/providers/analytics";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import * as analyticsSpecInput from "./analytics.spec.input";

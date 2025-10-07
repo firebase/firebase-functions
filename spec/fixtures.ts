@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { RESET_VALUE } from "../src/common/options";
-import { ManifestEndpoint } from "../src/runtime/manifest";
+import type { ManifestEndpoint } from "../src/runtime/manifest";
 
 export const MINIMAL_V2_ENDPOINT: ManifestEndpoint = {
   availableMemoryMb: RESET_VALUE,

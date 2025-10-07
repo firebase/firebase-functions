@@ -32,7 +32,7 @@ import {
   InternalExpression,
   IntParam,
   ListParam,
-  Param,
+  type Param,
   ParamOptions,
   SecretParam,
   StringParam,

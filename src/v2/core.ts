@@ -26,7 +26,7 @@
  */
 
 import { Change } from "../common/change";
-import { ManifestEndpoint } from "../runtime/manifest";
+import type { ManifestEndpoint } from "../runtime/manifest";
 
 export { Change };
 

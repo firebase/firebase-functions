@@ -7,7 +7,7 @@ import {
 import * as logger from "../../../logger";
 import { Change } from "../../core";
 
-import { RawFirestoreData, RawFirestoreEvent } from "./types";
+import type { RawFirestoreData, RawFirestoreEvent } from "./types";
 
 function getPath(event: RawFirestoreEvent): string {
   return `projects/${event.project}/databases/${event.database}/documents/${event.document}`;

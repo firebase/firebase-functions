@@ -1,7 +1,7 @@
-import * as express from "express";
+import type * as express from "express";
 
-import { extractTraceContext, TraceContext, traceContext } from "../common/trace";
-import { CloudEvent } from "./core";
+import { extractTraceContext, type TraceContext, traceContext } from "../common/trace";
+import type { CloudEvent } from "./core";
 
 type HttpsFunction = (req: express.Request, res: express.Response) => void | Promise<void>;
 type CloudEventFunction<T> = (raw: CloudEvent<T>) => any | Promise<any>;

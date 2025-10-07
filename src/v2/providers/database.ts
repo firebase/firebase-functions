@@ -21,18 +21,18 @@
 // SOFTWARE.
 
 import { getApp } from "../../common/app";
-import { Change } from "../../common/change";
+import type { Change } from "../../common/change";
 import { withInit } from "../../common/onInit";
-import { ResetValue } from "../../common/options";
-import { ParamsOf } from "../../common/params";
+import type { ResetValue } from "../../common/options";
+import type { ParamsOf } from "../../common/params";
 import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { PathPattern } from "../../common/utilities/path-pattern";
 import { applyChange } from "../../common/utilities/utils";
-import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { CloudEvent, CloudFunction } from "../core";
+import type { Expression } from "../../params";
+import type { SecretParam } from "../../params/types";
+import { initV2Endpoint, type ManifestEndpoint } from "../../runtime/manifest";
+import type { CloudEvent, CloudFunction } from "../core";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 

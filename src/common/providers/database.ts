@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { App } from "firebase-admin/app";
+import type { App } from "firebase-admin/app";
 import * as database from "firebase-admin/database";
 import { firebaseConfig } from "../../common/config";
 import { joinPath, pathParts } from "../../common/utilities/path";

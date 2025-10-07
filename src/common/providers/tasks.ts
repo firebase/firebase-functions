@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
-import { DecodedIdToken } from "firebase-admin/auth";
+import type * as express from "express";
+import type { DecodedIdToken } from "firebase-admin/auth";
 
 import * as logger from "../../logger";
-import { Expression } from "../../params";
-import { ResetValue } from "../options";
+import type { Expression } from "../../params";
+import type { ResetValue } from "../options";
 import * as https from "./https";
 
 /** How a task should be retried in the event of a non-2xx return. */

@@ -21,14 +21,19 @@
 // SOFTWARE.
 
 import { getApp } from "../../common/app";
-import { Change } from "../../common/change";
+import type { Change } from "../../common/change";
 import { firebaseConfig } from "../../common/config";
-import { ParamsOf } from "../../common/params";
+import type { ParamsOf } from "../../common/params";
 import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { applyChange } from "../../common/utilities/utils";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import {
+  type CloudFunction,
+  type Event,
+  type EventContext,
+  makeCloudFunction,
+} from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 export { DataSnapshot };
 

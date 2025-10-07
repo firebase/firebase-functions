@@ -23,9 +23,9 @@
 // SOFTWARE.
 
 import * as express from "express";
-import * as fs from "fs/promises";
-import * as http from "http";
-import * as path from "path";
+import * as fs from "node:fs/promises";
+import type * as http from "node:http";
+import * as path from "node:path";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";
 

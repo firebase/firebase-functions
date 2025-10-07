@@ -19,10 +19,10 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import * as path from "path";
-import * as url from "url";
+import * as path from "node:path";
+import * as url from "node:url";
 import * as params from "../params";
-import {
+import type {
   ManifestEndpoint,
   ManifestExtension,
   ManifestRequiredAPI,

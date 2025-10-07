@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import type * as express from "express";
 import * as auth from "firebase-admin/auth";
 import * as logger from "../../logger";
-import { EventContext } from "../../v1/cloud-functions";
+import type { EventContext } from "../../v1/cloud-functions";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
 import { HttpsError, unsafeDecodeToken } from "./https";

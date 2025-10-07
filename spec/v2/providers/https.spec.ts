@@ -21,11 +21,11 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { Handler } from "express";
+import type { Handler } from "express";
 import { genkit } from "genkit";
 import * as sinon from "sinon";
 import * as debug from "../../../src/common/debug";
-import { clearParams, defineList, Expression } from "../../../src/params";
+import { clearParams, defineList, type Expression } from "../../../src/params";
 import { onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as https from "../../../src/v2/providers/https";

@@ -1,6 +1,6 @@
-import { AppOptions } from "firebase-admin/app";
-import { readFileSync } from "fs";
-import * as path from "path";
+import type { AppOptions } from "firebase-admin/app";
+import { readFileSync } from "node:fs";
+import * as path from "node:path";
 
 import * as logger from "../logger";
 

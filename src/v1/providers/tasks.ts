@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import type * as express from "express";
 
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
-import { Request } from "../../common/providers/https";
+import type { Request } from "../../common/providers/https";
 import {
   onDispatchHandler,
   RateLimits,
@@ -33,11 +33,11 @@ import {
 import {
   initTaskQueueTrigger,
   initV1Endpoint,
-  ManifestEndpoint,
-  ManifestRequiredAPI,
+  type ManifestEndpoint,
+  type ManifestRequiredAPI,
 } from "../../runtime/manifest";
 import { optionsToEndpoint, optionsToTrigger } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import type { DeploymentOptions } from "../function-configuration";
 
 export { RetryConfig, RateLimits, TaskContext };
 

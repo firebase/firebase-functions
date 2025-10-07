@@ -23,9 +23,9 @@
 import { expect } from "chai";
 
 import {
-  Event,
-  EventContext,
-  MakeCloudFunctionArgs,
+  type Event,
+  type EventContext,
+  type MakeCloudFunctionArgs,
   makeCloudFunction,
   onInit,
   RESET_VALUE,

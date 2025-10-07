@@ -21,16 +21,16 @@
 // SOFTWARE.
 
 import {
-  AuthBlockingEventType,
-  AuthEventContext,
-  AuthUserRecord,
-  BeforeCreateResponse,
-  BeforeEmailResponse,
-  BeforeSignInResponse,
-  BeforeSmsResponse,
-  HandlerV1,
+  type AuthBlockingEventType,
+  type AuthEventContext,
+  type AuthUserRecord,
+  type BeforeCreateResponse,
+  type BeforeEmailResponse,
+  type BeforeSignInResponse,
+  type BeforeSmsResponse,
+  type HandlerV1,
   HttpsError,
-  MaybeAsync,
+  type MaybeAsync,
   UserInfo,
   UserRecord,
   UserRecordMetadata,
@@ -39,15 +39,15 @@ import {
 } from "../../common/providers/identity";
 import { initV1Endpoint } from "../../runtime/manifest";
 import {
-  BlockingFunction,
-  CloudFunction,
-  Event,
-  EventContext,
+  type BlockingFunction,
+  type CloudFunction,
+  type Event,
+  type EventContext,
   makeCloudFunction,
   optionsToEndpoint,
   optionsToTrigger,
 } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import type { DeploymentOptions } from "../function-configuration";
 
 // TODO: yank in next breaking change release
 export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };

@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { App, initializeApp } from "firebase-admin/app";
+import { type App, initializeApp } from "firebase-admin/app";
 import * as appCheck from "firebase-admin/app-check";
-import * as nock from "nock";
+import type * as nock from "nock";
 import * as sinon from "sinon";
 
 import { getApp, setApp } from "../../../src/common/app";
@@ -18,7 +18,12 @@ import {
   mockFetchPublicKeys,
   mockRequest,
 } from "../../fixtures/mockrequest";
-import { checkAppCheckContext, checkAuthContext, RunHandlerResult, runHandler } from "../../helper";
+import {
+  checkAppCheckContext,
+  checkAuthContext,
+  type RunHandlerResult,
+  runHandler,
+} from "../../helper";
 
 /**
  * A CallTest is a specification for a test of a callable function that

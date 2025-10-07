@@ -27,7 +27,7 @@
 
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { withInit } from "../../common/onInit";
-import { ResetValue } from "../../common/options";
+import type { ResetValue } from "../../common/options";
 import {
   AuthData,
   onDispatchHandler,
@@ -35,12 +35,12 @@ import {
   Request,
   RetryConfig,
 } from "../../common/providers/tasks";
-import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
+import type { Expression } from "../../params";
+import type { SecretParam } from "../../params/types";
 import { initTaskQueueTrigger, initV2Endpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
-import { HttpsFunction } from "./https";
+import type { HttpsFunction } from "./https";
 
 export { AuthData, Request, RateLimits, RetryConfig };
 

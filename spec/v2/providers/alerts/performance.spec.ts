@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CloudEvent, onInit } from "../../../../src/v2/core";
+import { type CloudEvent, onInit } from "../../../../src/v2/core";
 import * as alerts from "../../../../src/v2/providers/alerts";
 import * as performance from "../../../../src/v2/providers/alerts/performance";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../../fixtures";

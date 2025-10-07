@@ -21,15 +21,15 @@
 // SOFTWARE.
 
 import * as cors from "cors";
-import * as express from "express";
+import type * as express from "express";
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
-import { DecodedAppCheckToken, getAppCheck } from "firebase-admin/app-check";
-import { DecodedIdToken, getAuth } from "firebase-admin/auth";
+import { type DecodedAppCheckToken, getAppCheck } from "firebase-admin/app-check";
+import { type DecodedIdToken, getAuth } from "firebase-admin/auth";
 import * as logger from "../../logger";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
-import { TaskContext } from "./tasks";
+import type { TaskContext } from "./tasks";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 

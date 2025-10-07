@@ -27,11 +27,11 @@
 
 import { copyIfPresent } from "../../common/encoding";
 import { withInit } from "../../common/onInit";
-import { ResetValue } from "../../common/options";
-import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { CloudEvent, CloudFunction } from "../core";
+import type { ResetValue } from "../../common/options";
+import type { Expression } from "../../params";
+import type { SecretParam } from "../../params/types";
+import { initV2Endpoint, type ManifestEndpoint } from "../../runtime/manifest";
+import type { CloudEvent, CloudFunction } from "../core";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 

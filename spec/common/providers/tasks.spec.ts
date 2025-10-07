@@ -21,11 +21,15 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { App, initializeApp } from "firebase-admin/app";
+import { type App, initializeApp } from "firebase-admin/app";
 
 import { getApp, setApp } from "../../../src/common/app";
 import * as https from "../../../src/common/providers/https";
-import { onDispatchHandler, Request, TaskContext } from "../../../src/common/providers/tasks";
+import {
+  onDispatchHandler,
+  type Request,
+  type TaskContext,
+} from "../../../src/common/providers/tasks";
 import * as mocks from "../../fixtures/credential/key.json";
 import { generateIdToken, generateUnsignedIdToken, mockRequest } from "../../fixtures/mockrequest";
 import { checkAuthContext, runHandler } from "../../helper";
@@ -47,7 +51,7 @@ interface TaskTest {
 }
 
 // Runs a TaskTest test.
-export async function runTaskTest(test: TaskTest): Promise<any> {
+async function runTaskTest(test: TaskTest): Promise<any> {
   const taskQueueFunctionV1 = onDispatchHandler(async (data, context) => {
     expect(data).to.deep.equal(test.expectedData);
     if (test.taskFunction) {

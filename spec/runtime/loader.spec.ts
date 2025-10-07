@@ -1,9 +1,9 @@
 import { expect } from "chai";
-import * as path from "path";
+import * as path from "node:path";
 import { clearParams } from "../../src/params";
 import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
 import * as loader from "../../src/runtime/loader";
-import {
+import type {
   ManifestEndpoint,
   ManifestExtension,
   ManifestRequiredAPI,

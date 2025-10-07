@@ -24,10 +24,10 @@ import { Request, Response } from "express";
 import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
-  DeploymentOptions,
-  FailurePolicy,
+  type DeploymentOptions,
+  type FailurePolicy,
   RESET_VALUE,
-  Schedule,
+  type Schedule,
 } from "./function-configuration";
 export { Request, Response };
 
@@ -43,8 +43,8 @@ import { SecretParam } from "../params/types";
 import {
   initV1Endpoint,
   initV1ScheduleTrigger,
-  ManifestEndpoint,
-  ManifestRequiredAPI,
+  type ManifestEndpoint,
+  type ManifestRequiredAPI,
 } from "../runtime/manifest";
 
 export { Change } from "../common/change";

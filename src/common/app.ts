@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import {
-  App,
+  type App,
   applicationDefault,
   deleteApp,
   getApp as getAppNamed,

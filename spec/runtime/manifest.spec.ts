@@ -5,11 +5,11 @@ import {
   initTaskQueueTrigger,
   initV1ScheduleTrigger,
   initV2ScheduleTrigger,
-  ManifestStack,
+  type ManifestStack,
   stackToWire,
 } from "../../src/runtime/manifest";
 import * as v1 from "../../src/v1";
-import { DeploymentOptions } from "../../src/v1";
+import type { DeploymentOptions } from "../../src/v1";
 import * as optsv2 from "../../src/v2/options";
 
 describe("stackToWire", () => {

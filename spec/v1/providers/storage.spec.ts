@@ -23,7 +23,7 @@
 import { expect } from "chai";
 import * as config from "../../../src/common/config";
 import * as functions from "../../../src/v1";
-import { Event } from "../../../src/v1";
+import type { Event } from "../../../src/v1";
 import * as storage from "../../../src/v1/providers/storage";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
