@@ -15,6 +15,7 @@
         "noUndeclaredVariables": "off"
       },
       "style": {
+        "useObjectHasOwn": "off",
         "useConst": "off",
         "useBlockStatements": "off",
         "useSelfClosingElements": "off",
