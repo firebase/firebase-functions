@@ -5,9 +5,14 @@ import * as fs from "fs/promises";
 import * as os from "os";
 
 import { expect } from "chai";
-import * as yaml from "js-yaml";
+import * as yamlModule from "js-yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
+
+type YamlModule = typeof import("js-yaml");
+
+// Normalize CommonJS exports (js-yaml) across Node.js 20 ts-node and Node.js 22 strip-only loader.
+const yaml = ((yamlModule as { default?: YamlModule }).default ?? (yamlModule as YamlModule)) as YamlModule;
 
 const TIMEOUT_XL = 20_000;
 const TIMEOUT_L = 10_000;
