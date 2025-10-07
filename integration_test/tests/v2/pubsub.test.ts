@@ -35,11 +35,22 @@ describe("Pub/Sub (v2)", () => {
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
-      const serviceAccount = await import(serviceAccountPath);
-      const topic = new PubSub({
-        credentials: serviceAccount.default,
-        projectId,
-      }).topic("custom_message_tests");
+      let pubsub: PubSub;
+
+      if (serviceAccountPath) {
+        const serviceAccount = await import(serviceAccountPath);
+        pubsub = new PubSub({
+          credentials: serviceAccount.default,
+          projectId,
+        });
+      } else {
+        // Use Application Default Credentials
+        pubsub = new PubSub({
+          projectId,
+        });
+      }
+
+      const topic = pubsub.topic("custom_message_tests");
 
       await topic.publish(Buffer.from(JSON.stringify({ testId })));
 
