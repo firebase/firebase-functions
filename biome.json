@@ -9,7 +9,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": false,
+      "recommended": true,
       "correctness": {
         "noUnusedVariables": "error",
         "noUndeclaredVariables": "off"
@@ -17,13 +17,18 @@
       "style": {
         "useConst": "off",
         "useBlockStatements": "off",
-        "useSelfClosingElements": "off"
+        "useSelfClosingElements": "off",
+        "useTemplate": "warn"
       },
       "suspicious": {
-        "noDebugger": "error",
         "noExtraNonNullAssertion": "warn",
         "noTsIgnore": "warn",
-        "useAdjacentOverloadSignatures": "warn"
+        "useAdjacentOverloadSignatures": "warn",
+        "noImplicitAnyLet": "warn",
+        "noAssignInExpressions": "warn",
+        "noThenProperty": "warn",
+        "noShadowRestrictedNames": "warn",
+        "useIterableCallbackReturn": "warn"
       }
     }
   },
