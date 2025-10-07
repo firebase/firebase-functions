@@ -7,10 +7,10 @@ import * as nockModule from "nock";
 type ChaiPlugin = Parameters<typeof chai.use>[0];
 type NockModule = typeof nockModule;
 
-const chaiAsPromised =
-  (chaiAsPromisedModule as { default?: ChaiPlugin }).default ??
-  (chaiAsPromisedModule as unknown as ChaiPlugin);
-const nock = (nockModule as NockModule & { default?: NockModule }).default ?? nockModule;
+const chaiAsPromisedExport = chaiAsPromisedModule as ChaiPlugin & { default?: ChaiPlugin };
+const chaiAsPromised = chaiAsPromisedExport.default ?? chaiAsPromisedExport;
+const nockExport = nockModule as NockModule & { default?: NockModule };
+const nock = nockExport.default ?? nockExport;
 
 chai.use(chaiAsPromised);
 
