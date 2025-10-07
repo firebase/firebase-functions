@@ -257,13 +257,16 @@
     "build:release": "npm ci --production && npm install --no-save typescript && tsc -p tsconfig.release.json",
     "build": "tsc -p tsconfig.release.json",
     "build:watch": "npm run build -- -w",
-    "format": "biome format --write src spec",
-    "lint": "biome check src spec",
-    "lint:quiet": "biome check --quiet src spec",
+    "check": "biome check src spec",
+    "check:quiet": "npm run check -- --quiet",
+    "fix": "npm run check -- --write",
+    "lint": "npm run check",
+    "lint:quiet": "npm run check:quiet",
+    "lint:fix": "npm run fix",
+    "format": "npm run fix",
     "test": "mocha --file ./mocha/setup.ts \"spec/**/*.spec.ts\"",
     "test:bin": "./scripts/bin-test/run.sh",
-    "test:postmerge": "./integration_test/run_tests.sh",
-    "lint:fix": "biome check --write src spec"
+    "test:postmerge": "./integration_test/run_tests.sh"
   },
   "dependencies": {
     "@types/cors": "^2.8.5",
