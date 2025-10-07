@@ -25,9 +25,9 @@ describe("Firebase Storage (v2)", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("storageOnObjectFinalizedTests").doc(testId).delete();
-    await admin.firestore().collection("storageOnObjectDeletedTests").doc(testId).delete();
-    await admin.firestore().collection("storageOnObjectMetadataUpdatedTests").doc(testId).delete();
+    await admin.firestore().collection("storageFinalizedTests").doc(testId).delete();
+    await admin.firestore().collection("storageDeletedTests").doc(testId).delete();
+    await admin.firestore().collection("storageMetadataTests").doc(testId).delete();
   });
 
   describe("onObjectFinalized trigger", () => {
@@ -42,7 +42,7 @@ describe("Firebase Storage (v2)", () => {
       loggedContext = await retry(() =>
         admin
           .firestore()
-          .collection("storageOnObjectFinalizedTests")
+          .collection("storageFinalizedTests")
           .doc(testId)
           .get()
           .then((logSnapshot) => logSnapshot.data())
@@ -94,7 +94,7 @@ describe("Firebase Storage (v2)", () => {
       loggedContext = await retry(() =>
         admin
           .firestore()
-          .collection("storageOnObjectDeletedTests")
+          .collection("storageDeletedTests")
           .doc(testId)
           .get()
           .then((logSnapshot) => logSnapshot.data())
@@ -133,7 +133,7 @@ describe("Firebase Storage (v2)", () => {
       loggedContext = await retry(() =>
         admin
           .firestore()
-          .collection("storageOnObjectMetadataUpdatedTests")
+          .collection("storageMetadataTests")
           .doc(testId)
           .get()
           .then((logSnapshot) => logSnapshot.data())
