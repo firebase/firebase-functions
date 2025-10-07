@@ -23,23 +23,23 @@
 import { expect } from "chai";
 import * as fs from "fs";
 import * as process from "process";
-import Sinon = require("sinon");
+import * as sinon from "sinon";
 
 import { firebaseConfig, resetCache } from "../../src/common/config";
 
 describe("firebaseConfig()", () => {
-  let readFileSync: Sinon.SinonStub;
-  let cwdStub: Sinon.SinonStub;
+  let readFileSync: sinon.SinonStub;
+  let cwdStub: sinon.SinonStub;
 
   before(() => {
-    readFileSync = Sinon.stub(fs, "readFileSync");
+    readFileSync = sinon.stub(fs, "readFileSync");
     readFileSync.throws("Unexpected call");
-    cwdStub = Sinon.stub(process, "cwd");
+    cwdStub = sinon.stub(process, "cwd");
     cwdStub.returns("/srv");
   });
 
   after(() => {
-    Sinon.verifyAndRestore();
+    sinon.verifyAndRestore();
   });
 
   afterEach(() => {
