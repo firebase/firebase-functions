@@ -5,7 +5,7 @@ import * as chaiAsPromisedModule from "chai-as-promised";
 // and Node.js 22's strip-only TypeScript loader without enabling esModuleInterop.
 type ChaiPlugin = Parameters<typeof chai.use>[0];
 
-const chaiAsPromised = ((chaiAsPromisedModule as { default?: ChaiPlugin }).default ??
-  (chaiAsPromisedModule as unknown as ChaiPlugin)) as ChaiPlugin;
+const chaiAsPromisedExport = chaiAsPromisedModule as ChaiPlugin & { default?: ChaiPlugin };
+const chaiAsPromised = chaiAsPromisedExport.default ?? chaiAsPromisedExport;
 
 chai.use(chaiAsPromised);
