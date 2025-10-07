@@ -69,10 +69,13 @@ suites:
     functions:
       - name: storageOnObjectFinalizedTests
         trigger: onObjectFinalized
+        collection: storageFinalizedTests
       - name: storageOnObjectDeletedTests
         trigger: onObjectDeleted
+        collection: storageDeletedTests
       - name: storageOnObjectMetadataUpdatedTests
         trigger: onObjectMetadataUpdated
+        collection: storageMetadataTests
 
   # Cloud Tasks triggers
   - name: v2_tasks
