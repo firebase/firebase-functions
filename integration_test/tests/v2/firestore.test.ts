@@ -31,13 +31,15 @@ describe("Cloud Firestore (v2)", () => {
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentCreatedTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("firestoreOnDocumentCreatedTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 
@@ -88,13 +90,15 @@ describe("Cloud Firestore (v2)", () => {
       // Refresh snapshot
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentDeletedTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("firestoreOnDocumentDeletedTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 
@@ -135,13 +139,15 @@ describe("Cloud Firestore (v2)", () => {
 
       await docRef.update({ test: testId });
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentUpdatedTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("firestoreOnDocumentUpdatedTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 
@@ -184,13 +190,15 @@ describe("Cloud Firestore (v2)", () => {
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentWrittenTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("firestoreOnDocumentWrittenTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 
