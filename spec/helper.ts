@@ -136,7 +136,7 @@ export function checkAuthContext(
   expect(context.auth.token.aud).to.equal(projectId);
 
   // TaskContext & TaskRequest don't have instanceIdToken
-  if (Object.hasOwn(context, "instanceIdToken")) {
+  if (Object.prototype.hasOwnProperty.call(context, "instanceIdToken")) {
     expect((context as https.CallableContext).instanceIdToken).to.be.undefined;
   }
 }
