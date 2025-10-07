@@ -18,8 +18,8 @@
     "test:v1:auth-before-create": "node scripts/run-tests.js v1_auth_before_create",
     "test:v1:auth-before-signin": "node scripts/run-tests.js v1_auth_before_signin",
     "cloudbuild:v1": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests",
-    "cloudbuild:v2": "gcloud builds submit --config=cloudbuild-v2.yaml --project=functions-integration-tests-v2",
-    "cloudbuild:both": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests & gcloud builds submit --config=cloudbuild-v2.yaml --project=functions-integration-tests-v2 & wait",
+    "cloudbuild:v2": "gcloud builds submit --config=cloudbuild-v2.yaml --project=cf3-integration-tests-v2-qa",
+    "cloudbuild:both": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests & gcloud builds submit --config=cloudbuild-v2.yaml --project=cf3-integration-tests-v2-qa & wait",
     "cleanup": "./scripts/cleanup-suite.sh",
     "cleanup:list": "./scripts/cleanup-suite.sh --list-artifacts",
     "clean": "rm -rf generated/*"
@@ -28,7 +28,7 @@
     "@google-cloud/pubsub": "^4.0.0",
     "ajv": "^8.17.1",
     "chalk": "^4.1.2",
-    "firebase-admin": "^12.0.0"
+    "firebase-admin": "^13.5.0"
   },
   "devDependencies": {
     "@google-cloud/tasks": "^6.2.0",
