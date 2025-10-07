@@ -23,24 +23,23 @@
 import { expect } from "chai";
 import * as fs from "node:fs";
 import * as process from "node:process";
-
-import Sinon = require("sinon");
+import * as sinon from "sinon";
 
 import { config, resetCache } from "../../src/v1/config";
 
 describe("config()", () => {
-  let readFileSync: Sinon.SinonStub;
-  let cwdStub: Sinon.SinonStub;
+  let readFileSync: sinon.SinonStub;
+  let cwdStub: sinon.SinonStub;
 
   before(() => {
-    readFileSync = Sinon.stub(fs, "readFileSync");
+    readFileSync = sinon.stub(fs, "readFileSync");
     readFileSync.throws("Unexpected call");
-    cwdStub = Sinon.stub(process, "cwd");
+    cwdStub = sinon.stub(process, "cwd");
     cwdStub.returns("/srv");
   });
 
   after(() => {
-    Sinon.verifyAndRestore();
+    sinon.verifyAndRestore();
   });
 
   afterEach(() => {
