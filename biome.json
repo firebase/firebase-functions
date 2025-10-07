@@ -1,0 +1,82 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.5/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": false,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUndeclaredVariables": "off"
+      },
+      "style": {
+        "useConst": "off",
+        "useBlockStatements": "off",
+        "useSelfClosingElements": "off"
+      },
+      "suspicious": {
+        "noDebugger": "error",
+        "noExtraNonNullAssertion": "warn",
+        "noTsIgnore": "warn",
+        "useAdjacentOverloadSignatures": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "arrowParentheses": "always"
+    },
+    "globals": ["console", "process", "module", "require", "exports", "__dirname", "__filename"],
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.spec.ts", "**/*.spec.js"],
+      "javascript": {
+        "globals": ["describe", "it", "before", "after", "beforeEach", "afterEach"]
+      }
+    },
+    {
+      "includes": ["docgen/**/*.ts"],
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["spec/fixtures/credential/unparsable.key.json"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "enabled": false
+      }
+    },
+    {
+      "includes": ["spec/fixtures/**"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "enabled": false
+      }
+    }
+  ],
+  "assist": {
+    "enabled": false
+  },
+  "files": {
+    "includes": ["src/**/*.{ts,js}", "spec/**/*.{ts,js}"]
+  }
+}

@@ -22,4 +22,4 @@
 // This method will fail to compile if value is not of the explicit parameter type.
 /* eslint-disable @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function */
 export function expectType<Type>(value: Type) {}
-export function expectNever<Type extends never>() {}
+export function expectNever<_Type extends never>() {}

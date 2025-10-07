@@ -60,7 +60,10 @@ export function _onUpdateWithOptions(
 /** Builder used to create Cloud Functions for Remote Config. */
 export class UpdateBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Handle all updates (including rollbacks) that affect a Remote Config

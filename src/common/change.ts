@@ -92,5 +92,8 @@ export class Change<T> {
 
     return Change.fromObjects(customizer(before || {}), customizer(json.after || {}));
   }
-  constructor(public before: T, public after: T) {}
+  constructor(
+    public before: T,
+    public after: T
+  ) {}
 }

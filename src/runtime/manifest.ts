@@ -196,7 +196,7 @@ function initEndpoint(
  */
 export function initV1Endpoint(...opts: ManifestOptions[]): ManifestEndpoint {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { concurrency, ...resetOpts } = RESETTABLE_OPTIONS;
+  const { _concurrency, ...resetOpts } = RESETTABLE_OPTIONS;
   return initEndpoint({ ...resetOpts }, ...opts);
 }
 

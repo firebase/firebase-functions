@@ -90,9 +90,8 @@ function removeCircular(obj: any, refs: any[] = []): any {
 export function write(entry: LogEntry) {
   const ctx = traceContext.getStore();
   if (ctx?.traceId) {
-    entry[
-      "logging.googleapis.com/trace"
-    ] = `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
+    entry["logging.googleapis.com/trace"] =
+      `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
   }
 
   UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(removeCircular(entry)));

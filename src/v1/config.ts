@@ -62,7 +62,7 @@ function init() {
     delete parsed.firebase;
     singleton = parsed;
     return;
-  } catch (e) {
+  } catch (_e) {
     // Do nothing
   }
 
@@ -74,7 +74,7 @@ function init() {
     delete parsed.firebase;
     singleton = parsed;
     return;
-  } catch (e) {
+  } catch (_e) {
     // Do nothing
   }
 

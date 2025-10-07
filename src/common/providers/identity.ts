@@ -84,7 +84,10 @@ export type UserInfo = auth.UserInfo;
  * Helper class to create the user metadata in a `UserRecord` object.
  */
 export class UserRecordMetadata implements auth.UserMetadata {
-  constructor(public creationTime: string, public lastSignInTime: string) {}
+  constructor(
+    public creationTime: string,
+    public lastSignInTime: string
+  ) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
   toJSON(): AuthUserMetadata {
@@ -897,8 +900,8 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
       const decodedPayload: DecodedPayload = isDebugFeatureEnabled("skipTokenVerification")
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
         : handler.platform === "gcfv1"
-        ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
-        : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
+          ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
+          : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
       let authUserRecord: AuthUserRecord | undefined;
       if (
         decodedPayload.event_type === "beforeCreate" ||

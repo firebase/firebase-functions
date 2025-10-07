@@ -531,7 +531,7 @@ interface GenkitRunOptions {
 type GenkitAction<
   I extends ZodType = ZodType<any>,
   O extends ZodType = ZodType<any>,
-  S extends ZodType = ZodType<any>
+  S extends ZodType = ZodType<any>,
 > = {
   // NOTE: The return type from run includes trace data that we may one day like to use.
   run(input: I["__output"], options: GenkitRunOptions): Promise<{ result: O["__output"] }>;
