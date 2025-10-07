@@ -920,7 +920,7 @@ describe("identity", () => {
 
     it("should not return recaptchaActionOverride if undefined", () => {
       const payload = identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_UNDEFINED);
-      expect(payload.hasOwnProperty("recaptchaActionOverride")).to.be.false;
+      expect(Object.hasOwn(payload, "recaptchaActionOverride")).to.be.false;
       expect(payload).to.deep.equal(EXPECT_PAYLOAD_UNDEFINED);
     });
   });

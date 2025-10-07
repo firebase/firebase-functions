@@ -815,7 +815,7 @@ export function validateAuthResponse(
   }
   if (authRequest.customClaims) {
     const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
-      authRequest.customClaims.hasOwnProperty(claim)
+      Object.hasOwn(authRequest.customClaims, claim)
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
@@ -832,7 +832,7 @@ export function validateAuthResponse(
   }
   if (eventType === "beforeSignIn" && (authRequest as BeforeSignInResponse).sessionClaims) {
     const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
-      (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
+      Object.hasOwn((authRequest as BeforeSignInResponse).sessionClaims, claim)
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
@@ -874,7 +874,7 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
   }
   const updateMask: string[] = [];
   for (const key in authResponse) {
-    if (authResponse.hasOwnProperty(key) && typeof authResponse[key] !== "undefined") {
+    if (Object.hasOwn(authResponse, key) && typeof authResponse[key] !== "undefined") {
       updateMask.push(key);
     }
   }

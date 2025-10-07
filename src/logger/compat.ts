@@ -25,7 +25,7 @@ import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
 /** @hidden */
 function patchedConsole(severity: string): (data: any, ...args: any[]) => void {
-  return function (data: any, ...args: any[]): void {
+  return (data: any, ...args: any[]): void => {
     let message = format(data, ...args);
     if (severity === "ERROR") {
       message = new Error(message).stack || message;

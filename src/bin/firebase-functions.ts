@@ -99,7 +99,7 @@ if (process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH) {
     }
   })();
 } else {
-  let server: http.Server = undefined;
+  let server: http.Server;
   const app = express();
 
   app.get("/__/quitquitquit", (req, res) => handleQuitquitquit(req, res, server));

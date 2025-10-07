@@ -50,7 +50,7 @@ import {
 export { Change } from "../common/change";
 
 /** @internal */
-const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
+const WILDCARD_REGEX = /{[^/{}]*}/g;
 
 /**
  * Wire format for an event.

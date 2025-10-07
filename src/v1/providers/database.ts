@@ -42,8 +42,8 @@ export const provider = "google.firebase.database";
 /** @internal */
 export const service = "firebaseio.com";
 
-const databaseURLRegex = new RegExp("^https://([^.]+).");
-const emulatorDatabaseURLRegex = new RegExp("^http://.*ns=([^&]+)");
+const databaseURLRegex = /^https:\/\/([^.]+)./;
+const emulatorDatabaseURLRegex = /^http:\/\/.*ns=([^&]+)/;
 
 /**
  * Registers a function that triggers on events from a specific

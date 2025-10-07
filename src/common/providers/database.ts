@@ -289,7 +289,7 @@ export class DataSnapshot implements database.DataSnapshot {
     let maxKey = 0;
     let allIntegerKeys = true;
     for (const key in node) {
-      if (!node.hasOwnProperty(key)) {
+      if (!Object.hasOwn(node, key)) {
         continue;
       }
       const childNode = node[key];
