@@ -20,7 +20,8 @@
   "author": "Firebase Team",
   "files": [
     "lib",
-    "protos"
+    "protos",
+    ".guides"
   ],
   "main": "lib/v2/index.js",
   "bin": {
