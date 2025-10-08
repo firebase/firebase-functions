@@ -19,9 +19,9 @@
   "license": "MIT",
   "author": "Firebase Team",
   "files": [
+    ".guides",
     "lib",
-    "protos",
-    ".guides"
+    "protos"
   ],
   "main": "lib/v2/index.js",
   "bin": {
