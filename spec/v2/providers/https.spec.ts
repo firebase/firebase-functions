@@ -32,6 +32,7 @@ import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
 import { genkit } from "genkit";
+import { clearParams, defineList, Expression } from "../../../src/params";
 
 function request(args: {
   data?: any;
@@ -227,6 +228,43 @@ describe("onRequest", () => {
     });
   });
 
+  it("should allow cors params", async () => {
+    const origins = defineList("ORIGINS");
+
+    try {
+      process.env.ORIGINS = '["example.com","example2.com"]';
+      const func = https.onRequest(
+        {
+          cors: origins,
+        },
+        (req, res) => {
+          res.send("42");
+        }
+      );
+      const req = request({
+        headers: {
+          referrer: "example.com",
+          "content-type": "application/json",
+          origin: "example.com",
+        },
+        method: "OPTIONS",
+      });
+
+      const response = await runHandler(func, req);
+
+      expect(response.status).to.equal(204);
+      expect(response.headers).to.deep.equal({
+        "Access-Control-Allow-Origin": "example.com",
+        "Access-Control-Allow-Methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "Content-Length": "0",
+        Vary: "Origin, Access-Control-Request-Headers",
+      });
+    } finally {
+      delete process.env.ORIGINS;
+      clearParams();
+    }
+  });
+
   it("should add CORS headers if debug feature is enabled", async () => {
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
 
@@ -301,13 +339,19 @@ describe("onRequest", () => {
 });
 
 describe("onCall", () => {
+  let origins: Expression<string[]>;
   beforeEach(() => {
+    origins = defineList("ORIGINS");
+    process.env.ORIGINS = '["example.com","example2.com"]';
+
     options.setGlobalOptions({});
     process.env.GCLOUD_PROJECT = "aProject";
   });
 
   afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
+    delete process.env.ORIGINS;
+    clearParams();
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
@@ -436,6 +480,28 @@ describe("onCall", () => {
     expect(resp.headers).to.deep.equal({
       "Access-Control-Allow-Methods": "POST",
       "Access-Control-Allow-Origin": "example.com",
+      "Content-Length": "0",
+      Vary: "Origin, Access-Control-Request-Headers",
+    });
+  });
+
+  it("should allow cors params", async () => {
+    const func = https.onCall({ cors: origins }, () => 42);
+    const req = request({
+      headers: {
+        referrer: "example.com",
+        "content-type": "application/json",
+        origin: "example.com",
+      },
+      method: "OPTIONS",
+    });
+
+    const response = await runHandler(func, req);
+
+    expect(response.status).to.equal(204);
+    expect(response.headers).to.deep.equal({
+      "Access-Control-Allow-Origin": "example.com",
+      "Access-Control-Allow-Methods": "POST",
       "Content-Length": "0",
       Vary: "Origin, Access-Control-Request-Headers",
     });

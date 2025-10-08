@@ -1,9 +1,11 @@
 import * as subprocess from "child_process";
 import * as path from "path";
 import { promisify } from "util";
+import * as fs from "fs/promises";
+import * as os from "os";
 
 import { expect } from "chai";
-import * as yaml from "js-yaml";
+import { parse as parseYaml } from "yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
 
@@ -105,7 +107,13 @@ const BASE_STACK = {
 interface Testcase {
   name: string;
   modulePath: string;
-  expected: Record<string, any>;
+  expected: Record<string, unknown>;
+}
+
+interface DiscoveryResult {
+  success: boolean;
+  manifest?: Record<string, unknown>;
+  error?: string;
 }
 
 async function retryUntil(
@@ -134,102 +142,134 @@ async function retryUntil(
   await Promise.race([retry, timedOut]);
 }
 
-async function startBin(
-  tc: Testcase,
-  debug?: boolean
-): Promise<{ port: number; cleanup: () => Promise<void> }> {
+async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
   const getPort = promisify(portfinder.getPort) as () => Promise<number>;
   const port = await getPort();
 
   const proc = subprocess.spawn("npx", ["firebase-functions"], {
-    cwd: path.resolve(tc.modulePath),
+    cwd: path.resolve(modulePath),
     env: {
       PATH: process.env.PATH,
-      GLCOUD_PROJECT: "test-project",
+      GCLOUD_PROJECT: "test-project",
       PORT: port.toString(),
       FUNCTIONS_CONTROL_API: "true",
     },
   });
-  if (!proc) {
-    throw new Error("Failed to start firebase functions");
-  }
-  proc.stdout?.on("data", (chunk: Buffer) => {
-    console.log(chunk.toString("utf8"));
-  });
-  proc.stderr?.on("data", (chunk: Buffer) => {
-    console.log(chunk.toString("utf8"));
-  });
 
-  await retryUntil(async () => {
-    try {
-      await fetch(`http://localhost:${port}/__/functions.yaml`);
-    } catch (e) {
-      if (e?.code === "ECONNREFUSED") {
-        return false;
-      }
-      throw e;
-    }
-    return true;
-  }, TIMEOUT_L);
-
-  if (debug) {
-    proc.stdout?.on("data", (data: unknown) => {
-      console.log(`[${tc.name} stdout] ${data}`);
-    });
-
-    proc.stderr?.on("data", (data: unknown) => {
-      console.log(`[${tc.name} stderr] ${data}`);
-    });
-  }
-
-  return {
-    port,
-    cleanup: async () => {
-      process.kill(proc.pid, 9);
-      await retryUntil(async () => {
-        try {
-          process.kill(proc.pid, 0);
-        } catch {
-          // process.kill w/ signal 0 will throw an error if the pid no longer exists.
-          return Promise.resolve(true);
+  try {
+    // Wait for server to be ready
+    await retryUntil(async () => {
+      try {
+        await fetch(`http://localhost:${port}/__/functions.yaml`);
+        return true;
+      } catch (e: unknown) {
+        const error = e as { code?: string };
+        if (error.code === "ECONNREFUSED") {
+          // This is an expected error during server startup, so we should retry.
+          return false;
         }
-        return Promise.resolve(false);
-      }, TIMEOUT_L);
-    },
-  };
+        // Any other error is unexpected and should fail the test immediately.
+        throw e;
+      }
+    }, TIMEOUT_L);
+
+    const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
+    const body = await res.text();
+
+    if (res.status === 200) {
+      const manifest = parseYaml(body) as Record<string, unknown>;
+      return { success: true, manifest };
+    } else {
+      return { success: false, error: body };
+    }
+  } finally {
+    if (proc.pid) {
+      proc.kill(9);
+      await new Promise<void>((resolve) => proc.on("exit", resolve));
+    }
+  }
+}
+
+async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "firebase-functions-test-"));
+  const outputPath = path.join(tempDir, "manifest.json");
+
+  return new Promise((resolve, reject) => {
+    const proc = subprocess.spawn("npx", ["firebase-functions"], {
+      cwd: path.resolve(modulePath),
+      env: {
+        PATH: process.env.PATH,
+        GCLOUD_PROJECT: "test-project",
+        FUNCTIONS_MANIFEST_OUTPUT_PATH: outputPath,
+      },
+    });
+
+    let stderr = "";
+
+    proc.stderr?.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString("utf8");
+    });
+
+    const timeoutId = setTimeout(async () => {
+      if (proc.pid) {
+        proc.kill(9);
+        await new Promise<void>((resolve) => proc.on("exit", resolve));
+      }
+      resolve({ success: false, error: `File discovery timed out after ${TIMEOUT_M}ms` });
+    }, TIMEOUT_M);
+
+    proc.on("close", async (code) => {
+      clearTimeout(timeoutId);
+
+      if (code === 0) {
+        try {
+          const manifestJson = await fs.readFile(outputPath, "utf8");
+          const manifest = JSON.parse(manifestJson) as Record<string, unknown>;
+          await fs.rm(tempDir, { recursive: true }).catch(() => {
+            // Ignore errors
+          });
+          resolve({ success: true, manifest });
+        } catch (e) {
+          resolve({ success: false, error: `Failed to read manifest file: ${e}` });
+        }
+      } else {
+        const errorLines = stderr.split("\n").filter((line) => line.trim());
+        const errorMessage = errorLines.join(" ") || "No error message found";
+        resolve({ success: false, error: errorMessage });
+      }
+    });
+
+    proc.on("error", (err) => {
+      clearTimeout(timeoutId);
+      // Clean up temp directory on error
+      fs.rm(tempDir, { recursive: true }).catch(() => {
+        // Ignore errors
+      });
+      reject(err);
+    });
+  });
 }
 
 describe("functions.yaml", function () {
   // eslint-disable-next-line @typescript-eslint/no-invalid-this
   this.timeout(TIMEOUT_XL);
 
-  function runTests(tc: Testcase) {
-    let port: number;
-    let cleanup: () => Promise<void>;
+  const discoveryMethods = [
+    { name: "http", fn: runHttpDiscovery },
+    { name: "file", fn: runFileDiscovery },
+  ];
 
-    before(async () => {
-      const r = await startBin(tc);
-      port = r.port;
-      cleanup = r.cleanup;
-    });
-
-    after(async () => {
-      await cleanup?.();
-    });
-
-    it("functions.yaml returns expected Manifest", async function () {
+  function runDiscoveryTests(
+    tc: Testcase,
+    discoveryFn: (path: string) => Promise<DiscoveryResult>
+  ) {
+    it("returns expected manifest", async function () {
       // eslint-disable-next-line @typescript-eslint/no-invalid-this
       this.timeout(TIMEOUT_M);
 
-      const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
-      const text = await res.text();
-      let parsed: any;
-      try {
-        parsed = yaml.load(text);
-      } catch (err) {
-        throw new Error(`Failed to parse functions.yaml: ${err}`);
-      }
-      expect(parsed).to.be.deep.equal(tc.expected);
+      const result = await discoveryFn(tc.modulePath);
+      expect(result.success).to.be.true;
+      expect(result.manifest).to.deep.equal(tc.expected);
     });
   }
 
@@ -320,7 +360,11 @@ describe("functions.yaml", function () {
 
     for (const tc of testcases) {
       describe(tc.name, () => {
-        runTests(tc);
+        for (const discovery of discoveryMethods) {
+          describe(`${discovery.name} discovery`, () => {
+            runDiscoveryTests(tc, discovery.fn);
+          });
+        }
       });
     }
   });
@@ -350,7 +394,33 @@ describe("functions.yaml", function () {
 
     for (const tc of testcases) {
       describe(tc.name, () => {
-        runTests(tc);
+        for (const discovery of discoveryMethods) {
+          describe(`${discovery.name} discovery`, () => {
+            runDiscoveryTests(tc, discovery.fn);
+          });
+        }
+      });
+    }
+  });
+
+  describe("error handling", () => {
+    const errorTestcases = [
+      {
+        name: "broken syntax",
+        modulePath: "./scripts/bin-test/sources/broken-syntax",
+        expectedError: "missing ) after argument list",
+      },
+    ];
+
+    for (const tc of errorTestcases) {
+      describe(tc.name, () => {
+        for (const discovery of discoveryMethods) {
+          it(`${discovery.name} discovery handles error correctly`, async () => {
+            const result = await discovery.fn(tc.modulePath);
+            expect(result.success).to.be.false;
+            expect(result.error).to.include(tc.expectedError);
+          });
+        }
       });
     }
   });

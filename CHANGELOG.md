@@ -1,1 +1,1 @@
-- Add @deprecated annotation to callable functions's auth policy.
+- Add LLM guidance (#1736)
