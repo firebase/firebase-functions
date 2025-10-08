@@ -501,15 +501,7 @@ describe("dataconnect", () => {
     });
 
     it("should create a func in the absence of param opts", () => {
-      const expectedEndpoint = makeExpectedEndpoint(
-        dataconnect.mutationExecutedEventType,
-        {
-          connector: undefined,
-          operation: undefined,
-          service: undefined,
-        },
-        {}
-      );
+      const expectedEndpoint = makeExpectedEndpoint(dataconnect.mutationExecutedEventType, {}, {});
 
       const func = dataconnect.onMutationExecuted({}, () => true);
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);

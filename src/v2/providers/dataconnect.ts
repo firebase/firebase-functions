@@ -88,19 +88,27 @@ export interface RawDataConnectEvent<T> extends CloudEvent<T> {
 export type AuthType = "app_user" | "admin" | "unknown";
 
 /** OperationOptions extend EventHandlerOptions with a provided service, connector, and operation. */
-export interface OperationOptions<Service extends string = string, Connector extends string = string, Operation extends string = string> extends EventHandlerOptions{
-    /** Firebase Data Connect service ID */
-    service?: Service;
-    /** Firebase Data Connect connector ID */
-    connector?: Connector;
-    /** Name of the operation */
-    operation?: Operation;
+export interface OperationOptions<
+  Service extends string = string,
+  Connector extends string = string,
+  Operation extends string = string
+> extends EventHandlerOptions {
+  /** Firebase Data Connect service ID */
+  service?: Service;
+  /** Firebase Data Connect connector ID */
+  connector?: Connector;
+  /** Name of the operation */
+  operation?: Operation;
 }
 
 export type DataConnectParams<PathPatternOrOptions extends string | OperationOptions> =
-    PathPatternOrOptions extends string
+  PathPatternOrOptions extends string
     ? ParamsOf<PathPatternOrOptions>
-    : PathPatternOrOptions extends OperationOptions<infer Service extends string, infer Connector extends string, infer Operation extends string>
+    : PathPatternOrOptions extends OperationOptions<
+        infer Service extends string,
+        infer Connector extends string,
+        infer Operation extends string
+      >
     ? Record<VarName<Service> | VarName<Connector> | VarName<Operation>, string>
     : never;
 
@@ -135,7 +143,9 @@ export function onMutationExecuted<
   handler: (
     event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>
   ) => unknown | Promise<unknown>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>>;
+): CloudFunction<
+  DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>
+>;
 
 /**
  * Event handler that triggers when a mutation is executed in Firebase Data Connect.
@@ -152,7 +162,9 @@ export function onMutationExecuted<
   handler: (
     event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>
   ) => unknown | Promise<unknown>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>>;
+): CloudFunction<
+  DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>
+>;
 
 /**
  * Event handler that triggers when a mutation is executed in Firebase Data Connect.
@@ -167,18 +179,30 @@ export function onMutationExecuted<
 >(
   mutationOrOpts: PathPatternOrOptions,
   handler: (
-    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>
+    event: DataConnectEvent<
+      MutationEventData<Variables, ResponseData>,
+      DataConnectParams<PathPatternOrOptions>
+    >
   ) => unknown | Promise<unknown>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>> {
-  return onOperation<Variables, ResponseData, PathPatternOrOptions>(mutationExecutedEventType, mutationOrOpts, handler);
+): CloudFunction<
+  DataConnectEvent<
+    MutationEventData<Variables, ResponseData>,
+    DataConnectParams<PathPatternOrOptions>
+  >
+> {
+  return onOperation<Variables, ResponseData, PathPatternOrOptions>(
+    mutationExecutedEventType,
+    mutationOrOpts,
+    handler
+  );
 }
 
 function getOpts(mutationOrOpts: string | OperationOptions) {
   const operationRegex = new RegExp("services/([^/]+)/connectors/([^/]+)/operations/([^/]+)");
 
-  let service: string;
-  let connector: string;
-  let operation: string;
+  let service: string | undefined;
+  let connector: string | undefined;
+  let operation: string | undefined;
   let opts: EventHandlerOptions;
   if (typeof mutationOrOpts === "string") {
     const path = normalizePath(mutationOrOpts);
@@ -213,9 +237,9 @@ function getOpts(mutationOrOpts: string | OperationOptions) {
 function makeEndpoint(
   eventType: string,
   opts: EventHandlerOptions,
-  service: PathPattern,
-  connector: PathPattern,
-  operation: PathPattern
+  service: PathPattern | undefined,
+  connector: PathPattern | undefined,
+  operation: PathPattern | undefined
 ): ManifestEndpoint {
   const baseOpts = optionsToEndpoint(getGlobalOptions());
   const specificOpts = optionsToEndpoint(opts);
@@ -223,16 +247,21 @@ function makeEndpoint(
   const eventFilters: Record<string, string> = {};
   const eventFilterPathPatterns: Record<string, string> = {};
 
-  service.hasWildcards()
-    ? (eventFilterPathPatterns.service = service.getValue())
-    : (eventFilters.service = service.getValue());
-  connector.hasWildcards()
-    ? (eventFilterPathPatterns.connector = connector.getValue())
-    : (eventFilters.connector = connector.getValue());
-  operation.hasWildcards()
-    ? (eventFilterPathPatterns.operation = operation.getValue())
-    : (eventFilters.operation = operation.getValue());
-
+  if (service) {
+    service.hasWildcards()
+      ? (eventFilterPathPatterns.service = service.getValue())
+      : (eventFilters.service = service.getValue());
+  }
+  if (connector) {
+    connector.hasWildcards()
+      ? (eventFilterPathPatterns.connector = connector.getValue())
+      : (eventFilters.connector = connector.getValue());
+  }
+  if (operation) {
+    operation.hasWildcards()
+      ? (eventFilterPathPatterns.operation = operation.getValue())
+      : (eventFilters.operation = operation.getValue());
+  }
   return {
     ...initV2Endpoint(getGlobalOptions(), opts),
     platform: "gcfv2",
@@ -253,34 +282,52 @@ function makeEndpoint(
 
 function makeParams<V, R>(
   event: RawDataConnectEvent<MutationEventData<V, R>>,
-  service: PathPattern,
-  connector: PathPattern,
-  operation: PathPattern
+  service: PathPattern | undefined,
+  connector: PathPattern | undefined,
+  operation: PathPattern | undefined
 ) {
   return {
-    ...service.extractMatches(event.service),
-    ...connector.extractMatches(event.connector),
-    ...operation.extractMatches(event.operation),
+    ...service?.extractMatches(event.service),
+    ...connector?.extractMatches(event.connector),
+    ...operation?.extractMatches(event.operation),
   };
 }
 
 function onOperation<Variables, ResponseData, PathPatternOrOptions>(
   eventType: string,
   mutationOrOpts: PathPatternOrOptions,
-  handler: (event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>) => any | Promise<any>
-): CloudFunction<DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>>> {
+  handler: (
+    event: DataConnectEvent<
+      MutationEventData<Variables, ResponseData>,
+      DataConnectParams<PathPatternOrOptions>
+    >
+  ) => any | Promise<any>
+): CloudFunction<
+  DataConnectEvent<
+    MutationEventData<Variables, ResponseData>,
+    DataConnectParams<PathPatternOrOptions>
+  >
+> {
   const { service, connector, operation, opts } = getOpts(mutationOrOpts);
 
-  const servicePattern = new PathPattern(service);
-  const connectorPattern = new PathPattern(connector);
-  const operationPattern = new PathPattern(operation);
+  const servicePattern = service ? new PathPattern(service) : undefined;
+  const connectorPattern = connector ? new PathPattern(connector) : undefined;
+  const operationPattern = operation ? new PathPattern(operation) : undefined;
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawDataConnectEvent<MutationEventData<Variables, ResponseData>>;
-    const params = makeParams<Variables, ResponseData>(event, servicePattern, connectorPattern, operationPattern);
+    const params = makeParams<Variables, ResponseData>(
+      event,
+      servicePattern,
+      connectorPattern,
+      operationPattern
+    );
 
-    const dataConnectEvent: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<PathPatternOrOptions>> = {
+    const dataConnectEvent: DataConnectEvent<
+      MutationEventData<Variables, ResponseData>,
+      DataConnectParams<PathPatternOrOptions>
+    > = {
       ...event,
       authType: event.authtype,
       authId: event.authid,
