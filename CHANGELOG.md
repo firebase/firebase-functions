@@ -1,2 +1,1 @@
-- Add @deprecated annotation to callable functions's auth policy (#1675)
-- Allows CORS to be a parameter. (#1688)
+- Add LLM guidance (#1736)
