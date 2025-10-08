@@ -324,17 +324,16 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
       operationPattern
     );
 
+    const { authtype, authid, ...rest } = event;
     const dataConnectEvent: DataConnectEvent<
       MutationEventData<Variables, ResponseData>,
       DataConnectParams<PathPatternOrOptions>
     > = {
-      ...event,
-      authType: event.authtype,
-      authId: event.authid,
+      ...rest,
+      authType: authtype,
+      authId: authid,
       params: params as DataConnectParams<PathPatternOrOptions>,
     };
-    delete (dataConnectEvent as any).authtype;
-    delete (dataConnectEvent as any).authid;
 
     return wrapTraceContext(withInit(handler))(dataConnectEvent);
   };
