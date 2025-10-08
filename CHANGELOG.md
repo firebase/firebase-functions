@@ -1,2 +1,3 @@
 - Add LLM guidance (#1736)
+- Adds auth.rawToken to context to allow access to the underlying token. (#1678)
 - Fix logger runtime exceptions #(1704)
