@@ -1,1 +1,2 @@
 - Add LLM guidance (#1736)
+- Fix issue calling DataSnapshot methods with null data (#1661)
