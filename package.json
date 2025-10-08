@@ -19,6 +19,7 @@
   "license": "MIT",
   "author": "Firebase Team",
   "files": [
+    ".guides",
     "lib",
     "protos"
   ],
