@@ -5,7 +5,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 
 import { expect } from "chai";
-import * as yaml from "js-yaml";
+import { parse as parseYaml } from "yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
 
@@ -177,7 +177,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
     const body = await res.text();
 
     if (res.status === 200) {
-      const manifest = yaml.load(body) as Record<string, unknown>;
+      const manifest = parseYaml(body) as Record<string, unknown>;
       return { success: true, manifest };
     } else {
       return { success: false, error: body };
