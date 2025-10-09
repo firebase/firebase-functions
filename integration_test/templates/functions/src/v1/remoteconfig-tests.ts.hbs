@@ -1,0 +1,27 @@
+import * as admin from "firebase-admin";
+import * as functions from "firebase-functions/v1";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .remoteConfig.onUpdate(async (version, context) => {
+    const testId = version.description;
+    if (!testId) {
+      console.error("TestId not found in remoteConfig version description");
+      return;
+    }
+
+    await admin
+      .firestore()
+      .collection("{{collection}}")
+      .doc(testId)
+      .set(sanitizeData(context));
+  });
+
+{{/each}}

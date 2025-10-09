@@ -1,0 +1,97 @@
+import * as admin from "firebase-admin";
+import * as functions from "firebase-functions/v1";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+{{#if (eq trigger "onCreate")}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .auth.user()
+  .onCreate(async (user, context) => {
+    const { email, displayName, uid } = user;
+    const userProfile = {
+      email,
+      displayName,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+    await admin.firestore().collection("userProfiles").doc(uid).set(userProfile);
+
+    await admin
+      .firestore()
+      .collection("{{collection}}")
+      .doc(uid)
+      .set(
+        sanitizeData({
+          ...context,
+          metadata: JSON.stringify(user.metadata),
+        })
+      );
+  });
+{{/if}}
+
+{{#if (eq trigger "onDelete")}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .auth.user()
+  .onDelete(async (user, context) => {
+    const { uid } = user;
+    await admin
+      .firestore()
+      .collection("{{collection}}")
+      .doc(uid)
+      .set(
+        sanitizeData({
+          ...context,
+          metadata: JSON.stringify(user.metadata),
+        })
+      );
+  });
+{{/if}}
+
+{{#if (eq trigger "beforeCreate")}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .auth.user()
+  .beforeCreate(async (user, context) => {
+    await admin.firestore().collection("{{collection}}").doc(user.uid).set({
+      eventId: context.eventId,
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      resource: context.resource,
+    });
+
+    return user;
+  });
+{{/if}}
+
+{{#if (eq trigger "beforeSignIn")}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .auth.user()
+  .beforeSignIn(async (user, context) => {
+    await admin.firestore().collection("{{collection}}").doc(user.uid).set({
+      eventId: context.eventId,
+      eventType: context.eventType,
+      timestamp: context.timestamp,
+      resource: context.resource,
+    });
+
+    return user;
+  });
+{{/if}}
+
+{{/each}}

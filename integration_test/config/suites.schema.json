@@ -1,0 +1,414 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://firebase.google.com/schemas/functions-integration-test-suites.json",
+  "title": "Firebase Functions Integration Test Suites Configuration",
+  "description": "Schema for the unified Firebase Functions integration test suite configuration",
+  "type": "object",
+  "required": ["defaults", "suites"],
+  "additionalProperties": false,
+  "properties": {
+    "defaults": {
+      "type": "object",
+      "description": "Default values applied to all suites unless overridden",
+      "required": ["projectId", "region", "timeout", "dependencies", "devDependencies"],
+      "additionalProperties": false,
+      "properties": {
+        "projectId": {
+          "type": "string",
+          "description": "Default Firebase project ID for deployments",
+          "pattern": "^[a-z0-9-]+$",
+          "minLength": 6,
+          "maxLength": 30,
+          "default": "functions-integration-tests"
+        },
+        "region": {
+          "type": "string",
+          "description": "Default deployment region",
+          "enum": [
+            "us-central1",
+            "us-east1",
+            "us-east4",
+            "us-west1",
+            "us-west2",
+            "us-west3",
+            "us-west4",
+            "europe-west1",
+            "europe-west2",
+            "europe-west3",
+            "europe-west6",
+            "europe-central2",
+            "asia-east1",
+            "asia-east2",
+            "asia-northeast1",
+            "asia-northeast2",
+            "asia-northeast3",
+            "asia-south1",
+            "asia-southeast1",
+            "asia-southeast2",
+            "australia-southeast1",
+            "northamerica-northeast1",
+            "southamerica-east1"
+          ],
+          "default": "us-central1"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Default function timeout in seconds",
+          "minimum": 1,
+          "maximum": 540,
+          "default": 540
+        },
+        "dependencies": {
+          "type": "object",
+          "description": "Default npm dependencies for generated functions",
+          "properties": {
+            "firebase-admin": {
+              "type": "string",
+              "description": "Firebase Admin SDK version",
+              "pattern": "^(\\^|~)?\\d+\\.\\d+\\.\\d+$|^\\{\\{sdkTarball\\}\\}$"
+            },
+            "firebase-functions": {
+              "type": "string",
+              "description": "Firebase Functions SDK version or template variable",
+              "pattern": "^(\\^|~)?\\d+\\.\\d+\\.\\d+$|^\\{\\{sdkTarball\\}\\}$|^file:"
+            }
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "Additional dependency with version specification"
+          }
+        },
+        "devDependencies": {
+          "type": "object",
+          "description": "Default npm dev dependencies for generated functions",
+          "properties": {
+            "typescript": {
+              "type": "string",
+              "description": "TypeScript version",
+              "pattern": "^(\\^|~)?\\d+\\.\\d+\\.\\d+$"
+            }
+          },
+          "additionalProperties": {
+            "type": "string",
+            "description": "Additional dev dependency with version specification"
+          }
+        }
+      }
+    },
+    "suites": {
+      "type": "array",
+      "description": "Array of test suite configurations",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "version", "service", "functions"],
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Unique identifier for the test suite",
+            "pattern": "^v[12]_[a-z0-9_]+$",
+            "examples": ["v1_firestore", "v2_database", "v1_auth_nonblocking"]
+          },
+          "projectId": {
+            "type": "string",
+            "description": "Override default project ID for this suite",
+            "pattern": "^[a-z0-9-]+$",
+            "minLength": 6,
+            "maxLength": 30
+          },
+          "region": {
+            "type": "string",
+            "description": "Override default region for this suite",
+            "enum": [
+              "us-central1",
+              "us-east1",
+              "us-east4",
+              "us-west1",
+              "us-west2",
+              "us-west3",
+              "us-west4",
+              "europe-west1",
+              "europe-west2",
+              "europe-west3",
+              "europe-west6",
+              "europe-central2",
+              "asia-east1",
+              "asia-east2",
+              "asia-northeast1",
+              "asia-northeast2",
+              "asia-northeast3",
+              "asia-south1",
+              "asia-southeast1",
+              "asia-southeast2",
+              "australia-southeast1",
+              "northamerica-northeast1",
+              "southamerica-east1"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the test suite",
+            "minLength": 1
+          },
+          "version": {
+            "type": "string",
+            "description": "Firebase Functions SDK version",
+            "enum": ["v1", "v2"]
+          },
+          "service": {
+            "type": "string",
+            "description": "Firebase service being tested",
+            "enum": [
+              "firestore",
+              "database",
+              "pubsub",
+              "storage",
+              "auth",
+              "tasks",
+              "remoteconfig",
+              "testlab",
+              "scheduler",
+              "identity",
+              "alerts",
+              "eventarc"
+            ]
+          },
+          "dependencies": {
+            "type": "object",
+            "description": "Override default dependencies for this suite",
+            "additionalProperties": {
+              "type": "string",
+              "description": "Dependency with version specification"
+            }
+          },
+          "devDependencies": {
+            "type": "object",
+            "description": "Override default dev dependencies for this suite",
+            "additionalProperties": {
+              "type": "string",
+              "description": "Dev dependency with version specification"
+            }
+          },
+          "functions": {
+            "type": "array",
+            "description": "Array of function configurations for this suite",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["name"],
+              "additionalProperties": true,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Function name (TEST_RUN_ID will be appended)",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9]*$",
+                  "minLength": 1,
+                  "maxLength": 62
+                },
+                "trigger": {
+                  "type": "string",
+                  "description": "Trigger type for the function",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "description": "Type field for identity platform functions",
+                  "enum": ["beforeUserCreated", "beforeUserSignedIn"]
+                },
+                "timeout": {
+                  "type": "integer",
+                  "description": "Override default timeout for this function",
+                  "minimum": 1,
+                  "maximum": 540
+                },
+                "collection": {
+                  "type": "string",
+                  "description": "Firestore collection name (defaults to function name)",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9]*$"
+                },
+                "document": {
+                  "type": "string",
+                  "description": "Firestore document path pattern",
+                  "examples": ["tests/{testId}", "users/{userId}/posts/{postId}"]
+                },
+                "topic": {
+                  "type": "string",
+                  "description": "Pub/Sub topic name",
+                  "pattern": "^[a-zA-Z][a-zA-Z0-9-_]*$"
+                },
+                "schedule": {
+                  "type": "string",
+                  "description": "Cron schedule for scheduled functions",
+                  "examples": ["every 10 hours", "every 5 minutes", "0 */12 * * *"]
+                },
+                "bucket": {
+                  "type": "string",
+                  "description": "Storage bucket name"
+                },
+                "queue": {
+                  "type": "string",
+                  "description": "Cloud Tasks queue name"
+                },
+                "alertType": {
+                  "type": "string",
+                  "description": "Type of alert for alert triggers"
+                },
+                "eventType": {
+                  "type": "string",
+                  "description": "Event type for EventArc triggers"
+                },
+                "database": {
+                  "type": "string",
+                  "description": "Realtime Database instance URL"
+                },
+                "path": {
+                  "type": "string",
+                  "description": "Database or storage path pattern"
+                },
+                "blocking": {
+                  "type": "boolean",
+                  "description": "Whether this is a blocking auth function",
+                  "default": false
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "trigger": {
+                        "enum": [
+                          "onDocumentCreated",
+                          "onDocumentDeleted",
+                          "onDocumentUpdated",
+                          "onDocumentWritten"
+                        ]
+                      }
+                    },
+                    "required": ["trigger"]
+                  },
+                  "then": {
+                    "required": ["document"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "trigger": {
+                        "enum": ["onCreate", "onDelete", "onUpdate", "onWrite"]
+                      },
+                      "document": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["trigger", "document"]
+                  },
+                  "then": {
+                    "required": ["document"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "trigger": {
+                        "enum": ["onCreate", "onDelete", "onUpdate", "onWrite"]
+                      },
+                      "path": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["trigger", "path"]
+                  },
+                  "then": {
+                    "required": ["path"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "trigger": {
+                        "enum": [
+                          "onValueCreated",
+                          "onValueDeleted",
+                          "onValueUpdated",
+                          "onValueWritten"
+                        ]
+                      }
+                    },
+                    "required": ["trigger"]
+                  },
+                  "then": {
+                    "required": ["path"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "trigger": {
+                        "enum": ["onPublish", "onMessagePublished"]
+                      }
+                    },
+                    "required": ["trigger"]
+                  },
+                  "then": {
+                    "required": ["topic"]
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "trigger": {
+                        "enum": ["onRun", "onSchedule"]
+                      }
+                    },
+                    "required": ["trigger"]
+                  },
+                  "then": {
+                    "required": ["schedule"]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "uniqueItems": true
+    }
+  },
+  "definitions": {
+    "versionPattern": {
+      "type": "string",
+      "pattern": "^(\\^|~)?\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version with optional range specifier"
+    },
+    "firebaseRegion": {
+      "type": "string",
+      "enum": [
+        "us-central1",
+        "us-east1",
+        "us-east4",
+        "us-west1",
+        "us-west2",
+        "us-west3",
+        "us-west4",
+        "europe-west1",
+        "europe-west2",
+        "europe-west3",
+        "europe-west6",
+        "europe-central2",
+        "asia-east1",
+        "asia-east2",
+        "asia-northeast1",
+        "asia-northeast2",
+        "asia-northeast3",
+        "asia-south1",
+        "asia-southeast1",
+        "asia-southeast2",
+        "australia-southeast1",
+        "northamerica-northeast1",
+        "southamerica-east1"
+      ],
+      "description": "Valid Firebase Functions deployment regions"
+    }
+  }
+}

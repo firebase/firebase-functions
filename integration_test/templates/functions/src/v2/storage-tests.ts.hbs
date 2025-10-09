@@ -1,0 +1,68 @@
+import * as admin from "firebase-admin";
+import { onObjectFinalized, onObjectDeleted, onObjectMetadataUpdated } from "firebase-functions/v2/storage";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+{{#if (eq trigger "onObjectFinalized")}}
+export const {{name}}{{../testRunId}} = onObjectFinalized({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const name = event.data.name;
+  if (!name || typeof name !== "string") {
+    console.error("Invalid name property for storage object finalized");
+    return;
+  }
+  const testId = name.split(".")[0];
+
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{#if (eq trigger "onObjectDeleted")}}
+export const {{name}}{{../testRunId}} = onObjectDeleted({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const name = event.data.name;
+  if (!name || typeof name !== "string") {
+    console.error("Invalid name property for storage object deleted");
+    return;
+  }
+  const testId = name.split(".")[0];
+
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{#if (eq trigger "onObjectMetadataUpdated")}}
+export const {{name}}{{../testRunId}} = onObjectMetadataUpdated({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const name = event.data.name;
+  if (!name || typeof name !== "string") {
+    console.error("Invalid name property for storage object metadata updated");
+    return;
+  }
+  const testId = name.split(".")[0];
+
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{/each}}
