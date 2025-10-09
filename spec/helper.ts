@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as express from "express";
+import type * as express from "express";
 
-import * as https from "../src/common/providers/https";
-import * as tasks from "../src/common/providers/tasks";
+import type * as https from "../src/common/providers/https";
+import type * as tasks from "../src/common/providers/tasks";
 
 /**
  * RunHandlerResult contains the data from an express.Response.
@@ -136,7 +136,7 @@ export function checkAuthContext(
   expect(context.auth.token.aud).to.equal(projectId);
 
   // TaskContext & TaskRequest don't have instanceIdToken
-  if ({}.hasOwnProperty.call(context, "instanceIdToken")) {
+  if (Object.prototype.hasOwnProperty.call(context, "instanceIdToken")) {
     expect((context as https.CallableContext).instanceIdToken).to.be.undefined;
   }
 }

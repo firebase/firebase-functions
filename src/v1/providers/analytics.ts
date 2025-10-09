@@ -20,8 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import {
+  type CloudFunction,
+  type Event,
+  type EventContext,
+  makeCloudFunction,
+} from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
 export const provider = "google.analytics";
@@ -57,7 +62,10 @@ export function _eventWithOptions(analyticsEventType: string, options: Deploymen
  */
 export class AnalyticsEventBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.

@@ -21,14 +21,19 @@
 // SOFTWARE.
 
 import { getApp } from "../../common/app";
-import { Change } from "../../common/change";
+import type { Change } from "../../common/change";
 import { firebaseConfig } from "../../common/config";
-import { ParamsOf } from "../../common/params";
+import type { ParamsOf } from "../../common/params";
 import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { applyChange } from "../../common/utilities/utils";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import {
+  type CloudFunction,
+  type Event,
+  type EventContext,
+  makeCloudFunction,
+} from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 export { DataSnapshot };
 
@@ -37,8 +42,8 @@ export const provider = "google.firebase.database";
 /** @internal */
 export const service = "firebaseio.com";
 
-const databaseURLRegex = new RegExp("^https://([^.]+).");
-const emulatorDatabaseURLRegex = new RegExp("^http://.*ns=([^&]+)");
+const databaseURLRegex = /^https:\/\/([^.]+)./;
+const emulatorDatabaseURLRegex = /^http:\/\/.*ns=([^&]+)/;
 
 /**
  * Registers a function that triggers on events from a specific
@@ -109,7 +114,10 @@ export function _instanceWithOptions(
  * Access via [`database.instance()`](providers_database_.html#instance).
  */
 export class InstanceBuilder {
-  constructor(private instance: string, private options: DeploymentOptions) {}
+  constructor(
+    private instance: string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * @returns Firebase Realtime Database reference builder interface.
@@ -167,7 +175,10 @@ export function _refWithOptions<Ref extends string>(
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
 export class RefBuilder<Ref extends string> {
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Realtime Database write

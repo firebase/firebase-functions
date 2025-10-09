@@ -20,8 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import {
+  type CloudFunction,
+  type Event,
+  type EventContext,
+  makeCloudFunction,
+} from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
 export const PROVIDER = "google.testing";
@@ -48,7 +53,10 @@ export function _testMatrixWithOpts(opts: DeploymentOptions) {
 /** Builder used to create Cloud Functions for Test Lab test matrices events. */
 export class TestMatrixBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /** Handle a TestMatrix that reached a final test state. */
   onComplete(

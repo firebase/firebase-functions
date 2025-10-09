@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
+import { type CloudFunction, type EventContext, makeCloudFunction } from "../cloud-functions";
+import type { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
 
 /** @internal */
 export const provider = "google.pubsub";
@@ -60,7 +60,10 @@ export function _topicWithOptions(topic: string, options: DeploymentOptions): To
  */
 export class TopicBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Cloud Pub/Sub message is
@@ -124,7 +127,10 @@ export function _scheduleWithOptions(
  */
 export class ScheduleBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
     this.options.schedule.retryConfig = config;

@@ -84,7 +84,7 @@ function refOf<T extends string | number | boolean | string[]>(arg: T | Expressi
  * A CEL expression corresponding to a ternary operator, e.g {{ cond ? ifTrue : ifFalse }}
  */
 export class TernaryExpression<
-  T extends string | number | boolean | string[]
+  T extends string | number | boolean | string[],
 > extends Expression<T> {
   constructor(
     private readonly test: Expression<boolean>,
@@ -111,7 +111,7 @@ export class TernaryExpression<
  * between the value of another expression and a literal of that same type.
  */
 export class CompareExpression<
-  T extends string | number | boolean | string[]
+  T extends string | number | boolean | string[],
 > extends Expression<boolean> {
   cmp: "==" | "!=" | ">" | ">=" | "<" | "<=";
   lhs: Expression<T>;
@@ -226,7 +226,7 @@ type ParamInput<T> =
  * provided validationRegex, if present, will be retried.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export interface TextInput<T = unknown> {
+export interface TextInput<_T = unknown> {
   text: {
     example?: string;
     /**
@@ -340,7 +340,10 @@ export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
 export abstract class Param<T extends string | number | boolean | string[]> extends Expression<T> {
   static type: ParamValueType = "string";
 
-  constructor(readonly name: string, readonly options: ParamOptions<T> = {}) {
+  constructor(
+    readonly name: string,
+    readonly options: ParamOptions<T> = {}
+  ) {
     super();
   }
 
@@ -483,7 +486,10 @@ export class StringParam extends Param<string> {
  * @internal
  */
 export class InternalExpression extends Param<string> {
-  constructor(name: string, private readonly getter: (env: NodeJS.ProcessEnv) => string) {
+  constructor(
+    name: string,
+    private readonly getter: (env: NodeJS.ProcessEnv) => string
+  ) {
     super(name);
   }
 

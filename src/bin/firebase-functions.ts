@@ -22,10 +22,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as http from "http";
 import * as express from "express";
-import * as fs from "fs/promises";
-import * as path from "path";
+import * as fs from "node:fs/promises";
+import type * as http from "node:http";
+import * as path from "node:path";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";
 
@@ -99,7 +99,7 @@ if (process.env.FUNCTIONS_MANIFEST_OUTPUT_PATH) {
     }
   })();
 } else {
-  let server: http.Server = undefined;
+  let server: http.Server;
   const app = express();
 
   app.get("/__/quitquitquit", (req, res) => handleQuitquitquit(req, res, server));

@@ -20,17 +20,22 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as firestore from "firebase-admin/firestore";
+import type * as firestore from "firebase-admin/firestore";
 
-import { posix } from "path";
+import { posix } from "node:path";
 import { Change } from "../../common/change";
-import { ParamsOf } from "../../common/params";
+import type { ParamsOf } from "../../common/params";
 import {
   createBeforeSnapshotFromJson,
   createSnapshotFromJson,
 } from "../../common/providers/firestore";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import {
+  type CloudFunction,
+  type Event,
+  type EventContext,
+  makeCloudFunction,
+} from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
 export const provider = "google.firestore";
@@ -82,7 +87,10 @@ export function _documentWithOptions<Path extends string>(path: Path, options: D
 }
 
 export class DatabaseBuilder {
-  constructor(private database: string, private options: DeploymentOptions) {}
+  constructor(
+    private database: string,
+    private options: DeploymentOptions
+  ) {}
 
   namespace(namespace: string) {
     return new NamespaceBuilder(this.database, this.options, namespace);
@@ -144,7 +152,10 @@ function changeConstructor(raw: Event) {
 }
 
 export class DocumentBuilder<Path extends string> {
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {
     // TODO what validation do we want to do here?
   }
 

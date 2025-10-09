@@ -1,6 +1,6 @@
-import { ManifestEndpoint } from "../../../src/runtime/manifest";
-import { TriggerAnnotation } from "../../../src/v2/core";
-import * as options from "../../../src/v2/options";
+import type { ManifestEndpoint } from "../../../src/runtime/manifest";
+import type { TriggerAnnotation } from "../../../src/v2/core";
+import type * as options from "../../../src/v2/options";
 
 export { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../../fixtures";
 

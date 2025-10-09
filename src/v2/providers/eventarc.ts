@@ -26,14 +26,14 @@
  */
 
 import { convertIfPresent, copyIfPresent } from "../../common/encoding";
-import { ResetValue } from "../../common/options";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { CloudEvent, CloudFunction } from "../core";
-import { wrapTraceContext } from "../trace";
-import { Expression } from "../../params";
-import * as options from "../options";
-import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import type { ResetValue } from "../../common/options";
+import type { Expression } from "../../params";
+import type { SecretParam } from "../../params/types";
+import { initV2Endpoint, type ManifestEndpoint } from "../../runtime/manifest";
+import type { CloudEvent, CloudFunction } from "../core";
+import * as options from "../options";
+import { wrapTraceContext } from "../trace";
 
 /** Options that can be set on an Eventarc trigger. */
 export interface EventarcTriggerOptions extends options.EventHandlerOptions {

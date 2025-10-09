@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
+import { type CloudEvent, onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
+import * as remoteConfig from "../../../src/v2/providers/remoteConfig";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
-import { CloudEvent, onInit } from "../../../src/v2/core";
 
 describe("onConfigUpdated", () => {
   afterEach(() => {

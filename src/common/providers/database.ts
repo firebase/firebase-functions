@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { App } from "firebase-admin/app";
+import type { App } from "firebase-admin/app";
 import * as database from "firebase-admin/database";
 import { firebaseConfig } from "../../common/config";
 import { joinPath, pathParts } from "../../common/utilities/path";
@@ -289,7 +289,7 @@ export class DataSnapshot implements database.DataSnapshot {
     let maxKey = 0;
     let allIntegerKeys = true;
     for (const key in node) {
-      if (!node.hasOwnProperty(key)) {
+      if (!Object.prototype.hasOwnProperty.call(node, key)) {
         continue;
       }
       const childNode = node[key];

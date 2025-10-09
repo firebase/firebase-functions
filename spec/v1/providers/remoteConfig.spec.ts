@@ -22,7 +22,7 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
+import type { CloudFunction, Event } from "../../../src/v1/cloud-functions";
 import * as remoteConfig from "../../../src/v1/providers/remoteConfig";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 

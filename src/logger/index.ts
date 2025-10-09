@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { format } from "util";
+import { format } from "node:util";
 import { traceContext } from "../common/trace";
 
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
@@ -98,9 +98,8 @@ function removeCircular(obj: any, refs: Set<any> = new Set()): any {
 export function write(entry: LogEntry) {
   const ctx = traceContext.getStore();
   if (ctx?.traceId) {
-    entry[
-      "logging.googleapis.com/trace"
-    ] = `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
+    entry["logging.googleapis.com/trace"] =
+      `projects/${process.env.GCLOUD_PROJECT}/traces/${ctx.traceId}`;
   }
 
   UNPATCHED_CONSOLE[CONSOLE_SEVERITY[entry.severity]](JSON.stringify(removeCircular(entry)));
