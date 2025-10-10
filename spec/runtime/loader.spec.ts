@@ -321,13 +321,19 @@ describe("loadStack", () => {
   }
   function runTests(tc: Testcase) {
     it("loads stack given relative path", async () => {
-      await expect(loader.loadStack(tc.modulePath)).to.eventually.deep.equal(tc.expected);
+      const result = await loader.loadStack(tc.modulePath);
+      expect(result.stack).to.deep.equal(tc.expected);
+      expect(Object.keys(result.handlers).sort()).to.deep.equal(
+        Object.keys(tc.expected.endpoints).sort()
+      );
     });
 
     it("loads stack given absolute path", async () => {
-      await expect(
-        loader.loadStack(path.join(process.cwd(), tc.modulePath))
-      ).to.eventually.deep.equal(tc.expected);
+      const result = await loader.loadStack(path.join(process.cwd(), tc.modulePath));
+      expect(result.stack).to.deep.equal(tc.expected);
+      expect(Object.keys(result.handlers).sort()).to.deep.equal(
+        Object.keys(tc.expected.endpoints).sort()
+      );
     });
   }
 

@@ -65,7 +65,8 @@ export function extractStack(
   endpoints: Record<string, ManifestEndpoint>,
   requiredAPIs: ManifestRequiredAPI[],
   extensions: Record<string, ManifestExtension>,
-  prefix = ""
+  prefix = "",
+  handlers?: Record<string, AnyFunction>
 ) {
   for (const [name, valAsUnknown] of Object.entries(module)) {
     // We're introspecting untrusted code here. Any is appropraite
@@ -76,6 +77,9 @@ export function extractStack(
         ...val.__endpoint,
         entryPoint: funcName.replace(/-/g, "."),
       };
+      if (handlers) {
+        handlers[funcName] = val as AnyFunction;
+      }
       if (val.__requiredAPIs && Array.isArray(val.__requiredAPIs)) {
         requiredAPIs.push(...val.__requiredAPIs);
       }
@@ -92,7 +96,7 @@ export function extractStack(
         events: val.events || [],
       };
     } else if (isObject(val)) {
-      extractStack(val, endpoints, requiredAPIs, extensions, prefix + name + "-");
+      extractStack(val, endpoints, requiredAPIs, extensions, prefix + name + "-", handlers);
     }
   }
 }
@@ -134,6 +138,8 @@ function convertExtensionParams(params: object): Record<string, string> {
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
+
+type AnyFunction = (...args: unknown[]) => unknown;
 
 interface FirebaseLocalExtension {
   FIREBASE_EXTENSION_LOCAL_PATH: string;
@@ -185,14 +191,20 @@ export function mergeRequiredAPIs(requiredAPIs: ManifestRequiredAPI[]): Manifest
   return merged;
 }
 
+export interface LoadedStack {
+  stack: ManifestStack;
+  handlers: Record<string, AnyFunction>;
+}
+
 /* @internal */
-export async function loadStack(functionsDir: string): Promise<ManifestStack> {
+export async function loadStack(functionsDir: string): Promise<LoadedStack> {
   const endpoints: Record<string, ManifestEndpoint> = {};
   const requiredAPIs: ManifestRequiredAPI[] = [];
   const extensions: Record<string, ManifestExtension> = {};
+  const handlers: Record<string, AnyFunction> = {};
   const mod = await loadModule(functionsDir);
 
-  extractStack(mod, endpoints, requiredAPIs, extensions);
+  extractStack(mod, endpoints, requiredAPIs, extensions, "", handlers);
 
   const stack: ManifestStack = {
     endpoints,
@@ -203,5 +215,5 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   if (params.declaredParams.length > 0) {
     stack.params = params.declaredParams.map((p) => p.toSpec());
   }
-  return stack;
+  return { stack, handlers };
 }

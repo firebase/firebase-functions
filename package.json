@@ -270,6 +270,7 @@
     "test:postmerge": "./integration_test/run_tests.sh"
   },
   "dependencies": {
+    "@google-cloud/functions-framework": "^4.0.0",
     "@types/cors": "^2.8.5",
     "@types/express": "^4.17.21",
     "cors": "^2.8.5",
