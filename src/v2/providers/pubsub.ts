@@ -157,8 +157,7 @@ export interface MessagePublishedData<T = any> {
 /**
  * A CloudEvent that exposes v1-compatible getters.
  */
-export interface MessagePublishedEvent<T = any>
-  extends CloudEvent<MessagePublishedData<T>> {
+export interface MessagePublishedEvent<T = any> extends CloudEvent<MessagePublishedData<T>> {
   /** V1-compatible EventContext. */
   readonly context: EventContext<Record<string, never>>;
   /** V1-compatible Pub/Sub message. */
@@ -371,10 +370,7 @@ export function onMessagePublished<T = any>(
   return func;
 }
 
-function attachPubSubLegacyProperties<T>(
-  event: MessagePublishedEvent<T>,
-  rawMessage: any
-) {
+function attachPubSubLegacyProperties<T>(event: MessagePublishedEvent<T>, rawMessage: any) {
   decorateLegacyEvent(event, {
     context: {
       eventType: "google.pubsub.topic.publish",

@@ -105,7 +105,7 @@ export function makeLegacyEventContext<Params>(
     timestamp: options.timestamp ?? event.time ?? new Date().toISOString(),
     eventType: options.eventType,
     resource,
-    params: (options.params ?? ({} as Params)) as Params,
+    params: options.params ?? ({} as Params),
     auth: options.auth,
     authType: options.authType,
   };
@@ -129,10 +129,8 @@ export function decorateLegacyEvent<
   Params,
   Extras extends Record<string, () => unknown>
 >(event: EventType, decoration: LegacyDecoration<Params, Extras>): void {
-  defineLazyGetter(
-    event as EventType & { context?: EventContext<Params> },
-    "context",
-    () => makeLegacyEventContext(event as any, decoration.context)
+  defineLazyGetter(event as EventType & { context?: EventContext<Params> }, "context", () =>
+    makeLegacyEventContext(event as any, decoration.context)
   );
 
   if (!decoration.getters) {
