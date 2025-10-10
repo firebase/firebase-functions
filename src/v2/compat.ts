@@ -125,12 +125,12 @@ export interface LegacyDecoration<Params, Extras extends Record<string, () => un
  * @internal
  */
 export function decorateLegacyEvent<
-  EventType extends object,
+  EventType extends { id?: string; time?: string; source?: string },
   Params,
   Extras extends Record<string, () => unknown>
 >(event: EventType, decoration: LegacyDecoration<Params, Extras>): void {
   defineLazyGetter(event as EventType & { context?: EventContext<Params> }, "context", () =>
-    makeLegacyEventContext(event as any, decoration.context)
+    makeLegacyEventContext(event, decoration.context)
   );
 
   if (!decoration.getters) {
