@@ -29,11 +29,14 @@ import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
+import { decorateLegacyEvent } from "../compat";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { EventContext } from "../../v1/cloud-functions";
+import { Message as LegacyMessage } from "../../v1/providers/pubsub";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -151,6 +154,17 @@ export interface MessagePublishedData<T = any> {
   readonly subscription: string;
 }
 
+/**
+ * A CloudEvent that exposes v1-compatible getters.
+ */
+export interface MessagePublishedEvent<T = any>
+  extends CloudEvent<MessagePublishedData<T>> {
+  /** V1-compatible EventContext. */
+  readonly context: EventContext<Record<string, never>>;
+  /** V1-compatible Pub/Sub message. */
+  readonly message: LegacyMessage;
+}
+
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -263,8 +277,8 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -274,8 +288,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -285,8 +299,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -303,8 +317,11 @@ export function onMessagePublished<T = any>(
       message: unknown;
       subscription: string;
     };
+    const rawMessage = messagePublishedData.message;
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
+    const event = raw as MessagePublishedEvent<T>;
+    attachPubSubLegacyProperties(event, rawMessage);
+    return wrapTraceContext(withInit(handler))(event);
   };
 
   func.run = handler;
@@ -352,4 +369,55 @@ export function onMessagePublished<T = any>(
   func.__endpoint = endpoint;
 
   return func;
+}
+
+function attachPubSubLegacyProperties<T>(
+  event: MessagePublishedEvent<T>,
+  rawMessage: any
+) {
+  decorateLegacyEvent(event, {
+    context: {
+      eventType: "google.pubsub.topic.publish",
+      service: "pubsub.googleapis.com",
+      params: {} as Record<string, never>,
+      resource: pubsubResourceName(event.source),
+    },
+    getters: {
+      message: () =>
+        new LegacyMessage(
+          rawMessage ?? {
+            data: "",
+            attributes: {},
+          }
+        ),
+    },
+  });
+}
+
+function pubsubResourceName(source?: string): string {
+  if (!source) {
+    return "";
+  }
+
+  let path = source.trim();
+  if (path.startsWith("//")) {
+    const withoutScheme = path.slice(2);
+    const firstSlash = withoutScheme.indexOf("/");
+    if (firstSlash >= 0) {
+      path = withoutScheme.slice(firstSlash + 1);
+    } else {
+      path = "";
+    }
+  }
+
+  path = path.replace(/^pubsub\.googleapis\.com\//, "");
+  path = path.replace(/^\/+/, "");
+
+  const segments = path.split("/");
+  const projectsIndex = segments.indexOf("projects");
+  if (projectsIndex >= 0) {
+    return segments.slice(projectsIndex).join("/");
+  }
+
+  return path;
 }
