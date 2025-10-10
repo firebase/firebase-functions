@@ -163,11 +163,12 @@ describe("onMessagePublished", () => {
 
     const eventAgain = await func(event);
 
-    // Deep equal uses JSON equality, so we'll still match even though
-    // Message is a class and we passed an interface.
-    expect(eventAgain).to.deep.equal(event);
-
     expect(json).to.deep.equal({ hello: "world" });
+
+    expect(eventAgain.data.message).to.be.instanceOf(pubsub.Message);
+    expect(eventAgain.context.eventType).to.equal("google.pubsub.topic.publish");
+    expect(eventAgain.context.resource.name).to.equal("projects/aProject/topics/topic");
+    expect(eventAgain.message.data).to.equal(messageJSON.data);
   });
 
   // These tests pass if the transpiler works
@@ -175,22 +176,22 @@ describe("onMessagePublished", () => {
     pubsub.onMessagePublished<string>(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData<string>>) => undefined
+      (event: pubsub.MessagePublishedEvent<string>) => undefined
     );
     pubsub.onMessagePublished<string>(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
+      (event: pubsub.MessagePublishedEvent) => undefined
     );
     pubsub.onMessagePublished(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData<string>>) => undefined
+      (event: pubsub.MessagePublishedEvent<string>) => undefined
     );
     pubsub.onMessagePublished(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
+      (event: pubsub.MessagePublishedEvent) => undefined
     );
   });
 });
