@@ -182,29 +182,19 @@ export class UserDimensions {
     copyField(wireFormat, this, "userProperties", (r: unknown) => {
       const entries = Object.entries(r as Record<string, unknown>)
         .filter(([, v]) => {
-          if (v === null || v === undefined) {
+          // Property must be a non-empty object.
+          if (v == null || typeof v !== "object" || Object.keys(v).length === 0) {
             return false;
           }
-          if (typeof v !== "object") {
-            return false;
+          // If 'value' field exists, it must not be null, undefined, or an empty object.
+          if (!("value" in v)) {
+            return true;
           }
-          const vObj = v as Record<string, unknown>;
-          // Filter out empty objects
-          if (Object.keys(vObj).length === 0) {
-            return false;
-          }
-          // Filter if 'value' property exists but is null/undefined/empty object
-          if ("value" in vObj) {
-            const value = vObj.value;
-            if (
-              value === null ||
-              value === undefined ||
-              (typeof value === "object" && value !== null && Object.keys(value).length === 0)
-            ) {
-              return false;
-            }
-          }
-          return true;
+
+          const value = (v as { value: unknown }).value;
+          const isEmptyObject =
+            typeof value === "object" && value !== null && Object.keys(value).length === 0;
+          return value != null && !isEmptyObject;
         })
         .map(([k, v]) => [k, new UserPropertyValue(v)]);
       return Object.fromEntries(entries);
