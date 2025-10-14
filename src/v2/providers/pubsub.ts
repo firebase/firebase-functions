@@ -29,7 +29,7 @@ import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
-import { decorateLegacyEvent } from "../compat";
+import { attachLegacyEventProperties } from "../compat";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
@@ -371,14 +371,15 @@ export function onMessagePublished<T = any>(
 }
 
 function attachPubSubLegacyProperties<T>(event: MessagePublishedEvent<T>, rawMessage: any) {
-  decorateLegacyEvent(event, {
-    context: {
+  attachLegacyEventProperties(
+    event,
+    {
       eventType: "google.pubsub.topic.publish",
       service: "pubsub.googleapis.com",
       params: {} as Record<string, never>,
-      resource: pubsubResourceName(event.source),
+      resource: event.source,
     },
-    getters: {
+    {
       message: () =>
         new LegacyMessage(
           rawMessage ?? {
@@ -386,34 +387,6 @@ function attachPubSubLegacyProperties<T>(event: MessagePublishedEvent<T>, rawMes
             attributes: {},
           }
         ),
-    },
-  });
-}
-
-function pubsubResourceName(source?: string): string {
-  if (!source) {
-    return "";
-  }
-
-  let path = source.trim();
-  if (path.startsWith("//")) {
-    const withoutScheme = path.slice(2);
-    const firstSlash = withoutScheme.indexOf("/");
-    if (firstSlash >= 0) {
-      path = withoutScheme.slice(firstSlash + 1);
-    } else {
-      path = "";
     }
-  }
-
-  path = path.replace(/^pubsub\.googleapis\.com\//, "");
-  path = path.replace(/^\/+/, "");
-
-  const segments = path.split("/");
-  const projectsIndex = segments.indexOf("projects");
-  if (projectsIndex >= 0) {
-    return segments.slice(projectsIndex).join("/");
-  }
-
-  return path;
+  );
 }

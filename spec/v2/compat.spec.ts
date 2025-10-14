@@ -1,9 +1,96 @@
 import { expect } from "chai";
 
-import { decorateLegacyEvent, makeLegacyEventContext } from "../../src/v2/compat";
+import { attachLegacyEventProperties, makeLegacyEventContext } from "../../src/v2/compat";
 
 describe("compat", () => {
-  describe("decorateLegacyEvent", () => {
+  describe("makeLegacyEventContext", () => {
+    it("normalizes schemed string resources to service and name", () => {
+      const context = makeLegacyEventContext(
+        {},
+        {
+          eventType: "test.event",
+          service: "storage.googleapis.com",
+          resource: "//pubsub.googleapis.com/projects/a/topics/b",
+        }
+      );
+
+      expect(context.resource).to.deep.equal({
+        service: "pubsub.googleapis.com",
+        name: "projects/a/topics/b",
+      });
+    });
+
+    it("strips duplicated service prefixes from string resources", () => {
+      const context = makeLegacyEventContext(
+        {},
+        {
+          eventType: "test.event",
+          service: "pubsub.googleapis.com",
+          resource: "pubsub.googleapis.com/projects/a/topics/b",
+        }
+      );
+
+      expect(context.resource).to.deep.equal({
+        service: "pubsub.googleapis.com",
+        name: "projects/a/topics/b",
+      });
+    });
+
+    it("passes through structured resources while filling missing service", () => {
+      const context = makeLegacyEventContext(
+        {},
+        {
+          eventType: "test.event",
+          service: "storage.googleapis.com",
+          resource: {
+            service: "override.googleapis.com",
+            name: "some/resource",
+            type: "pubsub_topic",
+            labels: { key: "value" },
+          },
+        }
+      );
+
+      expect(context.resource).to.deep.equal({
+        service: "override.googleapis.com",
+        name: "some/resource",
+        type: "pubsub_topic",
+        labels: { key: "value" },
+      });
+    });
+
+    it("derives resource details from the event source when none provided", () => {
+      const context = makeLegacyEventContext(
+        {
+          source: "//firestore.googleapis.com/projects/p/databases/(default)/documents/foo",
+        },
+        {
+          eventType: "test.event",
+          service: "firestore.googleapis.com",
+        }
+      );
+
+      expect(context.resource).to.deep.equal({
+        service: "firestore.googleapis.com",
+        name: "projects/p/databases/(default)/documents/foo",
+      });
+    });
+
+    it("passes through provided params unchanged", () => {
+      const context = makeLegacyEventContext(
+        {},
+        {
+          eventType: "test.event",
+          service: "firestore.googleapis.com",
+          params: { docPath: "cities/LA" },
+        }
+      );
+
+      expect(context.params).to.deep.equal({ docPath: "cities/LA" });
+    });
+  });
+
+  describe("attachLegacyEventProperties", () => {
     it("should attach a lazy context getter and memoize the result", () => {
       const event = {
         id: "abc",
@@ -11,12 +98,10 @@ describe("compat", () => {
         source: "//service/resource/foo",
       } as any;
 
-      decorateLegacyEvent(event, {
-        context: {
-          eventType: "test.event",
-          service: "service.googleapis.com",
-          params: { foo: "bar" },
-        },
+      attachLegacyEventProperties(event, {
+        eventType: "test.event",
+        service: "service.googleapis.com",
+        params: { foo: "bar" },
       });
 
       const context1 = event.context;
@@ -37,18 +122,19 @@ describe("compat", () => {
       } as any;
       let computeCount = 0;
 
-      decorateLegacyEvent(event, {
-        context: {
+      attachLegacyEventProperties(
+        event,
+        {
           eventType: "test.event",
           service: "service.googleapis.com",
         },
-        getters: {
+        {
           value: () => {
             computeCount++;
             return "computed";
           },
-        },
-      });
+        }
+      );
 
       expect(event.value).to.equal("computed");
       expect(event.value).to.equal("computed");

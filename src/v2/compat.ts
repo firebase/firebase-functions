@@ -76,8 +76,7 @@ export function defineLazyGetter<T extends object, K extends PropertyKey, V>(
   let initialized = false;
 
   Object.defineProperty(target, property, {
-    configurable: true,
-    enumerable: true,
+    enumerable: true, // keep the property visible during iteration (Object.keys, spreads, etc.)
     get(): V {
       if (!initialized) {
         cached = compute();
@@ -111,37 +110,49 @@ export function makeLegacyEventContext<Params>(
   };
 }
 
-/**
- * A bundle describing how to decorate an event with legacy helpers.
- */
-export interface LegacyDecoration<Params, Extras extends Record<string, () => unknown>> {
-  context: LegacyContextOptions<Params>;
-  getters?: Extras;
-}
+type LegacyExtraFactories = Record<string, () => unknown>;
 
 /**
- * Applies legacy context plus any number of additional lazy getters to the given event object.
+ * Attaches a lazily-computed legacy context and optional helper properties to an event.
+ *
+ * Example:
+ * ```ts
+ * attachLegacyEventProperties(cloudEvent, {
+ *   eventType: "google.pubsub.topic.publish",
+ *   service: "pubsub.googleapis.com",
+ * }, {
+ *   message: () => new LegacyMessage(rawMessage),
+ * });
+ * ```
  *
  * @internal
  */
-export function decorateLegacyEvent<
+export function attachLegacyEventProperties<
   EventType extends { id?: string; time?: string; source?: string },
   Params,
-  Extras extends Record<string, () => unknown>
->(event: EventType, decoration: LegacyDecoration<Params, Extras>): void {
+  Extras extends LegacyExtraFactories = Record<string, () => unknown>
+>(event: EventType, context: LegacyContextOptions<Params>, extras?: Extras): void {
   defineLazyGetter(event as EventType & { context?: EventContext<Params> }, "context", () =>
-    makeLegacyEventContext(event, decoration.context)
+    makeLegacyEventContext(event, context)
   );
 
-  if (!decoration.getters) {
+  if (!extras) {
     return;
   }
 
-  for (const [key, factory] of Object.entries(decoration.getters)) {
+  for (const [key, factory] of Object.entries(extras)) {
     defineLazyGetter(event, key as keyof EventType, factory as () => unknown);
   }
 }
 
+/**
+ * Normalizes structured or string resource identifiers to the `{service, name}` shape
+ * expected by legacy event decorators.
+ *
+ * Example:
+ *   normalizeResource("storage.googleapis.com", "//pubsub.googleapis.com/projects/a/topics/b")
+ *   // => { service: "pubsub.googleapis.com", name: "projects/a/topics/b" }
+ */
 function normalizeResource(service: string, resource?: string | Resource): Resource {
   if (!resource) {
     return {
