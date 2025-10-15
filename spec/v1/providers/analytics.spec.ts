@@ -207,6 +207,9 @@ describe("Analytics Functions", () => {
               firstOpenTimestampMicros: "577978620000000",
               userProperties: {
                 foo: {
+                  value: {
+                    stringValue: "bar",
+                  },
                   setTimestampUsec: "514820220000000",
                 },
               },
@@ -236,6 +239,7 @@ describe("Analytics Functions", () => {
             firstOpenTime: "1988-04-25T13:37:00.000Z",
             userProperties: {
               foo: {
+                value: "bar",
                 setTime: "1986-04-25T13:37:00.000Z",
               },
             },
