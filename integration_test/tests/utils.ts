@@ -8,7 +8,7 @@ type RetryOptions = { maxRetries?: number; checkForUndefined?: boolean };
 /**
  * @template T
  * @param {() => Promise<T>} fn
- * @param {RetryOptions | undefined} [options={ maxRetries: 10, checkForUndefined: true }]
+ * @param {RetryOptions | undefined} [options={ maxRetries: 20, checkForUndefined: true }]
  *
  * @returns {Promise<T>}
  */
@@ -27,7 +27,9 @@ export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Pr
     } catch (e) {
       lastError = e as Error;
     }
-    await timeout(5000);
+    // Use exponential backoff for retries to be more efficient
+    const delay = Math.min(1000 * Math.pow(1.5, count), 10000); // Max 10s delay
+    await timeout(delay);
     count++;
   }
 
@@ -53,7 +55,7 @@ export async function createTask(
 
   // First, check if we have a service account file
   const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-  if (serviceAccountPath && serviceAccountPath !== '{}') {
+  if (serviceAccountPath && serviceAccountPath !== "{}") {
     try {
       const serviceAccount = await import(serviceAccountPath);
       serviceAccountEmail = serviceAccount.client_email;

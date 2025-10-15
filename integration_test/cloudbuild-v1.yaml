@@ -8,23 +8,6 @@ options:
 timeout: "3600s"
 
 steps:
-  # Create storage bucket for test results if it doesn't exist
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:stable"
-    id: "create-bucket"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        # Create bucket for test results if it doesn't exist
-        BUCKET_NAME="gs://functions-integration-tests-test-results"
-        echo "Checking if bucket $$BUCKET_NAME exists..."
-        if ! gsutil ls "$$BUCKET_NAME" &>/dev/null; then
-          echo "Creating bucket $$BUCKET_NAME..."
-          gsutil mb -p "functions-integration-tests" "$$BUCKET_NAME"
-        else
-          echo "Bucket $$BUCKET_NAME already exists"
-        fi
-
   # Build SDK and run all V1 test suites sequentially
   - name: "node:20"
     id: "build-sdk-and-test-v1"
@@ -51,15 +34,16 @@ steps:
         # Verify tools are installed
         firebase --version
         gcloud --version
-        # V1 tests use functions-integration-tests project
-        echo "Running V1 tests on project: functions-integration-tests"
+        # Set environment variables
+        export PROJECT_ID="$PROJECT_ID"
+        echo "Running all tests on project: $PROJECT_ID"
         # Use Application Default Credentials (Cloud Build service account)
-        # Run all V1 test suites sequentially
-        node scripts/run-tests.js --sequential --filter=v1 --use-published-sdk=file:firebase-functions-local.tgz
+        # Run all test suites sequentially
+        node scripts/run-tests.js --sequential --skip-cleanup
 
 # Artifacts to store
 artifacts:
   objects:
-    location: "gs://functions-integration-tests-test-results/${BUILD_ID}"
+    location: "gs://${PROJECT_ID}-artifacts/${BUILD_ID}"
     paths:
       - "logs/**/*.log"

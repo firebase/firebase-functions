@@ -15,10 +15,10 @@ describe("Cloud Firestore (v2)", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("firestoreOnDocumentCreatedTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreOnDocumentDeletedTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreOnDocumentUpdatedTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreOnDocumentWrittenTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentCreatedTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentDeletedTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentUpdatedTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentWrittenTests").doc(testId).delete();
   });
 
   describe("Document created trigger", () => {
@@ -27,7 +27,7 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
@@ -35,7 +35,7 @@ describe("Cloud Firestore (v2)", () => {
         () =>
           admin
             .firestore()
-            .collection("firestoreOnDocumentCreatedTests")
+            .collection("v2FirestoreOnDocumentCreatedTests")
             .doc(testId)
             .get()
             .then((logSnapshot) => logSnapshot.data()),
@@ -81,7 +81,7 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
@@ -94,7 +94,7 @@ describe("Cloud Firestore (v2)", () => {
         () =>
           admin
             .firestore()
-            .collection("firestoreOnDocumentDeletedTests")
+            .collection("v2FirestoreOnDocumentDeletedTests")
             .doc(testId)
             .get()
             .then((logSnapshot) => logSnapshot.data()),
@@ -134,7 +134,7 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({});
 
       await docRef.update({ test: testId });
@@ -143,7 +143,7 @@ describe("Cloud Firestore (v2)", () => {
         () =>
           admin
             .firestore()
-            .collection("firestoreOnDocumentUpdatedTests")
+            .collection("v2FirestoreOnDocumentUpdatedTests")
             .doc(testId)
             .get()
             .then((logSnapshot) => logSnapshot.data()),
@@ -186,7 +186,7 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
@@ -194,7 +194,7 @@ describe("Cloud Firestore (v2)", () => {
         () =>
           admin
             .firestore()
-            .collection("firestoreOnDocumentWrittenTests")
+            .collection("v2FirestoreOnDocumentWrittenTests")
             .doc(testId)
             .get()
             .then((logSnapshot) => logSnapshot.data()),

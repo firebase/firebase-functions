@@ -575,14 +575,23 @@ class TestRunner {
           const functionStillExists = listResult.stdout.includes(functionName);
 
           if (!functionStillExists) {
-            this.log(`   ✅ Verified: Function deleted via Firebase CLI: ${functionName}`, "success");
+            this.log(
+              `   ✅ Verified: Function deleted via Firebase CLI: ${functionName}`,
+              "success"
+            );
             deleted = true;
           } else {
-            this.log(`   ⚠️ Function still exists after Firebase CLI delete: ${functionName}`, "warn");
+            this.log(
+              `   ⚠️ Function still exists after Firebase CLI delete: ${functionName}`,
+              "warn"
+            );
           }
         } catch (listError) {
           // If we can't list functions, assume deletion worked
-          this.log(`   ✅ Deleted function via Firebase CLI (unverified): ${functionName}`, "success");
+          this.log(
+            `   ✅ Deleted function via Firebase CLI (unverified): ${functionName}`,
+            "success"
+          );
           deleted = true;
         }
       } catch (error) {
@@ -611,7 +620,10 @@ class TestRunner {
                 { silent: true }
               );
               // If describe succeeds, function still exists
-              this.log(`   ⚠️ Cloud Run service still exists after deletion: ${functionName}`, "warn");
+              this.log(
+                `   ⚠️ Cloud Run service still exists after deletion: ${functionName}`,
+                "warn"
+              );
             } catch {
               // If describe fails, function was deleted
               this.log(`   ✅ Deleted function as Cloud Run service: ${functionName}`, "success");
@@ -766,11 +778,10 @@ class TestRunner {
    * Get project IDs from configuration (YAML files are source of truth)
    */
   getProjectIds() {
-    // Project IDs are read from the YAML configuration files
-    // V1 tests use functions-integration-tests
-    // V2 tests use functions-integration-tests-v2
-    const v1ProjectId = "functions-integration-tests";
-    const v2ProjectId = "functions-integration-tests-v2";
+    // Use single project for both V1 and V2 tests
+    const projectId = process.env.PROJECT_ID || "functions-integration-tests";
+    const v1ProjectId = projectId;
+    const v2ProjectId = projectId;
 
     this.log(`Using V1 Project ID: ${v1ProjectId}`, "info");
     this.log(`Using V2 Project ID: ${v2ProjectId}`, "info");
@@ -991,7 +1002,7 @@ class TestRunner {
 
       // Wait for functions to become fully available
       this.log("⏳ Waiting 20 seconds for functions to become fully available...", "info");
-      await new Promise(resolve => setTimeout(resolve, 20000));
+      await new Promise((resolve) => setTimeout(resolve, 20000));
 
       // Run tests
       await this.runTests([suiteName]);
@@ -1041,6 +1052,13 @@ class TestRunner {
     for (let i = 0; i < suiteNames.length; i++) {
       const suite = suiteNames[i];
       await this.runSuite(suite);
+
+      // Add delay between suites to allow Firebase to fully process cleanup
+      if (i < suiteNames.length - 1) {
+        this.log("⏳ Waiting 60 seconds between suites for complete Firebase cleanup...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 60000));
+      }
+
       this.log("");
     }
 
@@ -1100,7 +1118,7 @@ class TestRunner {
 
           // Wait for functions to become fully available
           this.log("⏳ Waiting 20 seconds for functions to become fully available...", "info");
-          await new Promise(resolve => setTimeout(resolve, 20000));
+          await new Promise((resolve) => setTimeout(resolve, 20000));
 
           // Run tests for this project's suites
           await this.runTests(projectSuites);
@@ -1125,7 +1143,7 @@ class TestRunner {
 
         // Wait for functions to become fully available
         this.log("⏳ Waiting 20 seconds for functions to become fully available...", "info");
-        await new Promise(resolve => setTimeout(resolve, 20000));
+        await new Promise((resolve) => setTimeout(resolve, 20000));
 
         // Run tests
         await this.runTests(suiteNames);
