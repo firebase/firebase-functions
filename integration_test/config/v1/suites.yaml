@@ -3,7 +3,7 @@
 # Common values are defined in the defaults section to reduce duplication
 
 defaults:
-  projectId: functions-integration-tests
+  projectId: ${PROJECT_ID:-functions-integration-tests}
   region: us-central1
   timeout: 540
   dependencies:
@@ -78,9 +78,9 @@ suites:
       - name: storageOnMetadataUpdateTests
         trigger: onMetadataUpdate
 
-  # Auth triggers (all non-blocking functions)
+  # Auth triggers (non-blocking functions only - blocking functions must be run separately)
   - name: v1_auth
-    description: "V1 Auth trigger tests"
+    description: "V1 Auth trigger tests (non-blocking only)"
     version: v1
     service: auth
     functions:
@@ -88,12 +88,6 @@ suites:
         trigger: onCreate
       - name: authUserOnDeleteTests
         trigger: onDelete
-      - name: authUserBeforeCreateTests
-        trigger: beforeCreate
-        collection: authBeforeCreateTests
-      - name: authUserBeforeSignInTests
-        trigger: beforeSignIn
-        collection: authBeforeSignInTests
 
   # Auth non-blocking only (for parallel execution)
   - name: v1_auth_nonblocking
@@ -115,7 +109,7 @@ suites:
   #     - name: authUserBeforeCreateTests
   #       trigger: beforeCreate
   #       collection: authBeforeCreateTests
-  #       blocking: true
+  #       timeout: 10  # Short timeout for blocking function (Firebase enforces 7s max)
 
   # Auth beforeSignIn blocking function (must run separately)
   # - name: v1_auth_before_signin
@@ -126,7 +120,7 @@ suites:
   #     - name: authUserBeforeSignInTests
   #       trigger: beforeSignIn
   #       collection: authBeforeSignInTests
-  #       blocking: true
+  #       timeout: 10  # Short timeout for blocking function (Firebase enforces 7s max)
 
   # Cloud Tasks triggers
   # - name: v1_tasks

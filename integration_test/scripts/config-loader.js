@@ -110,7 +110,16 @@ export function loadUnifiedConfig(configPath = DEFAULT_CONFIG_PATH) {
   try {
     // Read and parse YAML file
     const configContent = readFileSync(configPath, "utf8");
-    const config = parse(configContent);
+
+    // Substitute environment variables in the YAML content
+    const substitutedContent = configContent.replace(
+      /\$\{PROJECT_ID:-([^}]+)\}/g,
+      (match, defaultValue) => {
+        return process.env.PROJECT_ID || defaultValue;
+      }
+    );
+
+    const config = parse(substitutedContent);
 
     // Validate basic structure
     if (!config || typeof config !== "object") {

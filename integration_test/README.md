@@ -148,7 +148,7 @@ Auth tests use Firebase client SDK configuration that is hardcoded in `tests/fir
 
 The configuration is automatically used by auth tests and no additional setup is required.
 
-### Auth Blocking Functions Limitation
+### Auth Blocking Functions Configuration
 
 Firebase has a limitation where **only ONE blocking auth function can be deployed per project at any time**. This means:
 
@@ -176,7 +176,7 @@ These tests remain in the codebase but are marked with `describe.skip()` until t
 
 ## Architecture
 
-```
+```text
 integration_test/
 ├── config/
 │   ├── v1/

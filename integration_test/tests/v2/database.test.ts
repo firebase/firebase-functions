@@ -1,7 +1,6 @@
 import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
-import { Reference } from "@firebase/database-types";
 import { logger } from "../../src/utils/logger";
 
 describe("Firebase Database (v2)", () => {
@@ -41,7 +40,7 @@ describe("Firebase Database (v2)", () => {
     return ref;
   }
 
-  async function teardownRef(ref: Reference) {
+  async function teardownRef(ref: admin.database.Reference) {
     if (ref) {
       try {
         await ref.remove();
@@ -63,7 +62,7 @@ describe("Firebase Database (v2)", () => {
   }
 
   describe("created trigger", () => {
-    let ref: Reference;
+    let ref: admin.database.Reference;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -102,7 +101,7 @@ describe("Firebase Database (v2)", () => {
   });
 
   describe("deleted trigger", () => {
-    let ref: Reference;
+    let ref: admin.database.Reference;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -129,7 +128,7 @@ describe("Firebase Database (v2)", () => {
   });
 
   describe("updated trigger", () => {
-    let ref: Reference;
+    let ref: admin.database.Reference;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
@@ -174,7 +173,7 @@ describe("Firebase Database (v2)", () => {
   });
 
   describe("written trigger", () => {
-    let ref: Reference;
+    let ref: admin.database.Reference;
     let loggedContext: admin.firestore.DocumentData | undefined;
 
     beforeAll(async () => {
