@@ -27,9 +27,10 @@ export async function retry<T>(fn: () => Promise<T>, options?: RetryOptions): Pr
     } catch (e) {
       lastError = e as Error;
     }
-    // Use exponential backoff for retries to be more efficient
-    const delay = Math.min(1000 * Math.pow(1.5, count), 10000); // Max 10s delay
-    await timeout(delay);
+// Use exponential backoff for retries to be more efficient
+const BACKOFF_FACTOR = 1.5;
+const delay = Math.min(1000 * Math.pow(BACKOFF_FACTOR, count), 10000); // Max 10s delay
+await timeout(delay);
     count++;
   }
 
