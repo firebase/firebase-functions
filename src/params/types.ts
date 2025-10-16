@@ -474,7 +474,7 @@ export class SecretParam {
  * secrets array while defining a Function to make their values accessible during execution
  * of that Function.
  */
-export class JsonSecretParam {
+export class JsonSecretParam<T = any> {
   static type: ParamValueType = "secret";
   name: string;
 
@@ -483,7 +483,7 @@ export class JsonSecretParam {
   }
 
   /** @internal */
-  runtimeValue(): any {
+  runtimeValue(): T {
     const val = process.env[this.name];
     if (val === undefined) {
       throw new Error(
@@ -492,7 +492,7 @@ export class JsonSecretParam {
     }
 
     try {
-      return JSON.parse(val);
+      return JSON.parse(val) as T;
     } catch (error) {
       throw new Error(
         `"${this.name}" could not be parsed as JSON. Please verify its value in Secret Manager.`
@@ -510,7 +510,7 @@ export class JsonSecretParam {
   }
 
   /** Returns the secret's parsed JSON value at runtime. Throws an error if accessed during deployment or if the value is not valid JSON. */
-  value(): any {
+  value(): T {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
       throw new Error(
         `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`

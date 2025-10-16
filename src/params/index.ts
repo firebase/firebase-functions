@@ -51,7 +51,7 @@ export {
 
 export { ParamOptions, Expression };
 
-type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam;
+type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 export const declaredParams: SecretOrExpr[] = [];
 
 /**
@@ -129,27 +129,38 @@ export function defineSecret(name: string): SecretParam {
  * This is useful for managing groups of related configuration values, such as all settings
  * for a third-party API, as a single unit.
  *
- * The secret value must be valid JSON. At runtime, the value will be automatically parsed
- * and returned as a JavaScript object. If the value is not valid JSON, an error will be thrown.
+ * The secret value must be a valid JSON string. At runtime, the value will be automatically parsed
+ * and returned as a JavaScript object. If the value is not set or is not valid JSON, an error will be thrown.
  *
  * @param name The name of the environment variable to use to load the parameter.
  * @returns A parameter whose `.value()` method returns the parsed JSON object.
  *
  * @example
  * ```typescript
+ * // Without type parameter
  * const stripeConfig = defineJsonSecret("STRIPE_CONFIG");
+ * const { apiKey, webhookSecret, clientId } = stripeConfig.value();
+ *
+ * // With type parameter for type safety
+ * interface StripeConfig {
+ *   apiKey: string;
+ *   webhookSecret: string;
+ *   clientId: string;
+ * }
+ * const stripeConfig = defineJsonSecret<StripeConfig>("STRIPE_CONFIG");
+ * const { apiKey } = stripeConfig.value(); // apiKey is typed as string
  *
  * exports.myApi = onRequest(
  *   { secrets: [stripeConfig] },
  *   (req, res) => {
- *     const { apiKey, webhookSecret, clientId } = stripeConfig.value();
+ *     const config = stripeConfig.value();
  *     // ... use the configuration values
  *   }
  * );
  * ```
  */
-export function defineJsonSecret(name: string): JsonSecretParam {
-  const param = new JsonSecretParam(name);
+export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
+  const param = new JsonSecretParam<T>(name);
   registerParam(param);
   return param;
 }
