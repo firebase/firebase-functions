@@ -307,6 +307,8 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
   type: ParamValueType;
   /** The way in which the Firebase CLI will prompt for the value of this parameter. Defaults to a TextInput. */
   input?: ParamInput<T>;
+  /** Optional format annotation for additional type information (e.g., "json" for JSON-encoded secrets). */
+  format?: string;
 };
 
 /**
@@ -324,6 +326,7 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   description?: string;
   type: ParamValueType;
   input?: ParamInput<T>;
+  format?: string;
 };
 
 /** Configuration options which can be used to customize the prompting behavior of a parameter. */
@@ -455,6 +458,59 @@ export class SecretParam {
 
   /** Returns the secret's value at runtime. Throws an error if accessed during deployment. */
   value(): string {
+    if (process.env.FUNCTIONS_CONTROL_API === "true") {
+      throw new Error(
+        `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
+      );
+    }
+    return this.runtimeValue();
+  }
+}
+
+/**
+ * A parametrized object whose value is stored as a JSON string in Cloud Secret Manager.
+ * This is useful for managing groups of related configuration values, such as all settings
+ * for a third-party API, as a single unit. Supply instances of JsonSecretParam to the
+ * secrets array while defining a Function to make their values accessible during execution
+ * of that Function.
+ */
+export class JsonSecretParam {
+  static type: ParamValueType = "secret";
+  name: string;
+
+  constructor(name: string) {
+    this.name = name;
+  }
+
+  /** @internal */
+  runtimeValue(): any {
+    const val = process.env[this.name];
+    if (val === undefined) {
+      throw new Error(
+        `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
+      );
+    }
+
+    try {
+      return JSON.parse(val);
+    } catch (error) {
+      throw new Error(
+        `"${this.name}" could not be parsed as JSON. Please verify its value in Secret Manager.`
+      );
+    }
+  }
+
+  /** @internal */
+  toSpec(): ParamSpec<string> {
+    return {
+      type: "secret",
+      name: this.name,
+      format: "json",
+    };
+  }
+
+  /** Returns the secret's parsed JSON value at runtime. Throws an error if accessed during deployment or if the value is not valid JSON. */
+  value(): any {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
       throw new Error(
         `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
