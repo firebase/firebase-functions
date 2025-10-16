@@ -509,7 +509,7 @@ export class JsonSecretParam<T = any> {
     };
   }
 
-  /** Returns the secret's parsed JSON value at runtime. Throws an error if accessed during deployment or if the value is not valid JSON. */
+  /** Returns the secret's parsed JSON value at runtime. Throws an error if accessed during deployment, if the secret is not set, or if the value is not valid JSON. */
   value(): T {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
       throw new Error(
