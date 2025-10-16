@@ -34,6 +34,9 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { withV1CompatProperties, cloudEventToEventContext } from "../compat";
+import { EventContext as V1EventContext } from "../../v1/cloud-functions";
+import { Message as V1Message } from "../../v1/providers/pubsub";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -151,6 +154,22 @@ export interface MessagePublishedData<T = any> {
   readonly subscription: string;
 }
 
+/**
+ * Event data for PubSub message published events.
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
+export interface MessagePublishedEvent<T> extends CloudEvent<MessagePublishedData<T>> {
+  /**
+   * The PubSub message that was published.
+   */
+  readonly message: V1Message;
+
+  /**
+   * The event context containing metadata about the event.
+   */
+  readonly context: V1EventContext;
+}
+
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -263,8 +282,8 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -274,8 +293,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -285,8 +304,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -304,7 +323,20 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
+
+    // Add v1 compatibility getters to the CloudEvent using the helper utility
+    const eventWithCompat = withV1CompatProperties(raw as CloudEvent<MessagePublishedData<T>>, {
+      context: (event) => cloudEventToEventContext(event, "google.pubsub.topic.publish"),
+      message: (event) => {
+        const v2Message = event.data.message;
+        return new V1Message({
+          data: v2Message.data,
+          attributes: v2Message.attributes,
+        });
+      },
+    });
+
+    return wrapTraceContext(withInit(handler))(eventWithCompat);
   };
 
   func.run = handler;
