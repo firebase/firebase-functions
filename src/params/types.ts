@@ -495,7 +495,7 @@ export class JsonSecretParam<T = any> {
       return JSON.parse(val) as T;
     } catch (error) {
       throw new Error(
-        `"${this.name}" could not be parsed as JSON. Please verify its value in Secret Manager.`
+        `"${this.name}" could not be parsed as JSON. Please verify its value in Secret Manager. Details: ${error}`
       );
     }
   }
