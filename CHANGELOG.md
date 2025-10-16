@@ -1,0 +1,1 @@
+- Add `defineJsonSecret` API for storing structured JSON objects in Cloud Secret Manager
