@@ -125,7 +125,7 @@ export function defineSecret(name: string): SecretParam {
 }
 
 /**
- * Declares a secret parameter that stores a structured JSON object in Cloud Secret Manager.
+ * Declares a secret parameter that retrieves a structured JSON object in Cloud Secret Manager.
  * This is useful for managing groups of related configuration values, such as all settings
  * for a third-party API, as a single unit.
  *
@@ -134,29 +134,6 @@ export function defineSecret(name: string): SecretParam {
  *
  * @param name The name of the environment variable to use to load the parameter.
  * @returns A parameter whose `.value()` method returns the parsed JSON object.
- *
- * @example
- * ```typescript
- * // Without type parameter
- * const stripeConfig = defineJsonSecret("STRIPE_CONFIG");
- * const { apiKey, webhookSecret, clientId } = stripeConfig.value();
- *
- * // With type parameter for type safety
- * interface StripeConfig {
- *   apiKey: string;
- *   webhookSecret: string;
- *   clientId: string;
- * }
- * const stripeConfig = defineJsonSecret<StripeConfig>("STRIPE_CONFIG");
- * const { apiKey } = stripeConfig.value(); // apiKey is typed as string
- *
- * exports.myApi = onRequest(
- *   { secrets: [stripeConfig] },
- *   (req, res) => {
- *     const config = stripeConfig.value();
- *     // ... use the configuration values
- *   }
- * );
  * ```
  */
 export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
