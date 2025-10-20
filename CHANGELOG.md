@@ -1,2 +1,0 @@
-- Add `defineJsonSecret` API for storing structured JSON objects in Cloud Secret Manager. (#1745)
-- Enhance validation against incomplete/invalid app_remove events to avoid runtime crashes. (#1738)
