@@ -135,9 +135,6 @@ export class AnalyticsEvent {
   }
 }
 
-/**
- * @hidden
- */
 function isValidUserProperty(property: unknown): property is { value: unknown } {
   if (property == null || typeof property !== "object" || !("value" in property)) {
     return false;
