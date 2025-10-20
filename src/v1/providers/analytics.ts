@@ -136,6 +136,26 @@ export class AnalyticsEvent {
 }
 
 /**
+ * @hidden
+ */
+function isValidUserProperty(property: unknown): property is { value: unknown } {
+  if (property == null || typeof property !== "object" || !("value" in property)) {
+    return false;
+  }
+
+  const { value } = property;
+  if (value == null) {
+    return false;
+  }
+
+  if (typeof value === "object" && Object.keys(value).length === 0) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Interface representing the user who triggered the events.
  */
 export class UserDimensions {
@@ -181,18 +201,7 @@ export class UserDimensions {
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
     copyField(wireFormat, this, "userProperties", (r: unknown) => {
       const entries = Object.entries(r as Record<string, unknown>)
-        .filter(([, v]) => {
-          // Property must be an object and have a 'value' field.
-          if (v == null || typeof v !== "object" || !("value" in v)) {
-            return false;
-          }
-
-          // The 'value' field must not be null, undefined, or an empty object.
-          const value = (v as { value: unknown }).value;
-          const isEmptyObject =
-            typeof value === "object" && value !== null && Object.keys(value).length === 0;
-          return value != null && !isEmptyObject;
-        })
+        .filter(([, v]) => isValidUserProperty(v))
         .map(([k, v]) => [k, new UserPropertyValue(v)]);
       return Object.fromEntries(entries);
     });
