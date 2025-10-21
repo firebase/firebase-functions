@@ -215,7 +215,9 @@ describe("Pubsub Functions", () => {
         expect(result.__endpoint.scheduleTrigger).to.deep.equal({
           ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
-          retryConfig,
+          retryConfig: {
+            ...retryConfig,
+          },
         });
         expect(result.__endpoint.labels).to.be.empty;
       });
@@ -249,7 +251,9 @@ describe("Pubsub Functions", () => {
           expect(result.__endpoint.scheduleTrigger).to.deep.equal({
             ...MINIMAL_SCHEDULE_TRIGGER,
             schedule: "every 5 minutes",
-            retryConfig,
+            retryConfig: {
+              ...retryConfig,
+            },
             timeZone: "America/New_York",
           });
           expect(result.__endpoint.labels).to.be.empty;
@@ -341,7 +345,9 @@ describe("Pubsub Functions", () => {
           ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
           timeZone: RESET_VALUE,
-          retryConfig,
+          retryConfig: {
+            ...retryConfig,
+          },
         });
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);
         expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
@@ -382,7 +388,9 @@ describe("Pubsub Functions", () => {
           ...MINIMAL_SCHEDULE_TRIGGER,
           schedule: "every 5 minutes",
           timeZone: "America/New_York",
-          retryConfig,
+          retryConfig: {
+            ...retryConfig,
+          },
         });
         expect(result.__endpoint.region).to.deep.equal(["us-east1"]);
         expect(result.__endpoint.availableMemoryMb).to.deep.equal(256);
