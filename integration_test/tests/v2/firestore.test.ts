@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
+import { retry } from "../utils";
 
 describe("Cloud Firestore (v2)", () => {
   const projectId = process.env.PROJECT_ID;
@@ -41,7 +41,7 @@ describe("Cloud Firestore (v2)", () => {
             .then((logSnapshot) => logSnapshot.data()),
         { maxRetries: 40 }
       );
-    });
+    }, 300_000);
 
     it("should not have event.app", () => {
       expect(loggedContext?.app).toBeUndefined();

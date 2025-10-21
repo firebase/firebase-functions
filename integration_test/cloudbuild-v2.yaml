@@ -1,11 +1,11 @@
 # Cloud Build configuration for Firebase Functions V2 Integration Tests
-# Runs all V2 test suites sequentially to avoid rate limits
+# Runs V2 test suites only
 
 options:
   machineType: "E2_HIGHCPU_8"
   logging: CLOUD_LOGGING_ONLY
 
-timeout: "3600s"
+timeout: "7200s"
 
 steps:
   # Build SDK and run all V2 test suites sequentially
@@ -53,12 +53,12 @@ steps:
         export PROJECT_ID="$PROJECT_ID"
         echo "Running all tests on project: $PROJECT_ID"
         # Use Application Default Credentials (Cloud Build service account)
-        # Run all test suites sequentially
-        node scripts/run-tests.js --sequential --skip-cleanup
+        # Run V2 test suites only
+        node scripts/run-tests.js --sequential 'v2_*' --skip-cleanup
 
 # Artifacts to store
 artifacts:
   objects:
-    location: "gs://${PROJECT_ID}-artifacts/${BUILD_ID}"
+    location: "gs://${PROJECT_ID}_cloudbuild/artifacts/${BUILD_ID}"
     paths:
       - "logs/**/*.log"

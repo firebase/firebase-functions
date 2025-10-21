@@ -250,12 +250,20 @@ class TestRunner {
       if (pattern.includes("*") || pattern.includes("?")) {
         // Check both v1 and v2 configs
         if (existsSync(V1_CONFIG_PATH)) {
-          const v1Matches = getSuitesByPattern(pattern, V1_CONFIG_PATH);
-          suites.push(...v1Matches.map((s) => s.name));
+          try {
+            const v1Matches = getSuitesByPattern(pattern, V1_CONFIG_PATH);
+            suites.push(...v1Matches.map((s) => s.name));
+          } catch (error) {
+            // No matches in V1 config, continue to V2
+          }
         }
         if (existsSync(V2_CONFIG_PATH)) {
-          const v2Matches = getSuitesByPattern(pattern, V2_CONFIG_PATH);
-          suites.push(...v2Matches.map((s) => s.name));
+          try {
+            const v2Matches = getSuitesByPattern(pattern, V2_CONFIG_PATH);
+            suites.push(...v2Matches.map((s) => s.name));
+          } catch (error) {
+            // No matches in V2 config, continue
+          }
         }
       } else {
         // Direct suite name
@@ -1055,8 +1063,8 @@ class TestRunner {
 
       // Add delay between suites to allow Firebase to fully process cleanup
       if (i < suiteNames.length - 1) {
-        this.log("⏳ Waiting 60 seconds between suites for complete Firebase cleanup...", "info");
-        await new Promise((resolve) => setTimeout(resolve, 60000));
+        this.log("⏳ Waiting 120 seconds between suites for complete Firebase cleanup...", "info");
+        await new Promise((resolve) => setTimeout(resolve, 120000));
       }
 
       this.log("");
