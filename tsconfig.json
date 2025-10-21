@@ -1,12 +1,9 @@
 {
   "compilerOptions": {
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true
   },
   "extends": "./tsconfig.release.json",
-  "include": [
-    "**/*.ts",
-    ".eslintrc.js",
-    "integration_test/**/*"
-  ]
+  "include": ["**/*.ts", ".eslintrc.js", "integration_test/**/*"]
 }
