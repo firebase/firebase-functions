@@ -8,7 +8,7 @@ Run the integration test as follows:
 ./run_tests.sh <project_id> [<project_id2>]
 ```
 
-Test runs cycles of testing for supported Node.js versions (18, 20, 22, 24).
+Test runs cycles of testing, once for Node.js 14 and another for Node.js 16.
 
 Test uses locally installed firebase to invoke commands for deploying function. The test also requires that you have
 gcloud CLI installed and authenticated (`gcloud auth login`).
