@@ -26,7 +26,7 @@
  */
 
 import cors from "cors";
-import * as express from "express";
+import express from "express";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { withInit } from "../../common/onInit";

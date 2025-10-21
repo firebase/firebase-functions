@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import cors, { CorsOptions } from "cors";
-import * as express from "express";
+import express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
 import * as logger from "../../logger";

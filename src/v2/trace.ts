@@ -1,4 +1,4 @@
-import * as express from "express";
+import express from "express";
 
 import { TraceContext, extractTraceContext, traceContext } from "../common/trace";
 import { CloudEvent } from "./core";

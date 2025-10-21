@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import express from "express";
 
 import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";

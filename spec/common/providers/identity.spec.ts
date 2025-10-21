@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as express from "express";
+import express from "express";
 import * as identity from "../../../src/common/providers/identity";
 
 const EVENT = "EVENT_TYPE";
