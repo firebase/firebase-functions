@@ -20,18 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import type * as express from "express";
 
 import { ResetValue } from "../common/options";
 import { Expression, SecretParam } from "../params/types";
-import { EventContext } from "./cloud-functions";
+import type { EventContext } from "./cloud-functions";
 import {
-  DeploymentOptions,
+  type DeploymentOptions,
   INGRESS_SETTINGS_OPTIONS,
   MAX_NUMBER_USER_LABELS,
   MAX_TIMEOUT_SECONDS,
-  RuntimeOptions,
-  SUPPORTED_REGIONS,
+  type RuntimeOptions,
+  type SUPPORTED_REGIONS,
   VALID_MEMORY_OPTIONS,
   VPC_EGRESS_SETTINGS_OPTIONS,
 } from "./function-configuration";

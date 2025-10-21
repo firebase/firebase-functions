@@ -23,12 +23,12 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
+import { runWith } from "../../../src/v1";
 import { taskQueue } from "../../../src/v1/providers/tasks";
+import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MINIMIAL_TASK_QUEUE_TRIGGER } from "./fixtures";
-import { runWith } from "../../../src/v1";
 
 describe("#onDispatch", () => {
   it("should return a trigger/endpoint with appropriate values", () => {

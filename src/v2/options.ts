@@ -32,12 +32,12 @@ import {
   serviceAccountFromShorthand,
 } from "../common/encoding";
 import { RESET_VALUE, ResetValue } from "../common/options";
-import { ManifestEndpoint } from "../runtime/manifest";
-import { TriggerAnnotation } from "./core";
-import { declaredParams, Expression } from "../params";
-import { ParamSpec, SecretParam } from "../params/types";
-import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
+import { declaredParams, type Expression } from "../params";
+import { type ParamSpec, SecretParam } from "../params/types";
+import type { ManifestEndpoint } from "../runtime/manifest";
+import type { TriggerAnnotation } from "./core";
+import type { HttpsOptions } from "./providers/https";
 
 export { RESET_VALUE } from "../common/options";
 

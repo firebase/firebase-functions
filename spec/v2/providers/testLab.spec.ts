@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as testLab from "../../../src/v2/providers/testLab";
+import { type CloudEvent, onInit } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
+import * as testLab from "../../../src/v2/providers/testLab";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
-import { CloudEvent, onInit } from "../../../src/v2/core";
 
 describe("onTestMatrixCompleted", () => {
   afterEach(() => {

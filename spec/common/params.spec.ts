@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ignoreUnusedWarning OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Extract, ParamsOf, Split } from "../../src/common/params";
+import type { Extract, ParamsOf, Split } from "../../src/common/params";
 import { expectNever, expectType } from "./metaprogramming";
 
 describe("Params namespace", () => {

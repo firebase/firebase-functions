@@ -25,11 +25,11 @@
  * @packageDocumentation
  */
 
-import { CloudEvent, CloudFunction } from "../../core";
-import { wrapTraceContext } from "../../trace";
-import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
-import * as options from "../../options";
 import { withInit } from "../../../common/onInit";
+import type { CloudEvent, CloudFunction } from "../../core";
+import type * as options from "../../options";
+import { wrapTraceContext } from "../../trace";
+import { convertAlertAndApp, type FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 
 /**
  * The internal payload object for billing plan updates.

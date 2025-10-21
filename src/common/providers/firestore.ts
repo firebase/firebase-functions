@@ -21,10 +21,10 @@
 // SOFTWARE.
 
 import * as firestore from "firebase-admin/firestore";
-import * as logger from "../../logger";
-import { getApp } from "../../common/app";
 import { google } from "../../../protos/compiledFirestore";
+import { getApp } from "../../common/app";
 import { dateToTimestampProto } from "../../common/utilities/encoder";
+import * as logger from "../../logger";
 
 /** static-complied protobufs */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;

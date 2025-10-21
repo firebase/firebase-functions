@@ -20,31 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { withInit } from "../../common/onInit";
 /**
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
-import { ResetValue } from "../../common/options";
+import type { ResetValue } from "../../common/options";
 import {
   AuthBlockingEvent,
-  AuthBlockingEventType,
+  type AuthBlockingEventType,
   AuthUserRecord,
-  BeforeCreateResponse,
-  BeforeSignInResponse,
-  BeforeEmailResponse,
-  BeforeSmsResponse,
-  HandlerV2,
+  type BeforeCreateResponse,
+  type BeforeEmailResponse,
+  type BeforeSignInResponse,
+  type BeforeSmsResponse,
+  type HandlerV2,
   HttpsError,
+  type MaybeAsync,
   wrapHandler,
-  MaybeAsync,
 } from "../../common/providers/identity";
-import { BlockingFunction } from "../../v1/cloud-functions";
-import { wrapTraceContext } from "../trace";
-import { Expression } from "../../params";
+import type { Expression } from "../../params";
+import type { SecretParam } from "../../params/types";
 import { initV2Endpoint } from "../../runtime/manifest";
+import type { BlockingFunction } from "../../v1/cloud-functions";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
-import { withInit } from "../../common/onInit";
+import { wrapTraceContext } from "../trace";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 

@@ -26,27 +26,27 @@
  */
 
 import * as cors from "cors";
-import * as express from "express";
-import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
-import { wrapTraceContext } from "../trace";
+import type * as express from "express";
 import { isDebugFeatureEnabled } from "../../common/debug";
-import { ResetValue } from "../../common/options";
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
+import { withInit } from "../../common/onInit";
+import type { ResetValue } from "../../common/options";
 import {
+  type AuthData,
   CallableRequest,
   CallableResponse,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-  AuthData,
 } from "../../common/providers/https";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { GlobalOptions, SupportedRegion } from "../options";
-import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
-import * as options from "../options";
-import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
+import { Expression } from "../../params";
+import type { SecretParam } from "../../params/types";
+import { initV2Endpoint, type ManifestEndpoint } from "../../runtime/manifest";
+import * as options from "../options";
+import type { GlobalOptions, SupportedRegion } from "../options";
+import { wrapTraceContext } from "../trace";
 
 export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
 
@@ -531,7 +531,7 @@ interface GenkitRunOptions {
 type GenkitAction<
   I extends ZodType = ZodType<any>,
   O extends ZodType = ZodType<any>,
-  S extends ZodType = ZodType<any>
+  S extends ZodType = ZodType<any>,
 > = {
   // NOTE: The return type from run includes trace data that we may one day like to use.
   run(input: I["__output"], options: GenkitRunOptions): Promise<{ result: O["__output"] }>;

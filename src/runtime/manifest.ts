@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
+import { RESET_VALUE, type ResettableKeys, ResetValue } from "../common/options";
 import { Expression } from "../params";
-import { WireParamSpec, SecretParam } from "../params/types";
+import type { SecretParam, WireParamSpec } from "../params/types";
 
 /**
  * A definition of an extension as appears in the Manifest.
@@ -196,7 +196,7 @@ function initEndpoint(
  */
 export function initV1Endpoint(...opts: ManifestOptions[]): ManifestEndpoint {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { concurrency, ...resetOpts } = RESETTABLE_OPTIONS;
+  const { _concurrency, ...resetOpts } = RESETTABLE_OPTIONS;
   return initEndpoint({ ...resetOpts }, ...opts);
 }
 

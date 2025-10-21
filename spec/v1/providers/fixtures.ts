@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-import { ManifestEndpoint } from "../../../src/runtime/manifest";
+import type { ManifestEndpoint } from "../../../src/runtime/manifest";
 import * as functions from "../../../src/v1";
 import * as options from "../../../src/v2/options";
 
