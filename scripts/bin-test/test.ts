@@ -1,8 +1,8 @@
 import * as subprocess from "child_process";
-import * as path from "path";
-import { promisify } from "util";
 import * as fs from "fs/promises";
 import * as os from "os";
+import * as path from "path";
+import { promisify } from "util";
 
 import { expect } from "chai";
 import yaml from "js-yaml";
