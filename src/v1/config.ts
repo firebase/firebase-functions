@@ -23,14 +23,14 @@
 export { firebaseConfig } from "../common/config";
 
 /**
- * @deprecated functions.config() has been removed in firebase-functions v7.
- * Please migrate to environment parameters using the params module.
+ * @deprecated `functions.config()` has been removed in firebase-functions v7.
+ * Migrate to environment parameters using the `params` module immediately.
  * Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config
  */
 export function config(): Record<string, any> {
   throw new Error(
     "functions.config() has been removed in firebase-functions v7. " +
-      "Please migrate to environment parameters using the params module. " +
+      "Migrate to environment parameters using the params module. " +
       "Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config"
   );
 }

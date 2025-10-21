@@ -28,12 +28,9 @@ describe("config()", () => {
   it("throws an error with migration guidance", () => {
     expect(config).to.throw(
       Error,
-      /functions\.config\(\) has been removed in firebase-functions v7/
-    );
-    expect(config).to.throw(Error, /migrate to environment parameters using the params module/);
-    expect(config).to.throw(
-      Error,
-      /https:\/\/firebase\.google\.com\/docs\/functions\/config-env#migrate-config/
+      "functions.config() has been removed in firebase-functions v7. " +
+        "Migrate to environment parameters using the params module. " +
+        "Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config"
     );
   });
 });
