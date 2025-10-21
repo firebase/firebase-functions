@@ -1,0 +1,54 @@
+import * as admin from "firebase-admin";
+import * as functions from "firebase-functions/v1";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+{{#if schedule}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .pubsub.schedule("{{schedule}}")
+  .onRun(async (context) => {
+    const topicName = /\/topics\/([a-zA-Z0-9\-\_]+)/gi.exec(context.resource.name)?.[1];
+
+    if (!topicName) {
+      console.error(
+        "Topic name not found in resource name for scheduled function execution"
+      );
+      return;
+    }
+
+    await admin
+      .firestore()
+      .collection("{{collection}}")
+      .doc(topicName)
+      .set(sanitizeData(context));
+  });
+{{else}}
+export const {{name}}{{../testRunId}} = functions
+  .runWith({
+    timeoutSeconds: {{timeout}}
+  })
+  .region(REGION)
+  .pubsub.topic("{{topic}}")
+  .onPublish(async (message, context) => {
+    const testId = (message.json as { testId?: string })?.testId;
+
+    await admin
+      .firestore()
+      .collection("{{collection}}")
+      .doc(testId)
+      .set(
+        sanitizeData({
+          ...context,
+          message: JSON.stringify(message),
+        })
+      );
+  });
+{{/if}}
+
+{{/each}}

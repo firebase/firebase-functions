@@ -10,3 +10,4 @@ node_modules
 /spec/fixtures
 /scripts/**/*.js
 /protos/
+integration_test/scripts/generate.js

@@ -3,6 +3,7 @@ module.exports = {
     es6: true,
     node: true,
   },
+  ignorePatterns: ["integration_test/**/*"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",

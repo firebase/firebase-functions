@@ -1,0 +1,44 @@
+{
+  "name": "integration-test-declarative",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Declarative Firebase Functions integration tests",
+  "scripts": {
+    "generate": "node scripts/generate.js",
+    "test": "jest --forceExit",
+    "run-tests": "node scripts/run-tests.js",
+    "run-suite": "./scripts/run-suite.sh",
+    "test:firestore": "node scripts/run-tests.js v1_firestore",
+    "test:v1": "node scripts/run-tests.js v1_firestore v1_database v1_pubsub v1_storage v1_tasks v1_remoteconfig v1_testlab v1_auth_nonblocking",
+    "test:v1:all": "node scripts/run-tests.js --sequential 'v1_*'",
+    "test:v1:all:parallel": "node scripts/run-tests.js 'v1_*'",
+    "test:v2:all": "node scripts/run-tests.js --sequential 'v2_*'",
+    "test:v2:all:parallel": "node scripts/run-tests.js 'v2_*'",
+    "test:all:sequential": "node scripts/run-tests.js --sequential",
+    "test:v1:auth-before-create": "node scripts/run-tests.js v1_auth_before_create",
+    "test:v1:auth-before-signin": "node scripts/run-tests.js v1_auth_before_signin",
+    "cloudbuild:v1": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests",
+    "cloudbuild:v2": "gcloud builds submit --config=cloudbuild-v2.yaml --project=functions-integration-tests-v2",
+    "cloudbuild:both": "gcloud builds submit --config=cloudbuild-v1.yaml --project=functions-integration-tests & gcloud builds submit --config=cloudbuild-v2.yaml --project=functions-integration-tests-v2 & wait",
+    "cleanup": "./scripts/cleanup-suite.sh",
+    "cleanup:list": "./scripts/cleanup-suite.sh --list-artifacts",
+    "clean": "rm -rf generated/*"
+  },
+  "dependencies": {
+    "@google-cloud/pubsub": "^4.0.0",
+    "ajv": "^8.17.1",
+    "chalk": "^4.1.2",
+    "firebase-admin": "^12.0.0"
+  },
+  "devDependencies": {
+    "@google-cloud/tasks": "^6.2.0",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.5",
+    "firebase": "^12.2.1",
+    "handlebars": "^4.7.8",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3",
+    "yaml": "^2.3.4"
+  }
+}

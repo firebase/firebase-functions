@@ -1,0 +1,28 @@
+import * as admin from "firebase-admin";
+import { onTaskDispatched } from "firebase-functions/v2/tasks";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+{{#if (eq trigger "onTaskDispatched")}}
+export const {{name}}{{../testRunId}} = onTaskDispatched({
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (req) => {
+  const data = req.data;
+  if (!data || typeof data !== "object" || !("testId" in data)) {
+    console.error("Invalid data structure for tasks onTaskDispatched");
+    return;
+  }
+  const testId = (data as { testId: string }).testId;
+
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(req));
+});
+{{/if}}
+
+{{/each}}

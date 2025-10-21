@@ -1,0 +1,25 @@
+/**
+ * Sanitize data for Firestore storage
+ * Removes undefined values and functions
+ */
+export function sanitizeData(data: any): any {
+  if (data === null || data === undefined) {
+    return null;
+  }
+
+  if (typeof data !== "object") {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeData(item));
+  }
+
+  const sanitized: any = {};
+  for (const [key, value] of Object.entries(data)) {
+    if (value !== undefined && typeof value !== "function") {
+      sanitized[key] = sanitizeData(value);
+    }
+  }
+  return sanitized;
+}

@@ -1,0 +1,68 @@
+import * as admin from "firebase-admin";
+import { onDocumentCreated, onDocumentDeleted, onDocumentUpdated, onDocumentWritten } from "firebase-functions/v2/firestore";
+import { sanitizeData } from "../utils";
+
+const REGION = "{{region}}";
+
+{{#each functions}}
+{{#if (eq trigger "onDocumentCreated")}}
+export const {{name}}{{../testRunId}} = onDocumentCreated({
+  document: "{{document}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{#if (eq trigger "onDocumentDeleted")}}
+export const {{name}}{{../testRunId}} = onDocumentDeleted({
+  document: "{{document}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{#if (eq trigger "onDocumentUpdated")}}
+export const {{name}}{{../testRunId}} = onDocumentUpdated({
+  document: "{{document}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{#if (eq trigger "onDocumentWritten")}}
+export const {{name}}{{../testRunId}} = onDocumentWritten({
+  document: "{{document}}",
+  region: REGION,
+  timeoutSeconds: {{timeout}}
+}, async (event) => {
+  const testId = event.params.testId;
+  await admin
+    .firestore()
+    .collection("{{collection}}")
+    .doc(testId)
+    .set(sanitizeData(event));
+});
+{{/if}}
+
+{{/each}}
