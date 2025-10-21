@@ -31,15 +31,15 @@ import {
   TaskContext,
 } from "../../common/providers/tasks";
 import {
-  initV1Endpoint,
   initTaskQueueTrigger,
+  initV1Endpoint,
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";
 import { optionsToEndpoint, optionsToTrigger } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-export { RetryConfig, RateLimits, TaskContext };
+export { RateLimits, RetryConfig, TaskContext };
 
 /**
  * Options for configuring the task queue to listen to.

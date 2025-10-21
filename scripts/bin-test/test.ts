@@ -5,7 +5,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 
 import { expect } from "chai";
-import * as yaml from "js-yaml";
+import yaml from "js-yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
 
