@@ -31,7 +31,7 @@ import {
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";
-import { HttpsFunction } from "./https";
+import type { HttpsFunction } from "./https";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as logger from "../../logger";

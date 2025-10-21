@@ -36,7 +36,7 @@ import {
 } from "../../common/providers/tasks";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
-import { HttpsFunction } from "./https";
+import type { HttpsFunction } from "./https";
 import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
