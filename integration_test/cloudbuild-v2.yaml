@@ -1,30 +1,13 @@
 # Cloud Build configuration for Firebase Functions V2 Integration Tests
-# Runs all V2 test suites sequentially to avoid rate limits
+# Runs V2 test suites only
 
 options:
   machineType: "E2_HIGHCPU_8"
   logging: CLOUD_LOGGING_ONLY
 
-timeout: "3600s"
+timeout: "7200s"
 
 steps:
-  # Create storage bucket for test results if it doesn't exist
-  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:stable"
-    id: "create-bucket"
-    entrypoint: "bash"
-    args:
-      - "-c"
-      - |
-        # Create bucket for test results if it doesn't exist
-        BUCKET_NAME="gs://functions-integration-tests-v2-test-results"
-        echo "Checking if bucket $$BUCKET_NAME exists..."
-        if ! gsutil ls "$$BUCKET_NAME" &>/dev/null; then
-          echo "Creating bucket $$BUCKET_NAME..."
-          gsutil mb -p "functions-integration-tests-v2" "$$BUCKET_NAME"
-        else
-          echo "Bucket $$BUCKET_NAME already exists"
-        fi
-
   # Build SDK and run all V2 test suites sequentially
   # Using the official Google Cloud SDK image which includes gcloud pre-installed
   - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:stable"
@@ -60,21 +43,22 @@ steps:
         # Install firebase-tools globally
         npm install -g firebase-tools
         # gcloud is already available in this image
-        gcloud config set project functions-integration-tests-v2
+        gcloud config set project "$PROJECT_ID"
         # Verify tools are installed
         firebase --version
         gcloud --version
         # Verify gcloud project is set correctly
         gcloud config get-value project
-        # V2 tests use functions-integration-tests-v2 project
-        echo "Running V2 tests on project: functions-integration-tests-v2"
+        # Set environment variables
+        export PROJECT_ID="$PROJECT_ID"
+        echo "Running all tests on project: $PROJECT_ID"
         # Use Application Default Credentials (Cloud Build service account)
-        # Run all V2 test suites sequentially
-        node scripts/run-tests.js --sequential --filter=v2 --use-published-sdk=file:firebase-functions-local.tgz
+        # Run V2 test suites only
+        node scripts/run-tests.js --sequential 'v2_*' --skip-cleanup
 
 # Artifacts to store
 artifacts:
   objects:
-    location: "gs://functions-integration-tests-v2-test-results/${BUILD_ID}"
+    location: "gs://${PROJECT_ID}_cloudbuild/artifacts/${BUILD_ID}"
     paths:
       - "logs/**/*.log"

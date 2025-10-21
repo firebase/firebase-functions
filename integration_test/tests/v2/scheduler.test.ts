@@ -2,7 +2,7 @@ import * as admin from "firebase-admin";
 import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
-describe.skip("Scheduler", () => {
+describe("Scheduler", () => {
   const projectId = process.env.PROJECT_ID;
   const region = process.env.REGION;
   const testId = process.env.TEST_RUN_ID;
@@ -24,9 +24,9 @@ describe.skip("Scheduler", () => {
 
     beforeAll(async () => {
       const accessToken = await admin.credential.applicationDefault().getAccessToken();
-      const jobName = `firebase-schedule-${testId}-v2-schedule-${region}`;
+      const jobName = `firebase-schedule-schedule${testId}-us-central1`;
       const response = await fetch(
-        `https://cloudscheduler.googleapis.com/v1/projects/${projectId}/locations/us-central1/jobs/firebase-schedule-${testId}-v2-schedule-${region}:run`,
+        `https://cloudscheduler.googleapis.com/v1/projects/${projectId}/locations/us-central1/jobs/firebase-schedule-schedule${testId}-us-central1:run`,
         {
           method: "POST",
           headers: {

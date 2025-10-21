@@ -221,8 +221,8 @@ export async function generateFunctions(suitePatterns, options = {}) {
       testRunId,
       sdkTarball,
       timestamp: new Date().toISOString(),
-      v1ProjectId: "functions-integration-tests",
-      v2ProjectId: "functions-integration-tests-v2",
+      v1ProjectId: process.env.PROJECT_ID || "functions-integration-tests",
+      v2ProjectId: process.env.PROJECT_ID || "functions-integration-tests",
     };
 
     // Generate the test file for this suite

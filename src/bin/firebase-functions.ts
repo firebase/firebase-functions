@@ -22,9 +22,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as http from "http";
-import * as express from "express";
+import express from "express";
 import * as fs from "fs/promises";
+import * as http from "http";
 import * as path from "path";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";

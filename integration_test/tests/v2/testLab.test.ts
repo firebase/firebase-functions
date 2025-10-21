@@ -2,7 +2,7 @@ import * as admin from "firebase-admin";
 import { retry, startTestRun } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
 
-describe.skip("TestLab (v2)", () => {
+describe("TestLab (v2)", () => {
   const projectId = process.env.PROJECT_ID;
   const testId = process.env.TEST_RUN_ID;
 

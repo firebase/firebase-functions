@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { App, initializeApp } from "firebase-admin/app";
 import * as appCheck from "firebase-admin/app-check";
+import nock from "nock";
 import * as sinon from "sinon";
-import * as nock from "nock";
 
 import { getApp, setApp } from "../../../src/common/app";
 import * as debug from "../../../src/common/debug";

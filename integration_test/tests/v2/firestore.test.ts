@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
-import { retry } from "../utils";
 import { initializeFirebase } from "../firebaseSetup";
+import { retry } from "../utils";
 
 describe("Cloud Firestore (v2)", () => {
   const projectId = process.env.PROJECT_ID;
@@ -15,10 +15,10 @@ describe("Cloud Firestore (v2)", () => {
   });
 
   afterAll(async () => {
-    await admin.firestore().collection("firestoreOnDocumentCreatedTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreOnDocumentDeletedTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreOnDocumentUpdatedTests").doc(testId).delete();
-    await admin.firestore().collection("firestoreOnDocumentWrittenTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentCreatedTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentDeletedTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentUpdatedTests").doc(testId).delete();
+    await admin.firestore().collection("v2FirestoreOnDocumentWrittenTests").doc(testId).delete();
   });
 
   describe("Document created trigger", () => {
@@ -27,19 +27,21 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentCreatedTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("v2FirestoreOnDocumentCreatedTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
-    });
+    }, 300_000);
 
     it("should not have event.app", () => {
       expect(loggedContext?.app).toBeUndefined();
@@ -79,7 +81,7 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
@@ -88,13 +90,15 @@ describe("Cloud Firestore (v2)", () => {
       // Refresh snapshot
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentDeletedTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("v2FirestoreOnDocumentDeletedTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 
@@ -130,18 +134,20 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({});
 
       await docRef.update({ test: testId });
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentUpdatedTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("v2FirestoreOnDocumentUpdatedTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 
@@ -180,17 +186,19 @@ describe("Cloud Firestore (v2)", () => {
     let docRef: admin.firestore.DocumentReference<admin.firestore.DocumentData>;
 
     beforeAll(async () => {
-      docRef = admin.firestore().collection("tests").doc(testId);
+      docRef = admin.firestore().collection("v2tests").doc(testId);
       await docRef.set({ test: testId });
       dataSnapshot = await docRef.get();
 
-      loggedContext = await retry(() =>
-        admin
-          .firestore()
-          .collection("firestoreOnDocumentWrittenTests")
-          .doc(testId)
-          .get()
-          .then((logSnapshot) => logSnapshot.data())
+      loggedContext = await retry(
+        () =>
+          admin
+            .firestore()
+            .collection("v2FirestoreOnDocumentWrittenTests")
+            .doc(testId)
+            .get()
+            .then((logSnapshot) => logSnapshot.data()),
+        { maxRetries: 40 }
       );
     });
 

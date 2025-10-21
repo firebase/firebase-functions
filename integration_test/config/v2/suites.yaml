@@ -3,7 +3,7 @@
 # Common values are defined in the defaults section to reduce duplication
 
 defaults:
-  projectId: functions-integration-tests-v2
+  projectId: ${PROJECT_ID:-functions-integration-tests-v2}
   region: us-central1
   timeout: 540
   dependencies:
@@ -19,18 +19,22 @@ suites:
     version: v2
     service: firestore
     functions:
-      - name: firestoreOnDocumentCreatedTests
+      - name: v2FirestoreOnDocumentCreatedTests
         trigger: onDocumentCreated
-        document: "tests/{testId}"
-      - name: firestoreOnDocumentDeletedTests
+        document: "v2tests/{testId}"
+        collection: "v2FirestoreOnDocumentCreatedTests"
+      - name: v2FirestoreOnDocumentDeletedTests
         trigger: onDocumentDeleted
-        document: "tests/{testId}"
-      - name: firestoreOnDocumentUpdatedTests
+        document: "v2tests/{testId}"
+        collection: "v2FirestoreOnDocumentDeletedTests"
+      - name: v2FirestoreOnDocumentUpdatedTests
         trigger: onDocumentUpdated
-        document: "tests/{testId}"
-      - name: firestoreOnDocumentWrittenTests
+        document: "v2tests/{testId}"
+        collection: "v2FirestoreOnDocumentUpdatedTests"
+      - name: v2FirestoreOnDocumentWrittenTests
         trigger: onDocumentWritten
-        document: "tests/{testId}"
+        document: "v2tests/{testId}"
+        collection: "v2FirestoreOnDocumentWrittenTests"
 
   # Realtime Database triggers
   - name: v2_database
@@ -69,10 +73,13 @@ suites:
     functions:
       - name: storageOnObjectFinalizedTests
         trigger: onObjectFinalized
+        collection: storageFinalizedTests
       - name: storageOnObjectDeletedTests
         trigger: onObjectDeleted
+        collection: storageDeletedTests
       - name: storageOnObjectMetadataUpdatedTests
         trigger: onObjectMetadataUpdated
+        collection: storageMetadataTests
 
   # Cloud Tasks triggers
   - name: v2_tasks
