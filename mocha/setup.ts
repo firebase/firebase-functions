@@ -1,6 +1,6 @@
 import * as chai from "chai";
-import * as nock from "nock";
-import chaiAsPromised = require("chai-as-promised");
+import chaiAsPromised from "chai-as-promised";
+import nock from "nock";
 
 chai.use(chaiAsPromised);
 

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as cors from "cors";
+import cors, { CorsOptions } from "cors";
 import * as express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
@@ -707,7 +707,7 @@ type v2CallableHandler<Req, Res, Stream> = (
 
 /** @internal **/
 export interface CallableOptions<T = any> {
-  cors: cors.CorsOptions;
+  cors: CorsOptions;
   enforceAppCheck?: boolean;
   consumeAppCheckToken?: boolean;
   /* @deprecated */

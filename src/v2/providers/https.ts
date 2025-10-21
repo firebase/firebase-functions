@@ -25,30 +25,30 @@
  * @packageDocumentation
  */
 
-import * as cors from "cors";
+import cors from "cors";
 import * as express from "express";
-import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
-import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
+import { withInit } from "../../common/onInit";
 import { ResetValue } from "../../common/options";
 import {
+  AuthData,
   CallableRequest,
   CallableResponse,
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
   Request,
-  AuthData,
 } from "../../common/providers/https";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { GlobalOptions, SupportedRegion } from "../options";
+import * as logger from "../../logger";
 import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
-import { withInit } from "../../common/onInit";
-import * as logger from "../../logger";
+import { GlobalOptions, SupportedRegion } from "../options";
+import { wrapTraceContext } from "../trace";
 
-export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
+export { CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError, Request };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
