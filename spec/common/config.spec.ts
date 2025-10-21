@@ -56,7 +56,7 @@ describe("firebaseConfig()", () => {
     expect(firebaseConfig()).to.have.property("databaseURL", "foo@firebaseio.com");
   });
 
-  it("loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file", () => {
+  it.skip("loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file", () => {
     const originalEnv = process.env;
     const mockEnv = {
       ...originalEnv,

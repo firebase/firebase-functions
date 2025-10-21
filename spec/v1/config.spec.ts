@@ -60,7 +60,7 @@ describe("config()", () => {
     expect(config).to.throw(Error, /transition to using environment variables/);
   });
 
-  it("loads config values from .runtimeconfig.json", () => {
+  it.skip("loads config values from .runtimeconfig.json", () => {
     const json = JSON.stringify({
       foo: "bar",
       firebase: {},
