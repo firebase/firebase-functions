@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es2019"],
+    "lib": ["es2022"],
     "module": "commonjs",
     "noImplicitAny": false,
     "noUnusedLocals": true,
     "outDir": "lib",
     "stripInternal": true,
-    "target": "es2019",
+    "target": "es2022",
+    "useDefineForClassFields": false,
     "typeRoots": ["./node_modules/@types"]
   },
   "files": [
