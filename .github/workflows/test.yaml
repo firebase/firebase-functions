@@ -66,3 +66,22 @@ jobs:
           key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
       - run: npm ci
       - run: npm run test:bin
+  cloud-build-integration:
+    needs: "unit"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: google-github-actions/auth@v0
+        with:
+          credentials_json: "${{ secrets.CF3_INTEGRATION_TEST_GOOGLE_CREDENTIALS }}"
+          create_credentials_file: true
+      - name: "Setup Google Cloud SDK"
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          version: "latest"
+      - name: "Run Cloud Build Integration Tests"
+        run: |
+          cd integration_test
+          PROJECT_ID=cf3-integration-tests-v2-qa gcloud builds submit --config=cloudbuild-all.yaml --project=cf3-integration-tests-v2-qa
+        env:
+          PROJECT_ID: ${{ secrets.PROJECT_ID }}
