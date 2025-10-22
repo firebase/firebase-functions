@@ -39,8 +39,13 @@ const expectedEndpointBase = {
   labels: {},
 };
 
-function makeExpectedEndpoint(eventType: string, eventFilters, eventFilterPathPatterns) {
-  return {
+function makeExpectedEndpoint(
+  eventType: string,
+  eventFilters,
+  eventFilterPathPatterns,
+  region?: string[]
+) {
+  let endpoint = {
     ...expectedEndpointBase,
     eventTrigger: {
       eventType,
@@ -49,6 +54,11 @@ function makeExpectedEndpoint(eventType: string, eventFilters, eventFilterPathPa
       retry: false,
     },
   };
+
+  if (region) {
+    return { ...endpoint, region };
+  }
+  return endpoint;
 }
 
 describe("dataconnect", () => {
@@ -136,11 +146,12 @@ describe("dataconnect", () => {
           connector: "my-connector",
           operation: "my-operation",
         },
-        {}
+        {},
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/my-service/connectors/my-connector/operations/my-operation",
+        "locations/us-central1/services/my-service/connectors/my-connector/operations/my-operation",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -177,11 +188,12 @@ describe("dataconnect", () => {
         },
         {
           service: "{service}",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/{service}/connectors/my-connector/operations/my-operation",
+        "locations/us-central1/services/{service}/connectors/my-connector/operations/my-operation",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -219,11 +231,12 @@ describe("dataconnect", () => {
         },
         {
           connector: "{connector}",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/my-service/connectors/{connector}/operations/my-operation",
+        "locations/us-central1/services/my-service/connectors/{connector}/operations/my-operation",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -261,11 +274,12 @@ describe("dataconnect", () => {
         },
         {
           operation: "{operation}",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/my-service/connectors/my-connector/operations/{operation}",
+        "locations/us-central1/services/my-service/connectors/my-connector/operations/{operation}",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -302,11 +316,12 @@ describe("dataconnect", () => {
           service: "{service}",
           connector: "{connector}",
           operation: "{operation}",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/{service}/connectors/{connector}/operations/{operation}",
+        "locations/us-central1/services/{service}/connectors/{connector}/operations/{operation}",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -343,11 +358,12 @@ describe("dataconnect", () => {
         },
         {
           service: "*",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/*/connectors/my-connector/operations/my-operation",
+        "locations/us-central1/services/*/connectors/my-connector/operations/my-operation",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -385,11 +401,12 @@ describe("dataconnect", () => {
         },
         {
           connector: "*",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/my-service/connectors/*/operations/my-operation",
+        "locations/us-central1/services/my-service/connectors/*/operations/my-operation",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -427,11 +444,12 @@ describe("dataconnect", () => {
         },
         {
           operation: "*",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/my-service/connectors/my-connector/operations/*",
+        "locations/us-central1/services/my-service/connectors/my-connector/operations/*",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -468,11 +486,12 @@ describe("dataconnect", () => {
           service: "*",
           connector: "*",
           operation: "*",
-        }
+        },
+        ["us-central1"]
       );
 
       const func = dataconnect.onMutationExecuted(
-        "services/*/connectors/*/operations/*",
+        "locations/us-central1/services/*/connectors/*/operations/*",
         () => true
       );
       expect(func.__endpoint).to.deep.eq(expectedEndpoint);
@@ -521,7 +540,7 @@ describe("dataconnect", () => {
       onInit(() => (hello = "world"));
       expect(hello).to.be.undefined;
       await dataconnect.onMutationExecuted(
-        "services/*/connectors/*/operations/*",
+        "locations/us-central1/services/*/connectors/*/operations/*",
         () => null
       )(event);
       expect(hello).to.equal("world");

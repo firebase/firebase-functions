@@ -22,12 +22,19 @@
 
 import { CloudEvent, CloudFunction } from "../core";
 import { ParamsOf, VarName } from "../../common/params";
-import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
+import {
+  EventHandlerOptions,
+  getGlobalOptions,
+  optionsToEndpoint,
+  SupportedRegion,
+} from "../options";
 import { normalizePath } from "../../common/utilities/path";
 import { wrapTraceContext } from "../trace";
 import { withInit } from "../../common/onInit";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { PathPattern } from "../../common/utilities/path-pattern";
+import { Expression } from "../../params";
+import { ResetValue } from "../../common/options";
 
 /** @internal */
 export const mutationExecutedEventType =
@@ -99,6 +106,10 @@ export interface OperationOptions<
   connector?: Connector;
   /** Name of the operation */
   operation?: Operation;
+  /**
+   * Region where functions should be deployed. Defaults to us-central1.
+   */
+  region?: SupportedRegion | string | Expression<string> | ResetValue;
 }
 
 export type DataConnectParams<PathPatternOrOptions extends string | OperationOptions> =
@@ -198,7 +209,9 @@ export function onMutationExecuted<
 }
 
 function getOpts(mutationOrOpts: string | OperationOptions) {
-  const operationRegex = new RegExp("services/([^/]+)/connectors/([^/]+)/operations/([^/]+)");
+  const operationRegex = new RegExp(
+    "locations/([^/]+)/services/([^/]+)/connectors/([^/]*)/operations/([^/]+)"
+  );
 
   let service: string | undefined;
   let connector: string | undefined;
@@ -211,10 +224,10 @@ function getOpts(mutationOrOpts: string | OperationOptions) {
       throw new Error(`Invalid operation path: ${path}`);
     }
 
-    service = match[1];
-    connector = match[2];
-    operation = match[3];
-    opts = {};
+    service = match[2];
+    connector = match[3];
+    operation = match[4];
+    opts = { region: match[1] };
   } else {
     service = mutationOrOpts.service;
     connector = mutationOrOpts.connector;
@@ -324,7 +337,7 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
       operationPattern
     );
 
-    const { authtype, authid, ...rest } = event;
+    const { authtype, authid, service, connector, operation, ...rest } = event;
     const dataConnectEvent: DataConnectEvent<
       MutationEventData<Variables, ResponseData>,
       DataConnectParams<PathPatternOrOptions>
