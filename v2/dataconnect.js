@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2022 Firebase
+// Copyright (c) 2025 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,8 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-// This method will fail to compile if value is not of the explicit parameter type.
-/* eslint-disable @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function */
-export function expectType<Type>(value: Type) {}
-export function expectNever<Type extends never>() {}
-export function expectExtends<Type, Test extends Type>() {}
+
+// This file is not part of the firebase-functions SDK. It is used to silence the
+// imports eslint plugin until it can understand import paths defined by node
+// package exports.
+// For more information, see github.com/import-js/eslint-plugin-import/issues/1810
