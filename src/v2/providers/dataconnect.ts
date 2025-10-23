@@ -209,9 +209,7 @@ export function onMutationExecuted<
 }
 
 function getOpts(mutationOrOpts: string | OperationOptions) {
-  const operationRegex = new RegExp(
-    "locations/([^/]+)/services/([^/]+)/connectors/([^/]*)/operations/([^/]+)"
-  );
+  const operationRegex = new RegExp("services/([^/]+)/connectors/([^/]*)/operations/([^/]+)");
 
   let service: string | undefined;
   let connector: string | undefined;
@@ -224,10 +222,10 @@ function getOpts(mutationOrOpts: string | OperationOptions) {
       throw new Error(`Invalid operation path: ${path}`);
     }
 
-    service = match[2];
-    connector = match[3];
-    operation = match[4];
-    opts = { region: match[1] };
+    service = match[1];
+    connector = match[2];
+    operation = match[3];
+    opts = {};
   } else {
     service = mutationOrOpts.service;
     connector = mutationOrOpts.connector;
