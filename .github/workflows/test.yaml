@@ -8,6 +8,23 @@ env:
   CI: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm pack
+      - name: Upload tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-tarball
+          path: firebase-functions-*.tgz
+
   lint:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -25,6 +42,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+
   unit:
     runs-on: ubuntu-latest
     strategy:
@@ -35,17 +53,35 @@ jobs:
           - 22.x
           - 24.x
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
       - run: npm ci
       - run: npm run test
+
+  packaging:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - 18.x
+          - 20.x
+          - 22.x
+          - 24.x
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Download tarball
+        uses: actions/download-artifact@v4
+        with:
+          name: package-tarball
+      - run: chmod +x ./scripts/test-packaging.sh && ./scripts/test-packaging.sh firebase-functions-*.tgz
+
   integration:
     needs: "unit"
     runs-on: ubuntu-latest
@@ -57,14 +93,10 @@ jobs:
           - 22.x
           - 24.x
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
       - run: npm ci
       - run: npm run test:bin
