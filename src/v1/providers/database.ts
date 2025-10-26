@@ -254,7 +254,7 @@ export class RefBuilder<Ref extends string> {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | Event) => any
+    dataConstructor: (raw: Event) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
