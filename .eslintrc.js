@@ -11,6 +11,24 @@ module.exports = {
     "google",
     "prettier",
   ],
+  settings: {
+    jsdoc: {
+      mode: "typescript",
+      tagNamePreference: {
+        return: "returns",
+      },
+      // Register TSDoc tags so they aren't flagged as invalid by standard JSDoc rules
+      definedTags: [
+        "alpha",
+        "beta",
+        "defaultValue",
+        "hidden",
+        "internal",
+        "packageDocumentation",
+        "remarks",
+      ],
+    },
+  },
   rules: {
     "jsdoc/newline-after-description": "off",
     "jsdoc/require-jsdoc": ["warn", { publicOnly: true }],
@@ -35,6 +53,22 @@ module.exports = {
         // Google style guide allows us to omit trivial parameters and returns
         "jsdoc/require-param": "off",
         "jsdoc/require-returns": "off",
+
+        // Allow TSDoc tags
+        "jsdoc/check-tag-names": [
+          "warn",
+          {
+            definedTags: [
+              "alpha",
+              "beta",
+              "defaultValue",
+              "hidden",
+              "internal",
+              "packageDocumentation",
+              "remarks",
+            ],
+          },
+        ],
 
         "@typescript-eslint/no-invalid-this": "error",
         "@typescript-eslint/no-unused-vars": "error", // Unused vars should not exist.
