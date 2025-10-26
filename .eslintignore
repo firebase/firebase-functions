@@ -9,4 +9,6 @@ node_modules
 /dist/
 /spec/fixtures
 /scripts/**/*.js
-/protos/
+protos/compiledFirestore.js
+protos/compiledFirestore.mjs
+protos/compiledFirestore.d.ts
