@@ -46,7 +46,8 @@ import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
-export { AuthUserRecord, AuthBlockingEvent, HttpsError };
+export { HttpsError };
+export type { AuthUserRecord, AuthBlockingEvent };
 
 /** @hidden Internally used when parsing the options. */
 interface InternalOptions {
