@@ -48,7 +48,8 @@ import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
-export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
+export { HttpsError };
+export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
