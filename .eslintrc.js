@@ -14,19 +14,6 @@ module.exports = {
   settings: {
     jsdoc: {
       mode: "typescript",
-      tagNamePreference: {
-        return: "returns",
-      },
-      // Register TSDoc tags so they aren't flagged as invalid by standard JSDoc rules
-      definedTags: [
-        "alpha",
-        "beta",
-        "defaultValue",
-        "hidden",
-        "internal",
-        "packageDocumentation",
-        "remarks",
-      ],
     },
   },
   rules: {

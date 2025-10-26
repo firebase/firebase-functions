@@ -120,7 +120,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * return `null`, indicating that the `DataSnapshot` is empty (contains no
    * data).
    *
-   * @return The snapshot's contents as a JavaScript value (Object,
+   * @returns The snapshot's contents as a JavaScript value (Object,
    *   Array, string, number, boolean, or `null`).
    */
   val(): any {
@@ -145,7 +145,7 @@ export class DataSnapshot implements database.DataSnapshot {
   /**
    * Exports the entire contents of the `DataSnapshot` as a JavaScript object.
    *
-   * @return The contents of the `DataSnapshot` as a JavaScript value
+   * @returns The contents of the `DataSnapshot` as a JavaScript value
    *   (Object, Array, string, number, boolean, or `null`).
    */
   exportVal(): any {
@@ -159,7 +159,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * ordinary properties. See [Sorting and filtering
    * data](/docs/database/web/lists-of-data#sorting_and_filtering_data).
    *
-   * @return The priority value of the data.
+   * @returns The priority value of the data.
    */
   getPriority(): string | number | null {
     return 0;
@@ -169,7 +169,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * Returns `true` if this `DataSnapshot` contains any data. It is slightly more
    * efficient than using `snapshot.val() !== null`.
    *
-   * @return `true` if this `DataSnapshot` contains any data; otherwise, `false`.
+   * @returns `true` if this `DataSnapshot` contains any data; otherwise, `false`.
    */
   exists(): boolean {
     const val = this.val();
@@ -190,7 +190,7 @@ export class DataSnapshot implements database.DataSnapshot {
    *
    * @param path A relative path from this location to the desired child
    *   location.
-   * @return The specified child location.
+   * @returns The specified child location.
    */
   child(childPath: string): DataSnapshot {
     if (!childPath) {
@@ -215,7 +215,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * @param action A function that is called for each child `DataSnapshot`.
    *   The callback can return `true` to cancel further enumeration.
    *
-   * @return `true` if enumeration was canceled due to your callback
+   * @returns `true` if enumeration was canceled due to your callback
    *   returning `true`.
    */
   forEach(action: (a: IteratedDataSnapshot) => boolean | void): boolean {
@@ -230,7 +230,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * Returns `true` if the specified child path has (non-`null`) data.
    *
    * @param path A relative path to the location of a potential child.
-   * @return `true` if data exists at the specified child path; otherwise,
+   * @returns `true` if data exists at the specified child path; otherwise,
    *   `false`.
    */
   hasChild(childPath: string): boolean {
@@ -247,7 +247,7 @@ export class DataSnapshot implements database.DataSnapshot {
    * retrieved with `val()`) or it is empty (in which case, `val()` returns
    * `null`).
    *
-   * @return `true` if this snapshot has any children; else `false`.
+   * @returns `true` if this snapshot has any children; else `false`.
    */
   hasChildren(): boolean {
     const val = this.val();
@@ -257,7 +257,7 @@ export class DataSnapshot implements database.DataSnapshot {
   /**
    * Returns the number of child properties of this `DataSnapshot`.
    *
-   * @return Number of child properties of this `DataSnapshot`.
+   * @returns Number of child properties of this `DataSnapshot`.
    */
   numChildren(): number {
     const val = this.val();
@@ -267,7 +267,7 @@ export class DataSnapshot implements database.DataSnapshot {
   /**
    * Returns a JSON-serializable representation of this object.
    *
-   * @return A JSON-serializable representation of this object.
+   * @returns A JSON-serializable representation of this object.
    */
   toJSON(): Record<string, unknown> {
     return this.val();
