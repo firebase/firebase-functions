@@ -430,9 +430,11 @@ export function makeEndpoint(
     // Note: Eventarc always treats ref as a path pattern
     ref: path.getValue(),
   };
-  instance.hasWildcards()
-    ? (eventFilterPathPatterns.instance = instance.getValue())
-    : (eventFilters.instance = instance.getValue());
+  if (instance.hasWildcards()) {
+    eventFilterPathPatterns.instance = instance.getValue();
+  } else {
+    eventFilters.instance = instance.getValue();
+  }
 
   return {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
