@@ -43,8 +43,7 @@ module.exports = [
                 project: "tsconfig.json",
                 tsconfigRootDir: __dirname,
             },
-            ecmaVersion: 2018,
-            sourceType: "module",
+            ecmaVersion: 2022
         },
         plugins: {
             "prettier": require("eslint-plugin-prettier"),
