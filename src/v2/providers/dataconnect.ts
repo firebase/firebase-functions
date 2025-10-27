@@ -259,19 +259,25 @@ function makeEndpoint(
   const eventFilterPathPatterns: Record<string, string> = {};
 
   if (service) {
-    service.hasWildcards()
-      ? (eventFilterPathPatterns.service = service.getValue())
-      : (eventFilters.service = service.getValue());
+    if (service.hasWildcards()) {
+      eventFilterPathPatterns.service = service.getValue();
+    } else {
+      eventFilters.service = service.getValue();
+    }
   }
   if (connector) {
-    connector.hasWildcards()
-      ? (eventFilterPathPatterns.connector = connector.getValue())
-      : (eventFilters.connector = connector.getValue());
+    if (connector.hasWildcards()) {
+      eventFilterPathPatterns.connector = connector.getValue();
+    } else {
+      eventFilters.connector = connector.getValue();
+    }
   }
   if (operation) {
-    operation.hasWildcards()
-      ? (eventFilterPathPatterns.operation = operation.getValue())
-      : (eventFilters.operation = operation.getValue());
+    if (operation.hasWildcards()) {
+      eventFilterPathPatterns.operation = operation.getValue();
+    } else {
+      eventFilters.operation = operation.getValue();
+    }
   }
   return {
     ...initV2Endpoint(getGlobalOptions(), opts),
