@@ -1,15 +1,5 @@
 import { defineConfig } from "tsdown";
 
-const rewriteProtoPath = {
-  name: "rewrite-proto-path",
-  resolveId(source) {
-    if (source === "../../../protos/compiledFirestore") {
-      return { id: "../../../../protos/compiledFirestore", external: true };
-    }
-    return null;
-  },
-};
-
 const rewriteProtoPathMjs = {
   name: "rewrite-proto-path-mjs",
   resolveId(source) {
@@ -25,11 +15,11 @@ export default defineConfig([
     entry: "src/**/*.ts",
     unbundle: true,
     format: "cjs",
-    outDir: "lib/cjs",
+    outDir: "lib",
     clean: true,
     dts: false,
     treeshake: false,
-    plugins: [rewriteProtoPath],
+    external: ["../../../protos/compiledFirestore"],
   },
   {
     entry: "src/**/*.ts",

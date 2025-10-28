@@ -6,7 +6,7 @@
     "module": "commonjs",
     "noImplicitAny": false,
     "noUnusedLocals": true,
-    "outDir": "lib/cjs",
+    "outDir": "lib",
     "stripInternal": true,
     "target": "es2022",
     "useDefineForClassFields": false,

@@ -23,275 +23,275 @@
     "lib",
     "protos"
   ],
-  "main": "lib/cjs/v2/index.js",
+  "main": "lib/v2/index.js",
   "bin": {
-    "firebase-functions": "./lib/cjs/bin/firebase-functions.js"
+    "firebase-functions": "./lib/bin/firebase-functions.js"
   },
-  "types": "lib/cjs/v2/index.d.ts",
+  "types": "lib/v2/index.d.ts",
   "sideEffects": [
-    "./lib/cjs/logger/compat.js",
+    "./lib/logger/compat.js",
     "./lib/esm/logger/compat.mjs"
   ],
   "exports": {
     "./logger/compat": {
-      "types": "./lib/cjs/logger/compat.d.ts",
+      "types": "./lib/logger/compat.d.ts",
       "import": "./lib/esm/logger/compat.mjs",
-      "require": "./lib/cjs/logger/compat.js"
+      "require": "./lib/logger/compat.js"
     },
     "./logger": {
-      "types": "./lib/cjs/logger/index.d.ts",
+      "types": "./lib/logger/index.d.ts",
       "import": "./lib/esm/logger/index.mjs",
-      "require": "./lib/cjs/logger/index.js"
+      "require": "./lib/logger/index.js"
     },
     "./params": {
-      "types": "./lib/cjs/params/index.d.ts",
+      "types": "./lib/params/index.d.ts",
       "import": "./lib/esm/params/index.mjs",
-      "require": "./lib/cjs/params/index.js"
+      "require": "./lib/params/index.js"
     },
     "./v1": {
-      "types": "./lib/cjs/v1/index.d.ts",
+      "types": "./lib/v1/index.d.ts",
       "import": "./lib/esm/v1/index.mjs",
-      "require": "./lib/cjs/v1/index.js"
+      "require": "./lib/v1/index.js"
     },
     "./v1/analytics": {
-      "types": "./lib/cjs/v1/providers/analytics.d.ts",
+      "types": "./lib/v1/providers/analytics.d.ts",
       "import": "./lib/esm/v1/providers/analytics.mjs",
-      "require": "./lib/cjs/v1/providers/analytics.js"
+      "require": "./lib/v1/providers/analytics.js"
     },
     "./v1/auth": {
-      "types": "./lib/cjs/v1/providers/auth.d.ts",
+      "types": "./lib/v1/providers/auth.d.ts",
       "import": "./lib/esm/v1/providers/auth.mjs",
-      "require": "./lib/cjs/v1/providers/auth.js"
+      "require": "./lib/v1/providers/auth.js"
     },
     "./v1/database": {
-      "types": "./lib/cjs/v1/providers/database.d.ts",
+      "types": "./lib/v1/providers/database.d.ts",
       "import": "./lib/esm/v1/providers/database.mjs",
-      "require": "./lib/cjs/v1/providers/database.js"
+      "require": "./lib/v1/providers/database.js"
     },
     "./v1/firestore": {
-      "types": "./lib/cjs/v1/providers/firestore.d.ts",
+      "types": "./lib/v1/providers/firestore.d.ts",
       "import": "./lib/esm/v1/providers/firestore.mjs",
-      "require": "./lib/cjs/v1/providers/firestore.js"
+      "require": "./lib/v1/providers/firestore.js"
     },
     "./v1/https": {
-      "types": "./lib/cjs/v1/providers/https.d.ts",
+      "types": "./lib/v1/providers/https.d.ts",
       "import": "./lib/esm/v1/providers/https.mjs",
-      "require": "./lib/cjs/v1/providers/https.js"
+      "require": "./lib/v1/providers/https.js"
     },
     "./v1/pubsub": {
-      "types": "./lib/cjs/v1/providers/pubsub.d.ts",
+      "types": "./lib/v1/providers/pubsub.d.ts",
       "import": "./lib/esm/v1/providers/pubsub.mjs",
-      "require": "./lib/cjs/v1/providers/pubsub.js"
+      "require": "./lib/v1/providers/pubsub.js"
     },
     "./v1/remoteConfig": {
-      "types": "./lib/cjs/v1/providers/remoteConfig.d.ts",
+      "types": "./lib/v1/providers/remoteConfig.d.ts",
       "import": "./lib/esm/v1/providers/remoteConfig.mjs",
-      "require": "./lib/cjs/v1/providers/remoteConfig.js"
+      "require": "./lib/v1/providers/remoteConfig.js"
     },
     "./v1/storage": {
-      "types": "./lib/cjs/v1/providers/storage.d.ts",
+      "types": "./lib/v1/providers/storage.d.ts",
       "import": "./lib/esm/v1/providers/storage.mjs",
-      "require": "./lib/cjs/v1/providers/storage.js"
+      "require": "./lib/v1/providers/storage.js"
     },
     "./v1/tasks": {
-      "types": "./lib/cjs/v1/providers/tasks.d.ts",
+      "types": "./lib/v1/providers/tasks.d.ts",
       "import": "./lib/esm/v1/providers/tasks.mjs",
-      "require": "./lib/cjs/v1/providers/tasks.js"
+      "require": "./lib/v1/providers/tasks.js"
     },
     "./v1/testLab": {
-      "types": "./lib/cjs/v1/providers/testLab.d.ts",
+      "types": "./lib/v1/providers/testLab.d.ts",
       "import": "./lib/esm/v1/providers/testLab.mjs",
-      "require": "./lib/cjs/v1/providers/testLab.js"
+      "require": "./lib/v1/providers/testLab.js"
     },
     ".": {
-      "types": "./lib/cjs/v2/index.d.ts",
+      "types": "./lib/v2/index.d.ts",
       "import": "./lib/esm/v2/index.mjs",
-      "require": "./lib/cjs/v2/index.js"
+      "require": "./lib/v2/index.js"
     },
     "./core": {
-      "types": "./lib/cjs/v2/core.d.ts",
+      "types": "./lib/v2/core.d.ts",
       "import": "./lib/esm/v2/core.mjs",
-      "require": "./lib/cjs/v2/core.js"
+      "require": "./lib/v2/core.js"
     },
     "./options": {
-      "types": "./lib/cjs/v2/options.d.ts",
+      "types": "./lib/v2/options.d.ts",
       "import": "./lib/esm/v2/options.mjs",
-      "require": "./lib/cjs/v2/options.js"
+      "require": "./lib/v2/options.js"
     },
     "./https": {
-      "types": "./lib/cjs/v2/providers/https.d.ts",
+      "types": "./lib/v2/providers/https.d.ts",
       "import": "./lib/esm/v2/providers/https.mjs",
-      "require": "./lib/cjs/v2/providers/https.js"
+      "require": "./lib/v2/providers/https.js"
     },
     "./pubsub": {
-      "types": "./lib/cjs/v2/providers/pubsub.d.ts",
+      "types": "./lib/v2/providers/pubsub.d.ts",
       "import": "./lib/esm/v2/providers/pubsub.mjs",
-      "require": "./lib/cjs/v2/providers/pubsub.js"
+      "require": "./lib/v2/providers/pubsub.js"
     },
     "./storage": {
-      "types": "./lib/cjs/v2/providers/storage.d.ts",
+      "types": "./lib/v2/providers/storage.d.ts",
       "import": "./lib/esm/v2/providers/storage.mjs",
-      "require": "./lib/cjs/v2/providers/storage.js"
+      "require": "./lib/v2/providers/storage.js"
     },
     "./tasks": {
-      "types": "./lib/cjs/v2/providers/tasks.d.ts",
+      "types": "./lib/v2/providers/tasks.d.ts",
       "import": "./lib/esm/v2/providers/tasks.mjs",
-      "require": "./lib/cjs/v2/providers/tasks.js"
+      "require": "./lib/v2/providers/tasks.js"
     },
     "./alerts": {
-      "types": "./lib/cjs/v2/providers/alerts/index.d.ts",
+      "types": "./lib/v2/providers/alerts/index.d.ts",
       "import": "./lib/esm/v2/providers/alerts/index.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/index.js"
+      "require": "./lib/v2/providers/alerts/index.js"
     },
     "./alerts/appDistribution": {
-      "types": "./lib/cjs/v2/providers/alerts/appDistribution.d.ts",
+      "types": "./lib/v2/providers/alerts/appDistribution.d.ts",
       "import": "./lib/esm/v2/providers/alerts/appDistribution.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/appDistribution.js"
+      "require": "./lib/v2/providers/alerts/appDistribution.js"
     },
     "./alerts/billing": {
-      "types": "./lib/cjs/v2/providers/alerts/billing.d.ts",
+      "types": "./lib/v2/providers/alerts/billing.d.ts",
       "import": "./lib/esm/v2/providers/alerts/billing.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/billing.js"
+      "require": "./lib/v2/providers/alerts/billing.js"
     },
     "./alerts/crashlytics": {
-      "types": "./lib/cjs/v2/providers/alerts/crashlytics.d.ts",
+      "types": "./lib/v2/providers/alerts/crashlytics.d.ts",
       "import": "./lib/esm/v2/providers/alerts/crashlytics.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/crashlytics.js"
+      "require": "./lib/v2/providers/alerts/crashlytics.js"
     },
     "./alerts/performance": {
-      "types": "./lib/cjs/v2/providers/alerts/performance.d.ts",
+      "types": "./lib/v2/providers/alerts/performance.d.ts",
       "import": "./lib/esm/v2/providers/alerts/performance.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/performance.js"
+      "require": "./lib/v2/providers/alerts/performance.js"
     },
     "./eventarc": {
-      "types": "./lib/cjs/v2/providers/eventarc.d.ts",
+      "types": "./lib/v2/providers/eventarc.d.ts",
       "import": "./lib/esm/v2/providers/eventarc.mjs",
-      "require": "./lib/cjs/v2/providers/eventarc.js"
+      "require": "./lib/v2/providers/eventarc.js"
     },
     "./identity": {
-      "types": "./lib/cjs/v2/providers/identity.d.ts",
+      "types": "./lib/v2/providers/identity.d.ts",
       "import": "./lib/esm/v2/providers/identity.mjs",
-      "require": "./lib/cjs/v2/providers/identity.js"
+      "require": "./lib/v2/providers/identity.js"
     },
     "./database": {
-      "types": "./lib/cjs/v2/providers/database.d.ts",
+      "types": "./lib/v2/providers/database.d.ts",
       "import": "./lib/esm/v2/providers/database.mjs",
-      "require": "./lib/cjs/v2/providers/database.js"
+      "require": "./lib/v2/providers/database.js"
     },
     "./scheduler": {
-      "types": "./lib/cjs/v2/providers/scheduler.d.ts",
+      "types": "./lib/v2/providers/scheduler.d.ts",
       "import": "./lib/esm/v2/providers/scheduler.mjs",
-      "require": "./lib/cjs/v2/providers/scheduler.js"
+      "require": "./lib/v2/providers/scheduler.js"
     },
     "./remoteConfig": {
-      "types": "./lib/cjs/v2/providers/remoteConfig.d.ts",
+      "types": "./lib/v2/providers/remoteConfig.d.ts",
       "import": "./lib/esm/v2/providers/remoteConfig.mjs",
-      "require": "./lib/cjs/v2/providers/remoteConfig.js"
+      "require": "./lib/v2/providers/remoteConfig.js"
     },
     "./testLab": {
-      "types": "./lib/cjs/v2/providers/testLab.d.ts",
+      "types": "./lib/v2/providers/testLab.d.ts",
       "import": "./lib/esm/v2/providers/testLab.mjs",
-      "require": "./lib/cjs/v2/providers/testLab.js"
+      "require": "./lib/v2/providers/testLab.js"
     },
     "./firestore": {
-      "types": "./lib/cjs/v2/providers/firestore.d.ts",
+      "types": "./lib/v2/providers/firestore.d.ts",
       "import": "./lib/esm/v2/providers/firestore.mjs",
-      "require": "./lib/cjs/v2/providers/firestore.js"
+      "require": "./lib/v2/providers/firestore.js"
     },
     "./v2": {
-      "types": "./lib/cjs/v2/index.d.ts",
+      "types": "./lib/v2/index.d.ts",
       "import": "./lib/esm/v2/index.mjs",
-      "require": "./lib/cjs/v2/index.js"
+      "require": "./lib/v2/index.js"
     },
     "./v2/core": {
-      "types": "./lib/cjs/v2/core.d.ts",
+      "types": "./lib/v2/core.d.ts",
       "import": "./lib/esm/v2/core.mjs",
-      "require": "./lib/cjs/v2/core.js"
+      "require": "./lib/v2/core.js"
     },
     "./v2/options": {
-      "types": "./lib/cjs/v2/options.d.ts",
+      "types": "./lib/v2/options.d.ts",
       "import": "./lib/esm/v2/options.mjs",
-      "require": "./lib/cjs/v2/options.js"
+      "require": "./lib/v2/options.js"
     },
     "./v2/https": {
-      "types": "./lib/cjs/v2/providers/https.d.ts",
+      "types": "./lib/v2/providers/https.d.ts",
       "import": "./lib/esm/v2/providers/https.mjs",
-      "require": "./lib/cjs/v2/providers/https.js"
+      "require": "./lib/v2/providers/https.js"
     },
     "./v2/pubsub": {
-      "types": "./lib/cjs/v2/providers/pubsub.d.ts",
+      "types": "./lib/v2/providers/pubsub.d.ts",
       "import": "./lib/esm/v2/providers/pubsub.mjs",
-      "require": "./lib/cjs/v2/providers/pubsub.js"
+      "require": "./lib/v2/providers/pubsub.js"
     },
     "./v2/storage": {
-      "types": "./lib/cjs/v2/providers/storage.d.ts",
+      "types": "./lib/v2/providers/storage.d.ts",
       "import": "./lib/esm/v2/providers/storage.mjs",
-      "require": "./lib/cjs/v2/providers/storage.js"
+      "require": "./lib/v2/providers/storage.js"
     },
     "./v2/tasks": {
-      "types": "./lib/cjs/v2/providers/tasks.d.ts",
+      "types": "./lib/v2/providers/tasks.d.ts",
       "import": "./lib/esm/v2/providers/tasks.mjs",
-      "require": "./lib/cjs/v2/providers/tasks.js"
+      "require": "./lib/v2/providers/tasks.js"
     },
     "./v2/alerts": {
-      "types": "./lib/cjs/v2/providers/alerts/index.d.ts",
+      "types": "./lib/v2/providers/alerts/index.d.ts",
       "import": "./lib/esm/v2/providers/alerts/index.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/index.js"
+      "require": "./lib/v2/providers/alerts/index.js"
     },
     "./v2/alerts/appDistribution": {
-      "types": "./lib/cjs/v2/providers/alerts/appDistribution.d.ts",
+      "types": "./lib/v2/providers/alerts/appDistribution.d.ts",
       "import": "./lib/esm/v2/providers/alerts/appDistribution.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/appDistribution.js"
+      "require": "./lib/v2/providers/alerts/appDistribution.js"
     },
     "./v2/alerts/billing": {
-      "types": "./lib/cjs/v2/providers/alerts/billing.d.ts",
+      "types": "./lib/v2/providers/alerts/billing.d.ts",
       "import": "./lib/esm/v2/providers/alerts/billing.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/billing.js"
+      "require": "./lib/v2/providers/alerts/billing.js"
     },
     "./v2/alerts/crashlytics": {
-      "types": "./lib/cjs/v2/providers/alerts/crashlytics.d.ts",
+      "types": "./lib/v2/providers/alerts/crashlytics.d.ts",
       "import": "./lib/esm/v2/providers/alerts/crashlytics.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/crashlytics.js"
+      "require": "./lib/v2/providers/alerts/crashlytics.js"
     },
     "./v2/alerts/performance": {
-      "types": "./lib/cjs/v2/providers/alerts/performance.d.ts",
+      "types": "./lib/v2/providers/alerts/performance.d.ts",
       "import": "./lib/esm/v2/providers/alerts/performance.mjs",
-      "require": "./lib/cjs/v2/providers/alerts/performance.js"
+      "require": "./lib/v2/providers/alerts/performance.js"
     },
     "./v2/eventarc": {
-      "types": "./lib/cjs/v2/providers/eventarc.d.ts",
+      "types": "./lib/v2/providers/eventarc.d.ts",
       "import": "./lib/esm/v2/providers/eventarc.mjs",
-      "require": "./lib/cjs/v2/providers/eventarc.js"
+      "require": "./lib/v2/providers/eventarc.js"
     },
     "./v2/identity": {
-      "types": "./lib/cjs/v2/providers/identity.d.ts",
+      "types": "./lib/v2/providers/identity.d.ts",
       "import": "./lib/esm/v2/providers/identity.mjs",
-      "require": "./lib/cjs/v2/providers/identity.js"
+      "require": "./lib/v2/providers/identity.js"
     },
     "./v2/database": {
-      "types": "./lib/cjs/v2/providers/database.d.ts",
+      "types": "./lib/v2/providers/database.d.ts",
       "import": "./lib/esm/v2/providers/database.mjs",
-      "require": "./lib/cjs/v2/providers/database.js"
+      "require": "./lib/v2/providers/database.js"
     },
     "./v2/scheduler": {
-      "types": "./lib/cjs/v2/providers/scheduler.d.ts",
+      "types": "./lib/v2/providers/scheduler.d.ts",
       "import": "./lib/esm/v2/providers/scheduler.mjs",
-      "require": "./lib/cjs/v2/providers/scheduler.js"
+      "require": "./lib/v2/providers/scheduler.js"
     },
     "./v2/remoteConfig": {
-      "types": "./lib/cjs/v2/providers/remoteConfig.d.ts",
+      "types": "./lib/v2/providers/remoteConfig.d.ts",
       "import": "./lib/esm/v2/providers/remoteConfig.mjs",
-      "require": "./lib/cjs/v2/providers/remoteConfig.js"
+      "require": "./lib/v2/providers/remoteConfig.js"
     },
     "./v2/testLab": {
-      "types": "./lib/cjs/v2/providers/testLab.d.ts",
+      "types": "./lib/v2/providers/testLab.d.ts",
       "import": "./lib/esm/v2/providers/testLab.mjs",
-      "require": "./lib/cjs/v2/providers/testLab.js"
+      "require": "./lib/v2/providers/testLab.js"
     },
     "./v2/firestore": {
-      "types": "./lib/cjs/v2/providers/firestore.d.ts",
+      "types": "./lib/v2/providers/firestore.d.ts",
       "import": "./lib/esm/v2/providers/firestore.mjs",
-      "require": "./lib/cjs/v2/providers/firestore.js"
+      "require": "./lib/v2/providers/firestore.js"
     }
   },
   "publishConfig": {
