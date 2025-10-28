@@ -24,32 +24,33 @@ import { Request, Response } from "express";
 import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
-  DeploymentOptions,
+  type DeploymentOptions,
+  type FailurePolicy,
   RESET_VALUE,
-  FailurePolicy,
-  Schedule,
+  type Schedule,
 } from "./function-configuration";
 export { Request, Response };
+
 import {
   convertIfPresent,
   copyIfPresent,
-  serviceAccountFromShorthand,
   durationFromSeconds,
+  serviceAccountFromShorthand,
 } from "../common/encoding";
+import { withInit } from "../common/onInit";
+import { ResetValue } from "../common/options";
+import { SecretParam } from "../params/types";
 import {
   initV1Endpoint,
   initV1ScheduleTrigger,
-  ManifestEndpoint,
-  ManifestRequiredAPI,
+  type ManifestEndpoint,
+  type ManifestRequiredAPI,
 } from "../runtime/manifest";
-import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
-import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
 
 /** @internal */
-const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
+const WILDCARD_REGEX = /{[^/{}]*}/g;
 
 /**
  * Wire format for an event.

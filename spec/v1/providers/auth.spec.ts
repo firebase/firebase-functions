@@ -21,9 +21,9 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { UserRecord } from "../../../src/common/providers/identity";
+import type { UserRecord } from "../../../src/common/providers/identity";
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
+import type { CloudFunction, Event } from "../../../src/v1/cloud-functions";
 import * as auth from "../../../src/v1/providers/auth";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 

@@ -30,7 +30,7 @@ export function dateToTimestampProto(timeString?: string) {
   if (timeString.length > 20) {
     const nanoString = timeString.substring(20, timeString.length - 1);
     const trailingZeroes = 9 - nanoString.length;
-    nanos = parseInt(nanoString, 10) * Math.pow(10, trailingZeroes);
+    nanos = parseInt(nanoString, 10) * 10 ** trailingZeroes;
   }
   return { seconds, nanos };
 }

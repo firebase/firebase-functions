@@ -23,11 +23,11 @@
 import { expect } from "chai";
 
 import {
-  onInit,
-  Event,
-  EventContext,
+  type Event,
+  type EventContext,
+  type MakeCloudFunctionArgs,
   makeCloudFunction,
-  MakeCloudFunctionArgs,
+  onInit,
   RESET_VALUE,
 } from "../../src/v1";
 import { MINIMAL_V1_ENDPOINT } from "../fixtures";

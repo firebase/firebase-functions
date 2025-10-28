@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { setApp as setEmulatedAdminApp } from "../common/app";
 // Providers:
 import * as logger from "../logger";
 import * as analytics from "./providers/analytics";
@@ -32,8 +33,6 @@ import * as remoteConfig from "./providers/remoteConfig";
 import * as storage from "./providers/storage";
 import * as tasks from "./providers/tasks";
 import * as testLab from "./providers/testLab";
-
-import { setApp as setEmulatedAdminApp } from "../common/app";
 
 export {
   analytics,
@@ -56,6 +55,7 @@ export * from "./cloud-functions";
 export * from "./config";
 export * from "./function-builder";
 export * from "./function-configuration";
+
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
 import * as params from "../params";
 export { params };

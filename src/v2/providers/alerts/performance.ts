@@ -26,10 +26,10 @@
  */
 
 import { withInit } from "../../../common/onInit";
-import { CloudEvent, CloudFunction } from "../../core";
-import { EventHandlerOptions } from "../../options";
+import type { CloudEvent, CloudFunction } from "../../core";
+import type { EventHandlerOptions } from "../../options";
 import { wrapTraceContext } from "../../trace";
-import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
+import { convertAlertAndApp, type FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 
 /**
  * The internal payload object for a performance threshold alert.

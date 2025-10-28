@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import { type CloudFunction, type EventContext, makeCloudFunction } from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
 export const provider = "google.firebase.remoteconfig";
@@ -60,7 +60,10 @@ export function _onUpdateWithOptions(
 /** Builder used to create Cloud Functions for Remote Config. */
 export class UpdateBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Handle all updates (including rollbacks) that affect a Remote Config

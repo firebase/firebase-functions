@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as express from "express";
+import type * as express from "express";
 import * as identity from "../../../src/common/providers/identity";
 
 const EVENT = "EVENT_TYPE";
@@ -920,7 +920,7 @@ describe("identity", () => {
 
     it("should not return recaptchaActionOverride if undefined", () => {
       const payload = identity.generateResponsePayload(TEST_RESPONSE_RECAPTCHA_UNDEFINED);
-      expect(payload.hasOwnProperty("recaptchaActionOverride")).to.be.false;
+      expect(Object.prototype.hasOwnProperty.call(payload, "recaptchaActionOverride")).to.be.false;
       expect(payload).to.deep.equal(EXPECT_PAYLOAD_UNDEFINED);
     });
   });

@@ -21,8 +21,8 @@
 // SOFTWARE.
 
 import { firebaseConfig } from "../../common/config";
-import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
-import { DeploymentOptions } from "../function-configuration";
+import { type CloudFunction, type EventContext, makeCloudFunction } from "../cloud-functions";
+import type { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
 export const provider = "google.storage";
@@ -81,7 +81,10 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
  */
 export class BucketBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler which fires every time a Google Cloud Storage change occurs.
@@ -101,7 +104,10 @@ export class BucketBuilder {
  */
 export class ObjectBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler sent only when a bucket has enabled object versioning.
@@ -303,7 +309,7 @@ export interface ObjectMetadata {
         team?: string;
       };
       etag?: string;
-    }
+    },
   ];
 
   owner?: {

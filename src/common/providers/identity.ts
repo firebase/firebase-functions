@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import type * as express from "express";
 import * as auth from "firebase-admin/auth";
 import * as logger from "../../logger";
-import { EventContext } from "../../v1/cloud-functions";
+import type { EventContext } from "../../v1/cloud-functions";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
 import { HttpsError, unsafeDecodeToken } from "./https";
@@ -84,7 +84,10 @@ export type UserInfo = auth.UserInfo;
  * Helper class to create the user metadata in a `UserRecord` object.
  */
 export class UserRecordMetadata implements auth.UserMetadata {
-  constructor(public creationTime: string, public lastSignInTime: string) {}
+  constructor(
+    public creationTime: string,
+    public lastSignInTime: string
+  ) {}
 
   /** Returns a plain JavaScript object with the properties of UserRecordMetadata. */
   toJSON(): AuthUserMetadata {
@@ -812,7 +815,7 @@ export function validateAuthResponse(
   }
   if (authRequest.customClaims) {
     const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
-      authRequest.customClaims.hasOwnProperty(claim)
+      Object.prototype.hasOwnProperty.call(authRequest.customClaims, claim)
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
@@ -829,7 +832,10 @@ export function validateAuthResponse(
   }
   if (eventType === "beforeSignIn" && (authRequest as BeforeSignInResponse).sessionClaims) {
     const invalidClaims = DISALLOWED_CUSTOM_CLAIMS.filter((claim) =>
-      (authRequest as BeforeSignInResponse).sessionClaims.hasOwnProperty(claim)
+      Object.prototype.hasOwnProperty.call(
+        (authRequest as BeforeSignInResponse).sessionClaims,
+        claim
+      )
     );
     if (invalidClaims.length > 0) {
       throw new HttpsError(
@@ -871,7 +877,10 @@ export function getUpdateMask(authResponse?: BeforeCreateResponse | BeforeSignIn
   }
   const updateMask: string[] = [];
   for (const key in authResponse) {
-    if (authResponse.hasOwnProperty(key) && typeof authResponse[key] !== "undefined") {
+    if (
+      Object.prototype.hasOwnProperty.call(authResponse, key) &&
+      typeof authResponse[key] !== "undefined"
+    ) {
       updateMask.push(key);
     }
   }
@@ -897,8 +906,8 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
       const decodedPayload: DecodedPayload = isDebugFeatureEnabled("skipTokenVerification")
         ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
         : handler.platform === "gcfv1"
-        ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
-        : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
+          ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
+          : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
       let authUserRecord: AuthUserRecord | undefined;
       if (
         decodedPayload.event_type === "beforeCreate" ||
