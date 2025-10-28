@@ -25,7 +25,7 @@
  * @packageDocumentation
  */
 
-import * as cors from "cors";
+import cors from "cors";
 import * as express from "express";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";

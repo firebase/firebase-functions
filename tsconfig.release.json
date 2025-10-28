@@ -9,6 +9,7 @@
     "stripInternal": true,
     "target": "es2022",
     "useDefineForClassFields": false,
+    "esModuleInterop": true,
     "typeRoots": ["./node_modules/@types"]
   },
   "files": [

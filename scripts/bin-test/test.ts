@@ -1,7 +1,7 @@
 import * as subprocess from "child_process";
 import * as path from "path";
 import { promisify } from "util";
-import * as fs from "fs/promises";
+import fs from "fs/promises";
 import * as os from "os";
 
 import { expect } from "chai";
