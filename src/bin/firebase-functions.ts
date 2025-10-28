@@ -25,7 +25,6 @@
 import * as http from "http";
 import express from "express";
 import fs from "fs/promises";
->>>>>>> f054321 (chore: enable esModuleInterop)
 import * as path from "path";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";
