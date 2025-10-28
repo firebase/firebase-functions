@@ -39,6 +39,7 @@ import {
   onCallHandler,
   Request,
   AuthData,
+  withErrorHandler,
 } from "../../common/providers/https";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
@@ -318,6 +319,8 @@ export function onRequest(
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
+
+  handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
