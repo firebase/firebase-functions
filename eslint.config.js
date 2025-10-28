@@ -22,6 +22,7 @@ module.exports = [
             "dist/",
             "spec/fixtures/",
             "scripts/**/*.js",
+            "scripts/**/*.mjs",
             "protos/",
             ".prettierrc.js",
             "eslint.config.js",
