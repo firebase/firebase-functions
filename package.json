@@ -25,7 +25,7 @@
   ],
   "main": "lib/cjs/v2/index.js",
   "bin": {
-    "firebase-functions": "./lib/bin/firebase-functions.js"
+    "firebase-functions": "./lib/cjs/bin/firebase-functions.js"
   },
   "types": "lib/cjs/v2/index.d.ts",
   "sideEffects": [
