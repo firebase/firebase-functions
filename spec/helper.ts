@@ -119,7 +119,7 @@ export function runHandler(
       }
     }
     const response = new MockResponse();
-    handler(request, response as any, () => undefined);
+    handler(request, response as any, () => undefined) as void;
   });
 }
 
