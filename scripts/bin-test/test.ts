@@ -154,6 +154,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
       PORT: port.toString(),
       FUNCTIONS_CONTROL_API: "true",
     },
+    stdio: "inherit",
   });
 
   try {
@@ -208,6 +209,11 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString("utf8");
+      process.stderr.write(chunk);
+    });
+
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      process.stdout.write(chunk);
     });
 
     const timeoutId = setTimeout(async () => {
