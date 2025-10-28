@@ -1,23 +1,18 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "emitDeclarationOnly": true,
     "lib": ["es2022"],
     "module": "commonjs",
     "noImplicitAny": false,
     "noUnusedLocals": true,
-    "outDir": "lib",
+    "outDir": "lib/cjs",
     "stripInternal": true,
     "target": "es2022",
     "useDefineForClassFields": false,
     "esModuleInterop": true,
     "typeRoots": ["./node_modules/@types"]
   },
-  "files": [
-    "./src/types/global.d.ts",
-    "./src/v1/index.ts",
-    "./src/logger/index.ts",
-    "./src/logger/compat.ts",
-    "./src/v2/index.ts",
-    "./src/bin/firebase-functions.ts"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }

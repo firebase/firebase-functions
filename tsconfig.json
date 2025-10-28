@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "resolveJsonModule": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "emitDeclarationOnly": false
   },
   "extends": "./tsconfig.release.json",
   "include": [

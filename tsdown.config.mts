@@ -27,7 +27,7 @@ export default defineConfig([
     format: "cjs",
     outDir: "lib/cjs",
     clean: true,
-    dts: true,
+    dts: false,
     treeshake: false,
     plugins: [rewriteProtoPath],
   },
@@ -37,7 +37,7 @@ export default defineConfig([
     format: "esm",
     outDir: "lib/esm",
     clean: false, // Don't clean - need to keep cjs/ output
-    dts: false, // Already created from CJS build
+    dts: false,
     treeshake: false,
     plugins: [rewriteProtoPathMjs],
   },
