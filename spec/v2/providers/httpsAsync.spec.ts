@@ -17,21 +17,25 @@ describe("v2.https.onRequest async", () => {
   });
 
   it("should catch and log unhandled rejections in async onRequest handlers", async () => {
-    const error = new Error("Async error v2");
+    const err = new Error("boom");
     const fn = https.onRequest(async (_req, _res) => {
-      throw error;
+      await Promise.resolve();
+      throw err;
     });
 
     const req = new MockRequest({}, {});
     req.method = "GET";
 
-    await runHandler(fn, req as any);
+    const result = await runHandler(fn, req as any);
 
-    expect(loggerSpy.calledWith("Unhandled error", error)).to.be.true;
+    expect(loggerSpy.calledWith("Unhandled error", err)).to.be.true;
+    expect(result.status).to.equal(500);
+    expect(result.body).to.equal("Internal Server Error");
   });
 
   it("should not log if handler completes successfully", async () => {
     const fn = https.onRequest(async (_req, res) => {
+      await Promise.resolve();
       res.send(200);
     });
 
