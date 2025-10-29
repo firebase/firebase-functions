@@ -22,7 +22,7 @@ for f in scripts/bin-test/sources/*; do
 done
 
 # Make sure firebase-functions binary is executable
-chmod +x ./lib/cjs/bin/firebase-functions.js
+chmod +x ./lib/bin/firebase-functions.js
 
 mocha \
   --file ./scripts/bin-test/mocha-setup.ts \
