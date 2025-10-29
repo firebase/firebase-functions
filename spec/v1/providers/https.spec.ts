@@ -199,6 +199,7 @@ describe("#onCall", () => {
 
     let gotData: Record<string, any>;
     let gotContext: Record<string, any>;
+    const rawToken = generateUnsignedIdToken("123456");
     const reqData = { hello: "world" };
     const authContext = {
       uid: "SomeUID",
@@ -207,8 +208,9 @@ describe("#onCall", () => {
         sub: "SomeUID",
         uid: "SomeUID",
       },
+      rawToken,
     };
-    const originalAuth = "Bearer " + generateUnsignedIdToken("123456");
+    const originalAuth = "Bearer " + rawToken;
     const func = https.onCall((data, context) => {
       gotData = data;
       gotContext = context;

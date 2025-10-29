@@ -33,6 +33,7 @@ import {
   Param,
   ParamOptions,
   SecretParam,
+  JsonSecretParam,
   StringParam,
   ListParam,
   InternalExpression,
@@ -50,7 +51,7 @@ export {
 
 export { ParamOptions, Expression };
 
-type SecretOrExpr = Param<any> | SecretParam;
+type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 export const declaredParams: SecretOrExpr[] = [];
 
 /**
@@ -119,6 +120,24 @@ export const storageBucket: Param<string> = new InternalExpression(
  */
 export function defineSecret(name: string): SecretParam {
   const param = new SecretParam(name);
+  registerParam(param);
+  return param;
+}
+
+/**
+ * Declares a secret parameter that retrieves a structured JSON object in Cloud Secret Manager.
+ * This is useful for managing groups of related configuration values, such as all settings
+ * for a third-party API, as a single unit.
+ *
+ * The secret value must be a valid JSON string. At runtime, the value will be automatically parsed
+ * and returned as a JavaScript object. If the value is not set or is not valid JSON, an error will be thrown.
+ *
+ * @param name The name of the environment variable to use to load the parameter.
+ * @returns A parameter whose `.value()` method returns the parsed JSON object.
+ * ```
+ */
+export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
+  const param = new JsonSecretParam<T>(name);
   registerParam(param);
   return param;
 }

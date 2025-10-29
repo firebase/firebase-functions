@@ -207,6 +207,9 @@ describe("Analytics Functions", () => {
               firstOpenTimestampMicros: "577978620000000",
               userProperties: {
                 foo: {
+                  value: {
+                    stringValue: "bar",
+                  },
                   setTimestampUsec: "514820220000000",
                 },
               },
@@ -236,6 +239,7 @@ describe("Analytics Functions", () => {
             firstOpenTime: "1988-04-25T13:37:00.000Z",
             userProperties: {
               foo: {
+                value: "bar",
                 setTime: "1986-04-25T13:37:00.000Z",
               },
             },
@@ -300,6 +304,92 @@ describe("Analytics Functions", () => {
         return expect(cloudFunction(payloadData, payloadContext)).to.eventually.deep.equal(
           analyticsSpecInput.data
         );
+      });
+
+      it("should handle null and missing user property values without throwing", () => {
+        const cloudFunction = analytics
+          .event("app_remove")
+          .onLog((data: analytics.AnalyticsEvent) => data);
+
+        const event: Event = {
+          data: {
+            eventDim: [
+              {
+                name: "app_remove",
+                params: {},
+                date: "20240114",
+                timestampMicros: "1705257600000000",
+              },
+            ],
+            userDim: {
+              userProperties: {
+                // Invalid properties that should be filtered out:
+                null_property: null,
+                value_null: {
+                  value: null,
+                },
+                value_undefined: {
+                  value: undefined,
+                },
+                empty_object: {},
+                value_empty_object: {
+                  value: {},
+                },
+                // Valid properties that should be kept:
+                valid_string: {
+                  value: {
+                    stringValue: "test",
+                  },
+                  setTimestampUsec: "1486076786090987",
+                },
+                valid_empty_string: {
+                  value: {
+                    stringValue: "",
+                  },
+                  setTimestampUsec: "1486076786090987",
+                },
+                valid_zero: {
+                  value: {
+                    intValue: "0",
+                  },
+                  setTimestampUsec: "1486076786090987",
+                },
+              },
+            },
+          },
+          context: {
+            eventId: "70172329041928",
+            timestamp: "2018-04-09T07:56:12.975Z",
+            eventType: "providers/google.firebase.analytics/eventTypes/event.log",
+            resource: {
+              service: "app-measurement.com",
+              name: "projects/project1/events/app_remove",
+            },
+          },
+        };
+
+        return expect(cloudFunction(event.data, event.context)).to.eventually.deep.equal({
+          reportingDate: "20240114",
+          name: "app_remove",
+          params: {},
+          logTime: "2024-01-14T18:40:00.000Z",
+          user: {
+            userProperties: {
+              valid_string: {
+                value: "test",
+                setTime: "2017-02-02T23:06:26.090Z",
+              },
+              valid_empty_string: {
+                value: "",
+                setTime: "2017-02-02T23:06:26.090Z",
+              },
+              valid_zero: {
+                value: "0",
+                setTime: "2017-02-02T23:06:26.090Z",
+              },
+            },
+          },
+        });
       });
     });
   });

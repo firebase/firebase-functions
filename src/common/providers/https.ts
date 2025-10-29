@@ -78,8 +78,12 @@ export interface AppCheckData {
  * The interface for Auth tokens verified in Callable functions
  */
 export interface AuthData {
+  /** The user's uid from the request's ID token. */
   uid: string;
+  /** The decoded claims of the ID token after verification. */
   token: DecodedIdToken;
+  /** The raw ID token as parsed from the header. */
+  rawToken: string;
 }
 
 // This type is the direct v1 callable interface and is also an interface
@@ -646,6 +650,7 @@ export async function checkAuthToken(
     ctx.auth = {
       uid: authToken.uid,
       token: authToken,
+      rawToken: idToken,
     };
     return "VALID";
   } catch (err) {
