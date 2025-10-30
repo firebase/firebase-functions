@@ -33,4 +33,4 @@ export const config: never = (() => {
       "Migrate to environment parameters using the params module. " +
       "Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config"
   );
-}) as unknown as never;
+}) as never;
