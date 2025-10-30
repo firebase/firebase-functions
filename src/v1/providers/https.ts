@@ -37,7 +37,8 @@ import { initV1Endpoint } from "../../runtime/manifest";
 import { withInit } from "../../common/onInit";
 import { wrapTraceContext } from "../../v2/trace";
 
-export { Request, CallableContext, FunctionsErrorCode, HttpsError };
+export { HttpsError };
+export type { Request, CallableContext, FunctionsErrorCode };
 
 /**
  * Handle HTTP requests.

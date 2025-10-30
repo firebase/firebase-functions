@@ -84,7 +84,7 @@ npm run test:bin
 echo "Ran tests."
 
 echo "Running publish build..."
-npm run build:release
+npm run build
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."

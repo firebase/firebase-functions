@@ -50,7 +50,8 @@ import { DeploymentOptions } from "../function-configuration";
 import { initV1Endpoint } from "../../runtime/manifest";
 
 // TODO: yank in next breaking change release
-export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
+export { UserRecordMetadata, userRecordConstructor };
+export type { UserRecord, UserInfo };
 
 export { HttpsError };
 

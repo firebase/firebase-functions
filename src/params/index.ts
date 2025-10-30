@@ -39,17 +39,11 @@ import {
   InternalExpression,
 } from "./types";
 
-export {
-  BUCKET_PICKER,
-  TextInput,
-  SelectInput,
-  SelectOptions,
-  MultiSelectInput,
-  select,
-  multiSelect,
-} from "./types";
+export { BUCKET_PICKER, select, multiSelect } from "./types";
+export type { TextInput, SelectInput, SelectOptions, MultiSelectInput } from "./types";
 
-export { ParamOptions, Expression };
+export { Expression };
+export type { ParamOptions };
 
 type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 export const declaredParams: SecretOrExpr[] = [];
