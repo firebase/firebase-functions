@@ -26,7 +26,10 @@ import { config } from "../../src/v1/config";
 
 describe("config()", () => {
   it("throws an error with migration guidance", () => {
-    expect(config).to.throw(
+    expect(() => {
+      // @ts-expect-error - config is deprecated and typed as never to cause a build error
+      config();
+    }).to.throw(
       Error,
       "functions.config() has been removed in firebase-functions v7. " +
         "Migrate to environment parameters using the params module. " +
