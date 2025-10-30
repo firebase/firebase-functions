@@ -952,3 +952,30 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
     }
   };
 }
+
+/**
+ * Wraps an HTTP handler with a safety net for unhandled errors.
+ *
+ * This wrapper catches both synchronous errors and rejected Promises from `async` handlers.
+ * Without this, an unhandled error in an `async` handler would cause the request to hang
+ * until the platform timeout, as Express (v4) does not await handlers.
+ *
+ * It logs the error and returns a 500 Internal Server Error to the client if the response
+ * headers have not yet been sent.
+ *
+ * @internal
+ */
+export function withErrorHandler(
+  handler: (req: Request, res: express.Response) => void | Promise<void>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response) => {
+    try {
+      await handler(req, res);
+    } catch (err) {
+      logger.error("Unhandled error", err);
+      if (!res.headersSent) {
+        res.status(500).send("Internal Server Error");
+      }
+    }
+  };
+}

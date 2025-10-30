@@ -37,6 +37,7 @@ import {
   type FunctionsErrorCode,
   HttpsError,
   onCallHandler,
+  withErrorHandler,
   type Request,
   type AuthData,
 } from "../../common/providers/https";
@@ -319,6 +320,8 @@ export function onRequest(
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
+
+  handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
