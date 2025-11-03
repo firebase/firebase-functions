@@ -57,6 +57,9 @@ const BEFORE_SMS_TRIGGER = {
   options: {},
 };
 
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
+
 const opts: identity.BlockingOptions = {
   accessToken: true,
   refreshToken: false,
@@ -65,6 +68,14 @@ const opts: identity.BlockingOptions = {
 };
 
 describe("identity", () => {
+  beforeEach(() => {
+    process.env.GCLOUD_PROJECT = "aProject";
+  });
+
+  afterEach(() => {
+    delete process.env.GCLOUD_PROJECT;
+  });
+
   describe("beforeUserCreated", () => {
     it("should accept a handler", () => {
       const fn = identity.beforeUserCreated(() => Promise.resolve());
@@ -465,6 +476,160 @@ describe("identity", () => {
         idToken: false,
         refreshToken: true,
       });
+    });
+  });
+
+  describe("onUserCreated", () => {
+    it("should create a minimal trigger/endpoint", () => {
+      const result = identity.onUserCreated(() => Promise.resolve());
+
+
+      expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        eventTrigger: {
+          eventType: USER_CREATED_EVENT,
+          retry: false,
+          eventFilters: {},
+        },
+      });
+    });
+
+    it("should create a complex trigger/endpoint with tenantId", () => {
+      const result = identity.onUserCreated(
+        { ...opts, tenantId: "tid", retry: true },
+        () => Promise.resolve()
+      );
+
+      expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        minInstances: 1,
+        region: [REGION],
+        labels: {},
+        eventTrigger: {
+          eventType: USER_CREATED_EVENT,
+          retry: true,
+          eventFilters: {
+            tenantId: "tid",
+          },
+        },
+      });
+    });
+  });
+
+  describe("onUserDeleted", () => {
+    it("should create a minimal trigger/endpoint", () => {
+      const result = identity.onUserDeleted(() => Promise.resolve());
+
+
+      expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        eventTrigger: {
+          eventType: USER_DELETED_EVENT,
+          retry: false,
+          eventFilters: {},
+        },
+      });
+    });
+
+    it("should create a complex trigger/endpoint with tenantId", () => {
+      const result = identity.onUserDeleted(
+        { ...opts, tenantId: "tid", retry: true },
+        () => Promise.resolve()
+      );
+
+      expect(result.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        minInstances: 1,
+        region: [REGION],
+        labels: {},
+        eventTrigger: {
+          eventType: USER_DELETED_EVENT,
+          retry: true,
+          eventFilters: {
+            tenantId: "tid",
+          },
+        },
+      });
+    });
+  });
+
+  describe("onOperation", () => {
+    it("should unwrap data.value if present", async () => {
+      const handler = (event: identity.AuthEvent<identity.User>) => {
+        return event.data.uid;
+      };
+      const func = identity.onUserCreated(handler);
+
+      const event = {
+        specversion: "1.0",
+        id: "event-id",
+        source: "firebase-auth",
+        type: "google.firebase.auth.user.v2.created",
+        time: "2023-10-31T00:00:00Z",
+        data: {
+          value: {
+            uid: "test-uid",
+          },
+        },
+      };
+
+      const result = await func(event as any);
+      expect(result).to.equal("test-uid");
+    });
+
+    it("should unwrap data.oldValue if present", async () => {
+      const handler = (event: identity.AuthEvent<identity.User>) => {
+        return event.data.uid;
+      };
+      const func = identity.onUserDeleted(handler);
+
+      const event = {
+        specversion: "1.0",
+        id: "event-id",
+        source: "firebase-auth",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: "2023-10-31T00:00:00Z",
+        data: {
+          oldValue: {
+            uid: "deleted-uid",
+            email: "deleted@example.com",
+          },
+        },
+      };
+
+      const result = await func(event as any);
+      expect(result).to.equal("deleted-uid");
+    });
+
+    it("should normalize user data (e.g. createTime -> creationTime)", async () => {
+      const handler = (event: identity.AuthEvent<identity.User>) => {
+        return event.data.metadata.creationTime;
+      };
+      const func = identity.onUserCreated(handler);
+
+      const event = {
+        specversion: "1.0",
+        id: "event-id",
+        source: "firebase-auth",
+        type: "google.firebase.auth.user.v2.created",
+        time: "2023-10-31T00:00:00Z",
+        data: {
+          uid: "test-uid",
+          metadata: {
+            createTime: "2023-10-31T00:00:00Z",
+            lastSignInTime: "2023-10-31T01:00:00Z",
+          },
+        },
+      };
+
+      const result = await func(event as any);
+      expect(result).to.equal("Tue, 31 Oct 2023 00:00:00 GMT");
     });
   });
 });

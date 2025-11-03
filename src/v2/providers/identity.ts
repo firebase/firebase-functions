@@ -24,6 +24,7 @@
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
+import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import {
   AuthBlockingEvent,
@@ -40,34 +41,39 @@ import {
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
+import { CloudEvent, CloudFunction } from "../core";
 import { Expression } from "../../params";
-import { initV2Endpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
 export { AuthUserRecord, AuthBlockingEvent, HttpsError };
 
-/** @hidden Internally used when parsing the options. */
-interface InternalOptions {
-  opts: options.GlobalOptions;
-  idToken: boolean;
-  accessToken: boolean;
-  refreshToken: boolean;
+/**
+ * The user data payload for an Auth event.
+ */
+export type User = AuthUserRecord;
+
+/**
+ * The event object passed to the handler function.
+ */
+export interface AuthEvent<T> extends CloudEvent<T> {
+  /** The project identifier. */
+  project: string;
+  /** The ID of the Identity Platform tenant associated with the event, if applicable. */
+  tenantId?: string;
 }
 
 /**
- * All function options plus idToken, accessToken, and refreshToken.
+ * Options for configuring an auth trigger.
  */
-export interface BlockingOptions {
-  /** Pass the ID Token credential to the function. */
-  idToken?: boolean;
-
-  /** Pass the Access Token credential to the function. */
-  accessToken?: boolean;
-
-  /** Pass the Refresh Token credential to the function. */
-  refreshToken?: boolean;
+export interface AuthOptions extends options.EventHandlerOptions {
+  /**
+   * The ID of the Identity Platform tenant to scope the function to.
+   * If not set, the function triggers on users across all tenants.
+   */
+  tenantId?: string;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -163,6 +169,22 @@ export interface BlockingOptions {
    * Secrets to bind to a function.
    */
   secrets?: (string | SecretParam)[];
+}
+
+
+/**
+ * All function options plus idToken, accessToken, and refreshToken.
+ */
+export interface BlockingOptions
+  extends Omit<options.GlobalOptions, "enforceAppCheck" | "preserveExternalChanges" | "invoker"> {
+  /** Pass the ID Token credential to the function. */
+  idToken?: boolean;
+
+  /** Pass the Access Token credential to the function. */
+  accessToken?: boolean;
+
+  /** Pass the Refresh Token credential to the function. */
+  refreshToken?: boolean;
 }
 
 /**
@@ -298,10 +320,10 @@ export function beforeOperation(
   optsOrHandler:
     | BlockingOptions
     | ((
-        event: AuthBlockingEvent
-      ) => MaybeAsync<
-        BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
-      >),
+      event: AuthBlockingEvent
+    ) => MaybeAsync<
+      BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+    >),
   handler: HandlerV2
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
@@ -320,27 +342,7 @@ export function beforeOperation(
   const annotatedHandler = Object.assign(handler, { platform: "gcfv2" as const });
   const func: any = wrapTraceContext(withInit(wrapHandler(eventType, annotatedHandler)));
 
-  const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
-
-  /** Endpoint */
-  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOptsEndpoint = options.optionsToEndpoint(opts);
-  func.__endpoint = {
-    ...initV2Endpoint(options.getGlobalOptions(), opts),
-    platform: "gcfv2",
-    ...baseOptsEndpoint,
-    ...specificOptsEndpoint,
-    labels: {
-      ...baseOptsEndpoint?.labels,
-      ...specificOptsEndpoint?.labels,
-    },
-    blockingTrigger: {
-      eventType: legacyEventType,
-      options: {
-        ...((eventType === "beforeCreate" || eventType === "beforeSignIn") && blockingOptions),
-      },
-    },
-  };
+  func.__endpoint = makeBlockingEndpoint(eventType, opts, blockingOptions);
 
   func.__requiredAPIs = [
     {
@@ -355,7 +357,12 @@ export function beforeOperation(
 }
 
 /** @hidden */
-export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
+export function getOpts(blockingOptions: BlockingOptions): {
+  opts: options.GlobalOptions;
+  idToken: boolean;
+  accessToken: boolean;
+  refreshToken: boolean;
+} {
   const accessToken = blockingOptions.accessToken || false;
   const idToken = blockingOptions.idToken || false;
   const refreshToken = blockingOptions.refreshToken || false;
@@ -368,5 +375,208 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
     accessToken,
     idToken,
     refreshToken,
+  };
+}
+
+/**
+ * Event handler that triggers when a Firebase Auth user is created.
+ *
+ * @param handler - Event handler which is run every time a Firebase Auth user is created.
+ * @returns A Cloud Function that you can export and deploy.
+ *
+ * @public
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+
+/**
+ * Event handler that triggers when a Firebase Auth user is created.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firebase Auth user is created.
+ * @returns A Cloud Function that you can export and deploy.
+ *
+ * @public
+ */
+export function onUserCreated(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+
+/**
+ * Event handler that triggers when a Firebase Auth user is created.
+ *
+ * @param optsOrHandler - Options or an event handler.
+ * @param handler - Event handler which is run every time a Firebase Auth user is created.
+ * @returns A Cloud Function that you can export and deploy.
+ *
+ * @public
+ */
+export function onUserCreated(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  let opts: AuthOptions;
+  let func: (event: AuthEvent<User>) => any | Promise<any>;
+
+  if (typeof optsOrHandler === "function") {
+    opts = {};
+    func = optsOrHandler;
+  } else {
+    opts = optsOrHandler;
+    func = handler as (event: AuthEvent<User>) => any | Promise<any>;
+  }
+
+  return onOperation("google.firebase.auth.user.v2.created", opts, func);
+}
+
+/**
+ * Event handler that triggers when a Firebase Auth user is deleted.
+ *
+ * @param handler - Event handler which is run every time a Firebase Auth user is deleted.
+ * @returns A Cloud Function that you can export and deploy.
+ *
+ * @public
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+
+/**
+ * Event handler that triggers when a Firebase Auth user is deleted.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firebase Auth user is deleted.
+ * @returns A Cloud Function that you can export and deploy.
+ *
+ * @public
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+
+/**
+ * Event handler that triggers when a Firebase Auth user is deleted.
+ *
+ * @param optsOrHandler - Options or an event handler.
+ * @param handler - Event handler which is run every time a Firebase Auth user is deleted.
+ * @returns A Cloud Function that you can export and deploy.
+ *
+ * @public
+ */
+export function onUserDeleted(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  let opts: AuthOptions;
+  let func: (event: AuthEvent<User>) => any | Promise<any>;
+
+  if (typeof optsOrHandler === "function") {
+    opts = {};
+    func = optsOrHandler;
+  } else {
+    opts = optsOrHandler;
+    func = handler as (event: AuthEvent<User>) => any | Promise<any>;
+  }
+
+  return onOperation("google.firebase.auth.user.v2.deleted", opts, func);
+}
+
+/** @hidden */
+function onOperation(
+  eventType: string,
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  const func = (raw: CloudEvent<unknown>) => {
+    if (raw.data && typeof raw.data === "object") {
+      if ("value" in raw.data) {
+        raw.data = (raw.data as any).value;
+      } else if ("oldValue" in raw.data) {
+        raw.data = (raw.data as any).oldValue;
+      }
+    }
+    // Normalize the data to match AuthUserRecord
+    const data = raw.data as any;
+    if (data && data.metadata) {
+      const creationTime = data.metadata.creationTime || data.metadata.createTime;
+      if (creationTime) {
+        data.metadata.creationTime = new Date(creationTime).toUTCString();
+        delete data.metadata.createTime;
+      }
+
+      const lastSignInTime = data.metadata.lastSignInTime;
+      if (lastSignInTime) {
+        data.metadata.lastSignInTime = new Date(lastSignInTime).toUTCString();
+      }
+    }
+    return wrapTraceContext(withInit(handler))(raw as AuthEvent<User>);
+  };
+
+  func.run = handler;
+
+  func.__endpoint = makeEndpoint(eventType, opts);
+
+  return func;
+}
+
+/** @hidden */
+function makeEndpoint(eventType: string, opts: AuthOptions): ManifestEndpoint {
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOpts = options.optionsToEndpoint(opts);
+
+  const eventFilters: Record<string, string> = {};
+  if (opts.tenantId) {
+    eventFilters.tenantId = opts.tenantId;
+  }
+
+  const endpoint: ManifestEndpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    eventTrigger: {
+      eventType,
+      eventFilters,
+      retry: false,
+    },
+  };
+  copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
+
+  return endpoint;
+}
+
+/** @hidden */
+function makeBlockingEndpoint(
+  eventType: AuthBlockingEventType,
+  opts: options.GlobalOptions,
+  blockingOptions: { idToken: boolean; accessToken: boolean; refreshToken: boolean }
+): ManifestEndpoint {
+  const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
+
+  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOptsEndpoint = options.optionsToEndpoint(opts);
+
+  return {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
+    ...baseOptsEndpoint,
+    ...specificOptsEndpoint,
+    labels: {
+      ...baseOptsEndpoint?.labels,
+      ...specificOptsEndpoint?.labels,
+    },
+    blockingTrigger: {
+      eventType: legacyEventType,
+      options: {
+        ...((eventType === "beforeCreate" || eventType === "beforeSignIn") && blockingOptions),
+      },
+    },
   };
 }
