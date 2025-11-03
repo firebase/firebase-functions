@@ -1,4 +1,7 @@
 {
+  // This config is used by `tsc` to generate .d.ts files only.
+  // tsdown handles CJS/ESM transpilation but has dts generation issues,
+  // so we use tsc for type declarations. See tsdown.config.mts for details.
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
