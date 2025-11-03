@@ -38,7 +38,7 @@ fi
 echo "Setting up test project in $WORK_DIR..."
 pushd "$WORK_DIR" > /dev/null
 npm init -y > /dev/null
-npm install "$TARBALL_PATH" > /dev/null
+npm install "$TARBALL_PATH"
 
 echo "Running verification script..."
 cp "$SCRIPT_DIR/verify-exports.mjs" .
