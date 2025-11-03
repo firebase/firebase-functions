@@ -198,6 +198,11 @@
       "import": "./lib/esm/v2/providers/firestore.mjs",
       "require": "./lib/v2/providers/firestore.js"
     },
+    "./dataconnect": {
+      "types": "./lib/v2/providers/dataconnect.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect.mjs",
+      "require": "./lib/v2/providers/dataconnect.js"
+    },
     "./v2": {
       "types": "./lib/v2/index.d.ts",
       "import": "./lib/esm/v2/index.mjs",
@@ -292,6 +297,11 @@
       "types": "./lib/v2/providers/firestore.d.ts",
       "import": "./lib/esm/v2/providers/firestore.mjs",
       "require": "./lib/v2/providers/firestore.js"
+    },
+    "./v2/dataconnect": {
+      "types": "./lib/v2/providers/dataconnect.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect.mjs",
+      "require": "./lib/v2/providers/dataconnect.js"
     }
   },
   "publishConfig": {
