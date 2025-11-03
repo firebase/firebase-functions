@@ -341,6 +341,7 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
       operationPattern
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars -- service, connector, operation are destructured to exclude from ...rest
     const { authtype, authid, service, connector, operation, ...rest } = event;
     const dataConnectEvent: DataConnectEvent<
       MutationEventData<Variables, ResponseData>,
