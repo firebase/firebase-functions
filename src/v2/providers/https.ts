@@ -25,20 +25,21 @@
  * @packageDocumentation
  */
 
-import * as cors from "cors";
+import cors from "cors";
 import * as express from "express";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
-  CallableRequest,
-  CallableResponse,
-  FunctionsErrorCode,
+  type CallableRequest,
+  type CallableResponse,
+  type FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  Request,
-  AuthData,
+  withErrorHandler,
+  type Request,
+  type AuthData,
 } from "../../common/providers/https";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
@@ -48,7 +49,8 @@ import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
-export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
+export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
+export { HttpsError };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
@@ -318,6 +320,8 @@ export function onRequest(
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
+
+  handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;

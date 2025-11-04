@@ -1,21 +1,21 @@
 {
+  // This config is used by `tsc` to generate .d.ts files only.
+  // tsdown handles CJS/ESM transpilation but has dts generation issues,
+  // so we use tsc for type declarations. See tsdown.config.mts for details.
   "compilerOptions": {
     "declaration": true,
-    "lib": ["es2019"],
+    "emitDeclarationOnly": true,
+    "lib": ["es2022"],
     "module": "commonjs",
     "noImplicitAny": false,
     "noUnusedLocals": true,
     "outDir": "lib",
     "stripInternal": true,
-    "target": "es2019",
+    "target": "es2022",
+    "useDefineForClassFields": false,
+    "esModuleInterop": true,
     "typeRoots": ["./node_modules/@types"]
   },
-  "files": [
-    "./src/types/global.d.ts",
-    "./src/v1/index.ts",
-    "./src/logger/index.ts",
-    "./src/logger/compat.ts",
-    "./src/v2/index.ts",
-    "./src/bin/firebase-functions.ts"
-  ]
+  "include": ["src/**/*.ts"],
+  "exclude": ["src/**/*.spec.ts"]
 }

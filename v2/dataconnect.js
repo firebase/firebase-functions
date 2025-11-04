@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2017 Firebase
+// Copyright (c) 2025 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,20 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { expect } from "chai";
-
-import { config } from "../../src/v1/config";
-
-describe("config()", () => {
-  it("throws an error with migration guidance", () => {
-    expect(() => {
-      // @ts-expect-error - config is deprecated and typed as never to cause a build error
-      config();
-    }).to.throw(
-      Error,
-      "functions.config() has been removed in firebase-functions v7. " +
-        "Migrate to environment parameters using the params module. " +
-        "Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config"
-    );
-  });
-});
+// This file is not part of the firebase-functions SDK. It is used to silence the
+// imports eslint plugin until it can understand import paths defined by node
+// package exports.
+// For more information, see github.com/import-js/eslint-plugin-import/issues/1810

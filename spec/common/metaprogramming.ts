@@ -23,3 +23,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars,@typescript-eslint/no-empty-function */
 export function expectType<Type>(value: Type) {}
 export function expectNever<Type extends never>() {}
+export function expectExtends<Type, Test extends Type>() {}

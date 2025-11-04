@@ -21,8 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as fs from "fs";
-import * as process from "process";
+import fs from "fs";
 import * as sinon from "sinon";
 
 import { firebaseConfig, resetCache } from "../../src/common/config";

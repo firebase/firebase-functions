@@ -29,6 +29,7 @@ import {
   HttpsError,
   onCallHandler,
   Request,
+  withErrorHandler,
 } from "../../common/providers/https";
 import { HttpsFunction, optionsToEndpoint, optionsToTrigger, Runnable } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
@@ -36,7 +37,8 @@ import { initV1Endpoint } from "../../runtime/manifest";
 import { withInit } from "../../common/onInit";
 import { wrapTraceContext } from "../../v2/trace";
 
-export { Request, CallableContext, FunctionsErrorCode, HttpsError };
+export { HttpsError };
+export type { Request, CallableContext, FunctionsErrorCode };
 
 /**
  * Handle HTTP requests.
@@ -66,7 +68,7 @@ export function _onRequestWithOptions(
 ): HttpsFunction {
   // lets us add __endpoint without altering handler:
   const cloudFunction: any = (req: Request, res: express.Response) => {
-    return wrapTraceContext(withInit(handler))(req, res);
+    return wrapTraceContext(withInit(withErrorHandler(handler)))(req, res);
   };
   cloudFunction.__trigger = {
     ...optionsToTrigger(options),

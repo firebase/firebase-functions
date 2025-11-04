@@ -23,8 +23,8 @@
 // SOFTWARE.
 
 import * as http from "http";
-import * as express from "express";
-import * as fs from "fs/promises";
+import express from "express";
+import fs from "fs/promises";
 import * as path from "path";
 import { loadStack } from "../runtime/loader";
 import { stackToWire } from "../runtime/manifest";
