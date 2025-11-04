@@ -60,8 +60,8 @@ export {
   dataconnect,
 };
 
-export {
-  setGlobalOptions,
+export { setGlobalOptions } from "./options";
+export type {
   GlobalOptions,
   SupportedRegion,
   MemoryOption,
@@ -70,7 +70,8 @@ export {
   EventHandlerOptions,
 } from "./options";
 
-export { CloudFunction, CloudEvent, ParamsOf, onInit } from "./core";
+export { onInit } from "./core";
+export type { CloudFunction, CloudEvent, ParamsOf } from "./core";
 export { Change } from "../common/change";
 export { traceContext } from "../common/trace";
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.

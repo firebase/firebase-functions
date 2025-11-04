@@ -14,17 +14,36 @@ jobs:
     strategy:
       matrix:
         node-version:
-          - 24.x
+          - 20.x
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
       - run: npm run lint
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm pack
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lib
+          path: lib/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tarball
+          path: firebase-functions-*.tgz
+
   unit:
     runs-on: ubuntu-latest
     strategy:
@@ -35,19 +54,16 @@ jobs:
           - 22.x
           - 24.x
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
       - run: npm ci
       - run: npm run test
+
   integration:
-    needs: "unit"
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -57,14 +73,37 @@ jobs:
           - 22.x
           - 24.x
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }}
+          cache: npm
       - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: lib
+          path: lib
       - run: npm run test:bin
+        env:
+          SKIP_BUILD: true
+
+  packaging:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version:
+          - 18.x
+          - 20.x
+          - 22.x
+          - 24.x
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: tarball
+          path: .
+      - run: chmod +x ./scripts/test-packaging.sh && ./scripts/test-packaging.sh firebase-functions-*.tgz

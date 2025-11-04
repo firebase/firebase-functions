@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
@@ -29,7 +29,7 @@ import {
   FailurePolicy,
   Schedule,
 } from "./function-configuration";
-export { Request, Response };
+export type { Request, Response };
 import {
   convertIfPresent,
   copyIfPresent,
