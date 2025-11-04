@@ -105,17 +105,17 @@ cat CHANGELOG.md >> "${RELEASE_NOTES_FILE}"
 echo "Made the release notes."
 
 echo "Publishing to npm..."
-PUBLISH_ARGS=""
-if [[ $DRY_RUN != "" ]]; then
+PUBLISH_ARGS=()
+if [[ -n "$DRY_RUN" ]]; then
   echo "DRY RUN: running publish with --dry-run"
-  PUBLISH_ARGS="--dry-run"
+  PUBLISH_ARGS+=(--dry-run)
 fi
 
-if [[ $PRE_RELEASE != "" ]]; then
-  PUBLISH_ARGS="$PUBLISH_ARGS --tag next"
+if [[ -n "$PRE_RELEASE" ]]; then
+  PUBLISH_ARGS+=(--tag next)
 fi
 
-npm publish $PUBLISH_ARGS
+npm publish "${PUBLISH_ARGS[@]}"
 echo "Published to npm."
 
 if [[ $PRE_RELEASE != "" ]]; then
