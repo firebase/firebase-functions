@@ -22,9 +22,10 @@ console.log(`Found ${entryPoints.length} entry points to verify.`);
 let hasError = false;
 
 async function verify() {
-  console.log('\n--- Verifying CommonJS (require) ---');
+  console.log('\n--- Verifying Entry Points (CJS & ESM) ---');
   for (const exp of entryPoints) {
     const importPath = exp === '.' ? 'firebase-functions' : `firebase-functions/${exp.replace('./', '')}`;
+
     try {
       require(importPath);
       console.log(`✅ CJS: ${importPath}`);
@@ -32,11 +33,7 @@ async function verify() {
       console.error(`❌ CJS Failed: ${importPath}`, e.message);
       hasError = true;
     }
-  }
 
-  console.log('\n--- Verifying ES Modules (import) ---');
-  for (const exp of entryPoints) {
-    const importPath = exp === '.' ? 'firebase-functions' : `firebase-functions/${exp.replace('./', '')}`;
     try {
       await import(importPath);
       console.log(`✅ ESM: ${importPath}`);
