@@ -144,6 +144,7 @@ git commit -m "[firebase-release] Removed change log and reset repo after ${NEW_
 echo "Cleaned up release notes."
 
 echo "Pushing to GitHub..."
+# Push the changelog cleanup commit.
 git push origin master --tags
 echo "Pushed to GitHub."
 
