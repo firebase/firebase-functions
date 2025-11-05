@@ -37,17 +37,23 @@ import {
   HttpsError,
   wrapHandler,
   MaybeAsync,
+  UserInfo,
+  UserRecord,
+  UserRecordMetadata,
+  userRecordConstructor,
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
-import { initV2Endpoint } from "../../runtime/manifest";
+import { CloudEvent, CloudFunction } from "../core";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
 export { HttpsError };
-export type { AuthUserRecord, AuthBlockingEvent };
+export { UserRecordMetadata, userRecordConstructor };
+export type { AuthUserRecord, AuthBlockingEvent, UserRecord, UserInfo };
 
 /** @hidden Internally used when parsing the options. */
 interface InternalOptions {
@@ -164,6 +170,84 @@ export interface BlockingOptions {
    * Secrets to bind to a function.
    */
   secrets?: (string | SecretParam)[];
+}
+
+/** @internal */
+export const userCreatedEvent = "google.firebase.auth.user.v1.created";
+/** @internal */
+export const userDeletedEvent = "google.firebase.auth.user.v1.deleted";
+
+/** A CloudEvent that contains a Firebase Auth user record. */
+export type UserRecordEvent = CloudEvent<UserRecord>;
+
+type UserEventHandler = (event: UserRecordEvent) => any | Promise<any>;
+
+/**
+ * Event handler which triggers when a Firebase Auth user is created.
+ *
+ * @param handler - Event handler which is run every time a Firebase Auth user is created.
+ * @returns A function that you can export and deploy.
+ */
+export function onUserCreated(handler: UserEventHandler): CloudFunction<UserRecordEvent>;
+
+/**
+ * Event handler which triggers when a Firebase Auth user is created.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firebase Auth user is created.
+ * @returns A function that you can export and deploy.
+ */
+export function onUserCreated(
+  opts: options.EventHandlerOptions,
+  handler: UserEventHandler
+): CloudFunction<UserRecordEvent>;
+
+/**
+ * Event handler which triggers when a Firebase Auth user is created.
+ *
+ * @param optsOrHandler - Options or an event handler.
+ * @param handler - Event handler which is run every time a Firebase Auth user is created.
+ * @returns A function that you can export and deploy.
+ */
+export function onUserCreated(
+  optsOrHandler: options.EventHandlerOptions | UserEventHandler,
+  handler?: UserEventHandler
+): CloudFunction<UserRecordEvent> {
+  return onUserOperation(userCreatedEvent, optsOrHandler, handler);
+}
+
+/**
+ * Event handler which triggers when a Firebase Auth user is deleted.
+ *
+ * @param handler - Event handler which is run every time a Firebase Auth user is deleted.
+ * @returns A function that you can export and deploy.
+ */
+export function onUserDeleted(handler: UserEventHandler): CloudFunction<UserRecordEvent>;
+
+/**
+ * Event handler which triggers when a Firebase Auth user is deleted.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firebase Auth user is deleted.
+ * @returns A function that you can export and deploy.
+ */
+export function onUserDeleted(
+  opts: options.EventHandlerOptions,
+  handler: UserEventHandler
+): CloudFunction<UserRecordEvent>;
+
+/**
+ * Event handler which triggers when a Firebase Auth user is deleted.
+ *
+ * @param optsOrHandler - Options or an event handler.
+ * @param handler - Event handler which is run every time a Firebase Auth user is deleted.
+ * @returns A function that you can export and deploy.
+ */
+export function onUserDeleted(
+  optsOrHandler: options.EventHandlerOptions | UserEventHandler,
+  handler?: UserEventHandler
+): CloudFunction<UserRecordEvent> {
+  return onUserOperation(userDeletedEvent, optsOrHandler, handler);
 }
 
 /**
@@ -291,6 +375,53 @@ export function beforeSmsSent(
   handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeSendSms", optsOrHandler, handler);
+}
+
+function onUserOperation(
+  eventType: string,
+  optsOrHandler: options.EventHandlerOptions | UserEventHandler,
+  handler?: UserEventHandler
+): CloudFunction<UserRecordEvent> {
+  if (typeof optsOrHandler === "function") {
+    handler = optsOrHandler;
+    optsOrHandler = {};
+  }
+
+  const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOpts = options.optionsToEndpoint(optsOrHandler);
+
+  const func: any = (raw: CloudEvent<unknown>) => {
+    const event = convertToUserRecordEvent(raw);
+    return wrapTraceContext(withInit(handler))(event);
+  };
+
+  func.run = handler;
+
+  const endpoint: ManifestEndpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), optsOrHandler),
+    platform: "gcfv2",
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    eventTrigger: {
+      eventType,
+      eventFilters: {},
+      retry: optsOrHandler.retry ?? false,
+    },
+  };
+
+  func.__endpoint = endpoint;
+
+  return func as CloudFunction<UserRecordEvent>;
+}
+
+function convertToUserRecordEvent(raw: CloudEvent<unknown>): UserRecordEvent {
+  const data = (raw.data ?? {}) as Record<string, unknown>;
+  const user = userRecordConstructor(data);
+  return { ...raw, data: user } as UserRecordEvent;
 }
 
 /** @hidden */

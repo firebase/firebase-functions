@@ -65,6 +65,114 @@ const opts: identity.BlockingOptions = {
 };
 
 describe("identity", () => {
+  describe("onUserCreated", () => {
+    it("should accept a handler", async () => {
+      let received: identity.UserRecord | undefined;
+      const fn = identity.onUserCreated((event) => {
+        received = event.data;
+        return null;
+      });
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        eventTrigger: {
+          eventType: identity.userCreatedEvent,
+          eventFilters: {},
+          retry: false,
+        },
+      });
+
+      const rawEvent = {
+        specversion: "1.0" as const,
+        id: "event-id",
+        source: "//identitytoolkit.googleapis.com/projects/project-id",
+        type: identity.userCreatedEvent,
+        time: new Date().toISOString(),
+        data: {
+          uid: "abc123",
+          metadata: {
+            creationTime: "2016-12-15T19:37:37.059Z",
+            lastSignInTime: "2017-01-01T00:00:00.000Z",
+          },
+        },
+      };
+
+      await fn(rawEvent as any);
+      expect(received).to.exist;
+      expect(received!.uid).to.equal("abc123");
+      expect(received!.metadata).to.be.instanceof(identity.UserRecordMetadata);
+    });
+
+    it("should accept options and a handler", () => {
+      const fn = identity.onUserCreated(
+        {
+          region: "us-central1",
+          minInstances: 2,
+          memory: "512MiB",
+          retry: true,
+        },
+        () => null
+      );
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        availableMemoryMb: 512,
+        region: ["us-central1"],
+        minInstances: 2,
+        labels: {},
+        eventTrigger: {
+          eventType: identity.userCreatedEvent,
+          eventFilters: {},
+          retry: true,
+        },
+      });
+    });
+  });
+
+  describe("onUserDeleted", () => {
+    it("should accept a handler", () => {
+      const fn = identity.onUserDeleted(() => null);
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        eventTrigger: {
+          eventType: identity.userDeletedEvent,
+          eventFilters: {},
+          retry: false,
+        },
+      });
+    });
+
+    it("should accept options and a handler", () => {
+      const fn = identity.onUserDeleted(
+        {
+          region: "europe-west3",
+          concurrency: 5,
+          retry: true,
+        },
+        () => null
+      );
+
+      expect(fn.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        concurrency: 5,
+        region: ["europe-west3"],
+        labels: {},
+        eventTrigger: {
+          eventType: identity.userDeletedEvent,
+          eventFilters: {},
+          retry: true,
+        },
+      });
+    });
+  });
+
   describe("beforeUserCreated", () => {
     it("should accept a handler", () => {
       const fn = identity.beforeUserCreated(() => Promise.resolve());
