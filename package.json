@@ -304,6 +304,175 @@
       "require": "./lib/v2/providers/dataconnect.js"
     }
   },
+  "typesVersions": {
+    "*": {
+      "logger": [
+        "lib/logger"
+      ],
+      "logger/compat": [
+        "lib/logger/compat"
+      ],
+      "params": [
+        "lib/params"
+      ],
+      "v1": [
+        "lib/v1"
+      ],
+      "v1/analytics": [
+        "lib/v1/providers/analytics"
+      ],
+      "v1/auth": [
+        "lib/v1/providers/auth"
+      ],
+      "v1/database": [
+        "lib/v1/providers/database"
+      ],
+      "v1/firestore": [
+        "lib/v1/providers/firestore"
+      ],
+      "v1/https": [
+        "lib/v1/providers/https"
+      ],
+      "v1/pubsub": [
+        "lib/v1/providers/pubsub"
+      ],
+      "v1/remoteConfig": [
+        "lib/v1/providers/remoteConfig"
+      ],
+      "v1/storage": [
+        "lib/v1/providers/storage"
+      ],
+      "v1/tasks": [
+        "lib/v1/providers/tasks"
+      ],
+      "v1/testLab": [
+        "lib/v1/providers/testLab"
+      ],
+      "core": [
+        "lib/v2/core"
+      ],
+      "options": [
+        "lib/v2/options"
+      ],
+      "https": [
+        "lib/v2/providers/https"
+      ],
+      "pubsub": [
+        "lib/v2/providers/pubsub"
+      ],
+      "storage": [
+        "lib/v2/providers/storage"
+      ],
+      "tasks": [
+        "lib/v2/providers/tasks"
+      ],
+      "alerts": [
+        "lib/v2/providers/alerts/index"
+      ],
+      "alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
+      ],
+      "alerts/performance": [
+        "lib/v2/providers/alerts/performance"
+      ],
+      "eventarc": [
+        "lib/v2/providers/eventarc"
+      ],
+      "identity": [
+        "lib/v2/providers/identity"
+      ],
+      "database": [
+        "lib/v2/providers/database"
+      ],
+      "scheduler": [
+        "lib/v2/providers/scheduler"
+      ],
+      "remoteConfig": [
+        "lib/v2/providers/remoteConfig"
+      ],
+      "testLab": [
+        "lib/v2/providers/testLab"
+      ],
+      "firestore": [
+        "lib/v2/providers/firestore"
+      ],
+      "dataconnect": [
+        "lib/v2/providers/dataconnect"
+      ],
+      "v2": [
+        "lib/v2"
+      ],
+      "v2/core": [
+        "lib/v2/core"
+      ],
+      "v2/alerts": [
+        "lib/v2/providers/alerts/index"
+      ],
+      "v2/alerts/appDistribution": [
+        "lib/v2/providers/alerts/appDistribution"
+      ],
+      "v2/alerts/billing": [
+        "lib/v2/providers/alerts/billing"
+      ],
+      "v2/alerts/crashlytics": [
+        "lib/v2/providers/alerts/crashlytics"
+      ],
+      "v2/alerts/performance": [
+        "lib/v2/providers/alerts/performance"
+      ],
+      "v2/base": [
+        "lib/v2/base"
+      ],
+      "v2/database": [
+        "lib/v2/providers/database"
+      ],
+      "v2/eventarc": [
+        "lib/v2/providers/eventarc"
+      ],
+      "v2/identity": [
+        "lib/v2/providers/identity"
+      ],
+      "v2/options": [
+        "lib/v2/options"
+      ],
+      "v2/https": [
+        "lib/v2/providers/https"
+      ],
+      "v2/pubsub": [
+        "lib/v2/providers/pubsub"
+      ],
+      "v2/storage": [
+        "lib/v2/providers/storage"
+      ],
+      "v2/tasks": [
+        "lib/v2/providers/tasks"
+      ],
+      "v2/scheduler": [
+        "lib/v2/providers/scheduler"
+      ],
+      "v2/remoteConfig": [
+        "lib/v2/providers/remoteConfig"
+      ],
+      "v2/testLab": [
+        "lib/v2/providers/testLab"
+      ],
+      "v2/firestore": [
+        "lib/v2/providers/firestore"
+      ],
+      "v2/dataconnect": [
+        "lib/v2/providers/dataconnect"
+      ],
+      "*": [
+        "lib/v2/index.d.ts"
+      ]
+    }
+  },
   "publishConfig": {
     "registry": "https://wombat-dressing-room.appspot.com"
   },
