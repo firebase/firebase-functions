@@ -4,3 +4,4 @@
 - BREAKING: Unhandled errors in async `onRequest` handlers in the Emulator now return a 500 error immediately. (#1755)
 - Add support for ESM (ECMAScript Modules) alongside CommonJS. (#1750)
 - Add `onMutationExecuted()` trigger for Firebase Data Connect. (#1727)
+- BREAKING: Rename v1 Event to LegacyEvent to avoid api-extractor conflict. (#1767)

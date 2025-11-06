@@ -29,7 +29,7 @@ import {
   createBeforeSnapshotFromJson,
   createSnapshotFromJson,
 } from "../../common/providers/firestore";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
@@ -120,7 +120,7 @@ export class NamespaceBuilder {
   }
 }
 
-export function snapshotConstructor(event: Event): DocumentSnapshot {
+export function snapshotConstructor(event: LegacyEvent): DocumentSnapshot {
   return createSnapshotFromJson(
     event.data,
     event.context.resource.name,
@@ -130,7 +130,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
 }
 
 // TODO remove this function when wire format changes to new format
-export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
+export function beforeSnapshotConstructor(event: LegacyEvent): DocumentSnapshot {
   return createBeforeSnapshotFromJson(
     event.data,
     event.context.resource.name,
@@ -139,7 +139,7 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   );
 }
 
-function changeConstructor(raw: Event) {
+function changeConstructor(raw: LegacyEvent) {
   return Change.fromObjects(beforeSnapshotConstructor(raw), snapshotConstructor(raw));
 }
 
@@ -191,7 +191,7 @@ export class DocumentBuilder<Path extends string> {
   private onOperation<T>(
     handler: (data: T, context: EventContext<ParamsOf<Path>>) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event) => any
+    dataConstructor: (raw: LegacyEvent) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,

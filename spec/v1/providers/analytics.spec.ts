@@ -23,7 +23,7 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { Event } from "../../../src/v1/cloud-functions";
+import { LegacyEvent } from "../../../src/v1/cloud-functions";
 import * as analytics from "../../../src/v1/providers/analytics";
 import * as analyticsSpecInput from "./analytics.spec.input";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
@@ -92,7 +92,7 @@ describe("Analytics Functions", () => {
 
         // The event data delivered over the wire will be the JSON for an AnalyticsEvent:
         // https://firebase.google.com/docs/auth/admin/manage-users#retrieve_user_data
-        const event: Event = {
+        const event: LegacyEvent = {
           data: {
             userDim: {
               userId: "hi!",
@@ -126,7 +126,7 @@ describe("Analytics Functions", () => {
         // Incoming events will have four kinds of "xValue" fields: "intValue",
         // "stringValue", "doubleValue" and "floatValue". We expect those to get
         // flattened away, leaving just their values.
-        const event: Event = {
+        const event: LegacyEvent = {
           data: {
             eventDim: [
               {
@@ -193,7 +193,7 @@ describe("Analytics Functions", () => {
           .event("first_open")
           .onLog((data: analytics.AnalyticsEvent) => data);
 
-        const event: Event = {
+        const event: LegacyEvent = {
           data: {
             eventDim: [
               {
@@ -264,7 +264,7 @@ describe("Analytics Functions", () => {
         //
         // Separately, the input has a number of microsecond timestamps that we'd
         // like to rename and scale down to milliseconds.
-        const event: Event = {
+        const event: LegacyEvent = {
           data: {
             eventDim: [
               {
@@ -311,7 +311,7 @@ describe("Analytics Functions", () => {
           .event("app_remove")
           .onLog((data: analytics.AnalyticsEvent) => data);
 
-        const event: Event = {
+        const event: LegacyEvent = {
           data: {
             eventDim: [
               {
