@@ -178,3 +178,17 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   }
   return out;
 }
+
+/**
+ * Logger object containing all logging methods.
+ *
+ * Mockable for testing purposes.
+ */
+export const logger = {
+  write,
+  debug,
+  log,
+  info,
+  warn,
+  error,
+};
