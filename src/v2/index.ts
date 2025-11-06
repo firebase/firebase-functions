@@ -28,7 +28,6 @@
  * @packageDocumentation
  */
 
-import * as logger from "../logger";
 import * as alerts from "./providers/alerts";
 import * as database from "./providers/database";
 import * as eventarc from "./providers/eventarc";
@@ -50,7 +49,6 @@ export {
   https,
   identity,
   pubsub,
-  logger,
   tasks,
   eventarc,
   scheduler,
@@ -60,6 +58,7 @@ export {
   dataconnect,
 };
 
+export { logger } from "../logger";
 export { setGlobalOptions } from "./options";
 export type {
   GlobalOptions,
