@@ -54,7 +54,7 @@ const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 /**
  * Wire format for an event.
  */
-export interface Event {
+export interface LegacyEvent {
   /**
    * Wire format for an event context.
    */
@@ -344,7 +344,7 @@ export interface BlockingFunction {
  * from your JavaScript file to define a Cloud Function.
  *
  * This type is a special JavaScript function which takes a templated
- * `Event` object as its only argument.
+ * `LegacyEvent` object as its only argument.
  */
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
@@ -361,10 +361,10 @@ export interface CloudFunction<T> extends Runnable<T> {
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
-  after?: (raw: Event) => void;
-  before?: (raw: Event) => void;
+  after?: (raw: LegacyEvent) => void;
+  before?: (raw: LegacyEvent) => void;
   contextOnlyHandler?: (context: EventContext) => PromiseLike<any> | any;
-  dataConstructor?: (raw: Event) => EventData;
+  dataConstructor?: (raw: LegacyEvent) => EventData;
   eventType: string;
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
   labels?: Record<string, string>;
@@ -382,7 +382,7 @@ export interface MakeCloudFunctionArgs<EventData> {
 /** @internal */
 export function makeCloudFunction<EventData>({
   contextOnlyHandler,
-  dataConstructor = (raw: Event) => raw.data,
+  dataConstructor = (raw: LegacyEvent) => raw.data,
   eventType,
   handler,
   labels = {},
@@ -406,7 +406,7 @@ export function makeCloudFunction<EventData>({
       };
     }
 
-    const event: Event = {
+    const event: LegacyEvent = {
       data,
       context,
     };
@@ -550,7 +550,7 @@ function _makeParams(
   return params;
 }
 
-function _makeAuth(event: Event, authType: string) {
+function _makeAuth(event: LegacyEvent, authType: string) {
   if (authType === "UNAUTHENTICATED") {
     return null;
   }
@@ -560,7 +560,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
-function _detectAuthType(event: Event) {
+function _detectAuthType(event: LegacyEvent) {
   if (event.context?.auth?.admin) {
     return "ADMIN";
   }

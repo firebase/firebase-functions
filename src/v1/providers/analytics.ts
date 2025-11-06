@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
@@ -70,7 +70,7 @@ export class AnalyticsEventBuilder {
   onLog(
     handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<AnalyticsEvent> {
-    const dataConstructor = (raw: Event) => {
+    const dataConstructor = (raw: LegacyEvent) => {
       return new AnalyticsEvent(raw.data);
     };
     return makeCloudFunction({
