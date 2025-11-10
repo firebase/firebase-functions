@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "7.0.0-rc.2",
+  "version": "7.0.0",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
