@@ -80,6 +80,14 @@ export interface DatabaseEvent<T, Params = Record<string, string>> extends Cloud
    * Only named capture groups will be populated - {key}, {key=*}, {key=**}
    */
   params: Params;
+  /**
+   * The type of principal that triggered the event.
+   */
+  authType?: "app_user" | "admin" | "unauthenticated";
+  /**
+   * The unique identifier of the principal.
+   */
+  authId?: string;
 }
 
 /** ReferenceOptions extend EventHandlerOptions with provided ref and optional instance  */
