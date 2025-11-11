@@ -110,6 +110,11 @@ export interface ScheduleRetryConfig {
    * @defaultValue 5
    */
   maxDoublings?: number | Expression<number> | ResetValue;
+
+  /**
+   * The deadline for each job attempt, specified as a duration string (e.g. "600s").
+   */
+  attemptDeadline?: string | Expression<string> | ResetValue;
 }
 
 /**
