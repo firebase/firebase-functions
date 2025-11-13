@@ -27,7 +27,7 @@ import { ParamsOf } from "../../common/params";
 import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { applyChange } from "../../common/utilities/utils";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
 export { DataSnapshot };
@@ -217,7 +217,7 @@ export class RefBuilder<Ref extends string> {
       context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    const dataConstructor = (raw: Event) => {
+    const dataConstructor = (raw: LegacyEvent) => {
       const [dbInstance, path] = extractInstanceAndPath(
         raw.context.resource.name,
         raw.context.domain
@@ -241,7 +241,7 @@ export class RefBuilder<Ref extends string> {
       context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    const dataConstructor = (raw: Event) => {
+    const dataConstructor = (raw: LegacyEvent) => {
       const [dbInstance, path] = extractInstanceAndPath(
         raw.context.resource.name,
         raw.context.domain
@@ -254,7 +254,7 @@ export class RefBuilder<Ref extends string> {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | Event) => any
+    dataConstructor: (raw: LegacyEvent | LegacyEvent) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
@@ -268,7 +268,7 @@ export class RefBuilder<Ref extends string> {
     });
   }
 
-  private changeConstructor = (raw: Event): Change<DataSnapshot> => {
+  private changeConstructor = (raw: LegacyEvent): Change<DataSnapshot> => {
     const [dbInstance, path] = extractInstanceAndPath(
       raw.context.resource.name,
       raw.context.domain

@@ -14,7 +14,7 @@ VERSION=$1
 if [[ $VERSION == "" ]]; then
   printusage
   exit 1
-elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major") ]]; then
+elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major" || $VERSION == "prerelease") ]]; then
   printusage
   exit 1
 fi
@@ -89,7 +89,11 @@ echo "Ran publish build."
 
 echo "Making a $VERSION version..."
 if [[ $PRE_RELEASE != "" ]]; then
-  npm version pre$VERSION --preid=rc
+  if [[ $VERSION == "prerelease" ]]; then
+    npm version prerelease --preid=rc
+  else
+    npm version pre$VERSION --preid=rc
+  fi
 else
   npm version $VERSION
 fi
@@ -118,6 +122,10 @@ fi
 npm publish "${PUBLISH_ARGS[@]}"
 echo "Published to npm."
 
+echo "Pushing to GitHub..."
+git push origin master --tags
+echo "Pushed to GitHub."
+
 if [[ $PRE_RELEASE != "" ]]; then
   echo "Published a pre-release version. Skipping post-release actions."
   exit
@@ -136,6 +144,7 @@ git commit -m "[firebase-release] Removed change log and reset repo after ${NEW_
 echo "Cleaned up release notes."
 
 echo "Pushing to GitHub..."
+# Push the changelog cleanup commit.
 git push origin master --tags
 echo "Pushed to GitHub."
 

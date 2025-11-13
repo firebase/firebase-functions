@@ -1,6 +1,0 @@
-- BREAKING: Drop support for Node.js 16. Minimum supported version is now Node.js 18. (#1747)
-- BREAKING: Remove deprecated `functions.config()` API. Use `params` module for environment variables instead. (#1748)
-- BREAKING: Upgrade to TypeScript v5 and target ES2022. (#1746)
-- BREAKING: Unhandled errors in async `onRequest` handlers in the Emulator now return a 500 error immediately. (#1755)
-- Add support for ESM (ECMAScript Modules) alongside CommonJS. (#1750)
-- Add `onMutationExecuted()` trigger for Firebase Data Connect. (#1727)
