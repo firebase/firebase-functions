@@ -461,6 +461,21 @@ describe("database", () => {
       await database.onValueWritten("path", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    it("should pass auth context into the event", async () => {
+      const raw = {
+        ...RAW_RTDB_EVENT,
+        authId: "uid",
+        authType: "unauthenticated",
+      };
+
+      const func = database.onValueWritten("foo/bar", (event) => {
+        expect(event.authId).to.equal("uid");
+        expect(event.authType).to.equal("unauthenticated");
+      });
+
+      await func(raw as any);
+    });
   });
 
   describe("onValueCreated", () => {
