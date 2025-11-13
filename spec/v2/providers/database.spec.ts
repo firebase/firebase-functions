@@ -474,7 +474,7 @@ describe("database", () => {
         expect(event.authType).to.equal("unauthenticated");
       });
 
-      await func(raw as any);
+      await func(raw);
     });
   });
 
