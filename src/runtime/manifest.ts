@@ -260,7 +260,7 @@ const RESETTABLE_V1_SCHEDULE_OPTIONS: Omit<
 const RESETTABLE_V2_SCHEDULE_OPTIONS: Omit<
   ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
   "maxRetryDuration" | "maxBackoffDuration" | "minBackoffDuration"
-  > &
+> &
   Pick<ResettableKeys<ManifestEndpoint["scheduleTrigger"]>, "attemptDeadlineSeconds"> = {
   retryCount: null,
   maxDoublings: null,
