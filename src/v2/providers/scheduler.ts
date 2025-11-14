@@ -113,7 +113,11 @@ export interface ScheduleOptions extends options.GlobalOptions {
   /** The timezone that the schedule executes in. */
   timeZone?: timezone | Expression<string> | ResetValue;
 
-  /** The deadline for job attempts. Defaults to 180 seconds. */
+  /**
+   * The deadline for job attempts in seconds. If the request handler does not respond by this deadline,
+   * the request is cancelled and the attempt is marked as a `DEADLINE_EXCEEDED` failure.
+   * The value must be between 15 and 1800. Defaults to 180.
+   */
   attemptDeadlineSeconds?: number | Expression<number> | ResetValue;
 
   /** The number of retry attempts for a failed run. */
