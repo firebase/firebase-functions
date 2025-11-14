@@ -64,7 +64,7 @@ export interface RawRTDBCloudEvent extends CloudEvent<RawRTDBCloudEventData> {
   ref: string;
   location: string;
   authtype: AuthType;
-  authid?: string; 
+  authid?: string;
 }
 
 /**
@@ -94,7 +94,7 @@ export interface DatabaseEvent<T, Params = Record<string, string>> extends Cloud
   /**
    * The type of principal that triggered the event.
    */
-  authtype: AuthType
+  authtype: AuthType;
   /**
    * The unique identifier of the principal.
    */
@@ -404,7 +404,7 @@ function makeDatabaseEvent<Params>(
     data: snapshot,
     params,
     authtype: event.authtype,
-    authid: event.authid
+    authid: event.authid,
   };
   delete (databaseEvent as any).firebasedatabasehost;
   return databaseEvent;
