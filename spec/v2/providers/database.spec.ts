@@ -42,6 +42,8 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   specversion: "1.0",
   time: "time",
   type: "type",
+  authid: "uid",
+  authtype: "unauthenticated",
 };
 
 describe("database", () => {
@@ -465,13 +467,11 @@ describe("database", () => {
     it("should pass auth context into the event", async () => {
       const raw = {
         ...RAW_RTDB_EVENT,
-        authId: "uid",
-        authType: "unauthenticated",
       };
 
       const func = database.onValueWritten("foo/bar", (event) => {
-        expect(event.authId).to.equal("uid");
-        expect(event.authType).to.equal("unauthenticated");
+        expect(event.authid).to.equal("uid");
+        expect(event.authtype).to.equal("unauthenticated");
       });
 
       await func(raw);
