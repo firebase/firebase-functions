@@ -97,6 +97,7 @@ export interface ManifestEndpoint {
   scheduleTrigger?: {
     schedule: string | Expression<string>;
     timeZone?: string | Expression<string> | ResetValue;
+    attemptDeadlineSeconds?: number | Expression<number> | ResetValue;
     retryConfig?: {
       retryCount?: number | Expression<number> | ResetValue;
       maxRetrySeconds?: string | Expression<string> | ResetValue;
@@ -302,5 +303,10 @@ export function initV2ScheduleTrigger(
   schedule: string | Expression<string>,
   ...opts: ManifestOptions[]
 ): ManifestEndpoint["scheduleTrigger"] {
-  return initScheduleTrigger(RESETTABLE_V2_SCHEDULE_OPTIONS, schedule, ...opts);
+  const trigger = initScheduleTrigger(RESETTABLE_V2_SCHEDULE_OPTIONS, schedule, ...opts);
+  // Set attemptDeadlineSeconds for v2 only
+  if (trigger.timeZone === RESET_VALUE) {
+    trigger.attemptDeadlineSeconds = RESET_VALUE;
+  }
+  return trigger;
 }
