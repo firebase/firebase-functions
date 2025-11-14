@@ -32,6 +32,7 @@ import { runHandler } from "../../helper";
 const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
   schedule: "",
   timeZone: options.RESET_VALUE,
+  attemptDeadlineSeconds: options.RESET_VALUE,
   retryConfig: {
     retryCount: options.RESET_VALUE,
     maxRetrySeconds: options.RESET_VALUE,
@@ -66,6 +67,7 @@ describe("schedule", () => {
       expect(schedule.getOpts(options)).to.deep.eq({
         schedule: "* * * * *",
         timeZone: "utc",
+        attemptDeadlineSeconds: undefined,
         retryConfig: {
           retryCount: 3,
           maxRetrySeconds: 1,
@@ -108,6 +110,7 @@ describe("schedule", () => {
         {
           schedule: "* * * * *",
           timeZone: "utc",
+          attemptDeadlineSeconds: 300,
           retryCount: 3,
           maxRetrySeconds: 10,
           minBackoffSeconds: 11,
@@ -127,6 +130,7 @@ describe("schedule", () => {
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: "utc",
+          attemptDeadlineSeconds: 300,
           retryConfig: {
             retryCount: 3,
             maxRetrySeconds: 10,
@@ -159,6 +163,7 @@ describe("schedule", () => {
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: undefined,
+          attemptDeadlineSeconds: undefined,
           retryConfig: {
             retryCount: undefined,
             maxRetrySeconds: undefined,
