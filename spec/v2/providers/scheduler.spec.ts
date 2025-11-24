@@ -28,6 +28,7 @@ import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { onInit } from "../../../src/v2/core";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
+import * as params from "../../../src/params";
 
 const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
   schedule: "",
@@ -67,7 +68,6 @@ describe("schedule", () => {
       expect(schedule.getOpts(options)).to.deep.eq({
         schedule: "* * * * *",
         timeZone: "utc",
-        attemptDeadlineSeconds: undefined,
         retryConfig: {
           retryCount: 3,
           maxRetrySeconds: 1,
@@ -110,7 +110,7 @@ describe("schedule", () => {
         {
           schedule: "* * * * *",
           timeZone: "utc",
-          attemptDeadlineSeconds: 300,
+          timeoutSeconds: 300,
           retryCount: 3,
           maxRetrySeconds: 10,
           minBackoffSeconds: 11,
@@ -127,6 +127,7 @@ describe("schedule", () => {
         platform: "gcfv2",
         labels: { key: "val" },
         region: ["us-central1"],
+        timeoutSeconds: 300,
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: "utc",
@@ -157,13 +158,12 @@ describe("schedule", () => {
         () => console.log(1)
       );
 
-      expect(schfn.__endpoint).to.deep.eq({
+      expect(schfn.__endpoint).to.deep.equal({
         platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: undefined,
-          attemptDeadlineSeconds: undefined,
           retryConfig: {
             retryCount: undefined,
             maxRetrySeconds: undefined,
@@ -179,6 +179,33 @@ describe("schedule", () => {
           reason: "Needed for scheduled functions.",
         },
       ]);
+    });
+
+    it("should cap attemptDeadlineSeconds at 1800s", () => {
+      const schfn = schedule.onSchedule(
+        {
+          schedule: "* * * * *",
+          timeoutSeconds: 3600,
+        },
+        () => undefined
+      );
+
+      expect(schfn.__endpoint.timeoutSeconds).to.deep.eq(3600);
+      expect(schfn.__endpoint.scheduleTrigger?.attemptDeadlineSeconds).to.deep.eq(1800);
+    });
+
+    it("should set attemptDeadlineSeconds from Expression timeoutSeconds", () => {
+      const timeout = params.defineInt("TIMEOUT");
+      const schfn = schedule.onSchedule(
+        {
+          schedule: "* * * * *",
+          timeoutSeconds: timeout,
+        },
+        () => undefined
+      );
+
+      expect(schfn.__endpoint.timeoutSeconds).to.deep.eq(timeout);
+      expect(schfn.__endpoint.scheduleTrigger?.attemptDeadlineSeconds).to.deep.eq(timeout);
     });
 
     it("should have a .run method", async () => {
