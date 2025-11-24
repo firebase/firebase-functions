@@ -111,7 +111,6 @@ export interface ScheduleOptions extends options.GlobalOptions {
   /** The timezone that the schedule executes in. */
   timeZone?: timezone | Expression<string> | ResetValue;
 
-
   /** The number of retry attempts for a failed run. */
   retryCount?: number | Expression<number> | ResetValue;
 
