@@ -111,7 +111,6 @@ export interface ScheduleOptions extends options.GlobalOptions {
   /** The timezone that the schedule executes in. */
   timeZone?: timezone | Expression<string> | ResetValue;
 
-
   /** The number of retry attempts for a failed run. */
   retryCount?: number | Expression<number> | ResetValue;
 
@@ -198,9 +197,6 @@ export function onSchedule(
   };
 
   copyIfPresent(ep.scheduleTrigger, separatedOpts, "timeZone");
-  if (ep.timeoutSeconds) {
-    ep.scheduleTrigger.attemptDeadlineSeconds = ep.timeoutSeconds;
-  }
   copyIfPresent(
     ep.scheduleTrigger.retryConfig,
     separatedOpts.retryConfig,
