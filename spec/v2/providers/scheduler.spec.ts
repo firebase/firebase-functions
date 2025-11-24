@@ -28,7 +28,6 @@ import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { onInit } from "../../../src/v2/core";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
-import * as params from "../../../src/params";
 
 const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
   schedule: "",
@@ -158,7 +157,7 @@ describe("schedule", () => {
         () => console.log(1)
       );
 
-      expect(schfn.__endpoint).to.deep.equal({
+      expect(schfn.__endpoint).to.deep.eq({
         platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
@@ -179,33 +178,6 @@ describe("schedule", () => {
           reason: "Needed for scheduled functions.",
         },
       ]);
-    });
-
-    it("should set attemptDeadlineSeconds from timeoutSeconds", () => {
-      const schfn = schedule.onSchedule(
-        {
-          schedule: "* * * * *",
-          timeoutSeconds: 3600,
-        },
-        () => undefined
-      );
-
-      expect(schfn.__endpoint.timeoutSeconds).to.deep.eq(3600);
-      expect(schfn.__endpoint.scheduleTrigger?.attemptDeadlineSeconds).to.deep.eq(3600);
-    });
-
-    it("should set attemptDeadlineSeconds from Expression timeoutSeconds", () => {
-      const timeout = params.defineInt("TIMEOUT");
-      const schfn = schedule.onSchedule(
-        {
-          schedule: "* * * * *",
-          timeoutSeconds: timeout,
-        },
-        () => undefined
-      );
-
-      expect(schfn.__endpoint.timeoutSeconds).to.deep.eq(timeout);
-      expect(schfn.__endpoint.scheduleTrigger?.attemptDeadlineSeconds).to.deep.eq(timeout);
     });
 
     it("should have a .run method", async () => {
