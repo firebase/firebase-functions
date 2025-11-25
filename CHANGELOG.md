@@ -1,1 +1,0 @@
-- Scheduled functions now automatically set Cloud Scheduler's attempt deadline to match the function's timeout.
