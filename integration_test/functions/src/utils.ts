@@ -6,7 +6,7 @@ export const firestore = adminApp.firestore();
 
 export const RUN_ID = String(process.env.RUN_ID);
 
-export function serializeData(data: unknown): unknown {
+export function serializeData(data: any): any {
   if (data === null || data === undefined) {
     return null;
   }

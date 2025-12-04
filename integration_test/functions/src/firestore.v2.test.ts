@@ -1,12 +1,7 @@
-import EventEmitter from "node:events";
 import { describe, it, beforeAll, expect } from "vitest";
-import { PubSub } from "@google-cloud/pubsub";
 import { firestore } from "./utils";
 import { GeoPoint } from "firebase-admin/firestore";
 const RUN_ID = String(process.env.RUN_ID);
-
-const pubsub = new PubSub({ projectId: "cf3-integration-tests-v2-qa" });
-const emitter = new EventEmitter();
 
 function waitForEvent<T = unknown>(
   event: string,
@@ -14,41 +9,25 @@ function waitForEvent<T = unknown>(
   timeoutMs: number = 60_000
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    emitter.on(event, (data: T) => {
-      emitter.off(event, resolve);
-      resolve(data);
+    let timer: NodeJS.Timeout | null = null;
+
+    const unsubscribe = firestore.collection(`${RUN_ID}_snapshots`).doc(event).onSnapshot(snapshot => {
+      if (snapshot.exists) {
+        console.log("snapshot", snapshot.data());
+        if (timer) clearTimeout(timer);
+        unsubscribe();
+        resolve(snapshot.data() as T);
+      }
     });
 
-    setTimeout(() => {
-      emitter.off(event, resolve);
-      reject(new Error("Timeout waiting for event: " + event));
+    timer = setTimeout(() => {
+      unsubscribe();
+      reject(new Error(`Timeout waiting for event "${event}" after ${timeoutMs}ms`));
     }, timeoutMs);
 
-    trigger().catch(reject);
+    trigger().then().catch(reject);
   });
 }
-
-beforeAll(async () => {
-  const topic = pubsub.topic('vitest');
-  const subscription = topic.subscription('vitest-sub');
-
-  subscription.on("message", (message) => {
-    console.log("message", message.data.toString());
-    const data = message.data.length ? JSON.parse(message.data.toString()) : null;
-    message.ack();
-
-    if (!("event" in data)) {
-      throw new Error("Invalid event data: " + JSON.stringify(data));
-    }
-
-    emitter.emit(data.event, data.data);
-  });
-
-  subscription.on("error", (error) => {
-    console.error("Pubsub error", error);
-    process.exit(1);
-  });
-});
 
 describe("firestore.v2", () => {
   describe("onDocumentCreated", () => {
@@ -56,6 +35,7 @@ describe("firestore.v2", () => {
 
     beforeAll(async () => {
       data = await waitForEvent("onDocumentCreated", async () => {
+        console.log("triggering event", RUN_ID);
         await firestore
           .collection(RUN_ID)
           .doc("onDocumentCreated")
@@ -63,8 +43,11 @@ describe("firestore.v2", () => {
             foo: "bar",
             timestamp: new Date(),
             geopoint: new GeoPoint(10, 20),
+          }).then(() => {
+            console.log("event triggered", RUN_ID);
           });
       });
+      console.log("data", data);
     });
 
     it("should be a CloudEvent", () => {

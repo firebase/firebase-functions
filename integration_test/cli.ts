@@ -75,7 +75,6 @@ async function writeFirebaseJson(codebase: string): Promise<void> {
     functions: [
       {
         source: "functions",
-        codebase: codebase,
         disallowLegacyRuntimeConfig: true,
         ignore: [
           "node_modules",
