@@ -1,4 +1,8 @@
 import { defineConfig } from "tsdown";
+import { readFileSync } from "fs";
+
+const pkg = JSON.parse(readFileSync("./package.json", "utf-8"));
+const majorVersion = pkg.version.split(".")[0];
 
 const rewriteProtoPathMjs = {
   name: "rewrite-proto-path-mjs",
@@ -23,6 +27,9 @@ export default defineConfig([
     dts: false, // Use tsc for type declarations
     treeshake: false,
     external: ["../../../protos/compiledFirestore"],
+    define: {
+      __FIREBASE_FUNCTIONS_MAJOR_VERSION__: JSON.stringify(majorVersion),
+    },
   },
   {
     entry: "src/**/*.ts",
@@ -33,5 +40,8 @@ export default defineConfig([
     dts: false, // Use tsc for type declarations
     treeshake: false,
     plugins: [rewriteProtoPathMjs],
+    define: {
+      __FIREBASE_FUNCTIONS_MAJOR_VERSION__: JSON.stringify(majorVersion),
+    },
   },
 ]);
