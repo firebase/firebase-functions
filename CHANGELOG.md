@@ -1,1 +1,0 @@
-- Fix "Dual-Package Hazard" for parameterized configuration in ESM projects. (#1780)
