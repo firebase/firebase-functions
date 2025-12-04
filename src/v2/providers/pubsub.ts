@@ -34,6 +34,7 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import type { EventContext, Resource } from "../../v1/cloud-functions";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -304,7 +305,9 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
+    const event = raw as CloudEvent<MessagePublishedData<T>>;
+    attachPubSubContext(event, topic);
+    return wrapTraceContext(withInit(handler))(event);
   };
 
   func.run = handler;
@@ -352,4 +355,67 @@ export function onMessagePublished<T = any>(
   func.__endpoint = endpoint;
 
   return func;
+}
+
+/**
+ * @internal
+ *
+ * Adds a v1-style context to the event.
+ *
+ * @param event - The event to add the context to.
+ * @param topic - The topic the event is for.
+ */
+function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topic: string) {
+  if ("context" in event && event.context) {
+    return;
+  }
+
+  const resourceName = getResourceName(event, topic);
+  const resource: Resource = {
+
+    service: "pubsub.googleapis.com",
+    name: resourceName ?? "",
+
+  };
+
+  const context: EventContext = {
+    eventId: event.id,
+    timestamp: event.time,
+    resource,
+    eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+    params: {}
+
+  };
+
+  Object.defineProperty(event, "context", {
+
+    get: () => context,
+    enumerable: false,
+    configurable: false,
+
+  });
+}
+
+/**
+ * @internal
+ *
+ * Extracts the resource name from the event source.
+ *
+ * @param event - The event to extract the resource name from.
+ * @param topic - The topic the event is for.
+ * @returns The resource name.
+ */
+function getResourceName(event: CloudEvent<MessagePublishedData<any>>, topic: string) {
+  const match = event.source?.match(/projects\/([^/]+)\/topics\/([^/]+)/);
+  const project =
+    match?.[1] ?? process.env.GCLOUD_PROJECT ?? process.env.GCLOUD_PROJECT_ID ?? process.env.PROJECT_ID;
+
+  const topicName = match?.[2] ?? topic;
+
+  if (!project) {
+    return `project/unknown-project/topics/${topicName}`;
+  }
+
+  return `projects/${project}/topics/${topicName}`;
+
 }
