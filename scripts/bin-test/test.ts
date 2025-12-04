@@ -362,6 +362,32 @@ describe("functions.yaml", function () {
           extensions: BASE_EXTENSIONS,
         },
       },
+      {
+        name: "with params",
+        modulePath: "./scripts/bin-test/sources/commonjs-params",
+        expected: {
+          endpoints: {
+            v2http: {
+              ...DEFAULT_V2_OPTIONS,
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              labels: {},
+              httpsTrigger: {},
+              minInstances: "{{ params.MIN_INSTANCES }}",
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
+          params: [
+            {
+              name: "MIN_INSTANCES",
+              type: "int",
+              default: 1,
+            },
+          ],
+          extensions: {},
+        },
+      },
     ];
 
     for (const tc of testcases) {
@@ -395,6 +421,32 @@ describe("functions.yaml", function () {
         name: "with .m extension",
         modulePath: "./scripts/bin-test/sources/esm-ext",
         expected: BASE_STACK,
+      },
+      {
+        name: "with params",
+        modulePath: "./scripts/bin-test/sources/esm-params",
+        expected: {
+          endpoints: {
+            v2http: {
+              ...DEFAULT_V2_OPTIONS,
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              labels: {},
+              httpsTrigger: {},
+              minInstances: "{{ params.MIN_INSTANCES }}",
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
+          params: [
+            {
+              name: "MIN_INSTANCES",
+              type: "int",
+              default: 1,
+            },
+          ],
+          extensions: {},
+        },
       },
     ];
 

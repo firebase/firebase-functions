@@ -19,12 +19,28 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
+const RESET_VALUE_TAG = Symbol.for("firebase-functions:ResetValue:Tag");
+
 /**
  * Special configuration type to reset configuration to platform default.
  *
  * @alpha
  */
 export class ResetValue {
+  /**
+   * Handle the "Dual-Package Hazard" where the CLI (CJS) loads the CJS build
+   * but user code (ESM) loads the ESM build.
+   *
+   * We implement `Symbol.hasInstance` to allow the CLI to recognize ResetValue
+   * instances from the ESM build by checking for the global symbol tag.
+   */
+  static [Symbol.hasInstance](instance: unknown): boolean {
+    return (instance as { [RESET_VALUE_TAG]?: boolean })?.[RESET_VALUE_TAG] === true;
+  }
+
+  get [RESET_VALUE_TAG](): boolean {
+    return true;
+  }
   toJSON(): null {
     return null;
   }

@@ -22,12 +22,29 @@
 
 import * as logger from "../logger";
 
+const EXPRESSION_TAG = Symbol.for("firebase-functions:Expression:Tag");
+
 /*
  * A CEL expression which can be evaluated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
 export abstract class Expression<T extends string | number | boolean | string[]> {
+  /**
+   * Handle the "Dual-Package Hazard" where the CLI (CJS) loads the CJS build
+   * but user code (ESM) loads the ESM build. In this case, the class instances
+   * are different, so `instanceof Expression` fails.
+   *
+   * We implement `Symbol.hasInstance` to allow the CLI to recognize Expression
+   * instances from the ESM build by checking for the global symbol tag.
+   */
+  static [Symbol.hasInstance](instance: unknown): boolean {
+    return (instance as { [EXPRESSION_TAG]?: boolean })?.[EXPRESSION_TAG] === true;
+  }
+
+  get [EXPRESSION_TAG](): boolean {
+    return true;
+  }
   /** Returns the expression's runtime value, based on the CLI's resolution of parameters. */
   value(): T {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
