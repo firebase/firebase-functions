@@ -413,7 +413,7 @@ function getResourceName(event: CloudEvent<MessagePublishedData<any>>, topic: st
   const topicName = match?.[2] ?? topic;
 
   if (!project) {
-    return `project/unknown-project/topics/${topicName}`;
+    return `projects/unknown-project/topics/${topicName}`;
   }
 
   return `projects/${project}/topics/${topicName}`;

@@ -202,6 +202,14 @@ describe("onMessagePublished", () => {
     expect(receivedEvent.type).to.equal("google.cloud.pubsub.topic.v1.messagePublished");
     expect(receivedEvent.source).to.equal("//pubsub.googleapis.com/projects/aProject/topics/topic");
     expect(receivedEvent.data.message.json).to.deep.equal({ hello: "world" });
+    expect(receivedEvent.context).to.exist;
+    expect(receivedEvent.context.eventId).to.equal("uuid");
+    expect(receivedEvent.context.timestamp).to.equal(publishTime);
+    expect(receivedEvent.context.eventType).to.equal("google.cloud.pubsub.topic.v1.messagePublished");
+    expect(receivedEvent.context.resource).to.deep.equal({
+      service: "pubsub.googleapis.com",
+      name: "projects/aProject/topics/topic",
+    });
   });
 
   // These tests pass if the transpiler works
@@ -228,6 +236,7 @@ describe("onMessagePublished", () => {
     );
   });
 
+  //Test case to ensure Idempotency. makes things dont break if there is already context present
   it("should not modify a CloudEvent that already has a context", async () => {
     const publishTime = new Date().toISOString();
     const message = {
@@ -266,6 +275,8 @@ describe("onMessagePublished", () => {
     expect(receivedEvent.context).to.deep.equal(existingContext);
   });
 
+
+  //Test case to ensure GCLOUD_PROJECT is used as fallback for resource name
   it("should use GCLOUD_PROJECT as fallback for resource name", async () => {
     const publishTime = new Date().toISOString();
     const message = {
@@ -324,6 +335,6 @@ describe("onMessagePublished", () => {
 
     await func(event);
 
-    expect(receivedEvent.context.resource.name).to.equal("project/unknown-project/topics/topic");
+    expect(receivedEvent.context.resource.name).to.equal("projects/unknown-project/topics/topic");
   });
 });
