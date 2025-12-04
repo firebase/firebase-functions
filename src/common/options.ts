@@ -44,7 +44,7 @@ export class ResetValue {
     return null;
   }
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() { }
+  private constructor() {}
   public static getInstance() {
     return new ResetValue();
   }
@@ -59,5 +59,5 @@ export const RESET_VALUE = ResetValue.getInstance();
  * @internal
  */
 export type ResettableKeys<T> = Required<{
-  [K in keyof T as[ResetValue] extends [T[K]] ? K : never]: null;
+  [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
 }>;
