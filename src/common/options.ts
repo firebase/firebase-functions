@@ -28,11 +28,10 @@ const RESET_VALUE_TAG = Symbol.for("firebase-functions:ResetValue:Tag");
  */
 export class ResetValue {
   /**
-   * Handle the "Dual-Package Hazard" where the CLI (CJS) loads the CJS build
-   * but user code (ESM) loads the ESM build.
+   * Handle the "Dual-Package Hazard".
    *
-   * We implement `Symbol.hasInstance` to allow the CLI to recognize ResetValue
-   * instances from the ESM build by checking for the global symbol tag.
+   * We implement custom `Symbol.hasInstance` to so CJS/ESM ResetValue instances
+   * are recognized as the same type.
    */
   static [Symbol.hasInstance](instance: unknown): boolean {
     return (instance as { [RESET_VALUE_TAG]?: boolean })?.[RESET_VALUE_TAG] === true;
@@ -45,7 +44,7 @@ export class ResetValue {
     return null;
   }
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor() { }
   public static getInstance() {
     return new ResetValue();
   }
@@ -60,5 +59,5 @@ export const RESET_VALUE = ResetValue.getInstance();
  * @internal
  */
 export type ResettableKeys<T> = Required<{
-  [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
+  [K in keyof T as[ResetValue] extends [T[K]] ? K : never]: null;
 }>;

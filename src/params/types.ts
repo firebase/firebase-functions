@@ -31,12 +31,10 @@ const EXPRESSION_TAG = Symbol.for("firebase-functions:Expression:Tag");
  */
 export abstract class Expression<T extends string | number | boolean | string[]> {
   /**
-   * Handle the "Dual-Package Hazard" where the CLI (CJS) loads the CJS build
-   * but user code (ESM) loads the ESM build. In this case, the class instances
-   * are different, so `instanceof Expression` fails.
+   * Handle the "Dual-Package Hazard" .
    *
-   * We implement `Symbol.hasInstance` to allow the CLI to recognize Expression
-   * instances from the ESM build by checking for the global symbol tag.
+   * We implement custom `Symbol.hasInstance` to so CJS/ESM Expression instances
+   * are recognized as the same type.
    */
   static [Symbol.hasInstance](instance: unknown): boolean {
     return (instance as { [EXPRESSION_TAG]?: boolean })?.[EXPRESSION_TAG] === true;

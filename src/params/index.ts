@@ -49,9 +49,10 @@ type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 
 /**
  * Use a global singleton to manage the list of declared parameters.
+ *
  * This ensures that parameters are shared between CJS and ESM builds,
- * avoiding the "dual-package hazard" where the CLI (CJS) sees an empty list
- * while the user's code (ESM) populates a different list.
+ * avoiding the "dual-package hazard" where the src/bin/firebase-functions.ts (CJS) sees
+ * an empty list while the user's code (ESM) populates a different list.
  */
 const majorVersion =
   // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
