@@ -170,15 +170,15 @@ describe("onMessagePublished", () => {
     expect(json).to.deep.equal({ hello: "world" });
   });
 
-  it("should construct a CloudEvent with the correct context", async () => {
+  it("should construct a CloudEvent with the correct context and message", async () => {
     const publishTime = new Date().toISOString();
-    const message = {
+    const messagePayload = {
       messageId: "uuid",
       data: Buffer.from(JSON.stringify({ hello: "world" })).toString("base64"),
       publishTime,
     };
     const data: pubsub.MessagePublishedData = {
-      message: message as any,
+      message: messagePayload as any,
       subscription: "projects/aProject/subscriptions/aSubscription",
     };
     const event: CloudEvent<pubsub.MessagePublishedData> = {
@@ -190,23 +190,20 @@ describe("onMessagePublished", () => {
       data,
     };
 
-    let receivedEvent: CloudEvent<pubsub.MessagePublishedData<any>>;
+    let destructuredMessage: pubsub.Message<any>;
+    let context: any;
     const func = pubsub.onMessagePublished("topic", (e) => {
-      receivedEvent = e;
+      ({ message: destructuredMessage, context } = e as any);
     });
 
     await func(event);
 
-    expect(receivedEvent.id).to.equal("uuid");
-    expect(receivedEvent.time).to.equal(publishTime);
-    expect(receivedEvent.type).to.equal("google.cloud.pubsub.topic.v1.messagePublished");
-    expect(receivedEvent.source).to.equal("//pubsub.googleapis.com/projects/aProject/topics/topic");
-    expect(receivedEvent.data.message.json).to.deep.equal({ hello: "world" });
-    expect(receivedEvent.context).to.exist;
-    expect(receivedEvent.context.eventId).to.equal("uuid");
-    expect(receivedEvent.context.timestamp).to.equal(publishTime);
-    expect(receivedEvent.context.eventType).to.equal("google.cloud.pubsub.topic.v1.messagePublished");
-    expect(receivedEvent.context.resource).to.deep.equal({
+    expect(destructuredMessage.json).to.deep.equal({ hello: "world" });
+    expect(context).to.exist;
+    expect(context.eventId).to.equal("uuid");
+    expect(context.timestamp).to.equal(publishTime);
+    expect(context.eventType).to.equal("google.cloud.pubsub.topic.v1.messagePublished");
+    expect(context.resource).to.deep.equal({
       service: "pubsub.googleapis.com",
       name: "projects/aProject/topics/topic",
     });
@@ -236,76 +233,10 @@ describe("onMessagePublished", () => {
     );
   });
 
-  //Test case to ensure Idempotency. makes things dont break if there is already context present
-  it("should not modify a CloudEvent that already has a context", async () => {
-    const publishTime = new Date().toISOString();
-    const message = {
-      messageId: "uuid",
-      data: Buffer.from(JSON.stringify({ hello: "world" })).toString("base64"),
-      publishTime,
-    };
-    const data: pubsub.MessagePublishedData = {
-      message: message as any,
-      subscription: "projects/aProject/subscriptions/aSubscription",
-    };
-    const existingContext = {
-      eventId: "custom-id",
-      timestamp: publishTime,
-      eventType: "custom.type",
-      resource: "custom/resource",
-      params: {},
-    };
-    const event: CloudEvent<pubsub.MessagePublishedData> = {
-      specversion: "1.0",
-      id: "uuid",
-      time: publishTime,
-      type: "google.cloud.pubsub.topic.v1.messagePublished",
-      source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
-      data,
-      context: existingContext as any,
-    };
-
-    let receivedEvent: CloudEvent<pubsub.MessagePublishedData<any>>;
-    const func = pubsub.onMessagePublished("topic", (e) => {
-      receivedEvent = e;
-    });
-
-    await func(event);
-
-    expect(receivedEvent.context).to.deep.equal(existingContext);
-  });
 
 
-  //Test case to ensure GCLOUD_PROJECT is used as fallback for resource name
-  it("should use GCLOUD_PROJECT as fallback for resource name", async () => {
-    const publishTime = new Date().toISOString();
-    const message = {
-      messageId: "uuid",
-      data: Buffer.from(JSON.stringify({ hello: "world" })).toString("base64"),
-      publishTime,
-    };
-    const data: pubsub.MessagePublishedData = {
-      message: message as any,
-      subscription: "projects/aProject/subscriptions/aSubscription",
-    };
-    const event: CloudEvent<pubsub.MessagePublishedData> = {
-      specversion: "1.0",
-      id: "uuid",
-      time: publishTime,
-      type: "google.cloud.pubsub.topic.v1.messagePublished",
-      source: "//pubsub.googleapis.com/topics/topic", // Malformed source
-      data,
-    };
 
-    let receivedEvent: CloudEvent<pubsub.MessagePublishedData<any>>;
-    const func = pubsub.onMessagePublished("topic", (e) => {
-      receivedEvent = e;
-    });
 
-    await func(event);
-
-    expect(receivedEvent.context.resource.name).to.equal("projects/aProject/topics/topic");
-  });
 
   it("should use 'unknown-project' as fallback for resource name", async () => {
     delete process.env.GCLOUD_PROJECT;

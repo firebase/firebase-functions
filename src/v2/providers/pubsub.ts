@@ -367,7 +367,7 @@ export function onMessagePublished<T = any>(
  */
 function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topic: string) {
   if ("context" in event && event.context) {
-    return;
+    throw new Error("Unexpected context in event.");
   }
 
   const resourceName = getResourceName(event, topic);
@@ -394,6 +394,12 @@ function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topi
     configurable: false,
 
   });
+
+  Object.defineProperty(event, "message", {
+    get: () => (event.data as MessagePublishedData<T>).message,
+    enumerable: false,
+    configurable: false,
+  });
 }
 
 /**
@@ -407,9 +413,7 @@ function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topi
  */
 function getResourceName(event: CloudEvent<MessagePublishedData<any>>, topic: string) {
   const match = event.source?.match(/projects\/([^/]+)\/topics\/([^/]+)/);
-  const project =
-    match?.[1] ?? process.env.GCLOUD_PROJECT ?? process.env.GCLOUD_PROJECT_ID ?? process.env.PROJECT_ID;
-
+  const project = match?.[1];
   const topicName = match?.[2] ?? topic;
 
   if (!project) {
