@@ -125,20 +125,12 @@ async function cleanupFunctions(codebase: string): Promise<void> {
 async function main(): Promise<void> {
   let success = false;
   try {
-    // Step 1: Generate run ID (already done)
-    // Step 2: Build and pack the SDK tarball
     await buildAndPackSDK();
-
-    // Step 3: Write firebase.json with codebase
     await writeFirebaseJson(runId);
-
     await writeEnvFile(runId);
-
-    // Step 4: Deploy functions
     await deployFunctions(runId);
-
-    // Step 5: Wait (deployment already waits)
-    // Step 6: Run tests
+    console.log("Waiting 20 seconds for deployments fully provision before running tests...");
+    await new Promise((resolve) => setTimeout(resolve, 20_000));
     await runTests(runId);
 
     success = true;

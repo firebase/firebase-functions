@@ -1,5 +1,6 @@
 import admin from "firebase-admin";
 import { GeoPoint } from "firebase-admin/firestore";
+import { logger } from "firebase-functions";
 
 const adminApp = admin.initializeApp({ projectId: "cf3-integration-tests-v2-qa" });
 export const firestore = adminApp.firestore();
@@ -12,7 +13,10 @@ export function serializeData(data: any): any {
   }
 
   if (typeof data === "function") {
-    return serializeData(data());
+    logger.debug("serializeData function", data);
+    const result = serializeData(data());
+    logger.debug("serializeData function result", result);
+    return result;
   }
 
   // Handle Date objects
@@ -26,6 +30,34 @@ export function serializeData(data: any): any {
       latitude: data.latitude,
       longitude: data.longitude,
     };
+  }
+
+  // Handle Firestore DocumentReference (check for path, id, and firestore properties)
+  if (
+    data &&
+    typeof data === "object" &&
+    "path" in data &&
+    "id" in data &&
+    "firestore" in data &&
+    typeof (data as any).path === "string"
+  ) {
+    const ref = data as { path: string; id: string };
+    // Only serialize if path is non-empty to avoid the error
+    if (ref.path) {
+      return {
+        _type: "reference",
+        path: ref.path,
+        id: ref.id,
+      };
+    } else {
+      // If path is empty, return a safe representation
+      logger.warn("DocumentReference with empty path detected", { id: ref.id });
+      return {
+        _type: "reference",
+        path: "",
+        id: ref.id || "",
+      };
+    }
   }
 
   // Handle Firestore Timestamp (check for toDate method and seconds property)
@@ -56,24 +88,16 @@ export function serializeData(data: any): any {
 
   // Handle arrays (must check before plain objects since arrays are objects)
   if (Array.isArray(data)) {
-    return data.map((item) => serializeData(item));
+    return data.map(serializeData);
   }
 
-  // Handle objects with toJSON method (like Firestore types)
-  if (
-    data &&
-    typeof data === "object" &&
-    "toJSON" in data &&
-    typeof (data as any).toJSON === "function"
-  ) {
-    return serializeData((data as any).toJSON());
+  if (typeof data === "object") {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(data)) {
+      result[key] = serializeData(value);
+    }
+    return result;
   }
 
-  // Handle plain objects
-  const entries = Object.entries(data);
-  const result: Record<string, unknown> = {};
-  for (const [key, value] of entries) {
-    result[key] = serializeData(value);
-  }
-  return result;
+  return data;
 }

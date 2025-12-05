@@ -1,6 +1,7 @@
 import { describe, it, beforeAll, expect } from "vitest";
 import { firestore } from "./utils";
 import { GeoPoint } from "firebase-admin/firestore";
+import { expectCloudEvent, expectFirestoreEvent } from "./assertions";
 const RUN_ID = String(process.env.RUN_ID);
 
 function waitForEvent<T = unknown>(
@@ -11,14 +12,16 @@ function waitForEvent<T = unknown>(
   return new Promise<T>((resolve, reject) => {
     let timer: NodeJS.Timeout | null = null;
 
-    const unsubscribe = firestore.collection(`${RUN_ID}_snapshots`).doc(event).onSnapshot(snapshot => {
-      if (snapshot.exists) {
-        console.log("snapshot", snapshot.data());
-        if (timer) clearTimeout(timer);
-        unsubscribe();
-        resolve(snapshot.data() as T);
-      }
-    });
+    const unsubscribe = firestore
+      .collection(RUN_ID)
+      .doc(event)
+      .onSnapshot((snapshot) => {
+        if (snapshot.exists) {
+          if (timer) clearTimeout(timer);
+          unsubscribe();
+          resolve(snapshot.data() as T);
+        }
+      });
 
     timer = setTimeout(() => {
       unsubscribe();
@@ -32,41 +35,29 @@ function waitForEvent<T = unknown>(
 describe("firestore.v2", () => {
   describe("onDocumentCreated", () => {
     let data: any;
+    let documentId: string;
 
     beforeAll(async () => {
       data = await waitForEvent("onDocumentCreated", async () => {
-        console.log("triggering event", RUN_ID);
         await firestore
-          .collection(RUN_ID)
-          .doc("onDocumentCreated")
-          .set({
+          .collection(`integration_test/${RUN_ID}/onDocumentCreated`)
+          .add({
             foo: "bar",
             timestamp: new Date(),
             geopoint: new GeoPoint(10, 20),
-          }).then(() => {
-            console.log("event triggered", RUN_ID);
+          })
+          .then((doc) => {
+            documentId = doc.id;
           });
       });
-      console.log("data", data);
     });
 
     it("should be a CloudEvent", () => {
-      expect(data.specversion).toBe("1.0");
-      expect(data.id).toBeDefined();
-      expect(data.source).toBeDefined();
-      expect(data.subject).toBeDefined();
-      expect(data.type).toBeDefined();
-      expect(data.time).toBeDefined(); // check its an iosdate
+      expectCloudEvent(data);
     });
 
     it("should be a FirestoreEvent", () => {
-      expect(data.location).toBeDefined();
-      expect(data.project).toBeDefined();
-      expect(data.database).toBeDefined();
-      expect(data.namespace).toBeDefined();
-      expect(data.document).toBeDefined();
-      expect(data.params).toBeDefined();
-      expect(data.params.documentId).toBe("onDocumentCreated");
+      expectFirestoreEvent(data, documentId);
     });
 
     it("should be a QueryDocumentSnapshot", () => {
