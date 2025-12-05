@@ -20,12 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import cors from "cors";
+import express from "express";
+import { json } from "body-parser";
+import { GraphQLResolveInfo } from "graphql";
+import { HttpsFunction, onRequest } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
 import { ParamsOf, VarName } from "../../common/params";
 import {
   EventHandlerOptions,
   getGlobalOptions,
   optionsToEndpoint,
+  setGlobalOptions,
   SupportedRegion,
 } from "../options";
 import { normalizePath } from "../../common/utilities/path";
@@ -367,4 +373,94 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
   );
 
   return func;
+}
+
+/**
+ * Handles HTTPS GraphQL requests.
+ * @param {GraphqlServerOptions} opts - Options for configuring the GraphQL server.
+ * @returns {HttpsFunction} A function you can export and deploy.
+ */
+export async function onGraphRequest(opts: GraphqlServerOptions): Promise<HttpsFunction> {
+  setGlobalOptions({
+    invoker: "<FDC-P4SA>@developer.gserviceaccount.com",
+  });
+
+  if (
+    (await import("@apollo/server").then((mod) => !!mod)) &&
+    (await import("@as-integrations/express4").then((mod) => !!mod))
+  ) {
+    const { ApolloServer } = await import("@apollo/server");
+    const { expressMiddleware } = await import("@as-integrations/express4");
+    const serverPromise = (async () => {
+      const app = express();
+      const server = new ApolloServer({
+        typeDefs: opts.schema,
+        resolvers: { Query: opts.resolvers.query, Mutation: opts.resolvers.mutation },
+      });
+
+      await server.start();
+
+      app.use("/graphql", cors(), json(), expressMiddleware(server));
+      return app;
+    })();
+    // Exports a function running a GraphQL server at the URL
+    // https://functionName-<PROJECT_NUMBER>.<REGION>.run.app/graphql
+    return onRequest(async (req, res) => {
+      const app = await serverPromise;
+      app(req, res);
+    });
+  } else {
+    // Handle case where optional-package is not available
+    console.warn("Optional feature requires 'optional-package'.");
+  }
+}
+
+/** Options for configuring the GraphQL server. */
+export interface GraphqlServerOptions {
+  /**
+   * A valid SDL string that represents the GraphQL server's schema.
+   * Either `schema` or `schemaFilePath` is required.
+   */
+  schema: string;
+  /**
+   * A file path to a valid GraphQL schema.
+   * Either `schema` or `schemaFilePath` is required.
+   */
+  schemaFilePath: string;
+  /**
+   * The path where the GraphQL server will be served on the Cloud Run function.
+   * If no path is provided, the server will be served at `/graphql`.
+   */
+  path: string;
+  /** A map of functions that populate data for individual GraphQL schema fields. */
+  resolvers: GraphqlResolvers;
+}
+
+/** Per-request context state shared by all resolvers in a particular query. */
+export interface FirebaseContext {
+  auth?: {
+    /** The UID of the Firebase user that made the request, if present. */
+    uid: string;
+    /** The token attached to the `X-Firebase-Auth-Token` in the request, if present. */
+    token: string;
+  };
+}
+
+export interface GraphqlResolvers {
+  query: {
+    [resolver: string]: (
+      parent: unknown,
+      args: Record<string, unknown>,
+      context: FirebaseContext,
+      info: GraphQLResolveInfo
+    ) => unknown;
+  };
+  mutation: {
+    [key: string]: (
+      parent: unknown,
+      args: Record<string, unknown>,
+      context: FirebaseContext,
+      info: GraphQLResolveInfo
+    ) => unknown;
+  };
 }
