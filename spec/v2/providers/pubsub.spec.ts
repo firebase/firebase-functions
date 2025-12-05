@@ -170,6 +170,45 @@ describe("onMessagePublished", () => {
     expect(json).to.deep.equal({ hello: "world" });
   });
 
+  it("should construct a CloudEvent with the correct context and message", async () => {
+    const publishTime = new Date().toISOString();
+    const messagePayload = {
+      messageId: "uuid",
+      data: Buffer.from(JSON.stringify({ hello: "world" })).toString("base64"),
+      publishTime,
+    };
+    const data: pubsub.MessagePublishedData = {
+      message: messagePayload as any,
+      subscription: "projects/aProject/subscriptions/aSubscription",
+    };
+    const event: CloudEvent<pubsub.MessagePublishedData> = {
+      specversion: "1.0",
+      id: "uuid",
+      time: publishTime,
+      type: "google.cloud.pubsub.topic.v1.messagePublished",
+      source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+      data,
+    };
+
+    let destructuredMessage: pubsub.Message<any>;
+    let context: any;
+    const func = pubsub.onMessagePublished("topic", (e) => {
+      ({ message: destructuredMessage, context } = e as any);
+    });
+
+    await func(event);
+
+    expect(destructuredMessage.json).to.deep.equal({ hello: "world" });
+    expect(context).to.exist;
+    expect(context.eventId).to.equal("uuid");
+    expect(context.timestamp).to.equal(publishTime);
+    expect(context.eventType).to.equal("google.cloud.pubsub.topic.v1.messagePublished");
+    expect(context.resource).to.deep.equal({
+      service: "pubsub.googleapis.com",
+      name: "projects/aProject/topics/topic",
+    });
+  });
+
   // These tests pass if the transpiler works
   it("allows desirable syntax", () => {
     pubsub.onMessagePublished<string>(
@@ -192,5 +231,41 @@ describe("onMessagePublished", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
     );
+  });
+
+
+
+
+
+
+  it("should use 'unknown-project' as fallback for resource name", async () => {
+    delete process.env.GCLOUD_PROJECT;
+    const publishTime = new Date().toISOString();
+    const message = {
+      messageId: "uuid",
+      data: Buffer.from(JSON.stringify({ hello: "world" })).toString("base64"),
+      publishTime,
+    };
+    const data: pubsub.MessagePublishedData = {
+      message: message as any,
+      subscription: "projects/aProject/subscriptions/aSubscription",
+    };
+    const event: CloudEvent<pubsub.MessagePublishedData> = {
+      specversion: "1.0",
+      id: "uuid",
+      time: publishTime,
+      type: "google.cloud.pubsub.topic.v1.messagePublished",
+      source: "//pubsub.googleapis.com/topics/topic", // Malformed source
+      data,
+    };
+
+    let receivedEvent: CloudEvent<pubsub.MessagePublishedData<any>>;
+    const func = pubsub.onMessagePublished("topic", (e) => {
+      receivedEvent = e;
+    });
+
+    await func(event);
+
+    expect(receivedEvent.context.resource.name).to.equal("projects/unknown-project/topics/topic");
   });
 });
