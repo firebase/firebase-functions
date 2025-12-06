@@ -385,10 +385,7 @@ export async function onGraphRequest(opts: GraphqlServerOptions): Promise<HttpsF
     invoker: "<FDC-P4SA>@developer.gserviceaccount.com",
   });
 
-  if (
-    (await import("@apollo/server").then((mod) => !!mod)) &&
-    (await import("@as-integrations/express4").then((mod) => !!mod))
-  ) {
+  try {
     const { ApolloServer } = await import("@apollo/server");
     const { expressMiddleware } = await import("@as-integrations/express4");
     const serverPromise = (async () => {
@@ -409,9 +406,11 @@ export async function onGraphRequest(opts: GraphqlServerOptions): Promise<HttpsF
       const app = await serverPromise;
       app(req, res);
     });
-  } else {
-    // Handle case where optional-package is not available
-    console.warn("Optional feature requires 'optional-package'.");
+  } catch (e) {
+    throw new Error(
+      "'@apollo/server' and '@as-integrations/express4' are required to use for 'onGraphRequest'. Please add these dependencies to your project to use this feature: " +
+        e
+    );
   }
 }
 
@@ -421,17 +420,17 @@ export interface GraphqlServerOptions {
    * A valid SDL string that represents the GraphQL server's schema.
    * Either `schema` or `schemaFilePath` is required.
    */
-  schema: string;
+  schema?: string;
   /**
    * A file path to a valid GraphQL schema.
    * Either `schema` or `schemaFilePath` is required.
    */
-  schemaFilePath: string;
+  schemaFilePath?: string;
   /**
    * The path where the GraphQL server will be served on the Cloud Run function.
    * If no path is provided, the server will be served at `/graphql`.
    */
-  path: string;
+  path?: string;
   /** A map of functions that populate data for individual GraphQL schema fields. */
   resolvers: GraphqlResolvers;
 }
@@ -440,14 +439,14 @@ export interface GraphqlServerOptions {
 export interface FirebaseContext {
   auth?: {
     /** The UID of the Firebase user that made the request, if present. */
-    uid: string;
+    uid?: string;
     /** The token attached to the `X-Firebase-Auth-Token` in the request, if present. */
-    token: string;
+    token?: string;
   };
 }
 
 export interface GraphqlResolvers {
-  query: {
+  query?: {
     [resolver: string]: (
       parent: unknown,
       args: Record<string, unknown>,
@@ -455,7 +454,7 @@ export interface GraphqlResolvers {
       info: GraphQLResolveInfo
     ) => unknown;
   };
-  mutation: {
+  mutation?: {
     [key: string]: (
       parent: unknown,
       args: Record<string, unknown>,
