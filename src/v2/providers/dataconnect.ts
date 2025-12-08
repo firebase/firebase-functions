@@ -31,7 +31,6 @@ import {
   EventHandlerOptions,
   getGlobalOptions,
   optionsToEndpoint,
-  setGlobalOptions,
   SupportedRegion,
 } from "../options";
 import { normalizePath } from "../../common/utilities/path";
@@ -381,34 +380,27 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
  * @returns {HttpsFunction} A function you can export and deploy.
  */
 export async function onGraphRequest(opts: GraphqlServerOptions): Promise<HttpsFunction> {
-  setGlobalOptions({
-    invoker: "<FDC-P4SA>@developer.gserviceaccount.com",
-  });
-
   try {
     const { ApolloServer } = await import("@apollo/server");
     const { expressMiddleware } = await import("@as-integrations/express4");
     const serverPromise = (async () => {
       const app = express();
       const server = new ApolloServer({
+        // TODO: Support loading schema from file path.
         typeDefs: opts.schema,
         resolvers: { Query: opts.resolvers.query, Mutation: opts.resolvers.mutation },
       });
-
       await server.start();
-
-      app.use("/graphql", cors(), json(), expressMiddleware(server));
+      app.use(`/${opts.path ?? "graphql"}`, cors(), json(), expressMiddleware(server));
       return app;
     })();
-    // Exports a function running a GraphQL server at the URL
-    // https://functionName-<PROJECT_NUMBER>.<REGION>.run.app/graphql
     return onRequest(async (req, res) => {
       const app = await serverPromise;
       app(req, res);
     });
   } catch (e) {
     throw new Error(
-      "'@apollo/server' and '@as-integrations/express4' are required to use for 'onGraphRequest'. Please add these dependencies to your project to use this feature: " +
+      "'@apollo/server' and '@as-integrations/express4' are required to use 'onGraphRequest'. Please add these dependencies to your project to use this feature: " +
         e
     );
   }
