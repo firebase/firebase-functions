@@ -22,7 +22,6 @@
 
 import cors from "cors";
 import express from "express";
-import { json } from "body-parser";
 import { GraphQLResolveInfo } from "graphql";
 import { HttpsFunction, onRequest } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
@@ -374,36 +373,53 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
   return func;
 }
 
-/**
- * Handles HTTPS GraphQL requests.
- * @param {GraphqlServerOptions} opts - Options for configuring the GraphQL server.
- * @returns {HttpsFunction} A function you can export and deploy.
- */
-export async function onGraphRequest(opts: GraphqlServerOptions): Promise<HttpsFunction> {
+async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
   try {
     const { ApolloServer } = await import("@apollo/server");
     const { expressMiddleware } = await import("@as-integrations/express4");
+    if (!opts.resolvers.query && !opts.resolvers.mutation) {
+      throw new Error("At least one query or mutation resolver must be provided.");
+    }
+    const apolloResolvers: { [key: string]: any } = {};
+    if (opts.resolvers.query) {
+      apolloResolvers.Query = opts.resolvers.query;
+    }
+    if (opts.resolvers.mutation) {
+      apolloResolvers.Mutation = opts.resolvers.mutation;
+    }
     const serverPromise = (async () => {
       const app = express();
       const server = new ApolloServer({
         // TODO: Support loading schema from file path.
         typeDefs: opts.schema,
-        resolvers: { Query: opts.resolvers.query, Mutation: opts.resolvers.mutation },
+        resolvers: apolloResolvers,
       });
       await server.start();
-      app.use(`/${opts.path ?? "graphql"}`, cors(), json(), expressMiddleware(server));
+      app.use(`/${opts.path ?? "graphql"}`, cors(), express.json(), expressMiddleware(server));
       return app;
     })();
-    return onRequest(async (req, res) => {
-      const app = await serverPromise;
-      app(req, res);
-    });
+    return serverPromise;
   } catch (e) {
     throw new Error(
       "'@apollo/server' and '@as-integrations/express4' are required to use 'onGraphRequest'. Please add these dependencies to your project to use this feature: " +
         e
     );
   }
+}
+
+let serverPromise: Promise<express.Express> | null = null;
+
+/**
+ * Handles HTTPS GraphQL requests.
+ * @param {GraphqlServerOptions} opts - Options for configuring the GraphQL server.
+ * @returns {HttpsFunction} A function you can export and deploy.
+ */
+export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
+  return onRequest(async (req, res) => {
+    serverPromise = serverPromise ?? initGraphqlServer(opts);
+    const app = await serverPromise;
+    app(req, res);
+  });
 }
 
 /** Options for configuring the GraphQL server. */
