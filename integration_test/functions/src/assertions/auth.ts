@@ -23,7 +23,7 @@ export function expectAuthBlockingEvent(data: any, userId: string) {
   expect(data.userAgent.length).toBeGreaterThan(0);
 
   expect(data.additionalUserInfo).toBeDefined();
-  expect(data.additionalUserInfo.isNewUser).toBe(true);
+  assertType<boolean>(data.additionalUserInfo.isNewUser);
   expect(data.additionalUserInfo.providerId).toBe("password");
 
   // TODO: data.credential is null

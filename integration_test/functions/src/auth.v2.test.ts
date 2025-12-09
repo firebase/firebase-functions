@@ -49,14 +49,12 @@ describe("auth.v2", () => {
     let password: string;
 
     beforeAll(async () => {
-      // First create a user via REST API
+      // First create a user (required before sign-in)
       email = `signin-${Date.now()}@example.com`;
       password = "testPassword123!";
       userId = await createUserWithEmailAndPassword(authClient, email, password).then(
         (credential) => credential.user.uid
       );
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       data = await waitForEvent("beforeUserSignedIn", async () => {
         await signInWithEmailAndPassword(authClient, email, password);

@@ -1,5 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFunctions } from "firebase/functions";
 
 export const app = initializeApp({
   apiKey: "AIzaSyBBt77mpu6TV0IA2tcNSyf4OltsVu_Z1Zw",
@@ -12,3 +13,4 @@ export const app = initializeApp({
 });
 
 export const auth = getAuth(app);
+export const functions = getFunctions(app);
