@@ -15,6 +15,7 @@
   "main": "lib/index.js",
   "dependencies": {
     "@google-cloud/pubsub": "^5.2.0",
+    "firebase": "^12.6.0",
     "firebase-admin": "^12.6.0",
     "firebase-functions": "file:firebase-functions-local.tgz"
   },

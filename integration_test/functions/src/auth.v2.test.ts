@@ -1,0 +1,87 @@
+import { describe, it, beforeAll, afterAll, expect } from "vitest";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, waitForEvent } from "./utils";
+import { expectAuthBlockingEvent } from "./assertions/auth";
+import { auth as authClient } from "./client";
+
+describe("auth.v2", () => {
+  describe("beforeUserCreated", () => {
+    let data: any;
+    let userId: string;
+    let email: string;
+
+    beforeAll(async () => {
+      data = await waitForEvent("beforeUserCreated", async () => {
+        email = `test-${Date.now()}@example.com`;
+        const password = "testPassword123!";
+        userId = await createUserWithEmailAndPassword(authClient, email, password).then(
+          (credential) => credential.user.uid
+        );
+      });
+    }, 60_000);
+
+    afterAll(async () => {
+      // Clean up: delete the test user
+      if (userId) {
+        try {
+          await auth.deleteUser(userId);
+        } catch (error) {
+          // Ignore errors if user was already deleted
+        }
+      }
+
+      await signOut(authClient);
+    });
+
+    it("should be an AuthBlockingEvent", () => {
+      expectAuthBlockingEvent(data, userId);
+    });
+
+    it("should have the correct event type", () => {
+      expect(data.eventType).toBe("providers/cloud.auth/eventTypes/user.beforeCreate:password");
+    });
+  });
+
+  describe("beforeUserSignedIn", () => {
+    let data: any;
+    let userId: string;
+    let email: string;
+    let password: string;
+
+    beforeAll(async () => {
+      // First create a user via REST API
+      email = `signin-${Date.now()}@example.com`;
+      password = "testPassword123!";
+      userId = await createUserWithEmailAndPassword(authClient, email, password).then(
+        (credential) => credential.user.uid
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      data = await waitForEvent("beforeUserSignedIn", async () => {
+        await signInWithEmailAndPassword(authClient, email, password);
+      });
+    }, 60_000);
+
+    afterAll(async () => {
+      // Clean up: delete the test user
+      if (userId) {
+        try {
+          await auth.deleteUser(userId);
+        } catch (error) {
+          // Ignore errors if user was already deleted
+        }
+      }
+
+      await signOut(authClient);
+    });
+
+    it("should be an AuthBlockingEvent", () => {
+      expectAuthBlockingEvent(data, userId);
+    });
+
+    it("should have the correct event type", () => {
+      expect(data.eventType).toBe("providers/cloud.auth/eventTypes/user.beforeSignIn:password");
+    });
+  });
+});

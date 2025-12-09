@@ -1,19 +1,16 @@
 import { DocumentData, DocumentReference, DocumentSnapshot, GeoPoint, QuerySnapshot, Timestamp } from "firebase-admin/firestore";
-import { CloudEvent } from "firebase-functions";
-import { FirestoreEvent, QueryDocumentSnapshot } from "firebase-functions/firestore";
+import { Change, FirestoreAuthEvent, FirestoreEvent, QueryDocumentSnapshot } from "firebase-functions/firestore";
+import { serializeCloudEvent } from "./index";
 
-export function serializeCloudEvent(event: CloudEvent<unknown>): any {
+export function serializeFirestoreAuthEvent(event: FirestoreAuthEvent<unknown>, eventData: any): any {
   return {
-    specversion: event.specversion,
-    id: event.id,
-    source: event.source,
-    subject: event.subject,
-    type: event.type,
-    time: event.time,
+    ...serializeFirestoreEvent(event, eventData),
+    authId: event.authId,
+    authType: event.authType,
   };
 }
 
-export function serializeFirestoreEvent(event: FirestoreEvent<unknown>, data: any): any {
+export function serializeFirestoreEvent(event: FirestoreEvent<unknown>, eventData: any): any {
   return {
     ...serializeCloudEvent(event),
     location: event.location,
@@ -22,13 +19,20 @@ export function serializeFirestoreEvent(event: FirestoreEvent<unknown>, data: an
     namespace: event.namespace,
     document: event.document,
     params: event.params,
-    data,
+    eventData,
   };
 }
 
 export function serializeQuerySnapshot(snapshot: QuerySnapshot): any {
   return {
     docs: snapshot.docs.map(serializeQueryDocumentSnapshot),
+  };
+}
+
+export function serializeChangeEvent(event: Change<QueryDocumentSnapshot>): any {
+  return {
+    before: serializeQueryDocumentSnapshot(event.before),
+    after: serializeQueryDocumentSnapshot(event.after),
   };
 }
 

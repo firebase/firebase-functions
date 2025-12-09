@@ -2,10 +2,49 @@ import admin from "firebase-admin";
 import { GeoPoint } from "firebase-admin/firestore";
 import { logger } from "firebase-functions";
 
-const adminApp = admin.initializeApp({ projectId: "cf3-integration-tests-v2-qa" });
+const adminApp = admin.initializeApp({
+  projectId: "cf3-integration-tests-v2-qa",
+  databaseURL: "https://cf3-integration-tests-v2-qa-default-rtdb.firebaseio.com",
+  
+});
 export const firestore = adminApp.firestore();
+firestore.settings({ ignoreUndefinedProperties: true });
+export const database = adminApp.database();
+export const auth = adminApp.auth();
 
 export const RUN_ID = String(process.env.RUN_ID);
+
+export async function sendEvent(event: string, data: any): Promise<void> {
+  await firestore.collection(RUN_ID).doc(event).set(data);
+}
+
+export function waitForEvent<T = unknown>(
+  event: string,
+  trigger: () => Promise<void>,
+  timeoutMs: number = 60_000
+): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    let timer: NodeJS.Timeout | null = null;
+
+    const unsubscribe = firestore
+      .collection(RUN_ID)
+      .doc(event)
+      .onSnapshot((snapshot) => {
+        if (snapshot.exists) {
+          if (timer) clearTimeout(timer);
+          unsubscribe();
+          resolve(snapshot.data() as T);
+        }
+      });
+
+    timer = setTimeout(() => {
+      unsubscribe();
+      reject(new Error(`Timeout waiting for event "${event}" after ${timeoutMs}ms`));
+    }, timeoutMs);
+
+    trigger().then().catch(reject);
+  });
+}
 
 export function serializeData(data: any): any {
   if (data === null || data === undefined) {
