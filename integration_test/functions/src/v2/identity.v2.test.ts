@@ -1,10 +1,11 @@
 import { describe, it, beforeAll, afterAll, expect } from "vitest";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { auth, waitForEvent } from "./utils";
-import { expectAuthBlockingEvent } from "./assertions/auth";
-import { auth as authClient } from "./client";
+import { waitForEvent } from "../utils";
+import { expectAuthBlockingEvent } from "../assertions/identity";
+import { auth } from "../firebase.server";
+import { auth as authClient } from "../firebase.client";
 
-describe("auth.v2", () => {
+describe("identity.v2", () => {
   describe("beforeUserCreated", () => {
     let data: any;
     let userId: string;

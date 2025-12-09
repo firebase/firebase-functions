@@ -15,6 +15,8 @@
   "main": "lib/index.js",
   "dependencies": {
     "@google-cloud/pubsub": "^5.2.0",
+    "@google-cloud/scheduler": "^5.3.1",
+    "@google-cloud/tasks": "^6.2.1",
     "firebase": "^12.6.0",
     "firebase-admin": "^12.6.0",
     "firebase-functions": "file:firebase-functions-local.tgz",

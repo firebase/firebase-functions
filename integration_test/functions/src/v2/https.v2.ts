@@ -1,5 +1,5 @@
 import { onCall, onRequest } from "firebase-functions/v2/https";
-import { sendEvent } from "./utils";
+import { sendEvent } from "../utils";
 
 export const httpsOnCallTrigger = onCall(
   {

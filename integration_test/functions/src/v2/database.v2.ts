@@ -1,9 +1,9 @@
-import { sendEvent } from "./utils";
+import { sendEvent } from "../utils";
 import {
   serializeChangeEvent,
   serializeDatabaseEvent,
   serializeDataSnapshot,
-} from "./serializers/database";
+} from "../serializers/database";
 import { onValueCreated, onValueDeleted, onValueUpdated } from "firebase-functions/database";
 
 export const databaseOnValueCreated = onValueCreated(

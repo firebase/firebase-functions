@@ -1,5 +1,6 @@
 import { describe, it, beforeAll, expect } from "vitest";
-import { firestore, waitForEvent, RUN_ID } from "./utils";
+import { waitForEvent, RUN_ID } from "../utils";
+import { firestore } from "../firebase.server";
 import { GeoPoint } from "firebase-admin/firestore";
 import {
   expectCloudEvent,
@@ -8,7 +9,7 @@ import {
   expectGeoPoint,
   expectQueryDocumentSnapshot,
   expectTimestamp,
-} from "./assertions/firestore";
+} from "../assertions/firestore";
 
 describe("firestore.v2", () => {
   describe("onDocumentCreated", () => {

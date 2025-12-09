@@ -8,9 +8,14 @@ export function expectCloudEvent(data: any) {
   expect(data.source).toBeDefined();
   assertType<string>(data.source);
   expect(data.source.length).toBeGreaterThan(0);
-  expect(data.subject).toBeDefined();
-  assertType<string>(data.subject);
-  expect(data.subject.length).toBeGreaterThan(0);
+
+  // Subject is optional (e.g. pubsub)
+  if ("subject" in data) {
+    expect(data.subject).toBeDefined();
+    assertType<string>(data.subject);
+    expect(data.subject.length).toBeGreaterThan(0);
+  }
+
   expect(data.type).toBeDefined();
   assertType<string>(data.type);
   expect(data.type.length).toBeGreaterThan(0);

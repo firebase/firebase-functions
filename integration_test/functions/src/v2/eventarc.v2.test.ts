@@ -1,7 +1,7 @@
 import { describe, it, beforeAll, expect } from "vitest";
 import { getEventarc } from "firebase-admin/eventarc";
-import { RUN_ID, waitForEvent } from "./utils";
-import { expectCloudEvent } from "./assertions";
+import { RUN_ID, waitForEvent } from "../utils";
+import { expectCloudEvent } from "../assertions";
 
 const eventarc = getEventarc();
 const channel = eventarc.channel();

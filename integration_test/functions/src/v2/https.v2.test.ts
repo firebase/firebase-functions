@@ -1,8 +1,8 @@
 import { describe, it, beforeAll, expect } from "vitest";
 import { fetch } from "undici";
-import { waitForEvent } from "./utils";
+import { waitForEvent } from "../utils";
 import { httpsCallable } from "firebase/functions";
-import { functions } from "./client";
+import { functions } from "../firebase.client";
 
 describe("https.v2", () => {
   describe("httpsOnCallTrigger", () => {
@@ -48,7 +48,6 @@ describe("https.v2", () => {
 
     beforeAll(async () => {
       data = await waitForEvent("httpsOnRequest", async () => {
-        console.log("Fetching...");
         const response = await fetch(
           "https://us-central1-cf3-integration-tests-v2-qa.cloudfunctions.net/httpsOnRequestTrigger",
           {
@@ -60,12 +59,8 @@ describe("https.v2", () => {
           }
         );
 
-        console.log("Response:", response);
-
         status = response.status;
-        console.log("Status:", status);
         body = await response.text();
-        console.log("Body:", body);
       });
     }, 60_000);
 

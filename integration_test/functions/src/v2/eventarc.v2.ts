@@ -1,6 +1,6 @@
 import { onCustomEventPublished } from "firebase-functions/eventarc";
-import { sendEvent } from "./utils";
-import { serializeCloudEvent } from "./serializers";
+import { sendEvent } from "../utils";
+import { serializeCloudEvent } from "../serializers";
 
 export const eventarcOnCustomEventPublishedTrigger = onCustomEventPublished(
   {

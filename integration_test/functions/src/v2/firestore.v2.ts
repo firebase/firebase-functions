@@ -6,13 +6,13 @@ import {
   onDocumentUpdated,
   onDocumentUpdatedWithAuthContext,
 } from "firebase-functions/v2/firestore";
-import { sendEvent } from "./utils";
+import { sendEvent } from "../utils";
 import {
   serializeChangeEvent,
   serializeFirestoreAuthEvent,
   serializeFirestoreEvent,
   serializeQueryDocumentSnapshot,
-} from "./serializers/firestore";
+} from "../serializers/firestore";
 
 export const firestoreOnDocumentCreatedTrigger = onDocumentCreated(
   `integration_test/{runId}/onDocumentCreated/{documentId}`,
