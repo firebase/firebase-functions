@@ -38,7 +38,7 @@ function loadDebugFeatures(): DebugFeatures {
       return {};
     }
     return obj as DebugFeatures;
-  } catch (e) {
+  } catch (_e) {
     return {};
   }
 }

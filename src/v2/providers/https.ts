@@ -26,29 +26,31 @@
  */
 
 import cors from "cors";
-import express from "express";
-import { isDebugFeatureEnabled } from "../../common/debug";
+import * as express from "express";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
-import { withInit } from "../../common/onInit";
+import { wrapTraceContext } from "../trace";
+import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
-  AuthData,
-  CallableRequest,
-  CallableResponse,
-  FunctionsErrorCode,
+  type CallableRequest,
+  type CallableResponse,
+  type FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  Request,
+  withErrorHandler,
+  type Request,
+  type AuthData,
 } from "../../common/providers/https";
-import * as logger from "../../logger";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
+import { GlobalOptions, SupportedRegion } from "../options";
 import { Expression } from "../../params";
 import { SecretParam } from "../../params/types";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
-import { GlobalOptions, SupportedRegion } from "../options";
-import { wrapTraceContext } from "../trace";
+import { withInit } from "../../common/onInit";
+import * as logger from "../../logger";
 
-export { CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError, Request };
+export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
+export { HttpsError };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
@@ -318,6 +320,8 @@ export function onRequest(
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
+
+  handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;

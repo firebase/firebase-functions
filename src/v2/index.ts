@@ -28,7 +28,6 @@
  * @packageDocumentation
  */
 
-import * as logger from "../logger";
 import * as alerts from "./providers/alerts";
 import * as database from "./providers/database";
 import * as eventarc from "./providers/eventarc";
@@ -41,6 +40,7 @@ import * as tasks from "./providers/tasks";
 import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
 import * as firestore from "./providers/firestore";
+import * as dataconnect from "./providers/dataconnect";
 
 export {
   alerts,
@@ -49,17 +49,18 @@ export {
   https,
   identity,
   pubsub,
-  logger,
   tasks,
   eventarc,
   scheduler,
   remoteConfig,
   testLab,
   firestore,
+  dataconnect,
 };
 
-export {
-  setGlobalOptions,
+export { logger } from "../logger";
+export { setGlobalOptions } from "./options";
+export type {
   GlobalOptions,
   SupportedRegion,
   MemoryOption,
@@ -68,7 +69,8 @@ export {
   EventHandlerOptions,
 } from "./options";
 
-export { CloudFunction, CloudEvent, ParamsOf, onInit } from "./core";
+export { onInit } from "./core";
+export type { CloudFunction, CloudEvent, ParamsOf } from "./core";
 export { Change } from "../common/change";
 export { traceContext } from "../common/trace";
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.

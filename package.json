@@ -1,6 +1,6 @@
 {
   "name": "firebase-functions",
-  "version": "6.4.0",
+  "version": "7.0.1",
   "description": "Firebase SDK for Cloud Functions",
   "keywords": [
     "firebase",
@@ -19,6 +19,7 @@
   "license": "MIT",
   "author": "Firebase Team",
   "files": [
+    ".guides",
     "lib",
     "protos"
   ],
@@ -27,73 +28,295 @@
     "firebase-functions": "./lib/bin/firebase-functions.js"
   },
   "types": "lib/v2/index.d.ts",
+  "sideEffects": [
+    "./lib/logger/compat.js",
+    "./lib/esm/logger/compat.mjs"
+  ],
   "exports": {
-    "./logger/compat": "./lib/logger/compat.js",
-    "./logger": "./lib/logger/index.js",
-    "./params": "./lib/params/index.js",
-    "./v1": "./lib/v1/index.js",
-    "./v1/analytics": "./lib/v1/providers/analytics.js",
-    "./v1/auth": "./lib/v1/providers/auth.js",
-    "./v1/database": "./lib/v1/providers/database.js",
-    "./v1/firestore": "./lib/v1/providers/firestore.js",
-    "./v1/https": "./lib/v1/providers/https.js",
-    "./v1/pubsub": "./lib/v1/providers/pubsub.js",
-    "./v1/remoteConfig": "./lib/v1/providers/remoteConfig.js",
-    "./v1/storage": "./lib/v1/providers/storage.js",
-    "./v1/tasks": "./lib/v1/providers/tasks.js",
-    "./v1/testLab": "./lib/v1/providers/testLab.js",
-    ".": "./lib/v2/index.js",
-    "./core": "./lib/v2/core.js",
-    "./options": "./lib/v2/options.js",
-    "./https": "./lib/v2/providers/https.js",
-    "./pubsub": "./lib/v2/providers/pubsub.js",
-    "./storage": "./lib/v2/providers/storage.js",
-    "./tasks": "./lib/v2/providers/tasks.js",
-    "./alerts": "./lib/v2/providers/alerts/index.js",
-    "./alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
-    "./alerts/billing": "./lib/v2/providers/alerts/billing.js",
-    "./alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
-    "./alerts/performance": "./lib/v2/providers/alerts/performance.js",
-    "./eventarc": "./lib/v2/providers/eventarc.js",
-    "./identity": "./lib/v2/providers/identity.js",
-    "./database": "./lib/v2/providers/database.js",
-    "./scheduler": "./lib/v2/providers/scheduler.js",
-    "./remoteConfig": "./lib/v2/providers/remoteConfig.js",
-    "./testLab": "./lib/v2/providers/testLab.js",
-    "./firestore": "./lib/v2/providers/firestore.js",
-    "./v2": "./lib/v2/index.js",
-    "./v2/core": "./lib/v2/core.js",
-    "./v2/options": "./lib/v2/options.js",
-    "./v2/https": "./lib/v2/providers/https.js",
-    "./v2/pubsub": "./lib/v2/providers/pubsub.js",
-    "./v2/storage": "./lib/v2/providers/storage.js",
-    "./v2/tasks": "./lib/v2/providers/tasks.js",
-    "./v2/alerts": "./lib/v2/providers/alerts/index.js",
-    "./v2/alerts/appDistribution": "./lib/v2/providers/alerts/appDistribution.js",
-    "./v2/alerts/billing": "./lib/v2/providers/alerts/billing.js",
-    "./v2/alerts/crashlytics": "./lib/v2/providers/alerts/crashlytics.js",
-    "./v2/alerts/performance": "./lib/v2/providers/alerts/performance.js",
-    "./v2/eventarc": "./lib/v2/providers/eventarc.js",
-    "./v2/identity": "./lib/v2/providers/identity.js",
-    "./v2/database": "./lib/v2/providers/database.js",
-    "./v2/scheduler": "./lib/v2/providers/scheduler.js",
-    "./v2/remoteConfig": "./lib/v2/providers/remoteConfig.js",
-    "./v2/testLab": "./lib/v2/providers/testLab.js",
-    "./v2/firestore": "./lib/v2/providers/firestore.js"
+    "./logger/compat": {
+      "types": "./lib/logger/compat.d.ts",
+      "import": "./lib/esm/logger/compat.mjs",
+      "require": "./lib/logger/compat.js"
+    },
+    "./logger": {
+      "types": "./lib/logger/index.d.ts",
+      "import": "./lib/esm/logger/index.mjs",
+      "require": "./lib/logger/index.js"
+    },
+    "./params": {
+      "types": "./lib/params/index.d.ts",
+      "import": "./lib/esm/params/index.mjs",
+      "require": "./lib/params/index.js"
+    },
+    "./v1": {
+      "types": "./lib/v1/index.d.ts",
+      "import": "./lib/esm/v1/index.mjs",
+      "require": "./lib/v1/index.js"
+    },
+    "./v1/analytics": {
+      "types": "./lib/v1/providers/analytics.d.ts",
+      "import": "./lib/esm/v1/providers/analytics.mjs",
+      "require": "./lib/v1/providers/analytics.js"
+    },
+    "./v1/auth": {
+      "types": "./lib/v1/providers/auth.d.ts",
+      "import": "./lib/esm/v1/providers/auth.mjs",
+      "require": "./lib/v1/providers/auth.js"
+    },
+    "./v1/database": {
+      "types": "./lib/v1/providers/database.d.ts",
+      "import": "./lib/esm/v1/providers/database.mjs",
+      "require": "./lib/v1/providers/database.js"
+    },
+    "./v1/firestore": {
+      "types": "./lib/v1/providers/firestore.d.ts",
+      "import": "./lib/esm/v1/providers/firestore.mjs",
+      "require": "./lib/v1/providers/firestore.js"
+    },
+    "./v1/https": {
+      "types": "./lib/v1/providers/https.d.ts",
+      "import": "./lib/esm/v1/providers/https.mjs",
+      "require": "./lib/v1/providers/https.js"
+    },
+    "./v1/pubsub": {
+      "types": "./lib/v1/providers/pubsub.d.ts",
+      "import": "./lib/esm/v1/providers/pubsub.mjs",
+      "require": "./lib/v1/providers/pubsub.js"
+    },
+    "./v1/remoteConfig": {
+      "types": "./lib/v1/providers/remoteConfig.d.ts",
+      "import": "./lib/esm/v1/providers/remoteConfig.mjs",
+      "require": "./lib/v1/providers/remoteConfig.js"
+    },
+    "./v1/storage": {
+      "types": "./lib/v1/providers/storage.d.ts",
+      "import": "./lib/esm/v1/providers/storage.mjs",
+      "require": "./lib/v1/providers/storage.js"
+    },
+    "./v1/tasks": {
+      "types": "./lib/v1/providers/tasks.d.ts",
+      "import": "./lib/esm/v1/providers/tasks.mjs",
+      "require": "./lib/v1/providers/tasks.js"
+    },
+    "./v1/testLab": {
+      "types": "./lib/v1/providers/testLab.d.ts",
+      "import": "./lib/esm/v1/providers/testLab.mjs",
+      "require": "./lib/v1/providers/testLab.js"
+    },
+    ".": {
+      "types": "./lib/v2/index.d.ts",
+      "import": "./lib/esm/v2/index.mjs",
+      "require": "./lib/v2/index.js"
+    },
+    "./core": {
+      "types": "./lib/v2/core.d.ts",
+      "import": "./lib/esm/v2/core.mjs",
+      "require": "./lib/v2/core.js"
+    },
+    "./options": {
+      "types": "./lib/v2/options.d.ts",
+      "import": "./lib/esm/v2/options.mjs",
+      "require": "./lib/v2/options.js"
+    },
+    "./https": {
+      "types": "./lib/v2/providers/https.d.ts",
+      "import": "./lib/esm/v2/providers/https.mjs",
+      "require": "./lib/v2/providers/https.js"
+    },
+    "./pubsub": {
+      "types": "./lib/v2/providers/pubsub.d.ts",
+      "import": "./lib/esm/v2/providers/pubsub.mjs",
+      "require": "./lib/v2/providers/pubsub.js"
+    },
+    "./storage": {
+      "types": "./lib/v2/providers/storage.d.ts",
+      "import": "./lib/esm/v2/providers/storage.mjs",
+      "require": "./lib/v2/providers/storage.js"
+    },
+    "./tasks": {
+      "types": "./lib/v2/providers/tasks.d.ts",
+      "import": "./lib/esm/v2/providers/tasks.mjs",
+      "require": "./lib/v2/providers/tasks.js"
+    },
+    "./alerts": {
+      "types": "./lib/v2/providers/alerts/index.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/index.mjs",
+      "require": "./lib/v2/providers/alerts/index.js"
+    },
+    "./alerts/appDistribution": {
+      "types": "./lib/v2/providers/alerts/appDistribution.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/appDistribution.mjs",
+      "require": "./lib/v2/providers/alerts/appDistribution.js"
+    },
+    "./alerts/billing": {
+      "types": "./lib/v2/providers/alerts/billing.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/billing.mjs",
+      "require": "./lib/v2/providers/alerts/billing.js"
+    },
+    "./alerts/crashlytics": {
+      "types": "./lib/v2/providers/alerts/crashlytics.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/crashlytics.mjs",
+      "require": "./lib/v2/providers/alerts/crashlytics.js"
+    },
+    "./alerts/performance": {
+      "types": "./lib/v2/providers/alerts/performance.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/performance.mjs",
+      "require": "./lib/v2/providers/alerts/performance.js"
+    },
+    "./eventarc": {
+      "types": "./lib/v2/providers/eventarc.d.ts",
+      "import": "./lib/esm/v2/providers/eventarc.mjs",
+      "require": "./lib/v2/providers/eventarc.js"
+    },
+    "./identity": {
+      "types": "./lib/v2/providers/identity.d.ts",
+      "import": "./lib/esm/v2/providers/identity.mjs",
+      "require": "./lib/v2/providers/identity.js"
+    },
+    "./database": {
+      "types": "./lib/v2/providers/database.d.ts",
+      "import": "./lib/esm/v2/providers/database.mjs",
+      "require": "./lib/v2/providers/database.js"
+    },
+    "./scheduler": {
+      "types": "./lib/v2/providers/scheduler.d.ts",
+      "import": "./lib/esm/v2/providers/scheduler.mjs",
+      "require": "./lib/v2/providers/scheduler.js"
+    },
+    "./remoteConfig": {
+      "types": "./lib/v2/providers/remoteConfig.d.ts",
+      "import": "./lib/esm/v2/providers/remoteConfig.mjs",
+      "require": "./lib/v2/providers/remoteConfig.js"
+    },
+    "./testLab": {
+      "types": "./lib/v2/providers/testLab.d.ts",
+      "import": "./lib/esm/v2/providers/testLab.mjs",
+      "require": "./lib/v2/providers/testLab.js"
+    },
+    "./firestore": {
+      "types": "./lib/v2/providers/firestore.d.ts",
+      "import": "./lib/esm/v2/providers/firestore.mjs",
+      "require": "./lib/v2/providers/firestore.js"
+    },
+    "./dataconnect": {
+      "types": "./lib/v2/providers/dataconnect.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect.mjs",
+      "require": "./lib/v2/providers/dataconnect.js"
+    },
+    "./v2": {
+      "types": "./lib/v2/index.d.ts",
+      "import": "./lib/esm/v2/index.mjs",
+      "require": "./lib/v2/index.js"
+    },
+    "./v2/core": {
+      "types": "./lib/v2/core.d.ts",
+      "import": "./lib/esm/v2/core.mjs",
+      "require": "./lib/v2/core.js"
+    },
+    "./v2/options": {
+      "types": "./lib/v2/options.d.ts",
+      "import": "./lib/esm/v2/options.mjs",
+      "require": "./lib/v2/options.js"
+    },
+    "./v2/https": {
+      "types": "./lib/v2/providers/https.d.ts",
+      "import": "./lib/esm/v2/providers/https.mjs",
+      "require": "./lib/v2/providers/https.js"
+    },
+    "./v2/pubsub": {
+      "types": "./lib/v2/providers/pubsub.d.ts",
+      "import": "./lib/esm/v2/providers/pubsub.mjs",
+      "require": "./lib/v2/providers/pubsub.js"
+    },
+    "./v2/storage": {
+      "types": "./lib/v2/providers/storage.d.ts",
+      "import": "./lib/esm/v2/providers/storage.mjs",
+      "require": "./lib/v2/providers/storage.js"
+    },
+    "./v2/tasks": {
+      "types": "./lib/v2/providers/tasks.d.ts",
+      "import": "./lib/esm/v2/providers/tasks.mjs",
+      "require": "./lib/v2/providers/tasks.js"
+    },
+    "./v2/alerts": {
+      "types": "./lib/v2/providers/alerts/index.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/index.mjs",
+      "require": "./lib/v2/providers/alerts/index.js"
+    },
+    "./v2/alerts/appDistribution": {
+      "types": "./lib/v2/providers/alerts/appDistribution.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/appDistribution.mjs",
+      "require": "./lib/v2/providers/alerts/appDistribution.js"
+    },
+    "./v2/alerts/billing": {
+      "types": "./lib/v2/providers/alerts/billing.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/billing.mjs",
+      "require": "./lib/v2/providers/alerts/billing.js"
+    },
+    "./v2/alerts/crashlytics": {
+      "types": "./lib/v2/providers/alerts/crashlytics.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/crashlytics.mjs",
+      "require": "./lib/v2/providers/alerts/crashlytics.js"
+    },
+    "./v2/alerts/performance": {
+      "types": "./lib/v2/providers/alerts/performance.d.ts",
+      "import": "./lib/esm/v2/providers/alerts/performance.mjs",
+      "require": "./lib/v2/providers/alerts/performance.js"
+    },
+    "./v2/eventarc": {
+      "types": "./lib/v2/providers/eventarc.d.ts",
+      "import": "./lib/esm/v2/providers/eventarc.mjs",
+      "require": "./lib/v2/providers/eventarc.js"
+    },
+    "./v2/identity": {
+      "types": "./lib/v2/providers/identity.d.ts",
+      "import": "./lib/esm/v2/providers/identity.mjs",
+      "require": "./lib/v2/providers/identity.js"
+    },
+    "./v2/database": {
+      "types": "./lib/v2/providers/database.d.ts",
+      "import": "./lib/esm/v2/providers/database.mjs",
+      "require": "./lib/v2/providers/database.js"
+    },
+    "./v2/scheduler": {
+      "types": "./lib/v2/providers/scheduler.d.ts",
+      "import": "./lib/esm/v2/providers/scheduler.mjs",
+      "require": "./lib/v2/providers/scheduler.js"
+    },
+    "./v2/remoteConfig": {
+      "types": "./lib/v2/providers/remoteConfig.d.ts",
+      "import": "./lib/esm/v2/providers/remoteConfig.mjs",
+      "require": "./lib/v2/providers/remoteConfig.js"
+    },
+    "./v2/testLab": {
+      "types": "./lib/v2/providers/testLab.d.ts",
+      "import": "./lib/esm/v2/providers/testLab.mjs",
+      "require": "./lib/v2/providers/testLab.js"
+    },
+    "./v2/firestore": {
+      "types": "./lib/v2/providers/firestore.d.ts",
+      "import": "./lib/esm/v2/providers/firestore.mjs",
+      "require": "./lib/v2/providers/firestore.js"
+    },
+    "./v2/dataconnect": {
+      "types": "./lib/v2/providers/dataconnect.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect.mjs",
+      "require": "./lib/v2/providers/dataconnect.js"
+    }
   },
   "typesVersions": {
     "*": {
       "logger": [
-        "lib/logger"
+        "lib/logger/index"
       ],
       "logger/compat": [
         "lib/logger/compat"
       ],
       "params": [
-        "lib/params"
+        "lib/params/index"
       ],
       "v1": [
-        "lib/v1"
+        "lib/v1/index"
       ],
       "v1/analytics": [
         "lib/v1/providers/analytics"
@@ -102,13 +325,13 @@
         "lib/v1/providers/auth"
       ],
       "v1/database": [
-        "lib/v1/privders/database"
+        "lib/v1/providers/database"
       ],
       "v1/firestore": [
         "lib/v1/providers/firestore"
       ],
       "v1/https": [
-        "./lib/v1/providers/https"
+        "lib/v1/providers/https"
       ],
       "v1/pubsub": [
         "lib/v1/providers/pubsub"
@@ -126,67 +349,70 @@
         "lib/v1/providers/testLab"
       ],
       "core": [
-        "./lib/v2/core"
+        "lib/v2/core"
       ],
       "options": [
-        "./lib/v2/options"
+        "lib/v2/options"
       ],
       "https": [
-        "./lib/v2/providers/https"
+        "lib/v2/providers/https"
       ],
       "pubsub": [
-        "./lib/v2/providers/pubsub"
+        "lib/v2/providers/pubsub"
       ],
       "storage": [
-        "./lib/v2/providers/storage"
+        "lib/v2/providers/storage"
       ],
       "tasks": [
-        "./lib/v2/providers/tasks"
+        "lib/v2/providers/tasks"
       ],
       "alerts": [
-        "./lib/v2/providers/alerts/index"
+        "lib/v2/providers/alerts/index"
       ],
       "alerts/appDistribution": [
-        "./lib/v2/providers/alerts/appDistribution"
+        "lib/v2/providers/alerts/appDistribution"
       ],
       "alerts/billing": [
-        "./lib/v2/providers/alerts/billing"
+        "lib/v2/providers/alerts/billing"
       ],
       "alerts/crashlytics": [
-        "./lib/v2/providers/alerts/crashlytics"
+        "lib/v2/providers/alerts/crashlytics"
       ],
       "alerts/performance": [
-        "./lib/v2/providers/alerts/performance"
+        "lib/v2/providers/alerts/performance"
       ],
       "eventarc": [
-        "./lib/v2/providers/eventarc"
+        "lib/v2/providers/eventarc"
       ],
       "identity": [
-        "./lib/v2/providers/identity"
+        "lib/v2/providers/identity"
       ],
       "database": [
-        "./lib/v2/providers/database"
+        "lib/v2/providers/database"
       ],
       "scheduler": [
-        "./lib/v2/providers/scheduler"
+        "lib/v2/providers/scheduler"
       ],
       "remoteConfig": [
-        "./lib/v2/providers/remoteConfig"
+        "lib/v2/providers/remoteConfig"
       ],
       "testLab": [
-        "./lib/v2/providers/testLab"
+        "lib/v2/providers/testLab"
       ],
       "firestore": [
-        "./lib/v2/providers/firestore"
+        "lib/v2/providers/firestore"
+      ],
+      "dataconnect": [
+        "lib/v2/providers/dataconnect"
       ],
       "v2": [
-        "lib/v2"
+        "lib/v2/index"
       ],
       "v2/core": [
         "lib/v2/core"
       ],
       "v2/alerts": [
-        "lib/v2/providers/alerts"
+        "lib/v2/providers/alerts/index"
       ],
       "v2/alerts/appDistribution": [
         "lib/v2/providers/alerts/appDistribution"
@@ -238,6 +464,12 @@
       ],
       "v2/firestore": [
         "lib/v2/providers/firestore"
+      ],
+      "v2/dataconnect": [
+        "lib/v2/providers/dataconnect"
+      ],
+      "*": [
+        "lib/v2/index.d.ts"
       ]
     }
   },
@@ -253,9 +485,8 @@
     "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/reference/functions/2nd-gen/node",
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown --project functions && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
-    "build:pack": "rm -rf lib && npm install && tsc -p tsconfig.release.json && npm pack",
-    "build:release": "npm ci --production && npm install --no-save typescript && tsc -p tsconfig.release.json",
-    "build": "tsc -p tsconfig.release.json",
+    "build": "tsdown && tsc -p tsconfig.release.json",
+    "build:pack": "rm -rf lib && npm install && npm run build && npm pack",
     "build:watch": "npm run build -- -w",
     "pack-for-integration-tests": "echo 'Building firebase-functions SDK from source...' && npm ci && npm run build && npm pack && mv firebase-functions-*.tgz integration_test/firebase-functions-local.tgz && echo 'SDK built and packed successfully'",
     "format": "npm run format:ts && npm run format:other",
@@ -264,9 +495,10 @@
     "lint": "npm run lint:ts && npm run lint:other",
     "lint:other": "prettier --check '**/*.{md,yaml,yml}'",
     "lint:quiet": "npm run lint:ts -- --quiet && npm run lint:other",
-    "lint:ts": "eslint --config .eslintrc.js --ext .ts,.js .",
+    "lint:ts": "eslint .",
     "test": "mocha --file ./mocha/setup.ts \"spec/**/*.spec.ts\"",
     "test:bin": "./scripts/bin-test/run.sh",
+    "test:packaging": "./scripts/test-packaging.sh",
     "test:postmerge": "./integration_test/run_tests.sh"
   },
   "dependencies": {
@@ -277,6 +509,7 @@
     "protobufjs": "^7.2.2"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.1",
     "@firebase/api-documenter": "^0.2.0",
     "@microsoft/api-documenter": "^7.13.45",
     "@microsoft/api-extractor": "^7.18.7",
@@ -286,23 +519,22 @@
     "@types/mocha": "^5.2.7",
     "@types/mock-require": "^2.0.0",
     "@types/nock": "^10.0.3",
-    "@types/node": "^14.18.24",
+    "@types/node": "^18.0.0",
     "@types/node-fetch": "^3.0.3",
     "@types/sinon": "^9.0.11",
-    "@typescript-eslint/eslint-plugin": "^5.33.1",
-    "@typescript-eslint/parser": "^5.33.1",
+    "@typescript-eslint/eslint-plugin": "^8.46.2",
+    "@typescript-eslint/parser": "^8.46.2",
     "api-extractor-model-me": "^0.1.1",
     "chai": "^4.5.0",
     "chai-as-promised": "^7.1.2",
     "child-process-promise": "^2.2.1",
-    "eslint": "^8.6.0",
+    "eslint": "^9.38.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-jsdoc": "^39.2.9",
-    "eslint-plugin-prettier": "^4.0.0",
-    "firebase-admin": "^13.5.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsdoc": "^61.1.9",
+    "eslint-plugin-prettier": "^4.2.1",
+    "firebase-admin": "^13.0.0",
     "genkit": "^1.0.0-rc.4",
-    "js-yaml": "^3.13.1",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",
@@ -312,18 +544,20 @@
     "nock": "^13.2.9",
     "node-fetch": "^2.6.7",
     "portfinder": "^1.0.28",
-    "prettier": "^2.7.1",
+    "prettier": "^2.8.8",
     "protobufjs-cli": "^1.1.1",
     "semver": "^7.3.5",
     "sinon": "^9.2.4",
     "ts-node": "^10.4.0",
-    "typescript": "^4.3.5",
+    "tsdown": "^0.15.11",
+    "typescript": "^5.9.3",
+    "yaml": "^2.8.1",
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
     "firebase-admin": "^11.10.0 || ^12.0.0 || ^13.0.0"
   },
   "engines": {
-    "node": ">=14.10.0"
+    "node": ">=18.0.0"
   }
 }

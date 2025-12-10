@@ -1,10 +1,10 @@
 import { EventEmitter } from "node:stream";
 
-import * as jwt from "jsonwebtoken";
-import jwkToPem from "jwk-to-pem";
-import nock from "nock";
-import * as mockJWK from "../fixtures/credential/jwk.json";
-import * as mockKey from "../fixtures/credential/key.json";
+import jwt from 'jsonwebtoken';
+import jwkToPem from 'jwk-to-pem';
+import nock from 'nock';
+import * as mockJWK from '../fixtures/credential/jwk.json';
+import * as mockKey from '../fixtures/credential/key.json';
 
 // MockRequest mocks an https.Request.
 export class MockRequest extends EventEmitter {

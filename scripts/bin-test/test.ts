@@ -1,11 +1,11 @@
 import * as subprocess from "child_process";
-import * as fs from "fs/promises";
-import * as os from "os";
 import * as path from "path";
 import { promisify } from "util";
+import fs from "fs/promises";
+import * as os from "os";
 
 import { expect } from "chai";
-import yaml from "js-yaml";
+import { parse as parseYaml } from "yaml";
 import fetch from "node-fetch";
 import * as portfinder from "portfinder";
 
@@ -154,6 +154,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
       PORT: port.toString(),
       FUNCTIONS_CONTROL_API: "true",
     },
+    stdio: "inherit",
   });
 
   try {
@@ -177,7 +178,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
     const body = await res.text();
 
     if (res.status === 200) {
-      const manifest = yaml.load(body) as Record<string, unknown>;
+      const manifest = parseYaml(body) as Record<string, unknown>;
       return { success: true, manifest };
     } else {
       return { success: false, error: body };
@@ -208,6 +209,11 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
 
     proc.stderr?.on("data", (chunk: Buffer) => {
       stderr += chunk.toString("utf8");
+      process.stderr.write(chunk);
+    });
+
+    proc.stdout?.on("data", (chunk: Buffer) => {
+      process.stdout.write(chunk);
     });
 
     const timeoutId = setTimeout(async () => {
@@ -356,6 +362,32 @@ describe("functions.yaml", function () {
           extensions: BASE_EXTENSIONS,
         },
       },
+      {
+        name: "with params",
+        modulePath: "./scripts/bin-test/sources/commonjs-params",
+        expected: {
+          endpoints: {
+            v2http: {
+              ...DEFAULT_V2_OPTIONS,
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              labels: {},
+              httpsTrigger: {},
+              minInstances: "{{ params.MIN_INSTANCES }}",
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
+          params: [
+            {
+              name: "MIN_INSTANCES",
+              type: "int",
+              default: 1,
+            },
+          ],
+          extensions: {},
+        },
+      },
     ];
 
     for (const tc of testcases) {
@@ -389,6 +421,32 @@ describe("functions.yaml", function () {
         name: "with .m extension",
         modulePath: "./scripts/bin-test/sources/esm-ext",
         expected: BASE_STACK,
+      },
+      {
+        name: "with params",
+        modulePath: "./scripts/bin-test/sources/esm-params",
+        expected: {
+          endpoints: {
+            v2http: {
+              ...DEFAULT_V2_OPTIONS,
+              platform: "gcfv2",
+              entryPoint: "v2http",
+              labels: {},
+              httpsTrigger: {},
+              minInstances: "{{ params.MIN_INSTANCES }}",
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
+          params: [
+            {
+              name: "MIN_INSTANCES",
+              type: "int",
+              default: 1,
+            },
+          ],
+          extensions: {},
+        },
       },
     ];
 

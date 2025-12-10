@@ -24,7 +24,7 @@ import { expect } from "chai";
 
 import {
   onInit,
-  Event,
+  LegacyEvent,
   EventContext,
   makeCloudFunction,
   MakeCloudFunctionArgs,
@@ -43,7 +43,7 @@ describe("makeCloudFunction", () => {
   };
 
   it("calls init function", async () => {
-    const test: Event = {
+    const test: LegacyEvent = {
       context: {
         eventId: "00000",
         timestamp: "2016-11-04T21:29:03.496Z",
@@ -253,7 +253,7 @@ describe("makeCloudFunction", () => {
       handler: (data: any, context: EventContext) => context,
     };
     const cf = makeCloudFunction(args);
-    const test: Event = {
+    const test: LegacyEvent = {
       context: {
         eventId: "00000",
         timestamp: "2016-11-04T21:29:03.496Z",
@@ -285,7 +285,7 @@ describe("makeCloudFunction", () => {
       triggerResource: () => null,
     };
     const cf = makeCloudFunction(args);
-    const test: Event = {
+    const test: LegacyEvent = {
       context: {
         eventId: "00000",
         timestamp: "2016-11-04T21:29:03.496Z",
@@ -325,7 +325,7 @@ describe("makeParams", () => {
   const cf = makeCloudFunction(args);
 
   it("should construct params from the event resource of events", () => {
-    const testEvent: Event = {
+    const testEvent: LegacyEvent = {
       context: {
         eventId: "111",
         timestamp: "2016-11-04T21:29:03.496Z",

@@ -14,7 +14,7 @@ VERSION=$1
 if [[ $VERSION == "" ]]; then
   printusage
   exit 1
-elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major") ]]; then
+elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major" || $VERSION == "prerelease") ]]; then
   printusage
   exit 1
 fi
@@ -84,12 +84,16 @@ npm run test:bin
 echo "Ran tests."
 
 echo "Running publish build..."
-npm run build:release
+npm run build
 echo "Ran publish build."
 
 echo "Making a $VERSION version..."
 if [[ $PRE_RELEASE != "" ]]; then
-  npm version pre$VERSION --preid=rc
+  if [[ $VERSION == "prerelease" ]]; then
+    npm version prerelease --preid=rc
+  else
+    npm version pre$VERSION --preid=rc
+  fi
 else
   npm version $VERSION
 fi
@@ -105,13 +109,22 @@ cat CHANGELOG.md >> "${RELEASE_NOTES_FILE}"
 echo "Made the release notes."
 
 echo "Publishing to npm..."
-if [[ $DRY_RUN != "" ]]; then
+PUBLISH_ARGS=()
+if [[ -n "$DRY_RUN" ]]; then
   echo "DRY RUN: running publish with --dry-run"
-  npm publish --dry-run
-else
-  npm publish
+  PUBLISH_ARGS+=(--dry-run)
 fi
+
+if [[ -n "$PRE_RELEASE" ]]; then
+  PUBLISH_ARGS+=(--tag next)
+fi
+
+npm publish "${PUBLISH_ARGS[@]}"
 echo "Published to npm."
+
+echo "Pushing to GitHub..."
+git push origin master --tags
+echo "Pushed to GitHub."
 
 if [[ $PRE_RELEASE != "" ]]; then
   echo "Published a pre-release version. Skipping post-release actions."
@@ -131,6 +144,7 @@ git commit -m "[firebase-release] Removed change log and reset repo after ${NEW_
 echo "Cleaned up release notes."
 
 echo "Pushing to GitHub..."
+# Push the changelog cleanup commit.
 git push origin master --tags
 echo "Pushed to GitHub."
 
