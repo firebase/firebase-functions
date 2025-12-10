@@ -1,3 +1,11 @@
+export * from "./v1/database.v1";
+export * from "./v1/firestore.v1";
+export * from "./v1/https.v1";
+export * from "./v1/remoteConfig.v1";
+export * from "./v1/pubsub.v1";
+export * from "./v1/storage.v1";
+export * from "./v1/tasks.v1";
+
 export * from "./v2/database.v2";
 export * from "./v2/eventarc.v2";
 export * from "./v2/firestore.v2";

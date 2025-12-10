@@ -1,3 +1,4 @@
+import { Resource } from "firebase-functions/v1";
 import { expect, assertType } from "vitest";
 
 export function expectCloudEvent(data: any) {
@@ -24,4 +25,23 @@ export function expectCloudEvent(data: any) {
   expect(data.time.length).toBeGreaterThan(0);
   // iso string to unix - will be NaN if not a valid date
   expect(Date.parse(data.time)).toBeGreaterThan(0);
+}
+
+export function expectEventContext(data: any) {
+  expect(data.eventId).toBeDefined();
+  assertType<string>(data.eventId);
+  expect(data.eventId.length).toBeGreaterThan(0);
+  expect(data.eventType).toBeDefined();
+  assertType<string>(data.eventType);
+  expect(data.eventType.length).toBeGreaterThan(0);
+  expect(data.resource).toBeDefined();
+  assertType<Resource>(data.resource);
+  expect(data.resource.service).toBeDefined();
+  expect(data.resource.name).toBeDefined();
+  expect(data.timestamp).toBeDefined();
+  assertType<string>(data.timestamp);
+  expect(data.timestamp.length).toBeGreaterThan(0);
+  expect(Date.parse(data.timestamp)).toBeGreaterThan(0);
+  expect(data.params).toBeDefined();
+  assertType<Record<string, string>>(data.params);
 }
