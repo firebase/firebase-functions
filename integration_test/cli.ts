@@ -67,6 +67,9 @@ async function buildAndPackSDK(): Promise<void> {
   } else {
     throw new Error("Failed to find packed tarball");
   }
+
+  // Note: We don't regenerate package-lock.json here because Firebase deploy
+  // will run npm install and regenerate it with the correct checksum for the new tarball
 }
 
 async function writeFirebaseJson(codebase: string): Promise<void> {
@@ -95,6 +98,15 @@ async function writeFirebaseJson(codebase: string): Promise<void> {
 
 async function deployFunctions(runId: string): Promise<void> {
   console.log(`Deploying functions with RUN_ID: ${runId}...`);
+  // Delete package-lock.json before deploy so Firebase's npm install regenerates it
+  // with the correct checksum for the newly created tarball
+  const packageLockPath = join(functionsDir, "package-lock.json");
+  try {
+    await fs.unlink(packageLockPath);
+    console.log("Deleted package-lock.json before deploy (Firebase will regenerate it)");
+  } catch {
+    // Ignore if it doesn't exist
+  }
   await execCommand(
     "firebase",
     ["deploy", "--only", "functions"],

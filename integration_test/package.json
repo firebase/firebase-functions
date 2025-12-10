@@ -7,8 +7,5 @@
   "devDependencies": {
     "tsx": "^4.20.6",
     "vitest": "^4.0.10"
-  },
-  "dependencies": {
-    "@google-cloud/pubsub": "^5.2.0"
   }
 }
