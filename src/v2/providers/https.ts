@@ -26,19 +26,22 @@
  */
 
 import cors from "cors";
-import express from "express";
+import * as express from "express";
+import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
+import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { withInit } from "../../common/onInit";
 import { ResetValue } from "../../common/options";
 import {
-  AuthData,
-  CallableRequest,
-  CallableResponse,
-  FunctionsErrorCode,
+  type CallableRequest,
+  type CallableResponse,
+  type FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  Request,
+  withErrorHandler,
+  type Request,
+  type AuthData,
 } from "../../common/providers/https";
 import * as logger from "../../logger";
 import { Expression } from "../../params";
@@ -48,7 +51,8 @@ import * as options from "../options";
 import { GlobalOptions, SupportedRegion } from "../options";
 import { wrapTraceContext } from "../trace";
 
-export { CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError, Request };
+export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
+export { HttpsError };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
@@ -318,6 +322,8 @@ export function onRequest(
   } else {
     opts = optsOrHandler as HttpsOptions;
   }
+
+  handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;

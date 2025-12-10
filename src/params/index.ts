@@ -33,25 +33,41 @@ import {
   Param,
   ParamOptions,
   SecretParam,
+  JsonSecretParam,
   StringParam,
   ListParam,
   InternalExpression,
 } from "./types";
 
-export {
-  BUCKET_PICKER,
-  TextInput,
-  SelectInput,
-  SelectOptions,
-  MultiSelectInput,
-  select,
-  multiSelect,
-} from "./types";
+export { BUCKET_PICKER, select, multiSelect } from "./types";
+export type { TextInput, SelectInput, SelectOptions, MultiSelectInput } from "./types";
 
-export { ParamOptions, Expression };
+export { Expression };
+export type { ParamOptions };
 
-type SecretOrExpr = Param<any> | SecretParam;
-export const declaredParams: SecretOrExpr[] = [];
+type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
+
+/**
+ * Use a global singleton to manage the list of declared parameters.
+ *
+ * This ensures that parameters are shared between CJS and ESM builds,
+ * avoiding the "dual-package hazard" where the src/bin/firebase-functions.ts (CJS) sees
+ * an empty list while the user's code (ESM) populates a different list.
+ */
+const majorVersion =
+  // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
+  typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
+    ? // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
+      __FIREBASE_FUNCTIONS_MAJOR_VERSION__
+    : "0";
+const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:params:declaredParams:v${majorVersion}`);
+const globalSymbols = globalThis as unknown as Record<symbol, SecretOrExpr[]>;
+
+if (!globalSymbols[GLOBAL_SYMBOL]) {
+  globalSymbols[GLOBAL_SYMBOL] = [];
+}
+
+export const declaredParams: SecretOrExpr[] = globalSymbols[GLOBAL_SYMBOL];
 
 /**
  * Use a helper to manage the list such that parameters are uniquely
@@ -119,6 +135,24 @@ export const storageBucket: Param<string> = new InternalExpression(
  */
 export function defineSecret(name: string): SecretParam {
   const param = new SecretParam(name);
+  registerParam(param);
+  return param;
+}
+
+/**
+ * Declares a secret parameter that retrieves a structured JSON object in Cloud Secret Manager.
+ * This is useful for managing groups of related configuration values, such as all settings
+ * for a third-party API, as a single unit.
+ *
+ * The secret value must be a valid JSON string. At runtime, the value will be automatically parsed
+ * and returned as a JavaScript object. If the value is not set or is not valid JSON, an error will be thrown.
+ *
+ * @param name The name of the environment variable to use to load the parameter.
+ * @returns A parameter whose `.value()` method returns the parsed JSON object.
+ * ```
+ */
+export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
+  const param = new JsonSecretParam<T>(name);
   registerParam(param);
   return param;
 }

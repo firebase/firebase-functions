@@ -21,53 +21,19 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as fs from "fs";
-import * as process from "process";
-import Sinon from "sinon";
 
-import { config, resetCache } from "../../src/v1/config";
+import { config } from "../../src/v1/config";
 
 describe("config()", () => {
-  let readFileSync: Sinon.SinonStub;
-  let cwdStub: Sinon.SinonStub;
-
-  before(() => {
-    readFileSync = Sinon.stub(fs, "readFileSync");
-    readFileSync.throws("Unexpected call");
-    cwdStub = Sinon.stub(process, "cwd");
-    cwdStub.returns("/srv");
-  });
-
-  after(() => {
-    Sinon.verifyAndRestore();
-  });
-
-  afterEach(() => {
-    resetCache();
-    delete process.env.FIREBASE_CONFIG;
-    delete process.env.CLOUD_RUNTIME_CONFIG;
-    delete process.env.K_CONFIGURATION;
-  });
-
-  it("will never load in GCFv2", () => {
-    const json = JSON.stringify({
-      foo: "bar",
-      firebase: {},
-    });
-    readFileSync.withArgs("/srv/.runtimeconfig.json").returns(Buffer.from(json));
-
-    process.env.K_CONFIGURATION = "my-service";
-    expect(config).to.throw(Error, /transition to using environment variables/);
-  });
-
-  it.skip("loads config values from .runtimeconfig.json", () => {
-    const json = JSON.stringify({
-      foo: "bar",
-      firebase: {},
-    });
-    readFileSync.withArgs("/srv/.runtimeconfig.json").returns(Buffer.from(json));
-    const loaded = config();
-    expect(loaded).to.not.have.property("firebase");
-    expect(loaded).to.have.property("foo", "bar");
+  it("throws an error with migration guidance", () => {
+    expect(() => {
+      // @ts-expect-error - config is deprecated and typed as never to cause a build error
+      config();
+    }).to.throw(
+      Error,
+      "functions.config() has been removed in firebase-functions v7. " +
+        "Migrate to environment parameters using the params module. " +
+        "Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config"
+    );
   });
 });

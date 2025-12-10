@@ -20,8 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import cors, { CorsOptions } from "cors";
-import express from "express";
+import cors from "cors";
+import * as express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
 import * as logger from "../../logger";
@@ -78,8 +78,12 @@ export interface AppCheckData {
  * The interface for Auth tokens verified in Callable functions
  */
 export interface AuthData {
+  /** The user's uid from the request's ID token. */
   uid: string;
+  /** The decoded claims of the ID token after verification. */
   token: DecodedIdToken;
+  /** The raw ID token as parsed from the header. */
+  rawToken: string;
 }
 
 // This type is the direct v1 callable interface and is also an interface
@@ -539,7 +543,7 @@ export function unsafeDecodeToken(token: string): unknown {
       if (typeof obj === "object") {
         payload = obj;
       }
-    } catch (e) {
+    } catch (_e) {
       // ignore error
     }
   }
@@ -646,6 +650,7 @@ export async function checkAuthToken(
     ctx.auth = {
       uid: authToken.uid,
       token: authToken,
+      rawToken: idToken,
     };
     return "VALID";
   } catch (err) {
@@ -944,6 +949,33 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
       }
     } finally {
       clearScheduledHeartbeat();
+    }
+  };
+}
+
+/**
+ * Wraps an HTTP handler with a safety net for unhandled errors.
+ *
+ * This wrapper catches both synchronous errors and rejected Promises from `async` handlers.
+ * Without this, an unhandled error in an `async` handler would cause the request to hang
+ * until the platform timeout, as Express (v4) does not await handlers.
+ *
+ * It logs the error and returns a 500 Internal Server Error to the client if the response
+ * headers have not yet been sent.
+ *
+ * @internal
+ */
+export function withErrorHandler(
+  handler: (req: Request, res: express.Response) => void | Promise<void>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response) => {
+    try {
+      await handler(req, res);
+    } catch (err) {
+      logger.error("Unhandled error", err);
+      if (!res.headersSent) {
+        res.status(500).send("Internal Server Error");
+      }
     }
   };
 }

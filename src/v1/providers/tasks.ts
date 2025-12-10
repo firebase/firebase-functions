@@ -39,7 +39,7 @@ import {
 import { optionsToEndpoint, optionsToTrigger } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
-export { RateLimits, RetryConfig, TaskContext };
+export type { RetryConfig, RateLimits, TaskContext };
 
 /**
  * Options for configuring the task queue to listen to.

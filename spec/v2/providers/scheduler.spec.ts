@@ -108,6 +108,7 @@ describe("schedule", () => {
         {
           schedule: "* * * * *",
           timeZone: "utc",
+          timeoutSeconds: 300,
           retryCount: 3,
           maxRetrySeconds: 10,
           minBackoffSeconds: 11,
@@ -124,6 +125,7 @@ describe("schedule", () => {
         platform: "gcfv2",
         labels: { key: "val" },
         region: ["us-central1"],
+        timeoutSeconds: 300,
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: "utc",
