@@ -22,6 +22,7 @@
 
 import cors from "cors";
 import express from "express";
+import fs from "fs";
 import { GraphQLResolveInfo } from "graphql";
 import { HttpsFunction, onRequest } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
@@ -374,12 +375,21 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
 }
 
 async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
+  if (!opts.schema && !opts.schemaFilePath) {
+    throw new Error("Either 'schema' or 'schemaFilePath' must be provided.");
+  }
+  if (opts.schema && opts.schemaFilePath) {
+    throw new Error("Only one of 'schema' or 'schemaFilePath' can be provided.");
+  }
+  if (opts.schemaFilePath) {
+    opts.schema = fs.readFileSync(opts.schemaFilePath, "utf-8");
+  }
+  if (!opts.resolvers.query && !opts.resolvers.mutation) {
+    throw new Error("At least one query or mutation resolver must be provided.");
+  }
   try {
     const { ApolloServer } = await import("@apollo/server");
     const { expressMiddleware } = await import("@as-integrations/express4");
-    if (!opts.resolvers.query && !opts.resolvers.mutation) {
-      throw new Error("At least one query or mutation resolver must be provided.");
-    }
     const apolloResolvers: { [key: string]: any } = {};
     if (opts.resolvers.query) {
       apolloResolvers.Query = opts.resolvers.query;
@@ -390,7 +400,6 @@ async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Ex
     const serverPromise = (async () => {
       const app = express();
       const server = new ApolloServer({
-        // TODO: Support loading schema from file path.
         typeDefs: opts.schema,
         resolvers: apolloResolvers,
       });
@@ -441,6 +450,7 @@ export interface GraphqlServerOptions {
   path?: string;
   /** A map of functions that populate data for individual GraphQL schema fields. */
   resolvers: GraphqlResolvers;
+  // TODO: Add a field for a context function.
 }
 
 /** Per-request context state shared by all resolvers in a particular query. */
