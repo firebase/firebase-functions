@@ -206,6 +206,7 @@ describe("makeCloudFunction", () => {
       platform: "gcfv1",
       scheduleTrigger: {
         ...schedule,
+        attemptDeadline: RESET_VALUE,
         retryConfig: {
           ...schedule.retryConfig,
           maxBackoffDuration: RESET_VALUE,
