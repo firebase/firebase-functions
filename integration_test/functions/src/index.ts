@@ -6,4 +6,5 @@ export * from "./v2/identity.v2";
 export * from "./v2/pubsub.v2";
 export * from "./v2/remoteConfig.v2";
 export * from "./v2/scheduler.v2";
+export * from "./v2/storage.v2";
 export * from "./v2/tasks.v2";

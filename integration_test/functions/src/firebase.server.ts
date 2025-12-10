@@ -7,6 +7,7 @@ import { getAuth } from "firebase-admin/auth";
 import { getRemoteConfig } from "firebase-admin/remote-config";
 import { getFirestore } from "firebase-admin/firestore";
 import { config } from "./config";
+import { getStorage } from "firebase-admin/storage";
 
 export const app = admin.initializeApp({
   credential: applicationDefault(),
@@ -20,6 +21,7 @@ export const database = getDatabase(app);
 export const auth = getAuth(app);
 export const remoteConfig = getRemoteConfig(app);
 export const functions = getFunctions(app);
+export const storage = getStorage(app);
 
 // See https://github.com/firebase/functions-samples/blob/a6ae4cbd3cf2fff3e2b97538081140ad9befd5d8/Node/taskqueues-backup-images/functions/index.js#L111-L128
 export async function getFunctionUrl(name: string) {
