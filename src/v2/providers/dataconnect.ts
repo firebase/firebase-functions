@@ -375,11 +375,8 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
 }
 
 async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
-  if (!opts.schema && !opts.schemaFilePath) {
-    throw new Error("Either 'schema' or 'schemaFilePath' must be provided.");
-  }
-  if (opts.schema && opts.schemaFilePath) {
-    throw new Error("Only one of 'schema' or 'schemaFilePath' can be provided.");
+  if ((!opts.schema && !opts.schemaFilePath) || (opts.schema && opts.schemaFilePath)) {
+    throw new Error("Exactly one of 'schema' or 'schemaFilePath' must be provided.");
   }
   if (opts.schemaFilePath) {
     opts.schema = fs.readFileSync(opts.schemaFilePath, "utf-8");
@@ -387,16 +384,16 @@ async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Ex
   if (!opts.resolvers.query && !opts.resolvers.mutation) {
     throw new Error("At least one query or mutation resolver must be provided.");
   }
+  const apolloResolvers: { [key: string]: any } = {};
+  if (opts.resolvers.query) {
+    apolloResolvers.Query = opts.resolvers.query;
+  }
+  if (opts.resolvers.mutation) {
+    apolloResolvers.Mutation = opts.resolvers.mutation;
+  }
   try {
     const { ApolloServer } = await import("@apollo/server");
     const { expressMiddleware } = await import("@as-integrations/express4");
-    const apolloResolvers: { [key: string]: any } = {};
-    if (opts.resolvers.query) {
-      apolloResolvers.Query = opts.resolvers.query;
-    }
-    if (opts.resolvers.mutation) {
-      apolloResolvers.Mutation = opts.resolvers.mutation;
-    }
     const serverPromise = (async () => {
       const app = express();
       const server = new ApolloServer({
@@ -408,11 +405,12 @@ async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Ex
       return app;
     })();
     return serverPromise;
-  } catch (e) {
-    throw new Error(
-      "'@apollo/server' and '@as-integrations/express4' are required to use 'onGraphRequest'. Please add these dependencies to your project to use this feature: " +
-        e
-    );
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      throw new Error("Error initializing GraphQL server: " + e.message);
+    } else {
+      throw e;
+    }
   }
 }
 
