@@ -286,7 +286,6 @@ describe("initScheduleTrigger", () => {
     expect(st).to.deep.eq({
       schedule: "every 30 minutes",
       timeZone: RESET_VALUE,
-      attemptDeadlineSeconds: RESET_VALUE,
       retryConfig: {
         retryCount: RESET_VALUE,
         maxDoublings: RESET_VALUE,
