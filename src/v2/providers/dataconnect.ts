@@ -20,6 +20,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import cors from "cors";
+import express from "express";
+import fs from "fs";
+import { GraphQLResolveInfo } from "graphql";
+import { HttpsFunction, onRequest } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
 import { ParamsOf, VarName } from "../../common/params";
 import {
@@ -367,4 +372,111 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
   );
 
   return func;
+}
+
+/** @hidden */
+export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
+  if ((!opts.schema && !opts.schemaFilePath) || (opts.schema && opts.schemaFilePath)) {
+    throw new Error("Exactly one of 'schema' or 'schemaFilePath' must be provided.");
+  }
+  if (opts.schemaFilePath) {
+    opts.schema = fs.readFileSync(opts.schemaFilePath, "utf-8");
+  }
+  if (!opts.resolvers.query && !opts.resolvers.mutation) {
+    throw new Error("At least one query or mutation resolver must be provided.");
+  }
+  const apolloResolvers: { [key: string]: any } = {};
+  if (opts.resolvers.query) {
+    apolloResolvers.Query = opts.resolvers.query;
+  }
+  if (opts.resolvers.mutation) {
+    apolloResolvers.Mutation = opts.resolvers.mutation;
+  }
+  try {
+    const { ApolloServer } = await import("@apollo/server");
+    const { expressMiddleware } = await import("@as-integrations/express4");
+    const serverPromise = (async () => {
+      const app = express();
+      const server = new ApolloServer({
+        typeDefs: opts.schema,
+        resolvers: apolloResolvers,
+      });
+      await server.start();
+      app.use(`/${opts.path ?? "graphql"}`, cors(), express.json(), expressMiddleware(server));
+      return app;
+    })();
+    return serverPromise;
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      throw new Error("Error initializing GraphQL server: " + e.message);
+    } else {
+      throw e;
+    }
+  }
+}
+
+let serverPromise: Promise<express.Express> | null = null;
+
+/**
+ * Handles HTTPS GraphQL requests.
+ * @param {GraphqlServerOptions} opts - Options for configuring the GraphQL server.
+ * @returns {HttpsFunction} A function you can export and deploy.
+ */
+export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
+  return onRequest(async (req, res) => {
+    serverPromise = serverPromise ?? initGraphqlServer(opts);
+    const app = await serverPromise;
+    app(req, res);
+  });
+}
+
+/** Options for configuring the GraphQL server. */
+export interface GraphqlServerOptions {
+  /**
+   * A valid SDL string that represents the GraphQL server's schema.
+   * Either `schema` or `schemaFilePath` is required.
+   */
+  schema?: string;
+  /**
+   * A file path to a valid GraphQL schema.
+   * Either `schema` or `schemaFilePath` is required.
+   */
+  schemaFilePath?: string;
+  /**
+   * The path where the GraphQL server will be served on the Cloud Run function.
+   * If no path is provided, the server will be served at `/graphql`.
+   */
+  path?: string;
+  /** A map of functions that populate data for individual GraphQL schema fields. */
+  resolvers: GraphqlResolvers;
+  // TODO: Add a field for a context function.
+}
+
+/** Per-request context state shared by all resolvers in a particular query. */
+export interface FirebaseContext {
+  auth?: {
+    /** The UID of the Firebase user that made the request, if present. */
+    uid?: string;
+    /** The token attached to the `X-Firebase-Auth-Token` in the request, if present. */
+    token?: string;
+  };
+}
+
+export interface GraphqlResolvers {
+  query?: {
+    [resolver: string]: (
+      parent: unknown,
+      args: Record<string, unknown>,
+      context: FirebaseContext,
+      info: GraphQLResolveInfo
+    ) => unknown;
+  };
+  mutation?: {
+    [key: string]: (
+      parent: unknown,
+      args: Record<string, unknown>,
+      context: FirebaseContext,
+      info: GraphQLResolveInfo
+    ) => unknown;
+  };
 }
