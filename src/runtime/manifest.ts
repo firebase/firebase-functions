@@ -97,7 +97,6 @@ export interface ManifestEndpoint {
   scheduleTrigger?: {
     schedule: string | Expression<string>;
     timeZone?: string | Expression<string> | ResetValue;
-    attemptDeadlineSeconds?: number | Expression<number> | ResetValue;
     retryConfig?: {
       retryCount?: number | Expression<number> | ResetValue;
       maxRetrySeconds?: string | Expression<string> | ResetValue;
@@ -260,14 +259,12 @@ const RESETTABLE_V1_SCHEDULE_OPTIONS: Omit<
 const RESETTABLE_V2_SCHEDULE_OPTIONS: Omit<
   ResettableKeys<ManifestEndpoint["scheduleTrigger"]["retryConfig"]>,
   "maxRetryDuration" | "maxBackoffDuration" | "minBackoffDuration"
-> &
-  Pick<ResettableKeys<ManifestEndpoint["scheduleTrigger"]>, "attemptDeadlineSeconds"> = {
+> = {
   retryCount: null,
   maxDoublings: null,
   maxRetrySeconds: null,
   minBackoffSeconds: null,
   maxBackoffSeconds: null,
-  attemptDeadlineSeconds: null,
 };
 
 function initScheduleTrigger(
@@ -281,11 +278,7 @@ function initScheduleTrigger(
   };
   if (opts.every((opt) => !opt?.preserveExternalChanges)) {
     for (const key of Object.keys(resetOptions)) {
-      if (key === "attemptDeadlineSeconds") {
-        scheduleTrigger[key] = RESET_VALUE;
-      } else {
-        scheduleTrigger.retryConfig[key] = RESET_VALUE;
-      }
+      scheduleTrigger.retryConfig[key] = RESET_VALUE;
     }
     scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE };
   }
