@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import fs from "fs";
+import * as sinon from "sinon";
 import * as dataconnect from "../../../src/v2/providers/dataconnect";
 import { CloudEvent } from "../../../src/v2";
 import { onInit } from "../../../src/v2/core";
@@ -525,6 +527,102 @@ describe("dataconnect", () => {
         () => null
       )(event);
       expect(hello).to.equal("world");
+    });
+  });
+
+  describe("initGraphqlServer", () => {
+    let fsStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      fsStub = sinon.stub(fs, "readFileSync");
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it("both `schema` and `schemaFilePath` set", async () => {
+      const opts = {
+        schema: "type Query { hello: String }",
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      try {
+        await dataconnect.initGraphqlServer(opts);
+      } catch (err: any) {
+        expect(err.message).to.equal(
+          "Exactly one of 'schema' or 'schemaFilePath' must be provided."
+        );
+      }
+    });
+    it("neither `schema` nor `schemaFilePath` set", async () => {
+      const opts = {
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      try {
+        await dataconnect.initGraphqlServer(opts);
+      } catch (err: any) {
+        expect(err.message).to.equal(
+          "Exactly one of 'schema' or 'schemaFilePath' must be provided."
+        );
+      }
+    });
+    it("cannot read file in `schemaFilePath`", async () => {
+      fsStub.throws(new Error("test file not found error"));
+      const opts = {
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      try {
+        await dataconnect.initGraphqlServer(opts);
+      } catch (err: any) {
+        expect(err.message).to.contain("test file not found error");
+      }
+    });
+    it("no resolvers provided", async () => {
+      const opts = {
+        schema: "type Query { hello: String }",
+        resolvers: {},
+      };
+      try {
+        await dataconnect.initGraphqlServer(opts);
+      } catch (err: any) {
+        expect(err.message).to.equal("At least one query or mutation resolver must be provided.");
+      }
+    });
+  });
+
+  describe("onGraphRequest", () => {
+    it("returns callable function", () => {
+      const opts = {
+        schema: "type Query { hello: String }",
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      const func = dataconnect.onGraphRequest(opts);
+      expect(func.__trigger).to.deep.equal({
+        platform: "gcfv2",
+        httpsTrigger: {
+          allowInsecure: false,
+        },
+        labels: {},
+      });
     });
   });
 });

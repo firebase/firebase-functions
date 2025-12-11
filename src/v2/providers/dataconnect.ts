@@ -374,7 +374,8 @@ function onOperation<Variables, ResponseData, PathPatternOrOptions>(
   return func;
 }
 
-async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
+/** @hidden */
+export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
   if ((!opts.schema && !opts.schemaFilePath) || (opts.schema && opts.schemaFilePath)) {
     throw new Error("Exactly one of 'schema' or 'schemaFilePath' must be provided.");
   }
