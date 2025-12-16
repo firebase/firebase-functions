@@ -176,7 +176,7 @@ export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
  * @param options Configuration options for the parameter.
  * @returns A parameter with a `string` return type for `.value`.
  */
-export function defineString(name: string, options: ParamOptions<string> = {}): StringParam {
+export function defineString<T extends string>(name: string, options: ParamOptions<T> = {}): StringParam<T> {
   const param = new StringParam(name, options);
   registerParam(param);
   return param;
