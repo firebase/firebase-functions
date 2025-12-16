@@ -1,2 +1,3 @@
 - Export param types (SecretParam, StringParam, etc.) from firebase-functions/params for type annotations. (#1789)
 - Remove attemptDeadlineSeconds in v2 scheduled functions. (#1776)
+- Allow `JsonSecretParam` in function `secrets` option arrays. (#1788)
