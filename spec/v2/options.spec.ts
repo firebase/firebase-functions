@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2022 Firebase
+// Copyright (c) 2025 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,20 +24,18 @@ import { expect } from "chai";
 import { defineJsonSecret, defineSecret } from "../../src/params";
 import { GlobalOptions } from "../../src/v2/options";
 
-describe("v2/options", () => {
-  describe("GlobalOptions", () => {
-    it("should accept all valid secret types in secrets array (type test)", () => {
-      // This is a compile-time type test. If any of these types are not assignable
-      // to the secrets array, TypeScript will fail to compile this test file.
-      const jsonSecret = defineJsonSecret<{ key: string }>("JSON_SECRET");
-      const stringSecret = defineSecret("STRING_SECRET");
-      const plainSecret = "PLAIN_SECRET";
+describe("GlobalOptions", () => {
+  it("should accept all valid secret types in secrets array (type test)", () => {
+    // This is a compile-time type test. If any of these types are not assignable
+    // to the secrets array, TypeScript will fail to compile this test file.
+    const jsonSecret = defineJsonSecret<{ key: string }>("JSON_SECRET");
+    const stringSecret = defineSecret("STRING_SECRET");
+    const plainSecret = "PLAIN_SECRET";
 
-      const opts: GlobalOptions = {
-        secrets: [plainSecret, stringSecret, jsonSecret],
-      };
+    const opts: GlobalOptions = {
+      secrets: [plainSecret, stringSecret, jsonSecret],
+    };
 
-      expect(opts.secrets).to.have.length(3);
-    });
+    expect(opts.secrets).to.have.length(3);
   });
 });
