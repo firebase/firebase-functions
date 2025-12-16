@@ -1,0 +1,2 @@
+- Export param types (SecretParam, StringParam, etc.) from firebase-functions/params for type annotations. (#1777)
+- Remove attemptDeadlineSeconds in v2 scheduled functions. (#1776)
