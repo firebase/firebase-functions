@@ -43,7 +43,7 @@ import {
   ManifestRequiredAPI,
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
+import { JsonSecretParam, SecretParam, SupportedSecretParam } from "../params/types";
 import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
@@ -638,8 +638,11 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
     options,
     "secretEnvironmentVariables",
     "secrets",
-    (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
+    (secrets: SupportedSecretParam[]) =>
+      secrets.map((secret) => ({
+        key:
+          secret instanceof SecretParam || secret instanceof JsonSecretParam ? secret.name : secret,
+      }))
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {

@@ -437,3 +437,4 @@ describe("Params as CEL", () => {
     ).to.equal("{{ params.A != params.B ? params.FOO : params.BAR }}");
   });
 });
+

@@ -35,7 +35,7 @@ import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
-import { ParamSpec, SecretParam } from "../params/types";
+import { JsonSecretParam, ParamSpec, SecretParam, SupportedSecretParam } from "../params/types";
 import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
 
@@ -210,7 +210,7 @@ export interface GlobalOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /**
    * Determines whether Firebase App Check is enforced. Defaults to false.
@@ -396,8 +396,11 @@ export function optionsToEndpoint(
     opts,
     "secretEnvironmentVariables",
     "secrets",
-    (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
+    (secrets: SupportedSecretParam[]) =>
+      secrets.map((secret) => ({
+        key:
+          secret instanceof SecretParam || secret instanceof JsonSecretParam ? secret.name : secret,
+      }))
   );
 
   return endpoint;
