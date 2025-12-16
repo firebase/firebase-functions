@@ -202,7 +202,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
     const invalidSecrets = runtimeOptions.secrets.filter(
       (s) =>
         !/^[A-Za-z\d\-_]+$/.test(
-          s instanceof SecretParam || s instanceof JsonSecretParam ? s.name : s
+          typeof s === "string" ? s : s.name
         )
     );
     if (invalidSecrets.length > 0) {
