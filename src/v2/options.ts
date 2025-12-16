@@ -35,7 +35,7 @@ import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
-import { JsonSecretParam, ParamSpec, SecretParam, SupportedSecretParam } from "../params/types";
+import { ParamSpec, SupportedSecretParam } from "../params/types";
 import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
 
@@ -398,8 +398,7 @@ export function optionsToEndpoint(
     "secrets",
     (secrets: SupportedSecretParam[]) =>
       secrets.map((secret) => ({
-        key:
-          typeof secret === "string" ? secret : secret.name
+        key: typeof secret === "string" ? secret : secret.name,
       }))
   );
 
