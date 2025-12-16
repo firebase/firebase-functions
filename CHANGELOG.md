@@ -1,0 +1,1 @@
+- Allow `JsonSecretParam` in function `secrets` option arrays. (#1788)
