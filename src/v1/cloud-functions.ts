@@ -641,7 +641,7 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
     (secrets: SupportedSecretParam[]) =>
       secrets.map((secret) => ({
         key:
-          secret instanceof SecretParam || secret instanceof JsonSecretParam ? secret.name : secret,
+          typeof secret === "string" ? secret : secret.name
       }))
   );
   if (options?.vpcConnector !== undefined) {
