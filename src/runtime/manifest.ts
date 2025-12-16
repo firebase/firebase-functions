@@ -71,6 +71,10 @@ export interface ManifestEndpoint {
     genkitAction?: string;
   };
 
+  dataConnectHttpsTrigger?: {
+    invoker?: string[];
+  };
+
   eventTrigger?: {
     eventFilters: Record<string, string | Expression<string>>;
     eventFilterPathPatterns?: Record<string, string | Expression<string>>;

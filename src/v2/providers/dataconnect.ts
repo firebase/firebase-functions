@@ -24,7 +24,7 @@ import cors from "cors";
 import express from "express";
 import fs from "fs";
 import { GraphQLResolveInfo } from "graphql";
-import { HttpsFunction, onRequest } from "./https";
+import { HttpsFunction, HttpsOptions, onRequest } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
 import { ParamsOf, VarName } from "../../common/params";
 import {
@@ -423,15 +423,22 @@ let serverPromise: Promise<express.Express> | null = null;
  * @returns {HttpsFunction} A function you can export and deploy.
  */
 export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
-  return onRequest(async (req, res) => {
+  const func = onRequest(opts, async (req, res) => {
     serverPromise = serverPromise ?? initGraphqlServer(opts);
     const app = await serverPromise;
     app(req, res);
   });
+  func.__endpoint.dataConnectHttpsTrigger = {};
+  const invoker = func.__endpoint.httpsTrigger?.invoker;
+  if (invoker && invoker.length) {
+    func.__endpoint.dataConnectHttpsTrigger.invoker = invoker;
+  }
+  delete func.__endpoint.httpsTrigger;
+  return func;
 }
 
 /** Options for configuring the GraphQL server. */
-export interface GraphqlServerOptions {
+export interface GraphqlServerOptions extends HttpsOptions {
   /**
    * A valid SDL string that represents the GraphQL server's schema.
    * Either `schema` or `schemaFilePath` is required.

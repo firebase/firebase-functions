@@ -605,7 +605,7 @@ describe("dataconnect", () => {
   });
 
   describe("onGraphRequest", () => {
-    it("returns callable function", () => {
+    it("returns callable function with Data Connect trigger", () => {
       const opts = {
         schema: "type Query { hello: String }",
         schemaFilePath: "schema.gql",
@@ -616,12 +616,30 @@ describe("dataconnect", () => {
         },
       };
       const func = dataconnect.onGraphRequest(opts);
-      expect(func.__trigger).to.deep.equal({
-        platform: "gcfv2",
-        httpsTrigger: {
-          allowInsecure: false,
+      expect(func.__endpoint).to.deep.equal({
+        ...expectedEndpointBase,
+        dataConnectHttpsTrigger: {},
+      });
+    });
+    it("returns callable function with request opts with Data Connect trigger", () => {
+      const opts = {
+        invoker: ["test-service-account@test.com"],
+        region: "us-east4",
+        schema: "type Query { hello: String }",
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
         },
-        labels: {},
+      };
+      const func = dataconnect.onGraphRequest(opts);
+      expect(func.__endpoint).to.deep.equal({
+        ...expectedEndpointBase,
+        dataConnectHttpsTrigger: {
+          invoker: ["test-service-account@test.com"],
+        },
+        region: ["us-east4"],
       });
     });
   });
