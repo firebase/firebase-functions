@@ -41,6 +41,15 @@ import {
 
 export { BUCKET_PICKER, select, multiSelect } from "./types";
 export type { TextInput, SelectInput, SelectOptions, MultiSelectInput } from "./types";
+export type {
+  Param,
+  SecretParam,
+  JsonSecretParam,
+  StringParam,
+  BooleanParam,
+  IntParam,
+  ListParam,
+} from "./types";
 
 export { Expression };
 export type { ParamOptions };
