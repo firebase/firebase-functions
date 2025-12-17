@@ -306,7 +306,7 @@ export function onMessagePublished<T = any>(
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
     const event = raw as CloudEvent<MessagePublishedData<T>>;
-    attachPubSubContext(event, topic);
+    addV1Compatibility(event, topic);
     return wrapTraceContext(withInit(handler))(event);
   };
 
@@ -358,14 +358,12 @@ export function onMessagePublished<T = any>(
 }
 
 /**
- * @internal
- *
- * Adds a v1-style context to the event.
+ * Adds v1-style `context` and `message` properties to the event.
  *
  * @param event - The event to add the context to.
  * @param topic - The topic the event is for.
  */
-function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topic: string) {
+function addV1Compatibility<T>(event: CloudEvent<MessagePublishedData<T>>, topic: string) {
   if ("context" in event && event.context) {
     throw new Error("Unexpected context in event.");
   }
@@ -374,7 +372,7 @@ function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topi
   const resource: Resource = {
 
     service: "pubsub.googleapis.com",
-    name: resourceName ?? "",
+    name: resourceName,
 
   };
 
@@ -390,21 +388,15 @@ function attachPubSubContext<T>(event: CloudEvent<MessagePublishedData<T>>, topi
   Object.defineProperty(event, "context", {
 
     get: () => context,
-    enumerable: false,
-    configurable: false,
 
   });
 
   Object.defineProperty(event, "message", {
     get: () => (event.data as MessagePublishedData<T>).message,
-    enumerable: false,
-    configurable: false,
   });
 }
 
 /**
- * @internal
- *
  * Extracts the resource name from the event source.
  *
  * @param event - The event to extract the resource name from.

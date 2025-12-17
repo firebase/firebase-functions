@@ -1,4 +1,5 @@
 import { expect } from "chai";
+import { EventContext } from "../../../src/v1/cloud-functions";
 
 import { CloudEvent } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
@@ -190,10 +191,16 @@ describe("onMessagePublished", () => {
       data,
     };
 
-    let destructuredMessage: pubsub.Message<any>;
-    let context: any;
+    type PubSubCloudEvent = CloudEvent<pubsub.MessagePublishedData> & {
+      message: pubsub.Message<{ hello: "world" }>;
+      context: EventContext;
+    };
+
+    let destructuredMessage: pubsub.Message<{ hello: "world" }>;
+    let context: EventContext;
     const func = pubsub.onMessagePublished("topic", (e) => {
-      ({ message: destructuredMessage, context } = e as any);
+      const pubsubEvent = e as PubSubCloudEvent;
+      ({ message: destructuredMessage, context } = pubsubEvent);
     });
 
     await func(event);
