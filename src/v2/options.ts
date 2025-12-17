@@ -120,7 +120,7 @@ export interface GlobalOptions {
   /**
    * Region where functions should be deployed.
    */
-  region?: SupportedRegion | string | Expression<string> | ResetValue;
+  region?: SupportedRegion | SupportedRegion[] | string | Expression<string> | ResetValue;
 
   /**
    * Amount of memory to allocate to a function.
