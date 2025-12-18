@@ -24,7 +24,7 @@ import cors from "cors";
 import express from "express";
 import fs from "fs";
 import { GraphQLResolveInfo } from "graphql";
-import { HttpsFunction, HttpsOptions, onRequest } from "./https";
+import { HttpsFunction, HttpsOptions } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
 import { ParamsOf, VarName } from "../../common/params";
 import {
@@ -39,7 +39,11 @@ import { withInit } from "../../common/onInit";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { PathPattern } from "../../common/utilities/path-pattern";
 import { Expression } from "../../params";
+import * as options from "../options";
 import { ResetValue } from "../../common/options";
+import { withErrorHandler, Request } from "../../common/providers/https";
+import { isDebugFeatureEnabled } from "../../common/debug";
+import { convertIfPresent, convertInvoker } from "../../common/encoding";
 
 /** @internal */
 export const mutationExecutedEventType =
@@ -423,18 +427,68 @@ let serverPromise: Promise<express.Express> | null = null;
  * @returns {HttpsFunction} A function you can export and deploy.
  */
 export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
-  const func = onRequest(opts, async (req, res) => {
-    serverPromise = serverPromise ?? initGraphqlServer(opts);
-    const app = await serverPromise;
-    app(req, res);
-  });
-  func.__endpoint.dataConnectHttpsTrigger = {};
-  const invoker = func.__endpoint.httpsTrigger?.invoker;
-  if (invoker && invoker.length) {
-    func.__endpoint.dataConnectHttpsTrigger.invoker = invoker;
+  let handler: (req: Request, res: express.Response) => void | Promise<void> = withErrorHandler(
+    async (req: Request, res: express.Response) => {
+      serverPromise = serverPromise ?? initGraphqlServer(opts);
+      const app = await serverPromise;
+      app(req, res);
+    }
+  );
+
+  if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
+    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
+    if (isDebugFeatureEnabled("enableCors")) {
+      // Respect `cors: false` to turn off cors even if debug feature is enabled.
+      origin = opts.cors === false ? false : true;
+    }
+    // Arrays cause the access-control-allow-origin header to be dynamic based
+    // on the origin header of the request. If there is only one element in the
+    // array, this is unnecessary.
+    if (Array.isArray(origin) && origin.length === 1) {
+      origin = origin[0];
+    }
+    const middleware = cors({ origin });
+
+    const userProvidedHandler = handler;
+    handler = (req: Request, res: express.Response): void | Promise<void> => {
+      return new Promise((resolve) => {
+        res.on("finish", resolve);
+        middleware(req, res, () => {
+          resolve(userProvidedHandler(req, res));
+        });
+      });
+    };
   }
-  delete func.__endpoint.httpsTrigger;
-  return func;
+
+  handler = wrapTraceContext(withInit(handler));
+
+  const globalOpts = options.getGlobalOptions();
+  const baseOpts = options.optionsToEndpoint(globalOpts);
+  // global options calls region a scalar and https allows it to be an array,
+  // but optionsToTriggerAnnotations handles both cases.
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const endpoint: Partial<ManifestEndpoint> = {
+    ...initV2Endpoint(globalOpts, opts),
+    platform: "gcfv2",
+    ...baseOpts,
+    ...specificOpts,
+    labels: {
+      ...baseOpts?.labels,
+      ...specificOpts?.labels,
+    },
+    dataConnectHttpsTrigger: {},
+  };
+  convertIfPresent(
+    endpoint.dataConnectHttpsTrigger,
+    globalOpts,
+    "invoker",
+    "invoker",
+    convertInvoker
+  );
+  convertIfPresent(endpoint.dataConnectHttpsTrigger, opts, "invoker", "invoker", convertInvoker);
+  (handler as HttpsFunction).__endpoint = endpoint;
+
+  return handler as HttpsFunction;
 }
 
 /** Options for configuring the GraphQL server. */
