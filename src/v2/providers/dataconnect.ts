@@ -20,10 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import cors from "cors";
 import express from "express";
 import fs from "fs";
-import { GraphQLResolveInfo } from "graphql";
+import type { GraphQLResolveInfo } from "graphql";
 import { HttpsFunction, HttpsOptions } from "./https";
 import { CloudEvent, CloudFunction } from "../core";
 import { ParamsOf, VarName } from "../../common/params";
@@ -42,7 +41,6 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { ResetValue } from "../../common/options";
 import { withErrorHandler, Request } from "../../common/providers/https";
-import { isDebugFeatureEnabled } from "../../common/debug";
 import { convertIfPresent, convertInvoker } from "../../common/encoding";
 
 /** @internal */
@@ -389,7 +387,7 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
   if (!opts.resolvers.query && !opts.resolvers.mutation) {
     throw new Error("At least one query or mutation resolver must be provided.");
   }
-  const apolloResolvers: { [key: string]: any } = {};
+  const apolloResolvers: Record<string, any> = {};
   if (opts.resolvers.query) {
     apolloResolvers.Query = opts.resolvers.query;
   }
@@ -406,7 +404,7 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
         resolvers: apolloResolvers,
       });
       await server.start();
-      app.use(`/${opts.path ?? "graphql"}`, cors(), express.json(), expressMiddleware(server));
+      app.use(`/${opts.path ?? "graphql"}`, express.json(), expressMiddleware(server));
       return app;
     })();
     return serverPromise;
@@ -427,40 +425,15 @@ let serverPromise: Promise<express.Express> | null = null;
  * @returns {HttpsFunction} A function you can export and deploy.
  */
 export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
-  let handler: (req: Request, res: express.Response) => void | Promise<void> = withErrorHandler(
-    async (req: Request, res: express.Response) => {
-      serverPromise = serverPromise ?? initGraphqlServer(opts);
-      const app = await serverPromise;
-      app(req, res);
-    }
+  const handler: (req: Request, res: express.Response) => void | Promise<void> = wrapTraceContext(
+    withInit(
+      withErrorHandler(async (req: Request, res: express.Response) => {
+        serverPromise = serverPromise ?? initGraphqlServer(opts);
+        const app = await serverPromise;
+        app(req, res);
+      })
+    )
   );
-
-  if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
-    if (isDebugFeatureEnabled("enableCors")) {
-      // Respect `cors: false` to turn off cors even if debug feature is enabled.
-      origin = opts.cors === false ? false : true;
-    }
-    // Arrays cause the access-control-allow-origin header to be dynamic based
-    // on the origin header of the request. If there is only one element in the
-    // array, this is unnecessary.
-    if (Array.isArray(origin) && origin.length === 1) {
-      origin = origin[0];
-    }
-    const middleware = cors({ origin });
-
-    const userProvidedHandler = handler;
-    handler = (req: Request, res: express.Response): void | Promise<void> => {
-      return new Promise((resolve) => {
-        res.on("finish", resolve);
-        middleware(req, res, () => {
-          resolve(userProvidedHandler(req, res));
-        });
-      });
-    };
-  }
-
-  handler = wrapTraceContext(withInit(handler));
 
   const globalOpts = options.getGlobalOptions();
   const baseOpts = options.optionsToEndpoint(globalOpts);
@@ -476,16 +449,16 @@ export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    dataConnectHttpsTrigger: {},
+    dataConnectGraphqlTrigger: {},
   };
   convertIfPresent(
-    endpoint.dataConnectHttpsTrigger,
+    endpoint.dataConnectGraphqlTrigger,
     globalOpts,
     "invoker",
     "invoker",
     convertInvoker
   );
-  convertIfPresent(endpoint.dataConnectHttpsTrigger, opts, "invoker", "invoker", convertInvoker);
+  convertIfPresent(endpoint.dataConnectGraphqlTrigger, opts, "invoker", "invoker", convertInvoker);
   (handler as HttpsFunction).__endpoint = endpoint;
 
   return handler as HttpsFunction;

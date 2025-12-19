@@ -618,7 +618,7 @@ describe("dataconnect", () => {
       const func = dataconnect.onGraphRequest(opts);
       expect(func.__endpoint).to.deep.equal({
         ...expectedEndpointBase,
-        dataConnectHttpsTrigger: {},
+        dataConnectGraphqlTrigger: {},
       });
     });
     it("returns callable function with request opts with Data Connect trigger", () => {
@@ -636,7 +636,7 @@ describe("dataconnect", () => {
       const func = dataconnect.onGraphRequest(opts);
       expect(func.__endpoint).to.deep.equal({
         ...expectedEndpointBase,
-        dataConnectHttpsTrigger: {
+        dataConnectGraphqlTrigger: {
           invoker: ["test-service-account@test.com"],
         },
         region: ["us-east4"],

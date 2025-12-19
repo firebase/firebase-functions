@@ -505,7 +505,6 @@
     "@types/express": "^4.17.21",
     "cors": "^2.8.5",
     "express": "^4.21.0",
-    "graphql": "^16.12.0",
     "protobufjs": "^7.2.2"
   },
   "devDependencies": {
@@ -537,6 +536,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "firebase-admin": "^13.0.0",
     "genkit": "^1.0.0-rc.4",
+    "graphql": "^16.12.0",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",

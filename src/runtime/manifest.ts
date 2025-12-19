@@ -71,7 +71,7 @@ export interface ManifestEndpoint {
     genkitAction?: string;
   };
 
-  dataConnectHttpsTrigger?: {
+  dataConnectGraphqlTrigger?: {
     invoker?: string[];
   };
 
