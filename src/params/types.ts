@@ -536,6 +536,12 @@ export class JsonSecretParam<T = any> {
 }
 
 /**
+ * A union type representing all valid secret parameter types that can be used
+ * in a function's `secrets` configuration array.
+ */
+export type SupportedSecretParam = string | SecretParam | JsonSecretParam<unknown>;
+
+/**
  *  A parametrized value of String type that will be read from .env files
  *  if present, or prompted for by the CLI if missing.
  */

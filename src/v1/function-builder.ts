@@ -23,7 +23,7 @@
 import express from "express";
 
 import { ResetValue } from "../common/options";
-import { Expression, SecretParam } from "../params/types";
+import { Expression } from "../params/types";
 import { EventContext } from "./cloud-functions";
 import {
   DeploymentOptions,
@@ -200,7 +200,7 @@ function assertRuntimeOptionsValid(runtimeOptions: RuntimeOptions): boolean {
 
   if (runtimeOptions.secrets !== undefined) {
     const invalidSecrets = runtimeOptions.secrets.filter(
-      (s) => !/^[A-Za-z\d\-_]+$/.test(s instanceof SecretParam ? s.name : s)
+      (s) => !/^[A-Za-z\d\-_]+$/.test(typeof s === "string" ? s : s.name)
     );
     if (invalidSecrets.length > 0) {
       throw new Error(

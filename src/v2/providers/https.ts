@@ -44,7 +44,7 @@ import {
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
 import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
@@ -165,7 +165,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /**
    * Invoker to set access control on https functions.
