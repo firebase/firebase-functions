@@ -12,7 +12,7 @@ export const httpsOnCallTrigger = onCall(
     });
 
     if (request.acceptsStreaming) {
-      response?.sendChunk("onCallStreamed");
+      await response?.sendChunk("onCallStreamed");
     }
 
     return "onCall";
