@@ -1,12 +1,20 @@
 {
   "compilerOptions": {
-    "lib": ["es6", "dom"],
-    "module": "commonjs",
-    "target": "es2020",
-    "noImplicitAny": false,
+    "module": "NodeNext",
+    "esModuleInterop": true,
+    "moduleResolution": "nodenext",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
     "outDir": "lib",
-    "declaration": true,
-    "typeRoots": ["node_modules/@types"]
+    "sourceMap": true,
+    "strict": true,
+    "target": "es2017"
   },
-  "files": ["src/index.ts"]
+  "compileOnSave": true,
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "**/*.test.ts"
+  ]
 }
