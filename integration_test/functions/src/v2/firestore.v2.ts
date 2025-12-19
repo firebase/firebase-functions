@@ -19,7 +19,7 @@ export const firestoreOnDocumentCreatedTrigger = onDocumentCreated(
   async (event) => {
     await sendEvent(
       "onDocumentCreated",
-      serializeFirestoreEvent(event, serializeQueryDocumentSnapshot(event.data!))
+      serializeFirestoreEvent(event, serializeQueryDocumentSnapshot(event.data))
     );
   }
 );
@@ -29,7 +29,7 @@ export const firestoreOnDocumentUpdatedTrigger = onDocumentUpdated(
   async (event) => {
     await sendEvent(
       "onDocumentUpdated",
-      serializeFirestoreEvent(event, serializeChangeEvent(event.data!))
+      serializeFirestoreEvent(event, serializeChangeEvent(event.data))
     );
   }
 );
@@ -39,7 +39,7 @@ export const firestoreOnDocumentDeletedTrigger = onDocumentDeleted(
   async (event) => {
     await sendEvent(
       "onDocumentDeleted",
-      serializeFirestoreEvent(event, serializeQueryDocumentSnapshot(event.data!))
+      serializeFirestoreEvent(event, serializeQueryDocumentSnapshot(event.data))
     );
   }
 );
@@ -60,7 +60,7 @@ export const firestoreOnDocumentCreatedWithAuthContextTrigger = onDocumentCreate
   async (event) => {
     await sendEvent(
       "onDocumentCreatedWithAuthContext",
-      serializeFirestoreAuthEvent(event, serializeQueryDocumentSnapshot(event.data!))
+      serializeFirestoreAuthEvent(event, serializeQueryDocumentSnapshot(event.data))
     );
   }
 );
@@ -70,7 +70,7 @@ export const firestoreOnDocumentUpdatedWithAuthContextTrigger = onDocumentUpdate
   async (event) => {
     await sendEvent(
       "onDocumentUpdatedWithAuthContext",
-      serializeFirestoreAuthEvent(event, serializeChangeEvent(event.data!))
+      serializeFirestoreAuthEvent(event, serializeChangeEvent(event.data))
     );
   }
 );
@@ -80,7 +80,7 @@ export const firestoreOnDocumentDeletedWithAuthContextTrigger = onDocumentDelete
   async (event) => {
     await sendEvent(
       "onDocumentDeletedWithAuthContext",
-      serializeFirestoreAuthEvent(event, serializeQueryDocumentSnapshot(event.data!))
+      serializeFirestoreAuthEvent(event, serializeQueryDocumentSnapshot(event.data))
     );
   }
 );

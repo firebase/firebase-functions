@@ -38,4 +38,3 @@ function serializeStorageObjectData(data: StorageObjectData): any {
     updated: data.updated,
   };
 }
-

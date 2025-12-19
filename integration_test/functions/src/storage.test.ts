@@ -100,7 +100,7 @@ describe("storage", () => {
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should contain a timeDeleted timestamp', () => {
+      it.skip("should contain a timeDeleted timestamp", () => {
         expect(v1DeletedData.object.timeDeleted).toBeDefined();
         expect(Date.parse(v1DeletedData.object.timeDeleted)).toBeGreaterThan(0);
       });
@@ -117,7 +117,7 @@ describe("storage", () => {
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should contain a timeDeleted timestamp', () => {
+      it.skip("should contain a timeDeleted timestamp", () => {
         expect(v2DeletedData.object.timeDeleted).toBeDefined();
         expect(Date.parse(v2DeletedData.object.timeDeleted)).toBeGreaterThan(0);
       });
@@ -144,7 +144,7 @@ describe("storage", () => {
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should have metadata', () => {
+      it.skip("should have metadata", () => {
         expect(v1MetadataData.object.metadata).toBeDefined();
         expect(v1MetadataData.object.metadata.runId).toBe(RUN_ID);
       });
@@ -161,7 +161,7 @@ describe("storage", () => {
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should have metadata', () => {
+      it.skip("should have metadata", () => {
         expect(v2MetadataData.metadata).toBeDefined();
         expect(v2MetadataData.metadata.runId).toBe(RUN_ID);
       });
@@ -185,13 +185,13 @@ describe("storage", () => {
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should not have initial metadata', () => {
+      it.skip("should not have initial metadata", () => {
         expect(v1UploadedData.object.metadata).toBeDefined();
         expect(v1UploadedData.object.metadata.runId).not.toBeUndefined();
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should contain a timeCreated timestamp', () => {
+      it.skip("should contain a timeCreated timestamp", () => {
         expect(v1UploadedData.object.timeCreated).toBeDefined();
         expect(Date.parse(v1UploadedData.object.timeCreated)).toBeGreaterThan(0);
       });
@@ -208,17 +208,16 @@ describe("storage", () => {
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should not have initial metadata', () => {
+      it.skip("should not have initial metadata", () => {
         expect(v2UploadedData.object.metadata).toBeDefined();
         expect(v2UploadedData.object.metadata.runId).not.toBeUndefined();
       });
 
       // TODO: Doesn't seem to be sent by Google Cloud?
-      it.skip('should contain a timeCreated timestamp', () => {
+      it.skip("should contain a timeCreated timestamp", () => {
         expect(v2UploadedData.object.timeCreated).toBeDefined();
         expect(Date.parse(v2UploadedData.object.timeCreated)).toBeGreaterThan(0);
       });
     });
   });
 });
-

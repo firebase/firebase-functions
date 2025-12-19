@@ -115,4 +115,3 @@ describe("database.v1", () => {
     });
   });
 });
-

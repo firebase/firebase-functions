@@ -22,12 +22,11 @@ export function serializeDataSnapshot(snapshot: DataSnapshot) {
     priority: snapshot.getPriority(),
     exists: snapshot.exists(),
     hasChildren: snapshot.hasChildren(),
-    hasChild: snapshot.hasChild('noop'),
+    hasChild: snapshot.hasChild("noop"),
     numChildren: snapshot.numChildren(),
     json: snapshot.toJSON(),
   };
 }
-
 
 export function serializeReference(reference: Reference) {
   return {

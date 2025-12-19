@@ -1,8 +1,23 @@
-import { DocumentData, DocumentReference, DocumentSnapshot, GeoPoint, QuerySnapshot, Timestamp } from "firebase-admin/firestore";
-import { Change, FirestoreAuthEvent, FirestoreEvent, QueryDocumentSnapshot } from "firebase-functions/firestore";
+import {
+  DocumentData,
+  DocumentReference,
+  DocumentSnapshot,
+  GeoPoint,
+  QuerySnapshot,
+  Timestamp,
+} from "firebase-admin/firestore";
+import {
+  Change,
+  FirestoreAuthEvent,
+  FirestoreEvent,
+  QueryDocumentSnapshot,
+} from "firebase-functions/firestore";
 import { serializeCloudEvent } from "./index";
 
-export function serializeFirestoreAuthEvent(event: FirestoreAuthEvent<unknown>, eventData: any): any {
+export function serializeFirestoreAuthEvent(
+  event: FirestoreAuthEvent<unknown>,
+  eventData: any
+): any {
   return {
     ...serializeFirestoreEvent(event, eventData),
     authId: event.authId,

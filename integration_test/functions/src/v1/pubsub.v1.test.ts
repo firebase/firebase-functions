@@ -1,8 +1,8 @@
-import { describe, it, beforeAll, expect, assertType } from "vitest";
 import { PubSub } from "@google-cloud/pubsub";
-import { waitForEvent } from "../utils";
-import { config } from "../config";
+import { beforeAll, describe, expect, it } from "vitest";
 import { expectEventContext } from "../assertions";
+import { config } from "../config";
+import { waitForEvent } from "../utils";
 
 describe("pubsub.v1", () => {
   describe("onMessagePublished", () => {

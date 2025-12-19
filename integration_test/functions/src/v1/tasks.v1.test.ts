@@ -52,10 +52,9 @@ describe("tasks.v1", () => {
       expect(data.queueName).toBe(QUEUE_NAME);
       expect(data.retryCount).toBe(0);
 
-      // TODO(ehesp): This should be a valid datetime string, but it comes through as 
+      // TODO(ehesp): This should be a valid datetime string, but it comes through as
       // a precision unix timestamp - looks like a bug to be fixed.
       expect(data.scheduledTime).toBeDefined();
     });
   });
 });
-

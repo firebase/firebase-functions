@@ -13,7 +13,7 @@ export const databaseOnValueCreated = onValueCreated(
   async (event) => {
     await sendEvent(
       "onValueCreated",
-      serializeDatabaseEvent(event, serializeDataSnapshot(event.data!))
+      serializeDatabaseEvent(event, serializeDataSnapshot(event.data))
     );
   }
 );
@@ -25,7 +25,7 @@ export const databaseOnValueUpdated = onValueUpdated(
   async (event) => {
     await sendEvent(
       "onValueUpdated",
-      serializeDatabaseEvent(event, serializeChangeEvent(event.data!))
+      serializeDatabaseEvent(event, serializeChangeEvent(event.data))
     );
   }
 );
@@ -37,7 +37,7 @@ export const databaseOnValueDeleted = onValueDeleted(
   async (event) => {
     await sendEvent(
       "onValueDeleted",
-      serializeDatabaseEvent(event, serializeDataSnapshot(event.data!))
+      serializeDatabaseEvent(event, serializeDataSnapshot(event.data))
     );
   }
 );

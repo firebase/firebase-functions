@@ -1,9 +1,9 @@
-import { describe, it, beforeAll, afterAll, expect } from "vitest";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { waitForEvent } from "../utils";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { expectAuthBlockingEvent } from "../assertions/identity";
-import { auth } from "../firebase.server";
 import { auth as authClient } from "../firebase.client";
+import { auth } from "../firebase.server";
+import { waitForEvent } from "../utils";
 
 describe("identity.v2", () => {
   describe("beforeUserCreated", () => {
@@ -27,6 +27,7 @@ describe("identity.v2", () => {
         try {
           await auth.deleteUser(userId);
         } catch (error) {
+          console.warn("Error deleting user:", error.message);
           // Ignore errors if user was already deleted
         }
       }
@@ -68,6 +69,7 @@ describe("identity.v2", () => {
         try {
           await auth.deleteUser(userId);
         } catch (error) {
+          console.warn("Error deleting user:", error.message);
           // Ignore errors if user was already deleted
         }
       }

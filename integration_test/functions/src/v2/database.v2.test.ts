@@ -1,11 +1,7 @@
 import { describe, it, beforeAll, expect } from "vitest";
 import { RUN_ID, waitForEvent } from "../utils";
 import { database } from "../firebase.server";
-import {
-  expectCloudEvent,
-  expectDatabaseEvent,
-  expectDataSnapshot,
-} from "../assertions/database";
+import { expectCloudEvent, expectDatabaseEvent, expectDataSnapshot } from "../assertions/database";
 
 describe("database.v2", () => {
   describe("onValueCreated", () => {
@@ -143,4 +139,3 @@ describe("database.v2", () => {
     });
   });
 });
-

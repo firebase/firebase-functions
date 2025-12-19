@@ -128,7 +128,7 @@ async function runTests(runId: string): Promise<void> {
   console.log("Tests completed successfully");
 }
 
-async function cleanupFunctions(codebase: string): Promise<void> {
+async function cleanupFunctions(): Promise<void> {
   console.log(`Cleaning up functions with RUN_ID: ${runId}...`);
   await execCommand("firebase", ["functions:delete", runId, "--force"], {}, integrationTestDir);
   console.log("Functions cleaned up successfully");

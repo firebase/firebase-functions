@@ -119,4 +119,3 @@ describe("firestore.v1", () => {
     });
   });
 });
-

@@ -8,7 +8,7 @@ describe("https.v2", () => {
   describe("httpsOnCallTrigger", () => {
     let data: any;
     let callData: any;
-    let streamData: any[] = [];
+    const streamData: any[] = [];
 
     beforeAll(async () => {
       data = await waitForEvent("httpsOnCall", async () => {

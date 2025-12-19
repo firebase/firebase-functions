@@ -1,4 +1,4 @@
-import { expect, assertType } from "vitest";
+import { assertType, expect } from "vitest";
 import { RUN_ID } from "../utils";
 
 export * from "./index";
@@ -20,7 +20,7 @@ export function expectDatabaseEvent(data: any, eventName: string, refPath: strin
   expect(data.params.runId).toBe(RUN_ID);
 }
 
-export function expectDataSnapshot(snapshot: any, refPath: string) {
+export function expectDataSnapshot(snapshot: any) {
   expect(snapshot.ref).toBeDefined();
   expect(snapshot.ref.__type).toBe("reference");
   expect(snapshot.ref.key).toBeDefined();
