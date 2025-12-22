@@ -370,10 +370,8 @@ function addV1Compatibility<T>(event: CloudEvent<MessagePublishedData<T>>, topic
 
   const resourceName = getResourceName(event, topic);
   const resource: Resource = {
-
     service: "pubsub.googleapis.com",
     name: resourceName,
-
   };
 
   const context: EventContext = {

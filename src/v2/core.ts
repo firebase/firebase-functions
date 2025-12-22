@@ -96,7 +96,7 @@ export interface CloudEvent<T> {
   /** V1- compatible context of this event.
    * 
    * This getter is added at runtime for V1 compatibility.
-   * May be undefined it not set by a provider
+   * May be undefined if not set by a provider
    */
   readonly context?: EventContext;
 }
