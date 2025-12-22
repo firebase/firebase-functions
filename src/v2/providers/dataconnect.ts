@@ -459,6 +459,9 @@ export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
     convertInvoker
   );
   convertIfPresent(endpoint.dataConnectGraphqlTrigger, opts, "invoker", "invoker", convertInvoker);
+  if (opts.schemaFilePath) {
+    endpoint.dataConnectGraphqlTrigger.schemaFilePath = opts.schemaFilePath;
+  }
   (handler as HttpsFunction).__endpoint = endpoint;
 
   return handler as HttpsFunction;

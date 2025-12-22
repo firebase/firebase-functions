@@ -605,10 +605,9 @@ describe("dataconnect", () => {
   });
 
   describe("onGraphRequest", () => {
-    it("returns callable function with Data Connect trigger", () => {
+    it("returns callable function without schemaFilePath Data Connect trigger", () => {
       const opts = {
         schema: "type Query { hello: String }",
-        schemaFilePath: "schema.gql",
         resolvers: {
           query: {
             hello: () => "Hello, world!",
@@ -621,11 +620,27 @@ describe("dataconnect", () => {
         dataConnectGraphqlTrigger: {},
       });
     });
+    it("returns callable function with schemaFilePath Data Connect trigger", () => {
+      const opts = {
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      const func = dataconnect.onGraphRequest(opts);
+      expect(func.__endpoint).to.deep.equal({
+        ...expectedEndpointBase,
+        dataConnectGraphqlTrigger: {
+          schemaFilePath: "schema.gql",
+        },
+      });
+    });
     it("returns callable function with request opts with Data Connect trigger", () => {
       const opts = {
         invoker: ["test-service-account@test.com"],
         region: "us-east4",
-        schema: "type Query { hello: String }",
         schemaFilePath: "schema.gql",
         resolvers: {
           query: {
@@ -638,6 +653,7 @@ describe("dataconnect", () => {
         ...expectedEndpointBase,
         dataConnectGraphqlTrigger: {
           invoker: ["test-service-account@test.com"],
+          schemaFilePath: "schema.gql",
         },
         region: ["us-east4"],
       });

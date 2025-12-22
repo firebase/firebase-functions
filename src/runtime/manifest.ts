@@ -73,6 +73,7 @@ export interface ManifestEndpoint {
 
   dataConnectGraphqlTrigger?: {
     invoker?: string[];
+    schemaFilePath?: string;
   };
 
   eventTrigger?: {
