@@ -468,7 +468,7 @@ export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
 }
 
 /** Options for configuring the GraphQL server. */
-export interface GraphqlServerOptions extends HttpsOptions {
+export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
   /**
    * A valid SDL string that represents the GraphQL server's schema.
    * Either `schema` or `schemaFilePath` is required.
@@ -499,6 +499,7 @@ export interface FirebaseContext {
   };
 }
 
+/** Resolver functions that populate data for individual GraphQL schema fields. */
 export interface GraphqlResolvers {
   query?: {
     [resolver: string]: (

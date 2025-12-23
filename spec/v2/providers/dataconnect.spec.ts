@@ -551,14 +551,11 @@ describe("dataconnect", () => {
           },
         },
       };
-      try {
-        await dataconnect.initGraphqlServer(opts);
-      } catch (err: any) {
-        expect(err.message).to.equal(
-          "Exactly one of 'schema' or 'schemaFilePath' must be provided."
-        );
-      }
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "Exactly one of 'schema' or 'schemaFilePath' must be provided."
+      );
     });
+
     it("neither `schema` nor `schemaFilePath` set", async () => {
       const opts = {
         resolvers: {
@@ -567,14 +564,11 @@ describe("dataconnect", () => {
           },
         },
       };
-      try {
-        await dataconnect.initGraphqlServer(opts);
-      } catch (err: any) {
-        expect(err.message).to.equal(
-          "Exactly one of 'schema' or 'schemaFilePath' must be provided."
-        );
-      }
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "Exactly one of 'schema' or 'schemaFilePath' must be provided."
+      );
     });
+
     it("cannot read file in `schemaFilePath`", async () => {
       fsStub.throws(new Error("test file not found error"));
       const opts = {
@@ -585,22 +579,19 @@ describe("dataconnect", () => {
           },
         },
       };
-      try {
-        await dataconnect.initGraphqlServer(opts);
-      } catch (err: any) {
-        expect(err.message).to.contain("test file not found error");
-      }
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "test file not found error"
+      );
     });
+
     it("no resolvers provided", async () => {
       const opts = {
         schema: "type Query { hello: String }",
         resolvers: {},
       };
-      try {
-        await dataconnect.initGraphqlServer(opts);
-      } catch (err: any) {
-        expect(err.message).to.equal("At least one query or mutation resolver must be provided.");
-      }
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "At least one query or mutation resolver must be provided."
+      );
     });
   });
 
@@ -620,7 +611,8 @@ describe("dataconnect", () => {
         dataConnectGraphqlTrigger: {},
       });
     });
-    it("returns callable function with schemaFilePath Data Connect trigger", () => {
+
+    it("returns function with schemaFilePath Data Connect trigger", () => {
       const opts = {
         schemaFilePath: "schema.gql",
         resolvers: {
@@ -637,7 +629,8 @@ describe("dataconnect", () => {
         },
       });
     });
-    it("returns callable function with request opts with Data Connect trigger", () => {
+
+    it("returns function with request opts with Data Connect trigger", () => {
       const opts = {
         invoker: ["test-service-account@test.com"],
         region: "us-east4",
