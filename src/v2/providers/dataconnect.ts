@@ -475,13 +475,14 @@ export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
    */
   schema?: string;
   /**
-   * A file path to a valid GraphQL schema.
+   * A relative file path from the Firebase project directory to a valid GraphQL schema.
    * Either `schema` or `schemaFilePath` is required.
    */
   schemaFilePath?: string;
   /**
    * The path where the GraphQL server will be served on the Cloud Run function.
-   * If no path is provided, the server will be served at `/graphql`.
+   * e.g. https://...run.app/{path}
+   * If no path is provided, "graphql" is used as the default.
    */
   path?: string;
   /** A map of functions that populate data for individual GraphQL schema fields. */
