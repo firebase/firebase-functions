@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import * as express from "express";
+import express from "express";
 
 import * as https from "../src/common/providers/https";
 import * as tasks from "../src/common/providers/tasks";

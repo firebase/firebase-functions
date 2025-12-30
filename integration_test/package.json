@@ -1,0 +1,11 @@
+{
+  "name": "integration_test",
+  "private": true,
+  "scripts": {
+    "test": "tsx cli.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6",
+    "vitest": "^4.0.10"
+  }
+}
