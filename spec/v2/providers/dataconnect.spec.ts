@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import fs from "fs";
+import * as sinon from "sinon";
 import * as dataconnect from "../../../src/v2/providers/dataconnect";
 import { CloudEvent } from "../../../src/v2";
 import { onInit } from "../../../src/v2/core";
@@ -525,6 +527,129 @@ describe("dataconnect", () => {
         () => null
       )(event);
       expect(hello).to.equal("world");
+    });
+  });
+
+  describe("initGraphqlServer", () => {
+    let fsStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      fsStub = sinon.stub(fs, "readFileSync");
+    });
+
+    afterEach(() => {
+      sinon.restore();
+    });
+
+    it("both `schema` and `schemaFilePath` set", async () => {
+      const opts = {
+        schema: "type Query { hello: String }",
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "Exactly one of 'schema' or 'schemaFilePath' must be provided."
+      );
+    });
+
+    it("neither `schema` nor `schemaFilePath` set", async () => {
+      const opts = {
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "Exactly one of 'schema' or 'schemaFilePath' must be provided."
+      );
+    });
+
+    it("cannot read file in `schemaFilePath`", async () => {
+      fsStub.throws(new Error("test file not found error"));
+      const opts = {
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "test file not found error"
+      );
+    });
+
+    it("no resolvers provided", async () => {
+      const opts = {
+        schema: "type Query { hello: String }",
+        resolvers: {},
+      };
+      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+        "At least one query or mutation resolver must be provided."
+      );
+    });
+  });
+
+  describe("onGraphRequest", () => {
+    it("returns callable function without schemaFilePath Data Connect trigger", () => {
+      const opts = {
+        schema: "type Query { hello: String }",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      const func = dataconnect.onGraphRequest(opts);
+      expect(func.__endpoint).to.deep.equal({
+        ...expectedEndpointBase,
+        dataConnectGraphqlTrigger: {},
+      });
+    });
+
+    it("returns function with schemaFilePath Data Connect trigger", () => {
+      const opts = {
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      const func = dataconnect.onGraphRequest(opts);
+      expect(func.__endpoint).to.deep.equal({
+        ...expectedEndpointBase,
+        dataConnectGraphqlTrigger: {
+          schemaFilePath: "schema.gql",
+        },
+      });
+    });
+
+    it("returns function with request opts with Data Connect trigger", () => {
+      const opts = {
+        invoker: ["test-service-account@test.com"],
+        region: "us-east4",
+        schemaFilePath: "schema.gql",
+        resolvers: {
+          query: {
+            hello: () => "Hello, world!",
+          },
+        },
+      };
+      const func = dataconnect.onGraphRequest(opts);
+      expect(func.__endpoint).to.deep.equal({
+        ...expectedEndpointBase,
+        dataConnectGraphqlTrigger: {
+          invoker: ["test-service-account@test.com"],
+          schemaFilePath: "schema.gql",
+        },
+        region: ["us-east4"],
+      });
     });
   });
 });

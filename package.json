@@ -508,6 +508,8 @@
     "protobufjs": "^7.2.2"
   },
   "devDependencies": {
+    "@apollo/server": "^5.2.0",
+    "@as-integrations/express4": "^1.1.2",
     "@eslint/eslintrc": "^3.3.1",
     "@firebase/api-documenter": "^0.2.0",
     "@microsoft/api-documenter": "^7.13.45",
@@ -534,6 +536,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "firebase-admin": "^13.0.0",
     "genkit": "^1.0.0-rc.4",
+    "graphql": "^16.12.0",
     "jsdom": "^16.2.1",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",
@@ -554,7 +557,17 @@
     "yargs": "^15.3.1"
   },
   "peerDependencies": {
+    "@apollo/server": "^5.2.0",
+    "@as-integrations/express4": "^1.1.2",
     "firebase-admin": "^11.10.0 || ^12.0.0 || ^13.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@apollo/server": {
+      "optional": true
+    },
+    "@as-integrations/express4": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=18.0.0"

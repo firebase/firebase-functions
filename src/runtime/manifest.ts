@@ -71,6 +71,11 @@ export interface ManifestEndpoint {
     genkitAction?: string;
   };
 
+  dataConnectGraphqlTrigger?: {
+    invoker?: string[];
+    schemaFilePath?: string;
+  };
+
   eventTrigger?: {
     eventFilters: Record<string, string | Expression<string>>;
     eventFilterPathPatterns?: Record<string, string | Expression<string>>;
