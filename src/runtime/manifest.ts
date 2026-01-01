@@ -113,6 +113,7 @@ export interface ManifestEndpoint {
       minBackoffDuration?: string | Expression<string> | ResetValue;
       maxBackoffDuration?: string | Expression<string> | ResetValue;
     };
+    attemptDeadline?: string | Expression<string> | ResetValue;
   };
 
   blockingTrigger?: {
@@ -285,7 +286,7 @@ function initScheduleTrigger(
     for (const key of Object.keys(resetOptions)) {
       scheduleTrigger.retryConfig[key] = RESET_VALUE;
     }
-    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE };
+    scheduleTrigger = { ...scheduleTrigger, timeZone: RESET_VALUE, attemptDeadline: RESET_VALUE };
   }
   return scheduleTrigger;
 }
