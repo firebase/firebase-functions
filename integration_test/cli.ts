@@ -107,6 +107,26 @@ async function deployFunctions(runId: string): Promise<void> {
   } catch {
     // Ignore if it doesn't exist
   }
+  
+  // Deploy v1 Storage functions first to avoid bucket race condition
+  console.log("Deploying v1 Storage functions...");
+  await execCommand(
+    "firebase",
+    [
+      "deploy",
+      "--only",
+      "functions:storageV1OnObjectDeletedTrigger,functions:storageV1OnObjectFinalizedTrigger,functions:storageV1OnObjectMetadataUpdatedTrigger"
+    ],
+    { RUN_ID: runId },
+    integrationTestDir
+  );
+  
+  // Wait 10 seconds for bucket configuration to stabilize
+  console.log("Waiting 10 seconds for Storage bucket configuration to stabilize...");
+  await new Promise((resolve) => setTimeout(resolve, 10_000));
+  
+  // Deploy remaining functions
+  console.log("Deploying remaining functions...");
   await execCommand(
     "firebase",
     ["deploy", "--only", "functions"],
