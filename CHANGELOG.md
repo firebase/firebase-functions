@@ -1,1 +1,1 @@
-- Add `onGraphRequest()` function for handling GraphQL HTTPS requests for Firebase Data Connect. (#1784)
+- Internal improvements.
