@@ -5,7 +5,7 @@ import { config } from "../config";
 
 const region = "us-central1";
 // See https://firebase.google.com/docs/functions/schedule-functions#deploy_a_scheduled_function
-const scheduleName = `firebase-schedule-schedulerOnScheduleTrigger-${region}`;
+const scheduleName = `firebase-schedule-test-schedulerOnScheduleTrigger-${region}`;
 const jobName = `projects/${config.projectId}/locations/${region}/jobs/${scheduleName}`;
 
 describe("scheduler.v2", () => {

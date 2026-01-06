@@ -1,8 +1,8 @@
-import { describe, it, beforeAll, expect } from "vitest";
-import { fetch } from "undici";
-import { waitForEvent } from "../utils";
 import { httpsCallable } from "firebase/functions";
+import { fetch } from "undici";
+import { beforeAll, describe, expect, it } from "vitest";
 import { functions } from "../firebase.client";
+import { waitForEvent } from "../utils";
 
 describe("https.v2", () => {
   describe("httpsOnCallTrigger", () => {
@@ -12,7 +12,7 @@ describe("https.v2", () => {
 
     beforeAll(async () => {
       data = await waitForEvent("httpsOnCall", async () => {
-        const callable = httpsCallable(functions, "httpsOnCallTrigger");
+        const callable = httpsCallable(functions, "test-httpsOnCallTrigger");
 
         const { stream, data: result } = await callable.stream({
           foo: "bar",
@@ -49,7 +49,7 @@ describe("https.v2", () => {
     beforeAll(async () => {
       data = await waitForEvent("httpsOnRequest", async () => {
         const response = await fetch(
-          "https://us-central1-cf3-integration-tests-v2-qa.cloudfunctions.net/httpsOnRequestTrigger",
+          "https://us-central1-cf3-integration-tests-v2-qa.cloudfunctions.net/test-httpsOnRequestTrigger",
           {
             method: "POST",
             headers: {

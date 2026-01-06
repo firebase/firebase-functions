@@ -12,7 +12,7 @@ describe("https.v1", () => {
 
     beforeAll(async () => {
       data = await waitForEvent("httpsOnCallV1", async () => {
-        const callable = httpsCallable(functions, "httpsV1OnCallTrigger");
+        const callable = httpsCallable(functions, "test-httpsV1OnCallTrigger");
 
         // v1 doesn't support streaming, so just call normally
         callData = await callable({
@@ -39,7 +39,7 @@ describe("https.v1", () => {
 
     beforeAll(async () => {
       data = await waitForEvent("httpsOnRequestV1", async () => {
-        const functionUrl = await getFunctionUrl("httpsV1OnRequestTrigger");
+        const functionUrl = await getFunctionUrl("test-httpsV1OnRequestTrigger");
         const response = await fetch(functionUrl, {
           method: "POST",
           headers: {

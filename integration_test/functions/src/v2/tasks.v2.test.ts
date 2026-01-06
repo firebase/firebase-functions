@@ -4,7 +4,7 @@ import { RUN_ID, waitForEvent } from "../utils";
 import { getFunctionUrl } from "../firebase.server";
 import { config } from "../config";
 
-const QUEUE_NAME = "tasksOnTaskDispatchedTrigger";
+const QUEUE_NAME = "test-tasksOnTaskDispatchedTrigger";
 
 describe("tasks.v2", () => {
   describe("onTaskDispatched", () => {
