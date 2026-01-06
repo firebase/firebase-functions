@@ -69,4 +69,23 @@ API Returns Success: When setting blocking function triggers with correct event 
 
 Configuration Appears Set: The API response shows the triggers are configured with timestamps. GCP, however is not updated despite the successful API response, the blocking functions are not actually configured in Google Cloud Platform.
 
-API source
+[API source](https://identitytoolkit.googleapis.com/$discovery/rest?version=v2)
+
+### Mutliple storage function deployments
+
+An intermittent error occurs when deploying functions related to storage, causing deployments to fail. A delay has been added to the test frameowkr to allow functions to propogate before deploying addiitonal functions and running the tets suite.
+
+### Service identity via Function deployment
+
+There is an intermittent issue on deploying functions. Runnign the test suite will occasionally resulting in one the following errors:
+
+```bash
+functions: generating the service identity for pubsub.googleapis.com...
+functions: generating the service identity for eventarc.googleapis.com...
+```
+
+Retyring the suite will resulting in a successful deployment following a time delay >5 minutes.
+
+### Delay on Firestore intitial propgation
+
+Following the deployment of a Firestore function, events do not always fire. A delay is required (30 seconds) to ensure the function has completed installation steps before firing an event.
