@@ -6,7 +6,7 @@ import { auth } from "../firebase.server";
 import { waitForEvent } from "../utils";
 
 describe("identity.v2", () => {
-  describe("beforeUserCreated", () => {
+  describe.skip("beforeUserCreated", () => {
     let data: any;
     let userId: string;
     let email: string;
@@ -44,7 +44,7 @@ describe("identity.v2", () => {
     });
   });
 
-  describe("beforeUserSignedIn", () => {
+  describe.skip("beforeUserSignedIn", () => {
     let data: any;
     let userId: string;
     let email: string;

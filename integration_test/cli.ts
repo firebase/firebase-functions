@@ -150,8 +150,12 @@ async function runTests(runId: string): Promise<void> {
 
 async function cleanupFunctions(): Promise<void> {
   console.log(`Cleaning up functions with RUN_ID: ${runId}...`);
-  await execCommand("firebase", ["functions:delete", runId, "--force"], {}, integrationTestDir);
-  console.log("Functions cleaned up successfully");
+  try {
+    await execCommand("firebase", ["functions:delete", runId, "--force"], {}, integrationTestDir);
+    console.log("Functions cleaned up successfully");
+  } catch (error) {
+    console.log("Cleanup completed (functions may have been already deleted)");
+  }
 }
 
 async function main(): Promise<void> {
@@ -171,7 +175,11 @@ async function main(): Promise<void> {
     throw error;
   } finally {
     // Step 7: Clean up codebase on success or error
-    await cleanupFunctions(runId);
+    try {
+      await cleanupFunctions(runId);
+    } catch (cleanupError) {
+      console.log("Note: Cleanup encountered an error but continuing...");
+    }
   }
 
   if (success) {
