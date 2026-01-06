@@ -2,6 +2,19 @@
 
 This directory contains end-to-end integration tests for the Firebase Functions SDK. These tests deploy real Cloud Functions to a Firebase project and verify their behavior by triggering events and validating responses.
 
+## Prerequisites
+
+- Node.js 18+ installed
+- Firebase CLI installed and authenticated (`npm install -g firebase-tools`)
+- Access to a Firebase test project
+
+## Usage
+
+```bash
+npm i
+npm run test
+```
+
 ## Overview
 
 The integration test suite:
@@ -28,7 +41,7 @@ Using `npm run test`. This will:
 
 ### Updating multiple versions functions for storage causes a pre-condition error
 
-For this test suite V1 and v2 storage functions have been seperated to mitigate against function deployment errors. When deploying all functions simultaneously, the following error may occur:
+For this test suite v1 and v2 storage functions have been separated to mitigate against function deployment errors. When deploying all functions simultaneously, the following error may occur:
 
 ```js
 {
@@ -43,7 +56,7 @@ For this test suite V1 and v2 storage functions have been seperated to mitigate 
 }
 ```
 
-To mitigate this, the test suite included a delay between deploying v1 and v2 storage functions.
+To mitigate this, the test suite includes a delay between deploying v1 and v2 storage functions.
 
 ### Storage onObjectDeleted
 
@@ -71,21 +84,21 @@ Configuration Appears Set: The API response shows the triggers are configured wi
 
 [API source](https://identitytoolkit.googleapis.com/$discovery/rest?version=v2)
 
-### Mutliple storage function deployments
+### Multiple storage function deployments
 
-An intermittent error occurs when deploying functions related to storage, causing deployments to fail. A delay has been added to the test frameowkr to allow functions to propogate before deploying addiitonal functions and running the tets suite.
+An intermittent error occurs when deploying functions related to storage, causing deployments to fail. A delay has been added to the test framework to allow functions to propagate before deploying additional functions and running the test suite.
 
 ### Service identity via Function deployment
 
-There is an intermittent issue on deploying functions. Runnign the test suite will occasionally resulting in one the following errors:
+There is an intermittent issue on deploying functions. Running the test suite will occasionally result in one of the following" errors:
 
 ```bash
 functions: generating the service identity for pubsub.googleapis.com...
 functions: generating the service identity for eventarc.googleapis.com...
 ```
 
-Retyring the suite will resulting in a successful deployment following a time delay >5 minutes.
+Retrying the suite will result in a successful deployment following a time delay >5 minutes.
 
-### Delay on Firestore intitial propgation
+### Delay on Firestore initial propogation
 
 Following the deployment of a Firestore function, events do not always fire. A delay is required (30 seconds) to ensure the function has completed installation steps before firing an event.
