@@ -107,24 +107,33 @@ async function deployFunctions(runId: string): Promise<void> {
   } catch {
     // Ignore if it doesn't exist
   }
-  
-  // Deploy v1 Storage functions first to avoid bucket race condition
-  console.log("Deploying v1 Storage functions...");
-  await execCommand(
-    "firebase",
-    [
-      "deploy",
-      "--only",
-      "functions:storageV1OnObjectDeletedTrigger,functions:storageV1OnObjectFinalizedTrigger,functions:storageV1OnObjectMetadataUpdatedTrigger"
-    ],
-    { RUN_ID: runId },
-    integrationTestDir
+
+  // Deploy v1 Storage functions one at a time to avoid bucket race condition
+  const storageFunctions = [
+    "test-storageV1OnObjectFinalizedTrigger",
+    "test-storageV1OnObjectDeletedTrigger",
+    "test-storageV1OnObjectMetadataUpdatedTrigger",
+  ];
+
+  for (const funcName of storageFunctions) {
+    console.log(`Deploying ${funcName}...`);
+    await execCommand(
+      "firebase",
+      ["deploy", "--only", `functions:${funcName}`],
+      { RUN_ID: runId },
+      integrationTestDir
+    );
+    console.log(`Waiting 10 seconds before next deployment...`);
+    await new Promise((resolve) => setTimeout(resolve, 10_000));
+  }
+
+  // Wait 10 seconds for bucket configuration to propogate.
+  console.log(
+    "All Storage functions deployed, waiting 10 seconds for bucket configuration to stabilize..."
   );
-  
-  // Wait 10 seconds for bucket configuration to stabilize
-  console.log("Waiting 10 seconds for Storage bucket configuration to stabilize...");
+
   await new Promise((resolve) => setTimeout(resolve, 10_000));
-  
+
   // Deploy remaining functions
   console.log("Deploying remaining functions...");
   await execCommand(
@@ -133,7 +142,9 @@ async function deployFunctions(runId: string): Promise<void> {
     { RUN_ID: runId },
     integrationTestDir
   );
-  console.log("Functions deployed successfully");
+  // Wait 30 seconds to allow functions to propogate.
+  console.log("Functions deployed successfully, waiting 30 seconds for functions to propogate...");
+  await new Promise((resolve) => setTimeout(resolve, 30_000));
 }
 
 async function writeEnvFile(runId: string): Promise<void> {
@@ -148,14 +159,11 @@ async function runTests(runId: string): Promise<void> {
   console.log("Tests completed successfully");
 }
 
-async function cleanupFunctions(): Promise<void> {
+async function cleanupFunctions(runId: string): Promise<void> {
+  const moduleId = "test";
   console.log(`Cleaning up functions with RUN_ID: ${runId}...`);
-  try {
-    await execCommand("firebase", ["functions:delete", runId, "--force"], {}, integrationTestDir);
-    console.log("Functions cleaned up successfully");
-  } catch (error) {
-    console.log("Cleanup completed (functions may have been already deleted)");
-  }
+  await execCommand("firebase", ["functions:delete", moduleId, "--force"], {}, integrationTestDir);
+  console.log("Functions cleaned up successfully");
 }
 
 async function main(): Promise<void> {
@@ -175,11 +183,7 @@ async function main(): Promise<void> {
     throw error;
   } finally {
     // Step 7: Clean up codebase on success or error
-    try {
-      await cleanupFunctions(runId);
-    } catch (cleanupError) {
-      console.log("Note: Cleanup encountered an error but continuing...");
-    }
+    await cleanupFunctions(runId);
   }
 
   if (success) {
