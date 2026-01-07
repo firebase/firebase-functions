@@ -70,9 +70,11 @@ Custom metadata is not being sent in the metadata update event payload.
 
 The metadata and timeCreated fields are not included in the Storage finalize event data sent by Google Cloud.
 
-## Auth Identity v2
+### Auth Identity v2
 
-### beforeUserCreated & beforeUserSignedIn
+Any `beforeUser` functions cannot be tested without manual setup.
+
+#### beforeUserCreated & beforeUserSignedIn
 
 It is currently not possible to create a function in advance and assign via the API.
 
