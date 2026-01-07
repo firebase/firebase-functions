@@ -8,6 +8,22 @@ This directory contains end-to-end integration tests for the Firebase Functions 
 - Firebase CLI installed and authenticated (`npm install -g firebase-tools`)
 - Access to a Firebase test project
 
+## Setup
+
+Add your firebase config to `/src/config`.
+
+```js
+export const config = {
+  // Add Firebase config here
+};
+```
+
+Set your local project to match the configuration.
+
+```bash
+  firebase use <project-id>
+```
+
 ## Usage
 
 ```bash
