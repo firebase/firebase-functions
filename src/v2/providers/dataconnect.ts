@@ -420,6 +420,7 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
 let serverPromise: Promise<express.Express> | null = null;
 
 /**
+ * @hidden
  * Handles HTTPS GraphQL requests.
  * @param {GraphqlServerOptions} opts - Options for configuring the GraphQL server.
  * @returns {HttpsFunction} A function you can export and deploy.
@@ -467,7 +468,10 @@ export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
   return handler as HttpsFunction;
 }
 
-/** Options for configuring the GraphQL server. */
+/**
+ * @hidden
+ * Options for configuring the GraphQL server.
+ */
 export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
   /**
    * A valid SDL string that represents the GraphQL server's schema.
@@ -490,7 +494,10 @@ export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
   // TODO: Add a field for a context function.
 }
 
-/** Per-request context state shared by all resolvers in a particular query. */
+/**
+ * @hidden
+ * Per-request context state shared by all resolvers in a particular query.
+ */
 export interface FirebaseContext {
   auth?: {
     /** The UID of the Firebase user that made the request, if present. */
@@ -500,7 +507,10 @@ export interface FirebaseContext {
   };
 }
 
-/** Resolver functions that populate data for individual GraphQL schema fields. */
+/**
+ * @hidden
+ * Resolver functions that populate data for individual GraphQL schema fields.
+ */
 export interface GraphqlResolvers {
   query?: {
     [resolver: string]: (
