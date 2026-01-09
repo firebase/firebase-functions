@@ -1,4 +1,4 @@
-import { EventEmitter } from 'node:stream';
+import { EventEmitter } from "node:stream";
 
 import jwt from 'jsonwebtoken';
 import jwkToPem from 'jwk-to-pem';
@@ -8,13 +8,10 @@ import * as mockKey from '../fixtures/credential/key.json';
 
 // MockRequest mocks an https.Request.
 export class MockRequest extends EventEmitter {
-  public method: 'POST' | 'GET' | 'OPTIONS' = 'POST';
+  public method: "POST" | "GET" | "OPTIONS" = "POST";
 
-  constructor(
-    readonly body: any,
-    readonly headers: { [name: string]: string }
-  ) {
-    super()
+  constructor(readonly body: any, readonly headers: { [name: string]: string }) {
+    super();
   }
 
   public header(name: string): string {
@@ -25,25 +22,25 @@ export class MockRequest extends EventEmitter {
 // Creates a mock request with the given data and content-type.
 export function mockRequest(
   data: any,
-  contentType: string = 'application/json',
+  contentType: string = "application/json",
   context: {
     authorization?: string;
     instanceIdToken?: string;
     appCheckToken?: string;
   } = {},
-  reqHeaders?: Record<string, string>,
+  reqHeaders?: Record<string, string>
 ) {
   const body: any = {};
-  if (typeof data !== 'undefined') {
+  if (typeof data !== "undefined") {
     body.data = data;
   }
 
   const headers = {
-    'content-type': contentType,
+    "content-type": contentType,
     authorization: context.authorization,
-    'firebase-instance-id-token': context.instanceIdToken,
-    'x-firebase-appcheck': context.appCheckToken,
-    origin: 'example.com',
+    "firebase-instance-id-token": context.instanceIdToken,
+    "x-firebase-appcheck": context.appCheckToken,
+    origin: "example.com",
     ...reqHeaders,
   };
 
@@ -51,8 +48,8 @@ export function mockRequest(
 }
 
 export const expectedResponseHeaders = {
-  'Access-Control-Allow-Origin': 'example.com',
-  Vary: 'Origin',
+  "Access-Control-Allow-Origin": "example.com",
+  Vary: "Origin",
 };
 
 /**
@@ -62,11 +59,11 @@ export const expectedResponseHeaders = {
 export function mockFetchPublicKeys(): nock.Scope {
   const mockedResponse = { [mockKey.key_id]: mockKey.public_key };
   const headers = {
-    'cache-control': 'public, max-age=1, must-revalidate, no-transform',
+    "cache-control": "public, max-age=1, must-revalidate, no-transform",
   };
 
-  return nock('https://www.googleapis.com:443')
-    .get('/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com')
+  return nock("https://www.googleapis.com:443")
+    .get("/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com")
     .reply(200, mockedResponse, headers);
 }
 
@@ -78,12 +75,12 @@ export function generateIdToken(projectId: string): string {
   const options: jwt.SignOptions = {
     audience: projectId,
     expiresIn: 60 * 60, // 1 hour in seconds
-    issuer: 'https://securetoken.google.com/' + projectId,
+    issuer: "https://securetoken.google.com/" + projectId,
     subject: mockKey.user_id,
-    algorithm: 'RS256',
+    algorithm: "RS256",
     header: {
       kid: mockKey.key_id,
-      alg: 'RS256',
+      alg: "RS256",
     },
   };
   return jwt.sign(claims, mockKey.private_key, options);
@@ -94,13 +91,13 @@ export function generateIdToken(projectId: string): string {
  */
 export function generateUnsignedIdToken(projectId: string): string {
   return [
-    { alg: 'RS256', typ: 'JWT' },
+    { alg: "RS256", typ: "JWT" },
     { aud: projectId, sub: mockKey.user_id },
-    'Invalid signature',
+    "Invalid signature",
   ]
     .map((str) => JSON.stringify(str))
-    .map((str) => Buffer.from(str).toString('base64'))
-    .join('.');
+    .map((str) => Buffer.from(str).toString("base64"))
+    .join(".");
 }
 
 /**
@@ -113,18 +110,15 @@ export function mockFetchAppCheckPublicJwks(): nock.Scope {
     keys: [{ kty, use, alg, kid, n, e }],
   };
 
-  return nock('https://firebaseappcheck.googleapis.com:443')
-    .get('/v1/jwks')
+  return nock("https://firebaseappcheck.googleapis.com:443")
+    .get("/v1/jwks")
     .reply(200, mockedResponse);
 }
 
 /**
  * Generates a mocked AppCheck token.
  */
-export function generateAppCheckToken(
-  projectId: string,
-  appId: string
-): string {
+export function generateAppCheckToken(projectId: string, appId: string): string {
   const claims = {};
   const options: jwt.SignOptions = {
     audience: [`projects/${projectId}`],
@@ -132,8 +126,8 @@ export function generateAppCheckToken(
     issuer: `https://firebaseappcheck.googleapis.com/${projectId}`,
     subject: appId,
     header: {
-      alg: 'RS256',
-      typ: 'JWT',
+      alg: "RS256",
+      typ: "JWT",
       kid: mockJWK.kid,
     },
   };
@@ -143,16 +137,13 @@ export function generateAppCheckToken(
 /**
  * Generates a mocked, unsigned AppCheck token.
  */
-export function generateUnsignedAppCheckToken(
-  projectId: string,
-  appId: string
-): string {
+export function generateUnsignedAppCheckToken(projectId: string, appId: string): string {
   return [
-    { alg: 'RS256', typ: 'JWT' },
+    { alg: "RS256", typ: "JWT" },
     { aud: [`projects/${projectId}`], sub: appId },
-    'Invalid signature',
+    "Invalid signature",
   ]
     .map((component) => JSON.stringify(component))
-    .map((str) => Buffer.from(str).toString('base64'))
-    .join('.');
+    .map((str) => Buffer.from(str).toString("base64"))
+    .join(".");
 }

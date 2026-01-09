@@ -5,9 +5,5 @@
     "emitDeclarationOnly": false
   },
   "extends": "./tsconfig.release.json",
-  "include": [
-    "**/*.ts",
-    ".eslintrc.js",
-    "integration_test/**/*"
-  ]
+  "include": ["**/*.ts", ".eslintrc.js", "integration_test/**/*"]
 }

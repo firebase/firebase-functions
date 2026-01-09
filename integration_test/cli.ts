@@ -1,0 +1,198 @@
+#!/usr/bin/env node
+
+import { spawn } from "child_process";
+import { promises as fs } from "fs";
+import { join } from "path";
+
+const runId = `ff${Math.random().toString(36).substring(2, 15)}`;
+
+console.log(`Running tests for run ID: ${runId}`);
+
+const integrationTestDir = __dirname;
+const functionsDir = join(integrationTestDir, "functions");
+const rootDir = join(integrationTestDir, "..");
+const firebaseJsonPath = join(integrationTestDir, "firebase.json");
+
+async function execCommand(
+  command: string,
+  args: string[],
+  env: Record<string, string> = {},
+  cwd?: string
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(command, args, {
+      stdio: "inherit",
+      env: { ...process.env, ...env },
+      cwd: cwd || process.cwd(),
+      shell: true,
+    });
+
+    proc.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`Command failed with exit code ${code}`));
+      }
+    });
+
+    proc.on("error", (error) => {
+      reject(error);
+    });
+  });
+}
+
+async function buildAndPackSDK(): Promise<void> {
+  console.log("Building root SDK...");
+  await execCommand("npm", ["run", "build"], {}, rootDir);
+  console.log("Root SDK built successfully");
+
+  console.log("Packing SDK for functions...");
+  const tarballPath = join(functionsDir, "firebase-functions-local.tgz");
+  // Remove old tarball if it exists
+  try {
+    await fs.unlink(tarballPath);
+  } catch {
+    // Ignore if it doesn't exist
+  }
+
+  // Pack the SDK
+  await execCommand("npm", ["pack", "--pack-destination", functionsDir], {}, rootDir);
+
+  // Rename the tarball
+  const files = await fs.readdir(functionsDir);
+  const tarballFile = files.find((f) => f.startsWith("firebase-functions-") && f.endsWith(".tgz"));
+  if (tarballFile) {
+    await fs.rename(join(functionsDir, tarballFile), tarballPath);
+    console.log("SDK packed successfully");
+  } else {
+    throw new Error("Failed to find packed tarball");
+  }
+
+  // Note: We don't regenerate package-lock.json here because Firebase deploy
+  // will run npm install and regenerate it with the correct checksum for the new tarball
+}
+
+async function writeFirebaseJson(codebase: string): Promise<void> {
+  console.log(`Writing firebase.json with codebase: ${codebase}`);
+  const firebaseJson = {
+    functions: [
+      {
+        source: "functions",
+        disallowLegacyRuntimeConfig: true,
+        ignore: [
+          "node_modules",
+          ".git",
+          "firebase-debug.log",
+          "firebase-debug.*.log",
+          "*.local",
+          "**/*.test.ts",
+        ],
+        predeploy: ['npm --prefix "$RESOURCE_DIR" run build'],
+      },
+    ],
+  };
+
+  await fs.writeFile(firebaseJsonPath, JSON.stringify(firebaseJson, null, 2), "utf-8");
+  console.log("firebase.json written successfully");
+}
+
+async function deployFunctions(runId: string): Promise<void> {
+  console.log(`Deploying functions with RUN_ID: ${runId}...`);
+  // Delete package-lock.json before deploy so Firebase's npm install regenerates it
+  // with the correct checksum for the newly created tarball
+  const packageLockPath = join(functionsDir, "package-lock.json");
+  try {
+    await fs.unlink(packageLockPath);
+    console.log("Deleted package-lock.json before deploy (Firebase will regenerate it)");
+  } catch {
+    // Ignore if it doesn't exist
+  }
+
+  // Deploy v1 Storage functions one at a time to avoid bucket race condition
+  const storageFunctions = [
+    "test-storageV1OnObjectFinalizedTrigger",
+    "test-storageV1OnObjectDeletedTrigger",
+    "test-storageV1OnObjectMetadataUpdatedTrigger",
+  ];
+
+  for (const funcName of storageFunctions) {
+    console.log(`Deploying ${funcName}...`);
+    await execCommand(
+      "firebase",
+      ["deploy", "--only", `functions:${funcName}`],
+      { RUN_ID: runId },
+      integrationTestDir
+    );
+    console.log(`Waiting 10 seconds before next deployment...`);
+    await new Promise((resolve) => setTimeout(resolve, 10_000));
+  }
+
+  // Wait 10 seconds for bucket configuration to propogate.
+  console.log(
+    "All Storage functions deployed, waiting 10 seconds for bucket configuration to stabilize..."
+  );
+
+  await new Promise((resolve) => setTimeout(resolve, 10_000));
+
+  // Deploy remaining functions
+  console.log("Deploying remaining functions...");
+  await execCommand(
+    "firebase",
+    ["deploy", "--only", "functions"],
+    { RUN_ID: runId },
+    integrationTestDir
+  );
+  // Wait 30 seconds to allow functions to propogate.
+  console.log("Functions deployed successfully, waiting 30 seconds for functions to propogate...");
+  await new Promise((resolve) => setTimeout(resolve, 30_000));
+}
+
+async function writeEnvFile(runId: string): Promise<void> {
+  console.log(`Writing .env with RUN_ID: ${runId}...`);
+  await fs.writeFile(join(functionsDir, ".env"), `RUN_ID=${runId}`, "utf-8");
+  console.log(".env.test written successfully");
+}
+
+async function runTests(runId: string): Promise<void> {
+  console.log(`Running tests with RUN_ID: ${runId}...`);
+  await execCommand("vitest", ["run"], { RUN_ID: runId }, integrationTestDir);
+  console.log("Tests completed successfully");
+}
+
+async function cleanupFunctions(runId: string): Promise<void> {
+  const moduleId = "test";
+  console.log(`Cleaning up functions with RUN_ID: ${runId}...`);
+  await execCommand("firebase", ["functions:delete", moduleId, "--force"], {}, integrationTestDir);
+  console.log("Functions cleaned up successfully");
+}
+
+async function main(): Promise<void> {
+  let success = false;
+  try {
+    await buildAndPackSDK();
+    await writeFirebaseJson(runId);
+    await writeEnvFile(runId);
+    await deployFunctions(runId);
+    console.log("Waiting 20 seconds for deployments fully provision before running tests...");
+    await new Promise((resolve) => setTimeout(resolve, 20_000));
+    await runTests(runId);
+
+    success = true;
+  } catch (error) {
+    console.error("Error during test execution:", error);
+    throw error;
+  } finally {
+    // Step 7: Clean up codebase on success or error
+    await cleanupFunctions(runId);
+  }
+
+  if (success) {
+    console.log("All tests passed!");
+    process.exit(0);
+  }
+}
+
+main().catch((error) => {
+  console.error("Fatal error:", error);
+  process.exit(1);
+});

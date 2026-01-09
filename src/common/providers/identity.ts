@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import express from "express";
 import * as auth from "firebase-admin/auth";
 import * as logger from "../../logger";
 import { EventContext } from "../../v1/cloud-functions";

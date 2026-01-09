@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import express from "express";
 
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { Request } from "../../common/providers/https";
@@ -31,8 +31,8 @@ import {
   TaskContext,
 } from "../../common/providers/tasks";
 import {
-  initV1Endpoint,
   initTaskQueueTrigger,
+  initV1Endpoint,
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";

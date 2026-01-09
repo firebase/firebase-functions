@@ -20,23 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import express from "express";
 
 import { copyIfPresent } from "../../common/encoding";
+import { withInit } from "../../common/onInit";
 import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
+import * as logger from "../../logger";
+import { Expression } from "../../params";
 import {
   initV2Endpoint,
   initV2ScheduleTrigger,
   ManifestEndpoint,
   ManifestRequiredAPI,
 } from "../../runtime/manifest";
-import { HttpsFunction } from "./https";
-import { wrapTraceContext } from "../trace";
-import { Expression } from "../../params";
-import * as logger from "../../logger";
 import * as options from "../options";
-import { withInit } from "../../common/onInit";
+import { wrapTraceContext } from "../trace";
+import { HttpsFunction } from "./https";
 
 /** @hidden */
 interface SeparatedOpts {
