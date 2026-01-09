@@ -308,12 +308,18 @@ export interface SelectOptions<T = unknown> {
   value: T;
 }
 
+/**
+ * This can be removed once typescript is upgraded to v5.4+
+ * @internal
+ */
+type NoInfer<T> = [T][T extends any ? 0 : never];
+
 /** The wire representation of a parameter when it's sent to the CLI. A superset of `ParamOptions`. */
 export type ParamSpec<T extends string | number | boolean | string[]> = {
   /** The name of the parameter which will be stored in .env files. Use UPPERCASE. */
   name: string;
   /** An optional default value to be used while prompting for input. Can be a literal or another parametrized expression. */
-  default?: T | Expression<T>;
+  default?: NoInfer<T> | Expression<NoInfer<T>>;
   /** An optional human-readable string to be used as a replacement for the parameter's name when prompting. */
   label?: string;
   /** An optional long-form description of the parameter to be displayed while prompting. */
@@ -545,10 +551,10 @@ export type SupportedSecretParam = string | SecretParam | JsonSecretParam<unknow
  *  A parametrized value of String type that will be read from .env files
  *  if present, or prompted for by the CLI if missing.
  */
-export class StringParam extends Param<string> {
+export class StringParam<T extends string = string> extends Param<T> {
   /** @internal */
-  runtimeValue(): string {
-    return process.env[this.name] || "";
+  runtimeValue(): T {
+    return process.env[this.name] as T;
   }
 }
 
