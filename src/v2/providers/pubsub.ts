@@ -152,6 +152,15 @@ export interface MessagePublishedData<T = any> {
   readonly subscription: string;
 }
 
+/** A Pub/Sub CloudEvent with a `message` property. */
+export interface PubSubCloudEvent<T> extends CloudEvent<MessagePublishedData<T>> {
+  /** Google Cloud Pub/Sub message. */
+  message: Message<T>;
+
+  /** V1- compatible context of this event. */
+  readonly context: EventContext;
+}
+
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -264,8 +273,12 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (message: Message<T>, context: EventContext) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
+export function onMessagePublished<T = any>(
+  topic: string,
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -275,8 +288,12 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (message: Message<T>, context: EventContext) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
+export function onMessagePublished<T = any>(
+  options: PubSubOptions,
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -286,8 +303,10 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
+  handler:
+    | ((event: PubSubCloudEvent<T>) => any | Promise<any>)
+    | ((message: Message<T>, context: EventContext) => any | Promise<any>)
+): CloudFunction<PubSubCloudEvent<T>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -305,14 +324,30 @@ export function onMessagePublished<T = any>(
       subscription: string;
     };
     messagePublishedData.message = new Message(messagePublishedData.message);
-    const event = raw as CloudEvent<MessagePublishedData<T>>;
-    addV1Compatibility(event, topic);
-    return wrapTraceContext(withInit(handler))(event);
+    const event = raw as PubSubCloudEvent<T>;
+    addV1CompatProperties(event, topic);
+    if (handler.length === 2) {
+      return (handler as (message: Message<T>, context: EventContext) => any | Promise<any>)(
+        event.message,
+        event.context
+      );
+    }
+    return (handler as (event: PubSubCloudEvent<T>) => any | Promise<any>)(event);
   };
 
-  func.run = handler;
+  const cloudFunction = withInit(wrapTraceContext(func)) as CloudFunction<PubSubCloudEvent<T>>;
 
-  Object.defineProperty(func, "__trigger", {
+  cloudFunction.run = (event: PubSubCloudEvent<T>): any | Promise<any> => {
+    if (handler.length === 2) {
+      return (handler as (message: Message<T>, context: EventContext) => any | Promise<any>)(
+        event.message,
+        event.context
+      );
+    }
+    return (handler as (event: PubSubCloudEvent<T>) => any | Promise<any>)(event);
+  };
+
+  Object.defineProperty(cloudFunction, "__trigger", {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       const specificOpts = options.optionsToTriggerAnnotations(opts);
@@ -352,9 +387,9 @@ export function onMessagePublished<T = any>(
     },
   };
   copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
-  func.__endpoint = endpoint;
+  cloudFunction.__endpoint = endpoint;
 
-  return func;
+  return cloudFunction;
 }
 
 /**
@@ -363,11 +398,7 @@ export function onMessagePublished<T = any>(
  * @param event - The event to add the context to.
  * @param topic - The topic the event is for.
  */
-function addV1Compatibility<T>(event: CloudEvent<MessagePublishedData<T>>, topic: string) {
-  if ("context" in event && event.context) {
-    throw new Error("Unexpected context in event.");
-  }
-
+function addV1CompatProperties<T>(event: PubSubCloudEvent<T>, topic: string) {
   const resourceName = getResourceName(event, topic);
   const resource: Resource = {
     service: "pubsub.googleapis.com",
@@ -379,18 +410,15 @@ function addV1Compatibility<T>(event: CloudEvent<MessagePublishedData<T>>, topic
     timestamp: event.time,
     resource,
     eventType: "google.cloud.pubsub.topic.v1.messagePublished",
-    params: {}
-
+    params: {},
   };
 
   Object.defineProperty(event, "context", {
-
     get: () => context,
-
   });
 
   Object.defineProperty(event, "message", {
-    get: () => (event.data as MessagePublishedData<T>).message,
+    get: () => event.data.message,
   });
 }
 
@@ -404,12 +432,11 @@ function addV1Compatibility<T>(event: CloudEvent<MessagePublishedData<T>>, topic
 function getResourceName(event: CloudEvent<MessagePublishedData<any>>, topic: string) {
   const match = event.source?.match(/projects\/([^/]+)\/topics\/([^/]+)/);
   const project = match?.[1];
-  const topicName = match?.[2] ?? topic;
+  const topicId = match?.[2] ?? topic;
 
   if (!project) {
-    return `projects/unknown-project/topics/${topicName}`;
+    return `projects/unknown-project/topics/${topicId}`;
   }
 
-  return `projects/${project}/topics/${topicName}`;
-
+  return `projects/${project}/topics/${topicId}`;
 }

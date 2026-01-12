@@ -25,7 +25,6 @@
  * @packageDocumentation
  */
 
-import type { EventContext } from "../v1/cloud-functions";
 import { Change } from "../common/change";
 import { ManifestEndpoint } from "../runtime/manifest";
 
@@ -92,13 +91,6 @@ export interface CloudEvent<T> {
 
   /** Information about this specific event. */
   data: T;
-
-  /** V1- compatible context of this event.
-   * 
-   * This getter is added at runtime for V1 compatibility.
-   * May be undefined if not set by a provider
-   */
-  readonly context?: EventContext;
 }
 
 /**

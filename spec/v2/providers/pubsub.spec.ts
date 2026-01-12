@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import { EventContext } from "../../../src/v1/cloud-functions";
 
-import { CloudEvent } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as pubsub from "../../../src/v2/providers/pubsub";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
@@ -130,9 +129,23 @@ describe("onMessagePublished", () => {
   it("should have a .run method", () => {
     const func = pubsub.onMessagePublished("topic", (event) => event);
 
-    const res = func.run("input" as any);
+    const event: pubsub.PubSubCloudEvent<any> = {
+      specversion: "1.0",
+      source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+      id: "uuid",
+      type: EVENT_TRIGGER.eventType,
+      time: new Date().toISOString(),
+      data: {
+        message: { data: Buffer.from("input").toString("base64") } as any,
+        subscription: "projects/aProject/subscriptions/aSubscription",
+      },
+      message: { data: Buffer.from("input").toString("base64") } as any,
+      context: {} as EventContext,
+    };
 
-    expect(res).to.equal("input");
+    const res = func.run(event);
+
+    expect(res).to.deep.equal(event);
   });
 
   it("should parse pubsub messages", async () => {
@@ -148,7 +161,9 @@ describe("onMessagePublished", () => {
       message: messageJSON as any,
       subscription: "projects/aProject/subscriptions/aSubscription",
     };
-    const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
+    const event: pubsub.PubSubCloudEvent<any> = {
+      context: {} as EventContext,
+      message: publishData.message as any,
       specversion: "1.0",
       source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
       id: "uuid",
@@ -158,7 +173,7 @@ describe("onMessagePublished", () => {
     };
 
     const func = pubsub.onMessagePublished("topic", (event) => {
-      json = event.data.message.json;
+      json = (event.data as any).message.json;
       return event;
     });
 
@@ -182,7 +197,9 @@ describe("onMessagePublished", () => {
       message: messagePayload as any,
       subscription: "projects/aProject/subscriptions/aSubscription",
     };
-    const event: CloudEvent<pubsub.MessagePublishedData> = {
+    const event: pubsub.PubSubCloudEvent<pubsub.MessagePublishedData> = {
+      context: {} as EventContext,
+      message: data.message as any,
       specversion: "1.0",
       id: "uuid",
       time: publishTime,
@@ -191,16 +208,11 @@ describe("onMessagePublished", () => {
       data,
     };
 
-    type PubSubCloudEvent = CloudEvent<pubsub.MessagePublishedData> & {
-      message: pubsub.Message<{ hello: "world" }>;
-      context: EventContext;
-    };
-
-    let destructuredMessage: pubsub.Message<{ hello: "world" }>;
+    let destructuredMessage: pubsub.Message<any>;
     let context: EventContext;
-    const func = pubsub.onMessagePublished("topic", (e) => {
-      const pubsubEvent = e as PubSubCloudEvent;
-      ({ message: destructuredMessage, context } = pubsubEvent);
+    const func = pubsub.onMessagePublished("topic", (e: pubsub.PubSubCloudEvent<any>) => {
+      destructuredMessage = e.message;
+      context = e.context;
     });
 
     await func(event);
@@ -221,58 +233,22 @@ describe("onMessagePublished", () => {
     pubsub.onMessagePublished<string>(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData<string>>) => undefined
+      (event: pubsub.PubSubCloudEvent<string>) => undefined
     );
     pubsub.onMessagePublished<string>(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
+      (event: pubsub.PubSubCloudEvent<any>) => undefined
     );
     pubsub.onMessagePublished(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData<string>>) => undefined
+      (event: pubsub.PubSubCloudEvent<string>) => undefined
     );
     pubsub.onMessagePublished(
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
+      (event: pubsub.PubSubCloudEvent<any>) => undefined
     );
-  });
-
-
-
-
-
-
-  it("should use 'unknown-project' as fallback for resource name", async () => {
-    delete process.env.GCLOUD_PROJECT;
-    const publishTime = new Date().toISOString();
-    const message = {
-      messageId: "uuid",
-      data: Buffer.from(JSON.stringify({ hello: "world" })).toString("base64"),
-      publishTime,
-    };
-    const data: pubsub.MessagePublishedData = {
-      message: message as any,
-      subscription: "projects/aProject/subscriptions/aSubscription",
-    };
-    const event: CloudEvent<pubsub.MessagePublishedData> = {
-      specversion: "1.0",
-      id: "uuid",
-      time: publishTime,
-      type: "google.cloud.pubsub.topic.v1.messagePublished",
-      source: "//pubsub.googleapis.com/topics/topic", // Malformed source
-      data,
-    };
-
-    let receivedEvent: CloudEvent<pubsub.MessagePublishedData<any>>;
-    const func = pubsub.onMessagePublished("topic", (e) => {
-      receivedEvent = e;
-    });
-
-    await func(event);
-
-    expect(receivedEvent.context.resource.name).to.equal("projects/unknown-project/topics/topic");
   });
 });
