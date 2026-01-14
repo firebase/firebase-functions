@@ -40,7 +40,8 @@ import * as tasks from "./providers/tasks";
 import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
 import * as firestore from "./providers/firestore";
-import * as dataconnect from "./providers/dataconnect";
+import * as dataconnect from "./providers/dataconnect/dataconnect";
+import * as graphql from "./providers/dataconnect/graphql";
 
 export {
   alerts,
@@ -56,6 +57,7 @@ export {
   testLab,
   firestore,
   dataconnect,
+  graphql,
 };
 
 export { logger } from "../logger";
