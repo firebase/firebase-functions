@@ -20,10 +20,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import express from "express";
-import fs from "fs";
-import type { GraphQLResolveInfo } from "graphql";
-import { HttpsFunction, HttpsOptions } from "../https";
 import { CloudEvent, CloudFunction } from "../../core";
 import { ParamsOf, VarName } from "../../../common/params";
 import {
@@ -38,10 +34,7 @@ import { withInit } from "../../../common/onInit";
 import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
 import { PathPattern } from "../../../common/utilities/path-pattern";
 import { Expression } from "../../../params";
-import * as options from "../../options";
 import { ResetValue } from "../../../common/options";
-import { withErrorHandler, Request } from "../../../common/providers/https";
-import { convertIfPresent, convertInvoker } from "../../../common/encoding";
 
 /** @internal */
 export const mutationExecutedEventType =
