@@ -24,6 +24,7 @@ import { expect } from "chai";
 import fs from "fs";
 import * as sinon from "sinon";
 import * as dataconnect from "../../../src/v2/providers/dataconnect/dataconnect";
+import * as graphql from "../../../src/v2/providers/dataconnect/graphql";
 import { CloudEvent } from "../../../src/v2";
 import { onInit } from "../../../src/v2/core";
 import { expectExtends } from "../../common/metaprogramming";
@@ -551,7 +552,7 @@ describe("dataconnect", () => {
           },
         },
       };
-      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+      await expect(graphql.initGraphqlServer(opts)).to.be.rejectedWith(
         "Exactly one of 'schema' or 'schemaFilePath' must be provided."
       );
     });
@@ -564,7 +565,7 @@ describe("dataconnect", () => {
           },
         },
       };
-      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+      await expect(graphql.initGraphqlServer(opts)).to.be.rejectedWith(
         "Exactly one of 'schema' or 'schemaFilePath' must be provided."
       );
     });
@@ -579,9 +580,7 @@ describe("dataconnect", () => {
           },
         },
       };
-      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
-        "test file not found error"
-      );
+      await expect(graphql.initGraphqlServer(opts)).to.be.rejectedWith("test file not found error");
     });
 
     it("no resolvers provided", async () => {
@@ -589,7 +588,7 @@ describe("dataconnect", () => {
         schema: "type Query { hello: String }",
         resolvers: {},
       };
-      await expect(dataconnect.initGraphqlServer(opts)).to.be.rejectedWith(
+      await expect(graphql.initGraphqlServer(opts)).to.be.rejectedWith(
         "At least one query or mutation resolver must be provided."
       );
     });
@@ -605,7 +604,7 @@ describe("dataconnect", () => {
           },
         },
       };
-      const func = dataconnect.onGraphRequest(opts);
+      const func = graphql.onGraphRequest(opts);
       expect(func.__endpoint).to.deep.equal({
         ...expectedEndpointBase,
         dataConnectGraphqlTrigger: {},
@@ -621,7 +620,7 @@ describe("dataconnect", () => {
           },
         },
       };
-      const func = dataconnect.onGraphRequest(opts);
+      const func = graphql.onGraphRequest(opts);
       expect(func.__endpoint).to.deep.equal({
         ...expectedEndpointBase,
         dataConnectGraphqlTrigger: {
@@ -641,7 +640,7 @@ describe("dataconnect", () => {
           },
         },
       };
-      const func = dataconnect.onGraphRequest(opts);
+      const func = graphql.onGraphRequest(opts);
       expect(func.__endpoint).to.deep.equal({
         ...expectedEndpointBase,
         dataConnectGraphqlTrigger: {
