@@ -1,3 +1,5 @@
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@as-integrations/express4";
 import express from "express";
 import fs from "fs";
 import type { GraphQLResolveInfo } from "graphql";
@@ -28,8 +30,6 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
     apolloResolvers.Mutation = opts.resolvers.mutation;
   }
   try {
-    const { ApolloServer } = await import("@apollo/server");
-    const { expressMiddleware } = await import("@as-integrations/express4");
     const serverPromise = (async () => {
       const app = express();
       const server = new ApolloServer({
