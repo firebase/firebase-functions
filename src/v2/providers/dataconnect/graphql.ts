@@ -50,8 +50,6 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
   }
 }
 
-let serverPromise: Promise<express.Express> | null = null;
-
 /**
  * @hidden
  * Handles HTTPS GraphQL requests.
@@ -59,6 +57,7 @@ let serverPromise: Promise<express.Express> | null = null;
  * @returns {HttpsFunction} A function you can export and deploy.
  */
 export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
+  let serverPromise: Promise<express.Express> | null = null;
   const handler: (req: Request, res: express.Response) => void | Promise<void> = wrapTraceContext(
     withInit(
       withErrorHandler(async (req: Request, res: express.Response) => {
