@@ -1,5 +1,5 @@
-import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@as-integrations/express4";
+import type { ApolloServer } from "@apollo/server";
+import type { expressMiddleware } from "@as-integrations/express4";
 import express from "express";
 import fs from "fs";
 import type { GraphQLResolveInfo } from "graphql";
@@ -30,14 +30,21 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
     apolloResolvers.Mutation = opts.resolvers.mutation;
   }
   try {
+    // Importing these modules dynamically allows firebase-functions users to avoid installing
+    // these dependencies if not using this module, while importing the types above allows static
+    // type-checking at deploy time instead of runtime for users of this module.
+    const { ApolloServer } = await import("@apollo/server");
+    const express4 = await import("@as-integrations/express4");
     const serverPromise = (async () => {
       const app = express();
-      const server = new ApolloServer({
+      const server: ApolloServer = new ApolloServer({
         typeDefs: opts.schema,
         resolvers: apolloResolvers,
       });
       await server.start();
-      app.use(`/${opts.path ?? "graphql"}`, express.json(), expressMiddleware(server));
+      type expressMiddlewareType = typeof expressMiddleware;
+      const dynamicExpressMiddleware: expressMiddlewareType = express4.expressMiddleware;
+      app.use(`/${opts.path ?? "graphql"}`, express.json(), dynamicExpressMiddleware(server));
       return app;
     })();
     return serverPromise;

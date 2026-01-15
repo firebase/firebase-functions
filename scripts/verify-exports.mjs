@@ -26,12 +26,6 @@ async function verify() {
   for (const exp of entryPoints) {
     const importPath = exp === '.' ? 'firebase-functions' : `firebase-functions/${exp.replace('./', '')}`;
 
-    if (importPath === 'firebase-functions/dataconnect/graphql' || importPath === 'firebase-functions/v2/dataconnect/graphql') {
-      // Skip this entry point as this relies on optional peer dependencies.
-      console.log(`⚠️ Skipping entry point with optional peer dependencies: ${importPath}`);
-      continue;
-    }
-
     try {
       require(importPath);
       console.log(`✅ CJS: ${importPath}`);
