@@ -11,6 +11,8 @@ import { withErrorHandler, Request } from "../../../common/providers/https";
 import { convertIfPresent, convertInvoker } from "../../../common/encoding";
 import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
 
+const FIREBASE_AUTH_HEADER = "X-Firebase-Auth-Token";
+
 /** @hidden */
 export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
   if ((!opts.schema && !opts.schemaFilePath) || (opts.schema && opts.schemaFilePath)) {
@@ -32,12 +34,23 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
   try {
     const serverPromise = (async () => {
       const app = express();
-      const server = new ApolloServer({
+      const server = new ApolloServer<FirebaseContext>({
         typeDefs: opts.schema,
         resolvers: apolloResolvers,
       });
       await server.start();
-      app.use(`/${opts.path ?? "graphql"}`, express.json(), expressMiddleware(server));
+      app.use(
+        `/${opts.path ?? "graphql"}`,
+        express.json(),
+        expressMiddleware(server, {
+          context: async ({ req }) =>
+            Promise.resolve({
+              auth: {
+                token: req.header(FIREBASE_AUTH_HEADER),
+              },
+            }),
+        })
+      );
       return app;
     })();
     return serverPromise;
@@ -132,8 +145,6 @@ export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
  */
 export interface FirebaseContext {
   auth?: {
-    /** The UID of the Firebase user that made the request, if present. */
-    uid?: string;
     /** The token attached to the `X-Firebase-Auth-Token` in the request, if present. */
     token?: string;
   };
