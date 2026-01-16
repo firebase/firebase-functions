@@ -199,9 +199,14 @@
       "require": "./lib/v2/providers/firestore.js"
     },
     "./dataconnect": {
-      "types": "./lib/v2/providers/dataconnect.d.ts",
-      "import": "./lib/esm/v2/providers/dataconnect.mjs",
-      "require": "./lib/v2/providers/dataconnect.js"
+      "types": "./lib/v2/providers/dataconnect/index.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect/index.mjs",
+      "require": "./lib/v2/providers/dataconnect/index.js"
+    },
+    "./dataconnect/graphql": {
+      "types": "./lib/v2/providers/dataconnect/graphql.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect/graphql.mjs",
+      "require": "./lib/v2/providers/dataconnect/graphql.js"
     },
     "./v2": {
       "types": "./lib/v2/index.d.ts",
@@ -299,9 +304,14 @@
       "require": "./lib/v2/providers/firestore.js"
     },
     "./v2/dataconnect": {
-      "types": "./lib/v2/providers/dataconnect.d.ts",
-      "import": "./lib/esm/v2/providers/dataconnect.mjs",
-      "require": "./lib/v2/providers/dataconnect.js"
+      "types": "./lib/v2/providers/dataconnect/index.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect/index.mjs",
+      "require": "./lib/v2/providers/dataconnect/index.js"
+    },
+    "./v2/dataconnect/graphql": {
+      "types": "./lib/v2/providers/dataconnect/graphql.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect/graphql.mjs",
+      "require": "./lib/v2/providers/dataconnect/graphql.js"
     }
   },
   "typesVersions": {
@@ -403,7 +413,10 @@
         "lib/v2/providers/firestore"
       ],
       "dataconnect": [
-        "lib/v2/providers/dataconnect"
+        "lib/v2/providers/dataconnect/index"
+      ],
+      "dataconnect/graphql": [
+        "lib/v2/providers/dataconnect/graphql"
       ],
       "v2": [
         "lib/v2/index"
@@ -466,7 +479,10 @@
         "lib/v2/providers/firestore"
       ],
       "v2/dataconnect": [
-        "lib/v2/providers/dataconnect"
+        "lib/v2/providers/dataconnect/index"
+      ],
+      "v2/dataconnect/graphql": [
+        "lib/v2/providers/dataconnect/graphql"
       ],
       "*": [
         "lib/v2/index.d.ts"
@@ -559,6 +575,7 @@
   "peerDependencies": {
     "@apollo/server": "^5.2.0",
     "@as-integrations/express4": "^1.1.2",
+    "graphql": "^16.12.0",
     "firebase-admin": "^11.10.0 || ^12.0.0 || ^13.0.0"
   },
   "peerDependenciesMeta": {
@@ -566,6 +583,9 @@
       "optional": true
     },
     "@as-integrations/express4": {
+      "optional": true
+    },
+    "graphql": {
       "optional": true
     }
   },
