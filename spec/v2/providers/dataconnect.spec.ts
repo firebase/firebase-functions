@@ -23,7 +23,7 @@
 import { expect } from "chai";
 import fs from "fs";
 import * as sinon from "sinon";
-import * as dataconnect from "../../../src/v2/providers/dataconnect/dataconnect";
+import * as dataconnect from "../../../src/v2/providers/dataconnect";
 import * as graphql from "../../../src/v2/providers/dataconnect/graphql";
 import { CloudEvent } from "../../../src/v2";
 import { onInit } from "../../../src/v2/core";

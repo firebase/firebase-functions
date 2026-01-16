@@ -199,9 +199,9 @@
       "require": "./lib/v2/providers/firestore.js"
     },
     "./dataconnect": {
-      "types": "./lib/v2/providers/dataconnect/dataconnect.d.ts",
-      "import": "./lib/esm/v2/providers/dataconnect/dataconnect.mjs",
-      "require": "./lib/v2/providers/dataconnect/dataconnect.js"
+      "types": "./lib/v2/providers/dataconnect/index.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect/index.mjs",
+      "require": "./lib/v2/providers/dataconnect/index.js"
     },
     "./dataconnect/graphql": {
       "types": "./lib/v2/providers/dataconnect/graphql.d.ts",
@@ -304,9 +304,9 @@
       "require": "./lib/v2/providers/firestore.js"
     },
     "./v2/dataconnect": {
-      "types": "./lib/v2/providers/dataconnect/dataconnect.d.ts",
-      "import": "./lib/esm/v2/providers/dataconnect/dataconnect.mjs",
-      "require": "./lib/v2/providers/dataconnect/dataconnect.js"
+      "types": "./lib/v2/providers/dataconnect/index.d.ts",
+      "import": "./lib/esm/v2/providers/dataconnect/index.mjs",
+      "require": "./lib/v2/providers/dataconnect/index.js"
     },
     "./v2/dataconnect/graphql": {
       "types": "./lib/v2/providers/dataconnect/graphql.d.ts",
@@ -413,7 +413,7 @@
         "lib/v2/providers/firestore"
       ],
       "dataconnect": [
-        "lib/v2/providers/dataconnect/dataconnect"
+        "lib/v2/providers/dataconnect/index"
       ],
       "dataconnect/graphql": [
         "lib/v2/providers/dataconnect/graphql"
@@ -479,7 +479,7 @@
         "lib/v2/providers/firestore"
       ],
       "v2/dataconnect": [
-        "lib/v2/providers/dataconnect/dataconnect"
+        "lib/v2/providers/dataconnect/index"
       ],
       "v2/dataconnect/graphql": [
         "lib/v2/providers/dataconnect/graphql"

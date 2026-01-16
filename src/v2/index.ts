@@ -40,7 +40,7 @@ import * as tasks from "./providers/tasks";
 import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
 import * as firestore from "./providers/firestore";
-import * as dataconnect from "./providers/dataconnect/dataconnect";
+import * as dataconnect from "./providers/dataconnect";
 
 // We explicitly do not export the graphql provider here because it relies on optional peer dependencies.
 // To avoid forcing developers who import from the top-level firebase-functions namespace to install these dependencies,
