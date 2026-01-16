@@ -41,8 +41,10 @@ import * as remoteConfig from "./providers/remoteConfig";
 import * as testLab from "./providers/testLab";
 import * as firestore from "./providers/firestore";
 import * as dataconnect from "./providers/dataconnect/dataconnect";
-import * as graphql from "./providers/dataconnect/graphql";
 
+// We explicitly do not export the graphql provider here because it relies on optional peer dependencies.
+// To avoid forcing developers who import from the top-level firebase-functions namespace to install these dependencies,
+// we require developers who want to use the graphql provider to import directly from firebase-functions/dataconnect/graphql.
 export {
   alerts,
   database,
@@ -57,7 +59,6 @@ export {
   testLab,
   firestore,
   dataconnect,
-  graphql,
 };
 
 export { logger } from "../logger";
