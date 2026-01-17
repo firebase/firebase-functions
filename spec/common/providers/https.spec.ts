@@ -1070,6 +1070,21 @@ describe("encoding/decoding", () => {
     });
   });
 
+  it("Throws object with self reference", () => {
+    class TestClass {
+      foo: string;
+      bar: number;
+      self: TestClass;
+      constructor(foo: string, bar: number) {
+        this.foo = foo;
+        this.bar = bar;
+        this.self = this;
+      }
+    }
+    const testObject = new TestClass("hello", 1);
+    expect(()=>https.encode(testObject)).to.throw(`Data cannot be encoded in JSON: ${testObject}`);
+  });
+
   it("encodes function as an empty object", () => {
     expect(https.encode(() => "foo")).to.deep.equal({});
   });
