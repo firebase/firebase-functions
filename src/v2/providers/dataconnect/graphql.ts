@@ -43,7 +43,7 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
         `/${opts.path ?? "graphql"}`,
         express.json(),
         expressMiddleware(server, {
-          context: async ({ req }) =>
+          context: ({ req }) =>
             Promise.resolve({
               auth: {
                 token: req.header(FIREBASE_AUTH_HEADER),
@@ -144,7 +144,7 @@ export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
  * Per-request context state shared by all resolvers in a particular query.
  */
 export interface FirebaseContext {
-  auth?: {
+  auth: {
     /** The token attached to the `X-Firebase-Auth-Token` in the request, if present. */
     token?: string;
   };
