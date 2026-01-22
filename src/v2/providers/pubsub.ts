@@ -36,6 +36,9 @@ import * as options from "../options";
 import { SecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
+const V1_CONTEXT = Symbol("v1Context");
+const V1_MESSAGE = Symbol("v1Message");
+
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
  * You can create a function ({@link onMessagePublished}) that handles pub/sub events by using functions.pubsub.
@@ -315,18 +318,22 @@ export function onMessagePublished<T = any>(
      * @returns A v1 EventContext-like object.
      */
     Object.defineProperty(raw, "context", {
-      get: function (): EventContext {
-        if (this._v1_context) {
-          return this._v1_context;
+      get: function (this: CloudEvent<unknown>): EventContext {
+        if (this[V1_CONTEXT]) {
+          return this[V1_CONTEXT];
         }
-        this._v1_context = {
+        const v1Context: EventContext = {
           eventId: this.id,
           timestamp: this.time,
           eventType: this.type,
-          resource: this.source, // Approximation, v1 resource is more complex
+          resource: {
+            service: "pubsub.googleapis.com",
+            name: this.source,
+          },
           params: {}, // v1 context params are not directly available in v2
-        } as EventContext;
-        return this._v1_context;
+        };
+        this[V1_CONTEXT] = v1Context;
+        return this[V1_CONTEXT];
       },
     });
 
@@ -336,9 +343,9 @@ export function onMessagePublished<T = any>(
      * @returns A plain object mimicking the v1 Message structure.
      */
     Object.defineProperty(raw, "message", {
-      get: function () {
-        if (this._v1_message) {
-          return this._v1_message;
+      get: function (this: CloudEvent<unknown>) {
+        if (this[V1_MESSAGE]) {
+          return this[V1_MESSAGE];
         }
         const data = this.data as MessagePublishedData;
         if (!data || !data.message) {
@@ -352,14 +359,14 @@ export function onMessagePublished<T = any>(
           publishTime: v2Message.publishTime,
           orderingKey: v2Message.orderingKey,
         };
-        this._v1_message = {
+        this[V1_MESSAGE] = {
           ...baseMessage,
           get json() {
             return v2Message.json;
           },
           toJSON: () => baseMessage,
         };
-        return this._v1_message;
+        return this[V1_MESSAGE];
       },
     });
 

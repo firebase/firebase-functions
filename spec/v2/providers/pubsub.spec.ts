@@ -233,7 +233,10 @@ describe("onMessagePublished", () => {
         eventId: "event-id-456",
         timestamp: messageData.publishTime,
         eventType: EVENT_TRIGGER.eventType,
-        resource: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        resource: {
+          service: "pubsub.googleapis.com",
+          name: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        },
         params: {},
       });
 
