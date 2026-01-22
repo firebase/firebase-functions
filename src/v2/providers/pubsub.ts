@@ -156,10 +156,6 @@ export interface MessagePublishedData<T = any> {
 }
 
 /**
- * The event object for onMessagePublished triggers, including v1-compatible getters.
- * @typeParam T - Type representing `Message.data`'s JSON format
- */
-/**
  * A v1-compatible Pub/Sub Message.
  * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
  * @typeParam T - Type of `json` payload.
@@ -387,10 +383,12 @@ export function onMessagePublished<T = any>(
         const v2Message = data.message;
         const baseMessage: any = {
           data: v2Message.data,
-          attributes: v2Message.attributes,
           messageId: v2Message.messageId,
           publishTime: v2Message.publishTime,
         };
+        if (Object.keys(v2Message.attributes).length) {
+          baseMessage.attributes = v2Message.attributes;
+        }
         if (v2Message.orderingKey) {
           baseMessage.orderingKey = v2Message.orderingKey;
         }
