@@ -32,7 +32,8 @@ import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
 import { genkit } from "genkit";
-import { clearParams, defineList, Expression } from "../../../src/params";
+import { clearParams, defineList, defineString, Expression } from "../../../src/params";
+import * as logger from "../../../src/logger";
 
 function request(args: {
   data?: any;
@@ -336,6 +337,45 @@ describe("onRequest", () => {
     await runHandler(func, req);
     expect(hello).to.equal("world");
   });
+
+  it("should not warn when using Expression-based cors config during deployment", async () => {
+    const loggerSpy = sinon.spy(logger, "warn");
+    const projectId = defineString("PROJECT_ID");
+
+    try {
+      process.env.PROJECT_ID = "test-project";
+      process.env.FUNCTIONS_CONTROL_API = "true";
+
+      const corsExpression = projectId.equals("test-project").thenElse(["http://localhost:8000"], []);
+      const func = https.onRequest(
+        {
+          cors: corsExpression,
+        },
+        (req, res) => {
+          res.send("42");
+        }
+      );
+
+      const req = request({
+        headers: {
+          referrer: "http://localhost:8000",
+          "content-type": "application/json",
+          origin: "http://localhost:8000",
+        },
+        method: "OPTIONS",
+      });
+
+      const response = await runHandler(func, req);
+
+      expect(response.status).to.equal(204);
+      expect(loggerSpy.called).to.be.false;
+    } finally {
+      delete process.env.PROJECT_ID;
+      delete process.env.FUNCTIONS_CONTROL_API;
+      clearParams();
+      loggerSpy.restore();
+    }
+  });
 });
 
 describe("onCall", () => {
@@ -566,6 +606,38 @@ describe("onCall", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req);
     expect(hello).to.equal("world");
+  });
+
+  it("should not warn when using Expression-based cors config during deployment", async () => {
+    const loggerSpy = sinon.spy(logger, "warn");
+    const projectId = defineString("PROJECT_ID");
+
+    try {
+      process.env.PROJECT_ID = "test-project";
+      process.env.FUNCTIONS_CONTROL_API = "true";
+
+      const corsExpression = projectId.equals("test-project").thenElse(["http://localhost:5173"], []);
+      const func = https.onCall({ cors: corsExpression }, () => 42);
+
+      const req = request({
+        headers: {
+          referrer: "http://localhost:5173",
+          "content-type": "application/json",
+          origin: "http://localhost:5173",
+        },
+        method: "OPTIONS",
+      });
+
+      const response = await runHandler(func, req);
+
+      expect(response.status).to.equal(204);
+      expect(loggerSpy.called).to.be.false;
+    } finally {
+      delete process.env.PROJECT_ID;
+      delete process.env.FUNCTIONS_CONTROL_API;
+      clearParams();
+      loggerSpy.restore();
+    }
   });
 
   describe("authPolicy", () => {
