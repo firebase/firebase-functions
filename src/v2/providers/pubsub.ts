@@ -360,7 +360,6 @@ export function onMessagePublished<T = any>(
           toJSON: () => baseMessage,
         };
         return this._v1_message;
-        return this._v1_message;
       },
     });
 
