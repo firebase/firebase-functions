@@ -30,6 +30,7 @@ import { ResetValue } from "../../common/options";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
+import type { EventContext } from "../../v1/index";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SecretParam } from "../../params/types";
@@ -303,7 +304,60 @@ export function onMessagePublished<T = any>(
       message: unknown;
       subscription: string;
     };
-    messagePublishedData.message = new Message(messagePublishedData.message);
+    if (!(messagePublishedData.message instanceof Message)) {
+      messagePublishedData.message = new Message(messagePublishedData.message);
+    }
+
+    // Add v1 compatible getters to the event object
+    /**
+     * Get the v1-compatible EventContext object.
+     * This is a compatibility layer to ease migration from v1 to v2.
+     * @returns A v1 EventContext-like object.
+     */
+    Object.defineProperty(raw, "context", {
+      get: function (): EventContext {
+        return {
+          eventId: this.id,
+          timestamp: this.time,
+          eventType: this.type,
+          resource: this.source, // Approximation, v1 resource is more complex
+          params: {}, // v1 context params are not directly available in v2
+        } as EventContext;
+      },
+    });
+
+    /**
+     * Get the v1-compatible Message object.
+     * This is a compatibility layer to ease migration from v1 to v2.
+     * @returns A plain object mimicking the v1 Message structure.
+     */
+    Object.defineProperty(raw, "message", {
+      get: function () {
+        const data = this.data as MessagePublishedData;
+        if (!data || !data.message) {
+          return undefined;
+        }
+        const v2Message = data.message;
+        return {
+          data: v2Message.data,
+          attributes: v2Message.attributes,
+          messageId: v2Message.messageId,
+          publishTime: v2Message.publishTime,
+          orderingKey: v2Message.orderingKey,
+          get json() {
+            return v2Message.json;
+          },
+          toJSON: () => ({
+            data: v2Message.data,
+            attributes: v2Message.attributes,
+            messageId: v2Message.messageId,
+            publishTime: v2Message.publishTime,
+            orderingKey: v2Message.orderingKey,
+          }),
+        };
+      },
+    });
+
     return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
   };
 
