@@ -159,6 +159,21 @@ export interface MessagePublishedData<T = any> {
  * The event object for onMessagePublished triggers, including v1-compatible getters.
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
+/**
+ * A v1-compatible Pub/Sub Message.
+ * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
+ * @typeParam T - Type of `json` payload.
+ */
+export interface V1PubSubMessage<T = any> {
+  readonly data: string;
+  readonly attributes: { [key: string]: string };
+  readonly messageId: string;
+  readonly publishTime: string;
+  readonly orderingKey?: string;
+  readonly json: T;
+  toJSON(): any;
+}
+
 export interface MessagePublishedEvent<T = any> extends CloudEvent<MessagePublishedData<T>> {
   /**
    * v1-compatible EventContext.
@@ -169,15 +184,7 @@ export interface MessagePublishedEvent<T = any> extends CloudEvent<MessagePublis
    * v1-compatible Pub/Sub Message.
    * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
    */
-  readonly message: {
-    readonly data: string;
-    readonly attributes: { [key: string]: string };
-    readonly messageId: string;
-    readonly publishTime: string;
-    readonly orderingKey?: string;
-    readonly json: T;
-    toJSON(): any;
-  };
+  readonly message: V1PubSubMessage<T>;
 }
 
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
@@ -374,16 +381,19 @@ export function onMessagePublished<T = any>(
         }
         const data = this.data as MessagePublishedData;
         if (!data || !data.message) {
-          return undefined;
+          // This should not happen in a valid Pub/Sub event.
+          throw new Error("Malformed Pub/Sub event: 'data.message' is missing.");
         }
         const v2Message = data.message;
-        const baseMessage = {
+        const baseMessage: any = {
           data: v2Message.data,
           attributes: v2Message.attributes,
           messageId: v2Message.messageId,
           publishTime: v2Message.publishTime,
-          orderingKey: v2Message.orderingKey,
         };
+        if (v2Message.orderingKey) {
+          baseMessage.orderingKey = v2Message.orderingKey;
+        }
         this[V1_MESSAGE] = {
           ...baseMessage,
           get json() {
