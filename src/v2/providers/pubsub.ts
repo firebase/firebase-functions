@@ -316,13 +316,17 @@ export function onMessagePublished<T = any>(
      */
     Object.defineProperty(raw, "context", {
       get: function (): EventContext {
-        return {
+        if (this._v1_context) {
+          return this._v1_context;
+        }
+        this._v1_context = {
           eventId: this.id,
           timestamp: this.time,
           eventType: this.type,
           resource: this.source, // Approximation, v1 resource is more complex
           params: {}, // v1 context params are not directly available in v2
         } as EventContext;
+        return this._v1_context;
       },
     });
 
@@ -333,28 +337,30 @@ export function onMessagePublished<T = any>(
      */
     Object.defineProperty(raw, "message", {
       get: function () {
+        if (this._v1_message) {
+          return this._v1_message;
+        }
         const data = this.data as MessagePublishedData;
         if (!data || !data.message) {
           return undefined;
         }
         const v2Message = data.message;
-        return {
+        const baseMessage = {
           data: v2Message.data,
           attributes: v2Message.attributes,
           messageId: v2Message.messageId,
           publishTime: v2Message.publishTime,
           orderingKey: v2Message.orderingKey,
+        };
+        this._v1_message = {
+          ...baseMessage,
           get json() {
             return v2Message.json;
           },
-          toJSON: () => ({
-            data: v2Message.data,
-            attributes: v2Message.attributes,
-            messageId: v2Message.messageId,
-            publishTime: v2Message.publishTime,
-            orderingKey: v2Message.orderingKey,
-          }),
+          toJSON: () => baseMessage,
         };
+        return this._v1_message;
+        return this._v1_message;
       },
     });
 

@@ -194,7 +194,8 @@ describe("onMessagePublished", () => {
     );
   });
 
-  it("should provide v1-compatible getters on the event object", async () => {
+  describe("v1-compatible getters", () => {
+    let capturedEvent: any;
     const messageData = {
       messageId: "uuid-123",
       data: Buffer.from(JSON.stringify({ foo: "bar" })).toString("base64"),
@@ -202,92 +203,69 @@ describe("onMessagePublished", () => {
       orderingKey: "order1",
       publishTime: new Date(Date.now()).toISOString(),
     };
-    const v2MessageInstance = new pubsub.Message(messageData);
-    const publishData: pubsub.MessagePublishedData<any> = {
-      message: v2MessageInstance,
-      subscription: "projects/aProject/subscriptions/aSubscription",
-    };
-    const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
-      specversion: "1.0",
-      source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
-      id: "event-id-456",
-      type: EVENT_TRIGGER.eventType,
-      time: messageData.publishTime,
-      data: publishData,
-    };
 
-    let capturedEvent: any;
-    const func = pubsub.onMessagePublished("topic", (e) => {
-      capturedEvent = e;
-      return Promise.resolve();
+    beforeEach(async () => {
+      const v2MessageInstance = new pubsub.Message(messageData);
+      const publishData: pubsub.MessagePublishedData<any> = {
+        message: v2MessageInstance,
+        subscription: "projects/aProject/subscriptions/aSubscription",
+      };
+      const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
+        specversion: "1.0",
+        source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        id: "event-id-456",
+        type: EVENT_TRIGGER.eventType,
+        time: messageData.publishTime,
+        data: publishData,
+      };
+
+      const func = pubsub.onMessagePublished("topic", (e) => {
+        capturedEvent = e;
+        return Promise.resolve();
+      });
+
+      await func(event);
     });
 
-    await func(event);
+    it("should provide v1-compatible getters on the event object", () => {
+      // Test the context getter
+      expect(capturedEvent.context).to.deep.equal({
+        eventId: "event-id-456",
+        timestamp: messageData.publishTime,
+        eventType: EVENT_TRIGGER.eventType,
+        resource: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        params: {},
+      });
 
-    // Test the context getter
-    expect(capturedEvent.context).to.deep.equal({
-      eventId: "event-id-456",
-      timestamp: messageData.publishTime,
-      eventType: EVENT_TRIGGER.eventType,
-      resource: "//pubsub.googleapis.com/projects/aProject/topics/topic",
-      params: {},
+      // Test the message getter
+      expect(capturedEvent.message).to.be.an("object");
+      expect(capturedEvent.message.data).to.equal(messageData.data);
+      expect(capturedEvent.message.attributes).to.deep.equal(messageData.attributes);
+      expect(capturedEvent.message.messageId).to.equal(messageData.messageId);
+      expect(capturedEvent.message.publishTime).to.equal(messageData.publishTime);
+      expect(capturedEvent.message.orderingKey).to.equal(messageData.orderingKey);
+      expect(capturedEvent.message.json).to.deep.equal({ foo: "bar" });
+      expect(capturedEvent.message.toJSON()).to.deep.equal({
+        data: messageData.data,
+        attributes: messageData.attributes,
+        messageId: messageData.messageId,
+        publishTime: messageData.publishTime,
+        orderingKey: messageData.orderingKey,
+      });
     });
 
-    // Test the message getter
-    expect(capturedEvent.message).to.be.an("object");
-    expect(capturedEvent.message.data).to.equal(messageData.data);
-    expect(capturedEvent.message.attributes).to.deep.equal(messageData.attributes);
-    expect(capturedEvent.message.messageId).to.equal(messageData.messageId);
-    expect(capturedEvent.message.publishTime).to.equal(messageData.publishTime);
-    expect(capturedEvent.message.orderingKey).to.equal(messageData.orderingKey);
-    expect(capturedEvent.message.json).to.deep.equal({ foo: "bar" });
-    expect(capturedEvent.message.toJSON()).to.deep.equal({
-      data: messageData.data,
-      attributes: messageData.attributes,
-      messageId: messageData.messageId,
-      publishTime: messageData.publishTime,
-      orderingKey: messageData.orderingKey,
+    it("should not affect standard v2 event property access", () => {
+      // Standard v2 access patterns
+      expect(capturedEvent.id).to.equal("event-id-456");
+      expect(capturedEvent.source).to.equal(
+        "//pubsub.googleapis.com/projects/aProject/topics/topic"
+      );
+      expect(capturedEvent.data.subscription).to.equal(
+        "projects/aProject/subscriptions/aSubscription"
+      );
+      expect(capturedEvent.data.message.messageId).to.equal("uuid-123");
+      expect(capturedEvent.data.message.json).to.deep.equal({ foo: "bar" });
+      expect(capturedEvent.data.message.attributes).to.deep.equal({ attr1: "val1" });
     });
-  });
-
-  it("should not affect standard v2 event property access", async () => {
-    const messageData = {
-      messageId: "v2-test-id",
-      data: Buffer.from(JSON.stringify({ test: "v2-behavior" })).toString("base64"),
-      attributes: { source: "v2-test" },
-      orderingKey: "order-v2",
-      publishTime: new Date(Date.now()).toISOString(),
-    };
-    const v2MessageInstance = new pubsub.Message(messageData);
-    const publishData: pubsub.MessagePublishedData<any> = {
-      message: v2MessageInstance,
-      subscription: "projects/aProject/subscriptions/aSubscription",
-    };
-    const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
-      specversion: "1.0",
-      source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
-      id: "event-v2-id",
-      type: EVENT_TRIGGER.eventType,
-      time: messageData.publishTime,
-      data: publishData,
-    };
-
-    let capturedEvent: any;
-    const func = pubsub.onMessagePublished("topic", (e) => {
-      capturedEvent = e;
-      return Promise.resolve();
-    });
-
-    await func(event);
-
-    // Standard v2 access patterns
-    expect(capturedEvent.id).to.equal("event-v2-id");
-    expect(capturedEvent.source).to.equal("//pubsub.googleapis.com/projects/aProject/topics/topic");
-    expect(capturedEvent.data.subscription).to.equal(
-      "projects/aProject/subscriptions/aSubscription"
-    );
-    expect(capturedEvent.data.message.messageId).to.equal("v2-test-id");
-    expect(capturedEvent.data.message.json).to.deep.equal({ test: "v2-behavior" });
-    expect(capturedEvent.data.message.attributes).to.deep.equal({ source: "v2-test" });
   });
 });
