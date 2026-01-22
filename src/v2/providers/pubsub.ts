@@ -350,9 +350,13 @@ export function onMessagePublished<T = any>(
         if (this[V1_CONTEXT]) {
           return this[V1_CONTEXT];
         }
+        const data = this.data as MessagePublishedData;
+        if (!data?.message) {
+          throw new Error("Malformed Pub/Sub event: 'data.message' is missing.");
+        }
         const v1Context: EventContext = {
-          eventId: this.id,
-          timestamp: this.time,
+          eventId: data.message.messageId,
+          timestamp: data.message.publishTime,
           eventType: this.type,
           resource: {
             service: "pubsub.googleapis.com",

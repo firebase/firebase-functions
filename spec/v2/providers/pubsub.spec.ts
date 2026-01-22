@@ -230,7 +230,7 @@ describe("onMessagePublished", () => {
     it("should provide v1-compatible getters on the event object", () => {
       // Test the context getter
       expect(capturedEvent.context).to.deep.equal({
-        eventId: "event-id-456",
+        eventId: messageData.messageId,
         timestamp: messageData.publishTime,
         eventType: EVENT_TRIGGER.eventType,
         resource: {
