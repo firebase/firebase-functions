@@ -155,6 +155,31 @@ export interface MessagePublishedData<T = any> {
   readonly subscription: string;
 }
 
+/**
+ * The event object for onMessagePublished triggers, including v1-compatible getters.
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
+export interface MessagePublishedEvent<T = any> extends CloudEvent<MessagePublishedData<T>> {
+  /**
+   * v1-compatible EventContext.
+   */
+  readonly context: EventContext;
+
+  /**
+   * v1-compatible Pub/Sub Message.
+   * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
+   */
+  readonly message: {
+    readonly data: string;
+    readonly attributes: { [key: string]: string };
+    readonly messageId: string;
+    readonly publishTime: string;
+    readonly orderingKey?: string;
+    readonly json: T;
+    toJSON(): any;
+  };
+}
+
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -267,8 +292,8 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -278,8 +303,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -289,8 +314,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
+  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
+): CloudFunction<MessagePublishedEvent<T>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -370,7 +395,7 @@ export function onMessagePublished<T = any>(
       },
     });
 
-    return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
+    return wrapTraceContext(withInit(handler))(raw as MessagePublishedEvent<T>);
   };
 
   func.run = handler;
