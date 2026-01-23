@@ -357,10 +357,10 @@ export function onMessagePublished<T = any>(
         const v1Context: EventContext = {
           eventId: data.message.messageId,
           timestamp: data.message.publishTime,
-          eventType: this.type,
+          eventType: "google.pubsub.topic.publish", // v1 event type
           resource: {
             service: "pubsub.googleapis.com",
-            name: this.source,
+            name: this.source.replace("//pubsub.googleapis.com/", ""), // v1 relative resource name
           },
           params: {}, // v1 context params are not directly available in v2
         };

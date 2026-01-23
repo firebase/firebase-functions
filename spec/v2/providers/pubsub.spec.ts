@@ -232,10 +232,10 @@ describe("onMessagePublished", () => {
       expect(capturedEvent.context).to.deep.equal({
         eventId: messageData.messageId,
         timestamp: messageData.publishTime,
-        eventType: EVENT_TRIGGER.eventType,
+        eventType: "google.pubsub.topic.publish",
         resource: {
           service: "pubsub.googleapis.com",
-          name: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+          name: "projects/aProject/topics/topic",
         },
         params: {},
       });
