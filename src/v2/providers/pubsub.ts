@@ -154,7 +154,7 @@ export interface MessagePublishedData<T = any> {
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
-  topic: string;
+  topic: string | Expression<string>;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -287,7 +287,7 @@ export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
-  let topic: string;
+  let topic: string | Expression<string>;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
     topic = topicOrOptions;

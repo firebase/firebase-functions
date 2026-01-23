@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { CloudEvent } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as pubsub from "../../../src/v2/providers/pubsub";
+import { defineString } from "../../../src/params";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 const EVENT_TRIGGER = {
@@ -192,5 +193,28 @@ describe("onMessagePublished", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
     );
+  });
+
+  it("should accept StringParam for topic", () => {
+    const topicParam = defineString("TOPIC_NAME");
+    const result = pubsub.onMessagePublished(
+      {
+        topic: topicParam,
+      },
+      () => 42
+    );
+
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      eventTrigger: {
+        eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+        eventFilters: {
+          topic: topicParam,
+        },
+        retry: false,
+      },
+      labels: {},
+    });
   });
 });
