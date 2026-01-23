@@ -204,6 +204,7 @@ describe("onMessagePublished", () => {
       () => 42
     );
 
+    // __endpoint should include topic in eventFilters
     expect(result.__endpoint).to.deep.equal({
       ...MINIMAL_V2_ENDPOINT,
       platform: "gcfv2",
@@ -216,5 +217,13 @@ describe("onMessagePublished", () => {
       },
       labels: {},
     });
+
+    // __trigger should omit resource when topic is an Expression
+    // (resource path cannot be determined at definition time)
+    const trigger = result.__trigger as any;
+    expect(trigger.eventTrigger).to.not.have.property("resource");
+    expect(trigger.eventTrigger.eventType).to.equal(
+      "google.cloud.pubsub.topic.v1.messagePublished"
+    );
   });
 });

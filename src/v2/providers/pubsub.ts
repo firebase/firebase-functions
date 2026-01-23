@@ -324,7 +324,13 @@ export function onMessagePublished<T = any>(
         },
         eventTrigger: {
           eventType: "google.cloud.pubsub.topic.v1.messagePublished",
-          resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          // Only set resource when topic is a string (not an Expression)
+          // When topic is an Expression<string>, the resource path cannot be determined
+          // at definition time. The __endpoint uses eventFilters which handles
+          // Expression<string> correctly.
+          ...(typeof topic === "string" && {
+            resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          }),
         },
       };
     },
