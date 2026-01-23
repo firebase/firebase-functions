@@ -3,6 +3,7 @@ import { expect } from "chai";
 import { CloudEvent } from "../../../src/v2/core";
 import * as options from "../../../src/v2/options";
 import * as pubsub from "../../../src/v2/providers/pubsub";
+import { defineString } from "../../../src/params";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 const EVENT_TRIGGER = {
@@ -191,6 +192,38 @@ describe("onMessagePublished", () => {
       "topic",
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
+    );
+  });
+
+  it("should accept StringParam for topic", () => {
+    const topicParam = defineString("TOPIC_NAME");
+    const result = pubsub.onMessagePublished(
+      {
+        topic: topicParam,
+      },
+      () => 42
+    );
+
+    // __endpoint should include topic in eventFilters
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      eventTrigger: {
+        eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+        eventFilters: {
+          topic: topicParam,
+        },
+        retry: false,
+      },
+      labels: {},
+    });
+
+    // __trigger should omit resource when topic is an Expression
+    // (resource path cannot be determined at definition time)
+    const trigger = result.__trigger as any;
+    expect(trigger.eventTrigger).to.not.have.property("resource");
+    expect(trigger.eventTrigger.eventType).to.equal(
+      "google.cloud.pubsub.topic.v1.messagePublished"
     );
   });
 });
