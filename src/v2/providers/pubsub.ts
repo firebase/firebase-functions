@@ -389,10 +389,8 @@ export function onMessagePublished<T = any>(
           data: v2Message.data,
           messageId: v2Message.messageId,
           publishTime: v2Message.publishTime,
+          attributes: v2Message.attributes || {},
         };
-        if (Object.keys(v2Message.attributes).length) {
-          baseMessage.attributes = v2Message.attributes;
-        }
         if (v2Message.orderingKey) {
           baseMessage.orderingKey = v2Message.orderingKey;
         }

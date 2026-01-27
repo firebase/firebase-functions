@@ -270,5 +270,39 @@ describe("onMessagePublished", () => {
       expect(capturedEvent.data.message.json).to.deep.equal({ foo: "bar" });
       expect(capturedEvent.data.message.attributes).to.deep.equal({ attr1: "val1" });
     });
+
+    it("should provide an empty object for attributes if missing in the original message", async () => {
+      const messageDataNoAttrs = {
+        messageId: "uuid-456",
+        data: Buffer.from(JSON.stringify({ foo: "baz" })).toString("base64"),
+        // attributes property is missing
+        publishTime: new Date(Date.now()).toISOString(),
+      };
+      const v2MessageInstance = new pubsub.Message(messageDataNoAttrs);
+      const publishData: pubsub.MessagePublishedData<any> = {
+        message: v2MessageInstance,
+        subscription: "projects/aProject/subscriptions/aSubscription",
+      };
+      const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
+        specversion: "1.0",
+        source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        id: "event-id-789",
+        type: EVENT_TRIGGER.eventType,
+        time: messageDataNoAttrs.publishTime,
+        data: publishData,
+      };
+
+      let capturedEvent: any;
+      const func = pubsub.onMessagePublished("topic", (e) => {
+        capturedEvent = e;
+        return Promise.resolve();
+      });
+
+      await func(event);
+
+      // Test the message getter for attributes
+      expect(capturedEvent.message.attributes).to.deep.equal({});
+      expect(capturedEvent.data.message.attributes).to.deep.equal({});
+    });
   });
 });
