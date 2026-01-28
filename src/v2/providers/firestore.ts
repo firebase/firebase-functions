@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 import * as firestore from "firebase-admin/firestore";
+import { EventContext } from "../../v1";
+import { DocumentSnapshot as V1DocumentSnapshot } from "../../v1/providers/firestore";
 import * as logger from "../../logger";
 import { ParamsOf } from "../../common/params";
 import { normalizePath } from "../../common/utilities/path";
@@ -37,6 +39,10 @@ import {
 import { wrapTraceContext } from "../trace";
 import { withInit } from "../../common/onInit";
 import { Expression } from "../../params";
+
+const V1_CONTEXT = Symbol("v1Context");
+const V1_SNAPSHOT = Symbol("v1Snapshot");
+const V1_CHANGE = Symbol("v1Change");
 
 export { Change };
 
@@ -134,6 +140,21 @@ export interface FirestoreEvent<T, Params = Record<string, string>> extends Clou
    * Only named capture groups will be populated - {key}, {key=*}, {key=**}
    */
   params: Params;
+
+  /**
+   * Lazily computes and returns the v1-compatible EventContext.
+   */
+  readonly context: EventContext;
+
+  /**
+   * For `onCreate` and `onDelete` events, returns the v1 `DocumentSnapshot`.
+   */
+  readonly snapshot?: V1DocumentSnapshot;
+
+  /**
+   * For `onUpdate` and `onWrite` events, returns the v1 `Change<DocumentSnapshot>`.
+   */
+  readonly change?: Change<V1DocumentSnapshot>;
 }
 
 export interface FirestoreAuthEvent<T, Params = Record<string, string>>
@@ -581,7 +602,28 @@ export function makeParams(document: string, documentPattern: PathPattern) {
 }
 
 /** @internal */
-export function makeFirestoreEvent<Params>(
+function mapV2EventTypeToV1(v2EventType: string): string {
+  switch (v2EventType) {
+    case createdEventType:
+    case createdEventWithAuthContextType:
+      return "providers/cloud.firestore/eventTypes/document.create";
+    case updatedEventType:
+    case updatedEventWithAuthContextType:
+      return "providers/cloud.firestore/eventTypes/document.update";
+    case deletedEventType:
+    case deletedEventWithAuthContextType:
+      return "providers/cloud.firestore/eventTypes/document.delete";
+    case writtenEventType:
+    case writtenEventWithAuthContextType:
+      return "providers/cloud.firestore/eventTypes/document.write";
+    default:
+      logger.warn("Unknown event type:", v2EventType);
+      return v2EventType; // Fallback
+  }
+}
+
+/** @internal */
+export function makeFirestoreEvent<Params extends Record<string, string>>(
   eventType: string,
   event: RawFirestoreEvent | RawFirestoreAuthEvent,
   params: Params
@@ -593,11 +635,42 @@ export function makeFirestoreEvent<Params>(
       ? createSnapshot(event)
       : createBeforeSnapshot(event)
     : undefined;
-  const firestoreEvent: FirestoreEvent<QueryDocumentSnapshot | undefined, Params> = {
+  const firestoreEvent: any = {
     ...event,
     params,
     data,
   };
+
+  Object.defineProperty(firestoreEvent, "context", {
+    get: function (this: FirestoreEvent<QueryDocumentSnapshot | undefined, Params>): EventContext {
+      if (this[V1_CONTEXT]) {
+        return this[V1_CONTEXT];
+      }
+      const v1Context: EventContext = {
+        eventId: this.id,
+        timestamp: this.time,
+        eventType: mapV2EventTypeToV1(this.type),
+        resource: {
+          service: "firestore.googleapis.com",
+          name: `projects/${this.project}/databases/${this.database}/documents/${this.document}`,
+        },
+        params: this.params,
+      };
+      this[V1_CONTEXT] = v1Context;
+      return v1Context;
+    },
+  });
+
+  Object.defineProperty(firestoreEvent, "snapshot", {
+    get: function (this: FirestoreEvent<QueryDocumentSnapshot | undefined, Params>): V1DocumentSnapshot | undefined {
+      if (this[V1_SNAPSHOT]) {
+        return this[V1_SNAPSHOT];
+      }
+      const v1Snapshot = this.data as V1DocumentSnapshot | undefined;
+      this[V1_SNAPSHOT] = v1Snapshot;
+      return v1Snapshot;
+    },
+  });
 
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
@@ -610,14 +683,14 @@ export function makeFirestoreEvent<Params>(
     };
     delete (eventWithAuth as any).authtype;
     delete (eventWithAuth as any).authid;
-    return eventWithAuth;
+    return eventWithAuth as FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params>;
   }
 
-  return firestoreEvent;
+  return firestoreEvent as FirestoreEvent<QueryDocumentSnapshot | undefined, Params>;
 }
 
 /** @internal */
-export function makeChangedFirestoreEvent<Params>(
+export function makeChangedFirestoreEvent<Params extends Record<string, string>>(
   event: RawFirestoreEvent | RawFirestoreAuthEvent,
   params: Params
 ):
@@ -626,11 +699,42 @@ export function makeChangedFirestoreEvent<Params>(
   const data = event.data
     ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
     : undefined;
-  const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, Params> = {
+  const firestoreEvent: any = {
     ...event,
     params,
     data,
   };
+
+  Object.defineProperty(firestoreEvent, "context", {
+    get: function (this: FirestoreEvent<Change<DocumentSnapshot> | undefined, Params>): EventContext {
+      if (this[V1_CONTEXT]) {
+        return this[V1_CONTEXT];
+      }
+      const v1Context: EventContext = {
+        eventId: this.id,
+        timestamp: this.time,
+        eventType: mapV2EventTypeToV1(this.type),
+        resource: {
+          service: "firestore.googleapis.com",
+          name: `projects/${this.project}/databases/${this.database}/documents/${this.document}`,
+        },
+        params: this.params,
+      };
+      this[V1_CONTEXT] = v1Context;
+      return v1Context;
+    },
+  });
+
+  Object.defineProperty(firestoreEvent, "change", {
+    get: function (this: FirestoreEvent<Change<DocumentSnapshot> | undefined, Params>): Change<V1DocumentSnapshot> | undefined {
+      if (this[V1_CHANGE]) {
+        return this[V1_CHANGE];
+      }
+      const v1Change = this.data as Change<V1DocumentSnapshot> | undefined;
+      this[V1_CHANGE] = v1Change;
+      return v1Change;
+    },
+  });
   delete (firestoreEvent as any).datacontenttype;
   delete (firestoreEvent as any).dataschema;
 
@@ -642,10 +746,10 @@ export function makeChangedFirestoreEvent<Params>(
     };
     delete (eventWithAuth as any).authtype;
     delete (eventWithAuth as any).authid;
-    return eventWithAuth;
+    return eventWithAuth as FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, Params>;
   }
 
-  return firestoreEvent;
+  return firestoreEvent as FirestoreEvent<Change<DocumentSnapshot> | undefined, Params>;
 }
 
 /** @internal */
@@ -693,7 +797,7 @@ export function makeEndpoint(
 /** @internal */
 export function onOperation<
   Document extends string,
-  Event extends FirestoreEvent<QueryDocumentSnapshot, ParamsOf<Document>>
+  Event extends FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -722,7 +826,7 @@ export function onOperation<
 /** @internal */
 export function onChangedOperation<
   Document extends string,
-  Event extends FirestoreEvent<Change<DocumentSnapshot>, ParamsOf<Document>>
+  Event extends FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,

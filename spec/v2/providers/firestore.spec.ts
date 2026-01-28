@@ -257,6 +257,44 @@ describe("firestore", () => {
       await firestore.onDocumentWritten("path", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    it("should have v1 compatible getters for written events", async () => {
+      const func = firestore.onDocumentWritten("foo/{bar}", (event) => {
+        expect(event.context).to.deep.equal({
+          eventId: event.id,
+          timestamp: event.time,
+          eventType: "providers/cloud.firestore/eventTypes/document.write",
+          resource: {
+            service: "firestore.googleapis.com",
+            name: `projects/${event.project}/databases/${event.database}/documents/${event.document}`,
+          },
+          params: event.params,
+        });
+        expect(event.change).to.exist;
+        expect(event.change.before.data()).to.deep.equal({});
+        expect(event.change.after.data()).to.deep.equal({ hello: "a new world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(writtenProto));
+      event.type = firestore.writtenEventType;
+      await func(event);
+    });
+
+    it("should not affect standard v2 event properties", async () => {
+      const func = firestore.onDocumentWritten("foo/{bar}", (event) => {
+        expect(event.id).to.equal(eventBase.id);
+        expect(event.source).to.equal(eventBase.source);
+        expect(event.type).to.equal(firestore.writtenEventType);
+        expect(event.time).to.equal(eventBase.time);
+        expect(event.data).to.exist;
+        expect(event.data.before.data()).to.deep.equal({});
+        expect(event.data.after.data()).to.deep.equal({ hello: "a new world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(writtenProto));
+      event.type = firestore.writtenEventType;
+      await func(event);
+    });
   });
 
   describe("onDocumentCreated", () => {
@@ -343,6 +381,42 @@ describe("firestore", () => {
       expect(hello).to.be.undefined;
       await firestore.onDocumentCreated("type", () => null)(event);
       expect(hello).to.equal("world");
+    });
+
+    it("should have v1 compatible getters", async () => {
+      const func = firestore.onDocumentCreated("foo/{bar}", (event) => {
+        expect(event.context).to.deep.equal({
+          eventId: event.id,
+          timestamp: event.time,
+          eventType: "providers/cloud.firestore/eventTypes/document.create",
+          resource: {
+            service: "firestore.googleapis.com",
+            name: `projects/${event.project}/databases/${event.database}/documents/${event.document}`,
+          },
+          params: event.params,
+        });
+        expect(event.snapshot).to.exist;
+        expect(event.snapshot.data()).to.deep.equal({ hello: "create world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(createdProto));
+      event.type = firestore.createdEventType;
+      await func(event);
+    });
+
+    it("should not affect standard v2 event properties", async () => {
+      const func = firestore.onDocumentCreated("foo/{bar}", (event) => {
+        expect(event.id).to.equal(eventBase.id);
+        expect(event.source).to.equal(eventBase.source);
+        expect(event.type).to.equal(firestore.createdEventType);
+        expect(event.time).to.equal(eventBase.time);
+        expect(event.data).to.exist;
+        expect(event.data.data()).to.deep.equal({ hello: "create world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(createdProto));
+      event.type = firestore.createdEventType;
+      await func(event);
     });
   });
 
@@ -431,6 +505,44 @@ describe("firestore", () => {
       await firestore.onDocumentUpdated("path", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    it("should have v1 compatible getters", async () => {
+      const func = firestore.onDocumentUpdated("foo/{bar}", (event) => {
+        expect(event.context).to.deep.equal({
+          eventId: event.id,
+          timestamp: event.time,
+          eventType: "providers/cloud.firestore/eventTypes/document.update",
+          resource: {
+            service: "firestore.googleapis.com",
+            name: `projects/${event.project}/databases/${event.database}/documents/${event.document}`,
+          },
+          params: event.params,
+        });
+        expect(event.change).to.exist;
+        expect(event.change.before.data()).to.deep.equal({ hello: "old world" });
+        expect(event.change.after.data()).to.deep.equal({ hello: "new world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(updatedProto));
+      event.type = firestore.updatedEventType;
+      await func(event);
+    });
+
+    it("should not affect standard v2 event properties", async () => {
+      const func = firestore.onDocumentUpdated("foo/{bar}", (event) => {
+        expect(event.id).to.equal(eventBase.id);
+        expect(event.source).to.equal(eventBase.source);
+        expect(event.type).to.equal(firestore.updatedEventType);
+        expect(event.time).to.equal(eventBase.time);
+        expect(event.data).to.exist;
+        expect(event.data.before.data()).to.deep.equal({ hello: "old world" });
+        expect(event.data.after.data()).to.deep.equal({ hello: "new world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(updatedProto));
+      event.type = firestore.updatedEventType;
+      await func(event);
+    });
   });
 
   describe("onDocumentDeleted", () => {
@@ -517,6 +629,42 @@ describe("firestore", () => {
       expect(hello).to.be.undefined;
       await firestore.onDocumentDeleted("path", () => null)(event);
       expect(hello).to.equal("world");
+    });
+
+    it("should have v1 compatible getters", async () => {
+      const func = firestore.onDocumentDeleted("foo/{bar}", (event) => {
+        expect(event.context).to.deep.equal({
+          eventId: event.id,
+          timestamp: event.time,
+          eventType: "providers/cloud.firestore/eventTypes/document.delete",
+          resource: {
+            service: "firestore.googleapis.com",
+            name: `projects/${event.project}/databases/${event.database}/documents/${event.document}`,
+          },
+          params: event.params,
+        });
+        expect(event.snapshot).to.exist;
+        expect(event.snapshot.data()).to.deep.equal({ hello: "delete world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(deletedProto));
+      event.type = firestore.deletedEventType;
+      await func(event);
+    });
+
+    it("should not affect standard v2 event properties", async () => {
+      const func = firestore.onDocumentDeleted("foo/{bar}", (event) => {
+        expect(event.id).to.equal(eventBase.id);
+        expect(event.source).to.equal(eventBase.source);
+        expect(event.type).to.equal(firestore.deletedEventType);
+        expect(event.time).to.equal(eventBase.time);
+        expect(event.data).to.exist;
+        expect(event.data.data()).to.deep.equal({ hello: "delete world" });
+      });
+
+      const event = makeEvent(makeEncodedProtobuf(deletedProto));
+      event.type = firestore.deletedEventType;
+      await func(event);
     });
   });
 
