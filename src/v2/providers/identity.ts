@@ -160,7 +160,7 @@ export interface BlockingOptions {
    */
   labels?: Record<string, string>;
 
-  /*
+  /**
    * Secrets to bind to a function.
    */
   secrets?: SupportedSecretParam[];

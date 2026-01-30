@@ -24,7 +24,7 @@ import * as logger from "../logger";
 
 const EXPRESSION_TAG = Symbol.for("firebase-functions:Expression:Tag");
 
-/*
+/**
  * A CEL expression which can be evaluated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.

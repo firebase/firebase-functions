@@ -189,7 +189,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
    */
   labels?: Record<string, string>;
 
-  /*
+  /**
    * Secrets to bind to a function.
    */
   secrets?: SupportedSecretParam[];

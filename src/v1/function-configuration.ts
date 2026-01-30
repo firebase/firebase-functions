@@ -232,7 +232,7 @@ export interface RuntimeOptions {
    */
   invoker?: "public" | "private" | string | string[];
 
-  /*
+  /**
    * Secrets to bind to a function instance.
    */
   secrets?: SupportedSecretParam[];
