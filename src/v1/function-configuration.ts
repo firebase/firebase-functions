@@ -152,8 +152,10 @@ export interface Schedule {
  */
 export interface FailurePolicy {
   /**
-   * Retry configuration. Must be an empty object.
+   * Enabling the retry policy allows a failed execution to be delivered again.
    *
+   * @remarks
+   * This field must be an empty object to enable retry.
    */
   retry: Record<string, never>;
 }

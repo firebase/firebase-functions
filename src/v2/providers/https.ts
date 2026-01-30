@@ -178,6 +178,20 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
  */
 export interface CallableOptions<T = any> extends HttpsOptions {
   /**
+   * If true, allows CORS on requests to this function.
+   * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
+   * If this is an `Array`, allows requests from domains matching at least one entry of the array.
+   * Defaults to true for {@link https.CallableFunction} and false otherwise.
+   */
+  cors?:
+    | string
+    | Expression<string>
+    | Expression<string[]>
+    | boolean
+    | RegExp
+    | Array<string | RegExp>;
+
+  /**
    * Determines whether Firebase AppCheck is enforced.
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
@@ -567,13 +581,26 @@ type ActionStream<F extends GenkitAction> = F extends GenkitAction<
   ? S["__output"]
   : never;
 
+/**
+ * Declares a callable function for clients to call using a Firebase SDK, wrapping a Genkit action.
+ * @param action - The Genkit action to wrap.
+ * @returns A function that you can export and deploy.
+ */
 export function onCallGenkit<A extends GenkitAction>(
   action: A
 ): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+
+/**
+ * Declares a callable function for clients to call using a Firebase SDK, wrapping a Genkit action.
+ * @param opts - Options to set on this function.
+ * @param action - The Genkit action to wrap.
+ * @returns A function that you can export and deploy.
+ */
 export function onCallGenkit<A extends GenkitAction>(
   opts: CallableOptions<ActionInput<A>>,
-  flow: A
+  action: A
 ): CallableFunction<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>;
+
 export function onCallGenkit<A extends GenkitAction>(
   optsOrAction: A | CallableOptions<ActionInput<A>>,
   action?: A

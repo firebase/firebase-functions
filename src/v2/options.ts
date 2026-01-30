@@ -75,14 +75,23 @@ export type SupportedRegion =
  * List of available memory options supported by Cloud Functions.
  */
 export type MemoryOption =
+  /** 128MB */
   | "128MiB"
+  /** 256MB */
   | "256MiB"
+  /** 512MB */
   | "512MiB"
+  /** 1GB */
   | "1GiB"
+  /** 2GB */
   | "2GiB"
+  /** 4GB */
   | "4GiB"
+  /** 8GB */
   | "8GiB"
+  /** 16GB */
   | "16GiB"
+  /** 32GB */
   | "32GiB";
 
 const MemoryOptionToMB: Record<MemoryOption, number> = {
@@ -100,12 +109,34 @@ const MemoryOptionToMB: Record<MemoryOption, number> = {
 /**
  * List of available options for `VpcConnectorEgressSettings`.
  */
-export type VpcEgressSetting = "PRIVATE_RANGES_ONLY" | "ALL_TRAFFIC";
+export type VpcEgressSetting =
+  /**
+   * Only traffic to private IP ranges defined in the VPC connector is sent
+   * to the VPC connector.
+   */
+  | "PRIVATE_RANGES_ONLY"
+  /**
+   * All traffic from the function is sent to the VPC connector.
+   */
+  | "ALL_TRAFFIC";
 
 /**
  * List of available options for `IngressSettings`.
  */
-export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERNAL_AND_GCLB";
+export type IngressSetting =
+  /**
+   * Allow HTTP requests from anywhere to reach the function.
+   */
+  | "ALLOW_ALL"
+  /**
+   * Allow HTTP requests only from private VPCs or other internal resources.
+   */
+  | "ALLOW_INTERNAL_ONLY"
+  /**
+   * Allow HTTP requests from private VPCs, other internal resources, and
+   * Cloud Load Balancing.
+   */
+  | "ALLOW_INTERNAL_AND_GCLB";
 
 /**
  * `GlobalOptions` are options that can be set across an entire project.
