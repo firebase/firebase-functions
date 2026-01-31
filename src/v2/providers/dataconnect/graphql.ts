@@ -114,7 +114,6 @@ export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
 }
 
 /**
- * @hidden
  * Options for configuring the GraphQL server.
  */
 export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
@@ -140,7 +139,6 @@ export interface GraphqlServerOptions extends Omit<HttpsOptions, "cors"> {
 }
 
 /**
- * @hidden
  * Per-request context state shared by all resolvers in a particular query.
  */
 export interface FirebaseContext {
