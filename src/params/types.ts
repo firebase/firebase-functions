@@ -634,7 +634,13 @@ export class ListParam extends Param<string[]> {
 
   /** @internal */
   runtimeValue(): string[] {
-    const val = JSON.parse(process.env[this.name]);
+    const raw = process.env[this.name];
+    if (raw === undefined || raw === "") {
+      throw new Error(
+        `Parameter "${this.name}" is not set. Set it in .env or .env.local, or ensure the Functions runtime has provided it.`
+      );
+    }
+    const val = JSON.parse(raw);
     if (!Array.isArray(val) || !(val as string[]).every((v) => typeof v === "string")) {
       return [];
     }

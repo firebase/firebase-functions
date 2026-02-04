@@ -324,18 +324,48 @@ export function onRequest(
   handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
-    if (isDebugFeatureEnabled("enableCors")) {
-      // Respect `cors: false` to turn off cors even if debug feature is enabled.
-      origin = opts.cors === false ? false : true;
+    let corsOptions: cors.CorsOptions;
+    if (opts.cors instanceof Expression) {
+      // Defer resolution to request time so params are not read during deployment.
+      const corsExpression = opts.cors;
+      corsOptions = {
+        origin: (reqOrigin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+          if (isDebugFeatureEnabled("enableCors") && opts.cors !== false) {
+            callback(null, true);
+            return;
+          }
+          const resolved = corsExpression.runtimeValue();
+          if (Array.isArray(resolved)) {
+            if (resolved.length === 1) {
+              callback(null, resolved[0]);
+              return;
+            }
+            if (reqOrigin === undefined) {
+              callback(null, true);
+              return;
+            }
+            const allowed = resolved.indexOf(reqOrigin) !== -1;
+            callback(null, allowed ? reqOrigin : false);
+          } else {
+            callback(null, resolved as string);
+          }
+        },
+      };
+    } else {
+      let origin = opts.cors;
+      if (isDebugFeatureEnabled("enableCors")) {
+        // Respect `cors: false` to turn off cors even if debug feature is enabled.
+        origin = opts.cors === false ? false : true;
+      }
+      // Arrays cause the access-control-allow-origin header to be dynamic based
+      // on the origin header of the request. If there is only one element in the
+      // array, this is unnecessary.
+      if (Array.isArray(origin) && origin.length === 1) {
+        origin = origin[0];
+      }
+      corsOptions = { origin };
     }
-    // Arrays cause the access-control-allow-origin header to be dynamic based
-    // on the origin header of the request. If there is only one element in the
-    // array, this is unnecessary.
-    if (Array.isArray(origin) && origin.length === 1) {
-      origin = origin[0];
-    }
-    const middleware = cors({ origin });
+    const middleware = cors(corsOptions);
 
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
@@ -434,30 +464,56 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     opts = optsOrHandler as CallableOptions;
   }
 
-  let cors: string | boolean | RegExp | Array<string | RegExp> | undefined;
-  if ("cors" in opts) {
-    if (opts.cors instanceof Expression) {
-      cors = opts.cors.value();
-    } else {
-      cors = opts.cors;
-    }
+  let corsOptions: cors.CorsOptions;
+  if ("cors" in opts && opts.cors instanceof Expression) {
+    // Defer resolution to request time so params are not read during deployment.
+    const corsExpression = opts.cors;
+    corsOptions = {
+      origin: (reqOrigin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
+        if (isDebugFeatureEnabled("enableCors")) {
+          callback(null, true);
+          return;
+        }
+        const resolved = corsExpression.runtimeValue();
+        if (Array.isArray(resolved)) {
+          if (resolved.length === 1) {
+            callback(null, resolved[0]);
+            return;
+          }
+          if (reqOrigin === undefined) {
+            callback(null, true);
+            return;
+          }
+          const allowed = resolved.indexOf(reqOrigin) !== -1;
+          callback(null, allowed ? reqOrigin : false);
+        } else {
+          callback(null, resolved as string);
+        }
+      },
+      methods: "POST",
+    };
   } else {
-    cors = true;
-  }
-
-  let origin = isDebugFeatureEnabled("enableCors") ? true : cors;
-  // Arrays cause the access-control-allow-origin header to be dynamic based
-  // on the origin header of the request. If there is only one element in the
-  // array, this is unnecessary.
-  if (Array.isArray(origin) && origin.length === 1) {
-    origin = origin[0];
+    let cors: string | boolean | RegExp | Array<string | RegExp> | undefined;
+    if ("cors" in opts) {
+      cors = opts.cors as string | boolean | RegExp | Array<string | RegExp>;
+    } else {
+      cors = true;
+    }
+    let origin = isDebugFeatureEnabled("enableCors") ? true : cors;
+    // Arrays cause the access-control-allow-origin header to be dynamic based
+    // on the origin header of the request. If there is only one element in the
+    // array, this is unnecessary.
+    if (Array.isArray(origin) && origin.length === 1) {
+      origin = origin[0];
+    }
+    corsOptions = { origin, methods: "POST" };
   }
 
   // fix the length of handler to make the call to handler consistent
   const fixedLen = (req: CallableRequest<T>, resp?: CallableResponse<Stream>) => handler(req, resp);
   let func: any = onCallHandler(
     {
-      cors: { origin, methods: "POST" },
+      cors: corsOptions,
       enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
       consumeAppCheckToken: opts.consumeAppCheckToken,
       heartbeatSeconds: opts.heartbeatSeconds,
