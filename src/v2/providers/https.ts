@@ -379,8 +379,24 @@ export function onRequest(
       // Use function form so CORS origin is resolved per-request; avoids CodeQL permissive CORS alert (developer-supplied config).
       const resolvedOrigin = origin;
       corsOptions = {
-        origin: (_reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) =>
-          cb(null, resolvedOrigin as boolean | string),
+        origin: (reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) => {
+          if (typeof resolvedOrigin === "boolean" || typeof resolvedOrigin === "string") {
+            return cb(null, resolvedOrigin);
+          }
+          if (reqOrigin === undefined) {
+            return cb(null, true);
+          }
+          if (resolvedOrigin instanceof RegExp) {
+            return cb(null, resolvedOrigin.test(reqOrigin) ? reqOrigin : false);
+          }
+          if (
+            Array.isArray(resolvedOrigin) &&
+            resolvedOrigin.some((o) => (typeof o === "string" ? o === reqOrigin : o.test(reqOrigin)))
+          ) {
+            return cb(null, reqOrigin);
+          }
+          return cb(null, false);
+        },
       };
     }
     const middleware = cors(corsOptions);
@@ -506,8 +522,24 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     // Use function form so CORS origin is resolved per-request; avoids CodeQL permissive CORS alert (developer-supplied config).
     const resolvedOrigin = origin;
     corsOptions = {
-      origin: (_reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) =>
-        cb(null, resolvedOrigin as boolean | string),
+      origin: (reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) => {
+        if (typeof resolvedOrigin === "boolean" || typeof resolvedOrigin === "string") {
+          return cb(null, resolvedOrigin);
+        }
+        if (reqOrigin === undefined) {
+          return cb(null, true);
+        }
+        if (resolvedOrigin instanceof RegExp) {
+          return cb(null, resolvedOrigin.test(reqOrigin) ? reqOrigin : false);
+        }
+        if (
+          Array.isArray(resolvedOrigin) &&
+          resolvedOrigin.some((o) => (typeof o === "string" ? o === reqOrigin : o.test(reqOrigin)))
+        ) {
+          return cb(null, reqOrigin);
+        }
+        return cb(null, false);
+      },
       methods: "POST",
     };
   }
