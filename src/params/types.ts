@@ -641,8 +641,10 @@ export class ListParam extends Param<string[]> {
       );
     }
     const val = JSON.parse(raw);
-    if (!Array.isArray(val) || !(val as string[]).every((v) => typeof v === "string")) {
-      return [];
+    if (!Array.isArray(val) || !val.every((v) => typeof v === "string")) {
+      throw new Error(
+        `Parameter "${this.name}" is not a valid JSON array of strings. Value is: ${raw}`
+      );
     }
     return val as string[];
   }

@@ -287,6 +287,33 @@ export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunc
 }
 
 /**
+ * Builds a CORS origin callback for a static value (boolean, string, RegExp, or array).
+ * Used by onRequest and onCall for non-Expression cors; function form avoids CodeQL permissive CORS alert.
+ */
+function buildStaticCorsOriginCallback(
+  origin: string | boolean | RegExp | Array<string | RegExp>
+): NonNullable<cors.CorsOptions["origin"]> {
+  return (reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) => {
+    if (typeof origin === "boolean" || typeof origin === "string") {
+      return cb(null, origin);
+    }
+    if (reqOrigin === undefined) {
+      return cb(null, true);
+    }
+    if (origin instanceof RegExp) {
+      return cb(null, origin.test(reqOrigin) ? reqOrigin : false);
+    }
+    if (
+      Array.isArray(origin) &&
+      origin.some((o) => (typeof o === "string" ? o === reqOrigin : o.test(reqOrigin)))
+    ) {
+      return cb(null, reqOrigin);
+    }
+    return cb(null, false);
+  };
+}
+
+/**
  * Builds a CORS origin callback that resolves an Expression (e.g. defineList) at request time.
  * Used by onRequest and onCall so params are not read during deployment.
  */
@@ -376,27 +403,8 @@ export function onRequest(
       if (Array.isArray(origin) && origin.length === 1) {
         origin = origin[0];
       }
-      // Use function form so CORS origin is resolved per-request; avoids CodeQL permissive CORS alert (developer-supplied config).
-      const resolvedOrigin = origin;
       corsOptions = {
-        origin: (reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) => {
-          if (typeof resolvedOrigin === "boolean" || typeof resolvedOrigin === "string") {
-            return cb(null, resolvedOrigin);
-          }
-          if (reqOrigin === undefined) {
-            return cb(null, true);
-          }
-          if (resolvedOrigin instanceof RegExp) {
-            return cb(null, resolvedOrigin.test(reqOrigin) ? reqOrigin : false);
-          }
-          if (
-            Array.isArray(resolvedOrigin) &&
-            resolvedOrigin.some((o) => (typeof o === "string" ? o === reqOrigin : o.test(reqOrigin)))
-          ) {
-            return cb(null, reqOrigin);
-          }
-          return cb(null, false);
-        },
+        origin: buildStaticCorsOriginCallback(origin),
       };
     }
     const middleware = cors(corsOptions);
@@ -519,27 +527,8 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     if (Array.isArray(origin) && origin.length === 1) {
       origin = origin[0];
     }
-    // Use function form so CORS origin is resolved per-request; avoids CodeQL permissive CORS alert (developer-supplied config).
-    const resolvedOrigin = origin;
     corsOptions = {
-      origin: (reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) => {
-        if (typeof resolvedOrigin === "boolean" || typeof resolvedOrigin === "string") {
-          return cb(null, resolvedOrigin);
-        }
-        if (reqOrigin === undefined) {
-          return cb(null, true);
-        }
-        if (resolvedOrigin instanceof RegExp) {
-          return cb(null, resolvedOrigin.test(reqOrigin) ? reqOrigin : false);
-        }
-        if (
-          Array.isArray(resolvedOrigin) &&
-          resolvedOrigin.some((o) => (typeof o === "string" ? o === reqOrigin : o.test(reqOrigin)))
-        ) {
-          return cb(null, reqOrigin);
-        }
-        return cb(null, false);
-      },
+      origin: buildStaticCorsOriginCallback(origin),
       methods: "POST",
     };
   }
