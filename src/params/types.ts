@@ -635,7 +635,7 @@ export class ListParam extends Param<string[]> {
   /** @internal */
   runtimeValue(): string[] {
     const raw = process.env[this.name];
-    if (raw === undefined || raw === "") {
+    if (!raw) {
       throw new Error(
         `Parameter "${this.name}" is not set. Set it in .env or .env.local, or ensure the Functions runtime has provided it.`
       );
