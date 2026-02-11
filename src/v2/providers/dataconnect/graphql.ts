@@ -12,15 +12,15 @@ import { convertIfPresent, convertInvoker } from "../../../common/encoding";
 import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
 
 const FIREBASE_AUTH_HEADER = "X-Firebase-Auth-Token";
-const PRELUDE_GQL = `
-scalar UUID
-scalar Int64
-scalar Any
-scalar Void
-scalar True
-scalar Date
-scalar Timestamp
-`;
+const PRELUDE_GQL = [
+  "scalar UUID",
+  "scalar Int64",
+  "scalar Any",
+  "scalar Void",
+  "scalar True",
+  "scalar Date",
+  "scalar Timestamp",
+].join("\n");
 
 /** @hidden */
 export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
