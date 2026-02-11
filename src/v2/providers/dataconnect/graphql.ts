@@ -12,6 +12,15 @@ import { convertIfPresent, convertInvoker } from "../../../common/encoding";
 import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
 
 const FIREBASE_AUTH_HEADER = "X-Firebase-Auth-Token";
+const PRELUDE_GQL = `
+scalar UUID
+scalar Int64
+scalar Any
+scalar Void
+scalar True
+scalar Date
+scalar Timestamp
+`;
 
 /** @hidden */
 export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<express.Express> {
@@ -21,6 +30,7 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
   if (opts.schemaFilePath) {
     opts.schema = fs.readFileSync(opts.schemaFilePath, "utf-8");
   }
+  const schemaWithPrelude = PRELUDE_GQL + "\n" + opts.schema;
   if (!opts.resolvers.query && !opts.resolvers.mutation) {
     throw new Error("At least one query or mutation resolver must be provided.");
   }
@@ -35,7 +45,7 @@ export async function initGraphqlServer(opts: GraphqlServerOptions): Promise<exp
     const serverPromise = (async () => {
       const app = express();
       const server = new ApolloServer<FirebaseContext>({
-        typeDefs: opts.schema,
+        typeDefs: schemaWithPrelude,
         resolvers: apolloResolvers,
       });
       await server.start();
