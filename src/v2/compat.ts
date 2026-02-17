@@ -1,10 +1,10 @@
 // src/v2/compat.ts
-import { CloudEvent } from './core';
-import { MessagePublishedData, Message } from './providers/pubsub';
-import { EventContext as V1EventContext } from '../v1';
+import { CloudEvent } from "./core";
+import { MessagePublishedData, Message } from "./providers/pubsub";
+import { EventContext as V1EventContext } from "../v1";
 
 // Base V1 Context Interface
-export interface V1Context extends Omit<V1EventContext, 'resource'> {
+export interface V1Context extends Omit<V1EventContext, "resource"> {
   resource: string | { service: string; name: string };
 }
 
@@ -30,28 +30,37 @@ export function patchV1Compat<T>(event: CloudEvent<MessagePublishedData<T>>): Pu
 export function patchV1Compat<T>(event: CloudEvent<T>): CloudEvent<T>;
 
 // Generic function to add V1 compatibility getters
-export function patchV1Compat<T>(event: CloudEvent<T>): any {
-  // TODO: Generalize this check for other providers, e.g., using a Symbol
-  if ('context' in event && 'message' in event) {
-    return event; // Already patched (basic check)
+/**
+ *
+ */
+export function patchV1Compat(event: CloudEvent<any>): any {
+  // Use a symbol to ensure we only patch once.
+  const V1_COMPAT_PATCHED = Symbol.for("firebase.functions.v2.compat");
+  if ((event as any)[V1_COMPAT_PATCHED]) {
+    return event;
   }
+  Object.defineProperty(event, V1_COMPAT_PATCHED, { value: true, enumerable: false, writable: false, configurable: false });
 
   // Provider-specific logic
   switch (event.type) {
-    case 'google.cloud.pubsub.topic.v1.messagePublished':
+    case "google.cloud.pubsub.topic.v1.messagePublished":
       const pubsubEvent = event as CloudEvent<MessagePublishedData<any>>;
       const pubsubData = pubsubEvent.data;
-      const v2Message = pubsubData.message instanceof Message ? pubsubData.message : new Message(pubsubData.message);
+      if (!(pubsubData.message instanceof Message)) {
+        // Mutate the event object to ensure it contains a Message instance
+        (pubsubData as any).message = new Message(pubsubData.message);
+      }
+      const v2Message = pubsubData.message;
 
-      Object.defineProperty(pubsubEvent, 'context', {
+      Object.defineProperty(pubsubEvent, "context", {
         get: () => {
           return {
             eventId: v2Message.messageId,
             timestamp: v2Message.publishTime,
-            eventType: 'google.pubsub.topic.publish',
+            eventType: "google.pubsub.topic.publish",
             resource: {
-              service: 'pubsub.googleapis.com',
-              name: event.source?.replace('//pubsub.googleapis.com/', '') || '',
+              service: "pubsub.googleapis.com",
+              name: event.source?.replace("//pubsub.googleapis.com/", "") || "",
             },
             params: {},
           } as V1Context;
@@ -59,13 +68,13 @@ export function patchV1Compat<T>(event: CloudEvent<T>): any {
         configurable: true,
       });
 
-      Object.defineProperty(pubsubEvent, 'message', {
+      Object.defineProperty(pubsubEvent, "message", {
         get: () => {
           const baseV1Message = {
             data: v2Message.data,
             messageId: v2Message.messageId,
             publishTime: v2Message.publishTime,
-            attributes: v2Message.attributes || {},
+            attributes: v2Message.attributes,
             ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
           };
           return {
@@ -78,7 +87,7 @@ export function patchV1Compat<T>(event: CloudEvent<T>): any {
         },
         configurable: true,
       });
-      return pubsubEvent as any as PubSubCloudEvent<T>;
+      return pubsubEvent as any as PubSubCloudEvent<any>;
 
     default:
       return event;

@@ -59,7 +59,6 @@ import { patchV1Compat, PubSubCloudEvent } from "../compat";
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
- *
  * @param data - Payload of a Pub/Sub message.
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
@@ -122,7 +121,6 @@ export class Message<T> {
 
   /**
    * Returns a JSON-serializable representation of this object.
-   *
    * @returns A JSON-serializable representation of this object.
    */
   toJSON(): any {
@@ -167,7 +165,6 @@ export interface V1PubSubMessage<T = any> {
   toJSON(): any;
 }
 
-
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -191,7 +188,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   *
    * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -203,7 +199,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Min number of actual instances to be running at a given time.
-   *
    * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
@@ -217,7 +212,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Number of requests a function can serve at once.
-   *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
@@ -228,7 +222,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   *
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
@@ -317,14 +310,6 @@ export function onMessagePublished<T = any>(
 
   const func = (raw: CloudEvent<unknown>) => {
     const event = patchV1Compat(raw);
-    const messagePublishedData = event.data as {
-      message: unknown;
-      subscription: string;
-    };
-    if (!(messagePublishedData.message instanceof Message)) {
-      messagePublishedData.message = new Message(messagePublishedData.message);
-    }
-
     return wrapTraceContext(withInit(handler))(event as PubSubCloudEvent<T>);
   };
 
