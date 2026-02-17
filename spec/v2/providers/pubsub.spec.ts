@@ -194,7 +194,7 @@ describe("onMessagePublished", () => {
     );
   });
 
-  describe("v1-compatible getters", () => {
+  describe("V1 Compatibility Properties", () => {
     let capturedEvent: any;
     const messageData = {
       messageId: "uuid-123",
@@ -227,8 +227,8 @@ describe("onMessagePublished", () => {
       await func(event);
     });
 
-    it("should provide v1-compatible getters on the event object", () => {
-      // Test the context getter
+    it("should provide v1 compatible context and message properties", () => {
+    // Test the context
       expect(capturedEvent.context).to.deep.equal({
         eventId: messageData.messageId,
         timestamp: messageData.publishTime,
@@ -240,7 +240,7 @@ describe("onMessagePublished", () => {
         params: {},
       });
 
-      // Test the message getter
+      // Test the message
       expect(capturedEvent.message).to.be.an("object");
       expect(capturedEvent.message.data).to.equal(messageData.data);
       expect(capturedEvent.message.attributes).to.deep.equal(messageData.attributes);
@@ -292,17 +292,18 @@ describe("onMessagePublished", () => {
         data: publishData,
       };
 
-      let capturedEvent: any;
+      let testEvent: any;
       const func = pubsub.onMessagePublished("topic", (e) => {
-        capturedEvent = e;
+        testEvent = e;
         return Promise.resolve();
       });
 
       await func(event);
 
-      // Test the message getter for attributes
-      expect(capturedEvent.message.attributes).to.deep.equal({});
-      expect(capturedEvent.data.message.attributes).to.deep.equal({});
+      // Test the message attributes in v1 compatible data
+      expect(testEvent.message.attributes).to.deep.equal({});
+      // also check v2 attributes on the message instance
+      expect(testEvent.data.message.attributes).to.deep.equal({});
     });
   });
 });

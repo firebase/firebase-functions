@@ -1,0 +1,86 @@
+// src/v2/compat.ts
+import { CloudEvent } from './core';
+import { MessagePublishedData, Message } from './providers/pubsub';
+import { EventContext as V1EventContext } from '../v1';
+
+// Base V1 Context Interface
+export interface V1Context extends Omit<V1EventContext, 'resource'> {
+  resource: string | { service: string; name: string };
+}
+
+// V1 Compatible Pub/Sub Message shape
+interface V1PubSubMessage<T> {
+  data: string;
+  attributes: Record<string, string>;
+  messageId: string;
+  publishTime: string;
+  orderingKey?: string;
+  get json(): T;
+  toJSON(): object;
+}
+
+// Type for CloudEvent enhanced with V1 Pub/Sub properties
+export type PubSubCloudEvent<T> = CloudEvent<MessagePublishedData<T>> & {
+  context: V1Context;
+  message: V1PubSubMessage<T>;
+};
+
+// Overloads for patchV1Compat
+export function patchV1Compat<T>(event: CloudEvent<MessagePublishedData<T>>): PubSubCloudEvent<T>;
+export function patchV1Compat<T>(event: CloudEvent<T>): CloudEvent<T>;
+
+// Generic function to add V1 compatibility getters
+export function patchV1Compat<T>(event: CloudEvent<T>): any {
+  // TODO: Generalize this check for other providers, e.g., using a Symbol
+  if ('context' in event && 'message' in event) {
+    return event; // Already patched (basic check)
+  }
+
+  // Provider-specific logic
+  switch (event.type) {
+    case 'google.cloud.pubsub.topic.v1.messagePublished':
+      const pubsubEvent = event as CloudEvent<MessagePublishedData<any>>;
+      const pubsubData = pubsubEvent.data;
+      const v2Message = pubsubData.message instanceof Message ? pubsubData.message : new Message(pubsubData.message);
+
+      Object.defineProperty(pubsubEvent, 'context', {
+        get: () => {
+          return {
+            eventId: v2Message.messageId,
+            timestamp: v2Message.publishTime,
+            eventType: 'google.pubsub.topic.publish',
+            resource: {
+              service: 'pubsub.googleapis.com',
+              name: event.source?.replace('//pubsub.googleapis.com/', '') || '',
+            },
+            params: {},
+          } as V1Context;
+        },
+        configurable: true,
+      });
+
+      Object.defineProperty(pubsubEvent, 'message', {
+        get: () => {
+          const baseV1Message = {
+            data: v2Message.data,
+            messageId: v2Message.messageId,
+            publishTime: v2Message.publishTime,
+            attributes: v2Message.attributes || {},
+            ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
+          };
+          return {
+            ...baseV1Message,
+            get json() {
+              return v2Message.json;
+            },
+            toJSON: () => baseV1Message,
+          };
+        },
+        configurable: true,
+      });
+      return pubsubEvent as any as PubSubCloudEvent<T>;
+
+    default:
+      return event;
+  }
+}
