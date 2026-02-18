@@ -47,7 +47,7 @@ describe("patchV1Compat", () => {
 
     expect(typedEvent.message.data).to.equal(messageData.data);
     expect(typedEvent.message.json).to.deep.equal(messagePayload);
-    expect(typedEvent.data.message.data).to.equal(messageData.data); // V2 access
+    expect(typedEvent.data.message.data).to.equal(messageData.data); // Direct access to V2 CloudEvent data structure
   });
 
   it("should be idempotent", () => {
@@ -68,7 +68,7 @@ describe("patchV1Compat", () => {
     const patchedOnce = patchV1Compat(rawEvent);
     const patchedTwice = patchV1Compat(patchedOnce);
 
-    expect(patchedTwice).to.equal(patchedOnce); // Should be the same object
+    expect(patchedTwice).to.equal(patchedOnce); // Expect the same object reference due to idempotency
     expect(patchedTwice.context.eventId).to.equal(messageData.messageId);
   });
 
