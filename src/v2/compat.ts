@@ -72,14 +72,16 @@ export function patchV1Compat(event: CloudEvent<any>): any {
 
       Object.defineProperty(pubsubEvent, "context", {
         get: () => {
+          const service = "pubsub.googleapis.com";
+          const sourcePrefix = `//${service}/`;
           return {
             eventId: v2Message.messageId,
             timestamp: v2Message.publishTime,
             eventType: "google.pubsub.topic.publish",
             resource: {
-              service: "pubsub.googleapis.com",
-              name: event.source?.startsWith("//pubsub.googleapis.com/")
-                ? event.source.substring("//pubsub.googleapis.com/".length)
+              service,
+              name: event.source?.startsWith(sourcePrefix)
+                ? event.source.substring(sourcePrefix.length)
                 : event.source || "",
             },
             params: {},
