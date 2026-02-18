@@ -58,6 +58,12 @@ export function patchV1Compat(event: CloudEvent<any>): any {
     case "google.cloud.pubsub.topic.v1.messagePublished": {
       const pubsubEvent = event as CloudEvent<MessagePublishedData<any>>;
       const pubsubData = pubsubEvent.data;
+
+      // Null safety guard
+      if (!pubsubData || !pubsubData.message) {
+        return event;
+      }
+
       if (!(pubsubData.message instanceof Message)) {
         // Mutate the event object to ensure it contains a Message instance
         (pubsubData as any).message = new Message(pubsubData.message);
@@ -74,12 +80,13 @@ export function patchV1Compat(event: CloudEvent<any>): any {
               service: "pubsub.googleapis.com",
               name: event.source?.startsWith("//pubsub.googleapis.com/")
                 ? event.source.substring("//pubsub.googleapis.com/".length)
-                : "",
+                : event.source || "",
             },
             params: {},
           } as V1Context;
         },
         configurable: true,
+        enumerable: true,
       });
 
       Object.defineProperty(pubsubEvent, "message", {
@@ -100,6 +107,7 @@ export function patchV1Compat(event: CloudEvent<any>): any {
           };
         },
         configurable: true,
+        enumerable: true,
       });
       return pubsubEvent;
     } // This cast is safe due to the overloads, type inference will work for the caller
