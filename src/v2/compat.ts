@@ -1,6 +1,6 @@
 // src/v2/compat.ts
 import { CloudEvent } from "./core";
-import { MessagePublishedData, Message } from "./providers/pubsub";
+import { MessagePublishedData, Message, V1PubSubMessage } from "./providers/pubsub";
 import { EventContext as V1EventContext } from "../v1";
 
 const V1_COMPAT_PATCHED = Symbol.for("firebase.functions.v2.compat");
@@ -11,18 +11,7 @@ interface PatchedEvent {
 
 // Base V1 Context Interface
 export interface V1Context extends Omit<V1EventContext, "resource"> {
-  resource: string | { service: string; name: string };
-}
-
-// V1 Compatible Pub/Sub Message shape
-interface V1PubSubMessage<T> {
-  data: string;
-  attributes: Record<string, string>;
-  messageId: string;
-  publishTime: string;
-  orderingKey?: string;
-  get json(): T;
-  toJSON(): object;
+  resource: { service: string; name: string };
 }
 
 // Type for CloudEvent enhanced with V1 Pub/Sub properties
@@ -61,7 +50,7 @@ export function patchV1Compat(event: CloudEvent<any>): any {
 
       // Null safety guard
       if (!pubsubData || !pubsubData.message) {
-        return event;
+        throw new Error("Malformed Pub/Sub event: missing 'message' property.");
       }
 
       if (!(pubsubData.message instanceof Message)) {

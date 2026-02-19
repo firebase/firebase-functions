@@ -88,4 +88,19 @@ describe("patchV1Compat", () => {
     expect(patchedEvent).to.not.have.property("context");
     expect(patchedEvent).to.not.have.property("message");
   });
+
+  it("should throw error for malformed Pub/Sub events", () => {
+    const rawEvent: CloudEvent<any> = {
+      specversion: "1.0",
+      source,
+      id: "event-id-malformed",
+      type: pubsubEventType,
+      time: new Date().toISOString(),
+      data: {}, // Missing message
+    };
+
+    expect(() => patchV1Compat(rawEvent)).to.throw(
+      "Malformed Pub/Sub event: missing 'message' property."
+    );
+  });
 });
