@@ -326,7 +326,13 @@ function buildCorsOriginFromExpression(
       callback(null, true);
       return;
     }
-    const resolved = corsExpression.runtimeValue();
+    let resolved: string | string[];
+    try {
+      resolved = corsExpression.runtimeValue();
+    } catch (err) {
+      callback(err instanceof Error ? err : new Error(String(err)), false);
+      return;
+    }
     if (Array.isArray(resolved)) {
       if (resolved.length === 1) {
         callback(null, resolved[0]);
@@ -520,7 +526,11 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     } else {
       cors = true;
     }
-    let origin = isDebugFeatureEnabled("enableCors") ? true : cors;
+    let origin = cors;
+    if (isDebugFeatureEnabled("enableCors")) {
+      // Respect `cors: false` to turn off cors even if debug feature is enabled.
+      origin = opts.cors === false ? false : true;
+    }
     // Arrays cause the access-control-allow-origin header to be dynamic based
     // on the origin header of the request. If there is only one element in the
     // array, this is unnecessary.

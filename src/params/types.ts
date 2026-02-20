@@ -640,7 +640,14 @@ export class ListParam extends Param<string[]> {
         `Parameter "${this.name}" is not set. Set it in .env or .env.local, or ensure the Functions runtime has provided it.`
       );
     }
-    const val = JSON.parse(raw);
+    let val: unknown;
+    try {
+      val = JSON.parse(raw);
+    } catch (error) {
+      throw new Error(
+        `Parameter "${this.name}" could not be parsed as JSON. Value is: ${raw}. Details: ${error}`
+      );
+    }
     if (!Array.isArray(val) || !val.every((v) => typeof v === "string")) {
       throw new Error(
         `Parameter "${this.name}" is not a valid JSON array of strings. Value is: ${raw}`
