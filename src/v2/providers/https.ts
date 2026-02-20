@@ -516,7 +516,10 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   if ("cors" in opts && opts.cors instanceof Expression) {
     // Defer resolution to request time so params are not read during deployment.
     corsOptions = {
-      origin: buildCorsOriginFromExpression(opts.cors, {}),
+      origin: buildCorsOriginFromExpression(opts.cors, {
+        respectCorsFalse: true,
+        corsOpt: opts.cors,
+      }),
       methods: "POST",
     };
   } else {
