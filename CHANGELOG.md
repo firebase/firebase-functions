@@ -1,1 +1,1 @@
-- Internal improvements.
+- Add an `onGraphRequest` method to support implementing custom resolvers for Firebase Data Connect.
