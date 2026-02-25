@@ -1,1 +1,1 @@
-- Add an `onGraphRequest` method to support implementing custom resolvers for Firebase Data Connect. (#1784, #1818)
+- Add an `onGraphRequest` method. (#1784, #1818)
