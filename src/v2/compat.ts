@@ -1,7 +1,18 @@
 // src/v2/compat.ts
 import { CloudEvent } from "./core";
-import { MessagePublishedData, Message, V1PubSubMessage, messagePublishedEvent } from "./providers/pubsub";
-import { StorageObjectData, archivedEvent, finalizedEvent, deletedEvent, metadataUpdatedEvent } from "./providers/storage";
+import {
+  MessagePublishedData,
+  Message,
+  V1PubSubMessage,
+  messagePublishedEvent,
+} from "./providers/pubsub";
+import {
+  StorageObjectData,
+  archivedEvent,
+  finalizedEvent,
+  deletedEvent,
+  metadataUpdatedEvent,
+} from "./providers/storage";
 import { ObjectMetadata } from "../v1/providers/storage";
 import { EventContext as V1EventContext } from "../v1";
 
@@ -15,8 +26,6 @@ interface PatchedEvent {
 export interface V1Context extends Omit<V1EventContext, "resource"> {
   resource: { service: string; name: string };
 }
-
-
 
 export interface V1Event<T> {
   data: T;
@@ -37,7 +46,9 @@ export type StorageCloudEvent<T> = CloudEvent<T> & {
 
 // Overloads for patchV1Compat
 export function patchV1Compat<T>(event: CloudEvent<MessagePublishedData<T>>): PubSubCloudEvent<T>;
-export function patchV1Compat(event: CloudEvent<StorageObjectData>): StorageCloudEvent<StorageObjectData>;
+export function patchV1Compat(
+  event: CloudEvent<StorageObjectData>
+): StorageCloudEvent<StorageObjectData>;
 export function patchV1Compat<T>(event: CloudEvent<T>): CloudEvent<T>;
 
 /**
@@ -124,7 +135,7 @@ export function patchV1Compat(event: CloudEvent<any>): any {
           v1Cache = {
             data: message,
             message,
-            context: this.context
+            context: this.context,
           };
         }
         return v1Cache;
@@ -211,10 +222,14 @@ function v2ToV1Storage(v2: StorageObjectData): ObjectMetadata {
   if (v2.timeCreated instanceof Date) v1.timeCreated = v2.timeCreated.toISOString();
   if (v2.updated instanceof Date) v1.updated = v2.updated.toISOString();
   if (v2.timeDeleted instanceof Date) v1.timeDeleted = v2.timeDeleted.toISOString();
-  if (v2.timeStorageClassUpdated instanceof Date) v1.timeStorageClassUpdated = v2.timeStorageClassUpdated.toISOString();
+  if (v2.timeStorageClassUpdated instanceof Date)
+    v1.timeStorageClassUpdated = v2.timeStorageClassUpdated.toISOString();
 
   // 'size' in V2 is number, V1 says string.
   if (typeof v2.size === "number") v1.size = v2.size.toString();
+  if (typeof v2.generation === "number") v1.generation = v2.generation.toString();
+  if (typeof v2.metageneration === "number") v1.metageneration = v2.metageneration.toString();
+  if (typeof v2.componentCount === "number") v1.componentCount = v2.componentCount.toString();
 
   return v1 as ObjectMetadata;
 }

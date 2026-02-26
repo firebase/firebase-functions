@@ -750,6 +750,7 @@ describe("v2/storage", () => {
           storageClass: "STANDARD",
           timeCreated: new Date("2023-01-01T00:00:00.000Z"),
           updated: new Date("2023-01-01T00:00:00.000Z"),
+          componentCount: 2,
         },
       };
 
@@ -774,6 +775,9 @@ describe("v2/storage", () => {
         kind: "storage#object",
         size: "1024", // V1 expects string
         timeCreated: "2023-01-01T00:00:00.000Z", // V1 expects string
+        generation: "123456789",
+        metageneration: "1",
+        componentCount: "2",
       });
       expect(v1Event.object).to.deep.equal(v1Event.data);
     });

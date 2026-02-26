@@ -1,7 +1,11 @@
 import { expect } from "chai";
 import { CloudEvent } from "../../src/v2/core";
 import { patchV1Compat, PubSubCloudEvent } from "../../src/v2/compat";
-import { MessagePublishedData, Message, messagePublishedEvent } from "../../src/v2/providers/pubsub";
+import {
+  MessagePublishedData,
+  Message,
+  messagePublishedEvent,
+} from "../../src/v2/providers/pubsub";
 import { finalizedEvent, StorageObjectData } from "../../src/v2/providers/storage";
 
 interface TestData {
@@ -62,8 +66,8 @@ describe("patchV1Compat", () => {
         message: new Message({
           messageId: "1",
           data: "base64",
-          publishTime: "2023-01-01T00:00:00.000Z"
-        })
+          publishTime: "2023-01-01T00:00:00.000Z",
+        }),
       },
     } as CloudEvent<MessagePublishedData<any>>;
 
@@ -94,7 +98,7 @@ describe("patchV1Compat", () => {
       },
     };
 
-    const patched = patchV1Compat(rawEvent) as any;
+    const patched = patchV1Compat(rawEvent);
     const ref1 = patched.getV1Compat();
     const ref2 = patched.getV1Compat();
 
