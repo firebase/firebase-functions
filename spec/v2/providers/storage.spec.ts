@@ -731,4 +731,52 @@ describe("v2/storage", () => {
       expect(hello).to.equal("world");
     });
   });
+
+  describe("V1 Compatibility", () => {
+    it("should provide V1 compatibility for onObjectFinalized", async () => {
+      const v2Event: CloudEvent<storage.StorageObjectData> = {
+        specversion: "1.0",
+        id: "event-id",
+        source: "//storage.googleapis.com/projects/_/buckets/my-bucket/objects/my-object",
+        type: storage.finalizedEvent,
+        time: "2023-01-01T00:00:00.000Z",
+        data: {
+          bucket: "my-bucket",
+          name: "my-object",
+          generation: 123456789,
+          metageneration: 1,
+          size: 1024,
+          id: "my-bucket/my-object/123456789",
+          storageClass: "STANDARD",
+          timeCreated: new Date("2023-01-01T00:00:00.000Z"),
+          updated: new Date("2023-01-01T00:00:00.000Z"),
+        },
+      };
+
+      let v1Event: any;
+      await storage.onObjectFinalized("my-bucket", (event) => {
+        // @ts-ignore
+        v1Event = event.getV1Compat ? (event as any).getV1Compat() : null;
+      })(v2Event);
+
+      expect(v1Event).to.not.be.null;
+      expect(v1Event.context).to.deep.include({
+        eventId: "event-id",
+        timestamp: "2023-01-01T00:00:00.000Z",
+        eventType: "google.storage.object.finalize",
+        resource: {
+          service: "storage.googleapis.com",
+          name: "projects/_/buckets/my-bucket/objects/my-object",
+        },
+      });
+      expect(v1Event.data).to.include({
+        bucket: "my-bucket",
+        name: "my-object",
+        kind: "storage#object",
+        size: "1024", // V1 expects string
+        timeCreated: "2023-01-01T00:00:00.000Z", // V1 expects string
+      });
+      expect(v1Event.object).to.deep.equal(v1Event.data);
+    });
+  });
 });

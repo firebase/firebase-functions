@@ -6,12 +6,12 @@ import * as pubsub from "../../../src/v2/providers/pubsub";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 
 const EVENT_TRIGGER = {
-  eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+  eventType: pubsub.messagePublishedEvent,
   resource: "projects/aProject/topics/topic",
 };
 
 const ENDPOINT_EVENT_TRIGGER = {
-  eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+  eventType: pubsub.messagePublishedEvent,
   eventFilters: {
     topic: "topic",
   },
@@ -168,6 +168,13 @@ describe("onMessagePublished", () => {
     expect(eventAgain).to.deep.equal(event);
 
     expect(json).to.deep.equal({ hello: "world" });
+
+    const v1Event = (eventAgain as any).getV1Compat();
+    expect(v1Event.data.json).to.deep.equal({ hello: "world" });
+    expect(v1Event.message).to.equal(v1Event.data);
+    expect(v1Event.context).to.deep.include({
+      eventId: "uuid",
+    });
   });
 
   // These tests pass if the transpiler works
