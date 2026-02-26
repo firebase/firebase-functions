@@ -200,7 +200,7 @@ function v1EventType(v2Type: string): string {
 
 function v2ToV1Storage(v2: StorageObjectData): ObjectMetadata {
   if (!v2) {
-    return {} as ObjectMetadata;
+    throw new Error("Malformed Storage event: missing 'data' property.");
   }
   const v1: any = { ...v2 };
   // V1 uses 'id' as the full path, V2 'id' might be different but usually compatible.

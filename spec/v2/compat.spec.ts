@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { CloudEvent } from "../../src/v2/core";
 import { patchV1Compat, PubSubCloudEvent } from "../../src/v2/compat";
 import { MessagePublishedData, Message, messagePublishedEvent } from "../../src/v2/providers/pubsub";
-import { finalizedEvent } from "../../src/v2/providers/storage";
+import { finalizedEvent, StorageObjectData } from "../../src/v2/providers/storage";
 
 interface TestData {
   foo: string;
@@ -75,7 +75,7 @@ describe("patchV1Compat", () => {
   });
 
   it("should return stable references from getV1Compat for Storage", () => {
-    const rawEvent = {
+    const rawEvent: CloudEvent<StorageObjectData> = {
       specversion: "1.0",
       source: "//storage.googleapis.com/projects/_/buckets/my-bucket/objects/my-object",
       id: "event-id-stable-storage",
@@ -85,9 +85,14 @@ describe("patchV1Compat", () => {
         bucket: "my-bucket",
         name: "my-object",
         size: 1024,
-        timeCreated: new Date()
+        timeCreated: new Date(),
+        updated: new Date(),
+        id: "my-bucket/my-object/1",
+        generation: 1,
+        metageneration: 1,
+        storageClass: "STANDARD",
       },
-    } as any;
+    };
 
     const patched = patchV1Compat(rawEvent) as any;
     const ref1 = patched.getV1Compat();
