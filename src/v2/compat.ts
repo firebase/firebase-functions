@@ -1,7 +1,7 @@
 // src/v2/compat.ts
 import { CloudEvent } from "./core";
 import { MessagePublishedData, Message, V1PubSubMessage, messagePublishedEvent } from "./providers/pubsub";
-import { StorageEvent, StorageObjectData, archivedEvent, finalizedEvent, deletedEvent, metadataUpdatedEvent } from "./providers/storage";
+import { StorageObjectData, archivedEvent, finalizedEvent, deletedEvent, metadataUpdatedEvent } from "./providers/storage";
 import { ObjectMetadata } from "../v1/providers/storage";
 import { EventContext as V1EventContext } from "../v1";
 
@@ -37,7 +37,7 @@ export type StorageCloudEvent<T> = CloudEvent<T> & {
 
 // Overloads for patchV1Compat
 export function patchV1Compat<T>(event: CloudEvent<MessagePublishedData<T>>): PubSubCloudEvent<T>;
-export function patchV1Compat(event: StorageEvent): StorageCloudEvent<StorageObjectData>;
+export function patchV1Compat(event: CloudEvent<StorageObjectData>): StorageCloudEvent<StorageObjectData>;
 export function patchV1Compat<T>(event: CloudEvent<T>): CloudEvent<T>;
 
 /**

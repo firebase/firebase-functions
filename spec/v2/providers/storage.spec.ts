@@ -755,8 +755,7 @@ describe("v2/storage", () => {
 
       let v1Event: any;
       await storage.onObjectFinalized("my-bucket", (event) => {
-        // @ts-ignore
-        v1Event = event.getV1Compat ? (event as any).getV1Compat() : null;
+        v1Event = event.getV1Compat();
       })(v2Event);
 
       expect(v1Event).to.not.be.null;

@@ -582,8 +582,13 @@ export function onOperation(
   const [opts, bucket] = getOptsAndBucket(bucketOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = patchV1Compat(raw as StorageEvent);
-    return wrapTraceContext(withInit(handler))(event);
+    const storageEvent = raw as CloudEvent<StorageObjectData>;
+    const patchedEvent = patchV1Compat(storageEvent);
+    const finalEvent = patchedEvent as StorageEvent;
+    if (storageEvent.data) {
+      finalEvent.bucket = storageEvent.data.bucket;
+    }
+    return wrapTraceContext(withInit(handler))(finalEvent);
   };
 
   func.run = handler;
