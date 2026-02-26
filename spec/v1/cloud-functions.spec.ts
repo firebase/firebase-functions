@@ -31,6 +31,7 @@ import {
   RESET_VALUE,
 } from "../../src/v1";
 import { MINIMAL_V1_ENDPOINT } from "../fixtures";
+import { defineJsonSecret, defineSecret } from "../../src/params";
 
 describe("makeCloudFunction", () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
@@ -159,6 +160,31 @@ describe("makeCloudFunction", () => {
       secretEnvironmentVariables: [{ key: "MY_SECRET" }],
       labels: {},
     });
+  });
+
+  it("should accept all valid secret types in secrets array (type test)", () => {
+    // This is a compile-time type test. If any of these types are not assignable
+    // to the secrets array, TypeScript will fail to compile this test file.
+    const jsonSecret = defineJsonSecret<{ key: string }>("JSON_SECRET");
+    const stringSecret = defineSecret("STRING_SECRET");
+    const plainSecret = "PLAIN_SECRET";
+
+    const cf = makeCloudFunction({
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
+      handler: () => null,
+      options: {
+        secrets: [plainSecret, stringSecret, jsonSecret],
+      },
+    });
+
+    expect(cf.__endpoint.secretEnvironmentVariables).to.deep.equal([
+      { key: "PLAIN_SECRET" },
+      { key: "STRING_SECRET" },
+      { key: "JSON_SECRET" },
+    ]);
   });
 
   it("should set retry given failure policy in __endpoint", () => {

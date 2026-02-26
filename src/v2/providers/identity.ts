@@ -43,7 +43,7 @@ import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import { initV2Endpoint } from "../../runtime/manifest";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
 export { HttpsError };
@@ -163,7 +163,7 @@ export interface BlockingOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 }
 
 /**

@@ -1,6 +1,6 @@
 // The MIT License (MIT)
 //
-// Copyright (c) 2022 Firebase
+// Copyright (c) 2025 Firebase
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -19,45 +19,23 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-const RESET_VALUE_TAG = Symbol.for("firebase-functions:ResetValue:Tag");
 
-/**
- * Special configuration type to reset configuration to platform default.
- *
- * @alpha
- */
-export class ResetValue {
-  /**
-   * Handle the "Dual-Package Hazard".
-   *
-   * We implement custom `Symbol.hasInstance` to so CJS/ESM ResetValue instances
-   * are recognized as the same type.
-   */
-  static [Symbol.hasInstance](instance: unknown): boolean {
-    return (instance as { [RESET_VALUE_TAG]?: boolean })?.[RESET_VALUE_TAG] === true;
-  }
+import { expect } from "chai";
+import { defineJsonSecret, defineSecret } from "../../src/params";
+import { GlobalOptions } from "../../src/v2/options";
 
-  get [RESET_VALUE_TAG](): boolean {
-    return true;
-  }
-  toJSON(): null {
-    return null;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
-  public static getInstance() {
-    return new ResetValue();
-  }
-}
+describe("GlobalOptions", () => {
+  it("should accept all valid secret types in secrets array (type test)", () => {
+    // This is a compile-time type test. If any of these types are not assignable
+    // to the secrets array, TypeScript will fail to compile this test file.
+    const jsonSecret = defineJsonSecret<{ key: string }>("JSON_SECRET");
+    const stringSecret = defineSecret("STRING_SECRET");
+    const plainSecret = "PLAIN_SECRET";
 
-/**
- * Special configuration value to reset configuration to platform default.
- */
-export const RESET_VALUE = ResetValue.getInstance();
+    const opts: GlobalOptions = {
+      secrets: [plainSecret, stringSecret, jsonSecret],
+    };
 
-/**
- * @internal
- */
-export type ResettableKeys<T> = Required<{
-  [K in keyof T as [ResetValue] extends [T[K]] ? K : never]: null;
-}>;
+    expect(opts.secrets).to.have.length(3);
+  });
+});

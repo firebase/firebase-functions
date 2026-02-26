@@ -32,8 +32,9 @@ import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { patchV1Compat, PubSubCloudEvent } from "../compat";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -58,7 +59,6 @@ import { withInit } from "../../common/onInit";
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
- *
  * @param data - Payload of a Pub/Sub message.
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
@@ -121,7 +121,6 @@ export class Message<T> {
 
   /**
    * Returns a JSON-serializable representation of this object.
-   *
    * @returns A JSON-serializable representation of this object.
    */
   toJSON(): any {
@@ -151,6 +150,21 @@ export interface MessagePublishedData<T = any> {
   readonly subscription: string;
 }
 
+/**
+ * A v1-compatible Pub/Sub Message.
+ * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
+ * @typeParam T - Type of `json` payload.
+ */
+export interface V1PubSubMessage<T = any> {
+  readonly data: string;
+  readonly attributes: { [key: string]: string };
+  readonly messageId: string;
+  readonly publishTime: string;
+  readonly orderingKey?: string;
+  readonly json: T;
+  toJSON(): any;
+}
+
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -174,7 +188,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   *
    * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -186,7 +199,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Min number of actual instances to be running at a given time.
-   *
    * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
@@ -200,7 +212,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Number of requests a function can serve at once.
-   *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
@@ -211,7 +222,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   *
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
@@ -249,7 +259,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;
@@ -263,8 +273,8 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -274,8 +284,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -285,8 +295,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
-): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -299,12 +309,8 @@ export function onMessagePublished<T = any>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    const messagePublishedData = raw.data as {
-      message: unknown;
-      subscription: string;
-    };
-    messagePublishedData.message = new Message(messagePublishedData.message);
-    return wrapTraceContext(withInit(handler))(raw as CloudEvent<MessagePublishedData<T>>);
+    const event = patchV1Compat(raw);
+    return wrapTraceContext(withInit(handler))(event as PubSubCloudEvent<T>);
   };
 
   func.run = handler;

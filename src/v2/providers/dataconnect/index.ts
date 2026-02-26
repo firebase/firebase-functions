@@ -20,21 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudEvent, CloudFunction } from "../core";
-import { ParamsOf, VarName } from "../../common/params";
+import { CloudEvent, CloudFunction } from "../../core";
+import { ParamsOf, VarName } from "../../../common/params";
 import {
   EventHandlerOptions,
   getGlobalOptions,
   optionsToEndpoint,
   SupportedRegion,
-} from "../options";
-import { normalizePath } from "../../common/utilities/path";
-import { wrapTraceContext } from "../trace";
-import { withInit } from "../../common/onInit";
-import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
-import { PathPattern } from "../../common/utilities/path-pattern";
-import { Expression } from "../../params";
-import { ResetValue } from "../../common/options";
+} from "../../options";
+import { normalizePath } from "../../../common/utilities/path";
+import { wrapTraceContext } from "../../trace";
+import { withInit } from "../../../common/onInit";
+import { initV2Endpoint, ManifestEndpoint } from "../../../runtime/manifest";
+import { PathPattern } from "../../../common/utilities/path-pattern";
+import { Expression } from "../../../params";
+import { ResetValue } from "../../../common/options";
 
 /** @internal */
 export const mutationExecutedEventType =

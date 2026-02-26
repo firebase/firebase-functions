@@ -193,4 +193,116 @@ describe("onMessagePublished", () => {
       (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
     );
   });
+
+  describe("v1-compatible getters", () => {
+    let capturedEvent: any;
+    const messageData = {
+      messageId: "uuid-123",
+      data: Buffer.from(JSON.stringify({ foo: "bar" })).toString("base64"),
+      attributes: { attr1: "val1" },
+      orderingKey: "order1",
+      publishTime: new Date(Date.now()).toISOString(),
+    };
+
+    beforeEach(async () => {
+      const v2MessageInstance = new pubsub.Message(messageData);
+      const publishData: pubsub.MessagePublishedData<any> = {
+        message: v2MessageInstance,
+        subscription: "projects/aProject/subscriptions/aSubscription",
+      };
+      const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
+        specversion: "1.0",
+        source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        id: "event-id-456",
+        type: EVENT_TRIGGER.eventType,
+        time: messageData.publishTime,
+        data: publishData,
+      };
+
+      const func = pubsub.onMessagePublished("topic", (e) => {
+        capturedEvent = e;
+        return Promise.resolve();
+      });
+
+      await func(event);
+    });
+
+    it("should provide v1-compatible getters on the event object", () => {
+      // Test the context getter
+      expect(capturedEvent.context).to.deep.equal({
+        eventId: messageData.messageId,
+        timestamp: messageData.publishTime,
+        eventType: "google.pubsub.topic.publish",
+        resource: {
+          service: "pubsub.googleapis.com",
+          name: "projects/aProject/topics/topic",
+        },
+        params: {},
+      });
+
+      // Test the message getter
+      expect(capturedEvent.message).to.be.an("object");
+      expect(capturedEvent.message.data).to.equal(messageData.data);
+      expect(capturedEvent.message.attributes).to.deep.equal(messageData.attributes);
+      expect(capturedEvent.message.messageId).to.equal(messageData.messageId);
+      expect(capturedEvent.message.publishTime).to.equal(messageData.publishTime);
+      expect(capturedEvent.message.orderingKey).to.equal(messageData.orderingKey);
+      expect(capturedEvent.message.json).to.deep.equal({ foo: "bar" });
+      expect(capturedEvent.message.toJSON()).to.deep.equal({
+        data: messageData.data,
+        attributes: messageData.attributes,
+        messageId: messageData.messageId,
+        publishTime: messageData.publishTime,
+        orderingKey: messageData.orderingKey,
+      });
+    });
+
+    it("should not affect standard v2 event property access", () => {
+      // Standard v2 access patterns
+      expect(capturedEvent.id).to.equal("event-id-456");
+      expect(capturedEvent.source).to.equal(
+        "//pubsub.googleapis.com/projects/aProject/topics/topic"
+      );
+      expect(capturedEvent.data.subscription).to.equal(
+        "projects/aProject/subscriptions/aSubscription"
+      );
+      expect(capturedEvent.data.message.messageId).to.equal("uuid-123");
+      expect(capturedEvent.data.message.json).to.deep.equal({ foo: "bar" });
+      expect(capturedEvent.data.message.attributes).to.deep.equal({ attr1: "val1" });
+    });
+
+    it("should provide an empty object for attributes if missing in the original message", async () => {
+      const messageDataNoAttrs = {
+        messageId: "uuid-456",
+        data: Buffer.from(JSON.stringify({ foo: "baz" })).toString("base64"),
+        // attributes property is missing
+        publishTime: new Date(Date.now()).toISOString(),
+      };
+      const v2MessageInstance = new pubsub.Message(messageDataNoAttrs);
+      const publishData: pubsub.MessagePublishedData<any> = {
+        message: v2MessageInstance,
+        subscription: "projects/aProject/subscriptions/aSubscription",
+      };
+      const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
+        specversion: "1.0",
+        source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        id: "event-id-789",
+        type: EVENT_TRIGGER.eventType,
+        time: messageDataNoAttrs.publishTime,
+        data: publishData,
+      };
+
+      let capturedEvent: any;
+      const func = pubsub.onMessagePublished("topic", (e) => {
+        capturedEvent = e;
+        return Promise.resolve();
+      });
+
+      await func(event);
+
+      // Test the message getter for attributes
+      expect(capturedEvent.message.attributes).to.deep.equal({});
+      expect(capturedEvent.data.message.attributes).to.deep.equal({});
+    });
+  });
 });
