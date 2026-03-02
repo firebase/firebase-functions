@@ -30,14 +30,11 @@ import { ResetValue } from "../../common/options";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
-import type { EventContext } from "../../v1/index";
 import { Expression } from "../../params";
 import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
-
-const V1_CONTEXT = Symbol("v1Context");
-const V1_MESSAGE = Symbol("v1Message");
+import { patchV1Compat, PubSubCloudEvent } from "../compat";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -62,7 +59,6 @@ const V1_MESSAGE = Symbol("v1Message");
 
 /**
  * Interface representing a Google Cloud Pub/Sub message.
- *
  * @param data - Payload of a Pub/Sub message.
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
@@ -125,7 +121,6 @@ export class Message<T> {
 
   /**
    * Returns a JSON-serializable representation of this object.
-   *
    * @returns A JSON-serializable representation of this object.
    */
   toJSON(): any {
@@ -170,19 +165,6 @@ export interface V1PubSubMessage<T = any> {
   toJSON(): any;
 }
 
-export interface MessagePublishedEvent<T = any> extends CloudEvent<MessagePublishedData<T>> {
-  /**
-   * v1-compatible EventContext.
-   */
-  readonly context: EventContext;
-
-  /**
-   * v1-compatible Pub/Sub Message.
-   * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
-   */
-  readonly message: V1PubSubMessage<T>;
-}
-
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
@@ -206,7 +188,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   *
    * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -218,7 +199,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Min number of actual instances to be running at a given time.
-   *
    * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
@@ -232,7 +212,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Number of requests a function can serve at once.
-   *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
@@ -243,7 +222,6 @@ export interface PubSubOptions extends options.EventHandlerOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   *
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
@@ -295,8 +273,8 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
-): CloudFunction<MessagePublishedEvent<T>>;
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -306,8 +284,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
-): CloudFunction<MessagePublishedEvent<T>>;
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -317,8 +295,8 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: MessagePublishedEvent<T>) => any | Promise<any>
-): CloudFunction<MessagePublishedEvent<T>> {
+  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
+): CloudFunction<PubSubCloudEvent<T>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -331,81 +309,8 @@ export function onMessagePublished<T = any>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    const messagePublishedData = raw.data as {
-      message: unknown;
-      subscription: string;
-    };
-    if (!(messagePublishedData.message instanceof Message)) {
-      messagePublishedData.message = new Message(messagePublishedData.message);
-    }
-
-    // Add v1 compatible getters to the event object
-    /**
-     * Get the v1-compatible EventContext object.
-     * This is a compatibility layer to ease migration from v1 to v2.
-     * @returns A v1 EventContext-like object.
-     */
-    Object.defineProperty(raw, "context", {
-      get: function (this: CloudEvent<unknown>): EventContext {
-        if (this[V1_CONTEXT]) {
-          return this[V1_CONTEXT];
-        }
-        const data = this.data as MessagePublishedData;
-        if (!data?.message) {
-          throw new Error("Malformed Pub/Sub event: 'data.message' is missing.");
-        }
-        const v1Context: EventContext = {
-          eventId: data.message.messageId,
-          timestamp: data.message.publishTime,
-          eventType: "google.pubsub.topic.publish", // v1 event type
-          resource: {
-            service: "pubsub.googleapis.com",
-            name: this.source.replace("//pubsub.googleapis.com/", ""), // v1 relative resource name
-          },
-          params: {}, // v1 context params are not directly available in v2
-        };
-        this[V1_CONTEXT] = v1Context;
-        return this[V1_CONTEXT];
-      },
-    });
-
-    /**
-     * Get the v1-compatible Message object.
-     * This is a compatibility layer to ease migration from v1 to v2.
-     * @returns A plain object mimicking the v1 Message structure.
-     */
-    Object.defineProperty(raw, "message", {
-      get: function (this: CloudEvent<unknown>) {
-        if (this[V1_MESSAGE]) {
-          return this[V1_MESSAGE];
-        }
-        const data = this.data as MessagePublishedData;
-        if (!data || !data.message) {
-          // This should not happen in a valid Pub/Sub event.
-          throw new Error("Malformed Pub/Sub event: 'data.message' is missing.");
-        }
-        const v2Message = data.message;
-        const baseMessage: any = {
-          data: v2Message.data,
-          messageId: v2Message.messageId,
-          publishTime: v2Message.publishTime,
-          attributes: v2Message.attributes || {},
-        };
-        if (v2Message.orderingKey) {
-          baseMessage.orderingKey = v2Message.orderingKey;
-        }
-        this[V1_MESSAGE] = {
-          ...baseMessage,
-          get json() {
-            return v2Message.json;
-          },
-          toJSON: () => baseMessage,
-        };
-        return this[V1_MESSAGE];
-      },
-    });
-
-    return wrapTraceContext(withInit(handler))(raw as MessagePublishedEvent<T>);
+    const event = patchV1Compat(raw);
+    return wrapTraceContext(withInit(handler))(event as PubSubCloudEvent<T>);
   };
 
   func.run = handler;
