@@ -470,8 +470,8 @@ describe("database", () => {
       };
 
       const func = database.onValueWritten("foo/bar", (event) => {
-        expect(event.authid).to.equal("uid");
-        expect(event.authtype).to.equal("unauthenticated");
+        expect(event.authId).to.equal("uid");
+        expect(event.authType).to.equal("unauthenticated");
       });
 
       await func(raw);
