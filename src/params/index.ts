@@ -110,7 +110,7 @@ export function clearParams() {
  */
 export const databaseURL: Param<string> = new InternalExpression(
   "DATABASE_URL",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.databaseURL || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.databaseURL || ""
 );
 /**
  * A built-in parameter that resolves to the Cloud project ID associated with
@@ -118,7 +118,7 @@ export const databaseURL: Param<string> = new InternalExpression(
  */
 export const projectID: Param<string> = new InternalExpression(
   "PROJECT_ID",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.projectId || ""
 );
 /**
  * A built-in parameter that resolves to the Cloud project ID, without prompting
@@ -126,7 +126,7 @@ export const projectID: Param<string> = new InternalExpression(
  */
 export const gcloudProject: Param<string> = new InternalExpression(
   "GCLOUD_PROJECT",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.projectId || ""
 );
 /**
  * A builtin parameter that resolves to the Cloud storage bucket associated
@@ -135,7 +135,7 @@ export const gcloudProject: Param<string> = new InternalExpression(
  */
 export const storageBucket: Param<string> = new InternalExpression(
   "STORAGE_BUCKET",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.storageBucket || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.storageBucket || ""
 );
 
 /**

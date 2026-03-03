@@ -22,8 +22,8 @@
 
 import * as firestore from "firebase-admin/firestore";
 
-import { Expression } from "../../params/types";
-import { expr } from "../../params";
+import { CompareExpression, Expression } from "../../params/types";
+import { expr, projectID } from "../../params";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
 import {
@@ -106,9 +106,17 @@ export class NamespaceBuilder {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error("process.env.GCLOUD_PROJECT is not set.");
       }
-      const nsString = this.namespace ? (this.namespace instanceof Expression ? this.namespace.toCEL() : this.namespace) : "";
-      const nsPath = nsString ? `@${nsString}` : "";
-      return expr`projects/${process.env.GCLOUD_PROJECT}/databases/${this.database}/documents${nsPath}/${path}`;
+      let project: string | Expression<string> = projectID;
+      if (process.env.GCLOUD_PROJECT && process.env.FUNCTIONS_CONTROL_API !== "true") {
+        project = process.env.GCLOUD_PROJECT;
+      }
+      let nsPart: string | Expression<string> = "";
+      if (this.namespace instanceof Expression) {
+        nsPart = new CompareExpression("==", this.namespace, "").thenElse("", expr`@${this.namespace}`);
+      } else if (this.namespace) {
+        nsPart = `@${this.namespace}`;
+      }
+      return expr`projects/${project}/databases/${this.database}/documents${nsPart}/${path}`;
     };
     return new DocumentBuilder<Path>(triggerResource, this.options);
   }

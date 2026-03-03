@@ -191,12 +191,12 @@ export class CompareExpression<
   T extends string | number | boolean | string[]
 > extends Expression<boolean> {
   cmp: "==" | "!=" | ">" | ">=" | "<" | "<=";
-  lhs: Expression<T>;
+  lhs: T | Expression<T>;
   rhs: T | Expression<T>;
 
   constructor(
     cmp: "==" | "!=" | ">" | ">=" | "<" | "<=",
-    lhs: Expression<T>,
+    lhs: T | Expression<T>,
     rhs: T | Expression<T>
   ) {
     super();
@@ -207,7 +207,7 @@ export class CompareExpression<
 
   /** @internal */
   runtimeValue(): boolean {
-    const left = this.lhs.runtimeValue();
+    const left = valueOf(this.lhs);
     const right = valueOf(this.rhs);
     switch (this.cmp) {
       case "==":
@@ -233,8 +233,7 @@ export class CompareExpression<
   }
 
   toString() {
-    const rhsStr = refOf(this.rhs);
-    return `${this.lhs} ${this.cmp} ${rhsStr}`;
+    return `${refOf(this.lhs)} ${this.cmp} ${refOf(this.rhs)}`;
   }
 
   /** Returns a `TernaryExpression` which can resolve to one of two values, based on the resolution of this comparison. */
