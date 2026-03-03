@@ -553,6 +553,19 @@ describe("database", () => {
       await database.onValueCreated("path", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    it("should pass auth context into the event", async () => {
+      const raw = {
+        ...RAW_RTDB_EVENT,
+      };
+
+      const func = database.onValueCreated("foo/bar", (event) => {
+        expect(event.authId).to.equal("uid");
+        expect(event.authType).to.equal("unauthenticated");
+      });
+
+      await func(raw);
+    });
   });
 
   describe("onValueUpdated", () => {
@@ -627,6 +640,19 @@ describe("database", () => {
       await database.onValueUpdated("path", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    it("should pass auth context into the event", async () => {
+      const raw = {
+        ...RAW_RTDB_EVENT,
+      };
+
+      const func = database.onValueUpdated("foo/bar", (event) => {
+        expect(event.authId).to.equal("uid");
+        expect(event.authType).to.equal("unauthenticated");
+      });
+
+      await func(raw);
+    });
   });
 
   describe("onValueDeleted", () => {
@@ -700,6 +726,19 @@ describe("database", () => {
       expect(hello).to.be.undefined;
       await database.onValueDeleted("path", () => null)(event);
       expect(hello).to.equal("world");
+    });
+
+    it("should pass auth context into the event", async () => {
+      const raw = {
+        ...RAW_RTDB_EVENT,
+      };
+
+      const func = database.onValueDeleted("foo/bar", (event) => {
+        expect(event.authId).to.equal("uid");
+        expect(event.authType).to.equal("unauthenticated");
+      });
+
+      await func(raw);
     });
   });
 });
