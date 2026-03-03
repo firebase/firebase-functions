@@ -114,10 +114,6 @@ export class TransformedStringExpression extends Expression<string> {
   toCEL(): string {
     return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
   }
-
-  toString(): string {
-    return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
-  }
 }
 
 export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
