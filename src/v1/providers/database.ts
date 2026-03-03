@@ -111,7 +111,7 @@ export function _instanceWithOptions(
  * Access via [`database.instance()`](providers_database_.html#instance).
  */
 export class InstanceBuilder {
-  constructor(private instance: string | Expression<string>, private options: DeploymentOptions) { }
+  constructor(private instance: string | Expression<string>, private options: DeploymentOptions) {}
 
   /**
    * @returns Firebase Realtime Database reference builder interface.
@@ -136,9 +136,9 @@ export function _refWithOptions<Ref extends string>(
     if (!databaseURL) {
       throw new Error(
         "Missing expected firebase config value databaseURL, " +
-        "config is actually" +
-        JSON.stringify(firebaseConfig()) +
-        "\n If you are unit testing, please set process.env.FIREBASE_CONFIG"
+          "config is actually" +
+          JSON.stringify(firebaseConfig()) +
+          "\n If you are unit testing, please set process.env.FIREBASE_CONFIG"
       );
     }
 
@@ -169,7 +169,10 @@ export function _refWithOptions<Ref extends string>(
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
 export class RefBuilder<Ref extends string> {
-  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Realtime Database write
@@ -306,7 +309,7 @@ export function extractInstanceAndPath(resource: string, domain = "firebaseio.co
   if (!match) {
     throw new Error(
       `Unexpected resource string for Firebase Realtime Database event: ${resource}. ` +
-      'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"'
+        'Expected string in the format of "projects/_/instances/{firebaseioSubdomain}/refs/{ref=**}"'
     );
   }
   const [, project, dbInstanceName, path] = match;

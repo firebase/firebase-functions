@@ -73,17 +73,23 @@ export function _databaseWithOptions(
 }
 
 /** @internal */
-export function _namespaceWithOptions(namespace: string | Expression<string>, options: DeploymentOptions) {
+export function _namespaceWithOptions(
+  namespace: string | Expression<string>,
+  options: DeploymentOptions
+) {
   return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
 /** @internal */
-export function _documentWithOptions<Path extends string>(path: Path | Expression<string>, options: DeploymentOptions) {
+export function _documentWithOptions<Path extends string>(
+  path: Path | Expression<string>,
+  options: DeploymentOptions
+) {
   return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
 export class DatabaseBuilder {
-  constructor(private database: string | Expression<string>, private options: DeploymentOptions) { }
+  constructor(private database: string | Expression<string>, private options: DeploymentOptions) {}
 
   namespace(namespace: string | Expression<string>) {
     return new NamespaceBuilder(this.database, this.options, namespace);
@@ -99,7 +105,7 @@ export class NamespaceBuilder {
     private database: string | Expression<string>,
     private options: DeploymentOptions,
     private namespace?: string | Expression<string>
-  ) { }
+  ) {}
 
   document<Path extends string>(path: Path | Expression<string>) {
     const triggerResource = () => {
@@ -112,7 +118,10 @@ export class NamespaceBuilder {
       }
       let nsPart: string | Expression<string> = "";
       if (this.namespace instanceof Expression) {
-        nsPart = new CompareExpression("==", this.namespace, "").thenElse("", expr`@${this.namespace}`);
+        nsPart = new CompareExpression("==", this.namespace, "").thenElse(
+          "",
+          expr`@${this.namespace}`
+        );
       } else if (this.namespace) {
         nsPart = `@${this.namespace}`;
       }
@@ -147,7 +156,10 @@ function changeConstructor(raw: LegacyEvent) {
 
 export class DocumentBuilder<Path extends string> {
   /** @internal */
-  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) {
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {
     // TODO what validation do we want to do here?
   }
 

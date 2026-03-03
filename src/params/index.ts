@@ -71,7 +71,7 @@ const majorVersion =
   // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
   typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
     ? // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
-    __FIREBASE_FUNCTIONS_MAJOR_VERSION__
+      __FIREBASE_FUNCTIONS_MAJOR_VERSION__
     : "0";
 const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:params:declaredParams:v${majorVersion}`);
 const globalSymbols = globalThis as unknown as Record<symbol, SecretOrExpr[]>;
@@ -240,7 +240,7 @@ export function defineList(name: string, options: ParamOptions<string[]> = {}): 
 /**
  * Creates an Expression representing a string, which can interpolate
  * other Expressions into it using template literal syntax.
- * 
+ *
  * @example
  * ```
  * const topicParam = defineString('TOPIC');

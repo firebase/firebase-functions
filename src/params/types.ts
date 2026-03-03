@@ -78,10 +78,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
  * joined natively into a new Expression block evaluating to a string string.
  */
 export class InterpolationExpression extends Expression<string> {
-  constructor(
-    private strings: TemplateStringsArray,
-    private values: (string | Expression<any>)[]
-  ) {
+  constructor(private strings: TemplateStringsArray, private values: (string | Expression<any>)[]) {
     super();
   }
 
@@ -103,7 +100,10 @@ export class InterpolationExpression extends Expression<string> {
 
 /** @internal */
 export class TransformedStringExpression extends Expression<string> {
-  constructor(private source: Expression<string> | string, private transformer: (val: string) => string) {
+  constructor(
+    private source: Expression<string> | string,
+    private transformer: (val: string) => string
+  ) {
     super();
   }
 
@@ -120,7 +120,9 @@ export function valueOf<T extends string | number | boolean | string[]>(arg: T |
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
 
-export function celOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T | string {
+export function celOf<T extends string | number | boolean | string[]>(
+  arg: T | Expression<T>
+): T | string {
   return arg instanceof Expression ? arg.toCEL() : arg;
 }
 

@@ -62,7 +62,10 @@ export function _eventWithOptions(
  */
 export class AnalyticsEventBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.

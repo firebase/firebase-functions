@@ -477,7 +477,7 @@ describe("expr template tag", () => {
     const e = params.expr`${project}/${topic}`;
     expect(e.runtimeValue()).to.equal("my-project/my-topic");
     expect(e.toCEL()).to.equal("{{ params.PROJECT }}/{{ params.TOPIC }}");
-  })
+  });
 
   it("handles interpolation only", () => {
     const project = params.defineString("PROJECT");

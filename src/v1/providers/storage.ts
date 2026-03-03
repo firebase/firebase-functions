@@ -59,11 +59,11 @@ export function _bucketWithOptions(
   bucket?: string | Expression<string>
 ): BucketBuilder {
   const resourceGetter = () => {
-    let bucketName = bucket || firebaseConfig().storageBucket;
+    const bucketName = bucket || firebaseConfig().storageBucket;
     if (!bucketName) {
       throw new Error(
         "Missing bucket name. If you are unit testing, please provide a bucket name" +
-        " through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG."
+          " through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG."
       );
     }
     if (typeof bucketName === "string" && !/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucketName)) {
@@ -86,7 +86,10 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
  */
 export class BucketBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler which fires every time a Google Cloud Storage change occurs.
@@ -106,7 +109,10 @@ export class BucketBuilder {
  */
 export class ObjectBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler sent only when a bucket has enabled object versioning.
