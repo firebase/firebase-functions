@@ -23,6 +23,8 @@
 import { firebaseConfig } from "../../common/config";
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
+import { Expression } from "../../params/types";
+import { expr } from "../../params";
 
 /** @internal */
 export const provider = "google.storage";
@@ -37,7 +39,7 @@ export const service = "storage.googleapis.com";
  *
  * @returns Storage bucket builder interface.
  */
-export function bucket(bucket?: string) {
+export function bucket(bucket?: string | Expression<string>) {
   return _bucketWithOptions({}, bucket);
 }
 
@@ -52,19 +54,22 @@ export function object() {
 }
 
 /** @internal */
-export function _bucketWithOptions(options: DeploymentOptions, bucket?: string): BucketBuilder {
+export function _bucketWithOptions(
+  options: DeploymentOptions,
+  bucket?: string | Expression<string>
+): BucketBuilder {
   const resourceGetter = () => {
-    bucket = bucket || firebaseConfig().storageBucket;
-    if (!bucket) {
+    let bucketName = bucket || firebaseConfig().storageBucket;
+    if (!bucketName) {
       throw new Error(
         "Missing bucket name. If you are unit testing, please provide a bucket name" +
-          " through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG."
+        " through `functions.storage.bucket(bucketName)`, or set process.env.FIREBASE_CONFIG."
       );
     }
-    if (!/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucket)) {
-      throw new Error(`Invalid bucket name ${bucket}`);
+    if (typeof bucketName === "string" && !/^[a-z\d][a-z\d\\._-]{1,230}[a-z\d]$/.test(bucketName)) {
+      throw new Error(`Invalid bucket name ${bucketName}`);
     }
-    return `projects/_/buckets/${bucket}`;
+    return expr`projects/_/buckets/${bucketName}`;
   };
   return new BucketBuilder(resourceGetter, options);
 }
@@ -81,7 +86,7 @@ export function _objectWithOptions(options: DeploymentOptions): ObjectBuilder {
  */
 export class BucketBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
 
   /**
    * Event handler which fires every time a Google Cloud Storage change occurs.
@@ -101,7 +106,7 @@ export class BucketBuilder {
  */
 export class ObjectBuilder {
   /** @internal */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
 
   /**
    * Event handler sent only when a bucket has enabled object versioning.

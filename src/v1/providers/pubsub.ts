@@ -22,6 +22,8 @@
 
 import { CloudFunction, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions, ScheduleRetryConfig } from "../function-configuration";
+import { Expression } from "../../params/types";
+import { expr } from "../../params";
 
 /** @internal */
 export const provider = "google.pubsub";
@@ -35,22 +37,26 @@ export const service = "pubsub.googleapis.com";
  * @param topic - The Pub/Sub topic to watch for message events.
  * @returns Pub/Sub topic builder interface.
  */
-export function topic(topic: string) {
+export function topic(topic: string | Expression<string>) {
   return _topicWithOptions(topic, {});
 }
 
 /** @internal */
-export function _topicWithOptions(topic: string, options: DeploymentOptions): TopicBuilder {
-  if (topic.indexOf("/") !== -1) {
+export function _topicWithOptions(
+  topic: string | Expression<string>,
+  options: DeploymentOptions
+): TopicBuilder {
+  if (typeof topic === "string" && topic.indexOf("/") !== -1) {
     throw new Error("Topic name may not have a /");
   }
 
-  return new TopicBuilder(() => {
+  const triggerResource = () => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
-    return `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
-  }, options);
+    return expr`projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`;
+  };
+  return new TopicBuilder(triggerResource, options);
 }
 
 /**
@@ -60,7 +66,7 @@ export function _topicWithOptions(topic: string, options: DeploymentOptions): To
  */
 export class TopicBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
 
   /**
    * Event handler that fires every time a Cloud Pub/Sub message is
@@ -91,13 +97,13 @@ export class TopicBuilder {
  * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
  * @returns ScheduleBuilder interface.
  */
-export function schedule(schedule: string): ScheduleBuilder {
+export function schedule(schedule: string | Expression<string>): ScheduleBuilder {
   return _scheduleWithOptions(schedule, {});
 }
 
 /** @internal */
 export function _scheduleWithOptions(
-  schedule: string,
+  schedule: string | Expression<string>,
   options: DeploymentOptions
 ): ScheduleBuilder {
   const triggerResource = () => {
@@ -109,7 +115,7 @@ export function _scheduleWithOptions(
   };
   return new ScheduleBuilder(triggerResource, {
     ...options,
-    schedule: { schedule },
+    schedule: { schedule: schedule instanceof Expression ? schedule.toCEL() : schedule },
   });
 }
 
@@ -124,7 +130,7 @@ export function _scheduleWithOptions(
  */
 export class ScheduleBuilder {
   /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(private triggerResource: () => string | Expression<string>, private options: DeploymentOptions) { }
 
   retryConfig(config: ScheduleRetryConfig): ScheduleBuilder {
     this.options.schedule.retryConfig = config;

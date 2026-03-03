@@ -73,9 +73,71 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 }
 
-function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
+/**
+ * An InterpolationExpression allows string fragments and Expressions to be
+ * joined natively into a new Expression block evaluating to a string string.
+ */
+export class InterpolationExpression extends Expression<string> {
+  constructor(
+    private strings: TemplateStringsArray,
+    private values: (string | Expression<any>)[]
+  ) {
+    super();
+  }
+
+  /** @internal */
+  runtimeValue(): string {
+    return this.strings.reduce((result, str, i) => {
+      const val = i < this.values.length ? String(valueOf(this.values[i])) : "";
+      return result + str + val;
+    }, "");
+  }
+
+  toCEL(): string {
+    return this.strings.reduce((result, str, i) => {
+      const val = i < this.values.length ? celOf(this.values[i]) : "";
+      return result + str + val;
+    }, "");
+  }
+}
+
+/** @internal */
+export class TransformedStringExpression extends Expression<string> {
+  constructor(private source: Expression<string> | string, private transformer: (val: string) => string) {
+    super();
+  }
+
+  runtimeValue(): string {
+    return this.transformer(valueOf(this.source));
+  }
+
+  toCEL(): string {
+    return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
+  }
+
+  toString(): string {
+    return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
+  }
+}
+
+export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
+
+export function celOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T | string {
+  return arg instanceof Expression ? arg.toCEL() : arg;
+}
+
+/**
+ * Transforms a string or a string expression using a function.
+ */
+export function transform(
+  source: string | Expression<string>,
+  transformer: (val: string) => string
+): Expression<string> {
+  return new TransformedStringExpression(source, transformer);
+}
+
 /**
  * Returns how an entity (either an `Expression` or a literal value) should be represented in CEL.
  * - Expressions delegate to the `.toString()` method, which is used by the WireManifest

@@ -37,6 +37,7 @@ import {
   StringParam,
   ListParam,
   InternalExpression,
+  InterpolationExpression,
 } from "./types";
 
 export { BUCKET_PICKER, select, multiSelect } from "./types";
@@ -70,7 +71,7 @@ const majorVersion =
   // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
   typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
     ? // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
-      __FIREBASE_FUNCTIONS_MAJOR_VERSION__
+    __FIREBASE_FUNCTIONS_MAJOR_VERSION__
     : "0";
 const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:params:declaredParams:v${majorVersion}`);
 const globalSymbols = globalThis as unknown as Record<symbol, SecretOrExpr[]>;
@@ -234,4 +235,21 @@ export function defineList(name: string, options: ParamOptions<string[]> = {}): 
   const param = new ListParam(name, options);
   registerParam(param);
   return param;
+}
+
+/**
+ * Creates an Expression representing a string, which can interpolate
+ * other Expressions into it using template literal syntax.
+ * 
+ * @example
+ * ```
+ * const topicParam = defineString('TOPIC');
+ * const topicExpr = expr`projects/my-project/topics/${topicParam}`;
+ * ```
+ */
+export function expr(
+  strings: TemplateStringsArray,
+  ...values: (string | Expression<string>)[]
+): Expression<string> {
+  return new InterpolationExpression(strings, values);
 }
