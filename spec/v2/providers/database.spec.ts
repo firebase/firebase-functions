@@ -446,7 +446,6 @@ describe("database", () => {
         },
       });
     });
-
   });
 
   describe("onValueCreated", () => {
@@ -507,7 +506,6 @@ describe("database", () => {
         },
       });
     });
-
   });
 
   describe("onValueUpdated", () => {
@@ -565,7 +563,6 @@ describe("database", () => {
         },
       });
     });
-
   });
 
   describe("onValueDeleted", () => {
@@ -623,7 +620,6 @@ describe("database", () => {
         },
       });
     });
-
   });
 
   describe("common behavior", () => {
@@ -667,4 +663,3 @@ describe("database", () => {
     }
   });
 });
-
