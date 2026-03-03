@@ -94,11 +94,11 @@ export interface DatabaseEvent<T, Params = Record<string, string>> extends Cloud
   /**
    * The type of principal that triggered the event.
    */
-  authtype: AuthType;
+  authType: AuthType;
   /**
    * The unique identifier of the principal.
    */
-  authid?: string;
+  authId?: string;
 }
 
 /** ReferenceOptions extend EventHandlerOptions with provided ref and optional instance  */
@@ -403,10 +403,12 @@ function makeDatabaseEvent<Params>(
     firebaseDatabaseHost: event.firebasedatabasehost,
     data: snapshot,
     params,
-    authtype: event.authtype,
-    authid: event.authid,
-  };
+    authType: event.authtype,
+    authId: event.authid,
+  } as any;
   delete (databaseEvent as any).firebasedatabasehost;
+  delete (databaseEvent as any).authtype;
+  delete (databaseEvent as any).authid;
   return databaseEvent;
 }
 
@@ -431,8 +433,12 @@ function makeChangedDatabaseEvent<Params>(
       after,
     },
     params,
-  };
+    authType: event.authtype,
+    authId: event.authid,
+  } as any;
   delete (databaseEvent as any).firebasedatabasehost;
+  delete (databaseEvent as any).authtype;
+  delete (databaseEvent as any).authid;
   return databaseEvent;
 }
 
