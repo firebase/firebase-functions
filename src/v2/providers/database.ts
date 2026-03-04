@@ -403,7 +403,7 @@ function makeDatabaseEvent<Params>(
     firebaseDatabaseHost: event.firebasedatabasehost,
     data: snapshot,
     params,
-    authType: event.authtype,
+    authType: event.authtype || "unknown",
     authId: event.authid,
   } as any;
   delete (databaseEvent as any).firebasedatabasehost;
@@ -433,7 +433,7 @@ function makeChangedDatabaseEvent<Params>(
       after,
     },
     params,
-    authType: event.authtype,
+    authType: event.authtype || "unknown",
     authId: event.authid,
   } as any;
   delete (databaseEvent as any).firebasedatabasehost;
