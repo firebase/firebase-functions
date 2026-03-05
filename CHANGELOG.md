@@ -1,1 +1,0 @@
-- Add an `onGraphRequest` method. (#1784, #1818)
