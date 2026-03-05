@@ -35,7 +35,7 @@ import { RESET_VALUE, ResetValue } from "../common/options";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
-import { ParamSpec, SecretParam } from "../params/types";
+import { ParamSpec, SupportedSecretParam } from "../params/types";
 import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
 
@@ -210,7 +210,7 @@ export interface GlobalOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /**
    * Determines whether Firebase App Check is enforced. Defaults to false.
@@ -260,13 +260,24 @@ export function getGlobalOptions(): GlobalOptions {
  * Additional fields that can be set on any event-handling function.
  */
 export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck"> {
-  /** Type of the event. Valid values are TODO */
+  /** Type of the event. */
   eventType?: string;
 
-  /** TODO */
+  /**
+   * Filters events based on exact matches on the CloudEvents attributes.
+   *
+   * Each key-value pair represents an attribute name and its required value for exact matching.
+   * Events must match all specified filters to trigger the function.
+   */
   eventFilters?: Record<string, string | Expression<string>>;
 
-  /** TODO */
+  /**
+   * Filters events based on path pattern matching on the CloudEvents attributes.
+   *
+   * Similar to eventFilters, but supports wildcard patterns for flexible matching where `*` matches
+   * any single path segment, `**` matches zero or more path segments, and `{param}` captures a path segment
+   * as a parameter
+   */
   eventFilterPathPatterns?: Record<string, string | Expression<string>>;
 
   /** Whether failed executions should be delivered again. */
@@ -385,8 +396,10 @@ export function optionsToEndpoint(
     opts,
     "secretEnvironmentVariables",
     "secrets",
-    (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
+    (secrets: SupportedSecretParam[]) =>
+      secrets.map((secret) => ({
+        key: typeof secret === "string" ? secret : secret.name,
+      }))
   );
 
   return endpoint;

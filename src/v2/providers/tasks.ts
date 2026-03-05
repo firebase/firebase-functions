@@ -38,11 +38,11 @@ import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 import { withInit } from "../../common/onInit";
 
-export { AuthData, Request, RateLimits, RetryConfig };
+export type { AuthData, Request, RateLimits, RetryConfig };
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
@@ -84,7 +84,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -154,7 +154,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
@@ -282,7 +282,6 @@ export function onTaskDispatched<Args = any>(
     convertInvoker
   );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retry", "retry");
 
   func.__requiredAPIs = [
     {

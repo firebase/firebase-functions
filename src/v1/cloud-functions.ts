@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
@@ -29,7 +29,7 @@ import {
   FailurePolicy,
   Schedule,
 } from "./function-configuration";
-export { Request, Response };
+export type { Request, Response };
 import {
   convertIfPresent,
   copyIfPresent,
@@ -43,7 +43,7 @@ import {
   ManifestRequiredAPI,
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
+import { SupportedSecretParam } from "../params/types";
 import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
@@ -54,7 +54,7 @@ const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 /**
  * Wire format for an event.
  */
-export interface Event {
+export interface LegacyEvent {
   /**
    * Wire format for an event context.
    */
@@ -104,8 +104,10 @@ export interface EventContext<Params = Record<string, string>> {
    * does not exist.
    */
   auth?: {
-    token: object;
     uid: string;
+    token: EventContextAuthToken;
+    /** If available, the unparsed ID token. */
+    rawToken?: string;
   };
 
   /**
@@ -205,6 +207,29 @@ export interface EventContext<Params = Record<string, string>> {
    * Timestamp for the event as an {@link https://www.ietf.org/rfc/rfc3339.txt | RFC 3339} string.
    */
   timestamp: string;
+}
+
+/**
+ * https://firebase.google.com/docs/reference/security/database#authtoken
+ */
+export interface EventContextAuthToken {
+  iss: string;
+  aud: string;
+  auth_time: number;
+  iat: number;
+  exp: number;
+  sub: string;
+  email?: string;
+  email_verified?: boolean;
+  phone_number?: string;
+  name?: string;
+  firebase?: {
+    identities?: {
+      [key: string]: string[];
+    };
+    sign_in_provider?: string;
+    tenant?: string;
+  };
 }
 
 /**
@@ -319,7 +344,7 @@ export interface BlockingFunction {
  * from your JavaScript file to define a Cloud Function.
  *
  * This type is a special JavaScript function which takes a templated
- * `Event` object as its only argument.
+ * `LegacyEvent` object as its only argument.
  */
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
@@ -336,10 +361,10 @@ export interface CloudFunction<T> extends Runnable<T> {
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
-  after?: (raw: Event) => void;
-  before?: (raw: Event) => void;
+  after?: (raw: LegacyEvent) => void;
+  before?: (raw: LegacyEvent) => void;
   contextOnlyHandler?: (context: EventContext) => PromiseLike<any> | any;
-  dataConstructor?: (raw: Event) => EventData;
+  dataConstructor?: (raw: LegacyEvent) => EventData;
   eventType: string;
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
   labels?: Record<string, string>;
@@ -357,7 +382,7 @@ export interface MakeCloudFunctionArgs<EventData> {
 /** @internal */
 export function makeCloudFunction<EventData>({
   contextOnlyHandler,
-  dataConstructor = (raw: Event) => raw.data,
+  dataConstructor = (raw: LegacyEvent) => raw.data,
   eventType,
   handler,
   labels = {},
@@ -381,7 +406,7 @@ export function makeCloudFunction<EventData>({
       };
     }
 
-    const event: Event = {
+    const event: LegacyEvent = {
       data,
       context,
     };
@@ -525,7 +550,7 @@ function _makeParams(
   return params;
 }
 
-function _makeAuth(event: Event, authType: string) {
+function _makeAuth(event: LegacyEvent, authType: string) {
   if (authType === "UNAUTHENTICATED") {
     return null;
   }
@@ -535,7 +560,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
-function _detectAuthType(event: Event) {
+function _detectAuthType(event: LegacyEvent) {
   if (event.context?.auth?.admin) {
     return "ADMIN";
   }
@@ -613,8 +638,10 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
     options,
     "secretEnvironmentVariables",
     "secrets",
-    (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
+    (secrets: SupportedSecretParam[]) =>
+      secrets.map((secret) => ({
+        key: typeof secret === "string" ? secret : secret.name,
+      }))
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {

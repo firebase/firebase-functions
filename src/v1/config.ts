@@ -20,63 +20,17 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as fs from "fs";
-import * as path from "path";
-
 export { firebaseConfig } from "../common/config";
 
-/** @internal */
-export let singleton: Record<string, any>;
-
-/** @internal */
-export function resetCache(): void {
-  singleton = undefined;
-}
-
 /**
- * Store and retrieve project configuration data such as third-party API
- * keys or other settings. You can set configuration values using the
- * Firebase CLI as described in
- * https://firebase.google.com/docs/functions/config-env.
- *
- * @deprecated Using functions.config() is discouraged. See https://firebase.google.com/docs/functions/config-env.
+ * @deprecated `functions.config()` has been removed in firebase-functions v7.
+ * Migrate to environment parameters using the `params` module immediately.
+ * Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config
  */
-export function config(): Record<string, any> {
-  // K_CONFIGURATION is only set in GCFv2
-  if (process.env.K_CONFIGURATION) {
-    throw new Error(
-      "functions.config() is no longer available in Cloud Functions for " +
-        "Firebase v2. Please see the latest documentation for information " +
-        "on how to transition to using environment variables"
-    );
-  }
-  if (typeof singleton === "undefined") {
-    init();
-  }
-  return singleton;
-}
-
-function init() {
-  try {
-    const parsed = JSON.parse(process.env.CLOUD_RUNTIME_CONFIG);
-    delete parsed.firebase;
-    singleton = parsed;
-    return;
-  } catch (e) {
-    // Do nothing
-  }
-
-  try {
-    const configPath =
-      process.env.CLOUD_RUNTIME_CONFIG || path.join(process.cwd(), ".runtimeconfig.json");
-    const contents = fs.readFileSync(configPath);
-    const parsed = JSON.parse(contents.toString("utf8"));
-    delete parsed.firebase;
-    singleton = parsed;
-    return;
-  } catch (e) {
-    // Do nothing
-  }
-
-  singleton = {};
-}
+export const config: never = (() => {
+  throw new Error(
+    "functions.config() has been removed in firebase-functions v7. " +
+      "Migrate to environment parameters using the params module. " +
+      "Migration guide: https://firebase.google.com/docs/functions/config-env#migrate-config"
+  );
+}) as never;

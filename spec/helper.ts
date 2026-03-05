@@ -40,17 +40,22 @@ export interface RunHandlerResult {
  * data populated into the response.
  */
 export function runHandler(
-  handler: express.Handler,
+  handler: (
+    req: https.Request,
+    res: express.Response,
+    next?: express.NextFunction
+  ) => void | Promise<void>,
   request: https.Request
 ): Promise<RunHandlerResult> {
   return new Promise((resolve) => {
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {
-      private sentBody = "";
+      private sentBody: string | undefined;
       private statusCode = 0;
       private headers: { [name: string]: string } = {};
       private callback: () => void;
+      private writeCalled = false;
 
       constructor() {
         request.on("close", () => this.end());
@@ -71,26 +76,43 @@ export function runHandler(
       }
 
       public send(sendBody: any) {
-        const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
-        const body = this.sentBody ? this.sentBody + ((toSend as string) || "") : toSend;
-
-        resolve({
-          status: this.statusCode,
-          headers: this.headers,
-          body,
-        });
-        if (this.callback) {
-          this.callback();
+        if (this.writeCalled) {
+          throw Error("Cannot set headers after they are sent to the client");
         }
+
+        const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
+        const body =
+          typeof this.sentBody === "undefined" ? toSend : this.sentBody + String(toSend || "");
+        this.end(body);
       }
 
-      public write(writeBody: any) {
-        this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+      public write(writeBody: any, cb?: () => void) {
+        this.writeCalled = true;
+
+        if (typeof this.sentBody === "undefined") {
+          this.sentBody = writeBody;
+        } else {
+          this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        }
+        if (cb) {
+          setImmediate(cb);
+        }
         return true;
       }
 
-      public end() {
-        this.send(undefined);
+      public end(body?: unknown) {
+        if (body) {
+          this.write(body);
+        }
+        resolve({
+          status: this.statusCode,
+          headers: this.headers,
+          body: this.sentBody,
+        });
+
+        if (this.callback) {
+          this.callback();
+        }
       }
 
       public on(event: string, callback: () => void) {
@@ -101,7 +123,7 @@ export function runHandler(
       }
     }
     const response = new MockResponse();
-    handler(request, response as any, () => undefined);
+    return void handler(request, response as any, () => undefined);
   });
 }
 

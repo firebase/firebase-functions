@@ -22,7 +22,7 @@
 
 import { expect } from "chai";
 
-import { Event, RESET_VALUE } from "../../../src/v1";
+import { LegacyEvent, RESET_VALUE } from "../../../src/v1";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER } from "./fixtures";
 import * as functions from "../../../src/v1";
@@ -125,7 +125,7 @@ describe("Pubsub Functions", () => {
 
       it("should properly handle a new-style event", () => {
         const raw = new Buffer('{"hello":"world"}', "utf8").toString("base64");
-        const event: Event = {
+        const event: LegacyEvent = {
           data: {
             data: raw,
             attributes: {

@@ -126,9 +126,12 @@ export class DataSnapshot implements database.DataSnapshot {
   val(): any {
     const parts = pathParts(this._childPath);
     let source = this._data;
+    if (source === null) {
+      return null;
+    }
     if (parts.length) {
       for (const part of parts) {
-        if (source[part] === undefined) {
+        if (typeof source === "undefined" || source === null) {
           return null;
         }
         source = source[part];

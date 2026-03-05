@@ -1,6 +1,5 @@
 import { AsyncLocalStorage } from "async_hooks";
 
-/* @internal */
 export const traceContext = new AsyncLocalStorage<TraceContext>();
 
 export interface TraceContext {

@@ -770,7 +770,7 @@ describe("onCallHandler", () => {
           cors: { origin: true, methods: "POST" },
         },
         (req, resp) => {
-          resp.write("hello");
+          resp.sendChunk("hello");
           return "world";
         },
         "gcfv2"
@@ -778,7 +778,7 @@ describe("onCallHandler", () => {
 
       const resp = await runHandler(fn, mockReq as any);
       const data = [`data: {"message":"hello"}`, `data: {"result":"world"}`];
-      expect(resp.body).to.equal([...data, ""].join("\n"));
+      expect(resp.body).to.equal([...data, ""].join("\n\n"));
     });
 
     it("returns error in SSE format", async () => {
@@ -800,7 +800,7 @@ describe("onCallHandler", () => {
 
       const resp = await runHandler(fn, mockReq as any);
       const data = [`data: {"error":{"message":"INTERNAL","status":"INTERNAL"}}`];
-      expect(resp.body).to.equal([...data, ""].join("\n"));
+      expect(resp.body).to.equal([...data, ""].join("\n\n"));
     });
 
     it("always returns error for v1 callables", async () => {
@@ -840,10 +840,10 @@ describe("onCallHandler", () => {
         {
           cors: { origin: true, methods: "POST" },
         },
-        (req, resp) => {
-          resp.write("initial message");
-          mockReq.emit("close");
-          resp.write("should not be sent");
+        async (req, resp) => {
+          await resp.sendChunk("initial message");
+          await mockReq.emit("close");
+          await resp.sendChunk("should not be sent");
           return "done";
         },
         "gcfv2"
@@ -851,7 +851,7 @@ describe("onCallHandler", () => {
 
       const resp = await runHandler(fn, mockReq);
 
-      expect(resp.body).to.equal(`data: {"message":"initial message"}\n`);
+      expect(resp.body).to.equal(`data: {"message":"initial message"}\n\n`);
     });
 
     describe("Heartbeats", () => {
@@ -890,7 +890,7 @@ describe("onCallHandler", () => {
         await clock.tickAsync(11_000);
         const resp = await handlerPromise;
         const data = [": ping", ": ping", `data: {"result":"done"}`];
-        expect(resp.body).to.equal([...data, ""].join("\n"));
+        expect(resp.body).to.equal([...data, ""].join("\n\n"));
       });
 
       it("doesn't send heartbeat messages if user writes data", async () => {
@@ -908,7 +908,7 @@ describe("onCallHandler", () => {
           },
           async (resp, res) => {
             await new Promise((resolve) => setTimeout(resolve, 3_000));
-            res.write("hello");
+            res.sendChunk("hello");
             await new Promise((resolve) => setTimeout(resolve, 3_000));
             return "done";
           },
@@ -919,7 +919,7 @@ describe("onCallHandler", () => {
         await clock.tickAsync(10_000);
         const resp = await handlerPromise;
         const data = [`data: {"message":"hello"}`, `data: {"result":"done"}`];
-        expect(resp.body).to.equal([...data, ""].join("\n"));
+        expect(resp.body).to.equal([...data, ""].join("\n\n"));
       });
 
       it("respects null heartbeatSeconds option", async () => {
@@ -945,7 +945,7 @@ describe("onCallHandler", () => {
         const handlerPromise = runHandler(fn, mockReq as any);
         await clock.tickAsync(31_000);
         const resp = await handlerPromise;
-        expect(resp.body).to.equal('data: {"result":"done"}\n');
+        expect(resp.body).to.equal('data: {"result":"done"}\n\n');
       });
     });
   });

@@ -33,7 +33,7 @@ import { CloudEvent, CloudFunction } from "../core";
 import { Expression } from "../../params";
 import { wrapTraceContext } from "../trace";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
 export { DataSnapshot };
@@ -192,7 +192,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;
@@ -430,9 +430,11 @@ export function makeEndpoint(
     // Note: Eventarc always treats ref as a path pattern
     ref: path.getValue(),
   };
-  instance.hasWildcards()
-    ? (eventFilterPathPatterns.instance = instance.getValue())
-    : (eventFilters.instance = instance.getValue());
+  if (instance.hasWildcards()) {
+    eventFilterPathPatterns.instance = instance.getValue();
+  } else {
+    eventFilters.instance = instance.getValue();
+  }
 
   return {
     ...initV2Endpoint(options.getGlobalOptions(), opts),

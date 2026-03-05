@@ -67,7 +67,14 @@ export interface ManifestEndpoint {
     invoker?: string[];
   };
 
-  callableTrigger?: Record<string, never>;
+  callableTrigger?: {
+    genkitAction?: string;
+  };
+
+  dataConnectGraphqlTrigger?: {
+    invoker?: string[];
+    schemaFilePath?: string;
+  };
 
   eventTrigger?: {
     eventFilters: Record<string, string | Expression<string>>;

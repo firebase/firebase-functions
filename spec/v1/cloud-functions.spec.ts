@@ -24,13 +24,14 @@ import { expect } from "chai";
 
 import {
   onInit,
-  Event,
+  LegacyEvent,
   EventContext,
   makeCloudFunction,
   MakeCloudFunctionArgs,
   RESET_VALUE,
 } from "../../src/v1";
 import { MINIMAL_V1_ENDPOINT } from "../fixtures";
+import { defineJsonSecret, defineSecret } from "../../src/params";
 
 describe("makeCloudFunction", () => {
   const cloudFunctionArgs: MakeCloudFunctionArgs<any> = {
@@ -43,7 +44,7 @@ describe("makeCloudFunction", () => {
   };
 
   it("calls init function", async () => {
-    const test: Event = {
+    const test: LegacyEvent = {
       context: {
         eventId: "00000",
         timestamp: "2016-11-04T21:29:03.496Z",
@@ -161,6 +162,31 @@ describe("makeCloudFunction", () => {
     });
   });
 
+  it("should accept all valid secret types in secrets array (type test)", () => {
+    // This is a compile-time type test. If any of these types are not assignable
+    // to the secrets array, TypeScript will fail to compile this test file.
+    const jsonSecret = defineJsonSecret<{ key: string }>("JSON_SECRET");
+    const stringSecret = defineSecret("STRING_SECRET");
+    const plainSecret = "PLAIN_SECRET";
+
+    const cf = makeCloudFunction({
+      provider: "mock.provider",
+      eventType: "mock.event",
+      service: "service",
+      triggerResource: () => "resource",
+      handler: () => null,
+      options: {
+        secrets: [plainSecret, stringSecret, jsonSecret],
+      },
+    });
+
+    expect(cf.__endpoint.secretEnvironmentVariables).to.deep.equal([
+      { key: "PLAIN_SECRET" },
+      { key: "STRING_SECRET" },
+      { key: "JSON_SECRET" },
+    ]);
+  });
+
   it("should set retry given failure policy in __endpoint", () => {
     const cf = makeCloudFunction({
       provider: "mock.provider",
@@ -253,7 +279,7 @@ describe("makeCloudFunction", () => {
       handler: (data: any, context: EventContext) => context,
     };
     const cf = makeCloudFunction(args);
-    const test: Event = {
+    const test: LegacyEvent = {
       context: {
         eventId: "00000",
         timestamp: "2016-11-04T21:29:03.496Z",
@@ -285,7 +311,7 @@ describe("makeCloudFunction", () => {
       triggerResource: () => null,
     };
     const cf = makeCloudFunction(args);
-    const test: Event = {
+    const test: LegacyEvent = {
       context: {
         eventId: "00000",
         timestamp: "2016-11-04T21:29:03.496Z",
@@ -325,7 +351,7 @@ describe("makeParams", () => {
   const cf = makeCloudFunction(args);
 
   it("should construct params from the event resource of events", () => {
-    const testEvent: Event = {
+    const testEvent: LegacyEvent = {
       context: {
         eventId: "111",
         timestamp: "2016-11-04T21:29:03.496Z",

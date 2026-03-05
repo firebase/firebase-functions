@@ -22,7 +22,7 @@
 import { expect } from "chai";
 
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
+import { CloudFunction, LegacyEvent } from "../../../src/v1/cloud-functions";
 import * as remoteConfig from "../../../src/v1/providers/remoteConfig";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
@@ -96,7 +96,7 @@ describe("RemoteConfig Functions", () => {
 
   describe("unwraps TemplateVersion", () => {
     let cloudFunctionUpdate: CloudFunction<remoteConfig.TemplateVersion>;
-    let event: Event;
+    let event: LegacyEvent;
 
     before(() => {
       process.env.GCLOUD_PROJECT = "project1";

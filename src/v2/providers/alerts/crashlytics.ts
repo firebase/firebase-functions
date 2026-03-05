@@ -31,7 +31,7 @@ import { CloudEvent, CloudFunction } from "../../core";
 import { wrapTraceContext } from "../../trace";
 import { convertAlertAndApp, FirebaseAlertData, getEndpointAnnotation } from "./alerts";
 import * as options from "../../options";
-import { SecretParam } from "../../../params/types";
+import { SupportedSecretParam } from "../../../params/types";
 import { withInit } from "../../../common/onInit";
 
 /** Generic Crashlytics issue interface */
@@ -201,7 +201,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -271,7 +271,7 @@ export interface CrashlyticsOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;

@@ -118,6 +118,50 @@ describe("logger", () => {
           });
         });
 
+        it("should not detect duplicate object as circular", () => {
+          const obj: any = { a: "foo" };
+          const entry: logger.LogEntry = {
+            severity: "ERROR",
+            message: "testing circular",
+            a: obj,
+            b: obj,
+          };
+          logger.write(entry);
+          expectStderr({
+            severity: "ERROR",
+            message: "testing circular",
+            a: { a: "foo" },
+            b: { a: "foo" },
+          });
+        });
+
+        it("should not detect duplicate object in array as circular", () => {
+          const obj: any = { a: "foo" };
+          const arr: any = [
+            { a: obj, b: obj },
+            { a: obj, b: obj },
+          ];
+          const entry: logger.LogEntry = {
+            severity: "ERROR",
+            message: "testing circular",
+            a: arr,
+            b: arr,
+          };
+          logger.write(entry);
+          expectStderr({
+            severity: "ERROR",
+            message: "testing circular",
+            a: [
+              { a: { a: "foo" }, b: { a: "foo" } },
+              { a: { a: "foo" }, b: { a: "foo" } },
+            ],
+            b: [
+              { a: { a: "foo" }, b: { a: "foo" } },
+              { a: { a: "foo" }, b: { a: "foo" } },
+            ],
+          });
+        });
+
         it("should not break on objects that override toJSON", () => {
           const obj: any = { a: new Date("August 26, 1994 12:24:00Z") };
 

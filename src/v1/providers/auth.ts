@@ -40,7 +40,7 @@ import {
 import {
   BlockingFunction,
   CloudFunction,
-  Event,
+  LegacyEvent,
   EventContext,
   makeCloudFunction,
   optionsToEndpoint,
@@ -50,7 +50,8 @@ import { DeploymentOptions } from "../function-configuration";
 import { initV1Endpoint } from "../../runtime/manifest";
 
 // TODO: yank in next breaking change release
-export { UserRecord, UserInfo, UserRecordMetadata, userRecordConstructor };
+export { UserRecordMetadata, userRecordConstructor };
+export type { UserRecord, UserInfo };
 
 export { HttpsError };
 
@@ -107,7 +108,7 @@ export function _userWithOptions(options: DeploymentOptions, userOptions: UserOp
  * @public
  */
 export class UserBuilder {
-  private static dataConstructor(raw: Event): UserRecord {
+  private static dataConstructor(raw: LegacyEvent): UserRecord {
     return userRecordConstructor(raw.data);
   }
 

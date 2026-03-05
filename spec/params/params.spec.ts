@@ -31,6 +31,12 @@ describe("Params value extraction", () => {
     process.env.BAD_LIST = JSON.stringify(["a", 22, "c"]);
     process.env.ESCAPED_LIST = JSON.stringify(["f\to\no"]);
     process.env.A_SECRET_STRING = "123456supersecret";
+    process.env.STRIPE_CONFIG = JSON.stringify({
+      apiKey: "sk_test_123",
+      webhookSecret: "whsec_456",
+      clientId: "ca_789",
+    });
+    process.env.INVALID_JSON_SECRET = "not valid json{";
   });
 
   afterEach(() => {
@@ -49,6 +55,8 @@ describe("Params value extraction", () => {
     delete process.env.BAD_LIST;
     delete process.env.ESCAPED_LIST;
     delete process.env.A_SECRET_STRING;
+    delete process.env.STRIPE_CONFIG;
+    delete process.env.INVALID_JSON_SECRET;
   });
 
   it("extracts identity params from the environment", () => {
@@ -74,6 +82,14 @@ describe("Params value extraction", () => {
     expect(listParamWithEscapes.value()).to.deep.equal(["f\to\no"]);
     const secretParam = params.defineSecret("A_SECRET_STRING");
     expect(secretParam.value()).to.equal("123456supersecret");
+
+    const jsonSecretParam = params.defineJsonSecret("STRIPE_CONFIG");
+    const secretValue = jsonSecretParam.value();
+    expect(secretValue).to.deep.equal({
+      apiKey: "sk_test_123",
+      webhookSecret: "whsec_456",
+      clientId: "ca_789",
+    });
   });
 
   it("extracts the special case internal params from env.FIREBASE_CONFIG", () => {
@@ -220,6 +236,96 @@ describe("Params value extraction", () => {
     const twentytwo = params.defineInt("DIFF_INT");
     expect(trueExpr.thenElse(twentytwo, 0).value()).to.equal(22);
     expect(falseExpr.thenElse(1, twentytwo).value()).to.equal(22);
+  });
+});
+
+describe("defineJsonSecret", () => {
+  beforeEach(() => {
+    process.env.VALID_JSON = JSON.stringify({ key: "value", nested: { foo: "bar" } });
+    process.env.INVALID_JSON = "not valid json{";
+    process.env.EMPTY_OBJECT = JSON.stringify({});
+    process.env.ARRAY_JSON = JSON.stringify([1, 2, 3]);
+  });
+
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.VALID_JSON;
+    delete process.env.INVALID_JSON;
+    delete process.env.EMPTY_OBJECT;
+    delete process.env.ARRAY_JSON;
+    delete process.env.FUNCTIONS_CONTROL_API;
+  });
+
+  it("parses valid JSON secrets correctly", () => {
+    const jsonSecret = params.defineJsonSecret("VALID_JSON");
+    const value = jsonSecret.value();
+    expect(value).to.deep.equal({ key: "value", nested: { foo: "bar" } });
+  });
+
+  it("throws an error when JSON is invalid", () => {
+    const jsonSecret = params.defineJsonSecret("INVALID_JSON");
+    expect(() => jsonSecret.value()).to.throw(
+      '"INVALID_JSON" could not be parsed as JSON. Please verify its value in Secret Manager.'
+    );
+  });
+
+  it("throws an error when secret is not found", () => {
+    const jsonSecret = params.defineJsonSecret("NON_EXISTENT");
+    expect(() => jsonSecret.value()).to.throw(
+      'No value found for secret parameter "NON_EXISTENT". A function can only access a secret if you include the secret in the function\'s dependency array.'
+    );
+  });
+
+  it("handles empty object JSON", () => {
+    const jsonSecret = params.defineJsonSecret("EMPTY_OBJECT");
+    const value = jsonSecret.value();
+    expect(value).to.deep.equal({});
+  });
+
+  it("handles array JSON", () => {
+    const jsonSecret = params.defineJsonSecret("ARRAY_JSON");
+    const value = jsonSecret.value();
+    expect(value).to.deep.equal([1, 2, 3]);
+  });
+
+  it("throws an error when accessed during deployment", () => {
+    process.env.FUNCTIONS_CONTROL_API = "true";
+    const jsonSecret = params.defineJsonSecret("VALID_JSON");
+    expect(() => jsonSecret.value()).to.throw(
+      'Cannot access the value of secret "VALID_JSON" during function deployment. Secret values are only available at runtime.'
+    );
+  });
+
+  it("supports destructuring of JSON objects", () => {
+    process.env.STRIPE_CONFIG = JSON.stringify({
+      apiKey: "sk_test_123",
+      webhookSecret: "whsec_456",
+      clientId: "ca_789",
+    });
+
+    const stripeConfig = params.defineJsonSecret("STRIPE_CONFIG");
+    const { apiKey, webhookSecret, clientId } = stripeConfig.value();
+
+    expect(apiKey).to.equal("sk_test_123");
+    expect(webhookSecret).to.equal("whsec_456");
+    expect(clientId).to.equal("ca_789");
+
+    delete process.env.STRIPE_CONFIG;
+  });
+
+  it("registers the param in declaredParams", () => {
+    const initialLength = params.declaredParams.length;
+    const jsonSecret = params.defineJsonSecret("TEST_SECRET");
+    expect(params.declaredParams.length).to.equal(initialLength + 1);
+    expect(params.declaredParams[params.declaredParams.length - 1]).to.equal(jsonSecret);
+  });
+
+  it("has correct type and format annotation in toSpec", () => {
+    const jsonSecret = params.defineJsonSecret("TEST_SECRET");
+    const spec = jsonSecret.toSpec();
+    expect(spec.type).to.equal("secret");
+    expect(spec.name).to.equal("TEST_SECRET");
+    expect(spec.format).to.equal("json");
   });
 });
 
