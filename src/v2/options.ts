@@ -382,7 +382,7 @@ export function optionsToTriggerAnnotations(
   convertIfPresent(annotation, opts, "timeout", "timeoutSeconds", durationFromSeconds);
   convertIfPresent(
     annotation,
-    opts as any as EventHandlerOptions,
+    opts as EventHandlerOptions,
     "failurePolicy",
     "retry",
     (retry: boolean) => {
