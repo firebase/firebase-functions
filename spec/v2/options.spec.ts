@@ -22,7 +22,7 @@
 
 import { expect } from "chai";
 import { defineJsonSecret, defineSecret } from "../../src/params";
-import { GlobalOptions } from "../../src/v2/options";
+import { GlobalOptions, optionsToEndpoint, RESET_VALUE } from "../../src/v2/options";
 
 describe("GlobalOptions", () => {
   it("should accept all valid secret types in secrets array (type test)", () => {
@@ -37,5 +37,50 @@ describe("GlobalOptions", () => {
     };
 
     expect(opts.secrets).to.have.length(3);
+  });
+});
+
+describe("optionsToEndpoint", () => {
+  it("should return an empty vpc if none provided", () => {
+    const endpoint = optionsToEndpoint({});
+    expect(endpoint.vpc).to.be.undefined;
+  });
+
+  it("should set vpcConnector correctly", () => {
+    const endpoint = optionsToEndpoint({ vpcConnector: "my-connector", vpcEgress: "ALL_TRAFFIC" });
+    expect(endpoint.vpc).to.deep.equal({
+      connector: "my-connector",
+      egressSettings: "ALL_TRAFFIC",
+    });
+  });
+
+  it("should set networkInterface correctly", () => {
+    const endpoint = optionsToEndpoint({
+      networkInterface: { network: "my-network" },
+      vpcEgress: "PRIVATE_RANGES_ONLY",
+    });
+    expect(endpoint.vpc).to.deep.equal({
+      networkInterfaces: [{ network: "my-network" }],
+      egressSettings: "PRIVATE_RANGES_ONLY",
+    });
+  });
+
+  it("should throw an error if both vpcConnector and networkInterface are provided", () => {
+    expect(() => {
+      optionsToEndpoint({
+        vpcConnector: "my-connector",
+        networkInterface: { network: "my-network" },
+      });
+    }).to.throw("Cannot set both vpcConnector and networkInterface");
+  });
+
+  it("should reset vpc when vpcConnector is RESET_VALUE", () => {
+    const endpoint = optionsToEndpoint({ vpcConnector: RESET_VALUE });
+    expect(endpoint.vpc).to.equal(RESET_VALUE);
+  });
+
+  it("should reset vpc when networkInterface is RESET_VALUE", () => {
+    const endpoint = optionsToEndpoint({ networkInterface: RESET_VALUE });
+    expect(endpoint.vpc).to.equal(RESET_VALUE);
   });
 });

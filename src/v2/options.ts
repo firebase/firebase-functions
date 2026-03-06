@@ -108,6 +108,35 @@ export type VpcEgressSetting = "PRIVATE_RANGES_ONLY" | "ALL_TRAFFIC";
 export type IngressSetting = "ALLOW_ALL" | "ALLOW_INTERNAL_ONLY" | "ALLOW_INTERNAL_AND_GCLB";
 
 /**
+ * Interface for a direct VPC network connection.
+ * At least one of network or subnetwork must be specified.
+ */
+export interface NetworkInterface {
+  /**
+   * Network to use for VPC direct connect.
+   * network or subnetwork must be specified to use VPC direct connect, though
+   * both can be specified as well. "default" is an acceptable value.
+   * Mutually exclusive with vpcConnector.
+   */
+  network?: string | Expression<string> | ResetValue;
+
+  /**
+   * Subnetwork to use for VPC direct connect.
+   * network or subnetwork must be specified to use VPC direct connect, though
+   * both can be specified as well. "default" is an acceptable value.
+   * Mutually exclusive with vpcConnector.
+   */
+  subnetwork?: string | Expression<string> | ResetValue;
+
+  /**
+   * Tags for VPC traffic.
+   * An optional field for VPC direct connect
+   * mutually exclusive with vpcConnector.
+   */
+  tags?: string | string[] | Expression<string> | Expression<string[]> | ResetValue;
+}
+
+/**
  * `GlobalOptions` are options that can be set across an entire project.
  * These options are common to HTTPS and event handling functions.
  */
@@ -179,6 +208,7 @@ export interface GlobalOptions {
 
   /**
    * Connect a function to a specified VPC connector.
+   * Mutually exclusive with networkInterface
    */
   vpcConnector?: string | Expression<string> | ResetValue;
 
@@ -186,6 +216,16 @@ export interface GlobalOptions {
    * Egress settings for VPC connector.
    */
   vpcConnectorEgressSettings?: VpcEgressSetting | ResetValue;
+
+  /**
+   * An alias for vpcConnectorEgressSettings.
+   */
+  vpcEgress?: VpcEgressSetting | ResetValue;
+
+  /**
+   * Network Interface to use with VPC Direct Connect
+   */
+  networkInterface?: NetworkInterface | ResetValue;
 
   /**
    * Specific service account for the function to run as.
@@ -311,9 +351,15 @@ export function optionsToTriggerAnnotations(
     "ingressSettings",
     "labels",
     "vpcConnector",
-    "vpcConnectorEgressSettings",
     "secrets"
   );
+
+  const vpcEgress =
+    (opts as GlobalOptions).vpcEgress ?? (opts as GlobalOptions).vpcConnectorEgressSettings;
+  if (vpcEgress !== undefined) {
+    annotation.vpcConnectorEgressSettings = vpcEgress as any;
+  }
+
   convertIfPresent(annotation, opts, "availableMemoryMb", "memory", (mem: MemoryOption) => {
     return MemoryOptionToMB[mem];
   });
@@ -365,12 +411,29 @@ export function optionsToEndpoint(
     "cpu"
   );
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
-  if (opts.vpcConnector !== undefined) {
-    if (opts.vpcConnector === null || opts.vpcConnector instanceof ResetValue) {
+  const vpcEgress = opts.vpcEgress ?? opts.vpcConnectorEgressSettings;
+  const connector = opts.vpcConnector;
+  const networkInterface = opts.networkInterface;
+
+  if (connector !== undefined || vpcEgress !== undefined || networkInterface !== undefined) {
+    const resetConnector = connector === null || connector instanceof ResetValue;
+    const hasConnector = !!connector;
+    const resetNetwork = networkInterface === null || networkInterface instanceof ResetValue;
+    const hasNetwork = !!networkInterface;
+
+    // It's OK to reset one and set the other, that's just being pedantic while switching types.
+    // But if you only use a reset value, that means you don't want VPC at all.
+    if (hasNetwork && hasConnector) {
+      throw new Error("Cannot set both vpcConnector and networkInterface");
+    } else if ((resetConnector && !hasNetwork) || (resetNetwork && !hasConnector)) {
       endpoint.vpc = RESET_VALUE;
     } else {
-      const vpc: ManifestEndpoint["vpc"] = { connector: opts.vpcConnector };
-      convertIfPresent(vpc, opts, "egressSettings", "vpcConnectorEgressSettings");
+      const vpc: ManifestEndpoint["vpc"] = {};
+      convertIfPresent(vpc, opts, "connector", "vpcConnector");
+      if (vpcEgress !== undefined) {
+        vpc.egressSettings = vpcEgress as any;
+      }
+      convertIfPresent(vpc, opts, "networkInterfaces", "networkInterface", (a) => [a]);
       endpoint.vpc = vpc;
     }
   }
