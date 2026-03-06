@@ -354,10 +354,13 @@ export function optionsToTriggerAnnotations(
     "secrets"
   );
 
-  const vpcEgress =
-    (opts as GlobalOptions).vpcEgress ?? (opts as GlobalOptions).vpcConnectorEgressSettings;
+  const vpcEgress = opts.vpcEgress ?? opts.vpcConnectorEgressSettings;
   if (vpcEgress !== undefined) {
-    annotation.vpcConnectorEgressSettings = vpcEgress as any;
+    if (vpcEgress === null || vpcEgress instanceof ResetValue) {
+      annotation.vpcConnectorEgressSettings = null;
+    } else {
+      annotation.vpcConnectorEgressSettings = vpcEgress;
+    }
   }
 
   convertIfPresent(annotation, opts, "availableMemoryMb", "memory", (mem: MemoryOption) => {
@@ -419,7 +422,15 @@ export function optionsToEndpoint(
     const resetConnector = connector === null || connector instanceof ResetValue;
     const hasConnector = !!connector;
     const resetNetwork = networkInterface === null || networkInterface instanceof ResetValue;
-    const hasNetwork = !!networkInterface;
+    const hasNetwork = !!networkInterface && !resetNetwork;
+
+    if (hasNetwork) {
+      if (!networkInterface.network && !networkInterface.subnetwork) {
+        throw new Error(
+          "At least one of network or subnetwork must be specified in networkInterface."
+        );
+      }
+    }
 
     // It's OK to reset one and set the other, that's just being pedantic while switching types.
     // But if you only use a reset value, that means you don't want VPC at all.
@@ -431,7 +442,7 @@ export function optionsToEndpoint(
       const vpc: ManifestEndpoint["vpc"] = {};
       convertIfPresent(vpc, opts, "connector", "vpcConnector");
       if (vpcEgress !== undefined) {
-        vpc.egressSettings = vpcEgress as any;
+        vpc.egressSettings = vpcEgress;
       }
       convertIfPresent(vpc, opts, "networkInterfaces", "networkInterface", (a) => [a]);
       endpoint.vpc = vpc;

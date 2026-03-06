@@ -74,6 +74,14 @@ describe("optionsToEndpoint", () => {
     }).to.throw("Cannot set both vpcConnector and networkInterface");
   });
 
+  it("should throw an error if networkInterface has no network or subnetwork", () => {
+    expect(() => {
+      optionsToEndpoint({
+        networkInterface: {},
+      });
+    }).to.throw("At least one of network or subnetwork must be specified in networkInterface.");
+  });
+
   it("should reset vpc when vpcConnector is RESET_VALUE", () => {
     const endpoint = optionsToEndpoint({ vpcConnector: RESET_VALUE });
     expect(endpoint.vpc).to.equal(RESET_VALUE);
