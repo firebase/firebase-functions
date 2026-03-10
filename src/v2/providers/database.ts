@@ -63,7 +63,18 @@ export interface RawRTDBCloudEvent extends CloudEvent<RawRTDBCloudEventData> {
   instance: string;
   ref: string;
   location: string;
+  authtype: AuthType;
+  authid?: string;
 }
+
+/**
+ * AuthType defines the possible values for the authType field in a Realtime Database event.
+ * - app_user: an end user of an application..
+ * - admin: an admin user of an application. In the context of impersonate endpoints used by the admin SDK, the impersonator.
+ * - unauthenticated: no credentials were used to authenticate the change that triggered the occurrence.
+ * - unknown: a general type to capture all other principals not captured in the other auth types.
+ */
+export type AuthType = "app_user" | "admin" | "unauthenticated" | "unknown";
 
 /** A CloudEvent that contains a DataSnapshot or a Change<DataSnapshot> */
 export interface DatabaseEvent<T, Params = Record<string, string>> extends CloudEvent<T> {
@@ -80,6 +91,14 @@ export interface DatabaseEvent<T, Params = Record<string, string>> extends Cloud
    * Only named capture groups will be populated - {key}, {key=*}, {key=**}
    */
   params: Params;
+  /**
+   * The type of principal that triggered the event.
+   */
+  authType: AuthType;
+  /**
+   * The unique identifier of the principal.
+   */
+  authId?: string;
 }
 
 /** ReferenceOptions extend EventHandlerOptions with provided ref and optional instance  */
@@ -384,8 +403,12 @@ function makeDatabaseEvent<Params>(
     firebaseDatabaseHost: event.firebasedatabasehost,
     data: snapshot,
     params,
-  };
+    authType: event.authtype || "unknown",
+    authId: event.authid,
+  } as any;
   delete (databaseEvent as any).firebasedatabasehost;
+  delete (databaseEvent as any).authtype;
+  delete (databaseEvent as any).authid;
   return databaseEvent;
 }
 
@@ -410,8 +433,12 @@ function makeChangedDatabaseEvent<Params>(
       after,
     },
     params,
-  };
+    authType: event.authtype || "unknown",
+    authId: event.authid,
+  } as any;
   delete (databaseEvent as any).firebasedatabasehost;
+  delete (databaseEvent as any).authtype;
+  delete (databaseEvent as any).authid;
   return databaseEvent;
 }
 
