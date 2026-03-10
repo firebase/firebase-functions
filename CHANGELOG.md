@@ -1,1 +1,1 @@
-Add support for VPC direct connect (network interfaces) (#1823)
+- Add support for VPC direct connect (network interfaces) (#1823)

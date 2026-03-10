@@ -414,6 +414,9 @@ export function optionsToEndpoint(
     "cpu"
   );
   convertIfPresent(endpoint, opts, "serviceAccountEmail", "serviceAccount");
+  if (opts.vpcEgress && opts.vpcConnectorEgressSettings) {
+    logger.warn("vpcEgress and vpcConnectorEgressSettings are both set. Using vpcEgress");
+  }
   const vpcEgress = opts.vpcEgress ?? opts.vpcConnectorEgressSettings;
   const connector = opts.vpcConnector;
   const networkInterface = opts.networkInterface;
