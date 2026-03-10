@@ -409,6 +409,14 @@ export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   "name" | "type"
 >;
 
+/** Configuration options which can be used to customize the behavior of a secret parameter. */
+export interface SecretParamOptions {
+  /** An optional human-readable string to be used as a replacement for the parameter's name when prompting. */
+  label?: string;
+  /** An optional long-form description of the parameter to be displayed while prompting. */
+  description?: string;
+}
+
 /**
  * Represents a parametrized value that will be read from .env files if present,
  * or prompted for by the CLI if missing. Instantiate these with the defineX
@@ -507,7 +515,7 @@ export class SecretParam {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string) {
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
     this.name = name;
   }
 
@@ -527,6 +535,7 @@ export class SecretParam {
     return {
       type: "secret",
       name: this.name,
+      ...this.options,
     };
   }
 
@@ -552,7 +561,7 @@ export class JsonSecretParam<T = any> {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string) {
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
     this.name = name;
   }
 
@@ -579,6 +588,7 @@ export class JsonSecretParam<T = any> {
     return {
       type: "secret",
       name: this.name,
+      ...this.options,
       format: "json",
     };
   }

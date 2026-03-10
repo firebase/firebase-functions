@@ -36,6 +36,7 @@ import {
   JsonSecretParam,
   StringParam,
   ListParam,
+  SecretParamOptions,
   InternalExpression,
   InterpolationExpression,
 } from "./types";
@@ -56,7 +57,7 @@ export type {
 } from "./types";
 
 export { Expression };
-export type { ParamOptions };
+export type { ParamOptions, SecretParamOptions };
 
 type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 
@@ -146,8 +147,8 @@ export const storageBucket: Param<string> = new InternalExpression(
  * @param name The name of the environment variable to use to load the parameter.
  * @returns A parameter with a `string` return type for `.value`.
  */
-export function defineSecret(name: string): SecretParam {
-  const param = new SecretParam(name);
+export function defineSecret(name: string, options: SecretParamOptions = {}): SecretParam {
+  const param = new SecretParam(name, options);
   registerParam(param);
   return param;
 }
@@ -164,8 +165,11 @@ export function defineSecret(name: string): SecretParam {
  * @returns A parameter whose `.value()` method returns the parsed JSON object.
  * ```
  */
-export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
-  const param = new JsonSecretParam<T>(name);
+export function defineJsonSecret<T = any>(
+  name: string,
+  options: SecretParamOptions = {}
+): JsonSecretParam<T> {
+  const param = new JsonSecretParam<T>(name, options);
   registerParam(param);
   return param;
 }

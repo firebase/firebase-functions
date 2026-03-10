@@ -15,6 +15,20 @@ describe("Params spec extraction", () => {
     const foo = params.defineString("FOO", { input: { text: { validationRegex: /\d{5}/ } } });
     expect(foo.toSpec().input).to.deep.equal({ text: { validationRegex: "\\d{5}" } });
   });
+
+  it("includes label and description for secret params", () => {
+    const secret = params.defineSecret("TEST_SECRET", { label: "My Secret", description: "A very secret value" });
+    const spec = secret.toSpec();
+    expect(spec.name).to.equal("TEST_SECRET");
+    expect(spec.label).to.equal("My Secret");
+    expect(spec.description).to.equal("A very secret value");
+
+    const jsonSecret = params.defineJsonSecret("TEST_JSON_SECRET", { label: "My JSON Secret", description: "A very JSON secret value" });
+    const jsonSpec = jsonSecret.toSpec();
+    expect(jsonSpec.name).to.equal("TEST_JSON_SECRET");
+    expect(jsonSpec.label).to.equal("My JSON Secret");
+    expect(jsonSpec.description).to.equal("A very JSON secret value");
+  });
 });
 
 describe("Params value extraction", () => {
