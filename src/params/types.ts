@@ -73,9 +73,69 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 }
 
-function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
+/**
+ * An InterpolationExpression allows string fragments and Expressions to be
+ * joined natively into a new Expression block evaluating to a string string.
+ */
+export class InterpolationExpression extends Expression<string> {
+  constructor(private strings: TemplateStringsArray, private values: (string | Expression<any>)[]) {
+    super();
+  }
+
+  /** @internal */
+  runtimeValue(): string {
+    return this.strings.reduce((result, str, i) => {
+      const val = i < this.values.length ? String(valueOf(this.values[i])) : "";
+      return result + str + val;
+    }, "");
+  }
+
+  toCEL(): string {
+    return this.strings.reduce((result, str, i) => {
+      const val = i < this.values.length ? celOf(this.values[i]) : "";
+      return result + str + val;
+    }, "");
+  }
+}
+
+/** @internal */
+export class TransformedStringExpression extends Expression<string> {
+  constructor(
+    private source: Expression<string> | string,
+    private transformer: (val: string) => string
+  ) {
+    super();
+  }
+
+  runtimeValue(): string {
+    return this.transformer(valueOf(this.source));
+  }
+
+  toCEL(): string {
+    return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
+  }
+}
+
+export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
+
+export function celOf<T extends string | number | boolean | string[]>(
+  arg: T | Expression<T>
+): T | string {
+  return arg instanceof Expression ? arg.toCEL() : arg;
+}
+
+/**
+ * Transforms a string or a string expression using a function.
+ */
+export function transform(
+  source: string | Expression<string>,
+  transformer: (val: string) => string
+): Expression<string> {
+  return new TransformedStringExpression(source, transformer);
+}
+
 /**
  * Returns how an entity (either an `Expression` or a literal value) should be represented in CEL.
  * - Expressions delegate to the `.toString()` method, which is used by the WireManifest
@@ -129,12 +189,12 @@ export class CompareExpression<
   T extends string | number | boolean | string[]
 > extends Expression<boolean> {
   cmp: "==" | "!=" | ">" | ">=" | "<" | "<=";
-  lhs: Expression<T>;
+  lhs: T | Expression<T>;
   rhs: T | Expression<T>;
 
   constructor(
     cmp: "==" | "!=" | ">" | ">=" | "<" | "<=",
-    lhs: Expression<T>,
+    lhs: T | Expression<T>,
     rhs: T | Expression<T>
   ) {
     super();
@@ -145,7 +205,7 @@ export class CompareExpression<
 
   /** @internal */
   runtimeValue(): boolean {
-    const left = this.lhs.runtimeValue();
+    const left = valueOf(this.lhs);
     const right = valueOf(this.rhs);
     switch (this.cmp) {
       case "==":
@@ -171,8 +231,7 @@ export class CompareExpression<
   }
 
   toString() {
-    const rhsStr = refOf(this.rhs);
-    return `${this.lhs} ${this.cmp} ${rhsStr}`;
+    return `${refOf(this.lhs)} ${this.cmp} ${refOf(this.rhs)}`;
   }
 
   /** Returns a `TernaryExpression` which can resolve to one of two values, based on the resolution of this comparison. */
@@ -350,6 +409,14 @@ export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   "name" | "type"
 >;
 
+/** Configuration options which can be used to customize the behavior of a secret parameter. */
+export interface SecretParamOptions {
+  /** An optional human-readable string to be used as a replacement for the parameter's name when prompting. */
+  label?: string;
+  /** An optional long-form description of the parameter to be displayed while prompting. */
+  description?: string;
+}
+
 /**
  * Represents a parametrized value that will be read from .env files if present,
  * or prompted for by the CLI if missing. Instantiate these with the defineX
@@ -448,7 +515,7 @@ export class SecretParam {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string) {
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
     this.name = name;
   }
 
@@ -468,6 +535,7 @@ export class SecretParam {
     return {
       type: "secret",
       name: this.name,
+      ...this.options,
     };
   }
 
@@ -493,7 +561,7 @@ export class JsonSecretParam<T = any> {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string) {
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
     this.name = name;
   }
 
@@ -520,6 +588,7 @@ export class JsonSecretParam<T = any> {
     return {
       type: "secret",
       name: this.name,
+      ...this.options,
       format: "json",
     };
   }

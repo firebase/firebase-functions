@@ -121,6 +121,7 @@ describe("FunctionBuilder", () => {
     expect(fn.__trigger.secrets).to.deep.equal([
       {
         name: "API_KEY",
+        options: {},
       },
     ]);
     expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([

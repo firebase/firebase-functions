@@ -36,7 +36,9 @@ import {
   JsonSecretParam,
   StringParam,
   ListParam,
+  SecretParamOptions,
   InternalExpression,
+  InterpolationExpression,
 } from "./types";
 
 export { BUCKET_PICKER, select, multiSelect } from "./types";
@@ -55,7 +57,7 @@ export type {
 } from "./types";
 
 export { Expression };
-export type { ParamOptions };
+export type { ParamOptions, SecretParamOptions };
 
 type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 
@@ -109,7 +111,7 @@ export function clearParams() {
  */
 export const databaseURL: Param<string> = new InternalExpression(
   "DATABASE_URL",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.databaseURL || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.databaseURL || ""
 );
 /**
  * A built-in parameter that resolves to the Cloud project ID associated with
@@ -117,7 +119,7 @@ export const databaseURL: Param<string> = new InternalExpression(
  */
 export const projectID: Param<string> = new InternalExpression(
   "PROJECT_ID",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.projectId || ""
 );
 /**
  * A built-in parameter that resolves to the Cloud project ID, without prompting
@@ -125,7 +127,7 @@ export const projectID: Param<string> = new InternalExpression(
  */
 export const gcloudProject: Param<string> = new InternalExpression(
   "GCLOUD_PROJECT",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.projectId || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.projectId || ""
 );
 /**
  * A builtin parameter that resolves to the Cloud storage bucket associated
@@ -134,7 +136,7 @@ export const gcloudProject: Param<string> = new InternalExpression(
  */
 export const storageBucket: Param<string> = new InternalExpression(
   "STORAGE_BUCKET",
-  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG)?.storageBucket || ""
+  (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.storageBucket || ""
 );
 
 /**
@@ -145,8 +147,8 @@ export const storageBucket: Param<string> = new InternalExpression(
  * @param name The name of the environment variable to use to load the parameter.
  * @returns A parameter with a `string` return type for `.value`.
  */
-export function defineSecret(name: string): SecretParam {
-  const param = new SecretParam(name);
+export function defineSecret(name: string, options: SecretParamOptions = {}): SecretParam {
+  const param = new SecretParam(name, options);
   registerParam(param);
   return param;
 }
@@ -163,8 +165,11 @@ export function defineSecret(name: string): SecretParam {
  * @returns A parameter whose `.value()` method returns the parsed JSON object.
  * ```
  */
-export function defineJsonSecret<T = any>(name: string): JsonSecretParam<T> {
-  const param = new JsonSecretParam<T>(name);
+export function defineJsonSecret<T = any>(
+  name: string,
+  options: SecretParamOptions = {}
+): JsonSecretParam<T> {
+  const param = new JsonSecretParam<T>(name, options);
   registerParam(param);
   return param;
 }
@@ -234,4 +239,21 @@ export function defineList(name: string, options: ParamOptions<string[]> = {}): 
   const param = new ListParam(name, options);
   registerParam(param);
   return param;
+}
+
+/**
+ * Creates an Expression representing a string, which can interpolate
+ * other Expressions into it using template literal syntax.
+ *
+ * @example
+ * ```
+ * const topicParam = defineString('TOPIC');
+ * const topicExpr = expr`projects/my-project/topics/${topicParam}`;
+ * ```
+ */
+export function expr(
+  strings: TemplateStringsArray,
+  ...values: (string | Expression<string>)[]
+): Expression<string> {
+  return new InterpolationExpression(strings, values);
 }

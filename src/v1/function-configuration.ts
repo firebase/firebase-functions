@@ -134,13 +134,13 @@ export interface Schedule {
    * schedule: "every 5 minutes"
    * ```
    */
-  schedule: string;
+  schedule: string | Expression<string>;
   /**
    * Specifies the time zone to be used in interpreting {@link Schedule.schedule}.
    *
    * The value of this field must be a time zone name from the tz database.
    */
-  timeZone?: string | ResetValue;
+  timeZone?: string | Expression<string> | ResetValue;
   /**
    * Settings that determine the retry behavior.
    */

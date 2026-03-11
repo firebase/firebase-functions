@@ -22,6 +22,8 @@
 
 import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
+import { Expression } from "../../params/types";
+import { expr } from "../../params";
 
 /** @internal */
 export const provider = "google.analytics";
@@ -36,17 +38,20 @@ export const service = "app-measurement.com";
  *
  * @returns Analytics event builder interface.
  */
-export function event(analyticsEventType: string) {
+export function event(analyticsEventType: string | Expression<string>) {
   return _eventWithOptions(analyticsEventType, {});
 }
 
 /** @internal */
-export function _eventWithOptions(analyticsEventType: string, options: DeploymentOptions) {
+export function _eventWithOptions(
+  analyticsEventType: string | Expression<string>,
+  options: DeploymentOptions
+) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
-    return "projects/" + process.env.GCLOUD_PROJECT + "/events/" + analyticsEventType;
+    return expr`projects/${process.env.GCLOUD_PROJECT}/events/${analyticsEventType}`;
   }, options);
 }
 
@@ -56,8 +61,11 @@ export function _eventWithOptions(analyticsEventType: string, options: Deploymen
  * Access via `functions.analytics.event()`.
  */
 export class AnalyticsEventBuilder {
-  /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  /** @internal */
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
