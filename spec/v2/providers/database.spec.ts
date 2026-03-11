@@ -42,6 +42,8 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   specversion: "1.0",
   time: "time",
   type: "type",
+  authid: "uid",
+  authtype: "unauthenticated",
 };
 
 describe("database", () => {
@@ -444,23 +446,6 @@ describe("database", () => {
         },
       });
     });
-
-    it("calls init function", async () => {
-      const event: CloudEvent<string> = {
-        specversion: "1.0",
-        id: "id",
-        source: "source",
-        type: "type",
-        time: "now",
-        data: "data",
-      };
-
-      let hello;
-      onInit(() => (hello = "world"));
-      expect(hello).to.be.undefined;
-      await database.onValueWritten("path", () => null)(event);
-      expect(hello).to.equal("world");
-    });
   });
 
   describe("onValueCreated", () => {
@@ -521,23 +506,6 @@ describe("database", () => {
         },
       });
     });
-
-    it("calls init function", async () => {
-      const event: CloudEvent<string> = {
-        specversion: "1.0",
-        id: "id",
-        source: "source",
-        type: "type",
-        time: "now",
-        data: "data",
-      };
-
-      let hello;
-      onInit(() => (hello = "world"));
-      expect(hello).to.be.undefined;
-      await database.onValueCreated("path", () => null)(event);
-      expect(hello).to.equal("world");
-    });
   });
 
   describe("onValueUpdated", () => {
@@ -594,23 +562,6 @@ describe("database", () => {
           retry: false,
         },
       });
-    });
-
-    it("calls init function", async () => {
-      const event: CloudEvent<string> = {
-        specversion: "1.0",
-        id: "id",
-        source: "source",
-        type: "type",
-        time: "now",
-        data: "data",
-      };
-
-      let hello;
-      onInit(() => (hello = "world"));
-      expect(hello).to.be.undefined;
-      await database.onValueUpdated("path", () => null)(event);
-      expect(hello).to.equal("world");
     });
   });
 
@@ -669,22 +620,46 @@ describe("database", () => {
         },
       });
     });
+  });
 
-    it("calls init function", async () => {
-      const event: CloudEvent<string> = {
-        specversion: "1.0",
-        id: "id",
-        source: "source",
-        type: "type",
-        time: "now",
-        data: "data",
-      };
+  describe("common behavior", () => {
+    const eventHandlers = {
+      onValueWritten: database.onValueWritten,
+      onValueCreated: database.onValueCreated,
+      onValueUpdated: database.onValueUpdated,
+      onValueDeleted: database.onValueDeleted,
+    };
 
-      let hello;
-      onInit(() => (hello = "world"));
-      expect(hello).to.be.undefined;
-      await database.onValueDeleted("path", () => null)(event);
-      expect(hello).to.equal("world");
-    });
+    for (const [name, handler] of Object.entries(eventHandlers)) {
+      it(`calls init function for ${name}`, async () => {
+        const event: CloudEvent<string> = {
+          specversion: "1.0",
+          id: "id",
+          source: "source",
+          type: "type",
+          time: "now",
+          data: "data",
+        };
+
+        let hello;
+        onInit(() => (hello = "world"));
+        expect(hello).to.be.undefined;
+        await (handler as any)("path", () => null)(event);
+        expect(hello).to.equal("world");
+      });
+
+      it(`should pass auth context into the event for ${name}`, async () => {
+        const raw = {
+          ...RAW_RTDB_EVENT,
+        };
+
+        const func = (handler as any)("foo/bar", (event: any) => {
+          expect(event.authId).to.equal("uid");
+          expect(event.authType).to.equal("unauthenticated");
+        });
+
+        await func(raw);
+      });
+    }
   });
 });
