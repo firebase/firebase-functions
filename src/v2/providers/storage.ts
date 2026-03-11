@@ -35,6 +35,9 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { patchV1Compat } from "../compat";
+import { V1Event } from "../compat";
+import { ObjectMetadata } from "../../v1/providers/storage";
 
 /**
  * An object within Google Cloud Storage.
@@ -188,6 +191,11 @@ export interface CustomerEncryption {
 export interface StorageEvent extends CloudEvent<StorageObjectData> {
   /** The name of the bucket containing this object. */
   bucket: string;
+
+  /**
+   * Returns a V1-compatible event object.
+   */
+  getV1Compat: () => V1Event<ObjectMetadata> & { object: ObjectMetadata };
 }
 
 /** @internal */
@@ -574,7 +582,13 @@ export function onOperation(
   const [opts, bucket] = getOptsAndBucket(bucketOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(withInit(handler))(raw as StorageEvent);
+    const storageEvent = raw as CloudEvent<StorageObjectData>;
+    const patchedEvent = patchV1Compat(storageEvent);
+    const finalEvent = patchedEvent as StorageEvent;
+    if (storageEvent.data) {
+      finalEvent.bucket = storageEvent.data.bucket;
+    }
+    return wrapTraceContext(withInit(handler))(finalEvent);
   };
 
   func.run = handler;
