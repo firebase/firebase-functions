@@ -593,7 +593,12 @@ export function onChangedOperation<Ref extends string>(
         return {
           eventId: databaseEvent.id,
           timestamp: databaseEvent.time,
-          eventType,
+          eventType: {
+            [writtenEventType]: "providers/google.firebase.database/eventTypes/ref.write",
+            [createdEventType]: "providers/google.firebase.database/eventTypes/ref.create",
+            [updatedEventType]: "providers/google.firebase.database/eventTypes/ref.update",
+            [deletedEventType]: "providers/google.firebase.database/eventTypes/ref.delete",
+          }[eventType] || eventType,
           resource: {
             service: "firebaseio.com",
             name: `projects/_/instances/${databaseEvent.instance}/refs/${databaseEvent.ref}`,
@@ -654,7 +659,12 @@ export function onOperation<Ref extends string>(
         return {
           eventId: databaseEvent.id,
           timestamp: databaseEvent.time,
-          eventType,
+          eventType: {
+            "google.firebase.database.ref.v1.written": "providers/google.firebase.database/eventTypes/ref.write",
+            "google.firebase.database.ref.v1.created": "providers/google.firebase.database/eventTypes/ref.create",
+            "google.firebase.database.ref.v1.updated": "providers/google.firebase.database/eventTypes/ref.update",
+            "google.firebase.database.ref.v1.deleted": "providers/google.firebase.database/eventTypes/ref.delete",
+          }[eventType] || eventType,
           resource: {
             service: "firebaseio.com",
             name: `projects/_/instances/${databaseEvent.instance}/refs/${databaseEvent.ref}`,

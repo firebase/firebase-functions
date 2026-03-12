@@ -123,7 +123,7 @@ describe("onTestMatrixCompleted", () => {
       expect(capturedEvent.context).to.deep.equal({
         eventId: "id",
         timestamp: "now",
-        eventType: testLab.eventType,
+        eventType: "google.testing.testMatrix.complete",
         resource: {
           service: "testing.googleapis.com",
           name: "projects/aProject/testMatrices/matrix",

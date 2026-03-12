@@ -156,19 +156,19 @@ export function onConfigUpdated(
   const func: any = wrapTraceContext(
     withInit((raw: CloudEvent<unknown>) => {
       const event = raw as CloudEvent<ConfigUpdateData>;
-      const v1Context = {
-        eventId: event.id,
-        timestamp: event.time,
-        eventType: event.type,
-        resource: {
-          service: "firebaseremoteconfig.googleapis.com",
-          name: event.subject || "",
-        },
-        params: {},
-      };
-
       const patchedEvent = addV1Compat(event, {
-        context: () => v1Context,
+        context: () => {
+          return {
+            eventId: event.id,
+            timestamp: event.time,
+            eventType: "google.firebase.remoteconfig.update",
+            resource: {
+              service: "firebaseremoteconfig.googleapis.com",
+              name: event.subject || "",
+            },
+            params: {},
+          };
+        },
         version: () => event.data,
       });
 

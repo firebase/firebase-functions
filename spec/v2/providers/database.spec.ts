@@ -469,7 +469,7 @@ describe("database", () => {
         expect(capturedEvent.context).to.deep.equal({
           eventId: "id",
           timestamp: "time",
-          eventType: database.writtenEventType,
+          eventType: "providers/google.firebase.database/eventTypes/ref.write",
           authType: "UNAUTHENTICATED",
           resource: {
             service: "firebaseio.com",
