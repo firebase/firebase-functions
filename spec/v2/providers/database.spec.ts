@@ -446,6 +446,43 @@ describe("database", () => {
         },
       });
     });
+
+    describe("v1-compatible getters", () => {
+      it("should provide v1-compatible getters on the event object", async () => {
+        let capturedEvent: any;
+        const func = database.onValueWritten("/foo/{bar}/", (e) => {
+          capturedEvent = e;
+        });
+
+        const raw = {
+          ...RAW_RTDB_EVENT,
+          ref: "foo/bar-value",
+          data: {
+            ["@type"]: "type.googleapis.com/google.events.firebase.database.v1.ReferenceEventData",
+            data: { key: "old_val" },
+            delta: { key: "new_val" },
+          },
+        };
+
+        await func(raw as any);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "id",
+          timestamp: "time",
+          eventType: database.writtenEventType,
+          authType: "UNAUTHENTICATED",
+          resource: {
+            service: "firebaseio.com",
+            name: "projects/_/instances/my-instance/refs/foo/bar-value",
+          },
+          params: { bar: "bar-value" },
+        });
+
+        expect(capturedEvent.change).to.be.an("object");
+        expect(capturedEvent.change.before.val()).to.deep.equal({ key: "old_val" });
+        expect(capturedEvent.change.after.val()).to.deep.equal({ key: "new_val" });
+      });
+    });
   });
 
   describe("onValueCreated", () => {

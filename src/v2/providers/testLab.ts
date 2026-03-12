@@ -25,6 +25,7 @@ import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 import { wrapTraceContext } from "../trace";
+import { V1Compat, addV1Compat } from "../compat";
 
 /** @internal */
 export const eventType = "google.firebase.testlab.testMatrix.v1.completed";
@@ -152,7 +153,31 @@ export interface TestMatrixCompletedData {
  * @alpha
  */
 export function onTestMatrixCompleted(
+  handler: (event: CloudEvent<TestMatrixCompletedData> & V1Compat<"result", TestMatrixCompletedData>) => any | Promise<any>
+): CloudFunction<CloudEvent<TestMatrixCompletedData>>;
+
+/**
+ * Event handler which triggers when a Firebase test matrix completes.
+ *
+ * @param handler - Event handler which is run every time a Firebase test matrix completes.
+ * @returns A Cloud Function that you can export and deploy.
+ * @alpha
+ */
+export function onTestMatrixCompleted(
   handler: (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>
+): CloudFunction<CloudEvent<TestMatrixCompletedData>>;
+
+/**
+ * Event handler which triggers when a Firebase test matrix completes.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Firebase test matrix completes.
+ * @returns A Cloud Function that you can export and deploy.
+ * @alpha
+ */
+export function onTestMatrixCompleted(
+  opts: EventHandlerOptions,
+  handler: (event: CloudEvent<TestMatrixCompletedData> & V1Compat<"result", TestMatrixCompletedData>) => any | Promise<any>
 ): CloudFunction<CloudEvent<TestMatrixCompletedData>>;
 
 /**
@@ -179,8 +204,8 @@ export function onTestMatrixCompleted(
 export function onTestMatrixCompleted(
   optsOrHandler:
     | EventHandlerOptions
-    | ((event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>
+    | ((event: any) => any | Promise<any>),
+  handler?: (event: any) => any | Promise<any>
 ): CloudFunction<CloudEvent<TestMatrixCompletedData>> {
   if (typeof optsOrHandler === "function") {
     handler = optsOrHandler as (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>;
@@ -191,7 +216,24 @@ export function onTestMatrixCompleted(
   const specificOpts = optionsToEndpoint(optsOrHandler);
 
   const func: any = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(withInit(handler))(raw as CloudEvent<TestMatrixCompletedData>);
+    const event = raw as CloudEvent<TestMatrixCompletedData>;
+    const v1Context = {
+      eventId: event.id,
+      timestamp: event.time,
+      eventType: event.type,
+      resource: {
+        service: "testing.googleapis.com",
+        name: event.subject || "",
+      },
+      params: {},
+    };
+
+    const patchedEvent = addV1Compat(event, {
+      context: () => v1Context,
+      result: () => event.data,
+    });
+
+    return wrapTraceContext(withInit(handler))(patchedEvent as any);
   };
   func.run = handler;
 

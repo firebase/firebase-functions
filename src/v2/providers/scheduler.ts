@@ -37,6 +37,7 @@ import { Expression } from "../../params";
 import * as logger from "../../logger";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
+import { EventContext } from "../../v1/cloud-functions";
 
 /** @hidden */
 interface SeparatedOpts {
@@ -136,7 +137,31 @@ export interface ScheduleOptions extends options.GlobalOptions {
  */
 export function onSchedule(
   schedule: string,
+  handler: (event: ScheduledEvent & { context: EventContext }) => void | Promise<void>
+): ScheduleFunction;
+
+/**
+ * Handler for scheduled functions. Triggered whenever the associated
+ * scheduler job sends a http request.
+ * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
+ * @param handler - A function to execute when triggered.
+ * @returns A function that you can export and deploy.
+ */
+export function onSchedule(
+  schedule: string,
   handler: (event: ScheduledEvent) => void | Promise<void>
+): ScheduleFunction;
+
+/**
+ * Handler for scheduled functions. Triggered whenever the associated
+ * scheduler job sends a http request.
+ * @param options - Options to set on scheduled functions.
+ * @param handler - A function to execute when triggered.
+ * @returns A function that you can export and deploy.
+ */
+export function onSchedule(
+  options: ScheduleOptions,
+  handler: (event: ScheduledEvent & { context: EventContext }) => void | Promise<void>
 ): ScheduleFunction;
 
 /**
@@ -160,7 +185,7 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (event: ScheduledEvent) => void | Promise<void>
+  handler: (event: any) => void | Promise<void>
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
@@ -169,8 +194,23 @@ export function onSchedule(
       jobName: req.header("X-CloudScheduler-JobName") || undefined,
       scheduleTime: req.header("X-CloudScheduler-ScheduleTime") || new Date().toISOString(),
     };
+
+    const v1Context: EventContext = {
+      eventId: event.jobName || "",
+      timestamp: event.scheduleTime,
+      eventType: "google.pubsub.topic.publish",
+      resource: {
+        service: "pubsub.googleapis.com",
+        name: `projects/${process.env.GCLOUD_PROJECT}/topics/${event.jobName}`,
+      },
+      params: {},
+    };
+    Object.defineProperty(event, "context", {
+        get: () => v1Context,
+    });
+
     try {
-      await handler(event);
+      await handler(event as any);
       res.status(200).send();
     } catch (err) {
       logger.error((err as Error).message);

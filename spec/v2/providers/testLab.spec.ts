@@ -92,4 +92,46 @@ describe("onTestMatrixCompleted", () => {
     await testLab.onTestMatrixCompleted(() => null)(event);
     expect(hello).to.equal("world");
   });
+
+  describe("v1-compatible getters", () => {
+    beforeEach(() => {
+      process.env.GCLOUD_PROJECT = "aProject";
+    });
+
+    afterEach(() => {
+      delete process.env.GCLOUD_PROJECT;
+    });
+
+    it("should provide v1-compatible getters on the event object", async () => {
+      let capturedEvent: any;
+      const func = testLab.onTestMatrixCompleted((e) => {
+        capturedEvent = e;
+      });
+
+      const raw = {
+        specversion: "1.0",
+        id: "id",
+        source: "//testing.googleapis.com/projects/aProject/testMatrices/matrix",
+        subject: "projects/aProject/testMatrices/matrix",
+        type: testLab.eventType,
+        time: "now",
+        data: { testMatrixId: "matrix", state: "FINISHED" } as any,
+      };
+
+      await func(raw as any);
+
+      expect(capturedEvent.context).to.deep.equal({
+        eventId: "id",
+        timestamp: "now",
+        eventType: testLab.eventType,
+        resource: {
+          service: "testing.googleapis.com",
+          name: "projects/aProject/testMatrices/matrix",
+        },
+        params: {},
+      });
+
+      expect(capturedEvent.result).to.deep.equal({ testMatrixId: "matrix", state: "FINISHED" });
+    });
+  });
 });
