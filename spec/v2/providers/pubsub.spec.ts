@@ -144,7 +144,7 @@ describe("onMessagePublished", () => {
       publishTime: new Date(Date.now()).toISOString(),
     };
     const publishData: pubsub.MessagePublishedData<any> = {
-      message: messageJSON as any,
+      message: new pubsub.Message(messageJSON) as any,
       subscription: "projects/aProject/subscriptions/aSubscription",
     };
     const event: CloudEvent<pubsub.MessagePublishedData<any>> = {
@@ -192,6 +192,30 @@ describe("onMessagePublished", () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       (event: CloudEvent<pubsub.MessagePublishedData>) => undefined
     );
+  });
+
+  it("preserves backward compatibility for user tests passing POJOs without v1 getters", async () => {
+    // If the function signature expects a V1Compat event, passing a standard v2 CloudEvent
+    // should still be accepted by the TypeScript compiler.
+    const func = pubsub.onMessagePublished("topic", (event) => {
+      return event.data.message.json;
+    });
+
+    const vanillaV2Event: CloudEvent<pubsub.MessagePublishedData<any>> = {
+      specversion: "1.0",
+      source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+      id: "uuid",
+      type: EVENT_TRIGGER.eventType,
+      time: new Date().toISOString(),
+      data: {
+        message: new pubsub.Message({ data: Buffer.from(JSON.stringify({ test: "data" })).toString("base64") }) as any,
+        subscription: "sub",
+      },
+    };
+
+    // This should compile without TS errors regarding missing 'message' or 'context'
+    const result = await func.run(vanillaV2Event) as any;
+    expect(result).to.deep.equal({ test: "data" });
   });
 
   describe("v1-compatible getters", () => {
