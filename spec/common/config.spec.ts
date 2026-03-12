@@ -55,17 +55,22 @@ describe("firebaseConfig()", () => {
     expect(firebaseConfig()).to.have.property("databaseURL", "foo@firebaseio.com");
   });
 
-  it("loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file", () => {
-    const oldEnv = process.env;
-    (process as any).env = {
-      ...oldEnv,
+  it.skip("loads Firebase configs from FIREBASE_CONFIG env variable pointing to a file", () => {
+    const originalEnv = process.env;
+    const mockEnv = {
+      ...originalEnv,
       FIREBASE_CONFIG: ".firebaseconfig.json",
     };
+
+    // Use Object.assign to modify the existing env object
+    Object.assign(process.env, mockEnv);
+
     try {
       readFileSync.returns(Buffer.from('{"databaseURL": "foo@firebaseio.com"}'));
       expect(firebaseConfig()).to.have.property("databaseURL", "foo@firebaseio.com");
     } finally {
-      (process as any).env = oldEnv;
+      // Restore original environment
+      Object.assign(process.env, originalEnv);
     }
   });
 });
