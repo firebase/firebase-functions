@@ -354,7 +354,7 @@ describe("v2/storage", () => {
         expect(capturedEvent.context).to.deep.equal({
           eventId: "id",
           timestamp: "now",
-          eventType: storage.archivedEvent,
+          eventType: "google.storage.object.archive",
           resource: {
             service: "storage.googleapis.com",
             name: "projects/_/buckets/bucket/objects/file.txt#123",

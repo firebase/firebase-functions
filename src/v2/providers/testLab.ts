@@ -217,19 +217,19 @@ export function onTestMatrixCompleted(
 
   const func: any = (raw: CloudEvent<unknown>) => {
     const event = raw as CloudEvent<TestMatrixCompletedData>;
-    const v1Context = {
-      eventId: event.id,
-      timestamp: event.time,
-      eventType: event.type,
-      resource: {
-        service: "testing.googleapis.com",
-        name: event.subject || "",
-      },
-      params: {},
-    };
-
     const patchedEvent = addV1Compat(event, {
-      context: () => v1Context,
+      context: () => {
+        return {
+          eventId: event.id,
+          timestamp: event.time,
+          eventType: "google.testing.testMatrix.complete",
+          resource: {
+            service: "testing.googleapis.com",
+            name: event.subject || "",
+          },
+          params: {},
+        };
+      },
       result: () => event.data,
     });
 

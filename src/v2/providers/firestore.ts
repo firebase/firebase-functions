@@ -933,21 +933,30 @@ export function onOperation<
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeFirestoreEvent(eventType, event, params);
 
-    const v1Context = {
-      eventId: firestoreEvent.id,
-      timestamp: firestoreEvent.time,
-      eventType: firestoreEvent.type,
-      resource: {
-        service: "firestore.googleapis.com",
-        name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
-      },
-      params: firestoreEvent.params as any,
-      authType: (firestoreEvent as any).authType,
-      authId: (firestoreEvent as any).authId,
-    };
-
     const patchedEvent = addV1Compat(firestoreEvent, {
-      context: () => v1Context,
+      context: () => {
+        return {
+          eventId: firestoreEvent.id,
+          timestamp: firestoreEvent.time,
+          eventType: {
+            "google.cloud.firestore.document.v1.written": "providers/cloud.firestore/eventTypes/document.write",
+            "google.cloud.firestore.document.v1.created": "providers/cloud.firestore/eventTypes/document.create",
+            "google.cloud.firestore.document.v1.updated": "providers/cloud.firestore/eventTypes/document.update",
+            "google.cloud.firestore.document.v1.deleted": "providers/cloud.firestore/eventTypes/document.delete",
+            "google.cloud.firestore.document.v1.written.withAuthContext": "providers/cloud.firestore/eventTypes/document.write",
+            "google.cloud.firestore.document.v1.created.withAuthContext": "providers/cloud.firestore/eventTypes/document.create",
+            "google.cloud.firestore.document.v1.updated.withAuthContext": "providers/cloud.firestore/eventTypes/document.update",
+            "google.cloud.firestore.document.v1.deleted.withAuthContext": "providers/cloud.firestore/eventTypes/document.delete",
+          }[firestoreEvent.type] || firestoreEvent.type,
+          resource: {
+            service: "firestore.googleapis.com",
+            name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
+          },
+          params: firestoreEvent.params as any,
+          authType: (firestoreEvent as any).authType,
+          authId: (firestoreEvent as any).authId,
+        };
+      },
       snapshot: () => firestoreEvent.data,
     });
 
@@ -983,21 +992,30 @@ export function onChangedOperation<
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
     const firestoreEvent = makeChangedFirestoreEvent(event, params);
 
-    const v1Context = {
-      eventId: firestoreEvent.id,
-      timestamp: firestoreEvent.time,
-      eventType: firestoreEvent.type,
-      resource: {
-        service: "firestore.googleapis.com",
-        name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
-      },
-      params: firestoreEvent.params as any,
-      authType: (firestoreEvent as any).authType,
-      authId: (firestoreEvent as any).authId,
-    };
-
     const patchedEvent = addV1Compat(firestoreEvent, {
-      context: () => v1Context,
+      context: () => {
+        return {
+          eventId: firestoreEvent.id,
+          timestamp: firestoreEvent.time,
+          eventType: {
+            "google.cloud.firestore.document.v1.written": "providers/cloud.firestore/eventTypes/document.write",
+            "google.cloud.firestore.document.v1.created": "providers/cloud.firestore/eventTypes/document.create",
+            "google.cloud.firestore.document.v1.updated": "providers/cloud.firestore/eventTypes/document.update",
+            "google.cloud.firestore.document.v1.deleted": "providers/cloud.firestore/eventTypes/document.delete",
+            "google.cloud.firestore.document.v1.written.withAuthContext": "providers/cloud.firestore/eventTypes/document.write",
+            "google.cloud.firestore.document.v1.created.withAuthContext": "providers/cloud.firestore/eventTypes/document.create",
+            "google.cloud.firestore.document.v1.updated.withAuthContext": "providers/cloud.firestore/eventTypes/document.update",
+            "google.cloud.firestore.document.v1.deleted.withAuthContext": "providers/cloud.firestore/eventTypes/document.delete",
+          }[firestoreEvent.type] || firestoreEvent.type,
+          resource: {
+            service: "firestore.googleapis.com",
+            name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
+          },
+          params: firestoreEvent.params as any,
+          authType: (firestoreEvent as any).authType,
+          authId: (firestoreEvent as any).authId,
+        };
+      },
       change: () => (firestoreEvent as any).data,
     });
 

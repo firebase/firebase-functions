@@ -749,21 +749,26 @@ export function onOperation(
   const func = (raw: CloudEvent<unknown>) => {
     const storageEvent = raw as StorageEvent;
     
-    // We can confidently assert this since the StorageEvent has this property
-    const bucketName = storageEvent.bucket;
-    const v1Context = {
-      eventId: storageEvent.id,
-      timestamp: storageEvent.time,
-      eventType,
-      resource: {
-        service: "storage.googleapis.com",
-        name: `projects/_/buckets/${bucketName}/objects/${storageEvent.data.name}#${storageEvent.data.generation}`,
-      },
-      params: {},
-    };
-
     const event = addV1Compat(storageEvent, {
-      context: () => v1Context,
+      context: () => {
+        // We can confidently assert this since the StorageEvent has this property
+        const bucketName = storageEvent.bucket;
+        return {
+          eventId: storageEvent.id,
+          timestamp: storageEvent.time,
+          eventType: {
+            [archivedEvent]: "google.storage.object.archive",
+            [finalizedEvent]: "google.storage.object.finalize",
+            [deletedEvent]: "google.storage.object.delete",
+            [metadataUpdatedEvent]: "google.storage.object.metadataUpdate",
+          }[eventType] || eventType,
+          resource: {
+            service: "storage.googleapis.com",
+            name: `projects/_/buckets/${bucketName}/objects/${storageEvent.data.name}#${storageEvent.data.generation}`,
+          },
+          params: {},
+        };
+      },
       object: () => storageEvent.data,
     });
     

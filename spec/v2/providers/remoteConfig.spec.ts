@@ -123,7 +123,7 @@ describe("onConfigUpdated", () => {
       expect(capturedEvent.context).to.deep.equal({
         eventId: "id",
         timestamp: "now",
-        eventType: remoteConfig.eventType,
+        eventType: "google.firebase.remoteconfig.update",
         resource: {
           service: "firebaseremoteconfig.googleapis.com",
           name: "projects/aProject/config",

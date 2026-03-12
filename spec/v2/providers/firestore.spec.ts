@@ -1198,7 +1198,7 @@ describe("firestore", () => {
           expect(event.context).to.deep.eq({
             eventId: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
             timestamp: "2023-03-10T18:20:43.677647Z",
-            eventType: firestore.deletedEventType,
+            eventType: "providers/cloud.firestore/eventTypes/document.delete",
             resource: {
               service: "firestore.googleapis.com",
               name: "projects/my-project/databases/my-db/documents/foo/fGRodw71mHutZ4wGDuT8",
@@ -1320,7 +1320,7 @@ describe("firestore", () => {
           expect(event.context).to.deep.eq({
             eventId: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
             timestamp: "2023-03-10T18:20:43.677647Z",
-            eventType: firestore.updatedEventType,
+            eventType: "providers/cloud.firestore/eventTypes/document.update",
             resource: {
               service: "firestore.googleapis.com",
               name: "projects/my-project/databases/my-db/documents/foo/fGRodw71mHutZ4wGDuT8",
