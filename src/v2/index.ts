@@ -76,7 +76,6 @@ export { onInit } from "./core";
 export type { CloudFunction, CloudEvent, ParamsOf } from "./core";
 export { Change } from "../common/change";
 export { traceContext } from "../common/trace";
-// Pub/Sub CloudEvent is exported from providers/pubsub
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
 import * as params from "../params";
 export { params };
