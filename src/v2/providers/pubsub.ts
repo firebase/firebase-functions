@@ -34,7 +34,7 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
-import { patchV1Compat, PubSubCloudEvent } from "../compat";
+import { EventContext as V1EventContext } from "../../v1";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -143,6 +143,21 @@ export class Message<T> {
  * The interface published in a Pub/Sub publish subscription.
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
+/**
+ * Base V1 Context Interface for Pub/Sub.
+ */
+export interface V1Context extends Omit<V1EventContext, "resource"> {
+  resource: { service: string; name: string };
+}
+
+/**
+ * Type for CloudEvent enhanced with optional V1 Pub/Sub properties
+ */
+export type PubSubCloudEvent<T> = CloudEvent<MessagePublishedData<T>> & {
+  readonly context?: V1Context;
+  readonly message?: V1PubSubMessage<T>;
+};
+
 export interface MessagePublishedData<T = any> {
   /**  Google Cloud Pub/Sub message. */
   readonly message: Message<T>;
@@ -309,8 +324,19 @@ export function onMessagePublished<T = any>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = patchV1Compat(raw);
-    return wrapTraceContext(withInit(handler))(event as PubSubCloudEvent<T>);
+    // Lazy V1 compatibility getters
+    const pubsubEvent = raw as PubSubCloudEvent<T>;
+    const pubsubData = pubsubEvent.data;
+
+    if (pubsubData && pubsubData.message) {
+      if (!(pubsubData.message instanceof Message)) {
+        // Mutate the event object to ensure it contains a Message instance
+        (pubsubData as any).message = new Message(pubsubData.message);
+      }
+      injectV1Compat(pubsubEvent);
+    }
+
+    return wrapTraceContext(withInit(handler))(pubsubEvent);
   };
 
   func.run = handler;
@@ -358,4 +384,63 @@ export function onMessagePublished<T = any>(
   func.__endpoint = endpoint;
 
   return func;
+}
+
+/** @internal */
+function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
+  const pubsubData = pubsubEvent.data;
+  const v2Message = pubsubData.message;
+
+  let cachedContext: V1Context | undefined;
+  let cachedMessage: V1PubSubMessage<T> | undefined;
+
+  Object.defineProperty(pubsubEvent, "context", {
+    get: function () {
+      if (cachedContext) {
+        return cachedContext;
+      }
+      const service = "pubsub.googleapis.com";
+      const sourcePrefix = `//${service}/`;
+      cachedContext = {
+        eventId: v2Message.messageId,
+        timestamp: v2Message.publishTime,
+        eventType: "google.pubsub.topic.publish",
+        resource: {
+          service,
+          name: pubsubEvent.source?.startsWith(sourcePrefix)
+            ? pubsubEvent.source.substring(sourcePrefix.length)
+            : pubsubEvent.source || "",
+        },
+        params: {},
+      } as V1Context;
+      return cachedContext;
+    },
+    configurable: true,
+    enumerable: true,
+  });
+
+  Object.defineProperty(pubsubEvent, "message", {
+    get: function () {
+      if (cachedMessage) {
+        return cachedMessage;
+      }
+      const baseV1Message = {
+        data: v2Message.data,
+        messageId: v2Message.messageId,
+        publishTime: v2Message.publishTime,
+        attributes: v2Message.attributes,
+        ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
+      };
+      cachedMessage = {
+        ...baseV1Message,
+        get json() {
+          return v2Message.json;
+        },
+        toJSON: () => baseV1Message,
+      } as V1PubSubMessage<T>;
+      return cachedMessage;
+    },
+    configurable: true,
+    enumerable: true,
+  });
 }
