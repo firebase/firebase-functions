@@ -35,6 +35,8 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { EventContext as V1EventContext } from "../../v1";
+import { ObjectMetadata } from "../../v1/providers/storage";
 
 /**
  * An object within Google Cloud Storage.
@@ -188,7 +190,19 @@ export interface CustomerEncryption {
 export interface StorageEvent extends CloudEvent<StorageObjectData> {
   /** The name of the bucket containing this object. */
   bucket: string;
+
+  /**
+   * V1 backward compatibility. The V1 event context.
+   */
+  readonly context?: V1EventContext;
+
+  /**
+   * V1 backward compatibility. The V1 Storage ObjectMetadata.
+   */
+  readonly object?: ObjectMetadata;
 }
+
+
 
 /** @internal */
 export const archivedEvent = "google.cloud.storage.object.v1.archived";
@@ -574,7 +588,16 @@ export function onOperation(
   const [opts, bucket] = getOptsAndBucket(bucketOrOptsOrHandler);
 
   const func = (raw: CloudEvent<unknown>) => {
-    return wrapTraceContext(withInit(handler))(raw as StorageEvent);
+    const storageEvent = raw as StorageEvent;
+    if (storageEvent.data) {
+      storageEvent.bucket = storageEvent.data.bucket;
+    }
+
+    if (storageEvent.data) {
+      injectV1Compat(storageEvent);
+    }
+
+    return wrapTraceContext(withInit(handler))(storageEvent);
   };
 
   func.run = handler;
@@ -662,4 +685,117 @@ export function getOptsAndBucket(
   }
 
   return [opts, bucket];
+}
+
+// Helper functions for V1 backward compatibility
+function v1EventType(v2Type: string): string {
+  switch (v2Type) {
+    case finalizedEvent:
+      return "google.storage.object.finalize";
+    case archivedEvent:
+      return "google.storage.object.archive";
+    case deletedEvent:
+      return "google.storage.object.delete";
+    case metadataUpdatedEvent:
+      return "google.storage.object.metadataUpdate";
+    default:
+      return v2Type;
+  }
+}
+
+function v2ToV1Storage(v2: StorageObjectData): ObjectMetadata {
+  if (!v2) {
+    throw new Error("Malformed Storage event: missing 'data' property.");
+  }
+  const v1: any = { ...v2 };
+  v1.kind = "storage#object";
+
+  if (v2.timeCreated) {
+    v1.timeCreated = v2.timeCreated instanceof Date ? v2.timeCreated.toISOString() : v2.timeCreated;
+  }
+  if (v2.updated) {
+    v1.updated = v2.updated instanceof Date ? v2.updated.toISOString() : v2.updated;
+  }
+  if (v2.timeDeleted instanceof Date) {
+    v1.timeDeleted = v2.timeDeleted.toISOString();
+  }
+  if (v2.timeStorageClassUpdated instanceof Date) {
+    v1.timeStorageClassUpdated = v2.timeStorageClassUpdated.toISOString();
+  }
+
+  if (typeof v2.size === "number") {
+    v1.size = String(v2.size);
+  }
+  if (typeof v2.generation === "number") {
+    v1.generation = String(v2.generation);
+  }
+  if (typeof v2.metageneration === "number") {
+    v1.metageneration = String(v2.metageneration);
+  }
+  if (typeof v2.componentCount === "number") {
+    v1.componentCount = String(v2.componentCount);
+  }
+
+  if (v1.bucket && v1.name) {
+    v1.selfLink = `https://www.googleapis.com/storage/v1/b/${v1.bucket}/o/${encodeURIComponent(
+      v1.name
+    )}`;
+    if (v1.generation) {
+      v1.mediaLink = `https://www.googleapis.com/download/storage/v1/b/${v1.bucket}/o/${encodeURIComponent(
+        v1.name
+      )}?generation=${v1.generation}&alt=media`;
+    } else {
+      v1.mediaLink = `https://www.googleapis.com/download/storage/v1/b/${v1.bucket}/o/${encodeURIComponent(
+        v1.name
+      )}?alt=media`;
+    }
+  }
+
+  return v1 as ObjectMetadata;
+}
+
+
+/** @internal */
+function injectV1Compat(storageEvent: StorageEvent): void {
+  const V1_CONTEXT = Symbol.for("firebase.functions.v2.storage.v1Context");
+  const V1_OBJECT = Symbol.for("firebase.functions.v2.storage.v1Object");
+
+  Object.defineProperty(storageEvent, "context", {
+    get: function () {
+      if (this[V1_CONTEXT]) {
+        return this[V1_CONTEXT];
+      }
+      const service = "storage.googleapis.com";
+      const sourcePrefix = `//${service}/`;
+      const resourceName = this.source?.startsWith(sourcePrefix)
+        ? this.source.substring(sourcePrefix.length)
+        : this.source || "";
+
+      this[V1_CONTEXT] = {
+        eventId: this.id,
+        timestamp: this.time,
+        eventType: v1EventType(this.type),
+        resource: {
+          service,
+          name: resourceName,
+        },
+        params: {},
+      } as V1EventContext;
+      return this[V1_CONTEXT];
+    },
+    configurable: true,
+    enumerable: true,
+  });
+
+  Object.defineProperty(storageEvent, "object", {
+    get: function () {
+      if (this[V1_OBJECT]) {
+        return this[V1_OBJECT];
+      }
+      this[V1_OBJECT] = v2ToV1Storage(this.data);
+      return this[V1_OBJECT];
+    },
+    configurable: true,
+    enumerable: true,
+  });
 }
