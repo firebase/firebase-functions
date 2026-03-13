@@ -437,7 +437,7 @@ function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
           return v2Message.json;
         },
         toJSON: () => baseV1Message,
-      } as unknown as V1PubSubMessage<T>;
+      } as V1PubSubMessage<T>;
       return cachedMessage;
     },
     configurable: true,
