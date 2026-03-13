@@ -391,29 +391,29 @@ function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
   const pubsubData = pubsubEvent.data as MessagePublishedData<T>;
   const v2Message = pubsubData.message;
 
-  const V1_CONTEXT = Symbol.for("firebase.functions.v2.pubsub.v1Context");
-  const V1_MESSAGE = Symbol.for("firebase.functions.v2.pubsub.v1Message");
+  let cachedContext: V1Context | undefined;
+  let cachedMessage: V1PubSubMessage<T> | undefined;
 
   Object.defineProperty(pubsubEvent, "context", {
     get: function () {
-      if (this[V1_CONTEXT]) {
-        return this[V1_CONTEXT];
+      if (cachedContext) {
+        return cachedContext;
       }
       const service = "pubsub.googleapis.com";
       const sourcePrefix = `//${service}/`;
-      this[V1_CONTEXT] = {
+      cachedContext = {
         eventId: v2Message.messageId,
         timestamp: v2Message.publishTime,
         eventType: "google.pubsub.topic.publish",
         resource: {
           service,
-          name: this.source?.startsWith(sourcePrefix)
-            ? this.source.substring(sourcePrefix.length)
-            : this.source || "",
+          name: pubsubEvent.source?.startsWith(sourcePrefix)
+            ? pubsubEvent.source.substring(sourcePrefix.length)
+            : pubsubEvent.source || "",
         },
         params: {},
       } as V1Context;
-      return this[V1_CONTEXT];
+      return cachedContext;
     },
     configurable: true,
     enumerable: true,
@@ -421,8 +421,8 @@ function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
 
   Object.defineProperty(pubsubEvent, "message", {
     get: function () {
-      if (this[V1_MESSAGE]) {
-        return this[V1_MESSAGE];
+      if (cachedMessage) {
+        return cachedMessage;
       }
       const baseV1Message = {
         data: v2Message.data,
@@ -431,14 +431,14 @@ function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
         attributes: v2Message.attributes,
         ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
       };
-      this[V1_MESSAGE] = {
+      cachedMessage = {
         ...baseV1Message,
         get json() {
           return v2Message.json;
         },
         toJSON: () => baseV1Message,
-      };
-      return this[V1_MESSAGE];
+      } as unknown as V1PubSubMessage<T>;
+      return cachedMessage;
     },
     configurable: true,
     enumerable: true,
