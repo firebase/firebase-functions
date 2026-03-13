@@ -388,7 +388,7 @@ export function onMessagePublished<T = any>(
 
 /** @internal */
 function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
-  const pubsubData = pubsubEvent.data as MessagePublishedData<T>;
+  const pubsubData = pubsubEvent.data;
   const v2Message = pubsubData.message;
 
   let cachedContext: V1Context | undefined;
