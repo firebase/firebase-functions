@@ -35,6 +35,7 @@ import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 import { EventContext as V1EventContext } from "../../v1";
+import { addV1Compat } from "../compat";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -143,20 +144,13 @@ export class Message<T> {
  * The interface published in a Pub/Sub publish subscription.
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
-/**
- * Base V1 Context Interface for Pub/Sub.
- */
-export interface V1Context extends Omit<V1EventContext, "resource"> {
-  resource: { service: string; name: string };
-}
+import { V1Compat } from "../compat";
 
 /**
  * Type for CloudEvent enhanced with optional V1 Pub/Sub properties
  */
-export type PubSubCloudEvent<T> = CloudEvent<MessagePublishedData<T>> & {
-  readonly context?: V1Context;
-  readonly message?: V1PubSubMessage<T>;
-};
+export type PubSubCloudEvent<T> = CloudEvent<MessagePublishedData<T>> &
+  V1Compat<"message", V1PubSubMessage<T>>;
 
 export interface MessagePublishedData<T = any> {
   /**  Google Cloud Pub/Sub message. */
@@ -391,17 +385,29 @@ function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
   const pubsubData = pubsubEvent.data;
   const v2Message = pubsubData.message;
 
-  let cachedContext: V1Context | undefined;
-  let cachedMessage: V1PubSubMessage<T> | undefined;
-
-  Object.defineProperty(pubsubEvent, "context", {
-    get: function () {
-      if (cachedContext) {
-        return cachedContext;
-      }
+  addV1Compat(
+    pubsubEvent,
+    "message",
+    () => {
+      const baseV1Message = {
+        data: v2Message.data,
+        messageId: v2Message.messageId,
+        publishTime: v2Message.publishTime,
+        attributes: v2Message.attributes,
+        ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
+      };
+      return {
+        ...baseV1Message,
+        get json() {
+          return v2Message.json;
+        },
+        toJSON: () => baseV1Message,
+      } as V1PubSubMessage<T>;
+    },
+    () => {
       const service = "pubsub.googleapis.com";
       const sourcePrefix = `//${service}/`;
-      cachedContext = {
+      return {
         eventId: v2Message.messageId,
         timestamp: v2Message.publishTime,
         eventType: "google.pubsub.topic.publish",
@@ -412,35 +418,7 @@ function injectV1Compat<T>(pubsubEvent: PubSubCloudEvent<T>): void {
             : pubsubEvent.source || "",
         },
         params: {},
-      } as V1Context;
-      return cachedContext;
-    },
-    configurable: true,
-    enumerable: true,
-  });
-
-  Object.defineProperty(pubsubEvent, "message", {
-    get: function () {
-      if (cachedMessage) {
-        return cachedMessage;
-      }
-      const baseV1Message = {
-        data: v2Message.data,
-        messageId: v2Message.messageId,
-        publishTime: v2Message.publishTime,
-        attributes: v2Message.attributes,
-        ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
-      };
-      cachedMessage = {
-        ...baseV1Message,
-        get json() {
-          return v2Message.json;
-        },
-        toJSON: () => baseV1Message,
-      } as V1PubSubMessage<T>;
-      return cachedMessage;
-    },
-    configurable: true,
-    enumerable: true,
-  });
+      } as V1EventContext;
+    }
+  );
 }
