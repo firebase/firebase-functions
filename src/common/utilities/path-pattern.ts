@@ -36,6 +36,15 @@ export function trimParam(param: string) {
   return paramNoBraces;
 }
 
+/** @internal */
+export function tryDecodeURIComponent(uri: string): string {
+  try {
+    return decodeURIComponent(uri);
+  } catch (e) {
+    return uri;
+  }
+}
+
 /** @hidden */
 type SegmentName = "segment" | "single-capture" | "multi-capture";
 
@@ -144,9 +153,11 @@ export class PathPattern {
       const remainingSegments = this.segments.length - 1 - segmentNdx;
       const nextPathNdx = pathSegments.length - remainingSegments;
       if (segment.name === "single-capture") {
-        matches[segment.trimmed] = pathSegments[pathNdx];
+        matches[segment.trimmed] = tryDecodeURIComponent(pathSegments[pathNdx]);
       } else if (segment.name === "multi-capture") {
-        matches[segment.trimmed] = pathSegments.slice(pathNdx, nextPathNdx).join("/");
+        matches[segment.trimmed] = tryDecodeURIComponent(
+          pathSegments.slice(pathNdx, nextPathNdx).join("/")
+        );
       }
       pathNdx = segment.isMultiSegmentWildcard() ? nextPathNdx : pathNdx + 1;
     }
