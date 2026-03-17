@@ -63,7 +63,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 
   /** Returns the expression's representation as a braced CEL expression. */
-  toCEL(): string {
+  toCEL(_transform: (val: string) => string = (a) => a): string {
     return `{{ ${this.toString()} }}`;
   }
 
@@ -90,11 +90,37 @@ export class InterpolationExpression extends Expression<string> {
     }, "");
   }
 
-  toCEL(): string {
-    return this.strings.reduce((result, str, i) => {
-      const val = i < this.values.length ? celOf(this.values[i]) : "";
-      return result + str + val;
+  // The transform function (e.g. normalizePath) might have behaivor that compares against
+  // the beginning or end of the string, so we need to compose a string before running transform.
+  // But on the other hand, we don't want a transform to edit CEL, so we create a placeholder
+  // unklikely to ever match a transform function and then drop the CEL back in after the transform.
+  toCEL(transform: (val: string) => string = (a) => a): string {
+    const exprPlaceholders: string[] = [];
+    const PLACEHOLDER_PREFIX = "🤿🤿🤿🐙🐙🐙";
+    const PLACEHOLDER_SUFFIX = "🐙🐙🐙🤿🤿🤿";
+
+    const rawString = this.strings.reduce((result, str, i) => {
+      if (i >= this.values.length) {
+        return result + str;
+      }
+      const val = this.values[i];
+      let valStr: string;
+      if (val instanceof Expression) {
+        valStr = `${PLACEHOLDER_PREFIX}${exprPlaceholders.length}${PLACEHOLDER_SUFFIX}`;
+        exprPlaceholders.push(val.toCEL());
+      } else {
+        valStr = String(val);
+      }
+      return result + str + valStr;
     }, "");
+
+    let transformed = transform(rawString);
+
+    for (let i = 0; i < exprPlaceholders.length; i++) {
+      const placeholder = `${PLACEHOLDER_PREFIX}${i}${PLACEHOLDER_SUFFIX}`;
+      transformed = transformed.split(placeholder).join(exprPlaceholders[i]);
+    }
+    return transformed;
   }
 }
 
@@ -112,7 +138,9 @@ export class TransformedStringExpression extends Expression<string> {
   }
 
   toCEL(): string {
-    return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
+    return this.source instanceof Expression
+      ? this.source.toCEL(this.transformer)
+      : this.transformer(this.source);
   }
 }
 

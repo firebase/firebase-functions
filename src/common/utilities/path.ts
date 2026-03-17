@@ -7,7 +7,10 @@ export function normalizePath(path: string): string {
   if (!path) {
     return "";
   }
-  return path.replace(/^\//, "").replace(/\/$/, "");
+  return path
+    .replace(/^\//, "")
+    .replace(/\/$/, "")
+    .replace(/\/{2,}/g, "/");
 }
 
 /**
