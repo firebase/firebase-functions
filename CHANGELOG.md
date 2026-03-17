@@ -1,2 +1,3 @@
 - Fix issue where v1 firestore paths would not handle literals with leading or trailing slashes (#1829)
 - transformed string exprssions (currenlty an internal tool) now propagate across interpolated strings (#1829)
+- Allow v2 auth blocking functions to use run.app or cloudfunctions.net URLs (#1831)

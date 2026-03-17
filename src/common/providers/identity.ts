@@ -900,7 +900,9 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
       } else {
         const unverified = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
         if (handler.platform === "gcfv2" && unverified.aud && unverified.aud.includes("run.app")) {
-          decodedPayload = await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
+          decodedPayload = await auth
+            .getAuth(getApp())
+            ._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
         } else {
           decodedPayload = await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt);
         }
