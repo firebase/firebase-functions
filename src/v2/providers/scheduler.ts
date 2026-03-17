@@ -201,7 +201,7 @@ export function onSchedule(
       eventType: "google.pubsub.topic.publish",
       resource: {
         service: "pubsub.googleapis.com",
-        name: `projects/${process.env.GCLOUD_PROJECT}/topics/${event.jobName}`,
+        name: `projects/${process.env.GCLOUD_PROJECT}/topics/${event.jobName || ""}`,
       },
       params: {},
     };
