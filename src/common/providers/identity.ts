@@ -894,11 +894,19 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
         );
       }
 
-      const decodedPayload: DecodedPayload = isDebugFeatureEnabled("skipTokenVerification")
-        ? unsafeDecodeAuthBlockingToken(req.body.data.jwt)
-        : handler.platform === "gcfv1"
-        ? await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt)
-        : await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
+      let decodedPayload: DecodedPayload;
+      if (isDebugFeatureEnabled("skipTokenVerification")) {
+        decodedPayload = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
+      } else {
+        const unverified = unsafeDecodeAuthBlockingToken(req.body.data.jwt);
+        if (handler.platform === "gcfv2" && unverified.aud && unverified.aud.includes("run.app")) {
+          decodedPayload = await auth
+            .getAuth(getApp())
+            ._verifyAuthBlockingToken(req.body.data.jwt, "run.app");
+        } else {
+          decodedPayload = await auth.getAuth(getApp())._verifyAuthBlockingToken(req.body.data.jwt);
+        }
+      }
       let authUserRecord: AuthUserRecord | undefined;
       if (
         decodedPayload.event_type === "beforeCreate" ||
