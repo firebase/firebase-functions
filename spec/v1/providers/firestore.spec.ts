@@ -27,6 +27,8 @@ import * as functions from "../../../src/v1";
 import * as firestore from "../../../src/v1/providers/firestore";
 import { expectType } from "../../common/metaprogramming";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
+import { expr } from "../../../src/params";
+import { StringParam } from "../../../src/params/types";
 
 describe("Firestore Functions", () => {
   function constructValue(fields: any) {
@@ -139,6 +141,15 @@ describe("Firestore Functions", () => {
       const cloudFunction = firestore.document("/users/{uid}/").onWrite(() => null);
 
       expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
+
+      const param = new StringParam("COLLECTION");
+      const paramResource =
+        "projects/project1/databases/(default)/documents/{{ params.COLLECTION }}/{id}";
+      const paramCloudFunction = firestore.document(expr`/${param}/{id}`).onWrite(() => null);
+
+      expect(paramCloudFunction.__endpoint).to.deep.equal(
+        expectedEndpoint(paramResource, "document.write")
+      );
     });
 
     it("should allow custom namespaces", () => {
