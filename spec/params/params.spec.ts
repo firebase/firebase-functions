@@ -542,5 +542,9 @@ describe("transform", () => {
     const e = transform(foo, (s) => s.toUpperCase());
     expect(e.runtimeValue()).to.equal("BAR");
     expect(e.toCEL()).to.equal("{{ params.FOO }}");
+
+    const e2 = transform(params.expr`hello ${foo}`, (s) => s.toUpperCase());
+    expect(e2.runtimeValue()).to.equal("HELLO BAR");
+    expect(e2.toCEL()).to.equal("HELLO {{ params.FOO }}");
   });
 });

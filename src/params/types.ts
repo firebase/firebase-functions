@@ -63,7 +63,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 
   /** Returns the expression's representation as a braced CEL expression. */
-  toCEL(): string {
+  toCEL(transform: (val: string) => string = a => a): string {
     return `{{ ${this.toString()} }}`;
   }
 
@@ -90,10 +90,13 @@ export class InterpolationExpression extends Expression<string> {
     }, "");
   }
 
-  toCEL(): string {
+  toCEL(transform: (val: string) => string = a => a): string {
     return this.strings.reduce((result, str, i) => {
-      const val = i < this.values.length ? celOf(this.values[i]) : "";
-      return result + str + val;
+      if (i >= this.values.length) {
+        return result + transform(str);
+      }
+      const val = this.values[i] instanceof Expression ? this.values[i].toCEL() : transform(this.values[i]);
+      return result + transform(str) + val;
     }, "");
   }
 }
@@ -112,7 +115,7 @@ export class TransformedStringExpression extends Expression<string> {
   }
 
   toCEL(): string {
-    return this.source instanceof Expression ? this.source.toCEL() : this.transformer(this.source);
+    return this.source instanceof Expression ? this.source.toCEL(this.transformer) : this.transformer(this.source);
   }
 }
 
