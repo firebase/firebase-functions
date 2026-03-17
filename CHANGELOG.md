@@ -1,1 +1,0 @@
-- Allow v2 auth blocking functions to use run.app or cloudfunctions.net URLs (#1831)
