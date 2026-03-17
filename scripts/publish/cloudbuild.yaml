@@ -38,19 +38,6 @@ steps:
         "--key=${_KEY_NAME}",
       ]
 
-  # Decrypt the hub (GitHub) credentials.
-  - name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "kms",
-        "decrypt",
-        "--ciphertext-file=hub.enc",
-        "--plaintext-file=hub",
-        "--location=global",
-        "--keyring=${_KEY_RING}",
-        "--key=${_KEY_NAME}",
-      ]
-
   # Set up git with key and domain.
   - name: "gcr.io/cloud-builders/git"
     entrypoint: "bash"
@@ -86,15 +73,11 @@ steps:
     entrypoint: "bash"
     args: ["-c", "cp -v npmrc ~/.npmrc"]
 
-  # Set up the hub credentials for package-builder.
-  - name: "gcr.io/$PROJECT_ID/package-builder"
-    entrypoint: "bash"
-    args: ["-c", "mkdir -vp ~/.config && cp -v hub ~/.config/hub"]
-
   # Publish the package.
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
     args: ["bash", "./scripts/publish.sh", "${_VERSION}"]
+    secretEnv: ["GITHUB_TOKEN"]
     env:
       - "REPOSITORY_ORG=${_REPOSITORY_ORG}"
       - "REPOSITORY_NAME=${_REPOSITORY_NAME}"
@@ -114,3 +97,8 @@ substitutions:
   _KEY_NAME: "publish"
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/firebase-functions-publishing/secrets/firebase-functions-github-pat/versions/latest
+      env: "GITHUB_TOKEN"
