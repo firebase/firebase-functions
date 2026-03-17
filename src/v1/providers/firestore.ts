@@ -22,8 +22,9 @@
 
 import * as firestore from "firebase-admin/firestore";
 
-import { CompareExpression, Expression } from "../../params/types";
+import { CompareExpression, Expression, transform } from "../../params/types";
 import { expr, projectID } from "../../params";
+import { normalizePath } from "../../common/utilities/path";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
 import {
@@ -108,6 +109,7 @@ export class NamespaceBuilder {
   ) {}
 
   document<Path extends string>(path: Path | Expression<string>) {
+    const normalized = transform(path, normalizePath);
     const triggerResource = () => {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error("process.env.GCLOUD_PROJECT is not set.");
@@ -125,7 +127,7 @@ export class NamespaceBuilder {
       } else if (this.namespace) {
         nsPart = `@${this.namespace}`;
       }
-      return expr`projects/${project}/databases/${this.database}/documents${nsPart}/${path}`;
+      return expr`projects/${project}/databases/${this.database}/documents${nsPart}/${normalized}`;
     };
     return new DocumentBuilder<Path>(triggerResource, this.options);
   }

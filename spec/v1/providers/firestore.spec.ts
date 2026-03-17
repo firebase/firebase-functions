@@ -134,6 +134,13 @@ describe("Firestore Functions", () => {
       expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
     });
 
+    it("should normalize the document path", () => {
+      const resource = "projects/project1/databases/(default)/documents/users/{uid}";
+      const cloudFunction = firestore.document("/users/{uid}/").onWrite(() => null);
+
+      expect(cloudFunction.__endpoint).to.deep.equal(expectedEndpoint(resource, "document.write"));
+    });
+
     it("should allow custom namespaces", () => {
       const resource = "projects/project1/databases/(default)/documents@v2/users/{uid}";
       const cloudFunction = firestore
