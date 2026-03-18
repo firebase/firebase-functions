@@ -40,7 +40,7 @@ export function trimParam(param: string) {
 export function tryDecodeURIComponent(uri: string): string {
   try {
     return decodeURIComponent(uri);
-  } catch (e) {
+  } catch (_e) {
     return uri;
   }
 }
