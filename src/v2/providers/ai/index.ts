@@ -214,7 +214,7 @@ export function beforeGenerateContent(
       }
       res.status(200).send(responseBody);
     } catch (err: unknown) {
-      logger.error("Error in beforeGenerateContent:", err);
+      logger.error("Unhandled error:", err);
       if (err instanceof HttpsError) {
         res.status(500).send({
           code: rpcCodeMap[err.code] || 13,
@@ -316,7 +316,7 @@ export function afterGenerateContent(
       }
       res.status(200).send(responseBody);
     } catch (err: unknown) {
-      logger.error("Error in afterGenerateContent:", err);
+      logger.error("Unhandled error:", err);
       if (err instanceof HttpsError) {
         res.status(500).send({
           code: rpcCodeMap[err.code] || 13,
