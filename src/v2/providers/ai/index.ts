@@ -185,24 +185,27 @@ export function beforeGenerateContent(
 
   let func: any = async (req: express.Request, res: express.Response) => {
     try {
-      let event: AIBlockingEvent<BeforeGenerateContentData> = req.body;
+      let event: unknown = req.body;
       if (Buffer.isBuffer(event)) {
         try {
           event = JSON.parse(event.toString("utf-8"));
-        } catch (e) {
+        } catch (e: unknown) {
+          logger.error("Invalid JSON body (Buffer):", e);
           throw new HttpsError("invalid-argument", "Invalid JSON body", e);
         }
       } else if (typeof event === "string") {
         try {
           event = JSON.parse(event);
-        } catch (e) {
+        } catch (e: unknown) {
+          logger.error("Invalid JSON body (String):", e);
           throw new HttpsError("invalid-argument", "Invalid JSON body", e);
         }
       }
-      const result = await handler(event);
+      const parsedEvent = event as AIBlockingEvent<BeforeGenerateContentData>;
+      const result = await handler(parsedEvent);
       const responseBody = result || {};
       if (typeof responseBody === "object") {
-        const api = event.data?.api;
+        const api = parsedEvent.data?.api;
         if (api === geminiV1Beta) {
           (responseBody as any)["@type"] = geminiV1BetaRequestTypeName;
         } else if (api === vertexV1Beta1) {
@@ -210,7 +213,7 @@ export function beforeGenerateContent(
         }
       }
       res.status(200).send(responseBody);
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error("Error in beforeGenerateContent:", err);
       if (err instanceof HttpsError) {
         res.status(500).send({
@@ -284,24 +287,27 @@ export function afterGenerateContent(
 
   let func: any = async (req: express.Request, res: express.Response) => {
     try {
-      let event: AIBlockingEvent<AfterGenerateContentData> = req.body;
+      let event: unknown = req.body;
       if (Buffer.isBuffer(event)) {
         try {
           event = JSON.parse(event.toString("utf-8"));
-        } catch (e) {
+        } catch (e: unknown) {
+          logger.error("Invalid JSON body (Buffer):", e);
           throw new HttpsError("invalid-argument", "Invalid JSON body", e);
         }
       } else if (typeof event === "string") {
         try {
           event = JSON.parse(event);
-        } catch (e) {
+        } catch (e: unknown) {
+          logger.error("Invalid JSON body (String):", e);
           throw new HttpsError("invalid-argument", "Invalid JSON body", e);
         }
       }
-      const result = await handler(event);
+      const parsedEvent = event as AIBlockingEvent<AfterGenerateContentData>;
+      const result = await handler(parsedEvent);
       const responseBody = result || {};
       if (typeof responseBody === "object") {
-        const api = event.data?.api;
+        const api = parsedEvent.data?.api;
         if (api === geminiV1Beta) {
           (responseBody as any)["@type"] = geminiV1BetaResponseTypeName;
         } else if (api === vertexV1Beta1) {
@@ -309,7 +315,7 @@ export function afterGenerateContent(
         }
       }
       res.status(200).send(responseBody);
-    } catch (err: any) {
+    } catch (err: unknown) {
       logger.error("Error in afterGenerateContent:", err);
       if (err instanceof HttpsError) {
         res.status(500).send({

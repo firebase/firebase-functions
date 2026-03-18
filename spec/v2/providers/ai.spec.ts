@@ -46,6 +46,13 @@ function assertJsonResponse(result: any, expectedStatus: number, expectedBody: a
   expect(result.body).to.deep.equal(expectedBody);
 }
 
+// We need to cast here because our mock type doesn't implement the full express format.
+// We should eventually get around to launching the server and just calling fetch against it.
+// tslint:disable-next-line:no-any
+function request(body: any, headers: Record<string, string> = {}): any {
+  return new MockRequest(body, headers);
+}
+
 describe("v2.ai", () => {
   describe("beforeGenerateContent (CloudEvent Structured Encoding)", () => {
     let req: any;
@@ -82,7 +89,7 @@ describe("v2.ai", () => {
 
       const result = await runHandler(
         hook,
-        new MockRequest(JSON.stringify(req.body), { "content-type": "application/json" }) as any
+        request(JSON.stringify(req.body), { "content-type": "application/json" })
       );
 
       assertJsonResponse(result, 200, {
@@ -102,7 +109,7 @@ describe("v2.ai", () => {
         return {};
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 200, {
         "@type": vertexV1Beta1RequestTypeName,
@@ -114,7 +121,7 @@ describe("v2.ai", () => {
         throw new ai.HttpsError("invalid-argument", "Missing required fields");
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 500, {
         code: 3,
@@ -127,7 +134,7 @@ describe("v2.ai", () => {
         throw new Error("Oh no!");
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 500, {
         code: 13,
@@ -140,7 +147,7 @@ describe("v2.ai", () => {
         // returning nothing
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 200, {
         "@type": geminiV1BetaRequestTypeName,
@@ -184,7 +191,7 @@ describe("v2.ai", () => {
         };
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 200, {
         candidates: [{ index: 0, content: { role: "model", parts: [{ text: "hi there!" }] } }],
@@ -203,7 +210,7 @@ describe("v2.ai", () => {
         return {};
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 200, {
         "@type": vertexV1Beta1ResponseTypeName,
@@ -215,7 +222,7 @@ describe("v2.ai", () => {
         throw new ai.HttpsError("permission-denied", "Not allowed to generate");
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 500, {
         code: 7,
@@ -228,7 +235,7 @@ describe("v2.ai", () => {
         throw new Error("Oh no!");
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 500, {
         code: 13,
@@ -241,7 +248,7 @@ describe("v2.ai", () => {
         // returning nothing
       });
 
-      const result = await runHandler(hook, new MockRequest(req.body, {}) as any);
+      const result = await runHandler(hook, request(req.body));
 
       assertJsonResponse(result, 200, {
         "@type": geminiV1BetaResponseTypeName,
