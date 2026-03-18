@@ -9,21 +9,21 @@
  * @public
  */
 export declare interface ArraySchema extends BaseSchema {
-	type: typeof SchemaType.ARRAY;
-	/** A schema describing the entries in the array. */
-	items: Schema;
-	/** The minimum number of items in the array. */
-	minItems?: number;
-	/** The maximum number of items in the array. */
-	maxItems?: number;
+  type: typeof SchemaType.ARRAY;
+  /** A schema describing the entries in the array. */
+  items: Schema;
+  /** The minimum number of items in the array. */
+  minItems?: number;
+  /** The maximum number of items in the array. */
+  maxItems?: number;
 }
 /**
  * Base parameters for a number of methods.
  * @public
  */
 export declare interface BaseParams {
-	safetySettings?: SafetySetting[];
-	generationConfig?: GenerationConfig;
+  safetySettings?: SafetySetting[];
+  generationConfig?: GenerationConfig;
 }
 /**
  * Fields common to all Schema types.
@@ -31,15 +31,15 @@ export declare interface BaseParams {
  * @internal
  */
 export declare interface BaseSchema {
-	/** Optional. Description of the value. */
-	description?: string;
-	/** If true, the value can be null. */
-	nullable?: boolean;
+  /** Optional. Description of the value. */
+  description?: string;
+  /** If true, the value can be null. */
+  nullable?: boolean;
 }
 declare enum BlockReason {
-	BLOCKED_REASON_UNSPECIFIED = "BLOCKED_REASON_UNSPECIFIED",
-	SAFETY = "SAFETY",
-	OTHER = "OTHER"
+  BLOCKED_REASON_UNSPECIFIED = "BLOCKED_REASON_UNSPECIFIED",
+  SAFETY = "SAFETY",
+  OTHER = "OTHER",
 }
 /**
  * Describes a boolean, either 'true' or 'false'.
@@ -47,24 +47,24 @@ declare enum BlockReason {
  * @public
  */
 export declare interface BooleanSchema extends BaseSchema {
-	type: typeof SchemaType.BOOLEAN;
+  type: typeof SchemaType.BOOLEAN;
 }
 /**
  * Citation metadata that may be found on a {@link GenerateContentCandidate}.
  * @public
  */
 export declare interface CitationMetadata {
-	citationSources: CitationSource[];
+  citationSources: CitationSource[];
 }
 /**
  * A single citation source.
  * @public
  */
 export declare interface CitationSource {
-	startIndex?: number;
-	endIndex?: number;
-	uri?: string;
-	license?: string;
+  startIndex?: number;
+  endIndex?: number;
+  uri?: string;
+  license?: string;
 }
 /**
  * Result of executing the `ExecutableCode`.
@@ -73,66 +73,66 @@ export declare interface CitationSource {
  * @public
  */
 export declare interface CodeExecutionResult {
-	/**
-	 * Outcome of the code execution.
-	 */
-	outcome: Outcome;
-	/**
-	 * Contains stdout when code execution is successful, stderr or other
-	 * description otherwise.
-	 */
-	output: string;
+  /**
+   * Outcome of the code execution.
+   */
+  outcome: Outcome;
+  /**
+   * Contains stdout when code execution is successful, stderr or other
+   * description otherwise.
+   */
+  output: string;
 }
 /**
  * Content part containing the result of executed code.
  * @public
  */
 export declare interface CodeExecutionResultPart {
-	text?: never;
-	inlineData?: never;
-	functionCall?: never;
-	functionResponse?: never;
-	fileData?: never;
-	executableCode?: never;
-	codeExecutionResult: CodeExecutionResult;
+  text?: never;
+  inlineData?: never;
+  functionCall?: never;
+  functionResponse?: never;
+  fileData?: never;
+  executableCode?: never;
+  codeExecutionResult: CodeExecutionResult;
 }
 /**
  * Enables the model to execute code as part of generation.
  * @public
  */
 export declare interface CodeExecutionTool {
-	/**
-	 * Provide an empty object to enable code execution. This field may have
-	 * subfields added in the future.
-	 */
-	codeExecution: {};
+  /**
+   * Provide an empty object to enable code execution. This field may have
+   * subfields added in the future.
+   */
+  codeExecution: {};
 }
 /**
  * Content type for both prompts and response candidates.
  * @public
  */
 export declare interface Content {
-	role: string;
-	parts: Part[];
+  role: string;
+  parts: Part[];
 }
 /**
  * Specifies the dynamic retrieval configuration for the given source.
  * @public
  */
 export declare interface DynamicRetrievalConfig {
-	/**
-	 * The mode of the predictor to be used in dynamic retrieval.
-	 */
-	mode?: DynamicRetrievalMode;
-	/**
-	 * The threshold to be used in dynamic retrieval. If not set, a system default
-	 * value is used.
-	 */
-	dynamicThreshold?: number;
+  /**
+   * The mode of the predictor to be used in dynamic retrieval.
+   */
+  mode?: DynamicRetrievalMode;
+  /**
+   * The threshold to be used in dynamic retrieval. If not set, a system default
+   * value is used.
+   */
+  dynamicThreshold?: number;
 }
 declare enum DynamicRetrievalMode {
-	MODE_UNSPECIFIED = "MODE_UNSPECIFIED",
-	MODE_DYNAMIC = "MODE_DYNAMIC"
+  MODE_UNSPECIFIED = "MODE_UNSPECIFIED",
+  MODE_DYNAMIC = "MODE_DYNAMIC",
 }
 /**
  * Describes a string enum
@@ -140,10 +140,10 @@ declare enum DynamicRetrievalMode {
  * @public
  */
 export declare interface EnumStringSchema extends BaseSchema {
-	type: typeof SchemaType.STRING;
-	format: "enum";
-	/** Possible values for this enum */
-	enum: string[];
+  type: typeof SchemaType.STRING;
+  format: "enum";
+  /** Possible values for this enum */
+  enum: string[];
 }
 /**
  * Code generated by the model that is meant to be executed, where the result
@@ -155,65 +155,65 @@ export declare interface EnumStringSchema extends BaseSchema {
  * @public
  */
 export declare interface ExecutableCode {
-	/**
-	 * Programming language of the `code`.
-	 */
-	language: ExecutableCodeLanguage;
-	/**
-	 * The code to be executed.
-	 */
-	code: string;
+  /**
+   * Programming language of the `code`.
+   */
+  language: ExecutableCodeLanguage;
+  /**
+   * The code to be executed.
+   */
+  code: string;
 }
 declare enum ExecutableCodeLanguage {
-	LANGUAGE_UNSPECIFIED = "language_unspecified",
-	PYTHON = "python"
+  LANGUAGE_UNSPECIFIED = "language_unspecified",
+  PYTHON = "python",
 }
 /**
  * Content part containing executable code generated by the model.
  * @public
  */
 export declare interface ExecutableCodePart {
-	text?: never;
-	inlineData?: never;
-	functionCall?: never;
-	functionResponse?: never;
-	fileData?: never;
-	executableCode: ExecutableCode;
-	codeExecutionResult?: never;
+  text?: never;
+  inlineData?: never;
+  functionCall?: never;
+  functionResponse?: never;
+  fileData?: never;
+  executableCode: ExecutableCode;
+  codeExecutionResult?: never;
 }
 /**
  * Data pointing to a file uploaded with the Files API.
  * @public
  */
 export declare interface FileData {
-	mimeType: string;
-	fileUri: string;
+  mimeType: string;
+  fileUri: string;
 }
 /**
  * Content part interface if the part represents FileData.
  * @public
  */
 export declare interface FileDataPart {
-	text?: never;
-	inlineData?: never;
-	functionCall?: never;
-	functionResponse?: never;
-	fileData: FileData;
-	executableCode?: never;
-	codeExecutionResult?: never;
+  text?: never;
+  inlineData?: never;
+  functionCall?: never;
+  functionResponse?: never;
+  fileData: FileData;
+  executableCode?: never;
+  codeExecutionResult?: never;
 }
 declare enum FinishReason {
-	FINISH_REASON_UNSPECIFIED = "FINISH_REASON_UNSPECIFIED",
-	STOP = "STOP",
-	MAX_TOKENS = "MAX_TOKENS",
-	SAFETY = "SAFETY",
-	RECITATION = "RECITATION",
-	LANGUAGE = "LANGUAGE",
-	BLOCKLIST = "BLOCKLIST",
-	PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-	SPII = "SPII",
-	MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
-	OTHER = "OTHER"
+  FINISH_REASON_UNSPECIFIED = "FINISH_REASON_UNSPECIFIED",
+  STOP = "STOP",
+  MAX_TOKENS = "MAX_TOKENS",
+  SAFETY = "SAFETY",
+  RECITATION = "RECITATION",
+  LANGUAGE = "LANGUAGE",
+  BLOCKLIST = "BLOCKLIST",
+  PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
+  SPII = "SPII",
+  MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
+  OTHER = "OTHER",
 }
 /**
  * A predicted [FunctionCall] returned from the model
@@ -222,34 +222,34 @@ declare enum FinishReason {
  * @public
  */
 export declare interface FunctionCall {
-	name: string;
-	args: object;
+  name: string;
+  args: object;
 }
 /**
  * @public
  */
 export declare interface FunctionCallingConfig {
-	mode?: FunctionCallingMode;
-	allowedFunctionNames?: string[];
+  mode?: FunctionCallingMode;
+  allowedFunctionNames?: string[];
 }
 declare enum FunctionCallingMode {
-	MODE_UNSPECIFIED = "MODE_UNSPECIFIED",
-	AUTO = "AUTO",
-	ANY = "ANY",
-	NONE = "NONE"
+  MODE_UNSPECIFIED = "MODE_UNSPECIFIED",
+  AUTO = "AUTO",
+  ANY = "ANY",
+  NONE = "NONE",
 }
 /**
  * Content part interface if the part represents a FunctionCall.
  * @public
  */
 export declare interface FunctionCallPart {
-	text?: never;
-	inlineData?: never;
-	functionCall: FunctionCall;
-	functionResponse?: never;
-	fileData?: never;
-	executableCode?: never;
-	codeExecutionResult?: never;
+  text?: never;
+  inlineData?: never;
+  functionCall: FunctionCall;
+  functionResponse?: never;
+  fileData?: never;
+  executableCode?: never;
+  codeExecutionResult?: never;
 }
 /**
  * Structured representation of a function declaration as defined by the
@@ -260,54 +260,54 @@ export declare interface FunctionCallPart {
  * @public
  */
 export declare interface FunctionDeclaration {
-	/**
-	 * The name of the function to call. Must start with a letter or an
-	 * underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with
-	 * a max length of 64.
-	 */
-	name: string;
-	/**
-	 * Optional. Description and purpose of the function. Model uses it to decide
-	 * how and whether to call the function.
-	 */
-	description?: string;
-	/**
-	 * Optional. Describes the parameters to this function in JSON Schema Object
-	 * format. Reflects the Open API 3.03 Parameter Object. string Key: the name
-	 * of the parameter. Parameter names are case sensitive. Schema Value: the
-	 * Schema defining the type used for the parameter. For function with no
-	 * parameters, this can be left unset.
-	 *
-	 * @example with 1 required and 1 optional parameter: type: OBJECT properties:
-	 * ```
-	 * param1:
-	 *
-	 *   type: STRING
-	 * param2:
-	 *
-	 *  type: INTEGER
-	 * required:
-	 *
-	 *   - param1
-	 * ```
-	 */
-	parameters?: FunctionDeclarationSchema;
+  /**
+   * The name of the function to call. Must start with a letter or an
+   * underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with
+   * a max length of 64.
+   */
+  name: string;
+  /**
+   * Optional. Description and purpose of the function. Model uses it to decide
+   * how and whether to call the function.
+   */
+  description?: string;
+  /**
+   * Optional. Describes the parameters to this function in JSON Schema Object
+   * format. Reflects the Open API 3.03 Parameter Object. string Key: the name
+   * of the parameter. Parameter names are case sensitive. Schema Value: the
+   * Schema defining the type used for the parameter. For function with no
+   * parameters, this can be left unset.
+   *
+   * @example with 1 required and 1 optional parameter: type: OBJECT properties:
+   * ```
+   * param1:
+   *
+   *   type: STRING
+   * param2:
+   *
+   *  type: INTEGER
+   * required:
+   *
+   *   - param1
+   * ```
+   */
+  parameters?: FunctionDeclarationSchema;
 }
 /**
  * Schema for parameters passed to {@link FunctionDeclaration.parameters}.
  * @public
  */
 export declare interface FunctionDeclarationSchema {
-	/** The type of the parameter. */
-	type: SchemaType;
-	/** The format of the parameter. */
-	properties: {
-		[k: string]: FunctionDeclarationSchemaProperty;
-	};
-	/** Optional. Description of the parameter. */
-	description?: string;
-	/** Optional. Array of required parameters. */
-	required?: string[];
+  /** The type of the parameter. */
+  type: SchemaType;
+  /** The format of the parameter. */
+  properties: {
+    [k: string]: FunctionDeclarationSchemaProperty;
+  };
+  /** Optional. Description of the parameter. */
+  description?: string;
+  /** Optional. Array of required parameters. */
+  required?: string[];
 }
 /**
  * Schema for top-level function declaration
@@ -321,17 +321,17 @@ export declare type FunctionDeclarationSchemaProperty = Schema;
  * @public
  */
 export declare interface FunctionDeclarationsTool {
-	/**
-	 * Optional. One or more function declarations
-	 * to be passed to the model along with the current user query. Model may
-	 * decide to call a subset of these functions by populating
-	 * [FunctionCall][content.part.functionCall] in the response. User should
-	 * provide a [FunctionResponse][content.part.functionResponse] for each
-	 * function call in the next turn. Based on the function responses, Model will
-	 * generate the final response back to the user. Maximum 64 function
-	 * declarations can be provided.
-	 */
-	functionDeclarations?: FunctionDeclaration[];
+  /**
+   * Optional. One or more function declarations
+   * to be passed to the model along with the current user query. Model may
+   * decide to call a subset of these functions by populating
+   * [FunctionCall][content.part.functionCall] in the response. User should
+   * provide a [FunctionResponse][content.part.functionResponse] for each
+   * function call in the next turn. Based on the function responses, Model will
+   * generate the final response back to the user. Maximum 64 function
+   * declarations can be provided.
+   */
+  functionDeclarations?: FunctionDeclaration[];
 }
 /**
  * The result output from a [FunctionCall] that contains a string
@@ -343,53 +343,53 @@ export declare interface FunctionDeclarationsTool {
  * @public
  */
 export declare interface FunctionResponse {
-	name: string;
-	response: object;
+  name: string;
+  response: object;
 }
 /**
  * Content part interface if the part represents FunctionResponse.
  * @public
  */
 export declare interface FunctionResponsePart {
-	text?: never;
-	inlineData?: never;
-	functionCall?: never;
-	functionResponse: FunctionResponse;
-	fileData?: never;
-	executableCode?: never;
-	codeExecutionResult?: never;
+  text?: never;
+  inlineData?: never;
+  functionCall?: never;
+  functionResponse: FunctionResponse;
+  fileData?: never;
+  executableCode?: never;
+  codeExecutionResult?: never;
 }
 /**
  * A candidate returned as part of a {@link GenerateContentResponse}.
  * @public
  */
 export declare interface GenerateContentCandidate {
-	index: number;
-	content: Content;
-	finishReason?: FinishReason;
-	finishMessage?: string;
-	safetyRatings?: SafetyRating[];
-	citationMetadata?: CitationMetadata;
-	/** Average log probability score of the candidate. */
-	avgLogprobs?: number;
-	/** Log-likelihood scores for the response tokens and top tokens. */
-	logprobsResult?: LogprobsResult;
-	/** Search grounding metadata. */
-	groundingMetadata?: GroundingMetadata;
+  index: number;
+  content: Content;
+  finishReason?: FinishReason;
+  finishMessage?: string;
+  safetyRatings?: SafetyRating[];
+  citationMetadata?: CitationMetadata;
+  /** Average log probability score of the candidate. */
+  avgLogprobs?: number;
+  /** Log-likelihood scores for the response tokens and top tokens. */
+  logprobsResult?: LogprobsResult;
+  /** Search grounding metadata. */
+  groundingMetadata?: GroundingMetadata;
 }
 /**
  * Request sent to `generateContent` endpoint.
  * @public
  */
 export declare interface GenerateContentRequest extends BaseParams {
-	contents: Content[];
-	tools?: Tool[];
-	toolConfig?: ToolConfig;
-	systemInstruction?: string | Part | Content;
-	/**
-	 * This is the name of a `CachedContent` and not the cache object itself.
-	 */
-	cachedContent?: string;
+  contents: Content[];
+  tools?: Tool[];
+  toolConfig?: ToolConfig;
+  systemInstruction?: string | Part | Content;
+  /**
+   * This is the name of a `CachedContent` and not the cache object itself.
+   */
+  cachedContent?: string;
 }
 /**
  * Individual response from {@link GenerativeModel.generateContent} and
@@ -399,205 +399,205 @@ export declare interface GenerateContentRequest extends BaseParams {
  * @public
  */
 export declare interface GenerateContentResponse {
-	/** Candidate responses from the model. */
-	candidates?: GenerateContentCandidate[];
-	/** The prompt's feedback related to the content filters. */
-	promptFeedback?: PromptFeedback;
-	/** Metadata on the generation request's token usage. */
-	usageMetadata?: UsageMetadata;
+  /** Candidate responses from the model. */
+  candidates?: GenerateContentCandidate[];
+  /** The prompt's feedback related to the content filters. */
+  promptFeedback?: PromptFeedback;
+  /** Metadata on the generation request's token usage. */
+  usageMetadata?: UsageMetadata;
 }
 /**
  * Config options for content-related requests
  * @public
  */
 export declare interface GenerationConfig {
-	candidateCount?: number;
-	stopSequences?: string[];
-	maxOutputTokens?: number;
-	temperature?: number;
-	topP?: number;
-	topK?: number;
-	/**
-	 * Output response mimetype of the generated candidate text.
-	 * Supported mimetype:
-	 *   `text/plain`: (default) Text output.
-	 *   `application/json`: JSON response in the candidates.
-	 */
-	responseMimeType?: string;
-	/**
-	 * Output response schema of the generated candidate text.
-	 * Note: This only applies when the specified `responseMIMEType` supports a schema; currently
-	 * this is limited to `application/json`.
-	 */
-	responseSchema?: ResponseSchema;
-	/**
-	 * Presence penalty applied to the next token's logprobs if the token has
-	 * already been seen in the response.
-	 */
-	presencePenalty?: number;
-	/**
-	 * Frequency penalty applied to the next token's logprobs, multiplied by the
-	 * number of times each token has been seen in the respponse so far.
-	 */
-	frequencyPenalty?: number;
-	/**
-	 * If True, export the logprobs results in response.
-	 */
-	responseLogprobs?: boolean;
-	/**
-	 * Valid if responseLogProbs is set to True. This will set the number of top
-	 * logprobs to return at each decoding step in the logprobsResult.
-	 */
-	logprobs?: number;
+  candidateCount?: number;
+  stopSequences?: string[];
+  maxOutputTokens?: number;
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+  /**
+   * Output response mimetype of the generated candidate text.
+   * Supported mimetype:
+   *   `text/plain`: (default) Text output.
+   *   `application/json`: JSON response in the candidates.
+   */
+  responseMimeType?: string;
+  /**
+   * Output response schema of the generated candidate text.
+   * Note: This only applies when the specified `responseMIMEType` supports a schema; currently
+   * this is limited to `application/json`.
+   */
+  responseSchema?: ResponseSchema;
+  /**
+   * Presence penalty applied to the next token's logprobs if the token has
+   * already been seen in the response.
+   */
+  presencePenalty?: number;
+  /**
+   * Frequency penalty applied to the next token's logprobs, multiplied by the
+   * number of times each token has been seen in the respponse so far.
+   */
+  frequencyPenalty?: number;
+  /**
+   * If True, export the logprobs results in response.
+   */
+  responseLogprobs?: boolean;
+  /**
+   * Valid if responseLogProbs is set to True. This will set the number of top
+   * logprobs to return at each decoding step in the logprobsResult.
+   */
+  logprobs?: number;
 }
 /**
  * Interface for sending an image.
  * @public
  */
 export declare interface GenerativeContentBlob {
-	mimeType: string;
-	/**
-	 * Image as a base64 string.
-	 */
-	data: string;
+  mimeType: string;
+  /**
+   * Image as a base64 string.
+   */
+  data: string;
 }
 /**
  * Retrieval tool that is powered by Google search.
  * @public
  */
 export declare interface GoogleSearchRetrieval {
-	/**
-	 * Specifies the dynamic retrieval configuration for the given source.
-	 */
-	dynamicRetrievalConfig?: DynamicRetrievalConfig;
+  /**
+   * Specifies the dynamic retrieval configuration for the given source.
+   */
+  dynamicRetrievalConfig?: DynamicRetrievalConfig;
 }
 /**
  * Retrieval tool that is powered by Google search.
  * @public
  */
 export declare interface GoogleSearchRetrievalTool {
-	/**
-	 * Google search retrieval tool config.
-	 */
-	googleSearchRetrieval?: GoogleSearchRetrieval;
+  /**
+   * Google search retrieval tool config.
+   */
+  googleSearchRetrieval?: GoogleSearchRetrieval;
 }
 /**
  * Grounding chunk.
  * @public
  */
 export declare interface GroundingChunk {
-	/**
-	 *  Chunk from the web.
-	 */
-	web?: GroundingChunkWeb;
+  /**
+   *  Chunk from the web.
+   */
+  web?: GroundingChunkWeb;
 }
 /**
  * Chunk from the web.
  * @public
  */
 export declare interface GroundingChunkWeb {
-	/**
-	 * URI reference of the chunk.
-	 */
-	uri?: string;
-	/**
-	 * Title of the chunk.
-	 */
-	title?: string;
+  /**
+   * URI reference of the chunk.
+   */
+  uri?: string;
+  /**
+   * Title of the chunk.
+   */
+  title?: string;
 }
 /**
  * Metadata returned to client when grounding is enabled.
  * @public
  */
 export declare interface GroundingMetadata {
-	/**
-	 * Google search entry for the following-up web searches.
-	 */
-	searchEntryPoint?: SearchEntryPoint;
-	/**
-	 * List of supporting references retrieved from specified grounding source.
-	 */
-	groundingChunks?: GroundingChunk[];
-	/**
-	 * List of grounding support.
-	 */
-	groundingSupports?: GroundingSupport[];
-	/**
-	 * Metadata related to retrieval in the grounding flow.
-	 */
-	retrievalMetadata?: RetrievalMetadata;
-	/**
-	 * * Web search queries for the following-up web search.
-	 */
-	webSearchQueries: string[];
+  /**
+   * Google search entry for the following-up web searches.
+   */
+  searchEntryPoint?: SearchEntryPoint;
+  /**
+   * List of supporting references retrieved from specified grounding source.
+   */
+  groundingChunks?: GroundingChunk[];
+  /**
+   * List of grounding support.
+   */
+  groundingSupports?: GroundingSupport[];
+  /**
+   * Metadata related to retrieval in the grounding flow.
+   */
+  retrievalMetadata?: RetrievalMetadata;
+  /**
+   * * Web search queries for the following-up web search.
+   */
+  webSearchQueries: string[];
 }
 /**
  * Grounding support.
  * @public
  */
 export declare interface GroundingSupport {
-	/**
-	 * URI reference of the chunk.
-	 */
-	segment?: string;
-	/**
-	 * A list of indices (into 'grounding_chunk') specifying the citations
-	 * associated with the claim. For instance [1,3,4] means that
-	 * grounding_chunk[1], grounding_chunk[3], grounding_chunk[4] are the
-	 * retrieved content attributed to the claim.
-	 */
-	groundingChunckIndices?: number[];
-	/**
-	 * Confidence score of the support references. Ranges from 0 to 1. 1 is the
-	 * most confident. This list must have the same size as the
-	 * grounding_chunk_indices.
-	 */
-	confidenceScores?: number[];
+  /**
+   * URI reference of the chunk.
+   */
+  segment?: string;
+  /**
+   * A list of indices (into 'grounding_chunk') specifying the citations
+   * associated with the claim. For instance [1,3,4] means that
+   * grounding_chunk[1], grounding_chunk[3], grounding_chunk[4] are the
+   * retrieved content attributed to the claim.
+   */
+  groundingChunckIndices?: number[];
+  /**
+   * Confidence score of the support references. Ranges from 0 to 1. 1 is the
+   * most confident. This list must have the same size as the
+   * grounding_chunk_indices.
+   */
+  confidenceScores?: number[];
 }
 declare enum HarmBlockThreshold {
-	/** Threshold is unspecified. */
-	HARM_BLOCK_THRESHOLD_UNSPECIFIED = "HARM_BLOCK_THRESHOLD_UNSPECIFIED",
-	/** Content with NEGLIGIBLE will be allowed. */
-	BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-	/** Content with NEGLIGIBLE and LOW will be allowed. */
-	BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-	/** Content with NEGLIGIBLE, LOW, and MEDIUM will be allowed. */
-	BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
-	/** All content will be allowed. */
-	BLOCK_NONE = "BLOCK_NONE"
+  /** Threshold is unspecified. */
+  HARM_BLOCK_THRESHOLD_UNSPECIFIED = "HARM_BLOCK_THRESHOLD_UNSPECIFIED",
+  /** Content with NEGLIGIBLE will be allowed. */
+  BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
+  /** Content with NEGLIGIBLE and LOW will be allowed. */
+  BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
+  /** Content with NEGLIGIBLE, LOW, and MEDIUM will be allowed. */
+  BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
+  /** All content will be allowed. */
+  BLOCK_NONE = "BLOCK_NONE",
 }
 declare enum HarmCategory {
-	HARM_CATEGORY_UNSPECIFIED = "HARM_CATEGORY_UNSPECIFIED",
-	HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
-	HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-	HARM_CATEGORY_HARASSMENT = "HARM_CATEGORY_HARASSMENT",
-	HARM_CATEGORY_DANGEROUS_CONTENT = "HARM_CATEGORY_DANGEROUS_CONTENT",
-	HARM_CATEGORY_CIVIC_INTEGRITY = "HARM_CATEGORY_CIVIC_INTEGRITY"
+  HARM_CATEGORY_UNSPECIFIED = "HARM_CATEGORY_UNSPECIFIED",
+  HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
+  HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+  HARM_CATEGORY_HARASSMENT = "HARM_CATEGORY_HARASSMENT",
+  HARM_CATEGORY_DANGEROUS_CONTENT = "HARM_CATEGORY_DANGEROUS_CONTENT",
+  HARM_CATEGORY_CIVIC_INTEGRITY = "HARM_CATEGORY_CIVIC_INTEGRITY",
 }
 declare enum HarmProbability {
-	/** Probability is unspecified. */
-	HARM_PROBABILITY_UNSPECIFIED = "HARM_PROBABILITY_UNSPECIFIED",
-	/** Content has a negligible chance of being unsafe. */
-	NEGLIGIBLE = "NEGLIGIBLE",
-	/** Content has a low chance of being unsafe. */
-	LOW = "LOW",
-	/** Content has a medium chance of being unsafe. */
-	MEDIUM = "MEDIUM",
-	/** Content has a high chance of being unsafe. */
-	HIGH = "HIGH"
+  /** Probability is unspecified. */
+  HARM_PROBABILITY_UNSPECIFIED = "HARM_PROBABILITY_UNSPECIFIED",
+  /** Content has a negligible chance of being unsafe. */
+  NEGLIGIBLE = "NEGLIGIBLE",
+  /** Content has a low chance of being unsafe. */
+  LOW = "LOW",
+  /** Content has a medium chance of being unsafe. */
+  MEDIUM = "MEDIUM",
+  /** Content has a high chance of being unsafe. */
+  HIGH = "HIGH",
 }
 /**
  * Content part interface if the part represents an image.
  * @public
  */
 export declare interface InlineDataPart {
-	text?: never;
-	inlineData: GenerativeContentBlob;
-	functionCall?: never;
-	functionResponse?: never;
-	fileData?: never;
-	executableCode?: never;
-	codeExecutionResult?: never;
+  text?: never;
+  inlineData: GenerativeContentBlob;
+  functionCall?: never;
+  functionResponse?: never;
+  fileData?: never;
+  executableCode?: never;
+  codeExecutionResult?: never;
 }
 /**
  * Describes a JSON-encodable integer.
@@ -605,34 +605,34 @@ export declare interface InlineDataPart {
  * @public
  */
 export declare interface IntegerSchema extends BaseSchema {
-	type: typeof SchemaType.INTEGER;
-	/** Optional. The format of the number. */
-	format?: "int32" | "int64";
+  type: typeof SchemaType.INTEGER;
+  /** Optional. The format of the number. */
+  format?: "int32" | "int64";
 }
 /**
  * Candidate for the logprobs token and score.
  * @public
  */
 export declare interface LogprobsCandidate {
-	/** The candidate's token string value. */
-	token: string;
-	/** The candidate's token id value. */
-	tokenID: number;
-	/** The candidate's log probability. */
-	logProbability: number;
+  /** The candidate's token string value. */
+  token: string;
+  /** The candidate's token id value. */
+  tokenID: number;
+  /** The candidate's log probability. */
+  logProbability: number;
 }
 /**
  * Logprobs Result
  * @public
  */
 export declare interface LogprobsResult {
-	/** Length = total number of decoding steps. */
-	topCandidates: TopCandidates[];
-	/**
-	 * Length = total number of decoding steps.
-	 * The chosen candidates may or may not be in topCandidates.
-	 */
-	chosenCandidates: LogprobsCandidate[];
+  /** Length = total number of decoding steps. */
+  topCandidates: TopCandidates[];
+  /**
+   * Length = total number of decoding steps.
+   * The chosen candidates may or may not be in topCandidates.
+   */
+  chosenCandidates: LogprobsCandidate[];
 }
 /**
  * Describes a JSON-encodable floating point number.
@@ -640,9 +640,9 @@ export declare interface LogprobsResult {
  * @public
  */
 export declare interface NumberSchema extends BaseSchema {
-	type: typeof SchemaType.NUMBER;
-	/** Optional. The format of the number. */
-	format?: "float" | "double";
+  type: typeof SchemaType.NUMBER;
+  /** Optional. The format of the number. */
+  format?: "float" | "double";
 }
 /**
  * Describes a JSON object, a mapping of specific keys to values.
@@ -650,51 +650,58 @@ export declare interface NumberSchema extends BaseSchema {
  * @public
  */
 export declare interface ObjectSchema extends BaseSchema {
-	type: typeof SchemaType.OBJECT;
-	/** Describes the properties of the JSON object. Must not be empty. */
-	properties: {
-		[k: string]: Schema;
-	};
-	/**
-	 * A list of keys declared in the properties object.
-	 * Required properties will always be present in the generated object.
-	 */
-	required?: string[];
+  type: typeof SchemaType.OBJECT;
+  /** Describes the properties of the JSON object. Must not be empty. */
+  properties: {
+    [k: string]: Schema;
+  };
+  /**
+   * A list of keys declared in the properties object.
+   * Required properties will always be present in the generated object.
+   */
+  required?: string[];
 }
 declare enum Outcome {
-	/**
-	 * Unspecified status. This value should not be used.
-	 */
-	OUTCOME_UNSPECIFIED = "outcome_unspecified",
-	/**
-	 * Code execution completed successfully.
-	 */
-	OUTCOME_OK = "outcome_ok",
-	/**
-	 * Code execution finished but with a failure. `stderr` should contain the
-	 * reason.
-	 */
-	OUTCOME_FAILED = "outcome_failed",
-	/**
-	 * Code execution ran for too long, and was cancelled. There may or may not
-	 * be a partial output present.
-	 */
-	OUTCOME_DEADLINE_EXCEEDED = "outcome_deadline_exceeded"
+  /**
+   * Unspecified status. This value should not be used.
+   */
+  OUTCOME_UNSPECIFIED = "outcome_unspecified",
+  /**
+   * Code execution completed successfully.
+   */
+  OUTCOME_OK = "outcome_ok",
+  /**
+   * Code execution finished but with a failure. `stderr` should contain the
+   * reason.
+   */
+  OUTCOME_FAILED = "outcome_failed",
+  /**
+   * Code execution ran for too long, and was cancelled. There may or may not
+   * be a partial output present.
+   */
+  OUTCOME_DEADLINE_EXCEEDED = "outcome_deadline_exceeded",
 }
 /**
  * Content part - includes text or image part types.
  * @public
  */
-export declare type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
+export declare type Part =
+  | TextPart
+  | InlineDataPart
+  | FunctionCallPart
+  | FunctionResponsePart
+  | FileDataPart
+  | ExecutableCodePart
+  | CodeExecutionResultPart;
 /**
  * If the prompt was blocked, this will be populated with `blockReason` and
  * the relevant `safetyRatings`.
  * @public
  */
 export declare interface PromptFeedback {
-	blockReason: BlockReason;
-	safetyRatings: SafetyRating[];
-	blockReasonMessage?: string;
+  blockReason: BlockReason;
+  safetyRatings: SafetyRating[];
+  blockReasonMessage?: string;
 }
 /**
  * Schema passed to `GenerationConfig.responseSchema`
@@ -706,30 +713,30 @@ export declare type ResponseSchema = Schema;
  * @public
  */
 export declare interface RetrievalMetadata {
-	/**
-	 * Score indicating how likely information from google search could help
-	 * answer the prompt. The score is in the range [0, 1], where 0 is the least
-	 * likely and 1 is the most likely. This score is only populated when google
-	 * search grounding and dynamic retrieval is enabled. It will becompared to
-	 * the threshold to determine whether to trigger google search.
-	 */
-	googleSearchDynamicRetrievalScore?: number;
+  /**
+   * Score indicating how likely information from google search could help
+   * answer the prompt. The score is in the range [0, 1], where 0 is the least
+   * likely and 1 is the most likely. This score is only populated when google
+   * search grounding and dynamic retrieval is enabled. It will becompared to
+   * the threshold to determine whether to trigger google search.
+   */
+  googleSearchDynamicRetrievalScore?: number;
 }
 /**
  * A safety rating associated with a {@link GenerateContentCandidate}
  * @public
  */
 export declare interface SafetyRating {
-	category: HarmCategory;
-	probability: HarmProbability;
+  category: HarmCategory;
+  probability: HarmProbability;
 }
 /**
  * Safety setting that can be sent as part of request parameters.
  * @public
  */
 export declare interface SafetySetting {
-	category: HarmCategory;
-	threshold: HarmBlockThreshold;
+  category: HarmCategory;
+  threshold: HarmBlockThreshold;
 }
 /**
  * Schema is used to define the format of input/output data.
@@ -737,34 +744,40 @@ export declare interface SafetySetting {
  * More fields may be added in the future as needed.
  * @public
  */
-export declare type Schema = StringSchema | NumberSchema | IntegerSchema | BooleanSchema | ArraySchema | ObjectSchema;
+export declare type Schema =
+  | StringSchema
+  | NumberSchema
+  | IntegerSchema
+  | BooleanSchema
+  | ArraySchema
+  | ObjectSchema;
 declare enum SchemaType {
-	/** String type. */
-	STRING = "string",
-	/** Number type. */
-	NUMBER = "number",
-	/** Integer type. */
-	INTEGER = "integer",
-	/** Boolean type. */
-	BOOLEAN = "boolean",
-	/** Array type. */
-	ARRAY = "array",
-	/** Object type. */
-	OBJECT = "object"
+  /** String type. */
+  STRING = "string",
+  /** Number type. */
+  NUMBER = "number",
+  /** Integer type. */
+  INTEGER = "integer",
+  /** Boolean type. */
+  BOOLEAN = "boolean",
+  /** Array type. */
+  ARRAY = "array",
+  /** Object type. */
+  OBJECT = "object",
 }
 /**
  * Google search entry point.
  * @public
  */
 export declare interface SearchEntryPoint {
-	/**
-	 * Web content snippet that can be embedded in a web page or an app webview.
-	 */
-	renderedContent?: string;
-	/**
-	 * Base64 encoded JSON representing array of <search term, search url> tuple.
-	 */
-	sdkBlob?: string;
+  /**
+   * Web content snippet that can be embedded in a web page or an app webview.
+   */
+  renderedContent?: string;
+  /**
+   * Base64 encoded JSON representing array of <search term, search url> tuple.
+   */
+  sdkBlob?: string;
 }
 /**
  * Describes a simple string schema, with or without format
@@ -772,9 +785,9 @@ export declare interface SearchEntryPoint {
  * @public
  */
 export declare interface SimpleStringSchema extends BaseSchema {
-	type: typeof SchemaType.STRING;
-	format?: "date-time" | undefined;
-	enum?: never;
+  type: typeof SchemaType.STRING;
+  format?: "date-time" | undefined;
+  enum?: never;
 }
 /**
  * Describes a string.
@@ -787,13 +800,13 @@ export declare type StringSchema = SimpleStringSchema | EnumStringSchema;
  * @public
  */
 export declare interface TextPart {
-	text: string;
-	inlineData?: never;
-	functionCall?: never;
-	functionResponse?: never;
-	fileData?: never;
-	executableCode?: never;
-	codeExecutionResult?: never;
+  text: string;
+  inlineData?: never;
+  functionCall?: never;
+  functionResponse?: never;
+  fileData?: never;
+  executableCode?: never;
+  codeExecutionResult?: never;
 }
 /**
  * Defines a tool that model can call to access external knowledge.
@@ -805,28 +818,31 @@ export declare type Tool = FunctionDeclarationsTool | CodeExecutionTool | Google
  * @public
  */
 export declare interface ToolConfig {
-	functionCallingConfig: FunctionCallingConfig;
+  functionCallingConfig: FunctionCallingConfig;
 }
 /**
  * Candidates with top log probabilities at each decoding step
  */
 export declare interface TopCandidates {
-	/** Sorted by log probability in descending order. */
-	candidates: LogprobsCandidate[];
+  /** Sorted by log probability in descending order. */
+  candidates: LogprobsCandidate[];
 }
 /**
  * Metadata on the generation request's token usage.
  * @public
  */
 export declare interface UsageMetadata {
-	/** Number of tokens in the prompt. */
-	promptTokenCount: number;
-	/** Total number of tokens across the generated candidates. */
-	candidatesTokenCount: number;
-	/** Total token count for the generation request (prompt + candidates). */
-	totalTokenCount: number;
-	/** Total token count in the cached part of the prompt, i.e. in the cached content. */
-	cachedContentTokenCount?: number;
+  /** Number of tokens in the prompt. */
+  promptTokenCount: number;
+  /** Total number of tokens across the generated candidates. */
+  candidatesTokenCount: number;
+  /** Total token count for the generation request (prompt + candidates). */
+  totalTokenCount: number;
+  /** Total token count in the cached part of the prompt, i.e. in the cached content. */
+  cachedContentTokenCount?: number;
 }
 
-export {};
+export const requestTypeName =
+  "type.googleapis.com/google.ai.generativelanguage.v1beta.GenerateContentRequest";
+export const responseTypeName =
+  "type.googleapis.com/google.ai.generativelanguage.v1beta.GenerateContentResponse";

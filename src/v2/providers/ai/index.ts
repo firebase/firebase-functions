@@ -62,12 +62,16 @@ export const rpcCodeMap: Record<FunctionsErrorCode, number> = {
 
 import {
   GenerateContentRequest as VertexV1Beta1GenerateContentRequest,
-  GenerateContentResponse as VertexV1Beta1GenerateContentResponse
+  GenerateContentResponse as VertexV1Beta1GenerateContentResponse,
+  requestTypeName as vertexV1Beta1RequestTypeName,
+  responseTypeName as vertexV1Beta1ResponseTypeName,
 } from "./types/vertex/v1beta1";
 
 import {
   GenerateContentRequest as GeminiV1BetaGenerateContentRequest,
-  GenerateContentResponse as GeminiV1BetaGenerateContentResponse
+  GenerateContentResponse as GeminiV1BetaGenerateContentResponse,
+  requestTypeName as geminiV1BetaRequestTypeName,
+  responseTypeName as geminiV1BetaResponseTypeName,
 } from "./types/gemini/v1beta";
 
 export {
@@ -89,24 +93,32 @@ export type AuthType = "app_user" | "unauthenticated" | "unknown";
 export const beforeGenerateEventType = "google.firebase.ailogic.v1.beforeGenerate";
 export const afterGenerateEventType = "google.firebase.ailogic.v1.afterGenerate";
 
-export type AnyValidAIRequest = GeminiV1BetaGenerateContentRequest | VertexV1Beta1GenerateContentRequest;
-export type AnyValidAIResponse = GeminiV1BetaGenerateContentResponse | VertexV1Beta1GenerateContentResponse;
+export type AnyValidAIRequest =
+  | GeminiV1BetaGenerateContentRequest
+  | VertexV1Beta1GenerateContentRequest;
+export type AnyValidAIResponse =
+  | GeminiV1BetaGenerateContentResponse
+  | VertexV1Beta1GenerateContentResponse;
 
 export const geminiV1Beta = "google.ai.generativelanguage.v1beta";
 export const vertexV1Beta1 = "google.cloud.aiplatform.v1beta1";
 export type SupportedAPI = typeof geminiV1Beta | typeof vertexV1Beta1;
 
-export type AIRequest<API> = 
-  string extends API ? AnyValidAIRequest :
-  API extends typeof geminiV1Beta ? GeminiV1BetaGenerateContentRequest :
-  API extends typeof vertexV1Beta1 ? VertexV1Beta1GenerateContentRequest :
-  never;
+export type AIRequest<API> = string extends API
+  ? AnyValidAIRequest
+  : API extends typeof geminiV1Beta
+  ? GeminiV1BetaGenerateContentRequest
+  : API extends typeof vertexV1Beta1
+  ? VertexV1Beta1GenerateContentRequest
+  : never;
 
-export type AIResponse<API> = 
-  string extends API ? AnyValidAIResponse :
-  API extends typeof geminiV1Beta ? GeminiV1BetaGenerateContentResponse :
-  API extends typeof vertexV1Beta1 ? VertexV1Beta1GenerateContentResponse :
-  never;
+export type AIResponse<API> = string extends API
+  ? AnyValidAIResponse
+  : API extends typeof geminiV1Beta
+  ? GeminiV1BetaGenerateContentResponse
+  : API extends typeof vertexV1Beta1
+  ? VertexV1Beta1GenerateContentResponse
+  : never;
 
 export interface BeforeGenerateContentData<API extends string = string> {
   model: string;
@@ -115,14 +127,15 @@ export interface BeforeGenerateContentData<API extends string = string> {
   request: AIRequest<API>;
 }
 
-export interface AfterGenerateContentData<API extends string = string> extends BeforeGenerateContentData<API> {
+export interface AfterGenerateContentData<API extends string = string>
+  extends BeforeGenerateContentData<API> {
   response: AIResponse<API>;
 }
 
 export interface AIBlockingEvent<T = any> extends CloudEvent<T> {
   authType: AuthType;
   authId?: string;
-  authClaims?: any; 
+  authClaims?: any;
   resourceName?: string;
   appId?: string;
   displayName?: string;
@@ -135,20 +148,32 @@ type MaybeAsync<T> = T | Promise<T>;
 export type BlockingFunction = HttpsFunction;
 
 export function beforeGenerateContent(
-  callback: (event: AIBlockingEvent<BeforeGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIRequest>>
+  callback: (
+    event: AIBlockingEvent<BeforeGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
 ): BlockingFunction;
 
 export function beforeGenerateContent(
   options: WebhookOptions,
-  callback: (event: AIBlockingEvent<BeforeGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIRequest>>
+  callback: (
+    event: AIBlockingEvent<BeforeGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
 ): BlockingFunction;
 
 export function beforeGenerateContent(
-  optsOrCb: WebhookOptions | ((event: AIBlockingEvent<BeforeGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
-  cb?: (event: AIBlockingEvent<BeforeGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIRequest>>
+  optsOrCb:
+    | WebhookOptions
+    | ((
+        event: AIBlockingEvent<BeforeGenerateContentData>
+      ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
+  cb?: (
+    event: AIBlockingEvent<BeforeGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
 ): BlockingFunction {
   let opts: WebhookOptions;
-  let handler: (event: AIBlockingEvent<BeforeGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIRequest>>;
+  let handler: (
+    event: AIBlockingEvent<BeforeGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>;
 
   if (arguments.length === 1) {
     opts = {};
@@ -160,24 +185,42 @@ export function beforeGenerateContent(
 
   let func: any = async (req: express.Request, res: express.Response) => {
     try {
-      const event: AIBlockingEvent<BeforeGenerateContentData> = req.body;
-      const result = await handler(event);
-      if (result !== undefined && result !== null) {
-        res.status(200).send(result);
-      } else {
-        res.status(200).send({});
+      let event: AIBlockingEvent<BeforeGenerateContentData> = req.body;
+      if (Buffer.isBuffer(event)) {
+        try {
+          event = JSON.parse(event.toString("utf-8"));
+        } catch (e) {
+          throw new HttpsError("invalid-argument", "Invalid JSON body", e);
+        }
+      } else if (typeof event === "string") {
+        try {
+          event = JSON.parse(event);
+        } catch (e) {
+          throw new HttpsError("invalid-argument", "Invalid JSON body", e);
+        }
       }
+      const result = await handler(event);
+      const responseBody = result || {};
+      if (typeof responseBody === "object") {
+        const api = event.data?.api;
+        if (api === geminiV1Beta) {
+          (responseBody as any)["@type"] = geminiV1BetaRequestTypeName;
+        } else if (api === vertexV1Beta1) {
+          (responseBody as any)["@type"] = vertexV1Beta1RequestTypeName;
+        }
+      }
+      res.status(200).send(responseBody);
     } catch (err: any) {
       logger.error("Error in beforeGenerateContent:", err);
       if (err instanceof HttpsError) {
         res.status(500).send({
           code: rpcCodeMap[err.code] || 13,
-          message: err.message
+          message: err.message,
         });
       } else {
         res.status(500).send({
           code: 13,
-          message: "Internal error."
+          message: "Internal error.",
         });
       }
     }
@@ -204,20 +247,32 @@ export function beforeGenerateContent(
 }
 
 export function afterGenerateContent(
-  callback: (event: AIBlockingEvent<AfterGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIResponse>>
+  callback: (
+    event: AIBlockingEvent<AfterGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
 ): BlockingFunction;
 
 export function afterGenerateContent(
   options: WebhookOptions,
-  callback: (event: AIBlockingEvent<AfterGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIResponse>>
+  callback: (
+    event: AIBlockingEvent<AfterGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
 ): BlockingFunction;
 
 export function afterGenerateContent(
-  optsOrCb: WebhookOptions | ((event: AIBlockingEvent<AfterGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
-  cb?: (event: AIBlockingEvent<AfterGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIResponse>>
+  optsOrCb:
+    | WebhookOptions
+    | ((
+        event: AIBlockingEvent<AfterGenerateContentData>
+      ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
+  cb?: (
+    event: AIBlockingEvent<AfterGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
 ): BlockingFunction {
   let opts: WebhookOptions;
-  let handler: (event: AIBlockingEvent<AfterGenerateContentData>) => MaybeAsync<void | Partial<AnyValidAIResponse>>;
+  let handler: (
+    event: AIBlockingEvent<AfterGenerateContentData>
+  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>;
 
   if (arguments.length === 1) {
     opts = {};
@@ -229,24 +284,42 @@ export function afterGenerateContent(
 
   let func: any = async (req: express.Request, res: express.Response) => {
     try {
-      const event: AIBlockingEvent<AfterGenerateContentData> = req.body;
-      const result = await handler(event);
-      if (result !== undefined && result !== null) {
-        res.status(200).send(result);
-      } else {
-        res.status(200).send({});
+      let event: AIBlockingEvent<AfterGenerateContentData> = req.body;
+      if (Buffer.isBuffer(event)) {
+        try {
+          event = JSON.parse(event.toString("utf-8"));
+        } catch (e) {
+          throw new HttpsError("invalid-argument", "Invalid JSON body", e);
+        }
+      } else if (typeof event === "string") {
+        try {
+          event = JSON.parse(event);
+        } catch (e) {
+          throw new HttpsError("invalid-argument", "Invalid JSON body", e);
+        }
       }
+      const result = await handler(event);
+      const responseBody = result || {};
+      if (typeof responseBody === "object") {
+        const api = event.data?.api;
+        if (api === geminiV1Beta) {
+          (responseBody as any)["@type"] = geminiV1BetaResponseTypeName;
+        } else if (api === vertexV1Beta1) {
+          (responseBody as any)["@type"] = vertexV1Beta1ResponseTypeName;
+        }
+      }
+      res.status(200).send(responseBody);
     } catch (err: any) {
       logger.error("Error in afterGenerateContent:", err);
       if (err instanceof HttpsError) {
         res.status(500).send({
           code: rpcCodeMap[err.code] || 13,
-          message: err.message
+          message: err.message,
         });
       } else {
         res.status(500).send({
           code: 13,
-          message: "Internal error."
+          message: "Internal error.",
         });
       }
     }
