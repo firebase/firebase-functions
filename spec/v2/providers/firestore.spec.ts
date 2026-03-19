@@ -1188,6 +1188,33 @@ describe("firestore", () => {
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
     });
+
+    it("should provide v1 compat properties", () => {
+      const func = firestore.onOperation(
+        firestore.deletedEventType, 
+        "foo/{bar}",
+        (event) => {
+          expect(event.snapshot.data()).to.deep.eq({ hello: "delete world" });
+          expect(event.context).to.deep.eq({
+            eventId: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
+            timestamp: "2023-03-10T18:20:43.677647Z",
+            eventType: "providers/cloud.firestore/eventTypes/document.delete",
+            resource: {
+              service: "firestore.googleapis.com",
+              name: "projects/my-project/databases/my-db/documents/foo/fGRodw71mHutZ4wGDuT8",
+            },
+            params: { bar: "fGRodw71mHutZ4wGDuT8" },
+            authType: undefined,
+            authId: undefined,
+          });
+        }
+      );
+
+      const rawEvent: firestore.RawFirestoreEvent = makeEvent(makeEncodedProtobuf(deletedProto));
+      rawEvent.type = firestore.deletedEventType;
+      rawEvent.subject = "documents/foo/fGRodw71mHutZ4wGDuT8";
+      return func(rawEvent as any);
+    });
   });
 
   describe("onChangedOperation", () => {
@@ -1281,6 +1308,34 @@ describe("firestore", () => {
 
       expect(func.run(true as any)).to.eq(2);
       expect(func.__endpoint).to.deep.eq(expectedEp);
+    });
+
+    it("should provide v1 compat properties", () => {
+      const func = firestore.onChangedOperation(
+        firestore.updatedEventType, 
+        "foo/{bar}",
+        (event) => {
+          expect(event.change.after.data()).to.deep.eq({ hello: "new world" });
+          expect(event.change.before.data()).to.deep.eq({ hello: "old world" });
+          expect(event.context).to.deep.eq({
+            eventId: "379ad868-5ef9-4c84-a8ba-f75f1b056663",
+            timestamp: "2023-03-10T18:20:43.677647Z",
+            eventType: "providers/cloud.firestore/eventTypes/document.update",
+            resource: {
+              service: "firestore.googleapis.com",
+              name: "projects/my-project/databases/my-db/documents/foo/fGRodw71mHutZ4wGDuT8",
+            },
+            params: { bar: "fGRodw71mHutZ4wGDuT8" },
+            authType: undefined,
+            authId: undefined,
+          });
+        }
+      );
+
+      const rawEvent: firestore.RawFirestoreEvent = makeEvent(makeEncodedProtobuf(updatedProto));
+      rawEvent.type = firestore.updatedEventType;
+      rawEvent.subject = "documents/foo/fGRodw71mHutZ4wGDuT8";
+      return func(rawEvent as any);
     });
   });
 });
