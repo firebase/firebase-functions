@@ -330,6 +330,41 @@ describe("v2/storage", () => {
       await storage.onObjectArchived("bucket", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    describe("v1-compatible getters", () => {
+      it("should provide v1-compatible getters on the event object", async () => {
+        let capturedEvent: any;
+        const func = storage.onObjectArchived("bucket", (e) => {
+          capturedEvent = e;
+        });
+
+        const raw = {
+          specversion: "1.0",
+          id: "id",
+          source: "//storage.googleapis.com/projects/_/buckets/bucket",
+          subject: "file.txt",
+          bucket: "bucket",
+          type: storage.archivedEvent,
+          time: "now",
+          data: { name: "file.txt", bucket: "bucket", generation: "123" },
+        };
+
+        await func(raw as any);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "id",
+          timestamp: "now",
+          eventType: "google.storage.object.archive",
+          resource: {
+            service: "storage.googleapis.com",
+            name: "projects/_/buckets/bucket/objects/file.txt#123",
+          },
+          params: {},
+        });
+
+        expect(capturedEvent.object).to.deep.equal({ name: "file.txt", bucket: "bucket", generation: "123" });
+      });
+    });
   });
 
   describe("onObjectFinalized", () => {
