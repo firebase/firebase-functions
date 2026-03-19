@@ -48,10 +48,12 @@ describe("onTaskDispatched", () => {
   beforeEach(() => {
     options.setGlobalOptions({});
     process.env.GCLOUD_PROJECT = "aProject";
+    process.env.FUNCTIONS_EMULATOR = "true";
   });
 
   afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
+    delete process.env.FUNCTIONS_EMULATOR;
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
