@@ -218,6 +218,9 @@ export function onDispatchHandler<Req = any>(
           ...context,
           data,
         };
+        Object.defineProperty(arg, "context", {
+          get: () => context,
+        });
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
         await (handler as v2TaskHandler<Req>)(arg);
