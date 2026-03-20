@@ -321,7 +321,9 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: any) => any | Promise<any>
+  handler: (
+    event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
+  ) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
