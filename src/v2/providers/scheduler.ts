@@ -207,7 +207,7 @@ export function onSchedule(
       params: {},
     };
     Object.defineProperty(event, "context", {
-        get: () => v1Context,
+      get: () => v1Context,
     });
 
     try {
