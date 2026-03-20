@@ -362,7 +362,11 @@ describe("v2/storage", () => {
           params: {},
         });
 
-        expect(capturedEvent.object).to.deep.equal({ name: "file.txt", bucket: "bucket", generation: "123" });
+        expect(capturedEvent.object).to.deep.equal({
+          name: "file.txt",
+          bucket: "bucket",
+          generation: "123",
+        });
       });
     });
   });

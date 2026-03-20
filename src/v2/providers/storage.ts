@@ -191,8 +191,6 @@ export interface StorageEvent extends CloudEvent<StorageObjectData> {
   bucket: string;
 }
 
-
-
 /** @internal */
 export const archivedEvent = "google.cloud.storage.object.v1.archived";
 /** @internal */
@@ -736,8 +734,8 @@ export function onOperation(
     | string
     | Expression<string>
     | StorageOptions
-    | ((event: any) => any | Promise<any>),
-  handler: (event: any) => any | Promise<any>
+    | ((event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>),
+  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
 ): CloudFunction<StorageEvent> {
   if (typeof bucketOrOptsOrHandler === "function") {
     handler = bucketOrOptsOrHandler as (event: any) => any | Promise<any>;
@@ -748,7 +746,7 @@ export function onOperation(
 
   const func = (raw: CloudEvent<unknown>) => {
     const storageEvent = raw as StorageEvent;
-    
+
     const event = addV1Compat(storageEvent, {
       context: () => {
         // We can confidently assert this since the StorageEvent has this property
@@ -756,12 +754,13 @@ export function onOperation(
         return {
           eventId: storageEvent.id,
           timestamp: storageEvent.time,
-          eventType: {
-            [archivedEvent]: "google.storage.object.archive",
-            [finalizedEvent]: "google.storage.object.finalize",
-            [deletedEvent]: "google.storage.object.delete",
-            [metadataUpdatedEvent]: "google.storage.object.metadataUpdate",
-          }[eventType] || eventType,
+          eventType:
+            {
+              [archivedEvent]: "google.storage.object.archive",
+              [finalizedEvent]: "google.storage.object.finalize",
+              [deletedEvent]: "google.storage.object.delete",
+              [metadataUpdatedEvent]: "google.storage.object.metadataUpdate",
+            }[eventType] || eventType,
           resource: {
             service: "storage.googleapis.com",
             name: `projects/_/buckets/${bucketName}/objects/${storageEvent.data.name}#${storageEvent.data.generation}`,
@@ -771,8 +770,8 @@ export function onOperation(
       },
       object: () => storageEvent.data,
     });
-    
-    return wrapTraceContext(withInit(handler))(event as StorageEvent);
+
+    return wrapTraceContext(withInit(handler))(event);
   };
 
   func.run = handler;
