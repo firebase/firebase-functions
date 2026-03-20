@@ -531,6 +531,37 @@ function makeChangedDatabaseEvent<Params>(
   return databaseEvent;
 }
 
+function makeV1Context<T, Params>(eventType: string, databaseEvent: DatabaseEvent<T, Params>) {
+  return {
+    eventId: databaseEvent.id,
+    timestamp: databaseEvent.time,
+    eventType: {
+      [writtenEventType]: "providers/google.firebase.database/eventTypes/ref.write",
+      [createdEventType]: "providers/google.firebase.database/eventTypes/ref.create",
+      [updatedEventType]: "providers/google.firebase.database/eventTypes/ref.update",
+      [deletedEventType]: "providers/google.firebase.database/eventTypes/ref.delete",
+    }[eventType] || eventType,
+    resource: {
+      service: "firebaseio.com",
+      name: `projects/_/instances/${databaseEvent.instance}/refs/${databaseEvent.ref}`,
+    },
+    params: databaseEvent.params,
+    ...(databaseEvent.authType === "admin"
+      ? { authType: "ADMIN" as const }
+      : databaseEvent.authType === "unauthenticated"
+        ? { authType: "UNAUTHENTICATED" as const }
+        : databaseEvent.authType === "app_user"
+          ? {
+              authType: "USER" as const,
+              auth: {
+                uid: databaseEvent.authId || "", // v1 auth also had a token object but it's unavailable here
+                token: {} as any,
+              },
+            }
+          : {}),
+  };
+}
+
 /** @internal */
 export function makeEndpoint(
   eventType: string,
@@ -589,37 +620,7 @@ export function onChangedOperation<Ref extends string>(
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
 
     const compatEvent = addV1Compat(databaseEvent, {
-      context: () => {
-        return {
-          eventId: databaseEvent.id,
-          timestamp: databaseEvent.time,
-          eventType: {
-            [writtenEventType]: "providers/google.firebase.database/eventTypes/ref.write",
-            [createdEventType]: "providers/google.firebase.database/eventTypes/ref.create",
-            [updatedEventType]: "providers/google.firebase.database/eventTypes/ref.update",
-            [deletedEventType]: "providers/google.firebase.database/eventTypes/ref.delete",
-          }[eventType] || eventType,
-          resource: {
-            service: "firebaseio.com",
-            name: `projects/_/instances/${databaseEvent.instance}/refs/${databaseEvent.ref}`,
-          },
-          params: databaseEvent.params,
-          ...(databaseEvent.authType === "admin"
-            ? { authType: "ADMIN" as const }
-            : databaseEvent.authType === "unauthenticated"
-              ? { authType: "UNAUTHENTICATED" as const }
-              : databaseEvent.authType === "app_user"
-                ? {
-                    authType: "USER" as const,
-                    auth: {
-                      uid: databaseEvent.authId || "",
-                      // note: v1 auth also had a token object but it's unavailable here
-                      token: {} as any,
-                    },
-                  }
-                : {}),
-        };
-      },
+      context: () => makeV1Context(eventType, databaseEvent),
       change: () => databaseEvent.data,
     });
 
@@ -655,36 +656,7 @@ export function onOperation<Ref extends string>(
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
 
     const compatEvent = addV1Compat(databaseEvent, {
-      context: () => {
-        return {
-          eventId: databaseEvent.id,
-          timestamp: databaseEvent.time,
-          eventType: {
-            "google.firebase.database.ref.v1.written": "providers/google.firebase.database/eventTypes/ref.write",
-            "google.firebase.database.ref.v1.created": "providers/google.firebase.database/eventTypes/ref.create",
-            "google.firebase.database.ref.v1.updated": "providers/google.firebase.database/eventTypes/ref.update",
-            "google.firebase.database.ref.v1.deleted": "providers/google.firebase.database/eventTypes/ref.delete",
-          }[eventType] || eventType,
-          resource: {
-            service: "firebaseio.com",
-            name: `projects/_/instances/${databaseEvent.instance}/refs/${databaseEvent.ref}`,
-          },
-          params: databaseEvent.params,
-          ...(databaseEvent.authType === "admin"
-            ? { authType: "ADMIN" as const }
-            : databaseEvent.authType === "unauthenticated"
-              ? { authType: "UNAUTHENTICATED" as const }
-              : databaseEvent.authType === "app_user"
-                ? {
-                    authType: "USER" as const,
-                    auth: {
-                      uid: databaseEvent.authId || "",
-                      token: {} as any,
-                    },
-                  }
-                : {}),
-        };
-      },
+      context: () => makeV1Context(eventType, databaseEvent),
       snapshot: () => databaseEvent.data,
     });
 
