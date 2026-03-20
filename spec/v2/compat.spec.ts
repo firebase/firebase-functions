@@ -1,106 +1,92 @@
 import { expect } from "chai";
 import { CloudEvent } from "../../src/v2/core";
-import { patchV1Compat, PubSubCloudEvent } from "../../src/v2/compat";
-import { MessagePublishedData, Message } from "../../src/v2/providers/pubsub";
+import { addV1Compat } from "../../src/v2/compat";
 
-interface TestData {
-  foo: string;
-}
-
-describe("patchV1Compat", () => {
+describe("addV1Compat", () => {
   const pubsubEventType = "google.cloud.pubsub.topic.v1.messagePublished";
   const source = "//pubsub.googleapis.com/projects/aProject/topics/topic";
 
-  it("should add V1 compat properties to a Pub/Sub event", () => {
-    const messagePayload: TestData = { foo: "bar" };
-    const messageData = {
-      messageId: "uuid-123",
-      data: Buffer.from(JSON.stringify(messagePayload)).toString("base64"),
-      attributes: { attr1: "val1" },
-      orderingKey: "order1",
-      publishTime: new Date(Date.now()).toISOString(),
-    };
-    const rawEvent: CloudEvent<MessagePublishedData<TestData>> = {
+  it("should add V1 compat properties to an event via getters", () => {
+    const rawEvent: CloudEvent<any> = {
       specversion: "1.0",
       source,
       id: "event-id-456",
       type: pubsubEventType,
-      time: messageData.publishTime,
-      data: { message: new Message(messageData), subscription: "sub" },
+      time: new Date().toISOString(),
+      data: {},
     };
 
-    const patchedEvent = patchV1Compat(rawEvent);
+    let calledMessage = false;
+    let calledContext = false;
 
-    // Check types at compile time
-    const typedEvent: PubSubCloudEvent<TestData> = patchedEvent;
-
-    expect(typedEvent.context).to.deep.equal({
-      eventId: messageData.messageId,
-      timestamp: messageData.publishTime,
-      eventType: "google.pubsub.topic.publish",
-      resource: {
-        service: "pubsub.googleapis.com",
-        name: "projects/aProject/topics/topic",
+    const patchedEvent = addV1Compat(rawEvent, {
+      message: () => {
+        calledMessage = true;
+        return "v1MessageOut";
       },
-      params: {},
+      context: () => {
+        calledContext = true;
+        return "v1ContextOut";
+      },
     });
 
-    expect(typedEvent.message.data).to.equal(messageData.data);
-    expect(typedEvent.message.json).to.deep.equal(messagePayload);
-    expect(typedEvent.data.message.data).to.equal(messageData.data); // Direct access to V2 CloudEvent data structure
+    // Check we get the values
+    expect(patchedEvent.message).to.equal("v1MessageOut");
+    expect(calledMessage).to.be.true;
+
+    expect(patchedEvent.context).to.equal("v1ContextOut");
+    expect(calledContext).to.be.true;
   });
 
-  it("should be idempotent", () => {
-    const messageData = {
-      messageId: "uuid-789",
-      data: Buffer.from("test").toString("base64"),
-      publishTime: new Date(Date.now()).toISOString(),
-    };
-    const rawEvent: CloudEvent<MessagePublishedData<string>> = {
+  it("should be idempotent and not re-bind getters", () => {
+    const rawEvent: CloudEvent<any> = {
       specversion: "1.0",
       source,
       id: "event-id-101",
       type: pubsubEventType,
-      time: messageData.publishTime,
-      data: { message: new Message(messageData), subscription: "sub" },
+      time: new Date().toISOString(),
+      data: {},
     };
 
-    const patchedOnce = patchV1Compat(rawEvent);
-    const patchedTwice = patchV1Compat(patchedOnce);
+    const patchedOnce = addV1Compat(rawEvent, {
+      foo: () => "bar",
+    });
+
+    // Attempting to patch again with new getters should just return the already-patched object
+    const patchedTwice = addV1Compat(patchedOnce, {
+      foo: () => "baz",
+      other: () => "thing",
+    });
 
     expect(patchedTwice).to.equal(patchedOnce); // Expect the same object reference due to idempotency
-    expect(patchedTwice.context.eventId).to.equal(messageData.messageId);
+    expect(patchedTwice.foo).to.equal("bar"); // Keeps the old getter
+    expect(patchedTwice.other).to.be.undefined;
   });
 
-  it("should not modify event for unsupported types", () => {
-    const rawEvent: CloudEvent<{ some: string }> = {
-      specversion: "1.0",
-      source: "//some.other.service",
-      id: "event-id-112",
-      type: "google.some.other.event.v1.happened",
-      time: new Date().toISOString(),
-      data: { some: "data" },
-    };
-
-    const patchedEvent = patchV1Compat(rawEvent);
-
-    expect(patchedEvent).to.equal(rawEvent);
-    expect(patchedEvent).to.not.have.property("context");
-    expect(patchedEvent).to.not.have.property("message");
-  });
-
-  it("should throw error for malformed Pub/Sub events", () => {
+  it("should memoize getters and call them auto once", () => {
     const rawEvent: CloudEvent<any> = {
       specversion: "1.0",
       source,
-      id: "event-id-malformed",
+      id: "event-id-789",
       type: pubsubEventType,
       time: new Date().toISOString(),
-      data: {}, // Missing message
+      data: {},
     };
 
-    expect(() => patchV1Compat(rawEvent)).to.throw(
-      "Malformed Pub/Sub event: missing 'message' property."
-    );
+    let callCount = 0;
+    const patchedEvent = addV1Compat(rawEvent, {
+      memoized: () => {
+        callCount++;
+        return `value-${callCount}`;
+      },
+    });
+
+    expect(callCount).to.equal(0); // Lazy evaluation
+
+    expect(patchedEvent.memoized).to.equal("value-1");
+    expect(callCount).to.equal(1);
+
+    expect(patchedEvent.memoized).to.equal("value-1"); // Memoized
+    expect(callCount).to.equal(1);
   });
 });

@@ -34,7 +34,7 @@ import { Expression } from "../../params";
 import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
-import { patchV1Compat, PubSubCloudEvent } from "../compat";
+import { addV1Compat, V1Compat } from "../compat";
 
 /**
  * Google Cloud Pub/Sub is a globally distributed message bus that automatically scales as you need it.
@@ -273,8 +273,21 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
-): CloudFunction<PubSubCloudEvent<T>>;
+  handler: (
+    event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
+  ) => any | Promise<any>
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param topic - The Pub/Sub topic to watch for message events.
+ * @param handler - runs every time a Cloud Pub/Sub message is published
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
+export function onMessagePublished<T = any>(
+  topic: string,
+  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -284,8 +297,21 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
-): CloudFunction<PubSubCloudEvent<T>>;
+  handler: (
+    event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
+  ) => any | Promise<any>
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
+
+/**
+ * Handle a message being published to a Pub/Sub topic.
+ * @param options - Option containing information (topic) for event
+ * @param handler - runs every time a Cloud Pub/Sub message is published
+ * @typeParam T - Type representing `Message.data`'s JSON format
+ */
+export function onMessagePublished<T = any>(
+  options: PubSubOptions,
+  handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
+): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 /**
  * Handle a message being published to a Pub/Sub topic.
@@ -295,8 +321,10 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   topicOrOptions: string | PubSubOptions,
-  handler: (event: PubSubCloudEvent<T>) => any | Promise<any>
-): CloudFunction<PubSubCloudEvent<T>> {
+  handler: (
+    event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
+  ) => any | Promise<any>
+): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
@@ -309,8 +337,55 @@ export function onMessagePublished<T = any>(
   }
 
   const func = (raw: CloudEvent<unknown>) => {
-    const event = patchV1Compat(raw);
-    return wrapTraceContext(withInit(handler))(event as PubSubCloudEvent<T>);
+    const pubsubEvent = raw as CloudEvent<MessagePublishedData<T>>;
+    const pubsubData = pubsubEvent.data;
+
+    let v2Message: Message<T>;
+    if (pubsubData && pubsubData.message) {
+      v2Message =
+        pubsubData.message instanceof Message
+          ? pubsubData.message
+          : new Message<T>(pubsubData.message);
+    } else {
+      throw new Error("Malformed Pub/Sub event: missing 'message' property.");
+    }
+
+    const event = addV1Compat(pubsubEvent, {
+      context: () => {
+        const service = "pubsub.googleapis.com";
+        const sourcePrefix = `//${service}/`;
+        return {
+          eventId: v2Message.messageId,
+          timestamp: v2Message.publishTime,
+          eventType: "google.pubsub.topic.publish",
+          resource: {
+            service,
+            name: raw.source?.startsWith(sourcePrefix)
+              ? raw.source.substring(sourcePrefix.length)
+              : raw.source || "",
+          },
+          params: {},
+        };
+      },
+      message: () => {
+        const baseV1Message = {
+          data: v2Message.data,
+          messageId: v2Message.messageId,
+          publishTime: v2Message.publishTime,
+          attributes: v2Message.attributes,
+          ...(v2Message.orderingKey && { orderingKey: v2Message.orderingKey }),
+        };
+        return {
+          ...baseV1Message,
+          get json() {
+            return v2Message.json;
+          },
+          toJSON: () => baseV1Message,
+        };
+      },
+    });
+
+    return wrapTraceContext(withInit(handler))(event);
   };
 
   func.run = handler;
