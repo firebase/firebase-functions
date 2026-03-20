@@ -580,16 +580,16 @@ function makeV1Context<T, Params>(eventType: string, databaseEvent: DatabaseEven
     ...(databaseEvent.authType === "admin"
       ? { authType: "ADMIN" as const }
       : databaseEvent.authType === "unauthenticated"
-        ? { authType: "UNAUTHENTICATED" as const }
-        : databaseEvent.authType === "app_user"
-          ? {
-            authType: "USER" as const,
-            auth: {
-              uid: databaseEvent.authId || "", // v1 auth also had a token object but it's unavailable here
-              token: {} as any,
-            },
-          }
-          : {}),
+      ? { authType: "UNAUTHENTICATED" as const }
+      : databaseEvent.authType === "app_user"
+      ? {
+          authType: "USER" as const,
+          auth: {
+            uid: databaseEvent.authId || "", // v1 auth also had a token object but it's unavailable here
+            token: {} as any,
+          },
+        }
+      : {}),
   };
 }
 
