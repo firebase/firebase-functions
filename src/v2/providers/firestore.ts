@@ -222,7 +222,7 @@ export function onDocumentWritten<Document extends string>(
       V1Compat<"change", Change<DocumentSnapshot>>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>> {
-  return onChangedOperation(writtenEventType, documentOrOpts, handler as any) as any;
+  return onChangedOperation(writtenEventType, documentOrOpts, handler);
 }
 
 /**
@@ -297,7 +297,7 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
       V1Compat<"change", Change<DocumentSnapshot>>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, ParamsOf<Document>>> {
-  return onChangedOperation(writtenEventWithAuthContextType, documentOrOpts, handler as any) as any;
+  return onChangedOperation(writtenEventWithAuthContextType, documentOrOpts, handler);
 }
 
 /**
@@ -367,7 +367,7 @@ export function onDocumentCreated<Document extends string>(
       V1Compat<"snapshot", QueryDocumentSnapshot>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
-  return onOperation(createdEventType, documentOrOpts, handler as any) as any;
+  return onOperation(createdEventType, documentOrOpts, handler);
 }
 
 /**
@@ -441,7 +441,7 @@ export function onDocumentCreatedWithAuthContext<Document extends string>(
       V1Compat<"snapshot", QueryDocumentSnapshot>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
-  return onOperation(createdEventWithAuthContextType, documentOrOpts, handler as any) as any;
+  return onOperation(createdEventWithAuthContextType, documentOrOpts, handler);
 }
 
 /**
@@ -511,7 +511,7 @@ export function onDocumentUpdated<Document extends string>(
       V1Compat<"change", Change<QueryDocumentSnapshot>>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>> {
-  return onChangedOperation(updatedEventType, documentOrOpts, handler as any) as any;
+  return onChangedOperation(updatedEventType, documentOrOpts, handler);
 }
 
 /**
@@ -587,7 +587,7 @@ export function onDocumentUpdatedWithAuthContext<Document extends string>(
 ): CloudFunction<
   FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
 > {
-  return onChangedOperation(updatedEventWithAuthContextType, documentOrOpts, handler as any) as any;
+  return onChangedOperation(updatedEventWithAuthContextType, documentOrOpts, handler);
 }
 
 /**
@@ -657,7 +657,7 @@ export function onDocumentDeleted<Document extends string>(
       V1Compat<"snapshot", QueryDocumentSnapshot>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
-  return onOperation(deletedEventType, documentOrOpts, handler as any) as any;
+  return onOperation(deletedEventType, documentOrOpts, handler);
 }
 
 /**
@@ -731,7 +731,7 @@ export function onDocumentDeletedWithAuthContext<Document extends string>(
       V1Compat<"snapshot", QueryDocumentSnapshot>
   ) => any | Promise<any>
 ): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>> {
-  return onOperation(deletedEventWithAuthContextType, documentOrOpts, handler as any) as any;
+  return onOperation(deletedEventWithAuthContextType, documentOrOpts, handler);
 }
 
 /** @internal */
@@ -933,19 +933,49 @@ export function makeEndpoint(
 }
 
 /** @internal */
+export function onOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>> &
+      V1Compat<"snapshot", QueryDocumentSnapshot>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+
+export function onOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+
+export function onOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>> &
+      V1Compat<"snapshot", QueryDocumentSnapshot>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+
+export function onOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>>;
+
 export function onOperation<
   Document extends string,
   Event extends
     | FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
-    | FirestoreEvent<
-        QueryDocumentSnapshot | undefined,
-        ParamsOf<Document> & V1Compat<"snapshot", QueryDocumentSnapshot>
-      >
+    | (FirestoreEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>> &
+        V1Compat<"snapshot", QueryDocumentSnapshot>)
     | FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>>
-    | FirestoreAuthEvent<
-        QueryDocumentSnapshot | undefined,
-        ParamsOf<Document> & V1Compat<"snapshot", QueryDocumentSnapshot>
-      >
+    | (FirestoreAuthEvent<QueryDocumentSnapshot | undefined, ParamsOf<Document>> &
+        V1Compat<"snapshot", QueryDocumentSnapshot>)
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -990,15 +1020,17 @@ export function onOperation<
             service: "firestore.googleapis.com",
             name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
           },
-          params: firestoreEvent.params as any,
-          authType: (firestoreEvent as any).authType,
-          authId: (firestoreEvent as any).authId,
+          params: firestoreEvent.params,
+          authType: (firestoreEvent as FirestoreAuthEvent<DocumentSnapshot, ParamsOf<Document>>)
+            .authType,
+          authId: (firestoreEvent as FirestoreAuthEvent<DocumentSnapshot, ParamsOf<Document>>)
+            .authId,
         };
       },
       snapshot: () => firestoreEvent.data,
     });
 
-    return wrapTraceContext(withInit(handler))(patchedEvent as any);
+    return wrapTraceContext(withInit(handler))(patchedEvent);
   };
 
   func.run = handler;
@@ -1009,19 +1041,49 @@ export function onOperation<
 }
 
 /** @internal */
+export function onChangedOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>> &
+      V1Compat<"change", Change<QueryDocumentSnapshot>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+
+export function onChangedOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+
+export function onChangedOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>> &
+      V1Compat<"change", Change<QueryDocumentSnapshot>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+
+export function onChangedOperation<Document extends string>(
+  eventType: string,
+  documentOrOpts: Document | DocumentOptions<Document>,
+  handler: (
+    event: FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
+  ) => any | Promise<any>
+): CloudFunction<FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>>;
+
 export function onChangedOperation<
   Document extends string,
   Event extends
     | FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
-    | FirestoreEvent<
-        Change<QueryDocumentSnapshot> | undefined,
-        ParamsOf<Document> & V1Compat<"snapshot", QueryDocumentSnapshot>
-      >
+    | (FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>> &
+        V1Compat<"change", Change<QueryDocumentSnapshot>>)
     | FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>>
-    | FirestoreAuthEvent<
-        Change<QueryDocumentSnapshot> | undefined,
-        ParamsOf<Document> & V1Compat<"snapshot", QueryDocumentSnapshot>
-      >
+    | (FirestoreAuthEvent<Change<QueryDocumentSnapshot> | undefined, ParamsOf<Document>> &
+        V1Compat<"change", Change<QueryDocumentSnapshot>>)
 >(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -1066,12 +1128,17 @@ export function onChangedOperation<
             service: "firestore.googleapis.com",
             name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
           },
-          params: firestoreEvent.params as any,
-          authType: (firestoreEvent as any).authType,
-          authId: (firestoreEvent as any).authId,
+          params: firestoreEvent.params,
+          authType: (
+            firestoreEvent as FirestoreAuthEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+          ).authType,
+          authId: (
+            firestoreEvent as FirestoreAuthEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
+          ).authId,
         };
       },
-      change: () => (firestoreEvent as any).data,
+      change: () =>
+        (firestoreEvent as FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>).data,
     });
 
     return wrapTraceContext(withInit(handler))(patchedEvent as any);
