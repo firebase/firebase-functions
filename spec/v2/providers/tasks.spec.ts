@@ -48,10 +48,12 @@ describe("onTaskDispatched", () => {
   beforeEach(() => {
     options.setGlobalOptions({});
     process.env.GCLOUD_PROJECT = "aProject";
+    process.env.FUNCTIONS_EMULATOR = "true";
   });
 
   afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
+    delete process.env.FUNCTIONS_EMULATOR;
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
@@ -320,5 +322,47 @@ describe("onTaskDispatched", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req as any);
     expect(hello).to.equal("world");
+  });
+
+  describe("v1-compatible getters", () => {
+    it("should provide v1-compatible context on the request object", async () => {
+      let capturedRequest: any;
+      const func = onTaskDispatched((req) => {
+        capturedRequest = req;
+      });
+
+      const req = new MockRequest(
+        { data: "test-data" },
+        {
+          "content-type": "application/json",
+          "x-cloudtasks-queuename": "my-queue",
+          "x-cloudtasks-taskname": "my-task",
+          "x-cloudtasks-taskretrycount": "2",
+          "x-cloudtasks-taskexecutioncount": "3",
+          "x-cloudtasks-tasketa": "2023-01-01T00:00:00Z",
+        }
+      );
+      req.method = "POST";
+
+      await runHandler(func, req as any);
+
+      expect(capturedRequest.context).to.deep.equal({
+        queueName: "my-queue",
+        id: "my-task",
+        retryCount: 2,
+        executionCount: 3,
+        scheduledTime: "2023-01-01T00:00:00Z",
+        previousResponse: undefined,
+        retryReason: undefined,
+        headers: {
+          "content-type": "application/json",
+          "x-cloudtasks-queuename": "my-queue",
+          "x-cloudtasks-taskname": "my-task",
+          "x-cloudtasks-taskretrycount": "2",
+          "x-cloudtasks-taskexecutioncount": "3",
+          "x-cloudtasks-tasketa": "2023-01-01T00:00:00Z",
+        },
+      });
+    });
   });
 });

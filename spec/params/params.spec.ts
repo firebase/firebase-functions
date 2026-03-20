@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import * as params from "../../src/params";
+import { transform } from "../../src/params/types";
 
 describe("Params spec extraction", () => {
   it("converts Expressions in the param default to strings", () => {
@@ -13,6 +14,26 @@ describe("Params spec extraction", () => {
   it("converts RegExps in string validation parameters to strings", () => {
     const foo = params.defineString("FOO", { input: { text: { validationRegex: /\d{5}/ } } });
     expect(foo.toSpec().input).to.deep.equal({ text: { validationRegex: "\\d{5}" } });
+  });
+
+  it("includes label and description for secret params", () => {
+    const secret = params.defineSecret("TEST_SECRET", {
+      label: "My Secret",
+      description: "A very secret value",
+    });
+    const spec = secret.toSpec();
+    expect(spec.name).to.equal("TEST_SECRET");
+    expect(spec.label).to.equal("My Secret");
+    expect(spec.description).to.equal("A very secret value");
+
+    const jsonSecret = params.defineJsonSecret("TEST_JSON_SECRET", {
+      label: "My JSON Secret",
+      description: "A very JSON secret value",
+    });
+    const jsonSpec = jsonSecret.toSpec();
+    expect(jsonSpec.name).to.equal("TEST_JSON_SECRET");
+    expect(jsonSpec.label).to.equal("My JSON Secret");
+    expect(jsonSpec.description).to.equal("A very JSON secret value");
   });
 });
 
@@ -435,5 +456,95 @@ describe("Params as CEL", () => {
     expect(
       cmpExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()
     ).to.equal("{{ params.A != params.B ? params.FOO : params.BAR }}");
+  });
+});
+
+describe("expr template tag", () => {
+  beforeEach(() => {
+    process.env.PROJECT = "my-project";
+    process.env.TOPIC = "my-topic";
+  });
+
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.PROJECT;
+    delete process.env.TOPIC;
+  });
+
+  it("handles no interpolation", () => {
+    const e = params.expr`literal`;
+    expect(e.runtimeValue()).to.equal("literal");
+    expect(e.toCEL()).to.equal("literal");
+  });
+
+  it("handles interpolation at the start", () => {
+    const project = params.defineString("PROJECT");
+    const e = params.expr`${project}/literal`;
+    expect(e.runtimeValue()).to.equal("my-project/literal");
+    expect(e.toCEL()).to.equal("{{ params.PROJECT }}/literal");
+  });
+
+  it("handles interpolation at the end", () => {
+    const topic = params.defineString("TOPIC");
+    const e = params.expr`literal/${topic}`;
+    expect(e.runtimeValue()).to.equal("literal/my-topic");
+    expect(e.toCEL()).to.equal("literal/{{ params.TOPIC }}");
+  });
+
+  it("handles interpolation at the start and end", () => {
+    const project = params.defineString("PROJECT");
+    const topic = params.defineString("TOPIC");
+    const e = params.expr`${project}/${topic}`;
+    expect(e.runtimeValue()).to.equal("my-project/my-topic");
+    expect(e.toCEL()).to.equal("{{ params.PROJECT }}/{{ params.TOPIC }}");
+  });
+
+  it("handles interpolation only", () => {
+    const project = params.defineString("PROJECT");
+    const e = params.expr`${project}`;
+    expect(e.runtimeValue()).to.equal("my-project");
+    expect(e.toCEL()).to.equal("{{ params.PROJECT }}");
+  });
+
+  it("handles multiple interpolations", () => {
+    const project = params.defineString("PROJECT");
+    const topic = params.defineString("TOPIC");
+    const e = params.expr`projects/${project}/topics/${topic}`;
+    expect(e.runtimeValue()).to.equal("projects/my-project/topics/my-topic");
+    expect(e.toCEL()).to.equal("projects/{{ params.PROJECT }}/topics/{{ params.TOPIC }}");
+  });
+
+  it("handles string literals in interpolation", () => {
+    const e = params.expr`literal/${"string"}/literal`;
+    expect(e.runtimeValue()).to.equal("literal/string/literal");
+    expect(e.toCEL()).to.equal("literal/string/literal");
+  });
+});
+
+describe("transform", () => {
+  beforeEach(() => {
+    process.env.FOO = "bar";
+  });
+
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.FOO;
+  });
+
+  it("transforms a string literal", () => {
+    const e = transform("foo", (s) => s.toUpperCase());
+    expect(e.runtimeValue()).to.equal("FOO");
+    expect(e.toCEL()).to.equal("FOO");
+  });
+
+  it("transforms an Expression", () => {
+    const foo = params.defineString("FOO");
+    const e = transform(foo, (s) => s.toUpperCase());
+    expect(e.runtimeValue()).to.equal("BAR");
+    expect(e.toCEL()).to.equal("{{ params.FOO }}");
+
+    const e2 = transform(params.expr`hello ${foo}`, (s) => s.toUpperCase());
+    expect(e2.runtimeValue()).to.equal("HELLO BAR");
+    expect(e2.toCEL()).to.equal("HELLO {{ params.FOO }}");
   });
 });

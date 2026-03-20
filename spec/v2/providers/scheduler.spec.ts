@@ -213,5 +213,61 @@ describe("schedule", () => {
       await runHandler(func, req as any);
       expect(hello).to.equal("world");
     });
+
+    describe("v1-compatible getters", () => {
+      beforeEach(() => {
+        process.env.GCLOUD_PROJECT = "aProject";
+      });
+
+      afterEach(() => {
+        delete process.env.GCLOUD_PROJECT;
+      });
+
+      it("should provide a v1-compatible context", async () => {
+        let capturedEvent: any;
+        const schfn = schedule.onSchedule("* * * * *", (e) => {
+          capturedEvent = e;
+        });
+
+        const req = new MockRequest(
+          {},
+          {
+            "x-cloudscheduler-jobname": "my-job",
+            "x-cloudscheduler-scheduletime": "2023-01-01T00:00:00Z",
+          }
+        );
+        req.method = "POST";
+
+        await runHandler(schfn, req as any);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "my-job",
+          timestamp: "2023-01-01T00:00:00Z",
+          eventType: "google.pubsub.topic.publish",
+          resource: {
+            service: "pubsub.googleapis.com",
+            name: `projects/aProject/topics/my-job`,
+          },
+          params: {},
+        });
+      });
+
+      it("should provide a default v1-compatible context when headers are missing", async () => {
+        let capturedEvent: any;
+        const schfn = schedule.onSchedule("* * * * *", (e) => {
+          capturedEvent = e;
+        });
+
+        const req = new MockRequest({}, {});
+        req.method = "POST";
+
+        await runHandler(schfn, req as any);
+
+        expect(capturedEvent.context.eventId).to.equal("unknown-job");
+        expect(capturedEvent.context.resource.name).to.equal(
+          "projects/aProject/topics/unknown-job"
+        );
+      });
+    });
   });
 });
