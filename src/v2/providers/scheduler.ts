@@ -195,13 +195,14 @@ export function onSchedule(
       scheduleTime: req.header("X-CloudScheduler-ScheduleTime") || new Date().toISOString(),
     };
 
+    const jobName = event.jobName || "unknown-job";
     const v1Context: EventContext = {
-      eventId: event.jobName || "",
+      eventId: jobName,
       timestamp: event.scheduleTime,
       eventType: "google.pubsub.topic.publish",
       resource: {
         service: "pubsub.googleapis.com",
-        name: `projects/${process.env.GCLOUD_PROJECT}/topics/${event.jobName || ""}`,
+        name: `projects/${process.env.GCLOUD_PROJECT}/topics/${jobName}`,
       },
       params: {},
     };

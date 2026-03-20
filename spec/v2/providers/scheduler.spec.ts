@@ -251,6 +251,23 @@ describe("schedule", () => {
           params: {},
         });
       });
+
+      it("should provide a default v1-compatible context when headers are missing", async () => {
+        let capturedEvent: any;
+        const schfn = schedule.onSchedule("* * * * *", (e) => {
+          capturedEvent = e;
+        });
+
+        const req = new MockRequest({}, {});
+        req.method = "POST";
+
+        await runHandler(schfn, req as any);
+
+        expect(capturedEvent.context.eventId).to.equal("unknown-job");
+        expect(capturedEvent.context.resource.name).to.equal(
+          "projects/aProject/topics/unknown-job"
+        );
+      });
     });
   });
 });
