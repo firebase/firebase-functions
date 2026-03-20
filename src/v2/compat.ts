@@ -6,7 +6,7 @@ export type V1Compat<DataName extends string, DataType, ContextType = V1EventCon
   [K in DataName]: DataType;
 } & {
   context: ContextType;
-}
+};
 
 const V1_COMPAT_PATCHED = Symbol.for("firebase.functions.v2.compat");
 

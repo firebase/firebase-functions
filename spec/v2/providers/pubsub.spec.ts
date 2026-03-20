@@ -208,13 +208,15 @@ describe("onMessagePublished", () => {
       type: EVENT_TRIGGER.eventType,
       time: new Date().toISOString(),
       data: {
-        message: new pubsub.Message({ data: Buffer.from(JSON.stringify({ test: "data" })).toString("base64") }) as any,
+        message: new pubsub.Message({
+          data: Buffer.from(JSON.stringify({ test: "data" })).toString("base64"),
+        }) as any,
         subscription: "sub",
       },
     };
 
     // This should compile without TS errors regarding missing 'message' or 'context'
-    const result = await func.run(vanillaV2Event) as any;
+    const result = await func.run(vanillaV2Event);
     expect(result).to.deep.equal({ test: "data" });
   });
 
