@@ -51,7 +51,7 @@ describe("addV1Compat", () => {
     const patchedOnce = addV1Compat(rawEvent, {
       foo: () => "bar",
     });
-    
+
     // Attempting to patch again with new getters should just return the already-patched object
     const patchedTwice = addV1Compat(patchedOnce, {
       foo: () => "baz",
@@ -60,7 +60,6 @@ describe("addV1Compat", () => {
 
     expect(patchedTwice).to.equal(patchedOnce); // Expect the same object reference due to idempotency
     expect(patchedTwice.foo).to.equal("bar"); // Keeps the old getter
-    expect(patchedTwice.other).to.be.undefined; 
+    expect(patchedTwice.other).to.be.undefined;
   });
 });
-

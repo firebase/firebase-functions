@@ -273,7 +273,9 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  */
 export function onMessagePublished<T = any>(
   topic: string,
-  handler: (event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>) => any | Promise<any>
+  handler: (
+    event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
+  ) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 /**
@@ -295,7 +297,9 @@ export function onMessagePublished<T = any>(
  */
 export function onMessagePublished<T = any>(
   options: PubSubOptions,
-  handler: (event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>) => any | Promise<any>
+  handler: (
+    event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
+  ) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
 /**
