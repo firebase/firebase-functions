@@ -21,6 +21,11 @@ interface PatchedEvent {
  * @param getters A map of getters to attach to the event object.
  * @returns The patched CloudEvent with V1 compatibility properties.
  */
+// N.B. The complex typing of U, Recorfd, ReturnType<T> etc basically says we're goingt
+// to have a strongly typed object where each value is a function to something.
+// Since that objectg is all the getter functions, the return type is the same object
+// shape but with what that getter returns. Types that extend types, map type defintiions,
+// and built-ins like ReturnType are a bit advanced. Sorry.
 export function addV1Compat<T extends CloudEvent<unknown>, U extends Record<string, () => any>>(
   event: T,
   getters: U

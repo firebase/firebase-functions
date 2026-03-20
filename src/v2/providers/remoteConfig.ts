@@ -25,6 +25,7 @@ import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { CloudEvent, CloudFunction } from "../core";
 import { EventHandlerOptions, getGlobalOptions, optionsToEndpoint } from "../options";
 import { wrapTraceContext } from "../trace";
+import { V1Compat, addV1Compat } from "../compat";
 
 /** @internal */
 export const eventType = "google.firebase.remoteconfig.remoteConfig.v1.updated";
@@ -94,7 +95,33 @@ export interface ConfigUpdateData {
  * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
+  handler: (
+    event: CloudEvent<ConfigUpdateData> & V1Compat<"version", ConfigUpdateData>
+  ) => any | Promise<any>
+): CloudFunction<CloudEvent<ConfigUpdateData>>;
+
+/**
+ * Event handler which triggers when data is updated in a Remote Config.
+ *
+ * @param handler - Event handler which is run every time a Remote Config update occurs.
+ * @returns A function that you can export and deploy.
+ */
+export function onConfigUpdated(
   handler: (event: CloudEvent<ConfigUpdateData>) => any | Promise<any>
+): CloudFunction<CloudEvent<ConfigUpdateData>>;
+
+/**
+ * Event handler which triggers when data is updated in a Remote Config.
+ *
+ * @param opts - Options that can be set on an individual event-handling function.
+ * @param handler - Event handler which is run every time a Remote Config update occurs.
+ * @returns A function that you can export and deploy.
+ */
+export function onConfigUpdated(
+  opts: EventHandlerOptions,
+  handler: (
+    event: CloudEvent<ConfigUpdateData> & V1Compat<"version", ConfigUpdateData>
+  ) => any | Promise<any>
 ): CloudFunction<CloudEvent<ConfigUpdateData>>;
 
 /**
@@ -117,10 +144,8 @@ export function onConfigUpdated(
  * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
-  optsOrHandler:
-    | EventHandlerOptions
-    | ((event: CloudEvent<ConfigUpdateData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<ConfigUpdateData>) => any | Promise<any>
+  optsOrHandler: EventHandlerOptions | ((event: any) => any | Promise<any>),
+  handler?: (event: any) => any | Promise<any>
 ): CloudFunction<CloudEvent<ConfigUpdateData>> {
   if (typeof optsOrHandler === "function") {
     handler = optsOrHandler as (event: CloudEvent<ConfigUpdateData>) => any | Promise<any>;
@@ -132,7 +157,24 @@ export function onConfigUpdated(
 
   const func: any = wrapTraceContext(
     withInit((raw: CloudEvent<unknown>) => {
-      return handler(raw as CloudEvent<ConfigUpdateData>);
+      const event = raw as CloudEvent<ConfigUpdateData>;
+      const patchedEvent = addV1Compat(event, {
+        context: () => {
+          return {
+            eventId: event.id,
+            timestamp: event.time,
+            eventType: "google.firebase.remoteconfig.update",
+            resource: {
+              service: "firebaseremoteconfig.googleapis.com",
+              name: event.subject || "",
+            },
+            params: {},
+          };
+        },
+        version: () => event.data,
+      });
+
+      return handler(patchedEvent as any);
     })
   );
   func.run = handler;
