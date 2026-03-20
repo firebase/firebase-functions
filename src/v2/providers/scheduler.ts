@@ -206,12 +206,14 @@ export function onSchedule(
       },
       params: {},
     };
+    // Nit: We can't actually use addV1Compat because this event does not actually implement
+    // CloudEvent. We just do the thing here.
     Object.defineProperty(event, "context", {
       get: () => v1Context,
     });
 
     try {
-      await handler(event as any);
+      await handler(event);
       res.status(200).send();
     } catch (err) {
       logger.error((err as Error).message);

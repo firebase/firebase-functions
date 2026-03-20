@@ -933,6 +933,40 @@ export function makeEndpoint(
 }
 
 /** @internal */
+export function getV1Context(event: any) {
+  return {
+    eventId: event.id,
+    timestamp: event.time,
+    eventType:
+      {
+        "google.cloud.firestore.document.v1.written":
+          "providers/cloud.firestore/eventTypes/document.write",
+        "google.cloud.firestore.document.v1.created":
+          "providers/cloud.firestore/eventTypes/document.create",
+        "google.cloud.firestore.document.v1.updated":
+          "providers/cloud.firestore/eventTypes/document.update",
+        "google.cloud.firestore.document.v1.deleted":
+          "providers/cloud.firestore/eventTypes/document.delete",
+        "google.cloud.firestore.document.v1.written.withAuthContext":
+          "providers/cloud.firestore/eventTypes/document.write",
+        "google.cloud.firestore.document.v1.created.withAuthContext":
+          "providers/cloud.firestore/eventTypes/document.create",
+        "google.cloud.firestore.document.v1.updated.withAuthContext":
+          "providers/cloud.firestore/eventTypes/document.update",
+        "google.cloud.firestore.document.v1.deleted.withAuthContext":
+          "providers/cloud.firestore/eventTypes/document.delete",
+      }[event.type as string] || event.type,
+    resource: {
+      service: "firestore.googleapis.com",
+      name: `projects/${event.project}/databases/${event.database}/documents/${event.document}`,
+    },
+    params: event.params,
+    authType: event.authType,
+    authId: event.authId,
+  };
+}
+
+/** @internal */
 export function onOperation<Document extends string>(
   eventType: string,
   documentOrOpts: Document | DocumentOptions<Document>,
@@ -993,40 +1027,7 @@ export function onOperation<
     const firestoreEvent = makeFirestoreEvent(eventType, event, params);
 
     const patchedEvent = addV1Compat(firestoreEvent, {
-      context: () => {
-        return {
-          eventId: firestoreEvent.id,
-          timestamp: firestoreEvent.time,
-          eventType:
-            {
-              "google.cloud.firestore.document.v1.written":
-                "providers/cloud.firestore/eventTypes/document.write",
-              "google.cloud.firestore.document.v1.created":
-                "providers/cloud.firestore/eventTypes/document.create",
-              "google.cloud.firestore.document.v1.updated":
-                "providers/cloud.firestore/eventTypes/document.update",
-              "google.cloud.firestore.document.v1.deleted":
-                "providers/cloud.firestore/eventTypes/document.delete",
-              "google.cloud.firestore.document.v1.written.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.write",
-              "google.cloud.firestore.document.v1.created.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.create",
-              "google.cloud.firestore.document.v1.updated.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.update",
-              "google.cloud.firestore.document.v1.deleted.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.delete",
-            }[firestoreEvent.type] || firestoreEvent.type,
-          resource: {
-            service: "firestore.googleapis.com",
-            name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
-          },
-          params: firestoreEvent.params,
-          authType: (firestoreEvent as FirestoreAuthEvent<DocumentSnapshot, ParamsOf<Document>>)
-            .authType,
-          authId: (firestoreEvent as FirestoreAuthEvent<DocumentSnapshot, ParamsOf<Document>>)
-            .authId,
-        };
-      },
+      context: () => getV1Context(firestoreEvent),
       snapshot: () => firestoreEvent.data,
     });
 
@@ -1101,42 +1102,7 @@ export function onChangedOperation<
     const firestoreEvent = makeChangedFirestoreEvent(event, params);
 
     const patchedEvent = addV1Compat(firestoreEvent, {
-      context: () => {
-        return {
-          eventId: firestoreEvent.id,
-          timestamp: firestoreEvent.time,
-          eventType:
-            {
-              "google.cloud.firestore.document.v1.written":
-                "providers/cloud.firestore/eventTypes/document.write",
-              "google.cloud.firestore.document.v1.created":
-                "providers/cloud.firestore/eventTypes/document.create",
-              "google.cloud.firestore.document.v1.updated":
-                "providers/cloud.firestore/eventTypes/document.update",
-              "google.cloud.firestore.document.v1.deleted":
-                "providers/cloud.firestore/eventTypes/document.delete",
-              "google.cloud.firestore.document.v1.written.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.write",
-              "google.cloud.firestore.document.v1.created.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.create",
-              "google.cloud.firestore.document.v1.updated.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.update",
-              "google.cloud.firestore.document.v1.deleted.withAuthContext":
-                "providers/cloud.firestore/eventTypes/document.delete",
-            }[firestoreEvent.type] || firestoreEvent.type,
-          resource: {
-            service: "firestore.googleapis.com",
-            name: `projects/${firestoreEvent.project}/databases/${firestoreEvent.database}/documents/${firestoreEvent.document}`,
-          },
-          params: firestoreEvent.params,
-          authType: (
-            firestoreEvent as FirestoreAuthEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
-          ).authType,
-          authId: (
-            firestoreEvent as FirestoreAuthEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>
-          ).authId,
-        };
-      },
+      context: () => getV1Context(firestoreEvent),
       change: () =>
         (firestoreEvent as FirestoreEvent<Change<QueryDocumentSnapshot>, ParamsOf<Document>>).data,
     });
