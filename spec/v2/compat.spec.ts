@@ -62,4 +62,31 @@ describe("addV1Compat", () => {
     expect(patchedTwice.foo).to.equal("bar"); // Keeps the old getter
     expect(patchedTwice.other).to.be.undefined;
   });
+
+  it("should memoize getters and call them auto once", () => {
+    const rawEvent: CloudEvent<any> = {
+      specversion: "1.0",
+      source,
+      id: "event-id-789",
+      type: pubsubEventType,
+      time: new Date().toISOString(),
+      data: {},
+    };
+
+    let callCount = 0;
+    const patchedEvent = addV1Compat(rawEvent, {
+      memoized: () => {
+        callCount++;
+        return `value-${callCount}`;
+      },
+    });
+
+    expect(callCount).to.equal(0); // Lazy evaluation
+
+    expect(patchedEvent.memoized).to.equal("value-1");
+    expect(callCount).to.equal(1);
+
+    expect(patchedEvent.memoized).to.equal("value-1"); // Memoized
+    expect(callCount).to.equal(1);
+  });
 });
