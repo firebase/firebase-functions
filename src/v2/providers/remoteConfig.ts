@@ -95,7 +95,9 @@ export interface ConfigUpdateData {
  * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
-  handler: (event: CloudEvent<ConfigUpdateData> & V1Compat<"version", ConfigUpdateData>) => any | Promise<any>
+  handler: (
+    event: CloudEvent<ConfigUpdateData> & V1Compat<"version", ConfigUpdateData>
+  ) => any | Promise<any>
 ): CloudFunction<CloudEvent<ConfigUpdateData>>;
 
 /**
@@ -117,7 +119,9 @@ export function onConfigUpdated(
  */
 export function onConfigUpdated(
   opts: EventHandlerOptions,
-  handler: (event: CloudEvent<ConfigUpdateData> & V1Compat<"version", ConfigUpdateData>) => any | Promise<any>
+  handler: (
+    event: CloudEvent<ConfigUpdateData> & V1Compat<"version", ConfigUpdateData>
+  ) => any | Promise<any>
 ): CloudFunction<CloudEvent<ConfigUpdateData>>;
 
 /**
@@ -140,9 +144,7 @@ export function onConfigUpdated(
  * @returns A function that you can export and deploy.
  */
 export function onConfigUpdated(
-  optsOrHandler:
-    | EventHandlerOptions
-    | ((event: any) => any | Promise<any>),
+  optsOrHandler: EventHandlerOptions | ((event: any) => any | Promise<any>),
   handler?: (event: any) => any | Promise<any>
 ): CloudFunction<CloudEvent<ConfigUpdateData>> {
   if (typeof optsOrHandler === "function") {
