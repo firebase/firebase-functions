@@ -383,7 +383,7 @@ export function onMessagePublished<T = any>(
       },
     });
 
-    return wrapTraceContext(withInit(handler))(event as CloudEvent<MessagePublishedData<T>>);
+    return wrapTraceContext(withInit(handler))(event)
   };
 
   func.run = handler;
