@@ -82,8 +82,8 @@ export {
 };
 type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
 
-export interface WebhookOptions<Regional extends boolean = false> extends Omit<EventHandlerOptions, "location"> {
-  location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
+export interface WebhookOptions<Regional extends boolean = false> extends Omit<EventHandlerOptions, "region"> {
+  region?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
   regionalWebhook?: Regional;
 }
 
