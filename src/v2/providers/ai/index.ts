@@ -82,8 +82,9 @@ export {
 };
 type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
 
-export interface WebhookOptions<Regional extends boolean = false> extends Omit<EventHandlerOptions, "region"> {
-  region?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
+export interface WebhookOptions<Regional extends boolean = false>
+  extends Omit<EventHandlerOptions, "location"> {
+  location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
   regionalWebhook?: Regional;
 }
 
@@ -167,8 +168,8 @@ export function beforeGenerateContent(
   optsOrCb:
     | WebhookOptions
     | ((
-        event: AIBlockingEvent<BeforeGenerateContentData>
-      ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
+      event: AIBlockingEvent<BeforeGenerateContentData>
+    ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
   cb?: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -274,8 +275,8 @@ export function afterGenerateContent(
   optsOrCb:
     | WebhookOptions
     | ((
-        event: AIBlockingEvent<AfterGenerateContentData>
-      ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
+      event: AIBlockingEvent<AfterGenerateContentData>
+    ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
   cb?: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
