@@ -80,8 +80,12 @@ export {
   GeminiV1BetaGenerateContentRequest,
   GeminiV1BetaGenerateContentResponse,
 };
-export interface WebhookOptions extends Omit<EventHandlerOptions, "location"> {
-  location?: string | string[] | Expression<string> | ResetValue;
+type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
+
+export interface WebhookOptions<Regional extends boolean = false>
+  extends Omit<EventHandlerOptions, "location"> {
+  location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
+  regionalWebhook?: Regional;
 }
 
 export interface PromptTemplateInfo {
@@ -153,8 +157,8 @@ export function beforeGenerateContent(
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
 ): BlockingFunction;
 
-export function beforeGenerateContent(
-  options: WebhookOptions,
+export function beforeGenerateContent<Regional extends boolean = false>(
+  options: WebhookOptions<Regional>,
   callback: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -164,8 +168,8 @@ export function beforeGenerateContent(
   optsOrCb:
     | WebhookOptions
     | ((
-        event: AIBlockingEvent<BeforeGenerateContentData>
-      ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
+      event: AIBlockingEvent<BeforeGenerateContentData>
+    ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
   cb?: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -243,7 +247,12 @@ export function beforeGenerateContent(
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    httpsTrigger: {},
+    blockingTrigger: {
+      eventType: beforeGenerateEventType,
+      options: {
+        regionalWebhook: opts.regionalWebhook,
+      },
+    },
   };
 
   return func as BlockingFunction;
@@ -255,8 +264,8 @@ export function afterGenerateContent(
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
 ): BlockingFunction;
 
-export function afterGenerateContent(
-  options: WebhookOptions,
+export function afterGenerateContent<Regional extends boolean = false>(
+  options: WebhookOptions<Regional>,
   callback: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
@@ -266,8 +275,8 @@ export function afterGenerateContent(
   optsOrCb:
     | WebhookOptions
     | ((
-        event: AIBlockingEvent<AfterGenerateContentData>
-      ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
+      event: AIBlockingEvent<AfterGenerateContentData>
+    ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
   cb?: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
@@ -345,7 +354,12 @@ export function afterGenerateContent(
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    httpsTrigger: {},
+    blockingTrigger: {
+      eventType: afterGenerateEventType,
+      options: {
+        regionalWebhook: opts.regionalWebhook,
+      },
+    },
   };
 
   return func as BlockingFunction;
