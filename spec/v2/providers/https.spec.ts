@@ -536,6 +536,27 @@ describe("onCall", () => {
     sinon.restore();
   });
 
+  it("should NOT add CORS headers if debug feature is enabled and cors has value false", async () => {
+    sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
+
+    const func = https.onCall({ cors: false }, () => 42);
+    const req = request({
+      data: {},
+      headers: {
+        origin: "example.com",
+        "content-type": "application/json",
+      },
+      method: "POST",
+    });
+
+    const response = await runHandler(func, req);
+
+    expect(response.status).to.equal(200);
+    expect(response.headers).to.not.have.property("Access-Control-Allow-Origin");
+
+    sinon.restore();
+  });
+
   it("adds CORS headers", async () => {
     const func = https.onCall(() => 42);
     const req = request({ headers: { origin: "example.com" } });
