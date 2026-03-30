@@ -259,16 +259,16 @@ describe("v2.ai", () => {
     it("should allow regional webhooks to specify multiple locations", () => {
       ai.beforeGenerateContent(
         { regionalWebhook: true, location: ["us-central1", "europe-west1"] },
-        () => { }
+        () => {}
       );
     });
 
     it("should allow global webhooks to specify a single location", () => {
-      ai.beforeGenerateContent({ region: "us-central1" }, () => { });
+      ai.beforeGenerateContent({ region: "us-central1" }, () => {});
     });
 
     it("should allow regional webhooks to specify a single location", () => {
-      ai.beforeGenerateContent({ regionalWebhook: true, region: "us-central1" }, () => { });
+      ai.beforeGenerateContent({ regionalWebhook: true, region: "us-central1" }, () => {});
     });
 
     // Compilation failure tests (commented out):

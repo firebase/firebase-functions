@@ -168,8 +168,8 @@ export function beforeGenerateContent(
   optsOrCb:
     | WebhookOptions
     | ((
-      event: AIBlockingEvent<BeforeGenerateContentData>
-    ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
+        event: AIBlockingEvent<BeforeGenerateContentData>
+      ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
   cb?: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -275,8 +275,8 @@ export function afterGenerateContent(
   optsOrCb:
     | WebhookOptions
     | ((
-      event: AIBlockingEvent<AfterGenerateContentData>
-    ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
+        event: AIBlockingEvent<AfterGenerateContentData>
+      ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
   cb?: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
