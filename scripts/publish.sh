@@ -67,12 +67,14 @@ git clone "git@github.com:${REPOSITORY_ORG}/${REPOSITORY_NAME}.git"
 cd "${REPOSITORY_NAME}"
 echo "Cloned repository."
 
-echo "Making sure there is a changelog..."
-if [ ! -s CHANGELOG.md ]; then
-  echo "CHANGELOG.md is empty. aborting."
-  exit 1
+if [[ $PRE_RELEASE == "" ]]; then
+  echo "Making sure there is a changelog..."
+  if [[ ! -s CHANGELOG.md ]]; then
+    echo "CHANGELOG.md is empty. aborting."
+    exit 1
+  fi
+  echo "Made sure there is a changelog."
 fi
-echo "Made sure there is a changelog."
 
 echo "Running npm ci..."
 npm ci
