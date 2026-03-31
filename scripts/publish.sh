@@ -69,7 +69,7 @@ echo "Cloned repository."
 
 if [[ $PRE_RELEASE == "" ]]; then
   echo "Making sure there is a changelog..."
-  if [ ! -s CHANGELOG.md ]; then
+  if [[ ! -s CHANGELOG.md ]]; then
     echo "CHANGELOG.md is empty. aborting."
     exit 1
   fi
