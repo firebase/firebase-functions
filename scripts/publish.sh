@@ -67,7 +67,7 @@ git clone "git@github.com:${REPOSITORY_ORG}/${REPOSITORY_NAME}.git"
 cd "${REPOSITORY_NAME}"
 echo "Cloned repository."
 
-if [ $PRE_RELEASE == "" ]; then
+if [[ $PRE_RELEASE == "" ]]; then
   echo "Making sure there is a changelog..."
   if [ ! -s CHANGELOG.md ]; then
     echo "CHANGELOG.md is empty. aborting."
