@@ -522,6 +522,28 @@ describe("onCall", () => {
     }
   });
 
+  it("should allow boolean params for consumeAppCheckToken", async () => {
+    const consumeAppCheckToken = defineBoolean("CONSUME_APP_CHECK_TOKEN");
+    sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
+    try {
+      process.env.CONSUME_APP_CHECK_TOKEN = "true";
+      const func = https.onCall({ consumeAppCheckToken }, (request) => {
+        return { alreadyConsumed: request.app?.alreadyConsumed };
+      });
+
+      const req = request({ headers: { "X-Firebase-AppCheck": "valid_token_ignored_on_skip" } });
+      const resp = await runHandler(func, req);
+
+      expect(resp.status).to.equal(200);
+      const result = JSON.parse(resp.body).result;
+      expect(result.alreadyConsumed).to.satisfy((v) => v === false || v === null);
+    } finally {
+      delete process.env.CONSUME_APP_CHECK_TOKEN;
+      clearParams();
+      sinon.restore();
+    }
+  });
+
   it("overrides CORS headers if debug feature is enabled", async () => {
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
 
