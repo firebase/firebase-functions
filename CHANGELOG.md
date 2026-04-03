@@ -1,2 +1,0 @@
-- Accept BooleanParams in CallableOptions (#1854)
-- rotate the npmrc key to robot account (#1857)
