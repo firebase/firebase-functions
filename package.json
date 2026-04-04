@@ -128,6 +128,16 @@
       "import": "./lib/esm/v2/providers/ai/index.mjs",
       "require": "./lib/v2/providers/ai/index.js"
     },
+    "./ai/types/gemini/v1beta": {
+      "types": "./lib/v2/providers/ai/types/gemini/v1beta/index.d.ts",
+      "import": "./lib/esm/v2/providers/ai/types/gemini/v1beta/index.mjs",
+      "require": "./lib/v2/providers/ai/types/gemini/v1beta/index.js"
+    },
+    "./ai/types/vertex/v1beta1": {
+      "types": "./lib/v2/providers/ai/types/vertex/v1beta1/index.d.ts",
+      "import": "./lib/esm/v2/providers/ai/types/vertex/v1beta1/index.mjs",
+      "require": "./lib/v2/providers/ai/types/vertex/v1beta1/index.js"
+    },
     "./pubsub": {
       "types": "./lib/v2/providers/pubsub.d.ts",
       "import": "./lib/esm/v2/providers/pubsub.mjs",
@@ -237,6 +247,16 @@
       "types": "./lib/v2/providers/ai/index.d.ts",
       "import": "./lib/esm/v2/providers/ai/index.mjs",
       "require": "./lib/v2/providers/ai/index.js"
+    },
+    "./v2/ai/types/gemini/v1beta": {
+      "types": "./lib/v2/providers/ai/types/gemini/v1beta/index.d.ts",
+      "import": "./lib/esm/v2/providers/ai/types/gemini/v1beta/index.mjs",
+      "require": "./lib/v2/providers/ai/types/gemini/v1beta/index.js"
+    },
+    "./v2/ai/types/vertex/v1beta1": {
+      "types": "./lib/v2/providers/ai/types/vertex/v1beta1/index.d.ts",
+      "import": "./lib/esm/v2/providers/ai/types/vertex/v1beta1/index.mjs",
+      "require": "./lib/v2/providers/ai/types/vertex/v1beta1/index.js"
     },
     "./v2/pubsub": {
       "types": "./lib/v2/providers/pubsub.d.ts",
@@ -378,7 +398,13 @@
         "lib/v2/providers/https"
       ],
       "ai": [
-        "lib/v2/providers/ai/index"
+        "lib/v2/providers/ai"
+      ],
+      "ai/types/gemini/v1beta": [
+        "lib/v2/providers/ai/types/gemini/v1beta"
+      ],
+      "ai/types/vertex/v1beta1": [
+        "lib/v2/providers/ai/types/vertex/v1beta1"
       ],
       "pubsub": [
         "lib/v2/providers/pubsub"
@@ -471,7 +497,13 @@
         "lib/v2/providers/https"
       ],
       "v2/ai": [
-        "lib/v2/providers/ai/index"
+        "lib/v2/providers/ai"
+      ],
+      "v2/ai/types/gemini/v1beta": [
+        "lib/v2/providers/ai/types/gemini/v1beta"
+      ],
+      "v2/ai/types/vertex/v1beta1": [
+        "lib/v2/providers/ai/types/vertex/v1beta1"
       ],
       "v2/pubsub": [
         "lib/v2/providers/pubsub"
