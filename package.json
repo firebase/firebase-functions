@@ -123,6 +123,11 @@
       "import": "./lib/esm/v2/providers/https.mjs",
       "require": "./lib/v2/providers/https.js"
     },
+    "./ai": {
+      "types": "./lib/v2/providers/ai/index.d.ts",
+      "import": "./lib/esm/v2/providers/ai/index.mjs",
+      "require": "./lib/v2/providers/ai/index.js"
+    },
     "./pubsub": {
       "types": "./lib/v2/providers/pubsub.d.ts",
       "import": "./lib/esm/v2/providers/pubsub.mjs",
@@ -227,6 +232,11 @@
       "types": "./lib/v2/providers/https.d.ts",
       "import": "./lib/esm/v2/providers/https.mjs",
       "require": "./lib/v2/providers/https.js"
+    },
+    "./v2/ai": {
+      "types": "./lib/v2/providers/ai/index.d.ts",
+      "import": "./lib/esm/v2/providers/ai/index.mjs",
+      "require": "./lib/v2/providers/ai/index.js"
     },
     "./v2/pubsub": {
       "types": "./lib/v2/providers/pubsub.d.ts",
@@ -367,6 +377,9 @@
       "https": [
         "lib/v2/providers/https"
       ],
+      "ai": [
+        "lib/v2/providers/ai/index"
+      ],
       "pubsub": [
         "lib/v2/providers/pubsub"
       ],
@@ -456,6 +469,9 @@
       ],
       "v2/https": [
         "lib/v2/providers/https"
+      ],
+      "v2/ai": [
+        "lib/v2/providers/ai/index"
       ],
       "v2/pubsub": [
         "lib/v2/providers/pubsub"
