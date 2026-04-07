@@ -220,6 +220,114 @@ describe("onMessagePublished", () => {
     expect(result).to.deep.equal({ test: "data" });
   });
 
+  describe("event.data.message wrapping (POJO -> Message instance)", () => {
+    const rawMessagePOJO = {
+      messageId: "pojo-msg-id",
+      data: Buffer.from(JSON.stringify({ regression: "test" })).toString("base64"),
+      attributes: { env: "test" },
+      orderingKey: "key1",
+      publishTime: new Date().toISOString(),
+    };
+
+    function makeRawEvent(
+      message: any,
+      subscription = "projects/aProject/subscriptions/aSub",
+    ): CloudEvent<any> {
+      return {
+        specversion: "1.0",
+        source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        id: "raw-event-id",
+        type: EVENT_TRIGGER.eventType,
+        time: rawMessagePOJO.publishTime,
+        data: { message, subscription },
+      };
+    }
+
+    it("should convert a raw POJO message into a Message instance on event.data.message", async () => {
+      let capturedMessage: any;
+      const func = pubsub.onMessagePublished("topic", (event) => {
+        capturedMessage = event.data.message;
+      });
+
+      // Pass a raw POJO, NOT a Message instance — this is what the runtime delivers
+      await func(makeRawEvent({ ...rawMessagePOJO }));
+
+      expect(capturedMessage).to.be.an.instanceOf(pubsub.Message);
+    });
+
+    it("should provide a working .json getter on event.data.message when input is a raw POJO", async () => {
+      let json: unknown;
+      const func = pubsub.onMessagePublished("topic", (event) => {
+        json = event.data.message.json;
+      });
+
+      await func(makeRawEvent({ ...rawMessagePOJO }));
+
+      expect(json).to.deep.equal({ regression: "test" });
+    });
+
+    it("should preserve all Message fields when wrapping a raw POJO", async () => {
+      let msg: any;
+      const func = pubsub.onMessagePublished("topic", (event) => {
+        msg = event.data.message;
+      });
+
+      await func(makeRawEvent({ ...rawMessagePOJO }));
+
+      expect(msg.messageId).to.equal("pojo-msg-id");
+      expect(msg.data).to.equal(rawMessagePOJO.data);
+      expect(msg.attributes).to.deep.equal({ env: "test" });
+      expect(msg.orderingKey).to.equal("key1");
+      expect(msg.publishTime).to.equal(rawMessagePOJO.publishTime);
+    });
+
+    it("should not re-wrap if event.data.message is already a Message instance", async () => {
+      const original = new pubsub.Message(rawMessagePOJO);
+      let capturedMessage: any;
+      const func = pubsub.onMessagePublished("topic", (event) => {
+        capturedMessage = event.data.message;
+      });
+
+      await func(makeRawEvent(original));
+
+      expect(capturedMessage).to.equal(original); // same reference
+      expect(capturedMessage.json).to.deep.equal({ regression: "test" });
+    });
+
+    it("should throw on a malformed event without a message property", async () => {
+      const func = pubsub.onMessagePublished("topic", () => undefined);
+      const badEvent: CloudEvent<any> = {
+        specversion: "1.0",
+        source: "//pubsub.googleapis.com/projects/aProject/topics/topic",
+        id: "bad-event",
+        type: EVENT_TRIGGER.eventType,
+        time: new Date().toISOString(),
+        data: { subscription: "sub" }, // no message!
+      };
+
+      try {
+        await func(badEvent);
+        expect.fail("should have thrown");
+      } catch (err: any) {
+        expect(err.message).to.match(/missing 'message' property/i);
+      }
+    });
+
+    it("should make event.data.message.json and event.message.json return the same value", async () => {
+      let v2Json: unknown;
+      let v1Json: unknown;
+      const func = pubsub.onMessagePublished("topic", (event) => {
+        v2Json = event.data.message.json;
+        v1Json = (event as any).message.json;
+      });
+
+      await func(makeRawEvent({ ...rawMessagePOJO }));
+
+      expect(v2Json).to.deep.equal({ regression: "test" });
+      expect(v1Json).to.deep.equal({ regression: "test" });
+    });
+  });
+
   describe("v1-compatible getters", () => {
     let capturedEvent: any;
     const messageData = {
