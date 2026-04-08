@@ -231,7 +231,7 @@ describe("onMessagePublished", () => {
 
     function makeRawEvent(
       message: any,
-      subscription = "projects/aProject/subscriptions/aSub",
+      subscription = "projects/aProject/subscriptions/aSub"
     ): CloudEvent<any> {
       return {
         specversion: "1.0",
