@@ -61,24 +61,24 @@ export const rpcCodeMap: Record<FunctionsErrorCode, number> = {
 };
 
 import {
-  GenerateContentRequest as VertexV1Beta1GenerateContentRequest,
-  GenerateContentResponse as VertexV1Beta1GenerateContentResponse,
+  type GenerateContentRequest as VertexV1Beta1GenerateContentRequest,
+  type GenerateContentResponse as VertexV1Beta1GenerateContentResponse,
   requestTypeName as vertexV1Beta1RequestTypeName,
   responseTypeName as vertexV1Beta1ResponseTypeName,
 } from "./types/vertex/v1beta1";
 
 import {
-  GenerateContentRequest as GeminiV1BetaGenerateContentRequest,
-  GenerateContentResponse as GeminiV1BetaGenerateContentResponse,
+  type GenerateContentRequest as GeminiV1BetaGenerateContentRequest,
+  type GenerateContentResponse as GeminiV1BetaGenerateContentResponse,
   requestTypeName as geminiV1BetaRequestTypeName,
   responseTypeName as geminiV1BetaResponseTypeName,
 } from "./types/gemini/v1beta";
 
 export {
-  VertexV1Beta1GenerateContentRequest,
-  VertexV1Beta1GenerateContentResponse,
-  GeminiV1BetaGenerateContentRequest,
-  GeminiV1BetaGenerateContentResponse,
+  type VertexV1Beta1GenerateContentRequest,
+  type VertexV1Beta1GenerateContentResponse,
+  type GeminiV1BetaGenerateContentRequest,
+  type GeminiV1BetaGenerateContentResponse,
 };
 type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
 
