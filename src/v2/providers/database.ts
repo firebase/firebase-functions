@@ -117,7 +117,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
    * Examples: 'my-instance-1', 'my-instance-*'
    * Note: The capture syntax cannot be used for 'instance'.
    */
-  instance?: string;
+  instance?: string | Expression<string>;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -488,7 +488,7 @@ export function getOpts(referenceOrOpts: string | ReferenceOptions) {
     opts = {};
   } else {
     path = normalizePath(referenceOrOpts.ref);
-    instance = referenceOrOpts.instance || "*";
+    instance = referenceOrOpts.instance instanceof Expression ? referenceOrOpts.instance.value() : (referenceOrOpts.instance || '*'); 
     opts = { ...referenceOrOpts };
     delete (opts as any).ref;
     delete (opts as any).instance;
