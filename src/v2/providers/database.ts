@@ -488,7 +488,10 @@ export function getOpts(referenceOrOpts: string | ReferenceOptions) {
     opts = {};
   } else {
     path = normalizePath(referenceOrOpts.ref);
-    instance = referenceOrOpts.instance instanceof Expression ? referenceOrOpts.instance.value() : (referenceOrOpts.instance || '*'); 
+    instance =
+      referenceOrOpts.instance instanceof Expression
+        ? referenceOrOpts.instance.value()
+        : referenceOrOpts.instance || "*";
     opts = { ...referenceOrOpts };
     delete (opts as any).ref;
     delete (opts as any).instance;

@@ -154,9 +154,10 @@ describe("database", () => {
       process.env[name] = "resolved-instance";
       try {
         const p = params.defineString(name);
-        expect(
-          database.getOpts({ ref: "/foo", instance: p })
-        ).to.deep.include({ path: "foo", instance: "resolved-instance" });
+        expect(database.getOpts({ ref: "/foo", instance: p })).to.deep.include({
+          path: "foo",
+          instance: "resolved-instance",
+        });
       } finally {
         if (prev === undefined) delete process.env[name];
         else process.env[name] = prev;
