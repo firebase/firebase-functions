@@ -346,6 +346,8 @@ export function onMessagePublished<T = any>(
         pubsubData.message instanceof Message
           ? pubsubData.message
           : new Message<T>(pubsubData.message);
+
+      (pubsubData as any).message = v2Message;
     } else {
       throw new Error("Malformed Pub/Sub event: missing 'message' property.");
     }
