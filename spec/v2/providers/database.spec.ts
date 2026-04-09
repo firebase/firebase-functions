@@ -26,6 +26,7 @@ import * as database from "../../../src/v2/providers/database";
 import { expectType } from "../../common/metaprogramming";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { CloudEvent, onInit } from "../../../src/v2/core";
+import * as params from "../../../src/params";
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -145,6 +146,22 @@ describe("database", () => {
           region: "us-central1",
         },
       });
+    });
+
+    it("should resolve instance Expression to runtime string", () => {
+      const name = "TEST_RTDB_INSTANCE_FOR_GETOPTS";
+      const prev = process.env[name];
+      process.env[name] = "resolved-instance";
+      try {
+        const p = params.defineString(name);
+        expect(database.getOpts({ ref: "/foo", instance: p })).to.deep.include({
+          path: "foo",
+          instance: "resolved-instance",
+        });
+      } finally {
+        if (prev === undefined) delete process.env[name];
+        else process.env[name] = prev;
+      }
     });
   });
 
