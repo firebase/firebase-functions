@@ -383,7 +383,7 @@ export interface BeforeCreateResponse {
   displayName?: string;
   disabled?: boolean;
   emailVerified?: boolean;
-  photoURL?: string;
+  photoUrl?: string; 
   customClaims?: object;
   recaptchaActionOverride?: RecaptchaActionOptions;
 }
