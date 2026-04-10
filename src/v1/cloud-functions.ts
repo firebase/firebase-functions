@@ -43,7 +43,7 @@ import {
   ManifestRequiredAPI,
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
-import { SupportedSecretParam } from "../params/types";
+import { celOf, valueOf, Expression, SupportedSecretParam } from "../params/types";
 import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
@@ -376,7 +376,7 @@ export interface MakeCloudFunctionArgs<EventData> {
    */
   provider: string;
   service: string;
-  triggerResource: () => string;
+  triggerResource: () => string | Expression<string>;
 }
 
 /** @internal */
@@ -450,10 +450,11 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
+      const tr = triggerResource();
       const trigger: any = {
         ...optionsToTrigger(options),
         eventTrigger: {
-          resource: triggerResource(),
+          resource: celOf(tr),
           eventType: legacyEventType || provider + "." + eventType,
           service,
         },
@@ -478,8 +479,12 @@ export function makeCloudFunction<EventData>({
       };
 
       if (options.schedule) {
-        endpoint.scheduleTrigger = initV1ScheduleTrigger(options.schedule.schedule, options);
+        endpoint.scheduleTrigger = initV1ScheduleTrigger(celOf(options.schedule.schedule), options);
         copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
+        // Not using celOf to avoid inserting undefined on an optional.
+        if (endpoint.scheduleTrigger.timeZone instanceof Expression) {
+          endpoint.scheduleTrigger.timeZone = endpoint.scheduleTrigger.timeZone.toCEL();
+        }
         copyIfPresent(
           endpoint.scheduleTrigger.retryConfig,
           options.schedule.retryConfig,
@@ -493,7 +498,7 @@ export function makeCloudFunction<EventData>({
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
           eventFilters: {
-            resource: triggerResource(),
+            resource: celOf(triggerResource()),
           },
           retry: !!options.failurePolicy,
         };
@@ -523,7 +528,7 @@ export function makeCloudFunction<EventData>({
 
 function _makeParams(
   context: EventContext,
-  triggerResourceGetter: () => string
+  triggerResourceGetter: () => string | Expression<string>
 ): Record<string, string> {
   if (context.params) {
     // In unit testing, user may directly provide `context.params`.
@@ -533,7 +538,7 @@ function _makeParams(
     // In unit testing, `resource` may be unpopulated for a test event.
     return {};
   }
-  const triggerResource = triggerResourceGetter();
+  const triggerResource = valueOf(triggerResourceGetter());
   const wildcards = triggerResource.match(WILDCARD_REGEX);
   const params: { [option: string]: any } = {};
 
