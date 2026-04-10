@@ -39,6 +39,7 @@ const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
     maxBackoffSeconds: options.RESET_VALUE,
     maxDoublings: options.RESET_VALUE,
   },
+  attemptDeadline: options.RESET_VALUE,
 };
 
 describe("schedule", () => {
@@ -59,6 +60,7 @@ describe("schedule", () => {
         minBackoffSeconds: 2,
         maxBackoffSeconds: 3,
         maxDoublings: 4,
+        attemptDeadline: "120s",
         memory: "128MiB",
         region: "us-central1",
       };
@@ -73,6 +75,7 @@ describe("schedule", () => {
           maxBackoffSeconds: 3,
           maxDoublings: 4,
         },
+        attemptDeadline: "120s",
         opts: {
           ...options,
           memory: "128MiB",
@@ -103,6 +106,20 @@ describe("schedule", () => {
       ]);
     });
 
+    it("should create a schedule function with attemptDeadline", () => {
+      const schfn = schedule.onSchedule(
+        {
+          schedule: "* * * * *",
+          attemptDeadline: "320s",
+        },
+        () => undefined
+      );
+
+      expect(schfn.__endpoint.scheduleTrigger?.attemptDeadline).to.equal(
+        "320s"
+      );
+    });
+
     it("should create a schedule function given options", () => {
       const schfn = schedule.onSchedule(
         {
@@ -114,6 +131,7 @@ describe("schedule", () => {
           minBackoffSeconds: 11,
           maxBackoffSeconds: 12,
           maxDoublings: 2,
+          attemptDeadline: "120s",
           region: "us-central1",
           labels: { key: "val" },
         },
@@ -136,6 +154,7 @@ describe("schedule", () => {
             maxBackoffSeconds: 12,
             maxDoublings: 2,
           },
+          attemptDeadline: "120s",
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
@@ -161,6 +180,7 @@ describe("schedule", () => {
         scheduleTrigger: {
           schedule: "* * * * *",
           timeZone: undefined,
+          attemptDeadline: undefined,
           retryConfig: {
             retryCount: undefined,
             maxRetrySeconds: undefined,
