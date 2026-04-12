@@ -201,6 +201,8 @@ export function onCustomEventPublished<T = any>(
   func.run = handler;
 
   const channel = opts.channel ?? "locations/us-central1/channels/firebase";
+  const channelRegionMatch = channel.match(/locations\/([^/]+)\/channels\//);
+  const triggerRegion = channelRegionMatch ? channelRegionMatch[1] : "us-central1";
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
@@ -219,6 +221,7 @@ export function onCustomEventPublished<T = any>(
       eventFilters: {},
       retry: opts.retry ?? false,
       channel,
+      region: triggerRegion,
     },
   };
   convertIfPresent(endpoint.eventTrigger, opts, "eventFilters", "filters");
