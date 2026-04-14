@@ -113,6 +113,7 @@ export function _onCallWithOptions(
     onCallHandler(
       {
         enforceAppCheck: options.enforceAppCheck,
+        enforceAuth: options.enforceAuth,
         consumeAppCheckToken: options.consumeAppCheckToken,
         cors: { origin: true, methods: "POST" },
       },

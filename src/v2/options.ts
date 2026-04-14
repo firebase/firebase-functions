@@ -263,6 +263,16 @@ export interface GlobalOptions {
   enforceAppCheck?: boolean;
 
   /**
+   * Determines whether Firebase Auth is enforced. Defaults to true.
+   *
+   * @remarks
+   * When true, requests with invalid auth tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set `event.auth` to `undefined`.
+   */
+  enforceAuth?: boolean;
+
+  /**
    * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
    *
    * @remarks
@@ -299,7 +309,7 @@ export function getGlobalOptions(): GlobalOptions {
 /**
  * Additional fields that can be set on any event-handling function.
  */
-export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck"> {
+export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppCheck" | "enforceAuth"> {
   /** Type of the event. */
   eventType?: string;
 
