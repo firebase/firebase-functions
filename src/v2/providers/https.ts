@@ -571,8 +571,8 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   let func: any = onCallHandler(
     {
       cors: corsOptions,
-      enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
-      consumeAppCheckToken: opts.consumeAppCheckToken,
+      enforceAppCheck,
+      consumeAppCheckToken,
       heartbeatSeconds: opts.heartbeatSeconds,
       authPolicy: opts.authPolicy,
     },
