@@ -71,12 +71,19 @@ describe("logger", () => {
       });
     });
 
-    it("should not overwrite a 'message' field in structured object if no other args are provided", () => {
+    it("should format a sole plain object with 'message' as a string to preserve all fields in Cloud Logging", () => {
       logger.log({ test: true, message: "this" });
       expectStdout({
         severity: "INFO",
-        message: "this",
-        test: true,
+        message: "{ test: true, message: 'this' }",
+      });
+    });
+
+    it("should format a sole plain object with 'message' and other fields so all fields are visible (issue #1707)", () => {
+      logger.log({ message: "Hello from Firebase!", foo: "bar" });
+      expectStdout({
+        severity: "INFO",
+        message: "{ message: 'Hello from Firebase!', foo: 'bar' }",
       });
     });
   });

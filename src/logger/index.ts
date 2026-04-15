@@ -161,7 +161,14 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];
   if (lastArg && typeof lastArg === "object" && lastArg.constructor === Object) {
-    entry = args.pop();
+    // If the only argument is a plain object containing a 'message' property,
+    // don't extract it as structured data. The 'message' field is treated as a
+    // special field by Cloud Logging, which suppresses other fields from the
+    // default log view. Let util.format render the full object instead so all
+    // fields are visible in the log summary.
+    if (!(args.length === 1 && "message" in lastArg)) {
+      entry = args.pop();
+    }
   }
 
   // mimic `console.*` behavior, see https://nodejs.org/api/console.html#console_console_log_data_args
