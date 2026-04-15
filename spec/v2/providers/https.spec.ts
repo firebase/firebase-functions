@@ -68,6 +68,7 @@ describe("onRequest", () => {
   afterEach(() => {
     options.setGlobalOptions({});
     delete process.env.GCLOUD_PROJECT;
+    sinon.restore();
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
@@ -290,8 +291,6 @@ describe("onRequest", () => {
       "Content-Length": "0",
       Vary: "Origin, Access-Control-Request-Headers",
     });
-
-    sinon.restore();
   });
 
   it("should NOT add CORS headers if debug feature is enabled and cors has value false", async () => {
@@ -314,8 +313,6 @@ describe("onRequest", () => {
     expect(resp.status).to.equal(200);
     expect(resp.body).to.be.equal("Good");
     expect(resp.headers).to.deep.equal({});
-
-    sinon.restore();
   });
 
   it("calls init function", async () => {
@@ -336,6 +333,84 @@ describe("onRequest", () => {
     await runHandler(func, req);
     expect(hello).to.equal("world");
   });
+
+  it("does not eagerly resolve defineList cors during onRequest definition", () => {
+    const allowedOrigins = defineList("ALLOWED_ORIGINS");
+    const runtimeValueStub = sinon.stub(allowedOrigins, "runtimeValue");
+    const valueSpy = sinon.spy(allowedOrigins, "value");
+
+    expect(() => {
+      https.onRequest({ cors: allowedOrigins }, (_req, res) => {
+        res.status(200).send("ok");
+      });
+    }).to.not.throw();
+
+    expect(valueSpy.called).to.be.false;
+    expect(runtimeValueStub.called).to.be.false;
+  });
+
+  it("treats a single-element expression list like a static single origin", async () => {
+    const allowedOrigins = defineList("ALLOWED_ORIGINS");
+    sinon.stub(allowedOrigins, "runtimeValue").returns(["https://app.example.com"]);
+
+    const func = https.onRequest({ cors: allowedOrigins }, (req, res) => {
+      res.status(200).send("ok");
+    });
+
+    const req = request({
+      headers: {
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "origin",
+        origin: "https://evil.example.com",
+      },
+      method: "OPTIONS",
+    });
+
+    const resp = await runHandler(func, req);
+
+    expect(resp.status).to.equal(204);
+    expect(resp.headers["Access-Control-Allow-Origin"]).to.equal("https://app.example.com");
+  });
+
+  it("matches request origin for multi-element expression-backed cors", async () => {
+    const allowedOrigins = defineList("ALLOWED_ORIGINS");
+    const runtimeValueStub = sinon
+      .stub(allowedOrigins, "runtimeValue")
+      .returns(["https://app.example.com", "https://admin.example.com"]);
+
+    const func = https.onRequest({ cors: allowedOrigins }, (_req, res) => {
+      res.status(200).send("ok");
+    });
+
+    const allowedReq = request({
+      headers: {
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "origin",
+        origin: "https://admin.example.com",
+      },
+      method: "OPTIONS",
+    });
+
+    const allowedResp = await runHandler(func, allowedReq);
+    expect(allowedResp.status).to.equal(204);
+    expect(allowedResp.headers["Access-Control-Allow-Origin"]).to.equal(
+      "https://admin.example.com"
+    );
+
+    const deniedReq = request({
+      headers: {
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "origin",
+        origin: "https://evil.example.com",
+      },
+      method: "OPTIONS",
+    });
+
+    const deniedResp = await runHandler(func, deniedReq);
+    expect(deniedResp.status).to.equal(200);
+    expect(deniedResp.headers["Access-Control-Allow-Origin"]).to.be.undefined;
+    expect(runtimeValueStub.calledTwice).to.be.true;
+  });
 });
 
 describe("onCall", () => {
@@ -352,6 +427,7 @@ describe("onCall", () => {
     delete process.env.GCLOUD_PROJECT;
     delete process.env.ORIGINS;
     clearParams();
+    sinon.restore();
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
@@ -532,8 +608,6 @@ describe("onCall", () => {
       "Content-Length": "0",
       Vary: "Origin, Access-Control-Request-Headers",
     });
-
-    sinon.restore();
   });
 
   it("should NOT add CORS headers if debug feature is enabled and cors has value false", async () => {
@@ -553,8 +627,6 @@ describe("onCall", () => {
 
     expect(response.status).to.equal(200);
     expect(response.headers).to.not.have.property("Access-Control-Allow-Origin");
-
-    sinon.restore();
   });
 
   it("adds CORS headers", async () => {
@@ -590,12 +662,8 @@ describe("onCall", () => {
   });
 
   describe("authPolicy", () => {
-    before(() => {
+    beforeEach(() => {
       sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
-    });
-
-    after(() => {
-      sinon.restore();
     });
 
     it("should check isSignedIn", async () => {
@@ -656,6 +724,19 @@ describe("onCall", () => {
       const accessDenied = await runHandler(divTwo, request({ data: 1 }));
       expect(accessDenied.status).to.equal(403);
     });
+  });
+
+  it("does not eagerly resolve defineList cors during onCall definition", () => {
+    const allowedOrigins = defineList("ALLOWED_ORIGINS");
+    const runtimeValueStub = sinon.stub(allowedOrigins, "runtimeValue");
+    const valueSpy = sinon.spy(allowedOrigins, "value");
+
+    expect(() => {
+      https.onCall({ cors: allowedOrigins }, () => 42);
+    }).to.not.throw();
+
+    expect(valueSpy.called).to.be.false;
+    expect(runtimeValueStub.called).to.be.false;
   });
 });
 
