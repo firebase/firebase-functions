@@ -732,10 +732,10 @@ export class ListParam extends Param<string[]> {
   /** @internal */
   runtimeValue(): string[] {
     const val = JSON.parse(process.env[this.name]);
-    if (!Array.isArray(val) || !(val as string[]).every((v) => typeof v === "string")) {
+    if (!Array.isArray(val) || !val.every((v) => typeof v === "string")) {
       return [];
     }
-    return val as string[];
+    return val;
   }
 
   /** @hidden */
