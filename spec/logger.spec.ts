@@ -71,19 +71,21 @@ describe("logger", () => {
       });
     });
 
-    it("should format a sole plain object with 'message' as a string to preserve all fields in Cloud Logging", () => {
+    it("should format a sole plain object with 'message' as string and preserve other fields as structured data", () => {
       logger.log({ test: true, message: "this" });
       expectStdout({
         severity: "INFO",
         message: "{ test: true, message: 'this' }",
+        test: true,
       });
     });
 
-    it("should format a sole plain object with 'message' and other fields so all fields are visible (issue #1707)", () => {
+    it("should format full object as message and preserve non-message fields as structured data (issue #1707)", () => {
       logger.log({ message: "Hello from Firebase!", foo: "bar" });
       expectStdout({
         severity: "INFO",
         message: "{ message: 'Hello from Firebase!', foo: 'bar' }",
+        foo: "bar",
       });
     });
   });

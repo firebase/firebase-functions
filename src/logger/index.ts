@@ -161,12 +161,17 @@ function entryFromArgs(severity: LogSeverity, args: any[]): LogEntry {
   let entry = {};
   const lastArg = args[args.length - 1];
   if (lastArg && typeof lastArg === "object" && lastArg.constructor === Object) {
-    // If the only argument is a plain object containing a 'message' property,
-    // don't extract it as structured data. The 'message' field is treated as a
-    // special field by Cloud Logging, which suppresses other fields from the
-    // default log view. Let util.format render the full object instead so all
-    // fields are visible in the log summary.
-    if (!(args.length === 1 && "message" in lastArg)) {
+    if (args.length === 1 && "message" in lastArg) {
+      // The only argument is a plain object with a 'message' property.
+      // Cloud Logging treats 'message' as a special field that becomes the
+      // primary display text, which can make other fields invisible in the
+      // default log view. To ensure all fields remain visible and queryable,
+      // preserve non-message fields as structured data and format the full
+      // object as the message string.
+      const { message: _, ...rest } = args[0];
+      entry = rest;
+      // Leave args intact so format() renders the full object (all fields visible).
+    } else {
       entry = args.pop();
     }
   }
