@@ -1,0 +1,1 @@
+- fix: Remove false warning when using Expression in cors option #1802

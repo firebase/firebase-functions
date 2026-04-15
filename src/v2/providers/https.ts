@@ -324,7 +324,7 @@ export function onRequest(
   handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
+    let origin = opts.cors instanceof Expression ? opts.cors.runtimeValue() : opts.cors;
     if (isDebugFeatureEnabled("enableCors")) {
       // Respect `cors: false` to turn off cors even if debug feature is enabled.
       origin = opts.cors === false ? false : true;
@@ -437,7 +437,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   let cors: string | boolean | RegExp | Array<string | RegExp> | undefined;
   if ("cors" in opts) {
     if (opts.cors instanceof Expression) {
-      cors = opts.cors.value();
+      cors = opts.cors.runtimeValue();
     } else {
       cors = opts.cors;
     }
