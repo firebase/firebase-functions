@@ -33,6 +33,7 @@ import {
   RateLimits,
   Request,
   RetryConfig,
+  TaskContext,
 } from "../../common/providers/tasks";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
@@ -182,7 +183,29 @@ export interface TaskQueueFunction<T = any> extends HttpsFunction {
  * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
+  handler: (request: Request<Args> & { context: TaskContext }) => void | Promise<void>
+): TaskQueueFunction<Args>;
+
+/**
+ * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+ * @param handler - A callback to handle task requests.
+ * @typeParam Args - The interface for the request's `data` field.
+ * @returns A function you can export and deploy.
+ */
+export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
+): TaskQueueFunction<Args>;
+
+/**
+ * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+ * @param options - Configuration for the task queue or Cloud Function.
+ * @param handler - A callback to handle task requests.
+ * @typeParam Args - The interface for the request's `data` field.
+ * @returns A function you can export and deploy.
+ */
+export function onTaskDispatched<Args = any>(
+  options: TaskQueueOptions,
+  handler: (request: Request<Args> & { context: TaskContext }) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 
 /**
@@ -197,8 +220,8 @@ export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 export function onTaskDispatched<Args = any>(
-  optsOrHandler: TaskQueueOptions | ((request: Request<Args>) => void | Promise<void>),
-  handler?: (request: Request<Args>) => void | Promise<void>
+  optsOrHandler: TaskQueueOptions | ((request: any) => void | Promise<void>),
+  handler?: (request: any) => void | Promise<void>
 ): TaskQueueFunction<Args> {
   let opts: TaskQueueOptions;
   if (arguments.length === 1) {

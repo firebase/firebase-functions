@@ -52,8 +52,15 @@ export interface ManifestEndpoint {
   timeoutSeconds?: number | Expression<number> | ResetValue;
   vpc?:
     | {
-        connector: string | Expression<string>;
+        connector?: string | Expression<string>;
         egressSettings?: string | Expression<string> | ResetValue;
+        networkInterfaces?:
+          | Array<{
+              network?: string | Expression<string> | ResetValue;
+              subnetwork?: string | Expression<string> | ResetValue;
+              tags?: string | string[] | Expression<string> | Expression<string[]> | ResetValue;
+            }>
+          | ResetValue;
       }
     | ResetValue;
   serviceAccountEmail?: string | Expression<string> | ResetValue;

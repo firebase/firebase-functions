@@ -183,7 +183,7 @@ export interface CallableOptions<T = any> extends HttpsOptions {
    * (Unauthorized) error.
    * When false, requests with invalid tokens set event.app to undefiend.
    */
-  enforceAppCheck?: boolean;
+  enforceAppCheck?: boolean | Expression<boolean>;
 
   /**
    * Determines whether Firebase App Check token is consumed on request. Defaults to false.
@@ -207,7 +207,7 @@ export interface CallableOptions<T = any> extends HttpsOptions {
    * the request.app.alreadyConsumed property will be set to true and pass the execution to the handler code for making
    * further decisions, such as requiring additional security checks or rejecting the request.
    */
-  consumeAppCheckToken?: boolean;
+  consumeAppCheckToken?: boolean | Expression<boolean>;
 
   /**
    * Time in seconds between sending heartbeat messages to keep the connection
@@ -557,6 +557,17 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
 
   // fix the length of handler to make the call to handler consistent
   const fixedLen = (req: CallableRequest<T>, resp?: CallableResponse<Stream>) => handler(req, resp);
+
+  let enforceAppCheck = opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck;
+  if (enforceAppCheck instanceof Expression) {
+    enforceAppCheck = enforceAppCheck.value();
+  }
+
+  let consumeAppCheckToken = opts.consumeAppCheckToken;
+  if (consumeAppCheckToken instanceof Expression) {
+    consumeAppCheckToken = consumeAppCheckToken.value();
+  }
+
   let func: any = onCallHandler(
     {
       cors: corsOptions,
