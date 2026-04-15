@@ -168,7 +168,7 @@ export interface V1PubSubMessage<T = any> {
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
-  topic: string;
+  topic: string | Expression<string>;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -325,7 +325,7 @@ export function onMessagePublished<T = any>(
     event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
   ) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
-  let topic: string;
+  let topic: string | Expression<string>;
   let opts: options.EventHandlerOptions;
   if (typeof topicOrOptions === "string") {
     topic = topicOrOptions;
@@ -407,7 +407,13 @@ export function onMessagePublished<T = any>(
         },
         eventTrigger: {
           eventType: "google.cloud.pubsub.topic.v1.messagePublished",
-          resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          // Only set resource when topic is a string (not an Expression)
+          // When topic is an Expression<string>, the resource path cannot be determined
+          // at definition time. The __endpoint uses eventFilters which handles
+          // Expression<string> correctly.
+          ...(typeof topic === "string" && {
+            resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          }),
         },
       };
     },
