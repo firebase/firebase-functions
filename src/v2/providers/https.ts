@@ -293,7 +293,10 @@ export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunc
 function buildStaticCorsOriginCallback(
   origin: string | boolean | RegExp | Array<string | RegExp>
 ): NonNullable<cors.CorsOptions["origin"]> {
-  return (reqOrigin: string | undefined, cb: (err: Error | null, allow?: boolean | string) => void) => {
+  return (
+    reqOrigin: string | undefined,
+    cb: (err: Error | null, allow?: boolean | string) => void
+  ) => {
     if (typeof origin === "boolean" || typeof origin === "string") {
       return cb(null, origin);
     }
@@ -321,8 +324,14 @@ function buildCorsOriginFromExpression(
   corsExpression: Expression<string | string[]>,
   options: { respectCorsFalse?: boolean; corsOpt?: unknown }
 ): NonNullable<cors.CorsOptions["origin"]> {
-  return (reqOrigin: string | undefined, callback: (err: Error | null, allow?: boolean | string) => void) => {
-    if (isDebugFeatureEnabled("enableCors") && (!options.respectCorsFalse || options.corsOpt !== false)) {
+  return (
+    reqOrigin: string | undefined,
+    callback: (err: Error | null, allow?: boolean | string) => void
+  ) => {
+    if (
+      isDebugFeatureEnabled("enableCors") &&
+      (!options.respectCorsFalse || options.corsOpt !== false)
+    ) {
       callback(null, true);
       return;
     }
@@ -345,7 +354,7 @@ function buildCorsOriginFromExpression(
       const allowed = resolved.indexOf(reqOrigin) !== -1;
       callback(null, allowed ? reqOrigin : false);
     } else {
-      callback(null, resolved as string);
+      callback(null, resolved);
     }
   };
 }
