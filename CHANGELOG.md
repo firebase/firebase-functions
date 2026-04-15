@@ -1,1 +1,0 @@
-- Fixed issue with missing dependency on `graphql`. (#1795)
