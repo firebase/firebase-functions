@@ -61,27 +61,31 @@ export const rpcCodeMap: Record<FunctionsErrorCode, number> = {
 };
 
 import {
-  GenerateContentRequest as VertexV1Beta1GenerateContentRequest,
-  GenerateContentResponse as VertexV1Beta1GenerateContentResponse,
+  type GenerateContentRequest as VertexV1Beta1GenerateContentRequest,
+  type GenerateContentResponse as VertexV1Beta1GenerateContentResponse,
   requestTypeName as vertexV1Beta1RequestTypeName,
   responseTypeName as vertexV1Beta1ResponseTypeName,
 } from "./types/vertex/v1beta1";
 
 import {
-  GenerateContentRequest as GeminiV1BetaGenerateContentRequest,
-  GenerateContentResponse as GeminiV1BetaGenerateContentResponse,
+  type GenerateContentRequest as GeminiV1BetaGenerateContentRequest,
+  type GenerateContentResponse as GeminiV1BetaGenerateContentResponse,
   requestTypeName as geminiV1BetaRequestTypeName,
   responseTypeName as geminiV1BetaResponseTypeName,
 } from "./types/gemini/v1beta";
 
 export {
-  VertexV1Beta1GenerateContentRequest,
-  VertexV1Beta1GenerateContentResponse,
-  GeminiV1BetaGenerateContentRequest,
-  GeminiV1BetaGenerateContentResponse,
+  type VertexV1Beta1GenerateContentRequest,
+  type VertexV1Beta1GenerateContentResponse,
+  type GeminiV1BetaGenerateContentRequest,
+  type GeminiV1BetaGenerateContentResponse,
 };
-export interface WebhookOptions extends Omit<EventHandlerOptions, "location"> {
-  location?: string | string[] | Expression<string> | ResetValue;
+type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
+
+export interface WebhookOptions<Regional extends boolean = false>
+  extends Omit<EventHandlerOptions, "location"> {
+  location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
+  regionalWebhook?: Regional;
 }
 
 export interface PromptTemplateInfo {
@@ -153,8 +157,8 @@ export function beforeGenerateContent(
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
 ): BlockingFunction;
 
-export function beforeGenerateContent(
-  options: WebhookOptions,
+export function beforeGenerateContent<Regional extends boolean = false>(
+  options: WebhookOptions<Regional>,
   callback: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -243,7 +247,12 @@ export function beforeGenerateContent(
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    httpsTrigger: {},
+    blockingTrigger: {
+      eventType: beforeGenerateEventType,
+      options: {
+        regionalWebhook: opts.regionalWebhook,
+      },
+    },
   };
 
   return func as BlockingFunction;
@@ -255,8 +264,8 @@ export function afterGenerateContent(
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
 ): BlockingFunction;
 
-export function afterGenerateContent(
-  options: WebhookOptions,
+export function afterGenerateContent<Regional extends boolean = false>(
+  options: WebhookOptions<Regional>,
   callback: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
@@ -345,7 +354,12 @@ export function afterGenerateContent(
       ...baseOpts?.labels,
       ...specificOpts?.labels,
     },
-    httpsTrigger: {},
+    blockingTrigger: {
+      eventType: afterGenerateEventType,
+      options: {
+        regionalWebhook: opts.regionalWebhook,
+      },
+    },
   };
 
   return func as BlockingFunction;
