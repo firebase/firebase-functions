@@ -522,6 +522,21 @@ describe("onCall", () => {
     }
   });
 
+  it("should allow boolean params for enforceAuth", async () => {
+    const enforceAuth = defineBoolean("ENFORCE_AUTH");
+    try {
+      process.env.ENFORCE_AUTH = "false";
+      const func = https.onCall({ enforceAuth }, () => 42);
+
+      const req = request({ headers: { authorization: "Beaver invalid" } }); // Invalid auth token
+      const resp = await runHandler(func, req);
+      expect(resp.status).to.equal(200);
+    } finally {
+      delete process.env.ENFORCE_AUTH;
+      clearParams();
+    }
+  });
+
   it("should allow boolean params for consumeAppCheckToken", async () => {
     const consumeAppCheckToken = defineBoolean("CONSUME_APP_CHECK_TOKEN");
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);

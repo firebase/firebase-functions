@@ -55,7 +55,7 @@ export { HttpsError };
 /**
  * Options that can be set on an onRequest HTTPS function.
  */
-export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceAppCheck"> {
+export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceAppCheck" | "enforceAuth"> {
   /**
    * If true, do not deploy or emulate this function.
    */
@@ -184,6 +184,14 @@ export interface CallableOptions<T = any> extends HttpsOptions {
    * When false, requests with invalid tokens set event.app to undefiend.
    */
   enforceAppCheck?: boolean | Expression<boolean>;
+
+  /**
+   * Determines whether Firebase Auth is enforced. Defaults to true.
+   * When true, requests with invalid tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set event.auth to undefined.
+   */
+  enforceAuth?: boolean | Expression<boolean>;
 
   /**
    * Determines whether Firebase App Check token is consumed on request. Defaults to false.
@@ -461,6 +469,11 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     enforceAppCheck = enforceAppCheck.value();
   }
 
+  let enforceAuth = opts.enforceAuth ?? options.getGlobalOptions().enforceAuth;
+  if (enforceAuth instanceof Expression) {
+    enforceAuth = enforceAuth.value();
+  }
+
   let consumeAppCheckToken = opts.consumeAppCheckToken;
   if (consumeAppCheckToken instanceof Expression) {
     consumeAppCheckToken = consumeAppCheckToken.value();
@@ -470,6 +483,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     {
       cors: { origin, methods: "POST" },
       enforceAppCheck,
+      enforceAuth,
       consumeAppCheckToken,
       heartbeatSeconds: opts.heartbeatSeconds,
       authPolicy: opts.authPolicy,

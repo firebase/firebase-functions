@@ -714,6 +714,7 @@ type v2CallableHandler<Req, Res, Stream> = (
 export interface CallableOptions<T = any> {
   cors: cors.CorsOptions;
   enforceAppCheck?: boolean;
+  enforceAuth?: boolean;
   consumeAppCheckToken?: boolean;
   /* @deprecated */
   authPolicy?: (token: AuthData | null, data: T) => boolean | Promise<boolean>;
@@ -818,8 +819,15 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
       }
 
       const tokenStatus = await checkTokens(req, context, options);
+      // enforceAuth defaults to true (unlike enforceAppCheck which defaults to false)
       if (tokenStatus.auth === "INVALID") {
-        throw new HttpsError("unauthenticated", "Unauthenticated");
+        if (options.enforceAuth !== false) {
+          throw new HttpsError("unauthenticated", "Unauthenticated");
+        } else {
+          logger.warn(
+            "Allowing request with invalid auth token because enforcement is disabled"
+          );
+        }
       }
       if (tokenStatus.app === "INVALID") {
         if (options.enforceAppCheck) {

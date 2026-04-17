@@ -408,6 +408,175 @@ describe("onCallHandler", () => {
     });
   });
 
+  describe("enforceAuth", () => {
+    it("should handle valid auth token with enforcement enabled", async () => {
+      const projectId = getApp().options.projectId;
+      const idToken = generateIdToken(projectId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAuth: true,
+        },
+        callableFunction: (data, context) => {
+          checkAuthContext(context, projectId, mocks.user_id);
+          return null;
+        },
+        callableFunction2: (request) => {
+          checkAuthContext(request, projectId, mocks.user_id);
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should reject invalid auth token with enforcement enabled (default)", async () => {
+      const projectId = getApp().options.projectId;
+      const idToken = generateUnsignedIdToken(projectId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+        },
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
+            },
+          },
+        },
+      });
+    });
+
+    it("should reject invalid auth token with enforceAuth explicitly true", async () => {
+      const projectId = getApp().options.projectId;
+      const idToken = generateUnsignedIdToken(projectId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAuth: true,
+        },
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 401,
+          headers: expectedResponseHeaders,
+          body: {
+            error: {
+              message: "Unauthenticated",
+              status: "UNAUTHENTICATED",
+            },
+          },
+        },
+      });
+    });
+
+    it("should allow invalid auth token with enforcement disabled", async () => {
+      const projectId = getApp().options.projectId;
+      const idToken = generateUnsignedIdToken(projectId);
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Bearer " + idToken,
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAuth: false,
+        },
+        callableFunction: (data, context) => {
+          expect(context.auth).to.be.undefined;
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.auth).to.be.undefined;
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should allow bad authorization header with enforcement disabled", async () => {
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json", {
+          authorization: "Beaver heyyall",
+        }),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAuth: false,
+        },
+        callableFunction: (data, context) => {
+          expect(context.auth).to.be.undefined;
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.auth).to.be.undefined;
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should allow missing auth token with enforcement enabled", async () => {
+      await runCallableTest({
+        httpRequest: mockRequest(null, "application/json"),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: true, methods: "POST" },
+          enforceAuth: true,
+        },
+        callableFunction: (data, context) => {
+          expect(context.auth).to.be.undefined;
+          return null;
+        },
+        callableFunction2: (request) => {
+          expect(request.auth).to.be.undefined;
+          return null;
+        },
+        expectedHttpResponse: {
+          status: 200,
+          headers: expectedResponseHeaders,
+          body: { result: null },
+        },
+      });
+    });
+  });
+
   describe("AppCheck", () => {
     describe("verify token", () => {
       let mock: nock.Scope;
