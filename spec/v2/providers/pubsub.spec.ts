@@ -134,6 +134,19 @@ describe("onMessagePublished", () => {
     expect(res).to.equal("input");
   });
 
+  it("rejects timeoutSeconds above the 540s event-handler limit", () => {
+    expect(() =>
+      pubsub.onMessagePublished({ topic: "topic", timeoutSeconds: 3600 }, () => 42)
+    ).to.throw(/between 0 and 540 for event-handling functions/);
+  });
+
+  it("rejects a global timeoutSeconds above the 540s event-handler limit", () => {
+    options.setGlobalOptions({ timeoutSeconds: 3600 });
+    expect(() => pubsub.onMessagePublished("topic", () => 42)).to.throw(
+      /between 0 and 540 for event-handling functions/
+    );
+  });
+
   it("should parse pubsub messages", async () => {
     let json: unknown;
     const messageJSON = {

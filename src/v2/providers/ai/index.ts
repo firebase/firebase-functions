@@ -237,7 +237,7 @@ export function beforeGenerateContent(
   func = wrapTraceContext(withInit(func));
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
@@ -344,7 +344,7 @@ export function afterGenerateContent(
   func = wrapTraceContext(withInit(func));
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",

@@ -153,7 +153,7 @@ export function onConfigUpdated(
   }
 
   const baseOpts = optionsToEndpoint(getGlobalOptions());
-  const specificOpts = optionsToEndpoint(optsOrHandler);
+  const specificOpts = optionsToEndpoint(optsOrHandler, "event");
 
   const func: any = wrapTraceContext(
     withInit((raw: CloudEvent<unknown>) => {

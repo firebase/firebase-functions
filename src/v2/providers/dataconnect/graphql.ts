@@ -94,7 +94,7 @@ export function onGraphRequest(opts: GraphqlServerOptions): HttpsFunction {
   const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions, "https");
   const endpoint: Partial<ManifestEndpoint> = {
     ...initV2Endpoint(globalOpts, opts),
     platform: "gcfv2",
