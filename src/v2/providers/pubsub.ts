@@ -395,7 +395,7 @@ export function onMessagePublished<T = any>(
   Object.defineProperty(func, "__trigger", {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "event");
 
       return {
         platform: "gcfv2",
@@ -414,7 +414,7 @@ export function onMessagePublished<T = any>(
   });
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
 
   const endpoint: ManifestEndpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),

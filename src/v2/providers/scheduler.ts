@@ -225,7 +225,7 @@ export function onSchedule(
 
   const globalOpts = options.getGlobalOptions();
   const baseOptsEndpoint = options.optionsToEndpoint(globalOpts);
-  const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts);
+  const specificOptsEndpoint = options.optionsToEndpoint(separatedOpts.opts, "event");
 
   const ep: ManifestEndpoint = {
     ...initV2Endpoint(globalOpts, separatedOpts.opts),

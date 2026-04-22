@@ -899,7 +899,7 @@ export function makeEndpoint(
   namespace: string | Expression<string>
 ): ManifestEndpoint {
   const baseOpts = optionsToEndpoint(getGlobalOptions());
-  const specificOpts = optionsToEndpoint(opts);
+  const specificOpts = optionsToEndpoint(opts, "event");
 
   const eventFilters: Record<string, string | Expression<string>> = {
     database,
