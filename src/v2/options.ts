@@ -369,13 +369,18 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
  * @internal
  */
 export function assertTimeoutSecondsValid(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions | undefined,
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
   kind: TimeoutKind
 ): void {
   const timeoutSeconds = opts?.timeoutSeconds ?? getGlobalOptions().timeoutSeconds;
   if (typeof timeoutSeconds !== "number") {
     return;
   }
+  // Handle the case where timeoutSeconds is NaN
+  if (!Number.isFinite(timeoutSeconds)) {
+    throw new Error(`timeoutSeconds must be a finite number. Got ${timeoutSeconds}.`);
+  }
+
   let max: number;
   let label: string;
   switch (kind) {
