@@ -47,6 +47,9 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   authtype: "unauthenticated",
 };
 
+const TEST_RTDB_INSTANCE_ENV_VAR = "TEST_RTDB_INSTANCE_FOR_GETOPTS";
+const RESOLVED_RTDB_INSTANCE = "resolved-instance";
+
 describe("database", () => {
   describe("makeParams", () => {
     it("should make params with basic path", () => {
@@ -149,18 +152,17 @@ describe("database", () => {
     });
 
     it("should resolve instance Expression to runtime string", () => {
-      const name = "TEST_RTDB_INSTANCE_FOR_GETOPTS";
-      const prev = process.env[name];
-      process.env[name] = "resolved-instance";
+      const prev = process.env[TEST_RTDB_INSTANCE_ENV_VAR];
+      process.env[TEST_RTDB_INSTANCE_ENV_VAR] = RESOLVED_RTDB_INSTANCE;
       try {
-        const p = params.defineString(name);
+        const p = params.defineString(TEST_RTDB_INSTANCE_ENV_VAR);
         expect(database.getOpts({ ref: "/foo", instance: p })).to.deep.include({
           path: "foo",
-          instance: "resolved-instance",
+          instance: RESOLVED_RTDB_INSTANCE,
         });
       } finally {
-        if (prev === undefined) delete process.env[name];
-        else process.env[name] = prev;
+        if (prev === undefined) delete process.env[TEST_RTDB_INSTANCE_ENV_VAR];
+        else process.env[TEST_RTDB_INSTANCE_ENV_VAR] = prev;
       }
     });
   });
