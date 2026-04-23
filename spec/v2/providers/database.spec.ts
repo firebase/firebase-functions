@@ -26,6 +26,7 @@ import * as database from "../../../src/v2/providers/database";
 import { expectType } from "../../common/metaprogramming";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { CloudEvent, onInit } from "../../../src/v2/core";
+import * as params from "../../../src/params";
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -45,6 +46,9 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   authid: "uid",
   authtype: "unauthenticated",
 };
+
+const TEST_RTDB_INSTANCE_ENV_VAR = "TEST_RTDB_INSTANCE_FOR_GETOPTS";
+const RESOLVED_RTDB_INSTANCE = "resolved-instance";
 
 describe("database", () => {
   describe("makeParams", () => {
@@ -145,6 +149,21 @@ describe("database", () => {
           region: "us-central1",
         },
       });
+    });
+
+    it("should resolve instance Expression to runtime string", () => {
+      const prev = process.env[TEST_RTDB_INSTANCE_ENV_VAR];
+      process.env[TEST_RTDB_INSTANCE_ENV_VAR] = RESOLVED_RTDB_INSTANCE;
+      try {
+        const p = params.defineString(TEST_RTDB_INSTANCE_ENV_VAR);
+        expect(database.getOpts({ ref: "/foo", instance: p })).to.deep.include({
+          path: "foo",
+          instance: RESOLVED_RTDB_INSTANCE,
+        });
+      } finally {
+        if (prev === undefined) delete process.env[TEST_RTDB_INSTANCE_ENV_VAR];
+        else process.env[TEST_RTDB_INSTANCE_ENV_VAR] = prev;
+      }
     });
   });
 
