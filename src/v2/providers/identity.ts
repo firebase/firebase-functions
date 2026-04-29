@@ -166,13 +166,31 @@ export interface BlockingOptions {
   secrets?: SupportedSecretParam[];
 }
 
+/** Handler used by {@link beforeUserCreated}. */
+export type BeforeUserCreatedHandler = (
+  event: AuthBlockingEvent
+) => MaybeAsync<BeforeCreateResponse | void>;
+
+/** Handler used by {@link beforeUserSignedIn}. */
+export type BeforeUserSignedInHandler = (
+  event: AuthBlockingEvent
+) => MaybeAsync<BeforeSignInResponse | void>;
+
+/** Handler used by {@link beforeEmailSent}. */
+export type BeforeEmailSentHandler = (
+  event: AuthBlockingEvent
+) => MaybeAsync<BeforeEmailResponse | void>;
+
+/** Handler used by {@link beforeSmsSent}. */
+export type BeforeSmsSentHandler = (
+  event: AuthBlockingEvent
+) => MaybeAsync<BeforeSmsResponse | void>;
+
 /**
  * Handles an event that is triggered before a user is created.
  * @param handler - Event handler which is run every time before a user is created.
  */
-export function beforeUserCreated(
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
-): BlockingFunction;
+export function beforeUserCreated(handler: BeforeUserCreatedHandler): BlockingFunction;
 
 /**
  * Handles an event that is triggered before a user is created.
@@ -181,7 +199,7 @@ export function beforeUserCreated(
  */
 export function beforeUserCreated(
   opts: BlockingOptions,
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
+  handler: BeforeUserCreatedHandler
 ): BlockingFunction;
 
 /**
@@ -190,10 +208,8 @@ export function beforeUserCreated(
  * @param handler? - If defined, an event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
-  optsOrHandler:
-    | BlockingOptions
-    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>),
-  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
+  optsOrHandler: BlockingOptions | BeforeUserCreatedHandler,
+  handler?: BeforeUserCreatedHandler
 ): BlockingFunction {
   return beforeOperation("beforeCreate", optsOrHandler, handler);
 }
@@ -202,9 +218,7 @@ export function beforeUserCreated(
  * Handles an event that is triggered before a user is signed in.
  * @param handler - Event handler which is run every time before a user is signed in.
  */
-export function beforeUserSignedIn(
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
-): BlockingFunction;
+export function beforeUserSignedIn(handler: BeforeUserSignedInHandler): BlockingFunction;
 
 /**
  * Handles an event that is triggered before a user is signed in.
@@ -213,7 +227,7 @@ export function beforeUserSignedIn(
  */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
+  handler: BeforeUserSignedInHandler
 ): BlockingFunction;
 
 /**
@@ -222,10 +236,8 @@ export function beforeUserSignedIn(
  * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
-  optsOrHandler:
-    | BlockingOptions
-    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>),
-  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
+  optsOrHandler: BlockingOptions | BeforeUserSignedInHandler,
+  handler?: BeforeUserSignedInHandler
 ): BlockingFunction {
   return beforeOperation("beforeSignIn", optsOrHandler, handler);
 }
@@ -234,9 +246,7 @@ export function beforeUserSignedIn(
  * Handles an event that is triggered before an email is sent to a user.
  * @param handler - Event handler that is run before an email is sent to a user.
  */
-export function beforeEmailSent(
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
-): BlockingFunction;
+export function beforeEmailSent(handler: BeforeEmailSentHandler): BlockingFunction;
 
 /**
  * Handles an event that is triggered before an email is sent to a user.
@@ -245,7 +255,7 @@ export function beforeEmailSent(
  */
 export function beforeEmailSent(
   opts: Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">,
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+  handler: BeforeEmailSentHandler
 ): BlockingFunction;
 
 /**
@@ -256,8 +266,8 @@ export function beforeEmailSent(
 export function beforeEmailSent(
   optsOrHandler:
     | Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">
-    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>),
-  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+    | BeforeEmailSentHandler,
+  handler?: BeforeEmailSentHandler
 ): BlockingFunction {
   return beforeOperation("beforeSendEmail", optsOrHandler, handler);
 }
@@ -265,9 +275,7 @@ export function beforeEmailSent(
  * Handles an event that is triggered before an SMS is sent to a user.
  * @param handler - Event handler that is run before an SMS is sent to a user.
  */
-export function beforeSmsSent(
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
-): BlockingFunction;
+export function beforeSmsSent(handler: BeforeSmsSentHandler): BlockingFunction;
 
 /**
  * Handles an event that is triggered before an SMS is sent to a user.
@@ -276,7 +284,7 @@ export function beforeSmsSent(
  */
 export function beforeSmsSent(
   opts: Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">,
-  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+  handler: BeforeSmsSentHandler
 ): BlockingFunction;
 
 /**
@@ -287,8 +295,8 @@ export function beforeSmsSent(
 export function beforeSmsSent(
   optsOrHandler:
     | Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">
-    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>),
-  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+    | BeforeSmsSentHandler,
+  handler?: BeforeSmsSentHandler
 ): BlockingFunction {
   return beforeOperation("beforeSendSms", optsOrHandler, handler);
 }

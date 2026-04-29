@@ -144,6 +144,11 @@ export interface TestMatrixCompletedData {
   testMatrixId: string;
 }
 
+/** Handler used by {@link onTestMatrixCompleted}. */
+export type OnTestMatrixCompletedHandler = (
+  event: CloudEvent<TestMatrixCompletedData>
+) => any | Promise<any>;
+
 /**
  * Event handler which triggers when a Firebase test matrix completes.
  *
@@ -152,7 +157,7 @@ export interface TestMatrixCompletedData {
  * @alpha
  */
 export function onTestMatrixCompleted(
-  handler: (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>
+  handler: OnTestMatrixCompletedHandler
 ): CloudFunction<CloudEvent<TestMatrixCompletedData>>;
 
 /**
@@ -165,7 +170,7 @@ export function onTestMatrixCompleted(
  */
 export function onTestMatrixCompleted(
   opts: EventHandlerOptions,
-  handler: (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>
+  handler: OnTestMatrixCompletedHandler
 ): CloudFunction<CloudEvent<TestMatrixCompletedData>>;
 
 /**
@@ -177,10 +182,8 @@ export function onTestMatrixCompleted(
  * @alpha
  */
 export function onTestMatrixCompleted(
-  optsOrHandler:
-    | EventHandlerOptions
-    | ((event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>),
-  handler?: (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>
+  optsOrHandler: EventHandlerOptions | OnTestMatrixCompletedHandler,
+  handler?: OnTestMatrixCompletedHandler
 ): CloudFunction<CloudEvent<TestMatrixCompletedData>> {
   if (typeof optsOrHandler === "function") {
     handler = optsOrHandler as (event: CloudEvent<TestMatrixCompletedData>) => any | Promise<any>;

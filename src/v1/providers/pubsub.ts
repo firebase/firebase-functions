@@ -30,6 +30,12 @@ export const provider = "google.pubsub";
 /** @internal */
 export const service = "pubsub.googleapis.com";
 
+/** Handler used by {@link TopicBuilder.onPublish}. */
+export type OnPublishHandler = (message: Message, context: EventContext) => PromiseLike<any> | any;
+
+/** Handler used by {@link ScheduleBuilder.onRun}. */
+export type OnRunHandler = (context: EventContext) => PromiseLike<any> | any;
+
 /**
  * Registers a Cloud Function triggered when a Google Cloud Pub/Sub message
  * is sent to a specified topic.
@@ -79,9 +85,7 @@ export class TopicBuilder {
    *   is published.
    * @returns A function that you can export and deploy.
    */
-  onPublish(
-    handler: (message: Message, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<Message> {
+  onPublish(handler: OnPublishHandler): CloudFunction<Message> {
     return makeCloudFunction({
       handler,
       provider,
@@ -156,7 +160,7 @@ export class ScheduleBuilder {
    *   scheduler job sends a Pub/Sub message.
    * @returns A function that you can export and deploy.
    */
-  onRun(handler: (context: EventContext) => PromiseLike<any> | any) {
+  onRun(handler: OnRunHandler) {
     const cloudFunction = makeCloudFunction({
       contextOnlyHandler: handler,
       provider,

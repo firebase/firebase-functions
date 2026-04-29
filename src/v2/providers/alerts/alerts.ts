@@ -186,6 +186,11 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   retry?: boolean | Expression<boolean> | ResetValue;
 }
 
+/** Handler used by {@link onAlertPublished}. */
+export type OnAlertPublishedHandler<T extends { ["@type"]: string } = any> = (
+  event: AlertEvent<T>
+) => any | Promise<any>;
+
 /**
  * Declares a function that can handle Firebase Alerts from CloudEvents.
  * @typeParam T - the type of event.data.payload.
@@ -195,7 +200,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
  */
 export function onAlertPublished<T extends { ["@type"]: string } = any>(
   alertType: AlertType,
-  handler: (event: AlertEvent<T>) => any | Promise<any>
+  handler: OnAlertPublishedHandler<T>
 ): CloudFunction<AlertEvent<T>>;
 
 /**
@@ -206,12 +211,12 @@ export function onAlertPublished<T extends { ["@type"]: string } = any>(
  */
 export function onAlertPublished<T extends { ["@type"]: string } = any>(
   options: FirebaseAlertOptions,
-  handler: (event: AlertEvent<T>) => any | Promise<any>
+  handler: OnAlertPublishedHandler<T>
 ): CloudFunction<AlertEvent<T>>;
 
 export function onAlertPublished<T extends { ["@type"]: string } = any>(
   alertTypeOrOpts: AlertType | FirebaseAlertOptions,
-  handler: (event: AlertEvent<T>) => any | Promise<any>
+  handler: OnAlertPublishedHandler<T>
 ): CloudFunction<AlertEvent<T>> {
   const [opts, alertType, appId] = getOptsAndAlertTypeAndApp(alertTypeOrOpts);
 

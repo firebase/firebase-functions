@@ -197,13 +197,23 @@ export interface AppDistributionOptions extends options.EventHandlerOptions {
   retry?: boolean | Expression<boolean> | ResetValue;
 }
 
+/** Handler used by {@link onNewTesterIosDevicePublished}. */
+export type OnNewTesterIosDevicePublishedHandler = (
+  event: AppDistributionEvent<NewTesterDevicePayload>
+) => any | Promise<any>;
+
+/** Handler used by {@link onInAppFeedbackPublished}. */
+export type OnInAppFeedbackPublishedHandler = (
+  event: AppDistributionEvent<InAppFeedbackPayload>
+) => any | Promise<any>;
+
 /**
  * Declares a function that can handle adding a new tester iOS device.
  * @param handler - Event handler which is run every time a new tester iOS device is added.
  * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
-  handler: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
+  handler: OnNewTesterIosDevicePublishedHandler
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 
 /**
@@ -214,7 +224,7 @@ export function onNewTesterIosDevicePublished(
  */
 export function onNewTesterIosDevicePublished(
   appId: string,
-  handler: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
+  handler: OnNewTesterIosDevicePublishedHandler
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 
 /**
@@ -225,7 +235,7 @@ export function onNewTesterIosDevicePublished(
  */
 export function onNewTesterIosDevicePublished(
   opts: AppDistributionOptions,
-  handler: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
+  handler: OnNewTesterIosDevicePublishedHandler
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>>;
 
 /**
@@ -235,11 +245,8 @@ export function onNewTesterIosDevicePublished(
  * @returns A function that you can export and deploy.
  */
 export function onNewTesterIosDevicePublished(
-  appIdOrOptsOrHandler:
-    | string
-    | AppDistributionOptions
-    | ((event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>),
-  handler?: (event: AppDistributionEvent<NewTesterDevicePayload>) => any | Promise<any>
+  appIdOrOptsOrHandler: string | AppDistributionOptions | OnNewTesterIosDevicePublishedHandler,
+  handler?: OnNewTesterIosDevicePublishedHandler
 ): CloudFunction<AppDistributionEvent<NewTesterDevicePayload>> {
   if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (
@@ -268,7 +275,7 @@ export function onNewTesterIosDevicePublished(
  * @returns A function that you can export and deploy.
  */
 export function onInAppFeedbackPublished(
-  handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
+  handler: OnInAppFeedbackPublishedHandler
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
 
 /**
@@ -279,7 +286,7 @@ export function onInAppFeedbackPublished(
  */
 export function onInAppFeedbackPublished(
   appId: string,
-  handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
+  handler: OnInAppFeedbackPublishedHandler
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
 
 /**
@@ -290,7 +297,7 @@ export function onInAppFeedbackPublished(
  */
 export function onInAppFeedbackPublished(
   opts: AppDistributionOptions,
-  handler: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
+  handler: OnInAppFeedbackPublishedHandler
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>>;
 
 /**
@@ -300,11 +307,8 @@ export function onInAppFeedbackPublished(
  * @returns A function that you can export and deploy.
  */
 export function onInAppFeedbackPublished(
-  appIdOrOptsOrHandler:
-    | string
-    | AppDistributionOptions
-    | ((event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>),
-  handler?: (event: AppDistributionEvent<InAppFeedbackPayload>) => any | Promise<any>
+  appIdOrOptsOrHandler: string | AppDistributionOptions | OnInAppFeedbackPublishedHandler,
+  handler?: OnInAppFeedbackPublishedHandler
 ): CloudFunction<AppDistributionEvent<InAppFeedbackPayload>> {
   if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (

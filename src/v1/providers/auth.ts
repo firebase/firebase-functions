@@ -55,6 +55,32 @@ export type { UserRecord, UserInfo };
 
 export { HttpsError };
 
+/** Handler used by {@link UserBuilder.onCreate}. */
+export type OnCreateHandler = (user: UserRecord, context: EventContext) => PromiseLike<any> | any;
+
+/** Handler used by {@link UserBuilder.onDelete}. */
+export type OnDeleteHandler = OnCreateHandler;
+
+/** Handler used by {@link UserBuilder.beforeCreate}. */
+export type BeforeCreateHandler = (
+  user: AuthUserRecord,
+  context: AuthEventContext
+) => MaybeAsync<BeforeCreateResponse | void>;
+
+/** Handler used by {@link UserBuilder.beforeSignIn}. */
+export type BeforeSignInHandler = (
+  user: AuthUserRecord,
+  context: AuthEventContext
+) => MaybeAsync<BeforeSignInResponse | void>;
+
+/** Handler used by {@link UserBuilder.beforeEmail}. */
+export type BeforeEmailHandler = (
+  context: AuthEventContext
+) => MaybeAsync<BeforeEmailResponse | void>;
+
+/** Handler used by {@link UserBuilder.beforeSms}. */
+export type BeforeSmsHandler = (context: AuthEventContext) => MaybeAsync<BeforeSmsResponse | void>;
+
 /** @internal */
 export const provider = "google.firebase.auth";
 /** @internal */
@@ -126,9 +152,7 @@ export class UserBuilder {
    *
    * @public
    */
-  onCreate(
-    handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<UserRecord> {
+  onCreate(handler: OnCreateHandler): CloudFunction<UserRecord> {
     return this.onOperation(handler, "user.create");
   }
 
@@ -139,9 +163,7 @@ export class UserBuilder {
    *
    * @public
    */
-  onDelete(
-    handler: (user: UserRecord, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<UserRecord> {
+  onDelete(handler: OnDeleteHandler): CloudFunction<UserRecord> {
     return this.onOperation(handler, "user.delete");
   }
 
@@ -152,12 +174,7 @@ export class UserBuilder {
    *
    * @public
    */
-  beforeCreate(
-    handler: (
-      user: AuthUserRecord,
-      context: AuthEventContext
-    ) => MaybeAsync<BeforeCreateResponse | void>
-  ): BlockingFunction {
+  beforeCreate(handler: BeforeCreateHandler): BlockingFunction {
     return this.beforeOperation(handler, "beforeCreate");
   }
 
@@ -168,24 +185,15 @@ export class UserBuilder {
    *
    * @public
    */
-  beforeSignIn(
-    handler: (
-      user: AuthUserRecord,
-      context: AuthEventContext
-    ) => MaybeAsync<BeforeSignInResponse | void>
-  ): BlockingFunction {
+  beforeSignIn(handler: BeforeSignInHandler): BlockingFunction {
     return this.beforeOperation(handler, "beforeSignIn");
   }
 
-  beforeEmail(
-    handler: (context: AuthEventContext) => MaybeAsync<BeforeEmailResponse | void>
-  ): BlockingFunction {
+  beforeEmail(handler: BeforeEmailHandler): BlockingFunction {
     return this.beforeOperation(handler, "beforeSendEmail");
   }
 
-  beforeSms(
-    handler: (context: AuthEventContext) => MaybeAsync<BeforeSmsResponse | void>
-  ): BlockingFunction {
+  beforeSms(handler: BeforeSmsHandler): BlockingFunction {
     return this.beforeOperation(handler, "beforeSendSms");
   }
 

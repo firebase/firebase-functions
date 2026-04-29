@@ -28,6 +28,12 @@ export const provider = "google.firebase.remoteconfig";
 /** @internal */
 export const service = "firebaseremoteconfig.googleapis.com";
 
+/** Handler used by {@link onUpdate}. */
+export type OnUpdateHandler = (
+  version: TemplateVersion,
+  context: EventContext
+) => PromiseLike<any> | any;
+
 /**
  * Registers a function that triggers on Firebase Remote Config template
  * update events.
@@ -37,15 +43,13 @@ export const service = "firebaseremoteconfig.googleapis.com";
  *
  * @returns A function that you can export and deploy.
  */
-export function onUpdate(
-  handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any
-): CloudFunction<TemplateVersion> {
+export function onUpdate(handler: OnUpdateHandler): CloudFunction<TemplateVersion> {
   return _onUpdateWithOptions(handler, {});
 }
 
 /** @internal */
 export function _onUpdateWithOptions(
-  handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any,
+  handler: OnUpdateHandler,
   options: DeploymentOptions
 ): CloudFunction<TemplateVersion> {
   const triggerResource = () => {
@@ -68,9 +72,7 @@ export class UpdateBuilder {
    * @param handler A function that takes the updated Remote Config template
    * version metadata as an argument.
    */
-  onUpdate(
-    handler: (version: TemplateVersion, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<TemplateVersion> {
+  onUpdate(handler: OnUpdateHandler): CloudFunction<TemplateVersion> {
     return makeCloudFunction({
       handler,
       provider,

@@ -71,13 +71,26 @@ export const planUpdateAlert = "billing.planUpdate";
 /** @internal */
 export const planAutomatedUpdateAlert = "billing.planAutomatedUpdate";
 
+/** Handler used by {@link onPlanUpdatePublished}. */
+export type OnPlanUpdatePublishedHandler = (
+  event: BillingEvent<PlanUpdatePayload>
+) => any | Promise<any>;
+
+/** Handler used by {@link onPlanAutomatedUpdatePublished}. */
+export type OnPlanAutomatedUpdatePublishedHandler = (
+  event: BillingEvent<PlanAutomatedUpdatePayload>
+) => any | Promise<any>;
+
+/** Handler used by internal billing alert operations. */
+export type OnBillingOperationHandler<T> = (event: BillingEvent<T>) => any | Promise<any>;
+
 /**
  * Declares a function that can handle a billing plan update event.
  * @param handler - Event handler which is run every time a billing plan is updated.
  * @returns A function that you can export and deploy.
  */
 export function onPlanUpdatePublished(
-  handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
+  handler: OnPlanUpdatePublishedHandler
 ): CloudFunction<BillingEvent<PlanUpdatePayload>>;
 
 /**
@@ -88,7 +101,7 @@ export function onPlanUpdatePublished(
  */
 export function onPlanUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
+  handler: OnPlanUpdatePublishedHandler
 ): CloudFunction<BillingEvent<PlanUpdatePayload>>;
 
 /**
@@ -98,10 +111,8 @@ export function onPlanUpdatePublished(
  * @returns A function that you can export and deploy.
  */
 export function onPlanUpdatePublished(
-  optsOrHandler:
-    | options.EventHandlerOptions
-    | ((event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>),
-  handler?: (event: BillingEvent<PlanUpdatePayload>) => any | Promise<any>
+  optsOrHandler: options.EventHandlerOptions | OnPlanUpdatePublishedHandler,
+  handler?: OnPlanUpdatePublishedHandler
 ): CloudFunction<BillingEvent<PlanUpdatePayload>> {
   return onOperation<PlanUpdatePayload>(planUpdateAlert, optsOrHandler, handler);
 }
@@ -112,7 +123,7 @@ export function onPlanUpdatePublished(
  * @returns A function that you can export and deploy.
  */
 export function onPlanAutomatedUpdatePublished(
-  handler: (event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>
+  handler: OnPlanAutomatedUpdatePublishedHandler
 ): CloudFunction<BillingEvent<PlanAutomatedUpdatePayload>>;
 
 /**
@@ -123,7 +134,7 @@ export function onPlanAutomatedUpdatePublished(
  */
 export function onPlanAutomatedUpdatePublished(
   opts: options.EventHandlerOptions,
-  handler: (event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>
+  handler: OnPlanAutomatedUpdatePublishedHandler
 ): CloudFunction<BillingEvent<PlanAutomatedUpdatePayload>>;
 
 /**
@@ -133,10 +144,8 @@ export function onPlanAutomatedUpdatePublished(
  * @returns A function that you can export and deploy.
  */
 export function onPlanAutomatedUpdatePublished(
-  optsOrHandler:
-    | options.EventHandlerOptions
-    | ((event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>),
-  handler?: (event: BillingEvent<PlanAutomatedUpdatePayload>) => any | Promise<any>
+  optsOrHandler: options.EventHandlerOptions | OnPlanAutomatedUpdatePublishedHandler,
+  handler?: OnPlanAutomatedUpdatePublishedHandler
 ): CloudFunction<BillingEvent<PlanAutomatedUpdatePayload>> {
   return onOperation<PlanAutomatedUpdatePayload>(planAutomatedUpdateAlert, optsOrHandler, handler);
 }
@@ -144,11 +153,11 @@ export function onPlanAutomatedUpdatePublished(
 /** @internal */
 export function onOperation<T>(
   alertType: string,
-  optsOrHandler: options.EventHandlerOptions | ((event: BillingEvent<T>) => any | Promise<any>),
-  handler: (event: BillingEvent<T>) => any | Promise<any>
+  optsOrHandler: options.EventHandlerOptions | OnBillingOperationHandler<T>,
+  handler: OnBillingOperationHandler<T>
 ): CloudFunction<BillingEvent<T>> {
   if (typeof optsOrHandler === "function") {
-    handler = optsOrHandler as (event: BillingEvent<T>) => any | Promise<any>;
+    handler = optsOrHandler as OnBillingOperationHandler<T>;
     optsOrHandler = {};
   }
 

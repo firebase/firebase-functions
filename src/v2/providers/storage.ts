@@ -304,17 +304,37 @@ export interface StorageOptions extends options.EventHandlerOptions {
   retry?: boolean | Expression<boolean> | ResetValue;
 }
 
-/**
- * Event handler sent only when a bucket has enabled object versioning.
- * This event indicates that the live version of an object has become an
- * archived version, either because it was archived or because it was
- * overwritten by the upload of an object of the same name.
- *
- * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
- */
-export function onObjectArchived(
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageEvent>;
+/** Handler used by Cloud Storage event triggers. */
+export type StorageEventHandler = (event: StorageEvent) => any | Promise<any>;
+
+/** Handler used by Cloud Storage event triggers when accessing v1-compatible fields. */
+export type StorageEventHandlerWithContext = (
+  event: StorageEvent & V1Compat<"object", StorageObjectData>
+) => any | Promise<any>;
+
+/** Handler used by {@link onObjectArchived}. */
+export type OnObjectArchivedHandler = StorageEventHandler;
+
+/** Handler used by {@link onObjectArchived} when accessing v1-compatible fields. */
+export type OnObjectArchivedHandlerWithContext = StorageEventHandlerWithContext;
+
+/** Handler used by {@link onObjectFinalized}. */
+export type OnObjectFinalizedHandler = StorageEventHandler;
+
+/** Handler used by {@link onObjectFinalized} when accessing v1-compatible fields. */
+export type OnObjectFinalizedHandlerWithContext = StorageEventHandlerWithContext;
+
+/** Handler used by {@link onObjectDeleted}. */
+export type OnObjectDeletedHandler = StorageEventHandler;
+
+/** Handler used by {@link onObjectDeleted} when accessing v1-compatible fields. */
+export type OnObjectDeletedHandlerWithContext = StorageEventHandlerWithContext;
+
+/** Handler used by {@link onObjectMetadataUpdated}. */
+export type OnObjectMetadataUpdatedHandler = StorageEventHandler;
+
+/** Handler used by {@link onObjectMetadataUpdated} when accessing v1-compatible fields. */
+export type OnObjectMetadataUpdatedHandlerWithContext = StorageEventHandlerWithContext;
 
 /**
  * Event handler sent only when a bucket has enabled object versioning.
@@ -325,7 +345,31 @@ export function onObjectArchived(
  * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
  */
 export function onObjectArchived(
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectArchivedHandlerWithContext
+): CloudFunction<StorageEvent>;
+
+/**
+ * Event handler sent only when a bucket has enabled object versioning.
+ * This event indicates that the live version of an object has become an
+ * archived version, either because it was archived or because it was
+ * overwritten by the upload of an object of the same name.
+ *
+ * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
+ */
+export function onObjectArchived(handler: OnObjectArchivedHandler): CloudFunction<StorageEvent>;
+
+/**
+ * Event handler sent only when a bucket has enabled object versioning.
+ * This event indicates that the live version of an object has become an
+ * archived version, either because it was archived or because it was
+ * overwritten by the upload of an object of the same name.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
+ */
+export function onObjectArchived(
+  bucket: string | Expression<string>,
+  handler: OnObjectArchivedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -339,21 +383,7 @@ export function onObjectArchived(
  */
 export function onObjectArchived(
   bucket: string | Expression<string>,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageEvent>;
-
-/**
- * Event handler sent only when a bucket has enabled object versioning.
- * This event indicates that the live version of an object has become an
- * archived version, either because it was archived or because it was
- * overwritten by the upload of an object of the same name.
- *
- * @param bucket - The name of the bucket containing this object.
- * @param handler - Event handler which is run every time a Google Cloud Storage archival occurs.
- */
-export function onObjectArchived(
-  bucket: string | Expression<string>,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectArchivedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -367,7 +397,7 @@ export function onObjectArchived(
  */
 export function onObjectArchived(
   opts: StorageOptions,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectArchivedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -381,7 +411,7 @@ export function onObjectArchived(
  */
 export function onObjectArchived(
   opts: StorageOptions,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectArchivedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -415,7 +445,7 @@ export function onObjectArchived(
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
 export function onObjectFinalized(
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectFinalizedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -428,8 +458,22 @@ export function onObjectFinalized(
  *
  * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
  */
+export function onObjectFinalized(handler: OnObjectFinalizedHandler): CloudFunction<StorageEvent>;
+
+/**
+ * Event handler which fires every time a Google Cloud Storage object
+ * creation occurs.
+ *
+ * Sent when a new object (or a new generation of an existing object)
+ * is successfully created in the bucket. This includes copying or rewriting
+ * an existing object. A failed upload does not trigger this event.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
+ */
 export function onObjectFinalized(
-  handler: (event: StorageEvent) => any | Promise<any>
+  bucket: string | Expression<string>,
+  handler: OnObjectFinalizedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -445,23 +489,7 @@ export function onObjectFinalized(
  */
 export function onObjectFinalized(
   bucket: string | Expression<string>,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageEvent>;
-
-/**
- * Event handler which fires every time a Google Cloud Storage object
- * creation occurs.
- *
- * Sent when a new object (or a new generation of an existing object)
- * is successfully created in the bucket. This includes copying or rewriting
- * an existing object. A failed upload does not trigger this event.
- *
- * @param bucket - The name of the bucket containing this object.
- * @param handler - Event handler which is run every time a Google Cloud Storage object creation occurs.
- */
-export function onObjectFinalized(
-  bucket: string | Expression<string>,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectFinalizedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -477,7 +505,7 @@ export function onObjectFinalized(
  */
 export function onObjectFinalized(
   opts: StorageOptions,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectFinalizedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -493,7 +521,7 @@ export function onObjectFinalized(
  */
 export function onObjectFinalized(
   opts: StorageOptions,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectFinalizedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -530,7 +558,7 @@ export function onObjectFinalized(
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
 export function onObjectDeleted(
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectDeletedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -544,8 +572,23 @@ export function onObjectDeleted(
  *
  * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
  */
+export function onObjectDeleted(handler: OnObjectDeletedHandler): CloudFunction<StorageEvent>;
+
+/**
+ * Event handler which fires every time a Google Cloud Storage deletion occurs.
+ *
+ * Sent when an object has been permanently deleted. This includes objects
+ * that are overwritten or are deleted as part of the bucket's lifecycle
+ * configuration. For buckets with object versioning enabled, this is not
+ * sent when an object is archived, even if archival occurs
+ * via the `storage.objects.delete` method.
+ *
+ * @param bucket - The name of the bucket containing this object.
+ * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
+ */
 export function onObjectDeleted(
-  handler: (event: StorageEvent) => any | Promise<any>
+  bucket: string | Expression<string>,
+  handler: OnObjectDeletedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -562,24 +605,7 @@ export function onObjectDeleted(
  */
 export function onObjectDeleted(
   bucket: string | Expression<string>,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
-): CloudFunction<StorageEvent>;
-
-/**
- * Event handler which fires every time a Google Cloud Storage deletion occurs.
- *
- * Sent when an object has been permanently deleted. This includes objects
- * that are overwritten or are deleted as part of the bucket's lifecycle
- * configuration. For buckets with object versioning enabled, this is not
- * sent when an object is archived, even if archival occurs
- * via the `storage.objects.delete` method.
- *
- * @param bucket - The name of the bucket containing this object.
- * @param handler - Event handler which is run every time a Google Cloud Storage object deletion occurs.
- */
-export function onObjectDeleted(
-  bucket: string | Expression<string>,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectDeletedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -596,7 +622,7 @@ export function onObjectDeleted(
  */
 export function onObjectDeleted(
   opts: StorageOptions,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectDeletedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -613,7 +639,7 @@ export function onObjectDeleted(
  */
 export function onObjectDeleted(
   opts: StorageOptions,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectDeletedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -647,7 +673,7 @@ export function onObjectDeleted(
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectMetadataUpdatedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -658,7 +684,7 @@ export function onObjectMetadataUpdated(
  * @param handler - Event handler which is run every time a Google Cloud Storage object metadata update occurs.
  */
 export function onObjectMetadataUpdated(
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectMetadataUpdatedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -670,7 +696,7 @@ export function onObjectMetadataUpdated(
  */
 export function onObjectMetadataUpdated(
   bucket: string | Expression<string>,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectMetadataUpdatedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -682,7 +708,7 @@ export function onObjectMetadataUpdated(
  */
 export function onObjectMetadataUpdated(
   bucket: string | Expression<string>,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectMetadataUpdatedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -694,7 +720,7 @@ export function onObjectMetadataUpdated(
  */
 export function onObjectMetadataUpdated(
   opts: StorageOptions,
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+  handler: OnObjectMetadataUpdatedHandlerWithContext
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -706,7 +732,7 @@ export function onObjectMetadataUpdated(
  */
 export function onObjectMetadataUpdated(
   opts: StorageOptions,
-  handler: (event: StorageEvent) => any | Promise<any>
+  handler: OnObjectMetadataUpdatedHandler
 ): CloudFunction<StorageEvent>;
 
 /**
@@ -734,8 +760,8 @@ export function onOperation(
     | string
     | Expression<string>
     | StorageOptions
-    | ((event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>),
-  handler: (event: StorageEvent & V1Compat<"object", StorageObjectData>) => any | Promise<any>
+    | StorageEventHandlerWithContext,
+  handler: StorageEventHandlerWithContext
 ): CloudFunction<StorageEvent> {
   if (typeof bucketOrOptsOrHandler === "function") {
     handler = bucketOrOptsOrHandler as (event: any) => any | Promise<any>;
