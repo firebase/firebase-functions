@@ -31,6 +31,21 @@ export const provider = "google.storage";
 /** @internal */
 export const service = "storage.googleapis.com";
 
+/** Handler used by {@link ObjectBuilder.onArchive}. */
+export type OnArchiveHandler = (
+  object: ObjectMetadata,
+  context: EventContext
+) => PromiseLike<any> | any;
+
+/** Handler used by {@link ObjectBuilder.onDelete}. */
+export type OnDeleteHandler = OnArchiveHandler;
+
+/** Handler used by {@link ObjectBuilder.onFinalize}. */
+export type OnFinalizeHandler = OnArchiveHandler;
+
+/** Handler used by {@link ObjectBuilder.onMetadataUpdate}. */
+export type OnMetadataUpdateHandler = OnArchiveHandler;
+
 /**
  * Registers a Cloud Function scoped to a specific storage bucket.
  *
@@ -125,9 +140,7 @@ export class ObjectBuilder {
    *
    * @returns A function which you can export and deploy.
    */
-  onArchive(
-    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<ObjectMetadata> {
+  onArchive(handler: OnArchiveHandler): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, "object.archive");
   }
 
@@ -145,9 +158,7 @@ export class ObjectBuilder {
    *
    * @returns A function which you can export and deploy.
    */
-  onDelete(
-    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<ObjectMetadata> {
+  onDelete(handler: OnDeleteHandler): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, "object.delete");
   }
 
@@ -164,9 +175,7 @@ export class ObjectBuilder {
    *
    * @returns A function which you can export and deploy.
    */
-  onFinalize(
-    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<ObjectMetadata> {
+  onFinalize(handler: OnFinalizeHandler): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, "object.finalize");
   }
 
@@ -179,9 +188,7 @@ export class ObjectBuilder {
    *
    * @returns A function which you can export and deploy.
    */
-  onMetadataUpdate(
-    handler: (object: ObjectMetadata, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<ObjectMetadata> {
+  onMetadataUpdate(handler: OnMetadataUpdateHandler): CloudFunction<ObjectMetadata> {
     return this.onOperation(handler, "object.metadataUpdate");
   }
 

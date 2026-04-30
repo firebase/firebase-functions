@@ -128,17 +128,13 @@ export interface ScheduleOptions extends options.GlobalOptions {
   maxDoublings?: number | Expression<number> | ResetValue;
 }
 
-/**
- * Handler for scheduled functions. Triggered whenever the associated
- * scheduler job sends a http request.
- * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
- * @param handler - A function to execute when triggered.
- * @returns A function that you can export and deploy.
- */
-export function onSchedule(
-  schedule: string,
-  handler: (event: ScheduledEvent & { context: EventContext }) => void | Promise<void>
-): ScheduleFunction;
+/** Handler used by {@link onSchedule}. */
+export type OnScheduleHandler = (event: ScheduledEvent) => void | Promise<void>;
+
+/** Handler used by {@link onSchedule} when accessing v1-compatible context. */
+export type OnScheduleHandlerWithContext = (
+  event: ScheduledEvent & { context: EventContext }
+) => void | Promise<void>;
 
 /**
  * Handler for scheduled functions. Triggered whenever the associated
@@ -149,8 +145,17 @@ export function onSchedule(
  */
 export function onSchedule(
   schedule: string,
-  handler: (event: ScheduledEvent) => void | Promise<void>
+  handler: OnScheduleHandlerWithContext
 ): ScheduleFunction;
+
+/**
+ * Handler for scheduled functions. Triggered whenever the associated
+ * scheduler job sends a http request.
+ * @param schedule - The schedule, in Unix Crontab or AppEngine syntax.
+ * @param handler - A function to execute when triggered.
+ * @returns A function that you can export and deploy.
+ */
+export function onSchedule(schedule: string, handler: OnScheduleHandler): ScheduleFunction;
 
 /**
  * Handler for scheduled functions. Triggered whenever the associated
@@ -161,7 +166,7 @@ export function onSchedule(
  */
 export function onSchedule(
   options: ScheduleOptions,
-  handler: (event: ScheduledEvent & { context: EventContext }) => void | Promise<void>
+  handler: OnScheduleHandlerWithContext
 ): ScheduleFunction;
 
 /**
@@ -171,10 +176,7 @@ export function onSchedule(
  * @param handler - A function to execute when triggered.
  * @returns A function that you can export and deploy.
  */
-export function onSchedule(
-  options: ScheduleOptions,
-  handler: (event: ScheduledEvent) => void | Promise<void>
-): ScheduleFunction;
+export function onSchedule(options: ScheduleOptions, handler: OnScheduleHandler): ScheduleFunction;
 
 /**
  * Handler for scheduled functions. Triggered whenever the associated
@@ -185,7 +187,7 @@ export function onSchedule(
  */
 export function onSchedule(
   args: string | ScheduleOptions,
-  handler: (event: any) => void | Promise<void>
+  handler: OnScheduleHandlerWithContext
 ): ScheduleFunction {
   const separatedOpts = getOpts(args);
 
@@ -213,7 +215,7 @@ export function onSchedule(
     });
 
     try {
-      await handler(event);
+      await handler(event as ScheduledEvent & { context: EventContext });
       res.status(200).send();
     } catch (err) {
       logger.error((err as Error).message);

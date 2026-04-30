@@ -34,6 +34,24 @@ import { expr } from "../../params";
 
 export { DataSnapshot };
 
+/** Handler used by {@link RefBuilder.onWrite}. */
+export type OnWriteHandler<Ref extends string = string> = (
+  change: Change<DataSnapshot>,
+  context: EventContext<ParamsOf<Ref>>
+) => PromiseLike<any> | any;
+
+/** Handler used by {@link RefBuilder.onUpdate}. */
+export type OnUpdateHandler<Ref extends string = string> = OnWriteHandler<Ref>;
+
+/** Handler used by {@link RefBuilder.onCreate}. */
+export type OnCreateHandler<Ref extends string = string> = (
+  snapshot: DataSnapshot,
+  context: EventContext<ParamsOf<Ref>>
+) => PromiseLike<any> | any;
+
+/** Handler used by {@link RefBuilder.onDelete}. */
+export type OnDeleteHandler<Ref extends string = string> = OnCreateHandler<Ref>;
+
 /** @internal */
 export const provider = "google.firebase.database";
 /** @internal */
@@ -182,12 +200,7 @@ export class RefBuilder<Ref extends string> {
    *   write occurs.
    * @returns A function that you can export and deploy.
    */
-  onWrite(
-    handler: (
-      change: Change<DataSnapshot>,
-      context: EventContext<ParamsOf<Ref>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DataSnapshot>> {
+  onWrite(handler: OnWriteHandler<Ref>): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, "ref.write", this.changeConstructor);
   }
 
@@ -199,12 +212,7 @@ export class RefBuilder<Ref extends string> {
    *   write occurs.
    * @returns A function which you can export and deploy.
    */
-  onUpdate(
-    handler: (
-      change: Change<DataSnapshot>,
-      context: EventContext<ParamsOf<Ref>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DataSnapshot>> {
+  onUpdate(handler: OnUpdateHandler<Ref>): CloudFunction<Change<DataSnapshot>> {
     return this.onOperation(handler, "ref.update", this.changeConstructor);
   }
 
@@ -216,12 +224,7 @@ export class RefBuilder<Ref extends string> {
    *   Firebase Realtime Database.
    * @returns A function that you can export and deploy.
    */
-  onCreate(
-    handler: (
-      snapshot: DataSnapshot,
-      context: EventContext<ParamsOf<Ref>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<DataSnapshot> {
+  onCreate(handler: OnCreateHandler<Ref>): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: LegacyEvent) => {
       const [dbInstance, path] = extractInstanceAndPath(
         raw.context.resource.name,
@@ -240,12 +243,7 @@ export class RefBuilder<Ref extends string> {
    *   Firebase Realtime Database.
    * @returns A function that you can export and deploy.
    */
-  onDelete(
-    handler: (
-      snapshot: DataSnapshot,
-      context: EventContext<ParamsOf<Ref>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<DataSnapshot> {
+  onDelete(handler: OnDeleteHandler<Ref>): CloudFunction<DataSnapshot> {
     const dataConstructor = (raw: LegacyEvent) => {
       const [dbInstance, path] = extractInstanceAndPath(
         raw.context.resource.name,

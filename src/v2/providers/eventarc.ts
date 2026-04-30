@@ -162,6 +162,9 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   retry?: boolean | Expression<boolean> | ResetValue;
 }
 
+/** Handler used by {@link onCustomEventPublished}. */
+export type OnCustomEventPublishedHandler<T = any> = (event: CloudEvent<T>) => any | Promise<any>;
+
 /** Handles an Eventarc event published on the default channel.
  * @param eventType - Type of the event to trigger on.
  * @param handler - A function to execute when triggered.
@@ -169,7 +172,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
  */
 export function onCustomEventPublished<T = any>(
   eventType: string,
-  handler: (event: CloudEvent<T>) => any | Promise<any>
+  handler: OnCustomEventPublishedHandler<T>
 ): CloudFunction<CloudEvent<T>>;
 
 /** Handles an Eventarc event.
@@ -179,12 +182,12 @@ export function onCustomEventPublished<T = any>(
  */
 export function onCustomEventPublished<T = any>(
   opts: EventarcTriggerOptions,
-  handler: (event: CloudEvent<T>) => any | Promise<any>
+  handler: OnCustomEventPublishedHandler<T>
 ): CloudFunction<CloudEvent<T>>;
 
 export function onCustomEventPublished<T = any>(
   eventTypeOrOpts: string | EventarcTriggerOptions,
-  handler: (event: CloudEvent<T>) => any | Promise<any>
+  handler: OnCustomEventPublishedHandler<T>
 ): CloudFunction<CloudEvent<T>> {
   let opts: EventarcTriggerOptions;
   if (typeof eventTypeOrOpts === "string") {

@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as express from "express";
+import type * as express from "express";
 
 import { convertIfPresent, convertInvoker } from "../../common/encoding";
 import {
@@ -40,14 +40,18 @@ import { wrapTraceContext } from "../../v2/trace";
 export { HttpsError };
 export type { Request, CallableContext, FunctionsErrorCode };
 
+/** Handler used by {@link onRequest}. */
+export type OnRequestHandler = (req: Request, resp: express.Response) => void | Promise<void>;
+
+/** Handler used by {@link onCall}. */
+export type OnCallHandler = (data: any, context: CallableContext) => any | Promise<any>;
+
 /**
  * Handle HTTP requests.
  * @param handler A function that takes a request and response object,
  * same signature as an Express app.
  */
-export function onRequest(
-  handler: (req: Request, resp: express.Response) => void | Promise<void>
-): HttpsFunction {
+export function onRequest(handler: OnRequestHandler): HttpsFunction {
   return _onRequestWithOptions(handler, {});
 }
 
@@ -55,15 +59,13 @@ export function onRequest(
  * Declares a callable method for clients to call using a Firebase SDK.
  * @param handler A method that takes a data and context and returns a value.
  */
-export function onCall(
-  handler: (data: any, context: CallableContext) => any | Promise<any>
-): HttpsFunction & Runnable<any> {
+export function onCall(handler: OnCallHandler): HttpsFunction & Runnable<any> {
   return _onCallWithOptions(handler, {});
 }
 
 /** @internal */
 export function _onRequestWithOptions(
-  handler: (req: Request, resp: express.Response) => void | Promise<void>,
+  handler: OnRequestHandler,
   options: DeploymentOptions
 ): HttpsFunction {
   // lets us add __endpoint without altering handler:
@@ -101,7 +103,7 @@ export function _onRequestWithOptions(
 
 /** @internal */
 export function _onCallWithOptions(
-  handler: (data: any, context: CallableContext) => any | Promise<any>,
+  handler: OnCallHandler,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
   // fix the length of handler to make the call to handler consistent

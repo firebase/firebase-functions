@@ -286,29 +286,34 @@ export interface CallableFunction<T, Return, Stream = unknown> extends HttpsFunc
   ): { stream: AsyncIterable<Stream>; output: Return };
 }
 
+/** Handler used by {@link onRequest}. */
+export type OnRequestHandler = (
+  request: Request,
+  response: express.Response
+) => void | Promise<void>;
+
+/** Handler used by {@link onCall}. */
+export type OnCallHandler<T = any, Return = any | Promise<any>, Stream = unknown> = (
+  request: CallableRequest<T>,
+  response?: CallableResponse<Stream>
+) => Return;
+
 /**
  * Handles HTTPS requests.
  * @param opts - Options to set on this function
  * @param handler - A function that takes a {@link https.Request} and response object, same signature as an Express app.
  * @returns A function that you can export and deploy.
  */
-export function onRequest(
-  opts: HttpsOptions,
-  handler: (request: Request, response: express.Response) => void | Promise<void>
-): HttpsFunction;
+export function onRequest(opts: HttpsOptions, handler: OnRequestHandler): HttpsFunction;
 /**
  * Handles HTTPS requests.
  * @param handler - A function that takes a {@link https.Request} and response object, same signature as an Express app.
  * @returns A function that you can export and deploy.
  */
+export function onRequest(handler: OnRequestHandler): HttpsFunction;
 export function onRequest(
-  handler: (request: Request, response: express.Response) => void | Promise<void>
-): HttpsFunction;
-export function onRequest(
-  optsOrHandler:
-    | HttpsOptions
-    | ((request: Request, response: express.Response) => void | Promise<void>),
-  handler?: (request: Request, response: express.Response) => void | Promise<void>
+  optsOrHandler: HttpsOptions | OnRequestHandler,
+  handler?: OnRequestHandler
 ): HttpsFunction {
   let opts: HttpsOptions;
   if (arguments.length === 1) {
@@ -411,7 +416,7 @@ export function onRequest(
  */
 export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   opts: CallableOptions<T>,
-  handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
+  handler: OnCallHandler<T, Return, Stream>
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>, Stream>;
 
 /**
@@ -420,11 +425,11 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
  * @returns A function that you can export and deploy.
  */
 export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
-  handler: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
+  handler: OnCallHandler<T, Return, Stream>
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>>;
 export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
-  optsOrHandler: CallableOptions<T> | ((request: CallableRequest<T>) => Return),
-  handler?: (request: CallableRequest<T>, response?: CallableResponse<Stream>) => Return
+  optsOrHandler: CallableOptions<T> | OnCallHandler<T, Return, Stream>,
+  handler?: OnCallHandler<T, Return, Stream>
 ): CallableFunction<T, Return extends Promise<unknown> ? Return : Promise<Return>> {
   let opts: CallableOptions;
   if (arguments.length === 1) {

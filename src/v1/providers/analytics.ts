@@ -30,6 +30,9 @@ export const provider = "google.analytics";
 /** @internal */
 export const service = "app-measurement.com";
 
+/** Handler used by {@link AnalyticsEventBuilder.onLog}. */
+export type OnLogHandler = (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any;
+
 /**
  * Registers a function to handle analytics events.
  *
@@ -75,9 +78,7 @@ export class AnalyticsEventBuilder {
    *
    * @returns A function that you can export and deploy.
    */
-  onLog(
-    handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<AnalyticsEvent> {
+  onLog(handler: OnLogHandler): CloudFunction<AnalyticsEvent> {
     const dataConstructor = (raw: LegacyEvent) => {
       return new AnalyticsEvent(raw.data);
     };

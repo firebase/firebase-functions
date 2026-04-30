@@ -176,6 +176,14 @@ export interface TaskQueueFunction<T = any> extends HttpsFunction {
   run(request: Request<T>): void | Promise<void>;
 }
 
+/** Handler used by {@link onTaskDispatched}. */
+export type OnTaskDispatchedHandler<Args = any> = (request: Request<Args>) => void | Promise<void>;
+
+/** Handler used by {@link onTaskDispatched} when accessing v1-compatible context. */
+export type OnTaskDispatchedHandlerWithContext<Args = any> = (
+  request: Request<Args> & { context: TaskContext }
+) => void | Promise<void>;
+
 /**
  * Creates a handler for tasks sent to a Google Cloud Tasks queue.
  * @param handler - A callback to handle task requests.
@@ -183,7 +191,7 @@ export interface TaskQueueFunction<T = any> extends HttpsFunction {
  * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
-  handler: (request: Request<Args> & { context: TaskContext }) => void | Promise<void>
+  handler: OnTaskDispatchedHandlerWithContext<Args>
 ): TaskQueueFunction<Args>;
 
 /**
@@ -193,7 +201,7 @@ export function onTaskDispatched<Args = any>(
  * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
-  handler: (request: Request<Args>) => void | Promise<void>
+  handler: OnTaskDispatchedHandler<Args>
 ): TaskQueueFunction<Args>;
 
 /**
@@ -205,7 +213,7 @@ export function onTaskDispatched<Args = any>(
  */
 export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
-  handler: (request: Request<Args> & { context: TaskContext }) => void | Promise<void>
+  handler: OnTaskDispatchedHandlerWithContext<Args>
 ): TaskQueueFunction<Args>;
 
 /**
@@ -217,7 +225,7 @@ export function onTaskDispatched<Args = any>(
  */
 export function onTaskDispatched<Args = any>(
   options: TaskQueueOptions,
-  handler: (request: Request<Args>) => void | Promise<void>
+  handler: OnTaskDispatchedHandler<Args>
 ): TaskQueueFunction<Args>;
 export function onTaskDispatched<Args = any>(
   optsOrHandler: TaskQueueOptions | ((request: any) => void | Promise<void>),

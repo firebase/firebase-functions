@@ -30,6 +30,12 @@ export const SERVICE = "testing.googleapis.com";
 /** @internal */
 export const TEST_MATRIX_COMPLETE_EVENT_TYPE = "testMatrix.complete";
 
+/** Handler used by {@link TestMatrixBuilder.onComplete}. */
+export type OnCompleteHandler = (
+  testMatrix: TestMatrix,
+  context: EventContext
+) => PromiseLike<any> | any;
+
 /** Handle events related to Test Lab test matrices. */
 export function testMatrix() {
   return _testMatrixWithOpts({});
@@ -51,9 +57,7 @@ export class TestMatrixBuilder {
   constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
 
   /** Handle a TestMatrix that reached a final test state. */
-  onComplete(
-    handler: (testMatrix: TestMatrix, context: EventContext) => PromiseLike<any> | any
-  ): CloudFunction<TestMatrix> {
+  onComplete(handler: OnCompleteHandler): CloudFunction<TestMatrix> {
     const dataConstructor = (raw: LegacyEvent) => {
       return new TestMatrix(raw.data);
     };

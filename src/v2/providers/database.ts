@@ -218,6 +218,48 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
   retry?: boolean | Expression<boolean> | ResetValue;
 }
 
+/** Handler used by {@link onValueWritten}. */
+export type OnValueWrittenHandler<Ref extends string = string> = (
+  event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>
+) => any | Promise<any>;
+
+/** Handler used by {@link onValueWritten} when accessing v1-compatible fields. */
+export type OnValueWrittenHandlerWithContext<Ref extends string = string> = (
+  event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
+    V1Compat<"change", Change<DataSnapshot>>
+) => any | Promise<any>;
+
+/** Handler used by {@link onValueCreated}. */
+export type OnValueCreatedHandler<Ref extends string = string> = (
+  event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>
+) => any | Promise<any>;
+
+/** Handler used by {@link onValueCreated} when accessing v1-compatible fields. */
+export type OnValueCreatedHandlerWithContext<Ref extends string = string> = (
+  event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
+) => any | Promise<any>;
+
+/** Handler used by {@link onValueUpdated}. */
+export type OnValueUpdatedHandler<Ref extends string = string> = OnValueWrittenHandler<Ref>;
+
+/** Handler used by {@link onValueUpdated} when accessing v1-compatible fields. */
+export type OnValueUpdatedHandlerWithContext<Ref extends string = string> =
+  OnValueWrittenHandlerWithContext<Ref>;
+
+/** Handler used by {@link onValueDeleted}. */
+export type OnValueDeletedHandler<Ref extends string = string> = OnValueCreatedHandler<Ref>;
+
+/** Handler used by {@link onValueDeleted} when accessing v1-compatible fields. */
+export type OnValueDeletedHandlerWithContext<Ref extends string = string> =
+  OnValueCreatedHandlerWithContext<Ref>;
+
+/** Handler used by internal changed Realtime Database operations. */
+export type OnChangedOperationHandler<Ref extends string = string> =
+  OnValueWrittenHandlerWithContext<Ref>;
+
+/** Handler used by internal Realtime Database operations. */
+export type OnOperationHandler<Ref extends string = string> = OnValueCreatedHandlerWithContext<Ref>;
+
 /**
  * Event handler which triggers when data is created, updated, or deleted in Realtime Database.
  *
@@ -226,10 +268,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
  */
 export function onValueWritten<Ref extends string>(
   reference: Ref,
-  handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
-      V1Compat<"change", Change<DataSnapshot>>
-  ) => any | Promise<any>
+  handler: OnValueWrittenHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -240,7 +279,7 @@ export function onValueWritten<Ref extends string>(
  */
 export function onValueWritten<Ref extends string>(
   reference: Ref,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueWrittenHandler<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -251,10 +290,7 @@ export function onValueWritten<Ref extends string>(
  */
 export function onValueWritten<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
-      V1Compat<"change", Change<DataSnapshot>>
-  ) => any | Promise<any>
+  handler: OnValueWrittenHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -265,7 +301,7 @@ export function onValueWritten<Ref extends string>(
  */
 export function onValueWritten<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueWrittenHandler<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -276,10 +312,7 @@ export function onValueWritten<Ref extends string>(
  */
 export function onValueWritten<Ref extends string>(
   referenceOrOpts: Ref | ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
-      V1Compat<"change", Change<DataSnapshot>>
-  ) => any | Promise<any>
+  handler: OnValueWrittenHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>> {
   return onChangedOperation(writtenEventType, referenceOrOpts, handler);
 }
@@ -292,9 +325,7 @@ export function onValueWritten<Ref extends string>(
  */
 export function onValueCreated<Ref extends string>(
   reference: Ref,
-  handler: (
-    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
-  ) => any | Promise<any>
+  handler: OnValueCreatedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -305,7 +336,7 @@ export function onValueCreated<Ref extends string>(
  */
 export function onValueCreated<Ref extends string>(
   reference: Ref,
-  handler: (event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueCreatedHandler<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -316,9 +347,7 @@ export function onValueCreated<Ref extends string>(
  */
 export function onValueCreated<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
-  ) => any | Promise<any>
+  handler: OnValueCreatedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -329,7 +358,7 @@ export function onValueCreated<Ref extends string>(
  */
 export function onValueCreated<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueCreatedHandler<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -340,9 +369,7 @@ export function onValueCreated<Ref extends string>(
  */
 export function onValueCreated<Ref extends string>(
   referenceOrOpts: Ref | ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
-  ) => any | Promise<any>
+  handler: OnValueCreatedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>> {
   return onOperation(createdEventType, referenceOrOpts, handler);
 }
@@ -355,10 +382,7 @@ export function onValueCreated<Ref extends string>(
  */
 export function onValueUpdated<Ref extends string>(
   reference: Ref,
-  handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
-      V1Compat<"change", Change<DataSnapshot>>
-  ) => any | Promise<any>
+  handler: OnValueUpdatedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -369,7 +393,7 @@ export function onValueUpdated<Ref extends string>(
  */
 export function onValueUpdated<Ref extends string>(
   reference: Ref,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueUpdatedHandler<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -380,10 +404,7 @@ export function onValueUpdated<Ref extends string>(
  */
 export function onValueUpdated<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
-      V1Compat<"change", Change<DataSnapshot>>
-  ) => any | Promise<any>
+  handler: OnValueUpdatedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -394,7 +415,7 @@ export function onValueUpdated<Ref extends string>(
  */
 export function onValueUpdated<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueUpdatedHandler<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>>;
 
 /**
@@ -405,10 +426,7 @@ export function onValueUpdated<Ref extends string>(
  */
 export function onValueUpdated<Ref extends string>(
   referenceOrOpts: Ref | ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>> &
-      V1Compat<"change", Change<DataSnapshot>>
-  ) => any | Promise<any>
+  handler: OnValueUpdatedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>> {
   return onChangedOperation(updatedEventType, referenceOrOpts, handler);
 }
@@ -421,9 +439,7 @@ export function onValueUpdated<Ref extends string>(
  */
 export function onValueDeleted<Ref extends string>(
   reference: Ref,
-  handler: (
-    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
-  ) => any | Promise<any>
+  handler: OnValueDeletedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -434,7 +450,7 @@ export function onValueDeleted<Ref extends string>(
  */
 export function onValueDeleted<Ref extends string>(
   reference: Ref,
-  handler: (event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueDeletedHandler<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -445,9 +461,7 @@ export function onValueDeleted<Ref extends string>(
  */
 export function onValueDeleted<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
-  ) => any | Promise<any>
+  handler: OnValueDeletedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -458,7 +472,7 @@ export function onValueDeleted<Ref extends string>(
  */
 export function onValueDeleted<Ref extends string>(
   opts: ReferenceOptions<Ref>,
-  handler: (event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>>) => any | Promise<any>
+  handler: OnValueDeletedHandler<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>>;
 
 /**
@@ -469,9 +483,7 @@ export function onValueDeleted<Ref extends string>(
  */
 export function onValueDeleted<Ref extends string>(
   referenceOrOpts: Ref | ReferenceOptions<Ref>,
-  handler: (
-    event: DatabaseEvent<DataSnapshot, ParamsOf<Ref>> & V1Compat<"snapshot", DataSnapshot>
-  ) => any | Promise<any>
+  handler: OnValueDeletedHandlerWithContext<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>> {
   // TODO - need to use event.data.delta
   return onOperation(deletedEventType, referenceOrOpts, handler);
@@ -636,7 +648,7 @@ export function makeEndpoint(
 export function onChangedOperation<Ref extends string>(
   eventType: string,
   referenceOrOpts: Ref | ReferenceOptions<Ref>,
-  handler: (event: any) => any | Promise<any>
+  handler: OnChangedOperationHandler<Ref>
 ): CloudFunction<DatabaseEvent<Change<DataSnapshot>, ParamsOf<Ref>>> {
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
@@ -671,7 +683,7 @@ export function onChangedOperation<Ref extends string>(
 export function onOperation<Ref extends string>(
   eventType: string,
   referenceOrOpts: Ref | ReferenceOptions<Ref>,
-  handler: (event: any) => any | Promise<any>
+  handler: OnOperationHandler<Ref>
 ): CloudFunction<DatabaseEvent<DataSnapshot, ParamsOf<Ref>>> {
   const { path, instance, opts } = getOpts(referenceOrOpts);
 

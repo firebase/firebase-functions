@@ -82,13 +82,18 @@ export interface PerformanceOptions extends EventHandlerOptions {
   appId?: string;
 }
 
+/** Handler used by {@link onThresholdAlertPublished}. */
+export type OnThresholdAlertPublishedHandler = (
+  event: PerformanceEvent<ThresholdAlertPayload>
+) => any | Promise<any>;
+
 /**
  * Declares a function that can handle receiving performance threshold alerts.
  * @param handler - Event handler which is run every time a threshold alert is received.
  * @returns A function that you can export and deploy.
  */
 export function onThresholdAlertPublished(
-  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
+  handler: OnThresholdAlertPublishedHandler
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -99,7 +104,7 @@ export function onThresholdAlertPublished(
  */
 export function onThresholdAlertPublished(
   appId: string,
-  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
+  handler: OnThresholdAlertPublishedHandler
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -110,7 +115,7 @@ export function onThresholdAlertPublished(
  */
 export function onThresholdAlertPublished(
   opts: PerformanceOptions,
-  handler: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
+  handler: OnThresholdAlertPublishedHandler
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>>;
 
 /**
@@ -120,11 +125,8 @@ export function onThresholdAlertPublished(
  * @returns A function that you can export and deploy.
  */
 export function onThresholdAlertPublished(
-  appIdOrOptsOrHandler:
-    | string
-    | PerformanceOptions
-    | ((event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>),
-  handler?: (event: PerformanceEvent<ThresholdAlertPayload>) => any | Promise<any>
+  appIdOrOptsOrHandler: string | PerformanceOptions | OnThresholdAlertPublishedHandler,
+  handler?: OnThresholdAlertPublishedHandler
 ): CloudFunction<PerformanceEvent<ThresholdAlertPayload>> {
   if (typeof appIdOrOptsOrHandler === "function") {
     handler = appIdOrOptsOrHandler as (

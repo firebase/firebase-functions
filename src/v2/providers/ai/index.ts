@@ -151,33 +151,29 @@ type MaybeAsync<T> = T | Promise<T>;
 
 export type BlockingFunction = HttpsFunction;
 
-export function beforeGenerateContent(
-  callback: (
-    event: AIBlockingEvent<BeforeGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
-): BlockingFunction;
+/** Handler used by {@link beforeGenerateContent}. */
+export type BeforeGenerateContentHandler = (
+  event: AIBlockingEvent<BeforeGenerateContentData>
+) => MaybeAsync<void | Partial<AnyValidAIRequest>>;
+
+/** Handler used by {@link afterGenerateContent}. */
+export type AfterGenerateContentHandler = (
+  event: AIBlockingEvent<AfterGenerateContentData>
+) => MaybeAsync<void | Partial<AnyValidAIResponse>>;
+
+export function beforeGenerateContent(callback: BeforeGenerateContentHandler): BlockingFunction;
 
 export function beforeGenerateContent<Regional extends boolean = false>(
   options: WebhookOptions<Regional>,
-  callback: (
-    event: AIBlockingEvent<BeforeGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
+  callback: BeforeGenerateContentHandler
 ): BlockingFunction;
 
 export function beforeGenerateContent(
-  optsOrCb:
-    | WebhookOptions
-    | ((
-        event: AIBlockingEvent<BeforeGenerateContentData>
-      ) => MaybeAsync<void | Partial<AnyValidAIRequest>>),
-  cb?: (
-    event: AIBlockingEvent<BeforeGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
+  optsOrCb: WebhookOptions | BeforeGenerateContentHandler,
+  cb?: BeforeGenerateContentHandler
 ): BlockingFunction {
   let opts: WebhookOptions;
-  let handler: (
-    event: AIBlockingEvent<BeforeGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIRequest>>;
+  let handler: BeforeGenerateContentHandler;
 
   if (arguments.length === 1) {
     opts = {};
@@ -258,33 +254,19 @@ export function beforeGenerateContent(
   return func as BlockingFunction;
 }
 
-export function afterGenerateContent(
-  callback: (
-    event: AIBlockingEvent<AfterGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
-): BlockingFunction;
+export function afterGenerateContent(callback: AfterGenerateContentHandler): BlockingFunction;
 
 export function afterGenerateContent<Regional extends boolean = false>(
   options: WebhookOptions<Regional>,
-  callback: (
-    event: AIBlockingEvent<AfterGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
+  callback: AfterGenerateContentHandler
 ): BlockingFunction;
 
 export function afterGenerateContent(
-  optsOrCb:
-    | WebhookOptions
-    | ((
-        event: AIBlockingEvent<AfterGenerateContentData>
-      ) => MaybeAsync<void | Partial<AnyValidAIResponse>>),
-  cb?: (
-    event: AIBlockingEvent<AfterGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
+  optsOrCb: WebhookOptions | AfterGenerateContentHandler,
+  cb?: AfterGenerateContentHandler
 ): BlockingFunction {
   let opts: WebhookOptions;
-  let handler: (
-    event: AIBlockingEvent<AfterGenerateContentData>
-  ) => MaybeAsync<void | Partial<AnyValidAIResponse>>;
+  let handler: AfterGenerateContentHandler;
 
   if (arguments.length === 1) {
     opts = {};

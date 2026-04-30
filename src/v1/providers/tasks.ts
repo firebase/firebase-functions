@@ -41,6 +41,9 @@ import { DeploymentOptions } from "../function-configuration";
 
 export type { RetryConfig, RateLimits, TaskContext };
 
+/** Handler used by {@link TaskQueueBuilder.onDispatch}. */
+export type OnDispatchHandler = (data: any, context: TaskContext) => void | Promise<void>;
+
 /**
  * Options for configuring the task queue to listen to.
  */
@@ -100,9 +103,7 @@ export class TaskQueueBuilder {
    * @param handler - A callback to handle task requests.
    * @returns A function you can export and deploy.
    */
-  onDispatch(
-    handler: (data: any, context: TaskContext) => void | Promise<void>
-  ): TaskQueueFunction {
+  onDispatch(handler: OnDispatchHandler): TaskQueueFunction {
     // onEnqueueHandler sniffs the function length of the passed-in callback
     // and the user could have only tried to listen to data. Wrap their handler
     // in another handler to avoid accidentally triggering the v2 API

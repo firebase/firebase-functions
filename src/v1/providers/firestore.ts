@@ -44,6 +44,27 @@ export const defaultDatabase = "(default)";
 export type DocumentSnapshot = firestore.DocumentSnapshot;
 export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
 
+/** Handler used by {@link DocumentBuilder.onWrite}. */
+export type OnWriteHandler<Path extends string = string> = (
+  change: Change<DocumentSnapshot>,
+  context: EventContext<ParamsOf<Path>>
+) => PromiseLike<any> | any;
+
+/** Handler used by {@link DocumentBuilder.onUpdate}. */
+export type OnUpdateHandler<Path extends string = string> = (
+  change: Change<QueryDocumentSnapshot>,
+  context: EventContext<ParamsOf<Path>>
+) => PromiseLike<any> | any;
+
+/** Handler used by {@link DocumentBuilder.onCreate}. */
+export type OnCreateHandler<Path extends string = string> = (
+  snapshot: QueryDocumentSnapshot,
+  context: EventContext<ParamsOf<Path>>
+) => PromiseLike<any> | any;
+
+/** Handler used by {@link DocumentBuilder.onDelete}. */
+export type OnDeleteHandler<Path extends string = string> = OnCreateHandler<Path>;
+
 /**
  * Select the Firestore document to listen to for events.
  * @param path Full database path to listen to. This includes the name of
@@ -166,42 +187,22 @@ export class DocumentBuilder<Path extends string> {
   }
 
   /** Respond to all document writes (creates, updates, or deletes). */
-  onWrite(
-    handler: (
-      change: Change<DocumentSnapshot>,
-      context: EventContext<ParamsOf<Path>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<Change<DocumentSnapshot>> {
+  onWrite(handler: OnWriteHandler<Path>): CloudFunction<Change<DocumentSnapshot>> {
     return this.onOperation(handler, "document.write", changeConstructor);
   }
 
   /** Respond only to document updates. */
-  onUpdate(
-    handler: (
-      change: Change<QueryDocumentSnapshot>,
-      context: EventContext<ParamsOf<Path>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<Change<QueryDocumentSnapshot>> {
+  onUpdate(handler: OnUpdateHandler<Path>): CloudFunction<Change<QueryDocumentSnapshot>> {
     return this.onOperation(handler, "document.update", changeConstructor);
   }
 
   /** Respond only to document creations. */
-  onCreate(
-    handler: (
-      snapshot: QueryDocumentSnapshot,
-      context: EventContext<ParamsOf<Path>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  onCreate(handler: OnCreateHandler<Path>): CloudFunction<QueryDocumentSnapshot> {
     return this.onOperation(handler, "document.create", snapshotConstructor);
   }
 
   /** Respond only to document deletions. */
-  onDelete(
-    handler: (
-      snapshot: QueryDocumentSnapshot,
-      context: EventContext<ParamsOf<Path>>
-    ) => PromiseLike<any> | any
-  ): CloudFunction<QueryDocumentSnapshot> {
+  onDelete(handler: OnDeleteHandler<Path>): CloudFunction<QueryDocumentSnapshot> {
     return this.onOperation(handler, "document.delete", beforeSnapshotConstructor);
   }
 

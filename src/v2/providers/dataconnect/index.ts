@@ -139,6 +139,18 @@ export interface DataConnectEvent<T, Params extends Record<never, string>> exten
   authId?: string;
 }
 
+/** Handler used by {@link onMutationExecuted}. */
+export type OnMutationExecutedHandler<
+  PathPatternOrOptions extends string | OperationOptions<string, string, string>,
+  Variables = unknown,
+  ResponseData = unknown
+> = (
+  event: DataConnectEvent<
+    MutationEventData<Variables, ResponseData>,
+    DataConnectParams<PathPatternOrOptions>
+  >
+) => unknown | Promise<unknown>;
+
 /**
  * Event handler that triggers when a mutation is executed in Firebase Data Connect.
  *
@@ -151,9 +163,7 @@ export function onMutationExecuted<
   ResponseData = unknown
 >(
   mutation: Mutation,
-  handler: (
-    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>
-  ) => unknown | Promise<unknown>
+  handler: OnMutationExecutedHandler<Mutation, Variables, ResponseData>
 ): CloudFunction<
   DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Mutation>>
 >;
@@ -170,9 +180,7 @@ export function onMutationExecuted<
   ResponseData = unknown
 >(
   opts: Options,
-  handler: (
-    event: DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>
-  ) => unknown | Promise<unknown>
+  handler: OnMutationExecutedHandler<Options, Variables, ResponseData>
 ): CloudFunction<
   DataConnectEvent<MutationEventData<Variables, ResponseData>, DataConnectParams<Options>>
 >;
@@ -189,12 +197,7 @@ export function onMutationExecuted<
   ResponseData = unknown
 >(
   mutationOrOpts: PathPatternOrOptions,
-  handler: (
-    event: DataConnectEvent<
-      MutationEventData<Variables, ResponseData>,
-      DataConnectParams<PathPatternOrOptions>
-    >
-  ) => unknown | Promise<unknown>
+  handler: OnMutationExecutedHandler<PathPatternOrOptions, Variables, ResponseData>
 ): CloudFunction<
   DataConnectEvent<
     MutationEventData<Variables, ResponseData>,
