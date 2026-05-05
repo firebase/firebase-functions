@@ -75,6 +75,11 @@ export function runHandler(
         return this.headers[name];
       }
 
+      public sendStatus(code: number) {
+        this.status(code);
+        this.end();
+      }
+
       public send(sendBody: any) {
         if (this.writeCalled) {
           throw Error("Cannot set headers after they are sent to the client");

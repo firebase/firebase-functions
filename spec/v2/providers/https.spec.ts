@@ -71,7 +71,7 @@ describe("onRequest", () => {
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = https.onRequest((req, res) => {
-      res.send(200);
+      res.sendStatus(200);
     });
 
     expect(result.__trigger).to.deep.equal({
@@ -98,7 +98,7 @@ describe("onRequest", () => {
         invoker: ["service-account1@", "service-account2@"],
       },
       (req, res) => {
-        res.send(200);
+        res.sendStatus(200);
       }
     );
 
@@ -136,7 +136,7 @@ describe("onRequest", () => {
         invoker: "private",
       },
       (req, res) => {
-        res.send(200);
+        res.sendStatus(200);
       }
     );
 
