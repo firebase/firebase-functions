@@ -30,7 +30,6 @@ import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
-import { Handler } from "express";
 import { genkit } from "genkit";
 import { clearParams, defineBoolean, defineList, Expression } from "../../../src/params";
 
@@ -643,7 +642,11 @@ describe("onCall", () => {
         () => "HHGTG"
       );
 
-      const cases: Array<{ fn: Handler; auth?: Record<string, string>; status: number }> = [
+      const cases: Array<{
+        fn: https.HttpsFunction;
+        auth?: Record<string, string>;
+        status: number;
+      }> = [
         { fn: anyValue, auth: { meaning: "42" }, status: 200 },
         { fn: anyValue, auth: { meaning: "43" }, status: 200 },
         { fn: anyValue, auth: { order: "66" }, status: 403 },
