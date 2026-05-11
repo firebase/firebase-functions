@@ -227,7 +227,6 @@ describe("onMessagePublished", () => {
     );
   });
 
-
   it("should accept StringParam as direct topic argument", () => {
     const topicParam = defineString("TOPIC_NAME");
     const result = pubsub.onMessagePublished(topicParam, () => 42);
