@@ -397,9 +397,9 @@ export function assertTimeoutSecondsValid(
       label = "event-handling";
       break;
   }
-  if (timeoutSeconds < 0 || timeoutSeconds > max) {
+  if (timeoutSeconds <= 0 || timeoutSeconds > max) {
     throw new Error(
-      `timeoutSeconds must be between 0 and ${max} for ${label} functions. Got ${timeoutSeconds}.`
+      `timeoutSeconds must be between 1 and ${max} for ${label} functions. Got ${timeoutSeconds}.`
     );
   }
 }
