@@ -364,8 +364,8 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
  * not exceed the maximum allowed value for the given function kind. Throws a
  * plain `Error` matching the v1 `assertRuntimeOptionsValid` shape so the
  * problem surfaces at function-definition time instead of at deploy time.
- * `Expression`, `RESET_VALUE`, and `undefined` are skipped — only literal
- * numbers are checked.
+ * `Expression`, `RESET_VALUE`, and `undefined` are skipped. Literal numbers
+ * are range checked, and other types are rejected.
  * @internal
  */
 export function assertTimeoutSecondsValid(
@@ -374,7 +374,16 @@ export function assertTimeoutSecondsValid(
 ): void {
   const timeoutSeconds = opts?.timeoutSeconds ?? getGlobalOptions().timeoutSeconds;
   if (typeof timeoutSeconds !== "number") {
-    return;
+    if (
+      timeoutSeconds === undefined ||
+      timeoutSeconds instanceof Expression ||
+      timeoutSeconds instanceof ResetValue
+    ) {
+      return;
+    }
+    throw new Error(
+      `timeoutSeconds must be a number, Expression, or RESET_VALUE. Got ${typeof timeoutSeconds}.`
+    );
   }
   // Handle the case where timeoutSeconds is NaN
   if (!Number.isFinite(timeoutSeconds)) {
