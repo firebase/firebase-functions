@@ -47,38 +47,38 @@ describe("v2 provider timeout validation", () => {
         https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
           res.end();
         }),
-      expectedError: /between 0 and 3600 for HTTPS and callable functions/,
+      expectedError: /between 1 and 3600 for HTTPS and callable functions/,
     },
     {
       name: "https.onCall rejects HTTPS timeouts above 3600s",
       build: () => https.onCall({ timeoutSeconds: 3601 }, () => 42),
-      expectedError: /between 0 and 3600 for HTTPS and callable functions/,
+      expectedError: /between 1 and 3600 for HTTPS and callable functions/,
     },
     {
       name: "ai.beforeGenerateContent rejects HTTPS timeouts above 3600s",
       build: () => ai.beforeGenerateContent({ timeoutSeconds: 3601 }, () => ({})),
-      expectedError: /between 0 and 3600 for HTTPS and callable functions/,
+      expectedError: /between 1 and 3600 for HTTPS and callable functions/,
     },
     {
       name: "identity.beforeUserCreated rejects HTTPS timeouts above 3600s",
       build: () => identity.beforeUserCreated({ timeoutSeconds: 3601 }, () => undefined),
-      expectedError: /between 0 and 3600 for HTTPS and callable functions/,
+      expectedError: /between 1 and 3600 for HTTPS and callable functions/,
     },
     {
       name: "tasks.onTaskDispatched rejects task timeouts above 1800s",
       build: () => tasks.onTaskDispatched({ timeoutSeconds: 1801 }, () => null),
-      expectedError: /between 0 and 1800 for task queue functions/,
+      expectedError: /between 1 and 1800 for task queue functions/,
     },
     {
       name: "pubsub.onMessagePublished rejects event timeouts above 540s",
       build: () => pubsub.onMessagePublished({ topic: "topic", timeoutSeconds: 3600 }, () => 42),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "storage.onObjectFinalized rejects event timeouts above 540s",
       build: () =>
         storage.onObjectFinalized({ bucket: "bucket", timeoutSeconds: 3600 }, () => null),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
       validateOnEndpointAccess: true,
     },
     {
@@ -89,13 +89,13 @@ describe("v2 provider timeout validation", () => {
           () => null
         );
       },
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "firestore.onDocumentCreated rejects event timeouts above 540s",
       build: () =>
         firestore.onDocumentCreated({ document: "foo/{bar}", timeoutSeconds: 3600 }, () => null),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "eventarc.onCustomEventPublished rejects event timeouts above 540s",
@@ -104,23 +104,23 @@ describe("v2 provider timeout validation", () => {
           { eventType: "event-type", timeoutSeconds: 3600 },
           () => 42
         ),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "remoteConfig.onConfigUpdated rejects event timeouts above 540s",
       build: () => remoteConfig.onConfigUpdated({ timeoutSeconds: 3600 }, () => 42),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "scheduler.onSchedule rejects event timeouts above 540s",
       build: () =>
         scheduler.onSchedule({ schedule: "* * * * *", timeoutSeconds: 3600 }, () => null),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "testLab.onTestMatrixCompleted rejects event timeouts above 540s",
       build: () => testLab.onTestMatrixCompleted({ timeoutSeconds: 3600 }, () => 42),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
     {
       name: "dataconnect.onMutationExecuted rejects event timeouts above 540s",
@@ -134,7 +134,7 @@ describe("v2 provider timeout validation", () => {
           },
           () => true
         ),
-      expectedError: /between 0 and 540 for event-handling functions/,
+      expectedError: /between 1 and 540 for event-handling functions/,
     },
   ];
 
