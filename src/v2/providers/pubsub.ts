@@ -272,7 +272,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topic: string,
+  topic: string | Expression<string>,
   handler: (
     event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
   ) => any | Promise<any>
@@ -285,7 +285,7 @@ export function onMessagePublished<T = any>(
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topic: string,
+  topic: string | Expression<string>,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
@@ -320,14 +320,14 @@ export function onMessagePublished<T = any>(
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topicOrOptions: string | PubSubOptions,
+  topicOrOptions: string | Expression<string> | PubSubOptions,
   handler: (
     event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
   ) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
   let topic: string | Expression<string>;
   let opts: options.EventHandlerOptions;
-  if (typeof topicOrOptions === "string") {
+  if (typeof topicOrOptions === "string" || "value" in topicOrOptions) {
     topic = topicOrOptions;
     opts = {};
   } else {

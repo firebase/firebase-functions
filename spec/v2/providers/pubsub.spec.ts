@@ -227,6 +227,31 @@ describe("onMessagePublished", () => {
     );
   });
 
+
+  it("should accept StringParam as direct topic argument", () => {
+    const topicParam = defineString("TOPIC_NAME");
+    const result = pubsub.onMessagePublished(topicParam, () => 42);
+
+    expect(result.__endpoint).to.deep.equal({
+      ...MINIMAL_V2_ENDPOINT,
+      platform: "gcfv2",
+      eventTrigger: {
+        eventType: "google.cloud.pubsub.topic.v1.messagePublished",
+        eventFilters: {
+          topic: topicParam,
+        },
+        retry: false,
+      },
+      labels: {},
+    });
+
+    const trigger = result.__trigger as any;
+    expect(trigger.eventTrigger).to.not.have.property("resource");
+    expect(trigger.eventTrigger.eventType).to.equal(
+      "google.cloud.pubsub.topic.v1.messagePublished"
+    );
+  });
+
   it("should preserve __trigger.resource for string topic", () => {
     const result = pubsub.onMessagePublished(
       {
