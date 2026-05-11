@@ -115,30 +115,30 @@ describe("assertTimeoutSecondsValid", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 540 }, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 3600 }, "https")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1800 }, "task")).to.not.throw();
-    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 0 }, "event")).to.not.throw();
+    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1 }, "event")).to.not.throw();
   });
 
   it("throws when timeoutSeconds exceeds the event-handler limit", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 3600 }, "event")).to.throw(
-      /between 0 and 540 for event-handling functions/
+      /between 1 and 540 for event-handling functions/
     );
   });
 
   it("throws when timeoutSeconds exceeds the HTTPS limit", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 3601 }, "https")).to.throw(
-      /between 0 and 3600 for HTTPS and callable functions/
+      /between 1 and 3600 for HTTPS and callable functions/
     );
   });
 
   it("throws when timeoutSeconds exceeds the task-queue limit", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1801 }, "task")).to.throw(
-      /between 0 and 1800 for task queue functions/
+      /between 1 and 1800 for task queue functions/
     );
   });
 
   it("throws when timeoutSeconds is negative", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: -1 }, "event")).to.throw(
-      /between 0 and 540/
+      /between 1 and 540/
     );
   });
 
@@ -152,10 +152,24 @@ describe("assertTimeoutSecondsValid", () => {
     expect(() => assertTimeoutSecondsValid(opts, "event")).to.not.throw();
   });
 
+  it("throws when timeoutSeconds has an invalid non-number type", () => {
+    const opts = { timeoutSeconds: "30" as unknown as number };
+    expect(() => assertTimeoutSecondsValid(opts, "event")).to.throw(
+      /must be a number, Expression, or RESET_VALUE/
+    );
+  });
+
+  it("throws when global timeoutSeconds has an invalid non-number type", () => {
+    setGlobalOptions({ timeoutSeconds: true as unknown as number });
+    expect(() => assertTimeoutSecondsValid({}, "event")).to.throw(
+      /must be a number, Expression, or RESET_VALUE/
+    );
+  });
+
   it("falls back to the global timeoutSeconds when the function-level option is absent", () => {
     setGlobalOptions({ timeoutSeconds: 3600 });
     expect(() => assertTimeoutSecondsValid({}, "event")).to.throw(
-      /between 0 and 540 for event-handling functions/
+      /between 1 and 540 for event-handling functions/
     );
     expect(() => assertTimeoutSecondsValid({}, "https")).to.not.throw();
   });
@@ -163,7 +177,7 @@ describe("assertTimeoutSecondsValid", () => {
   it("prefers the function-level timeoutSeconds over the global one", () => {
     setGlobalOptions({ timeoutSeconds: 60 });
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1000 }, "event")).to.throw(
-      /between 0 and 540/
+      /between 1 and 540/
     );
   });
 
@@ -186,13 +200,13 @@ describe("optionsToEndpoint timeout validation", () => {
 
   it("throws when kind is provided and timeoutSeconds exceeds the limit", () => {
     expect(() => optionsToEndpoint({ timeoutSeconds: 3600 }, "event")).to.throw(
-      /between 0 and 540/
+      /between 1 and 540/
     );
     expect(() => optionsToEndpoint({ timeoutSeconds: 3601 }, "https")).to.throw(
-      /between 0 and 3600/
+      /between 1 and 3600/
     );
     expect(() => optionsToEndpoint({ timeoutSeconds: 1801 }, "task")).to.throw(
-      /between 0 and 1800/
+      /between 1 and 1800/
     );
   });
 
@@ -214,13 +228,13 @@ describe("optionsToTriggerAnnotations timeout validation", () => {
 
   it("throws when kind is provided and timeoutSeconds exceeds the limit", () => {
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 3600 }, "event")).to.throw(
-      /between 0 and 540/
+      /between 1 and 540/
     );
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 3601 }, "https")).to.throw(
-      /between 0 and 3600/
+      /between 1 and 3600/
     );
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 1801 }, "task")).to.throw(
-      /between 0 and 1800/
+      /between 1 and 1800/
     );
   });
 

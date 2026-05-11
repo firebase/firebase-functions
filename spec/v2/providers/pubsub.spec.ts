@@ -137,13 +137,13 @@ describe("onMessagePublished", () => {
   it("rejects timeoutSeconds above the 540s event-handler limit", () => {
     expect(() =>
       pubsub.onMessagePublished({ topic: "topic", timeoutSeconds: 3600 }, () => 42)
-    ).to.throw(/between 0 and 540 for event-handling functions/);
+    ).to.throw(/between 1 and 540 for event-handling functions/);
   });
 
   it("rejects a global timeoutSeconds above the 540s event-handler limit", () => {
     options.setGlobalOptions({ timeoutSeconds: 3600 });
     expect(() => pubsub.onMessagePublished("topic", () => 42)).to.throw(
-      /between 0 and 540 for event-handling functions/
+      /between 1 and 540 for event-handling functions/
     );
   });
 
