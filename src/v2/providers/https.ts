@@ -355,7 +355,10 @@ export function onRequest(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
+      const specificOpts = options.optionsToTriggerAnnotations(
+        opts as options.GlobalOptions,
+        "https"
+      );
       const trigger: any = {
         platform: "gcfv2",
         ...baseOpts,
@@ -384,7 +387,7 @@ export function onRequest(
   const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions, "https");
   const endpoint: Partial<ManifestEndpoint> = {
     ...initV2Endpoint(globalOpts, opts),
     platform: "gcfv2",
@@ -485,7 +488,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "https");
       return {
         platform: "gcfv2",
         ...baseOpts,
@@ -505,7 +508,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",

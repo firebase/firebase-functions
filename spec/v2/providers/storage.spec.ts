@@ -503,6 +503,14 @@ describe("v2/storage", () => {
       await storage.onObjectFinalized("bucket", () => null)(event);
       expect(hello).to.equal("world");
     });
+
+    it("rejects timeoutSeconds above the 540s event-handler limit on __endpoint access", () => {
+      const func = storage.onObjectFinalized(
+        { bucket: "my-bucket", timeoutSeconds: 3600 },
+        () => 42
+      );
+      expect(() => func.__endpoint).to.throw(/between 0 and 540 for event-handling functions/);
+    });
   });
 
   describe("onObjectDeleted", () => {

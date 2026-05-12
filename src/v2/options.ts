@@ -42,6 +42,31 @@ import * as logger from "../logger";
 export { RESET_VALUE } from "../common/options";
 
 /**
+ * Maximum timeout in seconds for event-handling functions (e.g. Firestore,
+ * Realtime Database, Pub/Sub, Storage, Eventarc, alerts, scheduler).
+ * @internal
+ */
+export const MAX_EVENT_TIMEOUT_SECONDS = 540;
+
+/**
+ * Maximum timeout in seconds for HTTPS and callable functions.
+ * @internal
+ */
+export const MAX_HTTPS_TIMEOUT_SECONDS = 3600;
+
+/**
+ * Maximum timeout in seconds for Task Queue functions.
+ * @internal
+ */
+export const MAX_TASK_TIMEOUT_SECONDS = 1800;
+
+/**
+ * Function category used to pick a `timeoutSeconds` upper bound.
+ * @internal
+ */
+export type TimeoutKind = "event" | "https" | "task";
+
+/**
  * List of all regions supported by Cloud Functions (2nd gen).
  */
 export type SupportedRegion =
@@ -335,12 +360,56 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 }
 
 /**
+ * Validate that `timeoutSeconds` (resolved with global option fallback) does
+ * not exceed the maximum allowed value for the given function kind. Throws a
+ * plain `Error` matching the v1 `assertRuntimeOptionsValid` shape so the
+ * problem surfaces at function-definition time instead of at deploy time.
+ * `Expression`, `RESET_VALUE`, and `undefined` are skipped — only literal
+ * numbers are checked.
+ * @internal
+ */
+export function assertTimeoutSecondsValid(
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions | undefined,
+  kind: TimeoutKind
+): void {
+  const timeoutSeconds = opts?.timeoutSeconds ?? getGlobalOptions().timeoutSeconds;
+  if (typeof timeoutSeconds !== "number") {
+    return;
+  }
+  let max: number;
+  let label: string;
+  switch (kind) {
+    case "https":
+      max = MAX_HTTPS_TIMEOUT_SECONDS;
+      label = "HTTPS and callable";
+      break;
+    case "task":
+      max = MAX_TASK_TIMEOUT_SECONDS;
+      label = "task queue";
+      break;
+    default:
+      max = MAX_EVENT_TIMEOUT_SECONDS;
+      label = "event-handling";
+      break;
+  }
+  if (timeoutSeconds < 0 || timeoutSeconds > max) {
+    throw new Error(
+      `timeoutSeconds must be between 0 and ${max} for ${label} functions. Got ${timeoutSeconds}.`
+    );
+  }
+}
+
+/**
  * Apply GlobalOptions to trigger definitions.
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  kind?: TimeoutKind
 ): TriggerAnnotation {
+  if (kind !== undefined) {
+    assertTimeoutSecondsValid(opts, kind);
+  }
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
     annotation,
@@ -398,8 +467,12 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  kind?: TimeoutKind
 ): ManifestEndpoint {
+  if (kind !== undefined) {
+    assertTimeoutSecondsValid(opts, kind);
+  }
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
