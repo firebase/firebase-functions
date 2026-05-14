@@ -393,7 +393,7 @@ export function makeCloudFunction<EventData>({
   triggerResource,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   handler = withInit(handler ?? contextOnlyHandler);
-  const wrappedContextOnlyHandler = contextOnlyHandler ? withInit(contextOnlyHandler) : undefined;
+  const contextOnlyHandlerWithInit = contextOnlyHandler && withInit(contextOnlyHandler);
   const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       /*
@@ -434,7 +434,7 @@ export function makeCloudFunction<EventData>({
     let promise;
     if (labels && labels["deployment-scheduled"]) {
       // Scheduled function do not have meaningful data, so exclude it
-      promise = wrappedContextOnlyHandler(context);
+      promise = contextOnlyHandlerWithInit!(context);
     } else {
       const dataOrChange = dataConstructor(event);
       promise = handler(dataOrChange, context);
