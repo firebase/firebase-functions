@@ -434,7 +434,7 @@ export function makeCloudFunction<EventData>({
     let promise;
     if (labels && labels["deployment-scheduled"]) {
       // Scheduled function do not have meaningful data, so exclude it
-      promise = contextOnlyHandlerWithInit!(context);
+      promise = contextOnlyHandlerWithInit(context);
     } else {
       const dataOrChange = dataConstructor(event);
       promise = handler(dataOrChange, context);
