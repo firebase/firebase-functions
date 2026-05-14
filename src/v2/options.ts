@@ -360,8 +360,8 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 }
 
 /**
- * Validate that `timeoutSeconds` (resolved with global option fallback) does
- * not exceed the maximum allowed value for the given function kind. Throws a
+ * Validate that `timeoutSeconds` (resolved with global option fallback) is
+ * finite and within the accepted range for the given function kind. Throws a
  * plain `Error` matching the v1 `assertRuntimeOptionsValid` shape so the
  * problem surfaces at function-definition time instead of at deploy time.
  * `Expression`, `RESET_VALUE`, and `undefined` are skipped. Literal numbers
@@ -372,7 +372,8 @@ export function assertTimeoutSecondsValid(
   opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
   kind: TimeoutKind
 ): void {
-  const timeoutSeconds = opts?.timeoutSeconds ?? getGlobalOptions().timeoutSeconds;
+  const timeoutSeconds =
+    opts.timeoutSeconds === undefined ? getGlobalOptions().timeoutSeconds : opts.timeoutSeconds;
   if (typeof timeoutSeconds !== "number") {
     if (
       timeoutSeconds === undefined ||
@@ -406,9 +407,9 @@ export function assertTimeoutSecondsValid(
       label = "event-handling";
       break;
   }
-  if (timeoutSeconds <= 0 || timeoutSeconds > max) {
+  if (timeoutSeconds < 0 || timeoutSeconds > max) {
     throw new Error(
-      `timeoutSeconds must be between 1 and ${max} for ${label} functions. Got ${timeoutSeconds}.`
+      `timeoutSeconds must be between 0 and ${max} for ${label} functions. Got ${timeoutSeconds}.`
     );
   }
 }
