@@ -257,7 +257,9 @@ export const hasClaim =
 
 type ResolvedCorsOrigin = boolean | string | RegExp | Array<boolean | string | RegExp>;
 
-function normalizeCorsOrigin(origin: ResolvedCorsOrigin | undefined): ResolvedCorsOrigin | undefined {
+function normalizeCorsOrigin(
+  origin: ResolvedCorsOrigin | undefined
+): ResolvedCorsOrigin | undefined {
   // Arrays cause the access-control-allow-origin header to be dynamic based
   // on the origin header of the request. If there is only one element in the
   // array, this is unnecessary.
