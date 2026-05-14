@@ -22,7 +22,7 @@
 
 import { expect } from "chai";
 
-import { LegacyEvent, RESET_VALUE } from "../../../src/v1";
+import { LegacyEvent, RESET_VALUE, onInit } from "../../../src/v1";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER } from "./fixtures";
 import * as functions from "../../../src/v1";
@@ -255,6 +255,32 @@ describe("Pubsub Functions", () => {
           expect(result.__endpoint.labels).to.be.empty;
         }
       );
+
+      it("should call onInit before executing scheduled function", async () => {
+        const context = {
+          eventId: "00000",
+          timestamp: "2016-11-04T21:29:03.496Z",
+          eventType: "google.pubsub.topic.publish",
+          resource: {
+            service: "pubsub.googleapis.com",
+            name: "projects/project-id/topics/topic-name",
+          },
+        };
+
+        let initCalled = false;
+        onInit(() => {
+          initCalled = true;
+        });
+
+        const scheduledFunc = pubsub.schedule("every 5 minutes").onRun(() => {
+          expect(initCalled).to.be.true;
+          return null;
+        });
+
+        expect(initCalled).to.be.false;
+        await scheduledFunc(null, context);
+        expect(initCalled).to.be.true;
+      });
 
       it("should return an appropriate trigger/endpoint when called with region and options", () => {
         const result = functions
