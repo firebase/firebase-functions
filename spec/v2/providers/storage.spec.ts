@@ -509,7 +509,7 @@ describe("v2/storage", () => {
         { bucket: "my-bucket", timeoutSeconds: 3600 },
         () => 42
       );
-      expect(() => func.__endpoint).to.throw(/between 1 and 540 for event-handling functions/);
+      expect(() => func.__endpoint).to.throw(/between 0 and 540 for event-handling functions/);
     });
   });
 

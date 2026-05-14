@@ -342,7 +342,7 @@ describe("onRequest", () => {
       https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
         res.end();
       })
-    ).to.throw(/between 1 and 3600 for HTTPS and callable functions/);
+    ).to.throw(/between 0 and 3600 for HTTPS and callable functions/);
   });
 });
 
@@ -615,7 +615,7 @@ describe("onCall", () => {
 
   it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
     expect(() => https.onCall({ timeoutSeconds: 3601 }, () => 42)).to.throw(
-      /between 1 and 3600 for HTTPS and callable functions/
+      /between 0 and 3600 for HTTPS and callable functions/
     );
   });
 
