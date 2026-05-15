@@ -60,9 +60,9 @@ describe("v2 provider timeout validation", () => {
       expectedError: /between 0 and 3600 for HTTPS and callable functions/,
     },
     {
-      name: "identity.beforeUserCreated rejects HTTPS timeouts above 3600s",
-      build: () => identity.beforeUserCreated({ timeoutSeconds: 3601 }, () => undefined),
-      expectedError: /between 0 and 3600 for HTTPS and callable functions/,
+      name: "identity.beforeUserCreated rejects blocking timeouts above 7s",
+      build: () => identity.beforeUserCreated({ timeoutSeconds: 8 }, () => undefined),
+      expectedError: /between 0 and 7 for blocking functions/,
     },
     {
       name: "tasks.onTaskDispatched rejects task timeouts above 1800s",

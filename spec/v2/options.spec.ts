@@ -109,6 +109,7 @@ describe("assertTimeoutSecondsValid", () => {
     expect(() => assertTimeoutSecondsValid({}, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({}, "https")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({}, "task")).to.not.throw();
+    expect(() => assertTimeoutSecondsValid({}, "identity")).to.not.throw();
   });
 
   it("accepts values within each kind's limit", () => {
@@ -117,6 +118,7 @@ describe("assertTimeoutSecondsValid", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1800 }, "task")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 0 }, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1 }, "event")).to.not.throw();
+    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 7 }, "identity")).to.not.throw();
   });
 
   it("throws when timeoutSeconds exceeds the event-handler limit", () => {
@@ -134,6 +136,12 @@ describe("assertTimeoutSecondsValid", () => {
   it("throws when timeoutSeconds exceeds the task-queue limit", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1801 }, "task")).to.throw(
       /between 0 and 1800 for task queue functions/
+    );
+  });
+
+  it("throws when timeoutSeconds exceeds the identity limit", () => {
+    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 8 }, "identity")).to.throw(
+      /between 0 and 7 for blocking functions/
     );
   });
 
@@ -180,6 +188,8 @@ describe("assertTimeoutSecondsValid", () => {
       /between 0 and 540 for event-handling functions/
     );
     expect(() => assertTimeoutSecondsValid({}, "https")).to.not.throw();
+    expect(() => assertTimeoutSecondsValid({}, "task")).to.throw();
+    expect(() => assertTimeoutSecondsValid({}, "identity")).to.throw();
   });
 
   it("prefers the function-level timeoutSeconds over the global one", () => {
@@ -216,12 +226,14 @@ describe("optionsToEndpoint timeout validation", () => {
     expect(() => optionsToEndpoint({ timeoutSeconds: 1801 }, "task")).to.throw(
       /between 0 and 1800/
     );
+    expect(() => optionsToEndpoint({ timeoutSeconds: 8 }, "identity")).to.throw(/between 0 and 7/);
   });
 
   it("is a no-op for in-range timeouts when kind is provided", () => {
     expect(() => optionsToEndpoint({ timeoutSeconds: 540 }, "event")).to.not.throw();
     expect(() => optionsToEndpoint({ timeoutSeconds: 3600 }, "https")).to.not.throw();
     expect(() => optionsToEndpoint({ timeoutSeconds: 1800 }, "task")).to.not.throw();
+    expect(() => optionsToEndpoint({ timeoutSeconds: 7 }, "identity")).to.not.throw();
   });
 });
 
@@ -244,11 +256,15 @@ describe("optionsToTriggerAnnotations timeout validation", () => {
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 1801 }, "task")).to.throw(
       /between 0 and 1800/
     );
+    expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 8 }, "identity")).to.throw(
+      /between 0 and 7/
+    );
   });
 
   it("is a no-op for in-range timeouts when kind is provided", () => {
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 540 }, "event")).to.not.throw();
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 3600 }, "https")).to.not.throw();
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 1800 }, "task")).to.not.throw();
+    expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 7 }, "identity")).to.not.throw();
   });
 });
