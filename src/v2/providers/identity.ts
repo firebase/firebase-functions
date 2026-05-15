@@ -325,7 +325,7 @@ export function beforeOperation(
 
   /** Endpoint */
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOptsEndpoint = options.optionsToEndpoint(opts, "https");
+  const specificOptsEndpoint = options.optionsToEndpoint(opts, "identity");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
