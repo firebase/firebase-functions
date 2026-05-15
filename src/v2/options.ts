@@ -61,10 +61,16 @@ export const MAX_HTTPS_TIMEOUT_SECONDS = 3600;
 export const MAX_TASK_TIMEOUT_SECONDS = 1800;
 
 /**
+ * Maximum timeout in seconds for Identity blocking functions.
+ * @internal
+ */
+export const MAX_IDENTITY_TIMEOUT_SECONDS = 7;
+
+/**
  * Function category used to pick a `timeoutSeconds` upper bound.
  * @internal
  */
-export type TimeoutKind = "event" | "https" | "task";
+export type TimeoutKind = "event" | "https" | "task" | "identity";
 
 /**
  * List of all regions supported by Cloud Functions (2nd gen).
@@ -401,6 +407,10 @@ export function assertTimeoutSecondsValid(
     case "task":
       max = MAX_TASK_TIMEOUT_SECONDS;
       label = "task queue";
+      break;
+    case "identity":
+      max = MAX_IDENTITY_TIMEOUT_SECONDS;
+      label = "blocking";
       break;
     default:
       max = MAX_EVENT_TIMEOUT_SECONDS;
