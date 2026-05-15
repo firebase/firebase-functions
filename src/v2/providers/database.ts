@@ -480,7 +480,7 @@ export function onValueDeleted<Ref extends string>(
 /** @internal */
 export function getOpts(referenceOrOpts: string | ReferenceOptions) {
   let path: string;
-  let instance: string;
+  let instance: string | Expression<string>;
   let opts: options.EventHandlerOptions;
   if (typeof referenceOrOpts === "string") {
     path = normalizePath(referenceOrOpts);
@@ -488,10 +488,7 @@ export function getOpts(referenceOrOpts: string | ReferenceOptions) {
     opts = {};
   } else {
     path = normalizePath(referenceOrOpts.ref);
-    instance =
-      referenceOrOpts.instance instanceof Expression
-        ? referenceOrOpts.instance.value()
-        : referenceOrOpts.instance || "*";
+    instance = referenceOrOpts.instance || "*";
     opts = { ...referenceOrOpts };
     delete (opts as any).ref;
     delete (opts as any).instance;
@@ -601,17 +598,19 @@ export function makeEndpoint(
   eventType: string,
   opts: options.EventHandlerOptions,
   path: PathPattern,
-  instance: PathPattern
+  instance: PathPattern | Expression<string>
 ): ManifestEndpoint {
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts);
 
-  const eventFilters: Record<string, string> = {};
-  const eventFilterPathPatterns: Record<string, string> = {
+  const eventFilters: Record<string, string | Expression<string>> = {};
+  const eventFilterPathPatterns: Record<string, string | Expression<string>> = {
     // Note: Eventarc always treats ref as a path pattern
     ref: path.getValue(),
   };
-  if (instance.hasWildcards()) {
+  if (instance instanceof Expression) {
+    eventFilterPathPatterns.instance = instance;
+  } else if (instance.hasWildcards()) {
     eventFilterPathPatterns.instance = instance.getValue();
   } else {
     eventFilters.instance = instance.getValue();
@@ -635,6 +634,10 @@ export function makeEndpoint(
   };
 }
 
+function resolveInstancePattern(instance: PathPattern | Expression<string>): PathPattern {
+  return instance instanceof Expression ? new PathPattern(instance.value()) : instance;
+}
+
 /** @internal */
 export function onChangedOperation<Ref extends string>(
   eventType: string,
@@ -644,13 +647,18 @@ export function onChangedOperation<Ref extends string>(
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
-  const instancePattern = new PathPattern(instance);
+  const instancePattern = instance instanceof Expression ? instance : new PathPattern(instance);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
-    const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
+    const resolvedInstancePattern = resolveInstancePattern(instancePattern);
+    const params = makeParams(
+      event,
+      pathPattern,
+      resolvedInstancePattern
+    ) as unknown as ParamsOf<Ref>;
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
 
     const compatEvent = addV1Compat(databaseEvent, {
@@ -679,13 +687,18 @@ export function onOperation<Ref extends string>(
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
-  const instancePattern = new PathPattern(instance);
+  const instancePattern = instance instanceof Expression ? instance : new PathPattern(instance);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
-    const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
+    const resolvedInstancePattern = resolveInstancePattern(instancePattern);
+    const params = makeParams(
+      event,
+      pathPattern,
+      resolvedInstancePattern
+    ) as unknown as ParamsOf<Ref>;
     const data = eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
 
