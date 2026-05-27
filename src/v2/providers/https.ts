@@ -612,7 +612,7 @@ export function onCallGenkit<A extends GenkitAction>(
       } = {};
       copyIfPresent(context, req, "auth", "app", "instanceIdToken");
       context[CALLABLE_RAW_REQUEST] = req.rawRequest;
-      context[CALLABLE_RESPONSE_SIGNAL] = res.signal;
+      context[CALLABLE_RESPONSE_SIGNAL] = res?.signal;
 
       if (!req.acceptsStreaming) {
         const { result } = await action.run(req.data, { context });
