@@ -112,6 +112,34 @@ describe("extractStack", () => {
     });
   });
 
+  it("preserves literal hyphens in the entry point for flat export names", () => {
+    const module = {
+      "dummystore-bot": httpFn,
+      grouped: {
+        fn: httpFn,
+      },
+    };
+
+    const endpoints: Record<string, ManifestEndpoint> = {};
+    const requiredAPIs: ManifestRequiredAPI[] = [];
+    const extensions: Record<string, ManifestExtension> = {};
+
+    loader.extractStack(module, endpoints, requiredAPIs, extensions);
+
+    expect(endpoints).to.be.deep.equal({
+      "dummystore-bot": {
+        ...MINIMAL_V1_ENDPOINT,
+        entryPoint: "dummystore-bot",
+        ...httpEndpoint,
+      },
+      "grouped-fn": {
+        ...MINIMAL_V1_ENDPOINT,
+        entryPoint: "grouped.fn",
+        ...httpEndpoint,
+      },
+    });
+  });
+
   describe("with GCLOUD_PROJECT env var", () => {
     const project = "my-project";
     let prev;
