@@ -421,6 +421,157 @@ describe("identity", () => {
     });
   });
 
+  describe("onUserCreated", () => {
+    it("should create a function with only a handler", () => {
+      const func = identity.onUserCreated(() => null);
+      expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        eventTrigger: {
+          eventType: "google.firebase.auth.user.v2.created",
+          eventFilters: {},
+          retry: false,
+          region: "global",
+        },
+      });
+    });
+
+    it("should handle tenantId options", () => {
+      const func = identity.onUserCreated({ tenantId: "my-tenant" }, () => null);
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("my-tenant");
+    });
+
+    it("should handle IS_NOT_TENANT option", () => {
+      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => null);
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+    });
+
+    it("should populate project and tenantId on execution", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.project).to.equal("my-project");
+        expect(event.tenantId).to.equal("my-tenant");
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: {} as any,
+        tenantid: "my-tenant",
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should handle source without project ID", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.project).to.be.undefined;
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/something-else",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: {} as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should handle missing tenantid", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.tenantId).to.be.undefined;
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: {} as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should handle Expression for tenantId", () => {
+      const param = {
+        value: () => "my-tenant-param",
+        toString: () => "{{params.MY_TENANT}}",
+      } as any;
+      const func = identity.onUserCreated({ tenantId: param }, () => null);
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal(param);
+    });
+  });
+
+  describe("onUserDeleted", () => {
+    it("should create a function with only a handler", () => {
+      const func = identity.onUserDeleted(() => null);
+      expect(func.__endpoint).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {},
+        eventTrigger: {
+          eventType: "google.firebase.auth.user.v2.deleted",
+          eventFilters: {},
+          retry: false,
+          region: "global",
+        },
+      });
+    });
+
+    it("should handle tenantId options", () => {
+      const func = identity.onUserDeleted({ tenantId: "my-tenant" }, () => null);
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("my-tenant");
+    });
+
+    it("should handle IS_NOT_TENANT option", () => {
+      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => null);
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+    });
+
+    it("should populate project and tenantId on execution", () => {
+      let called = false;
+      const func = identity.onUserDeleted((event) => {
+        called = true;
+        expect(event.project).to.equal("my-project");
+        expect(event.tenantId).to.equal("my-tenant");
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: {} as any,
+        tenantid: "my-tenant",
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+  });
+
   describe("getOpts", () => {
     it("should parse an empty object", () => {
       const internalOpts = identity.getOpts({});

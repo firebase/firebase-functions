@@ -24,7 +24,7 @@
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
-import { ResetValue } from "../../common/options";
+import { ResetValue, RESET_VALUE } from "../../common/options";
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
@@ -41,10 +41,13 @@ import {
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
-import { initV2Endpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { CloudEvent, CloudFunction } from "../core";
+import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
+import { copyIfPresent } from "../../common/encoding";
 
 export { HttpsError };
 export type { AuthUserRecord, AuthBlockingEvent };
@@ -88,7 +91,6 @@ export interface BlockingOptions {
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   *
    * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -100,7 +102,6 @@ export interface BlockingOptions {
 
   /**
    * Min number of actual instances to be running at a given time.
-   *
    * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
@@ -114,7 +115,6 @@ export interface BlockingOptions {
 
   /**
    * Number of requests a function can serve at once.
-   *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
@@ -125,7 +125,6 @@ export interface BlockingOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   *
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
@@ -370,4 +369,156 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
     idToken,
     refreshToken,
   };
+}
+
+/**
+ * The user data payload for an Auth Event. this is the standard "UserRecord"
+ * from the firebase Admin SDK.
+ */
+export type User = AdminUserRecord;
+
+/**
+ * The event object passed to the handler funcation for Firebase Authentication
+ * events.
+ */
+export interface AuthEvent<T> extends CloudEvent<T> {
+  /** The project identifier*/
+  project: string;
+  /** The ID of the Identity Platform Tenant Assosciated with the event. If Applicable */
+  tenantId: string;
+}
+
+/** Options for configuring a Firebase Authentication Trigger */
+export interface AuthOptions extends options.EventHandlerOptions {
+  /**
+   * The Id of the Identity Platform tenant to scope the function to.
+   * If not set, the function triggers on users across all tenants
+   * SEt to `IS_NOT_TENANT` to only trigger on users in the default
+   * project(no tenant).
+   */
+  tenantId?: string | Expression<string> | typeof RESET_VALUE;
+}
+
+// constant to represent the absence of tenant ID.
+export const IS_NOT_TENANT = RESET_VALUE;
+
+// Helper to handle overloaded function signature
+function getOptsAndHandler(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+) {
+  if (typeof optsOrHandler === "function") {
+    return { opts: {}, handler: optsOrHandler };
+  }
+  return { opts: optsOrHandler, handler: handler };
+}
+
+/** @hidden */
+function makeAuthTrigger(
+  eventType: string,
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
+
+  const func = ((raw: CloudEvent<unknown>) => {
+    const event = raw as AuthEvent<User>;
+    const rawAny = raw as any;
+    if (rawAny.tenantid) {
+      event.tenantId = rawAny.tenantid;
+    }
+    if (raw.source) {
+      const match = raw.source.match(/\/projects\/([^\/]+)/);
+      if (match) {
+        event.project = match[1];
+      }
+    }
+    return wrapTraceContext(withInit(handlerFunc))(event);
+  }) as CloudFunction<AuthEvent<User>>;
+
+  func.run = handlerFunc;
+  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOptsEndpoint = options.optionsToEndpoint(opts);
+  const endpoint: ManifestEndpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
+    ...baseOptsEndpoint,
+    ...specificOptsEndpoint,
+    labels: {
+      ...baseOptsEndpoint?.labels,
+      ...specificOptsEndpoint?.labels,
+    },
+    eventTrigger: {
+      eventType,
+      eventFilters: {},
+      retry: false, // Default retry policy
+      region: "global",
+    },
+  };
+  if (opts.tenantId) {
+    if (opts.tenantId === IS_NOT_TENANT) {
+      endpoint.eventTrigger.eventFilters["tenantid"] = "";
+    } else {
+      endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
+    }
+  }
+  copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
+  func.__endpoint = endpoint;
+  return func;
+}
+
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+export function onUserCreated(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
+}
+
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+export function onUserDeleted(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  return makeAuthTrigger(USER_DELETED_EVENT, optsOrHandler, handler);
 }
