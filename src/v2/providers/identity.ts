@@ -493,7 +493,7 @@ function makeAuthTrigger(
 const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
 /**
  * Handles user creation events in Firebase Authentication.
- * 
+ *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @param handler - Event handler which is run every time a new user is created.
@@ -523,7 +523,7 @@ export function onUserCreated(
 const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
 /**
  * Handles user deletion events in Firebase Authentication.
- * 
+ *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @param handler - Event handler that is run every time a user is deleted.
