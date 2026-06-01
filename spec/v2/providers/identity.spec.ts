@@ -453,6 +453,8 @@ describe("identity", () => {
         called = true;
         expect(event.project).to.equal("my-project");
         expect(event.tenantId).to.equal("my-tenant");
+        expect(event.data.uid).to.equal("my-uid");
+        expect(event.data.metadata.creationTime).to.equal("Sun, 01 Jan 2023 00:00:00 GMT");
         return null;
       });
 
@@ -462,7 +464,12 @@ describe("identity", () => {
         id: "event-id",
         type: "google.firebase.auth.user.v2.created",
         time: new Date().toISOString(),
-        data: {} as any,
+        data: {
+          uid: "my-uid",
+          metadata: {
+            createdAt: "2023-01-01T00:00:00Z",
+          },
+        } as any,
         tenantid: "my-tenant",
       };
 
@@ -554,6 +561,8 @@ describe("identity", () => {
         called = true;
         expect(event.project).to.equal("my-project");
         expect(event.tenantId).to.equal("my-tenant");
+        expect(event.data.uid).to.equal("my-uid");
+        expect(event.data.metadata.creationTime).to.equal("Sun, 01 Jan 2023 00:00:00 GMT");
         return null;
       });
 
@@ -563,7 +572,12 @@ describe("identity", () => {
         id: "event-id",
         type: "google.firebase.auth.user.v2.deleted",
         time: new Date().toISOString(),
-        data: {} as any,
+        data: {
+          uid: "my-uid",
+          metadata: {
+            createdAt: "2023-01-01T00:00:00Z",
+          },
+        } as any,
         tenantid: "my-tenant",
       };
 

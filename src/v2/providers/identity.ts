@@ -48,6 +48,7 @@ import { withInit } from "../../common/onInit";
 import { CloudEvent, CloudFunction } from "../core";
 import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
 import { copyIfPresent } from "../../common/encoding";
+import { userRecordConstructor } from "../../common/providers/identity";
 
 export { HttpsError };
 export type { AuthUserRecord, AuthBlockingEvent };
@@ -419,7 +420,10 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
     ...raw,
     project: undefined,
     tenantId: undefined,
-  } as AuthEvent<User>;
+  } as any;
+  if (raw.data) {
+    event.data = userRecordConstructor(raw.data as Record<string, unknown>);
+  }
   const rawAny = raw as any;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
   const tenantId = rawAny.tenantid || rawAny.tenantId;
@@ -481,7 +485,7 @@ function makeAuthTrigger(
       endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
     }
   }
-  copyIfPresent(endpoint.eventTrigger, opts, "retry", "retry");
+  copyIfPresent(endpoint.eventTrigger, opts, "retry");
   func.__endpoint = endpoint;
   return func;
 }
