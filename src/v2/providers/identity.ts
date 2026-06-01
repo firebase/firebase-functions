@@ -383,9 +383,9 @@ export type User = AdminUserRecord;
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
   /** The project identifier*/
-  project: string;
-  /** The ID of the Identity Platform Tenant Assosciated with the event. If Applicable */
-  tenantId: string;
+  project?: string;
+  /** The ID of the Identity Platform Tenant Associated with the event. If Applicable */
+  tenantId?: string;
 }
 
 /** Options for configuring a Firebase Authentication Trigger */
@@ -422,7 +422,11 @@ function makeAuthTrigger(
   const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
 
   const func = ((raw: CloudEvent<unknown>) => {
-    const event = raw as AuthEvent<User>;
+    const event: AuthEvent<User> = {
+      ...raw,
+      project: undefined,
+      tenantId: undefined,
+    } as AuthEvent<User>;
     const rawAny = raw as any;
     if (rawAny.tenantid) {
       event.tenantId = rawAny.tenantid;
@@ -455,7 +459,7 @@ function makeAuthTrigger(
       region: "global",
     },
   };
-  if (opts.tenantId) {
+  if (opts.tenantId !== undefined) {
     if (opts.tenantId === IS_NOT_TENANT) {
       endpoint.eventTrigger.eventFilters["tenantid"] = "";
     } else {
