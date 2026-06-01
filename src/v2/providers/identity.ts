@@ -414,6 +414,29 @@ function getOptsAndHandler(
 }
 
 /** @hidden */
+function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
+  const event: AuthEvent<User> = {
+    ...raw,
+    project: undefined,
+    tenantId: undefined,
+  } as AuthEvent<User>;
+  const rawAny = raw as any;
+  // Support both lowercase (CloudEvents standard) and camelCase (local testing)
+  const tenantId = rawAny.tenantid || rawAny.tenantId;
+  if (tenantId) {
+    event.tenantId = tenantId;
+  }
+  if (raw.source) {
+    // Matches both absolute paths (/projects/...) and relative paths (projects/...)
+    const match = raw.source.match(/(?:^|\/)projects\/([^\/]+)/);
+    if (match) {
+      event.project = match[1];
+    }
+  }
+  return event;
+}
+
+/** @hidden */
 function makeAuthTrigger(
   eventType: string,
   optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
@@ -428,22 +451,7 @@ function makeAuthTrigger(
   const wrappedHandler = wrapTraceContext(withInit(handlerFunc));
 
   const func = ((raw: CloudEvent<unknown>) => {
-    const event: AuthEvent<User> = {
-      ...raw,
-      project: undefined,
-      tenantId: undefined,
-    } as AuthEvent<User>;
-    const rawAny = raw as any;
-    const tenantId = rawAny.tenantid || rawAny.tenantId;
-    if (tenantId) {
-      event.tenantId = tenantId;
-    }
-    if (raw.source) {
-      const match = raw.source.match(/(?:^|\/)projects\/([^\/]+)/);
-      if (match) {
-        event.project = match[1];
-      }
-    }
+    const event = getAuthEvent(raw);
     return wrappedHandler(event);
   }) as CloudFunction<AuthEvent<User>>;
 
@@ -481,6 +489,8 @@ function makeAuthTrigger(
 const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
 /**
  * Handles user creation events in Firebase Authentication.
+ * 
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
@@ -509,6 +519,8 @@ export function onUserCreated(
 const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
 /**
  * Handles user deletion events in Firebase Authentication.
+ * 
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
