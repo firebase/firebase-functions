@@ -421,6 +421,12 @@ function makeAuthTrigger(
 ): CloudFunction<AuthEvent<User>> {
   const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
 
+  if (typeof handlerFunc !== "function") {
+    throw new Error("The handler must be a function.");
+  }
+
+  const wrappedHandler = wrapTraceContext(withInit(handlerFunc));
+
   const func = ((raw: CloudEvent<unknown>) => {
     const event: AuthEvent<User> = {
       ...raw,
@@ -428,16 +434,17 @@ function makeAuthTrigger(
       tenantId: undefined,
     } as AuthEvent<User>;
     const rawAny = raw as any;
-    if (rawAny.tenantid) {
-      event.tenantId = rawAny.tenantid;
+    const tenantId = rawAny.tenantid || rawAny.tenantId;
+    if (tenantId) {
+      event.tenantId = tenantId;
     }
     if (raw.source) {
-      const match = raw.source.match(/\/projects\/([^\/]+)/);
+      const match = raw.source.match(/(?:^|\/)projects\/([^\/]+)/);
       if (match) {
         event.project = match[1];
       }
     }
-    return wrapTraceContext(withInit(handlerFunc))(event);
+    return wrappedHandler(event);
   }) as CloudFunction<AuthEvent<User>>;
 
   func.run = handlerFunc;
