@@ -481,7 +481,7 @@ function makeAuthTrigger(
       eventType,
       eventFilters: {},
       retry: false, // Default retry policy
-      // Firebase Auth event triggers are global by nature, and Eventarc requires the trigger 
+      // Firebase Auth event triggers are global by nature, and Eventarc requires the trigger
       // region to be set to "global" even if the Cloud Function is deployed regionally.
       region: "global",
     },
