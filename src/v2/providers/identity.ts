@@ -92,6 +92,7 @@ export interface BlockingOptions {
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
+   *
    * @remarks
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -103,6 +104,7 @@ export interface BlockingOptions {
 
   /**
    * Min number of actual instances to be running at a given time.
+   *
    * @remarks
    * Instances will be billed for memory allocation and 10% of CPU allocation
    * while idle.
@@ -116,6 +118,7 @@ export interface BlockingOptions {
 
   /**
    * Number of requests a function can serve at once.
+   *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
@@ -126,6 +129,7 @@ export interface BlockingOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
+   *
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
@@ -394,7 +398,7 @@ export interface AuthOptions extends options.EventHandlerOptions {
   /**
    * The Id of the Identity Platform tenant to scope the function to.
    * If not set, the function triggers on users across all tenants
-   * SEt to `IS_NOT_TENANT` to only trigger on users in the default
+   * Set to `IS_NOT_TENANT` to only trigger on users in the default
    * project(no tenant).
    */
   tenantId?: string | Expression<string> | typeof RESET_VALUE;
@@ -414,6 +418,9 @@ function getOptsAndHandler(
   return { opts: optsOrHandler, handler: handler };
 }
 
+// Matches both absolute paths (/projects/...) and relative paths (projects/...)
+const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
+
 /** @hidden */
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   const event: AuthEvent<User> = {
@@ -431,8 +438,7 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
     event.tenantId = tenantId;
   }
   if (raw.source) {
-    // Matches both absolute paths (/projects/...) and relative paths (projects/...)
-    const match = raw.source.match(/(?:^|\/)projects\/([^\/]+)/);
+    const match = raw.source.match(PROJECT_ID_REGEX);
     if (match) {
       event.project = match[1];
     }
@@ -475,6 +481,8 @@ function makeAuthTrigger(
       eventType,
       eventFilters: {},
       retry: false, // Default retry policy
+      // Firebase Auth event triggers are global by nature, and Eventarc requires the trigger 
+      // region to be set to "global" even if the Cloud Function is deployed regionally.
       region: "global",
     },
   };
