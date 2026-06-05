@@ -45,6 +45,7 @@ export { RESET_VALUE } from "../common/options";
 /**
  * Maximum timeout in seconds for event-handling functions (e.g. Firestore,
  * Realtime Database, Pub/Sub, Storage, Eventarc, alerts, scheduler).
+ * See https://firebase.google.com/docs/functions/manage-functions
  * @internal
  */
 export const MAX_EVENT_TIMEOUT_SECONDS = 540;
