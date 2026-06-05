@@ -1,2 +1,2 @@
-- Validate literal `timeoutSeconds` values per v2 trigger type (0-540s for events, 0-3600s for HTTPS/callable, 0-1800s for task queues) so misconfigured values fail at function-definition or manifest-extraction time instead of at deploy time. (#1877)
+- Validate literal `timeoutSeconds` values per v2 trigger type (0-540s for events, 0-3600s for HTTPS/callable, 0-1800s for task queues, 0-7s for identity functions) so misconfigured values fail at function-definition or manifest-extraction time instead of at deploy time. (#1877)
 - fix(v1): Call onInit for schedule.onRun functions (#1801)
