@@ -32,6 +32,7 @@ import {
   serviceAccountFromShorthand,
 } from "../common/encoding";
 import { RESET_VALUE, ResetValue } from "../common/options";
+import { assertNever } from "../common/utilities/assertions";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
@@ -402,6 +403,10 @@ export function assertTimeoutSecondsValid(
   let max: number;
   let label: string;
   switch (kind) {
+    case "event":
+      max = MAX_EVENT_TIMEOUT_SECONDS;
+      label = "event-handling";
+      break;
     case "https":
       max = MAX_HTTPS_TIMEOUT_SECONDS;
       label = "HTTPS and callable";
@@ -415,9 +420,7 @@ export function assertTimeoutSecondsValid(
       label = "blocking";
       break;
     default:
-      max = MAX_EVENT_TIMEOUT_SECONDS;
-      label = "event-handling";
-      break;
+      assertNever(kind);
   }
   if (timeoutSeconds < 0 || timeoutSeconds > max) {
     throw new Error(
