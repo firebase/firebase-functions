@@ -24,12 +24,19 @@ import { ManifestRequiredAPI } from "../runtime/manifest";
 
 let globalRequiredAPIs: ManifestRequiredAPI[] = [];
 
+export type GoogleCloudApi = `${string}.googleapis.com`;
+
 /**
  * Declare that this project requires a specific Google Cloud API to be enabled.
  * @param api The API name, e.g. "secretmanager.googleapis.com"
  * @param reason Optional reason why the API is needed.
  */
-export function requiresAPI(api: string, reason = ""): void {
+export function requiresAPI(api: GoogleCloudApi, reason = ""): void {
+  if (!api || typeof api !== "string" || !api.endsWith(".googleapis.com")) {
+    throw new Error(
+      "requiresAPI: 'api' must be a non-empty string ending with '.googleapis.com'."
+    );
+  }
   globalRequiredAPIs.push({ api, reason });
 }
 
