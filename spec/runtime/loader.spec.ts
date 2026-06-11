@@ -343,6 +343,7 @@ describe("loadStack", () => {
   afterEach(() => {
     process.env.GCLOUD_PROJECT = prev;
     clearGlobalRequiredAPIs();
+    clearParams();
   });
 
   describe("commonjs", () => {
