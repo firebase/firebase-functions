@@ -344,6 +344,11 @@ describe("loadStack", () => {
     process.env.GCLOUD_PROJECT = prev;
     clearGlobalRequiredAPIs();
     clearParams();
+    for (const key of Object.keys(require.cache)) {
+      if (key.includes("fixtures/sources")) {
+        delete require.cache[key];
+      }
+    }
   });
 
   describe("commonjs", () => {
