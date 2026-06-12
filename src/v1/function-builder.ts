@@ -339,11 +339,26 @@ export class FunctionBuilder {
     return {
       /**
        * Handle HTTP requests.
-       * @param handler A function that takes a request and response object,
+       * @param optsOrHandler Options or a function that takes a request and response object,
        * same signature as an Express app.
        */
-      onRequest: (handler: (req: https.Request, resp: express.Response) => void | Promise<void>) =>
-        https._onRequestWithOptions(handler, this.options),
+      onRequest: (
+        optsOrHandler:
+          | https.HttpsOptions
+          | ((req: https.Request, resp: express.Response) => void | Promise<void>),
+        handler?: (req: https.Request, resp: express.Response) => void | Promise<void>
+      ) => {
+        let opts: https.HttpsOptions;
+        let userHandler: (req: https.Request, resp: express.Response) => void | Promise<void>;
+        if (typeof optsOrHandler === "function") {
+          opts = {};
+          userHandler = optsOrHandler;
+        } else {
+          opts = optsOrHandler;
+          userHandler = handler!;
+        }
+        return https._onRequestWithOptions(userHandler, { ...this.options, ...opts } as any);
+      },
       /**
        * Declares a callable method for clients to call using a Firebase SDK.
        * @param handler A method that takes a data and context and returns a value.
