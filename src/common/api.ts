@@ -33,9 +33,7 @@ export type GoogleCloudApi = `${string}.googleapis.com`;
  */
 export function requiresAPI(api: GoogleCloudApi, reason = ""): void {
   if (!api || typeof api !== "string" || !api.endsWith(".googleapis.com")) {
-    throw new Error(
-      "requiresAPI: 'api' must be a non-empty string ending with '.googleapis.com'."
-    );
+    throw new Error("requiresAPI: 'api' must be a non-empty string ending with '.googleapis.com'.");
   }
   globalRequiredAPIs.push({ api, reason });
 }

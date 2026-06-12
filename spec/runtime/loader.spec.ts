@@ -344,6 +344,8 @@ describe("loadStack", () => {
     process.env.GCLOUD_PROJECT = prev;
     clearGlobalRequiredAPIs();
     clearParams();
+    // Purge the require cache for fixture modules so that when a file is loaded
+    // a second time via absolute path, it re-executes and successfully runs its global side-effects.
     for (const key of Object.keys(require.cache)) {
       if (key.includes("fixtures/sources")) {
         delete require.cache[key];
