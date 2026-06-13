@@ -142,15 +142,13 @@ export interface FirestoreEvent<T, Params = Record<string, string>> extends Clou
  * A CloudEvent for Firestore triggers that include authentication context.
  *
  * Firestore `*WithAuthContext` triggers populate `authType` and, when available,
- * `authId` with the principal that caused the document change. For example,
- * writes made by an authenticated Firebase user are reported as `authType`
- * `"unknown"` with `authId` set to the user's UID.
+ * `authId` with the principal that caused the document change.
  */
 export interface FirestoreAuthEvent<T, Params = Record<string, string>>
   extends FirestoreEvent<T, Params> {
   /** The type of principal that triggered the event. */
   authType: AuthType;
-  /** The unique identifier for the principal, such as a Firebase user's UID. */
+  /** The unique identifier for the principal, when available. */
   authId?: string;
 }
 
