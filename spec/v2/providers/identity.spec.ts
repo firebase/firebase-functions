@@ -25,6 +25,7 @@ import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { onInit } from "../../../src/v2/core";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
+import { defineString, clearParams } from "../../../src/params";
 
 const IDENTITY_TOOLKIT_API = "identitytoolkit.googleapis.com";
 const REGION = "us-west1";
@@ -520,12 +521,10 @@ describe("identity", () => {
     });
 
     it("should handle Expression for tenantId", () => {
-      const param = {
-        value: () => "my-tenant-param",
-        toString: () => "{{params.MY_TENANT}}",
-      } as any;
+      const param = defineString("MY_TENANT");
       const func = identity.onUserCreated({ tenantId: param }, () => null);
       expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal(param);
+      clearParams();
     });
   });
 

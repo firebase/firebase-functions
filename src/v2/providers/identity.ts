@@ -387,8 +387,9 @@ export type User = AdminUserRecord;
  * events.
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
-  /** The project identifier*/
+  /** The project identifier */
   project?: string;
+
   /** The ID of the Identity Platform Tenant Associated with the event. If Applicable */
   tenantId?: string;
 }
@@ -499,10 +500,15 @@ function makeAuthTrigger(
 }
 
 const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+
 /**
  * Handles user creation events in Firebase Authentication.
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ *
+ * @beta
+ * Note: This is an experimental feature and requires the CLI experiment to be enabled:
+ * `firebase experiments:enable autheventarc`
  *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
@@ -512,6 +518,10 @@ export function onUserCreated(
 ): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user creation events in Firebase Authentication.
+ *
+ * @beta
+ * Note: This is an experimental feature and requires the CLI experiment to be enabled:
+ * `firebase experiments:enable autheventarc`
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -529,10 +539,15 @@ export function onUserCreated(
 }
 
 const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
+
 /**
  * Handles user deletion events in Firebase Authentication.
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ *
+ * @beta
+ * Note: This is an experimental feature and requires the CLI experiment to be enabled:
+ * `firebase experiments:enable autheventarc`
  *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
@@ -542,6 +557,10 @@ export function onUserDeleted(
 ): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user deletion events in Firebase Authentication.
+ *
+ * @beta
+ * Note: This is an experimental feature and requires the CLI experiment to be enabled:
+ * `firebase experiments:enable autheventarc`
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
