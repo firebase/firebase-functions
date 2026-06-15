@@ -1,2 +1,3 @@
 - chore: drop support for Node 18 and below (minimum supported version is now Node 20)
+- feat: Add requiresAPI function to allow declaring Google Cloud API dependencies in code.
 - fix(v1): Call onInit for schedule.onRun functions (#1801)
