@@ -10,6 +10,7 @@ import {
   ManifestStack,
 } from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
+import { clearGlobalRequiredAPIs } from "../../src/common/api";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
 import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
@@ -369,6 +370,15 @@ describe("loadStack", () => {
 
   afterEach(() => {
     process.env.GCLOUD_PROJECT = prev;
+    clearGlobalRequiredAPIs();
+    clearParams();
+    // Purge the require cache for fixture modules so that when a file is loaded
+    // a second time via absolute path, it re-executes and successfully runs its global side-effects.
+    for (const key of Object.keys(require.cache)) {
+      if (key.includes("fixtures/sources")) {
+        delete require.cache[key];
+      }
+    }
   });
 
   describe("commonjs", () => {
@@ -494,6 +504,28 @@ describe("loadStack", () => {
               httpsTrigger: {},
             },
           },
+        },
+      },
+      {
+        name: "requires api",
+        modulePath: "./spec/fixtures/sources/requiresapi",
+        expected: {
+          endpoints: {
+            v1http: {
+              ...MINIMAL_V1_ENDPOINT,
+              platform: "gcfv1",
+              entryPoint: "v1http",
+              httpsTrigger: {},
+            },
+          },
+          requiredAPIs: [
+            {
+              api: "some-api.googleapis.com",
+              reason: "Needed for some reason",
+            },
+          ],
+          extensions: {},
+          specVersion: "v1alpha1",
         },
       },
     ];

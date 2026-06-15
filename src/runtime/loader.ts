@@ -30,6 +30,7 @@ import {
 } from "./manifest";
 
 import * as params from "../params";
+import { getGlobalRequiredAPIs, clearGlobalRequiredAPIs } from "../common/api";
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -202,6 +203,8 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   const mod = await loadModule(functionsDir);
 
   extractStack(mod, endpoints, requiredAPIs, extensions);
+  requiredAPIs.push(...getGlobalRequiredAPIs());
+  clearGlobalRequiredAPIs();
 
   const stack: ManifestStack = {
     endpoints,
