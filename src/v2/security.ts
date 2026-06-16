@@ -37,5 +37,11 @@ export type Role =
  * @param role The IAM role required (e.g. "roles/bigquery.dataEditor")
  */
 export function requiresRole(role: Role): void {
+  const roleRegex = /^(roles\/[a-zA-Z0-9_\-.]+|projects\/[a-zA-Z0-9_\-]+\/roles\/[a-zA-Z0-9_\-.]+|organizations\/[a-zA-Z0-9_\-]+\/roles\/[a-zA-Z0-9_\-.]+)$/;
+  if (!roleRegex.test(role)) {
+    throw new Error(
+      `Invalid role: "${role}". Role must be a valid GCP IAM role format (e.g., "roles/viewer", "projects/<project-id>/roles/<custom-role>", or "organizations/<org-id>/roles/<custom-role>").`
+    );
+  }
   registerRole(role);
 }
