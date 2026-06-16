@@ -159,7 +159,6 @@ export interface GlobalOptions {
   /**
    * Timeout for the function in seconds, possible values are 0 to 540.
    * HTTPS functions can specify a higher timeout.
-   *
    * @remarks
    * The minimum timeout for a 2nd gen function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
@@ -171,7 +170,6 @@ export interface GlobalOptions {
 
   /**
    * Minimum number of actual instances to be running at a given time.
-   *
    * @remarks
    * Instances are billed for memory allocation and 10% of CPU allocation
    * while idle.
@@ -185,7 +183,6 @@ export interface GlobalOptions {
 
   /**
    * Number of requests a function can serve at once.
-   *
    * @remarks
    * Can be applied only to functions running on Cloud Functions (2nd gen)).
    * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
@@ -196,7 +193,6 @@ export interface GlobalOptions {
 
   /**
    * Fractional number of CPUs to allocate to a function.
-   *
    * @remarks
    * Defaults to 1 for functions with <= 2GB RAM and increases for larger memory sizes.
    * This is different from the defaults when using the gcloud utility and is different from
@@ -254,7 +250,6 @@ export interface GlobalOptions {
 
   /**
    * Determines whether Firebase App Check is enforced. Defaults to false.
-   *
    * @remarks
    * When true, requests with invalid tokens autorespond with a 401
    * (Unauthorized) error.
@@ -264,7 +259,6 @@ export interface GlobalOptions {
 
   /**
    * Controls whether function configuration modified outside of function source is preserved. Defaults to false.
-   *
    * @remarks
    * When setting configuration available in an underlying platform that is not yet available in the Firebase SDK
    * for Cloud Functions, we recommend setting `preserveExternalChanges` to `true`. Otherwise, when Google releases
@@ -305,7 +299,6 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 
   /**
    * Filters events based on exact matches on the CloudEvents attributes.
-   *
    * Each key-value pair represents an attribute name and its required value for exact matching.
    * Events must match all specified filters to trigger the function.
    */
@@ -313,7 +306,6 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 
   /**
    * Filters events based on path pattern matching on the CloudEvents attributes.
-   *
    * Similar to eventFilters, but supports wildcard patterns for flexible matching where `*` matches
    * any single path segment, `**` matches zero or more path segments, and `{param}` captures a path segment
    * as a parameter

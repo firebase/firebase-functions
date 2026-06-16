@@ -34,7 +34,6 @@ export type Role =
  * Declares that this codebase requires the specified IAM role to operate.
  * When deployed, the Firebase CLI will automatically provision a managed service account
  * with this role and attach it to all functions in this codebase.
- *
  * @param role The IAM role required (e.g. "roles/bigquery.dataEditor")
  */
 export function requiresRole(role: Role): void {

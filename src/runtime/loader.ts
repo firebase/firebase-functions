@@ -33,13 +33,11 @@ import * as params from "../params";
 import { declaredRoles } from "../security/roles";
 
 /**
-
  * Dynamically load import function to prevent TypeScript from
  * transpiling into a require.
- *
  * See https://github.com/microsoft/TypeScript/issues/43329.
- *
  */
+
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function("modulePath", "return import(modulePath)") as (
   modulePath: string
