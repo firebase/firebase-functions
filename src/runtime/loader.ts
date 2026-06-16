@@ -30,8 +30,10 @@ import {
 } from "./manifest";
 
 import * as params from "../params";
+import { declaredRoles } from "../security/roles";
 
 /**
+
  * Dynamically load import function to prevent TypeScript from
  * transpiling into a require.
  *
@@ -202,6 +204,9 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   };
   if (params.declaredParams.length > 0) {
     stack.params = params.declaredParams.map((p) => p.toSpec());
+  }
+  if (declaredRoles.size > 0) {
+    stack.requiredRoles = Array.from(declaredRoles);
   }
   return stack;
 }

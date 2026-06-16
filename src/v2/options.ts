@@ -495,3 +495,4 @@ export function __getSpec(): {
     params: declaredParams.map((p) => p.toSpec()),
   };
 }
+export { requiresRole, Role } from "./security";
