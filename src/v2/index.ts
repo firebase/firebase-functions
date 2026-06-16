@@ -63,6 +63,7 @@ export {
 
 export { logger } from "../logger";
 export { setGlobalOptions, requiresRole } from "./options";
+export { requiresAPI } from "../common/api";
 export type {
   GlobalOptions,
   SupportedRegion,
