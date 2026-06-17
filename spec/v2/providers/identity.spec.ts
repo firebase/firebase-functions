@@ -482,10 +482,11 @@ describe("identity", () => {
       let called = false;
       const func = identity.onUserCreated((event) => {
         called = true;
-        expect(event.project).to.be.undefined;
+        expect("project" in event).to.be.false;
         return null;
       });
 
+      // This test case verifies defense against pathological changes or unexpected custom emulator event sources that we do not expect in production.
       const mockEvent = {
         specversion: "1.0" as const,
         source: "//identitytoolkit.googleapis.com/something-else",
@@ -503,7 +504,7 @@ describe("identity", () => {
       let called = false;
       const func = identity.onUserCreated((event) => {
         called = true;
-        expect(event.tenantId).to.be.undefined;
+        expect("tenantId" in event).to.be.false;
         return null;
       });
 

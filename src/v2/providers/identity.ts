@@ -47,7 +47,6 @@ import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 import { CloudEvent, CloudFunction } from "../core";
 import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
-import { copyIfPresent } from "../../common/encoding";
 import { userRecordConstructor } from "../../common/providers/identity";
 
 export { HttpsError };
@@ -424,11 +423,7 @@ const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
 
 /** @hidden */
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
-  const event: AuthEvent<User> = {
-    ...raw,
-    project: undefined,
-    tenantId: undefined,
-  } as any;
+  const event: AuthEvent<User> = { ...raw } as any;
   if (raw.data) {
     event.data = userRecordConstructor(raw.data as Record<string, unknown>);
   }
@@ -439,6 +434,7 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
     event.tenantId = tenantId;
   }
   if (raw.source) {
+    // Defensive check against pathological source strings (e.g. emulators/custom events)
     const match = raw.source.match(PROJECT_ID_REGEX);
     if (match) {
       event.project = match[1];
@@ -481,7 +477,7 @@ function makeAuthTrigger(
     eventTrigger: {
       eventType,
       eventFilters: {},
-      retry: false, // Default retry policy
+      retry: opts.retry ?? false, // Default retry policy
       // Firebase Auth event triggers are global by nature, and Eventarc requires the trigger
       // region to be set to "global" even if the Cloud Function is deployed regionally.
       region: "global",
@@ -494,7 +490,6 @@ function makeAuthTrigger(
       endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
     }
   }
-  copyIfPresent(endpoint.eventTrigger, opts, "retry");
   func.__endpoint = endpoint;
   return func;
 }
@@ -507,8 +502,6 @@ const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @beta
- * Note: This is an experimental feature and requires the CLI experiment to be enabled:
- * `firebase experiments:enable autheventarc`
  *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
@@ -520,8 +513,6 @@ export function onUserCreated(
  * Handles user creation events in Firebase Authentication.
  *
  * @beta
- * Note: This is an experimental feature and requires the CLI experiment to be enabled:
- * `firebase experiments:enable autheventarc`
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -546,8 +537,6 @@ const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @beta
- * Note: This is an experimental feature and requires the CLI experiment to be enabled:
- * `firebase experiments:enable autheventarc`
  *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
@@ -559,8 +548,6 @@ export function onUserDeleted(
  * Handles user deletion events in Firebase Authentication.
  *
  * @beta
- * Note: This is an experimental feature and requires the CLI experiment to be enabled:
- * `firebase experiments:enable autheventarc`
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
