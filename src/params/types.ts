@@ -411,14 +411,14 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
   input?: ParamInput<T>;
   /** Optional format annotation for additional type information (e.g., "json" for JSON-encoded secrets). */
   format?: string;
+  /** Disallows the empty string/empty list when prompting for input. */
+  nonEmpty?: boolean;
 };
 
 /**
  * Representation of parameters for the stack over the wire.
- *
  * @remarks
  * N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
- *
  * @alpha
  */
 export type WireParamSpec<T extends string | number | boolean | string[]> = {
@@ -429,13 +429,15 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   type: ParamValueType;
   input?: ParamInput<T>;
   format?: string;
+  nonEmpty?: boolean;
 };
 
-/** Configuration options which can be used to customize the prompting behavior of a parameter. */
+/** Basic configuration options which can be used to customize the prompting behavior of a parameter. */
 export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   ParamSpec<T>,
-  "name" | "type"
->;
+  "name" | "type" | "nonEmpty"
+> &
+  (T extends string | string[] ? { nonEmpty?: boolean } : {});
 
 /** Configuration options which can be used to customize the behavior of a secret parameter. */
 export interface SecretParamOptions {

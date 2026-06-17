@@ -6,7 +6,7 @@ const params = require("../../../../src/params");
 
 params.defineString("BORING");
 const foo = params.defineString("FOO", { input: { text: { validationRegex: "w+" } } });
-const bar = params.defineString("BAR", { default: foo, label: "asdf" });
+const bar = params.defineString("BAR", { default: foo, label: "asdf", nonEmpty: true });
 params.defineString("BAZ", { input: { select: { options: [{ value: "a" }, { value: "b" }] } } });
 
 params.defineInt("AN_INT", { default: bar.equals("qux").thenElse(0, 1) });
@@ -21,7 +21,7 @@ params.defineInt("ANOTHER_INT", {
   },
 });
 
-params.defineList("LIST_PARAM", {input: { multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}})
+params.defineList("LIST_PARAM", {nonEmpty: true, input: { multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}})
 
 params.defineSecret("SUPER_SECRET_FLAG");
 

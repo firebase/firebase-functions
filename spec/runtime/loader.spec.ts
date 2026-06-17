@@ -405,6 +405,7 @@ describe("loadStack", () => {
               type: "string",
               default: "{{ params.FOO }}",
               label: "asdf",
+              nonEmpty: true,
             },
             {
               name: "BAZ",
@@ -429,6 +430,7 @@ describe("loadStack", () => {
             {
               name: "LIST_PARAM",
               type: "list",
+              nonEmpty: true,
               input: {
                 multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }] },
               },
