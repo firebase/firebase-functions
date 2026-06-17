@@ -37,12 +37,35 @@ export function trimParam(param: string) {
 }
 
 /** @internal */
-export function tryDecodeURIComponent(uri: string): string {
-  try {
-    return decodeURIComponent(uri);
-  } catch (_e) {
-    return uri;
+const UTF8_MOJIBAKE_REGEX = /[\u00c2-\u00f4][\u0080-\u00bf]/;
+
+/** @internal */
+export function tryDecodeUtf8Mojibake(value: string): string {
+  if (!UTF8_MOJIBAKE_REGEX.test(value)) {
+    return value;
   }
+
+  const bytes = Array.from(value, (char) => char.charCodeAt(0));
+  if (bytes.some((byte) => byte > 0xff)) {
+    return value;
+  }
+
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(Uint8Array.from(bytes));
+  } catch (_e) {
+    return value;
+  }
+}
+
+/** @internal */
+export function tryDecodeURIComponent(uri: string): string {
+  let decoded = uri;
+  try {
+    decoded = decodeURIComponent(uri);
+  } catch (_e) {
+    // Leave malformed percent-encoding untouched and fall through to mojibake repair.
+  }
+  return tryDecodeUtf8Mojibake(decoded);
 }
 
 /** @hidden */
