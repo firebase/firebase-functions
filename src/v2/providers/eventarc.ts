@@ -203,7 +203,7 @@ export function onCustomEventPublished<T = any>(
   const channel = opts.channel ?? "locations/us-central1/channels/firebase";
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
 
   const endpoint: ManifestEndpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),

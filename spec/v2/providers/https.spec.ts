@@ -336,6 +336,14 @@ describe("onRequest", () => {
     await runHandler(func, req);
     expect(hello).to.equal("world");
   });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() =>
+      https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
+        res.end();
+      })
+    ).to.throw(/between 0 and 3600 for HTTPS and callable functions/);
+  });
 });
 
 describe("onCall", () => {
@@ -603,6 +611,12 @@ describe("onCall", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req);
     expect(hello).to.equal("world");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() => https.onCall({ timeoutSeconds: 3601 }, () => 42)).to.throw(
+      /between 0 and 3600 for HTTPS and callable functions/
+    );
   });
 
   describe("authPolicy", () => {

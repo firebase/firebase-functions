@@ -324,6 +324,12 @@ describe("onTaskDispatched", () => {
     expect(hello).to.equal("world");
   });
 
+  it("rejects timeoutSeconds above the 1800s task-queue limit", () => {
+    expect(() => onTaskDispatched({ timeoutSeconds: 1801 }, () => null)).to.throw(
+      /between 0 and 1800 for task queue functions/
+    );
+  });
+
   describe("v1-compatible getters", () => {
     it("should provide v1-compatible context on the request object", async () => {
       let capturedRequest: any;
