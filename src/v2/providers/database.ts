@@ -601,7 +601,7 @@ export function makeEndpoint(
   instance: PathPattern
 ): ManifestEndpoint {
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
 
   const eventFilters: Record<string, string> = {};
   const eventFilterPathPatterns: Record<string, string> = {
