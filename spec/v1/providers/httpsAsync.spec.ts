@@ -36,7 +36,7 @@ describe("CloudHttpsBuilder async onRequest", () => {
   it("should not log if handler completes successfully", async () => {
     const fn = https.onRequest(async (_req, res) => {
       await Promise.resolve();
-      res.send(200);
+      res.sendStatus(200);
     });
 
     const req = new MockRequest({}, {});

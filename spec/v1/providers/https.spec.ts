@@ -41,7 +41,7 @@ describe("CloudHttpsBuilder", () => {
   describe("#onRequest", () => {
     it("should return a trigger with appropriate values", () => {
       const result = https.onRequest((req, resp) => {
-        resp.send(200);
+        resp.sendStatus(200);
       });
       expect(result.__trigger).to.deep.equal({ httpsTrigger: {} });
       expect(result.__endpoint).to.deep.equal({
@@ -77,7 +77,7 @@ describe("CloudHttpsBuilder", () => {
       onInit(() => (hello = "world"));
       expect(hello).to.be.undefined;
       const fn = functions.https.onRequest((_req, res) => {
-        res.send(200);
+        res.sendStatus(200);
       });
       const req = new MockRequest(
         {

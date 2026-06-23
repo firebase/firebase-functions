@@ -30,7 +30,6 @@ import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest
 import { runHandler } from "../../helper";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
-import { Handler } from "express";
 import { genkit } from "genkit";
 import { clearParams, defineBoolean, defineList, Expression } from "../../../src/params";
 
@@ -72,7 +71,7 @@ describe("onRequest", () => {
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
     const result = https.onRequest((req, res) => {
-      res.send(200);
+      res.sendStatus(200);
     });
 
     expect(result.__trigger).to.deep.equal({
@@ -99,7 +98,7 @@ describe("onRequest", () => {
         invoker: ["service-account1@", "service-account2@"],
       },
       (req, res) => {
-        res.send(200);
+        res.sendStatus(200);
       }
     );
 
@@ -137,7 +136,7 @@ describe("onRequest", () => {
         invoker: "private",
       },
       (req, res) => {
-        res.send(200);
+        res.sendStatus(200);
       }
     );
 
@@ -657,7 +656,11 @@ describe("onCall", () => {
         () => "HHGTG"
       );
 
-      const cases: Array<{ fn: Handler; auth?: Record<string, string>; status: number }> = [
+      const cases: Array<{
+        fn: https.HttpsFunction;
+        auth?: Record<string, string>;
+        status: number;
+      }> = [
         { fn: anyValue, auth: { meaning: "42" }, status: 200 },
         { fn: anyValue, auth: { meaning: "43" }, status: 200 },
         { fn: anyValue, auth: { order: "66" }, status: 403 },
