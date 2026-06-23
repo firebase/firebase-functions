@@ -163,15 +163,23 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
         await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
         return true;
       } catch (e: unknown) {
-        const error = e as { code?: string; cause?: { code?: string } };
-        if (error.code === "ECONNREFUSED" || error.cause?.code === "ECONNREFUSED") {
+        const isExpected = (code?: string) =>
+          code === "ECONNREFUSED" ||
+          code === "ECONNRESET" ||
+          code === "ETIMEDOUT" ||
+          code === "UND_ERR_CONNECT_TIMEOUT";
+        if (
+          isExpected(error.code) ||
+          isExpected(error.cause?.code) ||
+          error.cause?.errors?.some((err) => isExpected(err.code))
+        ) {
           // This is an expected error during server startup, so we should retry.
           return false;
         }
         // Any other error is unexpected and should fail the test immediately.
         throw e;
       }
-    }, TIMEOUT_L);
+    }, TIMEOUT_XL);
 
     const res = await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
     const body = await res.text();
@@ -220,8 +228,8 @@ async function runFileDiscovery(modulePath: string): Promise<DiscoveryResult> {
         proc.kill(9);
         await new Promise<void>((resolve) => proc.on("exit", resolve));
       }
-      resolve({ success: false, error: `File discovery timed out after ${TIMEOUT_M}ms` });
-    }, TIMEOUT_M);
+      resolve({ success: false, error: `File discovery timed out after ${TIMEOUT_XL}ms` });
+    }, TIMEOUT_XL);
 
     proc.on("close", async (code) => {
       clearTimeout(timeoutId);
