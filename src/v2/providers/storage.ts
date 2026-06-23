@@ -779,7 +779,7 @@ export function onOperation(
   Object.defineProperty(func, "__trigger", {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "event");
 
       return {
         platform: "gcfv2",
@@ -807,7 +807,7 @@ export function onOperation(
   Object.defineProperty(func, "__endpoint", {
     get: () => {
       const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-      const specificOpts = options.optionsToEndpoint(opts);
+      const specificOpts = options.optionsToEndpoint(opts, "event");
 
       const endpoint: ManifestEndpoint = {
         platform: "gcfv2",
