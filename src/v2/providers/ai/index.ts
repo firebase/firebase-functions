@@ -184,7 +184,7 @@ export function beforeGenerateContent(
     handler = optsOrCb as any;
   } else {
     opts = optsOrCb as WebhookOptions;
-    handler = cb as any;
+    handler = cb;
   }
 
   let func: any = async (req: express.Request, res: express.Response) => {
@@ -291,7 +291,7 @@ export function afterGenerateContent(
     handler = optsOrCb as any;
   } else {
     opts = optsOrCb as WebhookOptions;
-    handler = cb as any;
+    handler = cb;
   }
 
   let func: any = async (req: express.Request, res: express.Response) => {

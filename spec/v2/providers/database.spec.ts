@@ -464,7 +464,7 @@ describe("database", () => {
           },
         };
 
-        await func(raw as any);
+        await func(raw);
 
         expect(capturedEvent.context).to.deep.equal({
           eventId: "id",

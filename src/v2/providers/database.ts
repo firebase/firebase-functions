@@ -524,7 +524,7 @@ function makeDatabaseEvent<Params>(
     params,
     authType: event.authtype || "unknown",
     authId: event.authid,
-  } as any;
+  };
   delete (databaseEvent as any).firebasedatabasehost;
   delete (databaseEvent as any).authtype;
   delete (databaseEvent as any).authid;
@@ -554,7 +554,7 @@ function makeChangedDatabaseEvent<Params>(
     params,
     authType: event.authtype || "unknown",
     authId: event.authid,
-  } as any;
+  };
   delete (databaseEvent as any).firebasedatabasehost;
   delete (databaseEvent as any).authtype;
   delete (databaseEvent as any).authid;

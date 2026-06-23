@@ -81,7 +81,7 @@ function makeEvent(data?: any): firestore.RawFirestoreEvent {
   return {
     ...eventBase,
     data,
-  } as firestore.RawFirestoreEvent;
+  };
 }
 
 function makeAuthEvent(data?: any): firestore.RawFirestoreAuthEvent {
@@ -90,7 +90,7 @@ function makeAuthEvent(data?: any): firestore.RawFirestoreAuthEvent {
     data,
     authid: "userId",
     authtype: "unknown",
-  } as firestore.RawFirestoreAuthEvent;
+  };
 }
 
 const createdData = {
@@ -1209,7 +1209,7 @@ describe("firestore", () => {
       const rawEvent: firestore.RawFirestoreEvent = makeEvent(makeEncodedProtobuf(deletedProto));
       rawEvent.type = firestore.deletedEventType;
       rawEvent.subject = "documents/foo/fGRodw71mHutZ4wGDuT8";
-      return func(rawEvent as any);
+      return func(rawEvent);
     });
   });
 
@@ -1331,7 +1331,7 @@ describe("firestore", () => {
       const rawEvent: firestore.RawFirestoreEvent = makeEvent(makeEncodedProtobuf(updatedProto));
       rawEvent.type = firestore.updatedEventType;
       rawEvent.subject = "documents/foo/fGRodw71mHutZ4wGDuT8";
-      return func(rawEvent as any);
+      return func(rawEvent);
     });
   });
 });

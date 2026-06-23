@@ -28,7 +28,7 @@ export default defineConfig([
     unbundle: true,
     format: "cjs",
     outDir: "lib",
-    clean: true,
+    clean: false,
     dts: false, // Use tsc for type declarations
     treeshake: false,
     external: ["../../../protos/compiledFirestore"],
