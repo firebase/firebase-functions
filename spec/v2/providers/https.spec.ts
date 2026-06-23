@@ -343,7 +343,6 @@ describe("onRequest", () => {
     expect(hello).to.equal("world");
   });
 
-<<<<<<< fix-cors-param-resolution
   it("should not crash when a string or list parameter is passed in", () => {
     const stringParam = defineString("ALLOWED_ORIGIN");
     const listParam = defineList("ALLOWED_ORIGINS");
@@ -353,14 +352,14 @@ describe("onRequest", () => {
 
     expect(funcString).to.be.a("function");
     expect(funcList).to.be.a("function");
-=======
+  });
+
   it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
     expect(() =>
       https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
         res.end();
       })
     ).to.throw(/between 0 and 3600 for HTTPS and callable functions/);
->>>>>>> master
   });
 });
 
@@ -631,7 +630,6 @@ describe("onCall", () => {
     expect(hello).to.equal("world");
   });
 
-<<<<<<< fix-cors-param-resolution
   it("should not crash when a string or list parameter is passed in", () => {
     const stringParam = defineString("ALLOWED_ORIGIN");
     const listParam = defineList("ALLOWED_ORIGINS");
@@ -641,12 +639,12 @@ describe("onCall", () => {
 
     expect(funcString).to.be.a("function");
     expect(funcList).to.be.a("function");
-=======
+  });
+
   it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
     expect(() => https.onCall({ timeoutSeconds: 3601 }, () => 42)).to.throw(
       /between 0 and 3600 for HTTPS and callable functions/
     );
->>>>>>> master
   });
 
   describe("authPolicy", () => {
