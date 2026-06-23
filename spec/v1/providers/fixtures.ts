@@ -47,4 +47,5 @@ export const MINIMAL_SCHEDULE_TRIGGER: ManifestEndpoint["scheduleTrigger"] = {
     minBackoffDuration: options.RESET_VALUE,
     maxDoublings: options.RESET_VALUE,
   },
+  attemptDeadline: options.RESET_VALUE,
 };
