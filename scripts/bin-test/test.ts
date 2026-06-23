@@ -6,7 +6,6 @@ import * as os from "os";
 
 import { expect } from "chai";
 import { parse as parseYaml } from "yaml";
-import fetch from "node-fetch";
 import * as portfinder from "portfinder";
 
 const TIMEOUT_XL = 20_000;
@@ -143,7 +142,7 @@ async function retryUntil(
 }
 
 async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
-  const getPort = promisify(portfinder.getPort) as () => Promise<number>;
+  const getPort = promisify(portfinder.getPort);
   const port = await getPort();
 
   const proc = subprocess.spawn("npx", ["firebase-functions"], {
