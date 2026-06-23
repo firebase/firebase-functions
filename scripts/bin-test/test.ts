@@ -160,7 +160,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
     // Wait for server to be ready
     await retryUntil(async () => {
       try {
-        await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
+        await fetch(`http://localhost:${port}/__/functions.yaml`);
         return true;
       } catch (e: unknown) {
         const error = e as {
@@ -185,7 +185,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
       }
     }, TIMEOUT_XL);
 
-    const res = await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
+    const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
     const body = await res.text();
 
     if (res.status === 200) {
