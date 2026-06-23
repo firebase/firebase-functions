@@ -160,11 +160,11 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
     // Wait for server to be ready
     await retryUntil(async () => {
       try {
-        await fetch(`http://localhost:${port}/__/functions.yaml`);
+        await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
         return true;
       } catch (e: unknown) {
-        const error = e as { code?: string };
-        if (error.code === "ECONNREFUSED") {
+        const error = e as { code?: string; cause?: { code?: string } };
+        if (error.code === "ECONNREFUSED" || error.cause?.code === "ECONNREFUSED") {
           // This is an expected error during server startup, so we should retry.
           return false;
         }
@@ -173,7 +173,7 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
       }
     }, TIMEOUT_L);
 
-    const res = await fetch(`http://localhost:${port}/__/functions.yaml`);
+    const res = await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
     const body = await res.text();
 
     if (res.status === 200) {
