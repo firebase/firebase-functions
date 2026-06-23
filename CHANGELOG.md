@@ -1,3 +1,4 @@
+- feat: Add requiresRole developer API for declarative security support and automatic Manifest extraction (#1908)
 - Validate literal `timeoutSeconds` values per v2 trigger type (0-540s for events, 0-3600s for HTTPS/callable, 0-1800s for task queues, 0-7s for identity functions) so misconfigured values fail at function-definition or manifest-extraction time instead of at deploy time. (#1877)
 - chore: drop support for Node 18 and below (minimum supported version is now Node 20)
 - feat: Add requiresAPI function to allow declaring Google Cloud API dependencies in code.
