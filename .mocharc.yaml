@@ -5,3 +5,4 @@ package: ./package.json
 reporter: spec
 require:
   - "ts-node/register"
+  - "source-map-support/register"

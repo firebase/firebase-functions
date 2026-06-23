@@ -163,6 +163,10 @@ async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
         await fetch(`http://127.0.0.1:${port}/__/functions.yaml`);
         return true;
       } catch (e: unknown) {
+        const error = e as {
+          code?: string;
+          cause?: { code?: string; errors?: Array<{ code?: string }> };
+        };
         const isExpected = (code?: string) =>
           code === "ECONNREFUSED" ||
           code === "ECONNRESET" ||
