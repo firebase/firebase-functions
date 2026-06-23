@@ -357,7 +357,7 @@ export class FunctionBuilder {
           opts = optsOrHandler;
           userHandler = handler!;
         }
-        return https._onRequestWithOptions(userHandler, { ...this.options, ...opts } as any);
+        return https._onRequestWithOptions(userHandler, { ...this.options, ...opts });
       },
       /**
        * Declares a callable method for clients to call using a Firebase SDK.

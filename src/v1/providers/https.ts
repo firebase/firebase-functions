@@ -71,7 +71,7 @@ export function onRequest(
     opts = optsOrHandler;
     userHandler = handler!;
   }
-  return _onRequestWithOptions(userHandler, opts as DeploymentOptions);
+  return _onRequestWithOptions(userHandler, opts);
 }
 
 /**

@@ -58,7 +58,7 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
     androidVersionId: versions[versions.length - 1],
     locale: "en",
     orientation: "portrait",
-  } as AndroidDevice;
+  };
 }
 
 async function createTestMatrix(

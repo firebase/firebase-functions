@@ -143,7 +143,7 @@ async function retryUntil(
 }
 
 async function runHttpDiscovery(modulePath: string): Promise<DiscoveryResult> {
-  const getPort = promisify(portfinder.getPort) as () => Promise<number>;
+  const getPort = promisify(portfinder.getPort);
   const port = await getPort();
 
   const proc = subprocess.spawn("npx", ["firebase-functions"], {
