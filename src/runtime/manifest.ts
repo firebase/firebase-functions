@@ -137,6 +137,28 @@ export interface ManifestRequiredAPI {
 }
 
 /**
+ * A definition of a lifecycle action as appears in the Manifest.
+ *
+ * @alpha
+ */
+export interface ManifestLifecycleAction {
+  task?: {
+    function: string | Expression<string>;
+    body?: Record<string, unknown>;
+  };
+  call?: {
+    function: string | Expression<string>;
+    params?: Record<string, unknown>;
+  };
+  http?: {
+    function?: string | Expression<string>;
+    url?: string | Expression<string>;
+    method?: string;
+    body?: unknown;
+  };
+}
+
+/**
  * A definition of a function/extension deployment as appears in the Manifest.
  * @alpha
  */
@@ -147,6 +169,7 @@ export interface ManifestStack {
   endpoints: Record<string, ManifestEndpoint>;
   extensions?: Record<string, ManifestExtension>;
   requiredRoles?: string[];
+  lifecycleHooks?: Record<string, ManifestLifecycleAction>;
 }
 
 /**
@@ -170,6 +193,9 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
     }
   };
   traverse(wireStack.endpoints);
+  if (wireStack.lifecycleHooks) {
+    traverse(wireStack.lifecycleHooks);
+  }
   return wireStack;
 }
 

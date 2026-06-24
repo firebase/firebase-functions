@@ -25,6 +25,7 @@ import * as url from "url";
 import {
   ManifestEndpoint,
   ManifestExtension,
+  ManifestLifecycleAction,
   ManifestRequiredAPI,
   ManifestStack,
 } from "./manifest";
@@ -32,6 +33,7 @@ import {
 import * as params from "../params";
 import { declaredRoles } from "../security/roles";
 import { getGlobalRequiredAPIs, clearGlobalRequiredAPIs } from "../common/api";
+import { declaredLifecycleHooks, clearDeclaredLifecycleHooks } from "../lifecycle";
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -209,5 +211,42 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   if (declaredRoles.size > 0) {
     stack.requiredRoles = Array.from(declaredRoles);
   }
+
+  const hooks = Object.entries(declaredLifecycleHooks);
+  if (hooks.length > 0) {
+    stack.lifecycleHooks = {};
+    for (const [event, action] of hooks) {
+      const specAction: ManifestLifecycleAction = {};
+      if (action.task) {
+        specAction.task = {
+          function: action.task.function,
+          ...(action.task.body && { body: action.task.body }),
+        };
+      }
+      if (action.call) {
+        specAction.call = {
+          function: action.call.function,
+          ...(action.call.params && { params: action.call.params }),
+        };
+      }
+      if (action.http) {
+        if ("function" in action.http && action.http.function) {
+          specAction.http = {
+            function: action.http.function,
+            ...(action.http.method && { method: action.http.method }),
+            ...(action.http.body && { body: action.http.body }),
+          };
+        } else if ("url" in action.http && action.http.url) {
+          specAction.http = {
+            url: action.http.url,
+            ...(action.http.method && { method: action.http.method }),
+            ...(action.http.body && { body: action.http.body }),
+          };
+        }
+      }
+      stack.lifecycleHooks[event] = specAction;
+    }
+  }
+  clearDeclaredLifecycleHooks();
   return stack;
 }
