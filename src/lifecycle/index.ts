@@ -34,18 +34,24 @@ export interface CallAction {
   params?: Record<string, unknown>;
 }
 
-export interface HttpAction {
-  function?: TargetFunction;
-  url?: string | Expression<string>;
-  method?: "GET" | "POST" | "PUT" | "DELETE";
-  body?: unknown;
-}
+export type HttpAction =
+  | {
+      function: TargetFunction;
+      url?: never;
+      method?: "GET" | "POST" | "PUT" | "DELETE";
+      body?: unknown;
+    }
+  | {
+      url: string | Expression<string>;
+      function?: never;
+      method?: "GET" | "POST" | "PUT" | "DELETE";
+      body?: unknown;
+    };
 
-export interface LifecycleAction {
-  task?: TaskAction;
-  call?: CallAction;
-  http?: HttpAction;
-}
+export type LifecycleAction =
+  | { task: TaskAction; call?: never; http?: never }
+  | { call: CallAction; task?: never; http?: never }
+  | { http: HttpAction; task?: never; call?: never };
 
 const majorVersion =
   // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time

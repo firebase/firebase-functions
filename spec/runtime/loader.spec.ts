@@ -575,5 +575,24 @@ describe("loadStack", () => {
         },
       });
     });
+
+    it("preserves falsy but valid JSON values (like 0, false, empty string) in hook payloads", async () => {
+      afterInstall({
+        task: {
+          function: "runInitialSetup",
+          body: { force: false, code: 0, tag: "" },
+        },
+      });
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.lifecycleHooks).to.deep.equal({
+        afterInstall: {
+          task: {
+            function: "runInitialSetup",
+            body: { force: false, code: 0, tag: "" },
+          },
+        },
+      });
+    });
   });
 });

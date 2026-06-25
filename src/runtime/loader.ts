@@ -220,29 +220,22 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
       if (action.task) {
         specAction.task = {
           function: action.task.function,
-          ...(action.task.body && { body: action.task.body }),
+          ...(action.task.body !== undefined && { body: action.task.body }),
         };
       }
       if (action.call) {
         specAction.call = {
           function: action.call.function,
-          ...(action.call.params && { params: action.call.params }),
+          ...(action.call.params !== undefined && { params: action.call.params }),
         };
       }
       if (action.http) {
-        if ("function" in action.http && action.http.function) {
-          specAction.http = {
-            function: action.http.function,
-            ...(action.http.method && { method: action.http.method }),
-            ...(action.http.body && { body: action.http.body }),
-          };
-        } else if ("url" in action.http && action.http.url) {
-          specAction.http = {
-            url: action.http.url,
-            ...(action.http.method && { method: action.http.method }),
-            ...(action.http.body && { body: action.http.body }),
-          };
-        }
+        specAction.http = {
+          ...(action.http.function && { function: action.http.function }),
+          ...(action.http.url && { url: action.http.url }),
+          ...(action.http.method && { method: action.http.method }),
+          ...(action.http.body !== undefined && { body: action.http.body }),
+        };
       }
       stack.lifecycleHooks[event] = specAction;
     }
