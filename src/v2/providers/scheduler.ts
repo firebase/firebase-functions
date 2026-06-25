@@ -58,7 +58,7 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
   if (typeof args === "string") {
     return {
       schedule: args,
-      opts: {} as options.GlobalOptions,
+      opts: {},
     };
   }
   return {
@@ -71,7 +71,7 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
       maxBackoffSeconds: args.maxBackoffSeconds,
       maxDoublings: args.maxDoublings,
     },
-    opts: args as options.GlobalOptions,
+    opts: args,
   };
 }
 
