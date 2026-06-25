@@ -234,6 +234,7 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
           ...(action.http.function && { function: action.http.function }),
           ...(action.http.url && { url: action.http.url }),
           ...(action.http.method && { method: action.http.method }),
+          ...(action.http.headers && { headers: action.http.headers }),
           ...(action.http.body !== undefined && { body: action.http.body }),
         };
       }

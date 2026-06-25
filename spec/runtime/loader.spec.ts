@@ -548,6 +548,7 @@ describe("loadStack", () => {
         http: {
           function: "seedDatabase",
           method: "POST",
+          headers: { "X-API-Key": "my-key" },
           body: { force: true },
         },
       });
@@ -555,6 +556,7 @@ describe("loadStack", () => {
         http: {
           url: "https://example.com/webhook",
           method: "POST",
+          headers: { "Content-Type": "application/json" },
         },
       });
 
@@ -564,6 +566,7 @@ describe("loadStack", () => {
           http: {
             function: "seedDatabase",
             method: "POST",
+            headers: { "X-API-Key": "my-key" },
             body: { force: true },
           },
         },
@@ -571,6 +574,7 @@ describe("loadStack", () => {
           http: {
             url: "https://example.com/webhook",
             method: "POST",
+            headers: { "Content-Type": "application/json" },
           },
         },
       });

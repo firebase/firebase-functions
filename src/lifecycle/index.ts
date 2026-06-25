@@ -39,12 +39,14 @@ export type HttpAction =
       function: TargetFunction;
       url?: never;
       method?: "GET" | "POST" | "PUT" | "DELETE";
+      headers?: Record<string, string | Expression<string>>;
       body?: unknown;
     }
   | {
       url: string | Expression<string>;
       function?: never;
       method?: "GET" | "POST" | "PUT" | "DELETE";
+      headers?: Record<string, string | Expression<string>>;
       body?: unknown;
     };
 

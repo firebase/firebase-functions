@@ -154,6 +154,7 @@ export interface ManifestLifecycleAction {
     function?: string | Expression<string>;
     url?: string | Expression<string>;
     method?: string;
+    headers?: Record<string, string | Expression<string>>;
     body?: unknown;
   };
 }
