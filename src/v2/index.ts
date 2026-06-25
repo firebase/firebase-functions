@@ -62,7 +62,7 @@ export {
 };
 
 export { logger } from "../logger";
-export { setGlobalOptions } from "./options";
+export { setGlobalOptions, requiresRole } from "./options";
 export { requiresAPI } from "../common/api";
 export type {
   GlobalOptions,
@@ -71,6 +71,7 @@ export type {
   VpcEgressSetting,
   IngressSetting,
   EventHandlerOptions,
+  Role,
 } from "./options";
 
 export { onInit } from "./core";

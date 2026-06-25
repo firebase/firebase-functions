@@ -17,7 +17,7 @@ describe("requiresAPI", () => {
     expect(() => requiresAPI("" as any, "reason")).to.throw(
       "requiresAPI: 'api' must be a non-empty string ending with '.googleapis.com'."
     );
-    expect(() => requiresAPI(null as any, "reason")).to.throw(
+    expect(() => requiresAPI(null, "reason")).to.throw(
       "requiresAPI: 'api' must be a non-empty string ending with '.googleapis.com'."
     );
     expect(() => requiresAPI("invalid-api" as any, "reason")).to.throw(

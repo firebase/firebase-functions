@@ -926,7 +926,7 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
           (await (handler as HandlerV2)({
             ...authEventContext,
             data: authUserRecord,
-          } as AuthBlockingEvent)) || undefined;
+          })) || undefined;
       }
 
       validateAuthResponse(eventType, authResponse);

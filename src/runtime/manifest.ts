@@ -37,7 +37,6 @@ export interface ManifestExtension {
 
 /**
  * A definition of a function as appears in the Manifest.
- *
  * @alpha
  */
 export interface ManifestEndpoint {
@@ -139,7 +138,6 @@ export interface ManifestRequiredAPI {
 
 /**
  * A definition of a function/extension deployment as appears in the Manifest.
- *
  * @alpha
  */
 export interface ManifestStack {
@@ -148,13 +146,13 @@ export interface ManifestStack {
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
   extensions?: Record<string, ManifestExtension>;
+  requiredRoles?: string[];
 }
 
 /**
  * Returns the JSON representation of a ManifestStack, which has CEL
  * expressions in its options as object types, with its expressions
  * transformed into the actual CEL strings.
- *
  * @alpha
  */
 export function stackToWire(stack: ManifestStack): Record<string, unknown> {
