@@ -6,7 +6,7 @@
  * down the api model.
  */
 import * as yaml from 'js-yaml';
-import {ApiItem, ApiItemKind, ApiModel, ApiPackage, ApiParameterListMixin,} from 'api-extractor-model-me';
+import {ApiItem, ApiItemKind, ApiModel, ApiPackage, ApiParameterListMixin,} from '@microsoft/api-extractor-model';
 import {ModuleSource} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import {FileSystem, PackageName} from '@rushstack/node-core-library';
 import yargs from 'yargs';

@@ -92,11 +92,11 @@ describe("Test Lab Functions", () => {
             resultsUrl: undefined,
             toolResultsHistoryId: undefined,
             toolResultsExecutionId: undefined,
-          } as testLab.ResultStorage,
+          },
           clientInfo: {
             name: "test",
             details: {},
-          } as testLab.ClientInfo,
+          },
         } as testLab.TestMatrix;
         const func = testLab.testMatrix().onComplete((matrix) => matrix);
         return expect(func(event.data, event.context)).to.eventually.deep.equal(expected);
@@ -143,11 +143,11 @@ describe("Test Lab Functions", () => {
             toolResultsHistoryId: "bh.9b6f4dac24d3049",
             toolResultsExecutionId: "6352915701487950333",
             resultsUrl: "https://path/to/results",
-          } as testLab.ResultStorage,
+          },
           clientInfo: {
             name: "test",
             details: {},
-          } as testLab.ClientInfo,
+          },
         } as testLab.TestMatrix;
         const func = testLab.testMatrix().onComplete((matrix) => matrix);
         return expect(func(event.data, event.context)).to.eventually.deep.equal(expected);
@@ -199,7 +199,7 @@ describe("Test Lab Functions", () => {
         const expected = {
           name: "client",
           details: {},
-        } as testLab.ClientInfo;
+        };
         const actual = new testLab.ClientInfo({
           name: "client",
         });

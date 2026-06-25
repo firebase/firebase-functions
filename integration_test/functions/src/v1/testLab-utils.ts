@@ -1,5 +1,4 @@
 import * as admin from "firebase-admin";
-import fetch from "node-fetch";
 
 interface AndroidDevice {
   androidModelId: string;
@@ -58,7 +57,7 @@ async function fetchDefaultDevice(accessToken: string): Promise<AndroidDevice> {
     androidVersionId: versions[versions.length - 1],
     locale: "en",
     orientation: "portrait",
-  } as AndroidDevice;
+  };
 }
 
 async function createTestMatrix(
