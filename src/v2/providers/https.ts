@@ -358,10 +358,7 @@ export function onRequest(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(
-        opts as options.GlobalOptions,
-        "https"
-      );
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "https");
       const trigger: any = {
         platform: "gcfv2",
         ...baseOpts,
@@ -390,7 +387,7 @@ export function onRequest(
   const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions, "https");
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   const endpoint: Partial<ManifestEndpoint> = {
     ...initV2Endpoint(globalOpts, opts),
     platform: "gcfv2",

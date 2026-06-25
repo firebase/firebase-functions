@@ -76,11 +76,11 @@ describe("Params namespace", () => {
 
   describe("ParamsOf", () => {
     it("falls back to Record<string, string> without better type info", () => {
-      expectType<ParamsOf<string>>({} as Record<string, string>);
+      expectType<ParamsOf<string>>({});
     });
 
     it("is the empty object when there are no params", () => {
-      expectType<ParamsOf<string>>({} as Record<string, never>);
+      expectType<ParamsOf<"foo/bar">>({});
     });
 
     it("extracts a single param", () => {

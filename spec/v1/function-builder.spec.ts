@@ -222,13 +222,13 @@ describe("FunctionBuilder", () => {
     expect(() => {
       return functions.runWith({
         timeoutSeconds: 1000000,
-      } as any);
+      });
     }).to.throw(Error, "TimeoutSeconds");
 
     expect(() => {
       return functions.region("asia-east2").runWith({
         timeoutSeconds: 1000000,
-      } as any);
+      });
     }).to.throw(Error, "TimeoutSeconds");
   });
 
@@ -240,7 +240,7 @@ describe("FunctionBuilder", () => {
     expect(() => {
       return functions.region().runWith({
         timeoutSeconds: 500,
-      } as any);
+      });
     }).to.throw(Error, "at least one region");
   });
 
