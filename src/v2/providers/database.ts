@@ -638,6 +638,20 @@ function resolveInstancePattern(instance: PathPattern | Expression<string>): Pat
   return instance instanceof Expression ? new PathPattern(instance.value()) : instance;
 }
 
+function makeInstancePattern(
+  instance: string | Expression<string>
+): PathPattern | Expression<string> {
+  return instance instanceof Expression ? instance : new PathPattern(instance);
+}
+
+function makeTypedParams<Ref extends string>(
+  event: RawRTDBCloudEvent,
+  pathPattern: PathPattern,
+  instancePattern: PathPattern | Expression<string>
+): ParamsOf<Ref> {
+  return makeParams(event, pathPattern, resolveInstancePattern(instancePattern)) as ParamsOf<Ref>;
+}
+
 /** @internal */
 export function onChangedOperation<Ref extends string>(
   eventType: string,
@@ -647,18 +661,14 @@ export function onChangedOperation<Ref extends string>(
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
-  const instancePattern = instance instanceof Expression ? instance : new PathPattern(instance);
+
+  const instancePattern = makeInstancePattern(instance);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
-    const resolvedInstancePattern = resolveInstancePattern(instancePattern);
-    const params = makeParams(
-      event,
-      pathPattern,
-      resolvedInstancePattern
-    ) as unknown as ParamsOf<Ref>;
+    const params = makeTypedParams(event, pathPattern, instancePattern);
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
 
     const compatEvent = addV1Compat(databaseEvent, {
@@ -687,18 +697,14 @@ export function onOperation<Ref extends string>(
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
-  const instancePattern = instance instanceof Expression ? instance : new PathPattern(instance);
+  const instancePattern = makeInstancePattern(instance);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
-    const resolvedInstancePattern = resolveInstancePattern(instancePattern);
-    const params = makeParams(
-      event,
-      pathPattern,
-      resolvedInstancePattern
-    ) as unknown as ParamsOf<Ref>;
+    const params = makeTypedParams(event, pathPattern, instancePattern);
+
     const data = eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
 
