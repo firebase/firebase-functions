@@ -143,18 +143,18 @@ export interface ManifestRequiredAPI {
  */
 export interface ManifestLifecycleAction {
   task?: {
-    function: string | Expression<string>;
+    function: string;
     body?: Record<string, unknown>;
   };
   call?: {
-    function: string | Expression<string>;
+    function: string;
     params?: Record<string, unknown>;
   };
   http?: {
-    function?: string | Expression<string>;
+    function?: string;
     url?: string | Expression<string>;
     method?: string;
-    headers?: Record<string, string | Expression<string>>;
+    headers?: Record<string, string>;
     body?: unknown;
   };
 }

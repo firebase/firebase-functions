@@ -19,6 +19,7 @@ module.exports = [
             "v1/",
             "v2/",
             "logger/",
+            "lifecycle/",
             "dist/",
             "spec/fixtures/",
             "scripts/**/*.js",

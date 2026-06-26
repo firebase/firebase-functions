@@ -25,7 +25,6 @@ import * as url from "url";
 import {
   ManifestEndpoint,
   ManifestExtension,
-  ManifestLifecycleAction,
   ManifestRequiredAPI,
   ManifestStack,
 } from "./manifest";
@@ -212,34 +211,8 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
     stack.requiredRoles = Array.from(declaredRoles);
   }
 
-  const hooks = Object.entries(declaredLifecycleHooks);
-  if (hooks.length > 0) {
-    stack.lifecycleHooks = {};
-    for (const [event, action] of hooks) {
-      const specAction: ManifestLifecycleAction = {};
-      if (action.task) {
-        specAction.task = {
-          function: action.task.function,
-          ...(action.task.body !== undefined && { body: action.task.body }),
-        };
-      }
-      if (action.call) {
-        specAction.call = {
-          function: action.call.function,
-          ...(action.call.params !== undefined && { params: action.call.params }),
-        };
-      }
-      if (action.http) {
-        specAction.http = {
-          ...(action.http.function && { function: action.http.function }),
-          ...(action.http.url && { url: action.http.url }),
-          ...(action.http.method && { method: action.http.method }),
-          ...(action.http.headers && { headers: action.http.headers }),
-          ...(action.http.body !== undefined && { body: action.http.body }),
-        };
-      }
-      stack.lifecycleHooks[event] = specAction;
-    }
+  if (Object.keys(declaredLifecycleHooks).length > 0) {
+    stack.lifecycleHooks = { ...declaredLifecycleHooks };
   }
   clearDeclaredLifecycleHooks();
   return stack;

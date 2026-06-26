@@ -20,35 +20,21 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Expression } from "../params";
-
-export type TargetFunction = string | Expression<string>;
-
 export interface TaskAction {
-  function: TargetFunction;
+  function: string;
   body?: Record<string, unknown>;
 }
 
 export interface CallAction {
-  function: TargetFunction;
+  function: string;
   params?: Record<string, unknown>;
 }
 
-export type HttpAction =
-  | {
-      function: TargetFunction;
-      url?: never;
-      method?: "GET" | "POST" | "PUT" | "DELETE";
-      headers?: Record<string, string | Expression<string>>;
-      body?: unknown;
-    }
-  | {
-      url: string | Expression<string>;
-      function?: never;
-      method?: "GET" | "POST" | "PUT" | "DELETE";
-      headers?: Record<string, string | Expression<string>>;
-      body?: unknown;
-    };
+export type HttpAction = ({ function: string } | { url: string }) & {
+  method?: "GET" | "POST" | "PUT" | "DELETE";
+  headers?: Record<string, string>;
+  body?: unknown;
+};
 
 export type LifecycleAction =
   | { task: TaskAction; call?: never; http?: never }
