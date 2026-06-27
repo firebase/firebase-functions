@@ -32,6 +32,7 @@ import {
 import * as params from "../params";
 import { declaredRoles } from "../security/roles";
 import { getGlobalRequiredAPIs, clearGlobalRequiredAPIs } from "../common/api";
+import { declaredLifecycleHooks, clearDeclaredLifecycleHooks } from "../lifecycle";
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -209,5 +210,10 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   if (declaredRoles.size > 0) {
     stack.requiredRoles = Array.from(declaredRoles);
   }
+
+  if (Object.keys(declaredLifecycleHooks).length > 0) {
+    stack.lifecycleHooks = { ...declaredLifecycleHooks };
+  }
+  clearDeclaredLifecycleHooks();
   return stack;
 }
