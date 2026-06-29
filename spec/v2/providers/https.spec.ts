@@ -68,6 +68,7 @@ describe("onRequest", () => {
   afterEach(() => {
     options.setGlobalOptions({});
     delete process.env.GCLOUD_PROJECT;
+    delete process.env.FUNCTIONS_CONTROL_API;
   });
 
   it("should return a minimal trigger/endpoint with appropriate values", () => {
@@ -232,7 +233,7 @@ describe("onRequest", () => {
     const origins = defineList("ORIGINS");
 
     try {
-      process.env.ORIGINS = '["example.com","example2.com"]';
+      process.env.FUNCTIONS_CONTROL_API = "true";
       const func = https.onRequest(
         {
           cors: origins,
@@ -241,6 +242,8 @@ describe("onRequest", () => {
           res.send("42");
         }
       );
+      delete process.env.FUNCTIONS_CONTROL_API;
+      process.env.ORIGINS = '["example.com","example2.com"]';
       const req = request({
         headers: {
           referrer: "example.com",
@@ -261,6 +264,7 @@ describe("onRequest", () => {
       });
     } finally {
       delete process.env.ORIGINS;
+      delete process.env.FUNCTIONS_CONTROL_API;
       clearParams();
     }
   });
@@ -359,6 +363,7 @@ describe("onCall", () => {
   afterEach(() => {
     delete process.env.GCLOUD_PROJECT;
     delete process.env.ORIGINS;
+    delete process.env.FUNCTIONS_CONTROL_API;
     clearParams();
   });
 
@@ -494,7 +499,11 @@ describe("onCall", () => {
   });
 
   it("should allow cors params", async () => {
+    delete process.env.ORIGINS;
+    process.env.FUNCTIONS_CONTROL_API = "true";
     const func = https.onCall({ cors: origins }, () => 42);
+    delete process.env.FUNCTIONS_CONTROL_API;
+    process.env.ORIGINS = '["example.com","example2.com"]';
     const req = request({
       headers: {
         referrer: "example.com",
