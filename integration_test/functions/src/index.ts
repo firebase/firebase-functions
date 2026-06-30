@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import fs from "fs";
-import fetch from "node-fetch";
 
 import * as v1 from "./v1";
 import * as v2 from "./v2";
