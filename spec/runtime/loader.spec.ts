@@ -435,6 +435,25 @@ describe("loadStack", () => {
                 multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }] },
               },
             },
+            {
+              name: "NON_EMPTY_STRING",
+              type: "string",
+              input: {
+                text: {
+                  nonEmpty: true,
+                },
+              },
+            },
+            {
+              name: "NON_EMPTY_MULTISTRING",
+              type: "list",
+              input: {
+                multiSelect: {
+                  nonEmpty: true,
+                  options: [{ value: "a" }, { value: "b" }],
+                },
+              },
+            },
             { name: "SUPER_SECRET_FLAG", type: "secret" },
           ],
         },
