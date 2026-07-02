@@ -387,6 +387,8 @@ describe("onRequest", () => {
         }),
       "http://localhost:8000"
     );
+  });
+
   it("should not crash when a string or list parameter is passed in", () => {
     const stringParam = defineString("ALLOWED_ORIGIN");
     const listParam = defineList("ALLOWED_ORIGINS");
@@ -678,6 +680,9 @@ describe("onCall", () => {
     await testWarningForCorsExpression(
       (opts) => https.onCall(opts, () => 42),
       "http://localhost:5173"
+    );
+  });
+
   it("should not crash when a string or list parameter is passed in", () => {
     const stringParam = defineString("ALLOWED_ORIGIN");
     const listParam = defineList("ALLOWED_ORIGINS");
