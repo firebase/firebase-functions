@@ -135,6 +135,70 @@ describe("path-pattern", () => {
       });
     });
 
+    it("should repair UTF-8 mojibake params", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("HelvÃ©tios/something/end")).to.deep.equal({
+        a: "Helvétios",
+      });
+    });
+
+    it("should repair UTF-8 mojibake params for CJK text", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("ä¸­æ/something/end")).to.deep.equal({
+        a: "中文",
+      });
+    });
+
+    it("should repair UTF-8 mojibake params for emoji", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("ð/something/end")).to.deep.equal({
+        a: "😀",
+      });
+    });
+
+    it("should repair UTF-8 mojibake params for Hindi text", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("à¤¹à¤¿à¤¨à¥à¤¦à¥/something/end")).to.deep.equal({
+        a: "हिन्दी",
+      });
+    });
+
+    it("should repair UTF-8 mojibake params for Arabic text", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("Ø§ÙÙÙØ¹ÙØ±ÙØ¨ÙÙÙÙØ©Ù/something/end")).to.deep.equal({
+        a: "اَلْعَرَبِيَّةُ",
+      });
+    });
+
+    it("should preserve already decoded unicode params", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("Helvétios/something/end")).to.deep.equal({
+        a: "Helvétios",
+      });
+    });
+
+    it("should preserve already decoded CJK params", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("中文/something/end")).to.deep.equal({
+        a: "中文",
+      });
+    });
+
+    it("should repair mojibake in multi-segment captures", () => {
+      const pp = new pathPattern.PathPattern("prefix/{path=**}/end");
+
+      expect(pp.extractMatches("prefix/ä¸­æ/ð/HelvÃ©tios/end")).to.deep.equal({
+        path: "中文/😀/Helvétios",
+      });
+    });
+
     it("should safely handle malformed URL encoded params", () => {
       const pp = new pathPattern.PathPattern("{a}/something/end");
 
