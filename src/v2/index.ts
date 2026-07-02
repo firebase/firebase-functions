@@ -62,7 +62,8 @@ export {
 };
 
 export { logger } from "../logger";
-export { setGlobalOptions } from "./options";
+export { setGlobalOptions, requiresRole } from "./options";
+export { requiresAPI } from "../common/api";
 export type {
   GlobalOptions,
   SupportedRegion,
@@ -70,6 +71,7 @@ export type {
   VpcEgressSetting,
   IngressSetting,
   EventHandlerOptions,
+  Role,
 } from "./options";
 
 export { onInit } from "./core";
@@ -80,6 +82,8 @@ export { traceContext } from "../common/trace";
 // NOTE: Equivalent to `export * as params from "../params"` but api-extractor doesn't support that syntax.
 import * as params from "../params";
 export { params };
+
+export { afterInstall, afterUpdate } from "../lifecycle";
 
 // NOTE: Required to support the Functions Emulator which monkey patches `functions.config()`
 // TODO(danielylee): Remove in next major release.

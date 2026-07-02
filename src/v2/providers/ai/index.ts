@@ -184,7 +184,7 @@ export function beforeGenerateContent(
     handler = optsOrCb as any;
   } else {
     opts = optsOrCb as WebhookOptions;
-    handler = cb as any;
+    handler = cb;
   }
 
   let func: any = async (req: express.Request, res: express.Response) => {
@@ -237,7 +237,7 @@ export function beforeGenerateContent(
   func = wrapTraceContext(withInit(func));
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
@@ -291,7 +291,7 @@ export function afterGenerateContent(
     handler = optsOrCb as any;
   } else {
     opts = optsOrCb as WebhookOptions;
-    handler = cb as any;
+    handler = cb;
   }
 
   let func: any = async (req: express.Request, res: express.Response) => {
@@ -344,7 +344,7 @@ export function afterGenerateContent(
   func = wrapTraceContext(withInit(func));
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",

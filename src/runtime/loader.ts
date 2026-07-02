@@ -30,14 +30,16 @@ import {
 } from "./manifest";
 
 import * as params from "../params";
+import { declaredRoles } from "../security/roles";
+import { getGlobalRequiredAPIs, clearGlobalRequiredAPIs } from "../common/api";
+import { declaredLifecycleHooks, clearDeclaredLifecycleHooks } from "../lifecycle";
 
 /**
  * Dynamically load import function to prevent TypeScript from
  * transpiling into a require.
- *
  * See https://github.com/microsoft/TypeScript/issues/43329.
- *
  */
+
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function("modulePath", "return import(modulePath)") as (
   modulePath: string
@@ -193,6 +195,8 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   const mod = await loadModule(functionsDir);
 
   extractStack(mod, endpoints, requiredAPIs, extensions);
+  requiredAPIs.push(...getGlobalRequiredAPIs());
+  clearGlobalRequiredAPIs();
 
   const stack: ManifestStack = {
     endpoints,
@@ -203,5 +207,13 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   if (params.declaredParams.length > 0) {
     stack.params = params.declaredParams.map((p) => p.toSpec());
   }
+  if (declaredRoles.size > 0) {
+    stack.requiredRoles = Array.from(declaredRoles);
+  }
+
+  if (Object.keys(declaredLifecycleHooks).length > 0) {
+    stack.lifecycleHooks = { ...declaredLifecycleHooks };
+  }
+  clearDeclaredLifecycleHooks();
   return stack;
 }

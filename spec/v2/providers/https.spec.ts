@@ -387,6 +387,23 @@ describe("onRequest", () => {
         }),
       "http://localhost:8000"
     );
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onRequest({ cors: stringParam }, () => {});
+    const funcList = https.onRequest({ cors: listParam }, () => {});
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() =>
+      https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
+        res.end();
+      })
+    ).to.throw(/between 0 and 3600 for HTTPS and callable functions/);
   });
 });
 
@@ -661,6 +678,20 @@ describe("onCall", () => {
     await testWarningForCorsExpression(
       (opts) => https.onCall(opts, () => 42),
       "http://localhost:5173"
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onCall({ cors: stringParam }, () => 42);
+    const funcList = https.onCall({ cors: listParam }, () => 42);
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() => https.onCall({ timeoutSeconds: 3601 }, () => 42)).to.throw(
+      /between 0 and 3600 for HTTPS and callable functions/
     );
   });
 

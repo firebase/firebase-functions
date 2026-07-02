@@ -117,7 +117,7 @@ export interface ReferenceOptions<Ref extends string = string> extends options.E
    * Examples: 'my-instance-1', 'my-instance-*'
    * Note: The capture syntax cannot be used for 'instance'.
    */
-  instance?: string;
+  instance?: string | Expression<string>;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -480,7 +480,7 @@ export function onValueDeleted<Ref extends string>(
 /** @internal */
 export function getOpts(referenceOrOpts: string | ReferenceOptions) {
   let path: string;
-  let instance: string;
+  let instance: string | Expression<string>;
   let opts: options.EventHandlerOptions;
   if (typeof referenceOrOpts === "string") {
     path = normalizePath(referenceOrOpts);
@@ -524,7 +524,7 @@ function makeDatabaseEvent<Params>(
     params,
     authType: event.authtype || "unknown",
     authId: event.authid,
-  } as any;
+  };
   delete (databaseEvent as any).firebasedatabasehost;
   delete (databaseEvent as any).authtype;
   delete (databaseEvent as any).authid;
@@ -554,7 +554,7 @@ function makeChangedDatabaseEvent<Params>(
     params,
     authType: event.authtype || "unknown",
     authId: event.authid,
-  } as any;
+  };
   delete (databaseEvent as any).firebasedatabasehost;
   delete (databaseEvent as any).authtype;
   delete (databaseEvent as any).authid;
@@ -598,17 +598,19 @@ export function makeEndpoint(
   eventType: string,
   opts: options.EventHandlerOptions,
   path: PathPattern,
-  instance: PathPattern
+  instance: PathPattern | Expression<string>
 ): ManifestEndpoint {
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
 
-  const eventFilters: Record<string, string> = {};
-  const eventFilterPathPatterns: Record<string, string> = {
+  const eventFilters: Record<string, string | Expression<string>> = {};
+  const eventFilterPathPatterns: Record<string, string | Expression<string>> = {
     // Note: Eventarc always treats ref as a path pattern
     ref: path.getValue(),
   };
-  if (instance.hasWildcards()) {
+  if (instance instanceof Expression) {
+    eventFilterPathPatterns.instance = instance;
+  } else if (instance.hasWildcards()) {
     eventFilterPathPatterns.instance = instance.getValue();
   } else {
     eventFilters.instance = instance.getValue();
@@ -632,6 +634,24 @@ export function makeEndpoint(
   };
 }
 
+function resolveInstancePattern(instance: PathPattern | Expression<string>): PathPattern {
+  return instance instanceof Expression ? new PathPattern(instance.value()) : instance;
+}
+
+function makeInstancePattern(
+  instance: string | Expression<string>
+): PathPattern | Expression<string> {
+  return instance instanceof Expression ? instance : new PathPattern(instance);
+}
+
+function makeTypedParams<Ref extends string>(
+  event: RawRTDBCloudEvent,
+  pathPattern: PathPattern,
+  instancePattern: PathPattern | Expression<string>
+): ParamsOf<Ref> {
+  return makeParams(event, pathPattern, resolveInstancePattern(instancePattern)) as ParamsOf<Ref>;
+}
+
 /** @internal */
 export function onChangedOperation<Ref extends string>(
   eventType: string,
@@ -641,13 +661,14 @@ export function onChangedOperation<Ref extends string>(
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
-  const instancePattern = new PathPattern(instance);
+
+  const instancePattern = makeInstancePattern(instance);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
-    const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
+    const params = makeTypedParams(event, pathPattern, instancePattern);
     const databaseEvent = makeChangedDatabaseEvent(event, instanceUrl, params);
 
     const compatEvent = addV1Compat(databaseEvent, {
@@ -676,13 +697,14 @@ export function onOperation<Ref extends string>(
   const { path, instance, opts } = getOpts(referenceOrOpts);
 
   const pathPattern = new PathPattern(path);
-  const instancePattern = new PathPattern(instance);
+  const instancePattern = makeInstancePattern(instance);
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
     const event = raw as RawRTDBCloudEvent;
     const instanceUrl = getInstance(event);
-    const params = makeParams(event, pathPattern, instancePattern) as unknown as ParamsOf<Ref>;
+    const params = makeTypedParams(event, pathPattern, instancePattern);
+
     const data = eventType === deletedEventType ? event.data.data : event.data.delta;
     const databaseEvent = makeDatabaseEvent(event, data, instanceUrl, params);
 

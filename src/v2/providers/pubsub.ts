@@ -168,7 +168,7 @@ export interface V1PubSubMessage<T = any> {
 /** PubSubOptions extend EventHandlerOptions but must include a topic. */
 export interface PubSubOptions extends options.EventHandlerOptions {
   /** The Pub/Sub topic to watch for message events */
-  topic: string;
+  topic: string | Expression<string>;
 
   /**
    * If true, do not deploy or emulate this function.
@@ -272,7 +272,7 @@ export interface PubSubOptions extends options.EventHandlerOptions {
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topic: string,
+  topic: string | Expression<string>,
   handler: (
     event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
   ) => any | Promise<any>
@@ -285,7 +285,7 @@ export function onMessagePublished<T = any>(
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topic: string,
+  topic: string | Expression<string>,
   handler: (event: CloudEvent<MessagePublishedData<T>>) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>>;
 
@@ -320,14 +320,14 @@ export function onMessagePublished<T = any>(
  * @typeParam T - Type representing `Message.data`'s JSON format
  */
 export function onMessagePublished<T = any>(
-  topicOrOptions: string | PubSubOptions,
+  topicOrOptions: string | Expression<string> | PubSubOptions,
   handler: (
     event: CloudEvent<MessagePublishedData<T>> & V1Compat<"message", V1PubSubMessage<T>>
   ) => any | Promise<any>
 ): CloudFunction<CloudEvent<MessagePublishedData<T>>> {
-  let topic: string;
+  let topic: string | Expression<string>;
   let opts: options.EventHandlerOptions;
-  if (typeof topicOrOptions === "string") {
+  if (typeof topicOrOptions === "string" || "value" in topicOrOptions) {
     topic = topicOrOptions;
     opts = {};
   } else {
@@ -395,7 +395,7 @@ export function onMessagePublished<T = any>(
   Object.defineProperty(func, "__trigger", {
     get: () => {
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "event");
 
       return {
         platform: "gcfv2",
@@ -407,14 +407,20 @@ export function onMessagePublished<T = any>(
         },
         eventTrigger: {
           eventType: "google.cloud.pubsub.topic.v1.messagePublished",
-          resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          // Only set resource when topic is a string (not an Expression)
+          // When topic is an Expression<string>, the resource path cannot be determined
+          // at definition time. The __endpoint uses eventFilters which handles
+          // Expression<string> correctly.
+          ...(typeof topic === "string" && {
+            resource: `projects/${process.env.GCLOUD_PROJECT}/topics/${topic}`,
+          }),
         },
       };
     },
   });
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
 
   const endpoint: ManifestEndpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),

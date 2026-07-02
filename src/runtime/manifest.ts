@@ -37,7 +37,6 @@ export interface ManifestExtension {
 
 /**
  * A definition of a function as appears in the Manifest.
- *
  * @alpha
  */
 export interface ManifestEndpoint {
@@ -138,8 +137,30 @@ export interface ManifestRequiredAPI {
 }
 
 /**
- * A definition of a function/extension deployment as appears in the Manifest.
+ * A definition of a lifecycle action as appears in the Manifest.
  *
+ * @alpha
+ */
+export interface ManifestLifecycleAction {
+  task?: {
+    function: string;
+    body?: Record<string, unknown>;
+  };
+  call?: {
+    function: string;
+    params?: Record<string, unknown>;
+  };
+  http?: {
+    function?: string;
+    url?: string | Expression<string>;
+    method?: string;
+    headers?: Record<string, string>;
+    body?: unknown;
+  };
+}
+
+/**
+ * A definition of a function/extension deployment as appears in the Manifest.
  * @alpha
  */
 export interface ManifestStack {
@@ -148,13 +169,14 @@ export interface ManifestStack {
   requiredAPIs: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
   extensions?: Record<string, ManifestExtension>;
+  requiredRoles?: string[];
+  lifecycleHooks?: Record<string, ManifestLifecycleAction>;
 }
 
 /**
  * Returns the JSON representation of a ManifestStack, which has CEL
  * expressions in its options as object types, with its expressions
  * transformed into the actual CEL strings.
- *
  * @alpha
  */
 export function stackToWire(stack: ManifestStack): Record<string, unknown> {
@@ -172,6 +194,9 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
     }
   };
   traverse(wireStack.endpoints);
+  if (wireStack.lifecycleHooks) {
+    traverse(wireStack.lifecycleHooks);
+  }
   return wireStack;
 }
 
