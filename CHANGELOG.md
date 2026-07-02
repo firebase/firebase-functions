@@ -4,3 +4,4 @@
 - feat: Add requiresAPI function to allow declaring Google Cloud API dependencies in code.
 - fix(v1): Call onInit for schedule.onRun functions (#1801)
 - feat: Add support to declare lifecycle hooks in functions. (#1915)
+- fix(cors): Fix issue using Params to set CORS allowed hosts (#1903)
