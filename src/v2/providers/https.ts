@@ -326,19 +326,6 @@ export function onRequest(
   handler = withErrorHandler(handler);
 
   if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors instanceof Expression ? opts.cors.runtimeValue() : opts.cors;
-    if (isDebugFeatureEnabled("enableCors")) {
-      // Respect `cors: false` to turn off cors even if debug feature is enabled.
-      origin = opts.cors === false ? false : true;
-    }
-    // Arrays cause the access-control-allow-origin header to be dynamic based
-    // on the origin header of the request. If there is only one element in the
-    // array, this is unnecessary.
-    if (Array.isArray(origin) && origin.length === 1) {
-      origin = origin[0];
-    }
-    const middleware = cors({ origin });
-
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
@@ -442,11 +429,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
 
   let cors: CorsOption | undefined;
   if ("cors" in opts) {
-    if (opts.cors instanceof Expression) {
-      cors = opts.cors.runtimeValue();
-    } else {
-      cors = opts.cors;
-    }
+    cors = opts.cors;
   } else {
     cors = true;
   }
