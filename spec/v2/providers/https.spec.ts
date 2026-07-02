@@ -32,7 +32,13 @@ import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
 import { genkit } from "genkit";
-import { clearParams, defineBoolean, defineList, Expression } from "../../../src/params";
+import {
+  clearParams,
+  defineBoolean,
+  defineList,
+  defineString,
+  Expression,
+} from "../../../src/params";
 
 function request(args: {
   data?: any;
@@ -337,6 +343,17 @@ describe("onRequest", () => {
     expect(hello).to.equal("world");
   });
 
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onRequest({ cors: stringParam }, () => {});
+    const funcList = https.onRequest({ cors: listParam }, () => {});
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
   it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
     expect(() =>
       https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
@@ -611,6 +628,17 @@ describe("onCall", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req);
     expect(hello).to.equal("world");
+  });
+
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onCall({ cors: stringParam }, () => 42);
+    const funcList = https.onCall({ cors: listParam }, () => 42);
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
   });
 
   it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {

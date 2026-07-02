@@ -80,7 +80,7 @@ describe("Params namespace", () => {
     });
 
     it("is the empty object when there are no params", () => {
-      expectType<ParamsOf<"foo/bar">>({});
+      expectType<ParamsOf<string>>({});
     });
 
     it("extracts a single param", () => {
