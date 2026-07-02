@@ -719,6 +719,7 @@ describe("onCall", () => {
 
 describe("onCallGenkit", () => {
   it("calls with JSON requests", async () => {
+    let gotContext: any;
     const flow = {
       __action: {
         name: "test",
@@ -726,7 +727,11 @@ describe("onCallGenkit", () => {
       run: sinon.stub(),
       stream: sinon.stub(),
     };
-    flow.run.withArgs("answer").returns({ result: 42 });
+    flow.run.callsFake((data, opts) => {
+      gotContext = opts.context;
+      expect(data).to.equal("answer");
+      return { result: 42 };
+    });
     flow.stream.throws("Unexpected stream");
 
     const f = https.onCallGenkit(flow);
@@ -734,9 +739,39 @@ describe("onCallGenkit", () => {
     const req = request({ data: "answer" });
     const res = await runHandler(f, req);
     expect(JSON.parse(res.body)).to.deep.equal({ result: 42 });
+    expect(gotContext[https.CALLABLE_RAW_REQUEST]).to.equal(req);
+    expect(gotContext[https.CALLABLE_RESPONSE_SIGNAL]).to.be.instanceOf(AbortSignal);
   });
 
-  it("Streams with SSE requests", async () => {
+  it("exposes rawRequest and response signal through Symbol.for lookups", async () => {
+    let gotRawRequest: unknown;
+    let gotResponseSignal: unknown;
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.callsFake((data, opts) => {
+      expect(data).to.equal("answer");
+      gotRawRequest = opts.context[Symbol.for("firebase.callable.rawRequest")];
+      gotResponseSignal = opts.context[Symbol.for("firebase.callable.responseSignal")];
+      return { result: 42 };
+    });
+    flow.stream.throws("Unexpected stream");
+
+    const f = https.onCallGenkit(flow);
+
+    const req = request({ data: "answer" });
+    const res = await runHandler(f, req);
+    expect(JSON.parse(res.body)).to.deep.equal({ result: 42 });
+    expect(gotRawRequest).to.equal(req);
+    expect(gotResponseSignal).to.be.instanceOf(AbortSignal);
+  });
+
+  it("forwards rawRequest and response signal into streaming Genkit action context", async () => {
+    let gotContext: any;
     const flow = {
       __action: {
         name: "test",
@@ -745,23 +780,117 @@ describe("onCallGenkit", () => {
       stream: sinon.stub(),
     };
     flow.run.onFirstCall().throws();
-    flow.stream.withArgs("answer").returns({
-      stream: (async function* () {
-        await Promise.resolve();
-        yield 1;
-        await Promise.resolve();
-        yield 2;
-      })(),
-      output: Promise.resolve(42),
+    flow.stream.callsFake((data, opts) => {
+      gotContext = opts.context;
+      expect(data).to.equal("answer");
+      return {
+        stream: (async function* () {
+          await Promise.resolve();
+          yield 1;
+          await Promise.resolve();
+          yield 2;
+        })(),
+        output: Promise.resolve(42),
+      };
     });
 
     const f = https.onCallGenkit(flow);
 
     const req = request({ data: "answer", headers: { accept: "text/event-stream" } });
     const res = await runHandler(f, req);
+    expect(gotContext[https.CALLABLE_RAW_REQUEST]).to.equal(req);
+    expect(gotContext[https.CALLABLE_RESPONSE_SIGNAL]).to.be.instanceOf(AbortSignal);
     expect(res.body).to.equal(
       ['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}', ""].join("\n\n")
     );
+  });
+
+  it("aborts the forwarded response signal when the client disconnects", async () => {
+    let capturedSignal: AbortSignal;
+    let resolveOutput: (value: number) => void;
+    const output = new Promise<number>((resolve) => {
+      resolveOutput = resolve;
+    });
+    let notifyStreamStarted: () => void;
+    const streamStarted = new Promise<void>((resolve) => {
+      notifyStreamStarted = resolve;
+    });
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.onFirstCall().throws();
+    flow.stream.callsFake((_data, opts) => {
+      capturedSignal = opts.context[https.CALLABLE_RESPONSE_SIGNAL] as AbortSignal;
+      notifyStreamStarted();
+      return {
+        stream: (async function* () {
+          await output;
+          // This test intentionally doesn't emit any stream messages, but ESLint's `require-yield`
+          // rule requires at least one `yield` in a generator function.
+          return;
+          // eslint-disable-next-line no-unreachable
+          yield undefined;
+        })(),
+        output,
+      };
+    });
+
+    const f = https.onCallGenkit(flow);
+    const req = request({ data: "answer", headers: { accept: "text/event-stream" } });
+    const resPromise = runHandler(f, req);
+
+    await streamStarted;
+    expect(capturedSignal.aborted).to.equal(false);
+
+    req.emit("close");
+    expect(capturedSignal.aborted).to.equal(true);
+    resolveOutput(42);
+
+    const res = await resPromise;
+    expect(res.body).to.be.undefined;
+  });
+
+  it("aborts the forwarded response signal for non-streaming Genkit actions", async () => {
+    let capturedSignal: AbortSignal;
+    let resolveResult: (value: { result: number }) => void;
+    const result = new Promise<{ result: number }>((resolve) => {
+      resolveResult = resolve;
+    });
+    let notifyRunStarted: () => void;
+    const runStarted = new Promise<void>((resolve) => {
+      notifyRunStarted = resolve;
+    });
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.callsFake((_data, opts) => {
+      capturedSignal = opts.context[Symbol.for("firebase.callable.responseSignal")] as AbortSignal;
+      notifyRunStarted();
+      return result;
+    });
+    flow.stream.throws("Unexpected stream");
+
+    const f = https.onCallGenkit(flow);
+    const req = request({ data: "answer" });
+    const resPromise = runHandler(f, req);
+
+    await runStarted;
+    expect(capturedSignal.aborted).to.equal(false);
+
+    req.emit("close");
+    expect(capturedSignal.aborted).to.equal(true);
+    resolveResult({ result: 42 });
+
+    const res = await resPromise;
+    expect(res.body).to.be.undefined;
   });
 
   it("Exports types that are compatible with the genkit library (compilation is success)", () => {

@@ -43,6 +43,16 @@ export const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
 export const ORIGINAL_AUTH_HEADER = "x-original-auth";
 /** @internal */
 export const DEFAULT_HEARTBEAT_SECONDS = 30;
+/**
+ * Symbol key used by {@link https.onCallGenkit} to expose the underlying callable raw request
+ * inside the Genkit action context.
+ */
+export const CALLABLE_RAW_REQUEST = Symbol.for("firebase.callable.rawRequest");
+/**
+ * Symbol key used by {@link https.onCallGenkit} to expose the callable disconnect signal
+ * inside the Genkit action context.
+ */
+export const CALLABLE_RESPONSE_SIGNAL = Symbol.for("firebase.callable.responseSignal");
 
 /** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {

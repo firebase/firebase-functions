@@ -32,6 +32,8 @@ import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
+  CALLABLE_RAW_REQUEST,
+  CALLABLE_RESPONSE_SIGNAL,
   type CallableRequest,
   type CallableResponse,
   type FunctionsErrorCode,
@@ -52,6 +54,7 @@ import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
 export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
+export { CALLABLE_RAW_REQUEST, CALLABLE_RESPONSE_SIGNAL };
 export { HttpsError };
 
 /**
@@ -585,8 +588,12 @@ export function onCallGenkit<A extends GenkitAction>(
   const cloudFunction = onCall<ActionInput<A>, Promise<ActionOutput<A>>, ActionStream<A>>(
     opts,
     async (req, res) => {
-      const context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> = {};
+      const context: Omit<CallableRequest, "data" | "rawRequest" | "acceptsStreaming"> & {
+        [key: symbol]: unknown;
+      } = {};
       copyIfPresent(context, req, "auth", "app", "instanceIdToken");
+      context[CALLABLE_RAW_REQUEST] = req.rawRequest;
+      context[CALLABLE_RESPONSE_SIGNAL] = res?.signal;
 
       if (!req.acceptsStreaming) {
         const { result } = await action.run(req.data, { context });
