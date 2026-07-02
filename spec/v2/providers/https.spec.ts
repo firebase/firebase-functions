@@ -743,6 +743,33 @@ describe("onCallGenkit", () => {
     expect(gotContext[https.CALLABLE_RESPONSE_SIGNAL]).to.be.instanceOf(AbortSignal);
   });
 
+  it("exposes rawRequest and response signal through Symbol.for lookups", async () => {
+    let gotRawRequest: unknown;
+    let gotResponseSignal: unknown;
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.callsFake((data, opts) => {
+      expect(data).to.equal("answer");
+      gotRawRequest = opts.context[Symbol.for("firebase.callable.rawRequest")];
+      gotResponseSignal = opts.context[Symbol.for("firebase.callable.responseSignal")];
+      return { result: 42 };
+    });
+    flow.stream.throws("Unexpected stream");
+
+    const f = https.onCallGenkit(flow);
+
+    const req = request({ data: "answer" });
+    const res = await runHandler(f, req);
+    expect(JSON.parse(res.body)).to.deep.equal({ result: 42 });
+    expect(gotRawRequest).to.equal(req);
+    expect(gotResponseSignal).to.be.instanceOf(AbortSignal);
+  });
+
   it("forwards rawRequest and response signal into streaming Genkit action context", async () => {
     let gotContext: any;
     const flow = {
@@ -822,6 +849,45 @@ describe("onCallGenkit", () => {
     req.emit("close");
     expect(capturedSignal.aborted).to.equal(true);
     resolveOutput(42);
+
+    const res = await resPromise;
+    expect(res.body).to.be.undefined;
+  });
+
+  it("aborts the forwarded response signal for non-streaming Genkit actions", async () => {
+    let capturedSignal: AbortSignal;
+    let resolveResult: (value: { result: number }) => void;
+    const result = new Promise<{ result: number }>((resolve) => {
+      resolveResult = resolve;
+    });
+    let notifyRunStarted: () => void;
+    const runStarted = new Promise<void>((resolve) => {
+      notifyRunStarted = resolve;
+    });
+    const flow = {
+      __action: {
+        name: "test",
+      },
+      run: sinon.stub(),
+      stream: sinon.stub(),
+    };
+    flow.run.callsFake((_data, opts) => {
+      capturedSignal = opts.context[Symbol.for("firebase.callable.responseSignal")] as AbortSignal;
+      notifyRunStarted();
+      return result;
+    });
+    flow.stream.throws("Unexpected stream");
+
+    const f = https.onCallGenkit(flow);
+    const req = request({ data: "answer" });
+    const resPromise = runHandler(f, req);
+
+    await runStarted;
+    expect(capturedSignal.aborted).to.equal(false);
+
+    req.emit("close");
+    expect(capturedSignal.aborted).to.equal(true);
+    resolveResult({ result: 42 });
 
     const res = await resPromise;
     expect(res.body).to.be.undefined;
