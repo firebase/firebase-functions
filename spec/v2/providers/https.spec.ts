@@ -39,6 +39,7 @@ import {
   defineString,
   Expression,
 } from "../../../src/params";
+import { logger } from "../../../src/logger";
 
 function request(args: {
   data?: any;
@@ -63,6 +64,41 @@ function request(args: {
   const ret = new MockRequest({ data: args.data || {} }, headers);
   ret.method = args.method || "POST";
   return ret;
+}
+
+async function testWarningForCorsExpression(
+  createFunc: (options: { cors: Expression<string[]> }) => https.HttpsFunction,
+  origin: string
+) {
+  const loggerSpy = sinon.spy(logger, "warn");
+  const projectId = defineString("PROJECT_ID");
+
+  try {
+    process.env.PROJECT_ID = "test-project";
+    process.env.FUNCTIONS_CONTROL_API = "true";
+
+    const corsExpression = projectId.equals("test-project").thenElse([origin], []);
+    const func = createFunc({ cors: corsExpression });
+
+    const req = request({
+      headers: {
+        referrer: origin,
+        "content-type": "application/json",
+        origin: origin,
+      },
+      method: "OPTIONS",
+    });
+
+    const response = await runHandler(func, req);
+
+    expect(response.status).to.equal(204);
+    expect(loggerSpy.called).to.be.false;
+  } finally {
+    delete process.env.PROJECT_ID;
+    delete process.env.FUNCTIONS_CONTROL_API;
+    clearParams();
+    loggerSpy.restore();
+  }
 }
 
 describe("onRequest", () => {
@@ -341,6 +377,16 @@ describe("onRequest", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req);
     expect(hello).to.equal("world");
+  });
+
+  it("should not warn when using Expression-based cors config during deployment", async () => {
+    await testWarningForCorsExpression(
+      (opts) =>
+        https.onRequest(opts, (req, res) => {
+          res.send("42");
+        }),
+      "http://localhost:8000"
+    );
   });
 
   it("should not crash when a string or list parameter is passed in", () => {
@@ -628,6 +674,13 @@ describe("onCall", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req);
     expect(hello).to.equal("world");
+  });
+
+  it("should not warn when using Expression-based cors config during deployment", async () => {
+    await testWarningForCorsExpression(
+      (opts) => https.onCall(opts, () => 42),
+      "http://localhost:5173"
+    );
   });
 
   it("should not crash when a string or list parameter is passed in", () => {
