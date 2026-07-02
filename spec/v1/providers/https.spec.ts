@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import { defineString, defineList } from "../../../src/params";
 
 import * as functions from "../../../src/v1";
 import * as https from "../../../src/v1/providers/https";
@@ -90,6 +91,28 @@ describe("CloudHttpsBuilder", () => {
       req.method = "POST";
       await runHandler(fn, req as any);
       expect(hello).to.equal("world");
+    });
+
+    it("should enforce CORS options", async () => {
+      const func = functions.https.onRequest({ cors: "example.com" }, (req, resp) => {
+        resp.status(200).send("hello");
+      });
+      const req = mockRequest(null, "application/json", {}, { origin: "example.com" });
+      req.method = "GET";
+      const resp = await runHandler(func, req as any);
+      expect(resp.status).to.equal(200);
+      expect(resp.headers?.["Access-Control-Allow-Origin"]).to.equal("example.com");
+    });
+
+    it("should not crash when a string or list parameter is passed in", () => {
+      const stringParam = defineString("ALLOWED_ORIGIN");
+      const listParam = defineList("ALLOWED_ORIGINS");
+
+      const funcString = functions.https.onRequest({ cors: stringParam }, () => {});
+      const funcList = functions.https.onRequest({ cors: listParam }, () => {});
+
+      expect(funcString).to.be.a("function");
+      expect(funcList).to.be.a("function");
     });
   });
 });
@@ -199,6 +222,7 @@ describe("#onCall", () => {
 
     let gotData: Record<string, any>;
     let gotContext: Record<string, any>;
+    const rawToken = generateUnsignedIdToken("123456");
     const reqData = { hello: "world" };
     const authContext = {
       uid: "SomeUID",
@@ -207,8 +231,9 @@ describe("#onCall", () => {
         sub: "SomeUID",
         uid: "SomeUID",
       },
+      rawToken,
     };
-    const originalAuth = "Bearer " + generateUnsignedIdToken("123456");
+    const originalAuth = "Bearer " + rawToken;
     const func = https.onCall((data, context) => {
       gotData = data;
       gotContext = context;

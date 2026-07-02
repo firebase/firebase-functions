@@ -1,5 +1,5 @@
 import { AppOptions } from "firebase-admin/app";
-import { readFileSync } from "fs";
+import fs from "fs";
 import * as path from "path";
 
 import * as logger from "../logger";
@@ -29,7 +29,7 @@ export function firebaseConfig(): AppOptions | null {
     // explicitly state that the user can set the env to a file:
     // https://firebase.google.com/docs/admin/setup#initialize-without-parameters
     if (!env.startsWith("{")) {
-      env = readFileSync(path.join(process.env.PWD, env)).toString("utf8");
+      env = fs.readFileSync(path.join(process.env.PWD, env)).toString("utf8");
     }
 
     cache = JSON.parse(env);

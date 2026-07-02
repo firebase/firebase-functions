@@ -10,6 +10,8 @@ import {
   ManifestStack,
 } from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
+import { clearGlobalRequiredAPIs } from "../../src/common/api";
+import { afterInstall, afterUpdate, clearDeclaredLifecycleHooks } from "../../src/lifecycle";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
 import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
@@ -341,6 +343,16 @@ describe("loadStack", () => {
 
   afterEach(() => {
     process.env.GCLOUD_PROJECT = prev;
+    clearGlobalRequiredAPIs();
+    clearParams();
+    clearDeclaredLifecycleHooks();
+    // Purge the require cache for fixture modules so that when a file is loaded
+    // a second time via absolute path, it re-executes and successfully runs its global side-effects.
+    for (const key of Object.keys(require.cache)) {
+      if (key.includes("fixtures/sources")) {
+        delete require.cache[key];
+      }
+    }
   });
 
   describe("commonjs", () => {
@@ -423,6 +435,25 @@ describe("loadStack", () => {
                 multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }] },
               },
             },
+            {
+              name: "NON_EMPTY_STRING",
+              type: "string",
+              input: {
+                text: {
+                  nonEmpty: true,
+                },
+              },
+            },
+            {
+              name: "NON_EMPTY_MULTISTRING",
+              type: "list",
+              input: {
+                multiSelect: {
+                  nonEmpty: true,
+                  options: [{ value: "a" }, { value: "b" }],
+                },
+              },
+            },
             { name: "SUPER_SECRET_FLAG", type: "secret" },
           ],
         },
@@ -468,6 +499,28 @@ describe("loadStack", () => {
           },
         },
       },
+      {
+        name: "requires api",
+        modulePath: "./spec/fixtures/sources/requiresapi",
+        expected: {
+          endpoints: {
+            v1http: {
+              ...MINIMAL_V1_ENDPOINT,
+              platform: "gcfv1",
+              entryPoint: "v1http",
+              httpsTrigger: {},
+            },
+          },
+          requiredAPIs: [
+            {
+              api: "some-api.googleapis.com",
+              reason: "Needed for some reason",
+            },
+          ],
+          extensions: {},
+          specVersion: "v1alpha1",
+        },
+      },
     ];
 
     for (const tc of testcases) {
@@ -475,5 +528,94 @@ describe("loadStack", () => {
         runTests(tc);
       });
     }
+  });
+
+  describe("loadStack with lifecycleHooks", () => {
+    it("captures top-level afterInstall and afterUpdate calls into ManifestStack.lifecycleHooks", async () => {
+      afterInstall({
+        task: {
+          function: "runInitialSetup",
+          body: { seedData: "default_catalog" },
+        },
+      });
+      afterUpdate({
+        call: {
+          function: "migrateSchema",
+          params: { targetVersion: "v2.4" },
+        },
+      });
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.lifecycleHooks).to.deep.equal({
+        afterInstall: {
+          task: {
+            function: "runInitialSetup",
+            body: { seedData: "default_catalog" },
+          },
+        },
+        afterUpdate: {
+          call: {
+            function: "migrateSchema",
+            params: { targetVersion: "v2.4" },
+          },
+        },
+      });
+    });
+
+    it("captures http lifecycle hooks with function and url into ManifestStack.lifecycleHooks", async () => {
+      afterInstall({
+        http: {
+          function: "seedDatabase",
+          method: "POST",
+          headers: { "X-API-Key": "my-key" },
+          body: { force: true },
+        },
+      });
+      afterUpdate({
+        http: {
+          url: "https://example.com/webhook",
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        },
+      });
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.lifecycleHooks).to.deep.equal({
+        afterInstall: {
+          http: {
+            function: "seedDatabase",
+            method: "POST",
+            headers: { "X-API-Key": "my-key" },
+            body: { force: true },
+          },
+        },
+        afterUpdate: {
+          http: {
+            url: "https://example.com/webhook",
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          },
+        },
+      });
+    });
+
+    it("preserves falsy but valid JSON values (like 0, false, empty string) in hook payloads", async () => {
+      afterInstall({
+        task: {
+          function: "runInitialSetup",
+          body: { force: false, code: 0, tag: "" },
+        },
+      });
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.lifecycleHooks).to.deep.equal({
+        afterInstall: {
+          task: {
+            function: "runInitialSetup",
+            body: { force: false, code: 0, tag: "" },
+          },
+        },
+      });
+    });
   });
 });

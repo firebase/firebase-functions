@@ -24,7 +24,7 @@
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
-import { ResetValue } from "../../common/options";
+import { ResetValue, RESET_VALUE } from "../../common/options";
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
@@ -41,12 +41,16 @@ import {
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
-import { initV2Endpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { CloudEvent, CloudFunction } from "../core";
+import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
+import { userRecordConstructor } from "../../common/providers/identity";
 
-export { AuthUserRecord, AuthBlockingEvent, HttpsError };
+export { HttpsError };
+export type { AuthUserRecord, AuthBlockingEvent };
 
 /** @hidden Internally used when parsing the options. */
 interface InternalOptions {
@@ -162,7 +166,7 @@ export interface BlockingOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 }
 
 /**
@@ -324,7 +328,7 @@ export function beforeOperation(
 
   /** Endpoint */
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOptsEndpoint = options.optionsToEndpoint(opts);
+  const specificOptsEndpoint = options.optionsToEndpoint(opts, "identity");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
@@ -369,4 +373,193 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
     idToken,
     refreshToken,
   };
+}
+
+/**
+ * The user data payload for an Auth Event. this is the standard "UserRecord"
+ * from the firebase Admin SDK.
+ */
+export type User = AdminUserRecord;
+
+/**
+ * The event object passed to the handler funcation for Firebase Authentication
+ * events.
+ */
+export interface AuthEvent<T> extends CloudEvent<T> {
+  /** The project identifier */
+  project?: string;
+
+  /** The ID of the Identity Platform Tenant Associated with the event. If Applicable */
+  tenantId?: string;
+}
+
+/** Options for configuring a Firebase Authentication Trigger */
+export interface AuthOptions extends options.EventHandlerOptions {
+  /**
+   * The Id of the Identity Platform tenant to scope the function to.
+   * If not set, the function triggers on users across all tenants
+   * Set to `IS_NOT_TENANT` to only trigger on users in the default
+   * project(no tenant).
+   */
+  tenantId?: string | Expression<string> | typeof RESET_VALUE;
+}
+
+// constant to represent the absence of tenant ID.
+export const IS_NOT_TENANT = RESET_VALUE;
+
+// Helper to handle overloaded function signature
+function getOptsAndHandler(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+) {
+  if (typeof optsOrHandler === "function") {
+    return { opts: {}, handler: optsOrHandler };
+  }
+  return { opts: optsOrHandler, handler: handler };
+}
+
+// Matches both absolute paths (/projects/...) and relative paths (projects/...)
+const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
+
+/** @hidden */
+function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
+  const event: AuthEvent<User> = { ...raw } as any;
+  if (raw.data) {
+    event.data = userRecordConstructor(raw.data as Record<string, unknown>);
+  }
+  const rawAny = raw as any;
+  // Support both lowercase (CloudEvents standard) and camelCase (local testing)
+  const tenantId = rawAny.tenantid || rawAny.tenantId;
+  if (tenantId) {
+    event.tenantId = tenantId;
+  }
+  if (raw.source) {
+    // Defensive check against pathological source strings (e.g. emulators/custom events)
+    const match = raw.source.match(PROJECT_ID_REGEX);
+    if (match) {
+      event.project = match[1];
+    }
+  }
+  return event;
+}
+
+/** @hidden */
+function makeAuthTrigger(
+  eventType: string,
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
+
+  if (typeof handlerFunc !== "function") {
+    throw new Error("The handler must be a function.");
+  }
+
+  const wrappedHandler = wrapTraceContext(withInit(handlerFunc));
+
+  const func = ((raw: CloudEvent<unknown>) => {
+    const event = getAuthEvent(raw);
+    return wrappedHandler(event);
+  }) as CloudFunction<AuthEvent<User>>;
+
+  func.run = handlerFunc;
+  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOptsEndpoint = options.optionsToEndpoint(opts);
+  const endpoint: ManifestEndpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
+    ...baseOptsEndpoint,
+    ...specificOptsEndpoint,
+    labels: {
+      ...baseOptsEndpoint?.labels,
+      ...specificOptsEndpoint?.labels,
+    },
+    eventTrigger: {
+      eventType,
+      eventFilters: {},
+      retry: opts.retry ?? false, // Default retry policy
+      // Firebase Auth event triggers are global by nature, and Eventarc requires the trigger
+      // region to be set to "global" even if the Cloud Function is deployed regionally.
+      region: "global",
+    },
+  };
+  if (opts.tenantId !== undefined) {
+    if (opts.tenantId === IS_NOT_TENANT) {
+      endpoint.eventTrigger.eventFilters["tenantid"] = "";
+    } else {
+      endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
+    }
+  }
+  func.__endpoint = endpoint;
+  return func;
+}
+
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ *
+ * @beta
+ *
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * @beta
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+export function onUserCreated(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
+}
+
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
+
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ *
+ * @beta
+ *
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * @beta
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+export function onUserDeleted(
+  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
+  handler?: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>> {
+  return makeAuthTrigger(USER_DELETED_EVENT, optsOrHandler, handler);
 }

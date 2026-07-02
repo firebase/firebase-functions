@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { warn } from "../logger";
 import {
   DEFAULT_FAILURE_POLICY,
@@ -29,7 +29,7 @@ import {
   FailurePolicy,
   Schedule,
 } from "./function-configuration";
-export { Request, Response };
+export type { Request, Response };
 import {
   convertIfPresent,
   copyIfPresent,
@@ -43,7 +43,7 @@ import {
   ManifestRequiredAPI,
 } from "../runtime/manifest";
 import { ResetValue } from "../common/options";
-import { SecretParam } from "../params/types";
+import { celOf, valueOf, Expression, SupportedSecretParam } from "../params/types";
 import { withInit } from "../common/onInit";
 
 export { Change } from "../common/change";
@@ -54,7 +54,7 @@ const WILDCARD_REGEX = new RegExp("{[^/{}]*}", "g");
 /**
  * Wire format for an event.
  */
-export interface Event {
+export interface LegacyEvent {
   /**
    * Wire format for an event context.
    */
@@ -98,14 +98,19 @@ export interface EventContext<Params = Record<string, string>> {
    * For more detail including token keys, see the
    * {@link https://firebase.google.com/docs/reference/rules/rules#properties | security rules reference}.
    *
-   * This field is only populated for Realtime Database triggers and Callable
-   * functions. For an unauthenticated user, this field is null. For Firebase
+   * This field is only populated for Realtime Database triggers. For an
+   * unauthenticated Realtime Database user, this field is `null`. For Firebase
    * admin users and event types that do not provide user information, this field
-   * does not exist.
+   * is not set.
+   *
+   * Callable functions use {@link https.CallableContext.auth} instead of
+   * `EventContext.auth`.
    */
   auth?: {
     uid: string;
     token: EventContextAuthToken;
+    /** If available, the unparsed ID token. */
+    rawToken?: string;
   };
 
   /**
@@ -120,8 +125,8 @@ export interface EventContext<Params = Record<string, string>> {
    *
    * - `UNAUTHENTICATED`: Unauthenticated action
    *
-   * - `null`: For event types that do not provide user information (all except
-   *   Realtime Database).
+   * This field is only populated for Realtime Database triggers. For event
+   * types that do not provide user information, this field is not set.
    */
   authType?: "ADMIN" | "USER" | "UNAUTHENTICATED";
 
@@ -342,7 +347,7 @@ export interface BlockingFunction {
  * from your JavaScript file to define a Cloud Function.
  *
  * This type is a special JavaScript function which takes a templated
- * `Event` object as its only argument.
+ * `LegacyEvent` object as its only argument.
  */
 export interface CloudFunction<T> extends Runnable<T> {
   (input: any, context?: any): PromiseLike<any> | any;
@@ -359,10 +364,10 @@ export interface CloudFunction<T> extends Runnable<T> {
 
 /** @internal */
 export interface MakeCloudFunctionArgs<EventData> {
-  after?: (raw: Event) => void;
-  before?: (raw: Event) => void;
+  after?: (raw: LegacyEvent) => void;
+  before?: (raw: LegacyEvent) => void;
   contextOnlyHandler?: (context: EventContext) => PromiseLike<any> | any;
-  dataConstructor?: (raw: Event) => EventData;
+  dataConstructor?: (raw: LegacyEvent) => EventData;
   eventType: string;
   handler?: (data: EventData, context: EventContext) => PromiseLike<any> | any;
   labels?: Record<string, string>;
@@ -374,13 +379,13 @@ export interface MakeCloudFunctionArgs<EventData> {
    */
   provider: string;
   service: string;
-  triggerResource: () => string;
+  triggerResource: () => string | Expression<string>;
 }
 
 /** @internal */
 export function makeCloudFunction<EventData>({
   contextOnlyHandler,
-  dataConstructor = (raw: Event) => raw.data,
+  dataConstructor = (raw: LegacyEvent) => raw.data,
   eventType,
   handler,
   labels = {},
@@ -391,6 +396,7 @@ export function makeCloudFunction<EventData>({
   triggerResource,
 }: MakeCloudFunctionArgs<EventData>): CloudFunction<EventData> {
   handler = withInit(handler ?? contextOnlyHandler);
+  const contextOnlyHandlerWithInit = contextOnlyHandler && withInit(contextOnlyHandler);
   const cloudFunction: any = (data: any, context: any) => {
     if (legacyEventType && context.eventType === legacyEventType) {
       /*
@@ -404,7 +410,7 @@ export function makeCloudFunction<EventData>({
       };
     }
 
-    const event: Event = {
+    const event: LegacyEvent = {
       data,
       context,
     };
@@ -431,7 +437,7 @@ export function makeCloudFunction<EventData>({
     let promise;
     if (labels && labels["deployment-scheduled"]) {
       // Scheduled function do not have meaningful data, so exclude it
-      promise = contextOnlyHandler(context);
+      promise = contextOnlyHandlerWithInit(context);
     } else {
       const dataOrChange = dataConstructor(event);
       promise = handler(dataOrChange, context);
@@ -448,10 +454,11 @@ export function makeCloudFunction<EventData>({
         return {};
       }
 
+      const tr = triggerResource();
       const trigger: any = {
         ...optionsToTrigger(options),
         eventTrigger: {
-          resource: triggerResource(),
+          resource: celOf(tr),
           eventType: legacyEventType || provider + "." + eventType,
           service,
         },
@@ -476,8 +483,12 @@ export function makeCloudFunction<EventData>({
       };
 
       if (options.schedule) {
-        endpoint.scheduleTrigger = initV1ScheduleTrigger(options.schedule.schedule, options);
+        endpoint.scheduleTrigger = initV1ScheduleTrigger(celOf(options.schedule.schedule), options);
         copyIfPresent(endpoint.scheduleTrigger, options.schedule, "timeZone");
+        // Not using celOf to avoid inserting undefined on an optional.
+        if (endpoint.scheduleTrigger.timeZone instanceof Expression) {
+          endpoint.scheduleTrigger.timeZone = endpoint.scheduleTrigger.timeZone.toCEL();
+        }
         copyIfPresent(
           endpoint.scheduleTrigger.retryConfig,
           options.schedule.retryConfig,
@@ -491,7 +502,7 @@ export function makeCloudFunction<EventData>({
         endpoint.eventTrigger = {
           eventType: legacyEventType || provider + "." + eventType,
           eventFilters: {
-            resource: triggerResource(),
+            resource: celOf(triggerResource()),
           },
           retry: !!options.failurePolicy,
         };
@@ -521,7 +532,7 @@ export function makeCloudFunction<EventData>({
 
 function _makeParams(
   context: EventContext,
-  triggerResourceGetter: () => string
+  triggerResourceGetter: () => string | Expression<string>
 ): Record<string, string> {
   if (context.params) {
     // In unit testing, user may directly provide `context.params`.
@@ -531,7 +542,7 @@ function _makeParams(
     // In unit testing, `resource` may be unpopulated for a test event.
     return {};
   }
-  const triggerResource = triggerResourceGetter();
+  const triggerResource = valueOf(triggerResourceGetter());
   const wildcards = triggerResource.match(WILDCARD_REGEX);
   const params: { [option: string]: any } = {};
 
@@ -548,7 +559,7 @@ function _makeParams(
   return params;
 }
 
-function _makeAuth(event: Event, authType: string) {
+function _makeAuth(event: LegacyEvent, authType: string) {
   if (authType === "UNAUTHENTICATED") {
     return null;
   }
@@ -558,7 +569,7 @@ function _makeAuth(event: Event, authType: string) {
   };
 }
 
-function _detectAuthType(event: Event) {
+function _detectAuthType(event: LegacyEvent) {
   if (event.context?.auth?.admin) {
     return "ADMIN";
   }
@@ -636,8 +647,10 @@ export function optionsToEndpoint(options: DeploymentOptions): ManifestEndpoint 
     options,
     "secretEnvironmentVariables",
     "secrets",
-    (secrets: (string | SecretParam)[]) =>
-      secrets.map((secret) => ({ key: secret instanceof SecretParam ? secret.name : secret }))
+    (secrets: SupportedSecretParam[]) =>
+      secrets.map((secret) => ({
+        key: typeof secret === "string" ? secret : secret.name,
+      }))
   );
   if (options?.vpcConnector !== undefined) {
     if (options.vpcConnector === null || options.vpcConnector instanceof ResetValue) {

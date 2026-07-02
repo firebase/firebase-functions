@@ -23,12 +23,12 @@
 import { expect } from "chai";
 import { UserRecord } from "../../../src/common/providers/identity";
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
+import { CloudFunction, LegacyEvent } from "../../../src/v1/cloud-functions";
 import * as auth from "../../../src/v1/providers/auth";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Auth Functions", () => {
-  const event: Event = {
+  const event: LegacyEvent = {
     data: {
       metadata: {
         creationTime: "2016-12-15T19:37:37.059Z",

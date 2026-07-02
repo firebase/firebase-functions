@@ -32,7 +32,7 @@ import { CloudEvent, CloudFunction } from "../core";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 
 /** Options that can be set on an Eventarc trigger. */
@@ -156,7 +156,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;
@@ -203,7 +203,7 @@ export function onCustomEventPublished<T = any>(
   const channel = opts.channel ?? "locations/us-central1/channels/firebase";
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
 
   const endpoint: ManifestEndpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),

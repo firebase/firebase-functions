@@ -121,6 +121,7 @@ describe("FunctionBuilder", () => {
     expect(fn.__trigger.secrets).to.deep.equal([
       {
         name: "API_KEY",
+        options: {},
       },
     ]);
     expect(fn.__endpoint.secretEnvironmentVariables).to.deep.equal([
@@ -221,13 +222,13 @@ describe("FunctionBuilder", () => {
     expect(() => {
       return functions.runWith({
         timeoutSeconds: 1000000,
-      } as any);
+      });
     }).to.throw(Error, "TimeoutSeconds");
 
     expect(() => {
       return functions.region("asia-east2").runWith({
         timeoutSeconds: 1000000,
-      } as any);
+      });
     }).to.throw(Error, "TimeoutSeconds");
   });
 
@@ -239,7 +240,7 @@ describe("FunctionBuilder", () => {
     expect(() => {
       return functions.region().runWith({
         timeoutSeconds: 500,
-      } as any);
+      });
     }).to.throw(Error, "at least one region");
   });
 

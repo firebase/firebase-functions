@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { Event } from "../../../src/v1";
+import { LegacyEvent } from "../../../src/v1";
 import * as config from "../../../src/common/config";
 import * as functions from "../../../src/v1";
 import * as storage from "../../../src/v1/providers/storage";
@@ -136,7 +136,7 @@ describe("Storage Functions", () => {
         const cloudFunction = storage.object().onArchive((data) => {
           return data.mediaLink;
         });
-        const goodMediaLinkEvent: Event = {
+        const goodMediaLinkEvent: LegacyEvent = {
           data: {
             mediaLink:
               "https://www.googleapis.com/storage/v1/b/mybucket.appspot.com" +

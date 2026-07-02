@@ -25,30 +25,34 @@
  * @packageDocumentation
  */
 
-import * as cors from "cors";
+import cors from "cors";
 import * as express from "express";
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
 import { wrapTraceContext } from "../trace";
 import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
-  CallableRequest,
-  CallableResponse,
-  FunctionsErrorCode,
+  type CallableRequest,
+  type CallableResponse,
+  type FunctionsErrorCode,
   HttpsError,
   onCallHandler,
-  Request,
-  AuthData,
+  resolveCorsOrigin,
+  withErrorHandler,
+  type Request,
+  type AuthData,
+  type CorsOption,
 } from "../../common/providers/https";
 import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import { GlobalOptions, SupportedRegion } from "../options";
 import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
-export { Request, CallableRequest, CallableResponse, FunctionsErrorCode, HttpsError };
+export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
+export { HttpsError };
 
 /**
  * Options that can be set on an onRequest HTTPS function.
@@ -163,7 +167,7 @@ export interface HttpsOptions extends Omit<GlobalOptions, "region" | "enforceApp
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /**
    * Invoker to set access control on https functions.
@@ -181,7 +185,7 @@ export interface CallableOptions<T = any> extends HttpsOptions {
    * (Unauthorized) error.
    * When false, requests with invalid tokens set event.app to undefiend.
    */
-  enforceAppCheck?: boolean;
+  enforceAppCheck?: boolean | Expression<boolean>;
 
   /**
    * Determines whether Firebase App Check token is consumed on request. Defaults to false.
@@ -205,7 +209,7 @@ export interface CallableOptions<T = any> extends HttpsOptions {
    * the request.app.alreadyConsumed property will be set to true and pass the execution to the handler code for making
    * further decisions, such as requiring additional security checks or rejecting the request.
    */
-  consumeAppCheckToken?: boolean;
+  consumeAppCheckToken?: boolean | Expression<boolean>;
 
   /**
    * Time in seconds between sending heartbeat messages to keep the connection
@@ -319,24 +323,17 @@ export function onRequest(
     opts = optsOrHandler as HttpsOptions;
   }
 
-  if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
-    let origin = opts.cors instanceof Expression ? opts.cors.value() : opts.cors;
-    if (isDebugFeatureEnabled("enableCors")) {
-      // Respect `cors: false` to turn off cors even if debug feature is enabled.
-      origin = opts.cors === false ? false : true;
-    }
-    // Arrays cause the access-control-allow-origin header to be dynamic based
-    // on the origin header of the request. If there is only one element in the
-    // array, this is unnecessary.
-    if (Array.isArray(origin) && origin.length === 1) {
-      origin = origin[0];
-    }
-    const middleware = cors({ origin });
+  handler = withErrorHandler(handler);
 
+  if (isDebugFeatureEnabled("enableCors") || "cors" in opts) {
     const userProvidedHandler = handler;
     handler = (req: Request, res: express.Response): void | Promise<void> => {
       return new Promise((resolve) => {
         res.on("finish", resolve);
+        // Because this function is called per request (not at global scope),
+        // it is safe to read and resolve the CORS parameter here.
+        const origin = resolveCorsOrigin(opts.cors);
+        const middleware = cors({ origin });
         middleware(req, res, () => {
           resolve(userProvidedHandler(req, res));
         });
@@ -351,7 +348,7 @@ export function onRequest(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "https");
       const trigger: any = {
         platform: "gcfv2",
         ...baseOpts,
@@ -380,7 +377,7 @@ export function onRequest(
   const baseOpts = options.optionsToEndpoint(globalOpts);
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToTriggerAnnotations handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   const endpoint: Partial<ManifestEndpoint> = {
     ...initV2Endpoint(globalOpts, opts),
     platform: "gcfv2",
@@ -430,32 +427,31 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
     opts = optsOrHandler as CallableOptions;
   }
 
-  let cors: string | boolean | RegExp | Array<string | RegExp> | undefined;
+  let cors: CorsOption | undefined;
   if ("cors" in opts) {
-    if (opts.cors instanceof Expression) {
-      cors = opts.cors.value();
-    } else {
-      cors = opts.cors;
-    }
+    cors = opts.cors;
   } else {
     cors = true;
   }
 
-  let origin = isDebugFeatureEnabled("enableCors") ? true : cors;
-  // Arrays cause the access-control-allow-origin header to be dynamic based
-  // on the origin header of the request. If there is only one element in the
-  // array, this is unnecessary.
-  if (Array.isArray(origin) && origin.length === 1) {
-    origin = origin[0];
-  }
-
   // fix the length of handler to make the call to handler consistent
   const fixedLen = (req: CallableRequest<T>, resp?: CallableResponse<Stream>) => handler(req, resp);
+
+  let enforceAppCheck = opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck;
+  if (enforceAppCheck instanceof Expression) {
+    enforceAppCheck = enforceAppCheck.value();
+  }
+
+  let consumeAppCheckToken = opts.consumeAppCheckToken;
+  if (consumeAppCheckToken instanceof Expression) {
+    consumeAppCheckToken = consumeAppCheckToken.value();
+  }
+
   let func: any = onCallHandler(
     {
-      cors: { origin, methods: "POST" },
-      enforceAppCheck: opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck,
-      consumeAppCheckToken: opts.consumeAppCheckToken,
+      cors: { origin: cors, methods: "POST" },
+      enforceAppCheck,
+      consumeAppCheckToken,
       heartbeatSeconds: opts.heartbeatSeconds,
       authPolicy: opts.authPolicy,
     },
@@ -470,7 +466,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "https");
       return {
         platform: "gcfv2",
         ...baseOpts,
@@ -490,7 +486,7 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "https");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",

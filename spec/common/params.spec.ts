@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE ignoreUnusedWarning OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { Extract, ParamsOf, Split } from "../../src/common/params";
+import { VarName, ParamsOf, Split } from "../../src/common/params";
 import { expectNever, expectType } from "./metaprogramming";
 
 describe("Params namespace", () => {
@@ -56,31 +56,31 @@ describe("Params namespace", () => {
     });
   });
 
-  describe("Extract", () => {
+  describe("VarName", () => {
     it("extracts nothing from strings without params", () => {
-      expectNever<Extract<"uid">>();
+      expectNever<VarName<"uid">>();
     });
 
     it("extracts {segment} captures", () => {
-      expectType<Extract<"{uid}">>("uid");
+      expectType<VarName<"{uid}">>("uid");
     });
 
     it("extracts {segment=*} captures", () => {
-      expectType<Extract<"{uid=*}">>("uid");
+      expectType<VarName<"{uid=*}">>("uid");
     });
 
     it("extracts {segment=**} captures", () => {
-      expectType<Extract<"{uid=**}">>("uid");
+      expectType<VarName<"{uid=**}">>("uid");
     });
   });
 
   describe("ParamsOf", () => {
     it("falls back to Record<string, string> without better type info", () => {
-      expectType<ParamsOf<string>>({} as Record<string, string>);
+      expectType<ParamsOf<string>>({});
     });
 
     it("is the empty object when there are no params", () => {
-      expectType<ParamsOf<string>>({} as Record<string, never>);
+      expectType<ParamsOf<string>>({});
     });
 
     it("extracts a single param", () => {

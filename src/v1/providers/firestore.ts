@@ -22,14 +22,16 @@
 
 import * as firestore from "firebase-admin/firestore";
 
-import { posix } from "path";
+import { CompareExpression, Expression, transform } from "../../params/types";
+import { expr, projectID } from "../../params";
+import { normalizePath } from "../../common/utilities/path";
 import { Change } from "../../common/change";
 import { ParamsOf } from "../../common/params";
 import {
   createBeforeSnapshotFromJson,
   createSnapshotFromJson,
 } from "../../common/providers/firestore";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
 
 /** @internal */
@@ -49,78 +51,89 @@ export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
  * collection is named "users" and the document is named "Ada", then the
  * path is "/users/Ada".
  */
-export function document<Path extends string>(path: Path) {
+export function document<Path extends string>(path: Path | Expression<string>) {
   return _documentWithOptions(path, {});
 }
 
 // Multiple namespaces are not yet supported by Firestore.
-export function namespace(namespace: string) {
+export function namespace(namespace: string | Expression<string>) {
   return _namespaceWithOptions(namespace, {});
 }
 
 // Multiple databases are not yet supported by Firestore.
-export function database(database: string) {
+export function database(database: string | Expression<string>) {
   return _databaseWithOptions(database, {});
 }
 
 /** @internal */
 export function _databaseWithOptions(
-  database: string = defaultDatabase,
+  database: string | Expression<string> = defaultDatabase,
   options: DeploymentOptions
 ) {
   return new DatabaseBuilder(database, options);
 }
 
 /** @internal */
-export function _namespaceWithOptions(namespace: string, options: DeploymentOptions) {
+export function _namespaceWithOptions(
+  namespace: string | Expression<string>,
+  options: DeploymentOptions
+) {
   return _databaseWithOptions(defaultDatabase, options).namespace(namespace);
 }
 
 /** @internal */
-export function _documentWithOptions<Path extends string>(path: Path, options: DeploymentOptions) {
+export function _documentWithOptions<Path extends string>(
+  path: Path | Expression<string>,
+  options: DeploymentOptions
+) {
   return _databaseWithOptions(defaultDatabase, options).document(path);
 }
 
 export class DatabaseBuilder {
-  constructor(private database: string, private options: DeploymentOptions) {}
+  constructor(private database: string | Expression<string>, private options: DeploymentOptions) {}
 
-  namespace(namespace: string) {
+  namespace(namespace: string | Expression<string>) {
     return new NamespaceBuilder(this.database, this.options, namespace);
   }
 
-  document<Path extends string>(path: Path) {
+  document<Path extends string>(path: Path | Expression<string>) {
     return new NamespaceBuilder(this.database, this.options).document(path);
   }
 }
 
 export class NamespaceBuilder {
   constructor(
-    private database: string,
+    private database: string | Expression<string>,
     private options: DeploymentOptions,
-    private namespace?: string
+    private namespace?: string | Expression<string>
   ) {}
 
-  document<Path extends string>(path: Path) {
-    return new DocumentBuilder<Path>(() => {
+  document<Path extends string>(path: Path | Expression<string>) {
+    const normalized = transform(path, normalizePath);
+    const triggerResource = () => {
       if (!process.env.GCLOUD_PROJECT) {
         throw new Error("process.env.GCLOUD_PROJECT is not set.");
       }
-      const database = posix.join(
-        "projects",
-        process.env.GCLOUD_PROJECT,
-        "databases",
-        this.database
-      );
-      return posix.join(
-        database,
-        this.namespace ? `documents@${this.namespace}` : "documents",
-        path
-      );
-    }, this.options);
+      let project: string | Expression<string> = projectID;
+      if (process.env.GCLOUD_PROJECT && process.env.FUNCTIONS_CONTROL_API !== "true") {
+        project = process.env.GCLOUD_PROJECT;
+      }
+      let nsPart: string | Expression<string> = "";
+      if (this.namespace instanceof Expression) {
+        nsPart = new CompareExpression("==", this.namespace, "").thenElse(
+          "",
+          expr`@${this.namespace}`
+        );
+      } else if (this.namespace) {
+        nsPart = `@${this.namespace}`;
+      }
+      return expr`projects/${project}/databases/${this.database}/documents${nsPart}/${normalized}`;
+    };
+    return new DocumentBuilder<Path>(triggerResource, this.options);
   }
 }
 
-export function snapshotConstructor(event: Event): DocumentSnapshot {
+export function snapshotConstructor(event: LegacyEvent): DocumentSnapshot {
   return createSnapshotFromJson(
     event.data,
     event.context.resource.name,
@@ -130,7 +143,7 @@ export function snapshotConstructor(event: Event): DocumentSnapshot {
 }
 
 // TODO remove this function when wire format changes to new format
-export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
+export function beforeSnapshotConstructor(event: LegacyEvent): DocumentSnapshot {
   return createBeforeSnapshotFromJson(
     event.data,
     event.context.resource.name,
@@ -139,12 +152,16 @@ export function beforeSnapshotConstructor(event: Event): DocumentSnapshot {
   );
 }
 
-function changeConstructor(raw: Event) {
+function changeConstructor(raw: LegacyEvent) {
   return Change.fromObjects(beforeSnapshotConstructor(raw), snapshotConstructor(raw));
 }
 
 export class DocumentBuilder<Path extends string> {
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {
+  /** @internal */
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {
     // TODO what validation do we want to do here?
   }
 
@@ -191,7 +208,7 @@ export class DocumentBuilder<Path extends string> {
   private onOperation<T>(
     handler: (data: T, context: EventContext<ParamsOf<Path>>) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event) => any
+    dataConstructor: (raw: LegacyEvent) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,

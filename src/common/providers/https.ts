@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as cors from "cors";
+import cors from "cors";
 import * as express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
@@ -33,6 +33,7 @@ import { DecodedIdToken, getAuth } from "firebase-admin/auth";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
 import { TaskContext } from "./tasks";
+import { Expression } from "../../params";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
@@ -78,8 +79,12 @@ export interface AppCheckData {
  * The interface for Auth tokens verified in Callable functions
  */
 export interface AuthData {
+  /** The user's uid from the request's ID token. */
   uid: string;
+  /** The decoded claims of the ID token after verification. */
   token: DecodedIdToken;
+  /** The raw ID token as parsed from the header. */
+  rawToken: string;
 }
 
 // This type is the direct v1 callable interface and is also an interface
@@ -539,7 +544,7 @@ export function unsafeDecodeToken(token: string): unknown {
       if (typeof obj === "object") {
         payload = obj;
       }
-    } catch (e) {
+    } catch (_e) {
       // ignore error
     }
   }
@@ -646,6 +651,7 @@ export async function checkAuthToken(
     ctx.auth = {
       uid: authToken.uid,
       token: authToken,
+      rawToken: idToken,
     };
     return "VALID";
   } catch (err) {
@@ -705,9 +711,63 @@ type v2CallableHandler<Req, Res, Stream> = (
   response?: CallableResponse<Stream>
 ) => Res;
 
+export type CorsOption =
+  | string
+  | Expression<string>
+  | Expression<string[]>
+  | boolean
+  | RegExp
+  | Array<string | RegExp>;
+
+export function resolveCorsOrigin(corsOption?: CorsOption): cors.CorsOptions["origin"] {
+  let origin: CorsOption | undefined;
+  if (corsOption instanceof Expression) {
+    try {
+      origin = corsOption.value();
+    } catch (e) {
+      logger.warn(`Failed to resolve CORS parameter: ${e}`);
+      origin = false;
+    }
+  } else {
+    origin = corsOption;
+  }
+
+  if (Array.isArray(origin) && origin.length === 0) {
+    logger.warn("CORS parameter resolved to an empty array. Disabling CORS.");
+    origin = false;
+  }
+
+  if (origin === "") {
+    logger.warn("CORS parameter resolved to an empty string. Disabling CORS.");
+    origin = false;
+  }
+
+  if (isDebugFeatureEnabled("enableCors")) {
+    // Respect `cors: false` to turn off cors even if debug feature is enabled.
+    origin = origin === false ? false : true;
+  }
+
+  if (origin === undefined) {
+    origin = true;
+  }
+
+  // Arrays cause the access-control-allow-origin header to be dynamic based
+  // on the origin header of the request. If there is only one element in the
+  // array, this is unnecessary.
+  if (Array.isArray(origin) && origin.length === 1) {
+    origin = origin[0];
+  }
+
+  return origin;
+}
+
+export type CorsInfo = Omit<cors.CorsOptions, "origin"> & {
+  origin?: CorsOption;
+};
+
 /** @internal **/
 export interface CallableOptions<T = any> {
-  cors: cors.CorsOptions;
+  cors: CorsInfo;
   enforceAppCheck?: boolean;
   consumeAppCheckToken?: boolean;
   /* @deprecated */
@@ -731,7 +791,12 @@ export function onCallHandler<Req = any, Res = any, Stream = unknown>(
   return (req: Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on("finish", resolve);
-      cors(options.cors)(req, res, () => {
+      const origin = resolveCorsOrigin(options.cors.origin);
+      const corsOptions = {
+        ...options.cors,
+        origin,
+      };
+      cors(corsOptions as cors.CorsOptions)(req, res, () => {
         resolve(wrapped(req, res));
       });
     });
@@ -944,6 +1009,33 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
       }
     } finally {
       clearScheduledHeartbeat();
+    }
+  };
+}
+
+/**
+ * Wraps an HTTP handler with a safety net for unhandled errors.
+ *
+ * This wrapper catches both synchronous errors and rejected Promises from `async` handlers.
+ * Without this, an unhandled error in an `async` handler would cause the request to hang
+ * until the platform timeout, as Express (v4) does not await handlers.
+ *
+ * It logs the error and returns a 500 Internal Server Error to the client if the response
+ * headers have not yet been sent.
+ *
+ * @internal
+ */
+export function withErrorHandler(
+  handler: (req: Request, res: express.Response) => void | Promise<void>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response) => {
+    try {
+      await handler(req, res);
+    } catch (err) {
+      logger.error("Unhandled error", err);
+      if (!res.headersSent) {
+        res.status(500).send("Internal Server Error");
+      }
     }
   };
 }

@@ -30,7 +30,7 @@ import { ManifestEndpoint } from "../runtime/manifest";
 
 export { Change };
 
-export { ParamsOf } from "../common/params";
+export type { ParamsOf } from "../common/params";
 export { onInit } from "../common/onInit";
 
 /** @internal */

@@ -160,6 +160,7 @@ describe("#onDispatch", () => {
       auth: {
         uid: "abc",
         token: "token" as any,
+        rawToken: "abc123",
       },
       queueName: "fn",
       id: "task0",

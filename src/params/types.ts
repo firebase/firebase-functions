@@ -22,12 +22,27 @@
 
 import * as logger from "../logger";
 
+const EXPRESSION_TAG = Symbol.for("firebase-functions:Expression:Tag");
+
 /*
  * A CEL expression which can be evaluated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
 export abstract class Expression<T extends string | number | boolean | string[]> {
+  /**
+   * Handle the "Dual-Package Hazard" .
+   *
+   * We implement custom `Symbol.hasInstance` to so CJS/ESM Expression instances
+   * are recognized as the same type.
+   */
+  static [Symbol.hasInstance](instance: unknown): boolean {
+    return (instance as { [EXPRESSION_TAG]?: boolean })?.[EXPRESSION_TAG] === true;
+  }
+
+  get [EXPRESSION_TAG](): boolean {
+    return true;
+  }
   /** Returns the expression's runtime value, based on the CLI's resolution of parameters. */
   value(): T {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
@@ -48,7 +63,7 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 
   /** Returns the expression's representation as a braced CEL expression. */
-  toCEL(): string {
+  toCEL(_transform: (val: string) => string = (a) => a): string {
     return `{{ ${this.toString()} }}`;
   }
 
@@ -58,9 +73,97 @@ export abstract class Expression<T extends string | number | boolean | string[]>
   }
 }
 
-function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
+/**
+ * An InterpolationExpression allows string fragments and Expressions to be
+ * joined natively into a new Expression block evaluating to a string string.
+ */
+export class InterpolationExpression extends Expression<string> {
+  constructor(private strings: TemplateStringsArray, private values: (string | Expression<any>)[]) {
+    super();
+  }
+
+  /** @internal */
+  runtimeValue(): string {
+    return this.strings.reduce((result, str, i) => {
+      const val = i < this.values.length ? String(valueOf(this.values[i])) : "";
+      return result + str + val;
+    }, "");
+  }
+
+  // The transform function (e.g. normalizePath) might have behaivor that compares against
+  // the beginning or end of the string, so we need to compose a string before running transform.
+  // But on the other hand, we don't want a transform to edit CEL, so we create a placeholder
+  // unklikely to ever match a transform function and then drop the CEL back in after the transform.
+  toCEL(transform: (val: string) => string = (a) => a): string {
+    const exprPlaceholders: string[] = [];
+    const PLACEHOLDER_PREFIX = "🤿🤿🤿🐙🐙🐙";
+    const PLACEHOLDER_SUFFIX = "🐙🐙🐙🤿🤿🤿";
+
+    const rawString = this.strings.reduce((result, str, i) => {
+      if (i >= this.values.length) {
+        return result + str;
+      }
+      const val = this.values[i];
+      let valStr: string;
+      if (val instanceof Expression) {
+        valStr = `${PLACEHOLDER_PREFIX}${exprPlaceholders.length}${PLACEHOLDER_SUFFIX}`;
+        exprPlaceholders.push(val.toCEL());
+      } else {
+        valStr = String(val);
+      }
+      return result + str + valStr;
+    }, "");
+
+    let transformed = transform(rawString);
+
+    for (let i = 0; i < exprPlaceholders.length; i++) {
+      const placeholder = `${PLACEHOLDER_PREFIX}${i}${PLACEHOLDER_SUFFIX}`;
+      transformed = transformed.split(placeholder).join(exprPlaceholders[i]);
+    }
+    return transformed;
+  }
+}
+
+/** @internal */
+export class TransformedStringExpression extends Expression<string> {
+  constructor(
+    private source: Expression<string> | string,
+    private transformer: (val: string) => string
+  ) {
+    super();
+  }
+
+  runtimeValue(): string {
+    return this.transformer(valueOf(this.source));
+  }
+
+  toCEL(): string {
+    return this.source instanceof Expression
+      ? this.source.toCEL(this.transformer)
+      : this.transformer(this.source);
+  }
+}
+
+export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
+
+export function celOf<T extends string | number | boolean | string[]>(
+  arg: T | Expression<T>
+): T | string {
+  return arg instanceof Expression ? arg.toCEL() : arg;
+}
+
+/**
+ * Transforms a string or a string expression using a function.
+ */
+export function transform(
+  source: string | Expression<string>,
+  transformer: (val: string) => string
+): Expression<string> {
+  return new TransformedStringExpression(source, transformer);
+}
+
 /**
  * Returns how an entity (either an `Expression` or a literal value) should be represented in CEL.
  * - Expressions delegate to the `.toString()` method, which is used by the WireManifest
@@ -114,12 +217,12 @@ export class CompareExpression<
   T extends string | number | boolean | string[]
 > extends Expression<boolean> {
   cmp: "==" | "!=" | ">" | ">=" | "<" | "<=";
-  lhs: Expression<T>;
+  lhs: T | Expression<T>;
   rhs: T | Expression<T>;
 
   constructor(
     cmp: "==" | "!=" | ">" | ">=" | "<" | "<=",
-    lhs: Expression<T>,
+    lhs: T | Expression<T>,
     rhs: T | Expression<T>
   ) {
     super();
@@ -130,7 +233,7 @@ export class CompareExpression<
 
   /** @internal */
   runtimeValue(): boolean {
-    const left = this.lhs.runtimeValue();
+    const left = valueOf(this.lhs);
     const right = valueOf(this.rhs);
     switch (this.cmp) {
       case "==":
@@ -156,8 +259,7 @@ export class CompareExpression<
   }
 
   toString() {
-    const rhsStr = refOf(this.rhs);
-    return `${this.lhs} ${this.cmp} ${rhsStr}`;
+    return `${refOf(this.lhs)} ${this.cmp} ${refOf(this.rhs)}`;
   }
 
   /** Returns a `TernaryExpression` which can resolve to one of two values, based on the resolution of this comparison. */
@@ -225,7 +327,6 @@ type ParamInput<T> =
  * to type it in interactively at deploy time. Input that does not match the
  * provided validationRegex, if present, will be retried.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
   text: {
     example?: string;
@@ -240,7 +341,12 @@ export interface TextInput<T = unknown> {
      * failing to conform to the validationRegex,
      */
     validationErrorMessage?: string;
-  };
+    /**
+     * If set on an input for a string or string list param, nonEmpty prevents
+     * the prompt from accepting the empty string or empty list as valid input.
+     * Syntactic sugar over setting validationRegex to /.+/
+     */
+  } & (T extends string | string[] ? { nonEmpty?: boolean } : {});
 }
 
 /**
@@ -281,6 +387,13 @@ export interface SelectInput<T = unknown> {
 export interface MultiSelectInput {
   multiSelect: {
     options: Array<SelectOptions<string>>;
+
+    /**
+     * If set on an input for a string or string list param, nonEmpty prevents
+     * the prompt from accepting the empty string or empty list as valid input.
+     * Syntactic sugar over setting validationRegex to /.+/
+     */
+    nonEmpty?: boolean;
   };
 }
 
@@ -307,14 +420,14 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
   type: ParamValueType;
   /** The way in which the Firebase CLI will prompt for the value of this parameter. Defaults to a TextInput. */
   input?: ParamInput<T>;
+  /** Optional format annotation for additional type information (e.g., "json" for JSON-encoded secrets). */
+  format?: string;
 };
 
 /**
  * Representation of parameters for the stack over the wire.
- *
  * @remarks
  * N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
- *
  * @alpha
  */
 export type WireParamSpec<T extends string | number | boolean | string[]> = {
@@ -324,6 +437,7 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   description?: string;
   type: ParamValueType;
   input?: ParamInput<T>;
+  format?: string;
 };
 
 /** Configuration options which can be used to customize the prompting behavior of a parameter. */
@@ -331,6 +445,14 @@ export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   ParamSpec<T>,
   "name" | "type"
 >;
+
+/** Configuration options which can be used to customize the behavior of a secret parameter. */
+export interface SecretParamOptions {
+  /** An optional human-readable string to be used as a replacement for the parameter's name when prompting. */
+  label?: string;
+  /** An optional long-form description of the parameter to be displayed while prompting. */
+  description?: string;
+}
 
 /**
  * Represents a parametrized value that will be read from .env files if present,
@@ -430,7 +552,7 @@ export class SecretParam {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string) {
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
     this.name = name;
   }
 
@@ -450,6 +572,7 @@ export class SecretParam {
     return {
       type: "secret",
       name: this.name,
+      ...this.options,
     };
   }
 
@@ -463,6 +586,66 @@ export class SecretParam {
     return this.runtimeValue();
   }
 }
+
+/**
+ * A parametrized object whose value is stored as a JSON string in Cloud Secret Manager.
+ * This is useful for managing groups of related configuration values, such as all settings
+ * for a third-party API, as a single unit. Supply instances of JsonSecretParam to the
+ * secrets array while defining a Function to make their values accessible during execution
+ * of that Function.
+ */
+export class JsonSecretParam<T = any> {
+  static type: ParamValueType = "secret";
+  name: string;
+
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
+    this.name = name;
+  }
+
+  /** @internal */
+  runtimeValue(): T {
+    const val = process.env[this.name];
+    if (val === undefined) {
+      throw new Error(
+        `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
+      );
+    }
+
+    try {
+      return JSON.parse(val) as T;
+    } catch (error) {
+      throw new Error(
+        `"${this.name}" could not be parsed as JSON. Please verify its value in Secret Manager. Details: ${error}`
+      );
+    }
+  }
+
+  /** @internal */
+  toSpec(): ParamSpec<string> {
+    return {
+      type: "secret",
+      name: this.name,
+      ...this.options,
+      format: "json",
+    };
+  }
+
+  /** Returns the secret's parsed JSON value at runtime. Throws an error if accessed during deployment, if the secret is not set, or if the value is not valid JSON. */
+  value(): T {
+    if (process.env.FUNCTIONS_CONTROL_API === "true") {
+      throw new Error(
+        `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
+      );
+    }
+    return this.runtimeValue();
+  }
+}
+
+/**
+ * A union type representing all valid secret parameter types that can be used
+ * in a function's `secrets` configuration array.
+ */
+export type SupportedSecretParam = string | SecretParam | JsonSecretParam<unknown>;
 
 /**
  *  A parametrized value of String type that will be read from .env files

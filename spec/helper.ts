@@ -40,7 +40,11 @@ export interface RunHandlerResult {
  * data populated into the response.
  */
 export function runHandler(
-  handler: express.Handler,
+  handler: (
+    req: https.Request,
+    res: express.Response,
+    next?: express.NextFunction
+  ) => void | Promise<void>,
   request: https.Request
 ): Promise<RunHandlerResult> {
   return new Promise((resolve) => {
@@ -119,7 +123,7 @@ export function runHandler(
       }
     }
     const response = new MockResponse();
-    handler(request, response as any, () => undefined);
+    return void handler(request, response as any, () => undefined);
   });
 }
 

@@ -44,7 +44,7 @@ describe("onConfigUpdated", () => {
         retry: false,
       },
     });
-    await expect(fn(1 as any)).to.eventually.eq(2);
+    await expect(fn({} as any)).to.eventually.eq(2);
   });
 
   it("should create a function with opts and a handler", async () => {
@@ -73,7 +73,7 @@ describe("onConfigUpdated", () => {
         retry: true,
       },
     });
-    await expect(fn(1 as any)).to.eventually.eq(2);
+    await expect(fn({} as any)).to.eventually.eq(2);
   });
 
   it("calls init function", async () => {
@@ -91,5 +91,47 @@ describe("onConfigUpdated", () => {
     expect(hello).to.be.undefined;
     await remoteConfig.onConfigUpdated(() => null)(event);
     expect(hello).to.equal("world");
+  });
+
+  describe("v1-compatible getters", () => {
+    beforeEach(() => {
+      process.env.GCLOUD_PROJECT = "aProject";
+    });
+
+    afterEach(() => {
+      delete process.env.GCLOUD_PROJECT;
+    });
+
+    it("should provide v1-compatible getters on the event object", async () => {
+      let capturedEvent: any;
+      const func = remoteConfig.onConfigUpdated((e) => {
+        capturedEvent = e;
+      });
+
+      const raw = {
+        specversion: "1.0",
+        id: "id",
+        source: "//firebaseremoteconfig.googleapis.com/projects/aProject/config",
+        subject: "projects/aProject/config",
+        type: remoteConfig.eventType,
+        time: "now",
+        data: { versionNumber: 1, updateTime: "now" } as any,
+      };
+
+      await func(raw as any);
+
+      expect(capturedEvent.context).to.deep.equal({
+        eventId: "id",
+        timestamp: "now",
+        eventType: "google.firebase.remoteconfig.update",
+        resource: {
+          service: "firebaseremoteconfig.googleapis.com",
+          name: "projects/aProject/config",
+        },
+        params: {},
+      });
+
+      expect(capturedEvent.version).to.deep.equal({ versionNumber: 1, updateTime: "now" });
+    });
   });
 });

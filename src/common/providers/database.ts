@@ -131,7 +131,7 @@ export class DataSnapshot implements database.DataSnapshot {
     }
     if (parts.length) {
       for (const part of parts) {
-        if (source[part] === undefined) {
+        if (typeof source === "undefined" || source === null) {
           return null;
         }
         source = source[part];

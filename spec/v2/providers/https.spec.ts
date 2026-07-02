@@ -32,7 +32,13 @@ import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "
 import { onInit } from "../../../src/v2/core";
 import { Handler } from "express";
 import { genkit } from "genkit";
-import { clearParams, defineList, Expression } from "../../../src/params";
+import {
+  clearParams,
+  defineBoolean,
+  defineList,
+  defineString,
+  Expression,
+} from "../../../src/params";
 
 function request(args: {
   data?: any;
@@ -336,6 +342,25 @@ describe("onRequest", () => {
     await runHandler(func, req);
     expect(hello).to.equal("world");
   });
+
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onRequest({ cors: stringParam }, () => {});
+    const funcList = https.onRequest({ cors: listParam }, () => {});
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() =>
+      https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
+        res.end();
+      })
+    ).to.throw(/between 0 and 3600 for HTTPS and callable functions/);
+  });
 });
 
 describe("onCall", () => {
@@ -507,6 +532,43 @@ describe("onCall", () => {
     });
   });
 
+  it("should allow boolean params for enforceAppCheck", async () => {
+    const enforceAppCheck = defineBoolean("ENFORCE_APP_CHECK");
+    try {
+      process.env.ENFORCE_APP_CHECK = "true";
+      const func = https.onCall({ enforceAppCheck }, () => 42);
+
+      const req = request({ headers: { origin: "example.com" } }); // No app check token
+      const resp = await runHandler(func, req);
+      expect(resp.status).to.equal(401);
+    } finally {
+      delete process.env.ENFORCE_APP_CHECK;
+      clearParams();
+    }
+  });
+
+  it("should allow boolean params for consumeAppCheckToken", async () => {
+    const consumeAppCheckToken = defineBoolean("CONSUME_APP_CHECK_TOKEN");
+    sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
+    try {
+      process.env.CONSUME_APP_CHECK_TOKEN = "true";
+      const func = https.onCall({ consumeAppCheckToken }, (request) => {
+        return { alreadyConsumed: request.app?.alreadyConsumed };
+      });
+
+      const req = request({ headers: { "X-Firebase-AppCheck": "valid_token_ignored_on_skip" } });
+      const resp = await runHandler(func, req);
+
+      expect(resp.status).to.equal(200);
+      const result = JSON.parse(resp.body).result;
+      expect(result.alreadyConsumed).to.satisfy((v) => v === false || v === null);
+    } finally {
+      delete process.env.CONSUME_APP_CHECK_TOKEN;
+      clearParams();
+      sinon.restore();
+    }
+  });
+
   it("overrides CORS headers if debug feature is enabled", async () => {
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
 
@@ -566,6 +628,23 @@ describe("onCall", () => {
     expect(hello).to.be.undefined;
     await runHandler(func, req);
     expect(hello).to.equal("world");
+  });
+
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onCall({ cors: stringParam }, () => 42);
+    const funcList = https.onCall({ cors: listParam }, () => 42);
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() => https.onCall({ timeoutSeconds: 3601 }, () => 42)).to.throw(
+      /between 0 and 3600 for HTTPS and callable functions/
+    );
   });
 
   describe("authPolicy", () => {

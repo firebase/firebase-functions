@@ -13,8 +13,8 @@ export const pubsubTests: any = functions
     let testId: string;
     try {
       testId = m.json.testId;
-    } catch (e) {
-      /* Ignored. Covered in another test case that `event.data.json` works. */
+    } catch (_e) {
+      // Ignored. Covered in another test case that `event.data.json` works.
     }
 
     return new TestSuite<PubsubMessage>("pubsub onPublish")
