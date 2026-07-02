@@ -327,7 +327,6 @@ type ParamInput<T> =
  * to type it in interactively at deploy time. Input that does not match the
  * provided validationRegex, if present, will be retried.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface TextInput<T = unknown> {
   text: {
     example?: string;
@@ -342,7 +341,12 @@ export interface TextInput<T = unknown> {
      * failing to conform to the validationRegex,
      */
     validationErrorMessage?: string;
-  };
+    /**
+     * If set on an input for a string or string list param, nonEmpty prevents
+     * the prompt from accepting the empty string or empty list as valid input.
+     * Syntactic sugar over setting validationRegex to /.+/
+     */
+  } & (T extends string | string[] ? { nonEmpty?: boolean } : {});
 }
 
 /**
@@ -383,6 +387,13 @@ export interface SelectInput<T = unknown> {
 export interface MultiSelectInput {
   multiSelect: {
     options: Array<SelectOptions<string>>;
+
+    /**
+     * If set on an input for a string or string list param, nonEmpty prevents
+     * the prompt from accepting the empty string or empty list as valid input.
+     * Syntactic sugar over setting validationRegex to /.+/
+     */
+    nonEmpty?: boolean;
   };
 }
 
@@ -415,10 +426,8 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
 
 /**
  * Representation of parameters for the stack over the wire.
- *
  * @remarks
  * N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
- *
  * @alpha
  */
 export type WireParamSpec<T extends string | number | boolean | string[]> = {
