@@ -3,6 +3,7 @@ import { App, initializeApp } from "firebase-admin/app";
 import * as appCheck from "firebase-admin/app-check";
 import * as sinon from "sinon";
 import * as nock from "nock";
+import { defineString, defineList } from "../../../src/params";
 
 import { getApp, setApp } from "../../../src/common/app";
 import * as debug from "../../../src/common/debug";
@@ -948,6 +949,137 @@ describe("onCallHandler", () => {
         expect(resp.body).to.equal('data: {"result":"done"}\n\n');
       });
     });
+  });
+
+  describe("CORS resolution", () => {
+    let oldEnv: NodeJS.ProcessEnv;
+
+    beforeEach(() => {
+      oldEnv = process.env;
+      process.env = { ...oldEnv };
+    });
+
+    afterEach(() => {
+      process.env = oldEnv;
+    });
+
+    it("should resolve Expression origin", async () => {
+      process.env.ALLOWED_ORIGIN = "example.org";
+      const param = defineString("ALLOWED_ORIGIN");
+      await runCallableTest({
+        httpRequest: mockRequest(
+          null,
+          "application/json",
+          {},
+          {
+            origin: "example.org",
+          }
+        ),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: param, methods: "POST" },
+        },
+        callableFunction: () => null,
+        callableFunction2: () => null,
+        expectedHttpResponse: {
+          status: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "example.org",
+            Vary: "Origin",
+          },
+          body: { result: null },
+        },
+      });
+    });
+
+    it("should resolve Expression list origin", async () => {
+      process.env.ALLOWED_ORIGINS = JSON.stringify(["example.com", "example.org"]);
+      const param = defineList("ALLOWED_ORIGINS");
+      await runCallableTest({
+        httpRequest: mockRequest(
+          null,
+          "application/json",
+          {},
+          {
+            origin: "example.org",
+          }
+        ),
+        expectedData: null,
+        callableOption: {
+          cors: { origin: param, methods: "POST" },
+        },
+        callableFunction: () => null,
+        callableFunction2: () => null,
+        expectedHttpResponse: {
+          status: 200,
+          headers: {
+            "Access-Control-Allow-Origin": "example.org",
+            Vary: "Origin",
+          },
+          body: { result: null },
+        },
+      });
+    });
+  });
+});
+
+describe("resolveCorsOrigin", () => {
+  let oldEnv: NodeJS.ProcessEnv;
+
+  beforeEach(() => {
+    oldEnv = process.env;
+    process.env = { ...oldEnv };
+  });
+
+  afterEach(() => {
+    process.env = oldEnv;
+    sinon.restore();
+  });
+
+  it("should resolve Expression string", () => {
+    process.env.ALLOWED_ORIGIN = "example.com";
+    const param = defineString("ALLOWED_ORIGIN");
+    expect(https.resolveCorsOrigin(param)).to.equal("example.com");
+  });
+
+  it("should resolve Expression list", () => {
+    process.env.ALLOWED_ORIGINS = JSON.stringify(["example.com", "example.org"]);
+    const param = defineList("ALLOWED_ORIGINS");
+    expect(https.resolveCorsOrigin(param)).to.deep.equal(["example.com", "example.org"]);
+  });
+
+  it("should flatten single element array", () => {
+    expect(https.resolveCorsOrigin(["example.com"])).to.equal("example.com");
+  });
+
+  it("should support enableCors debug feature", () => {
+    sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
+    expect(https.resolveCorsOrigin("example.com")).to.equal(true);
+  });
+
+  it("should respect cors: false even with enableCors debug feature", () => {
+    sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
+    expect(https.resolveCorsOrigin(false)).to.equal(false);
+  });
+
+  it("should disable CORS when ListParam is missing at runtime", () => {
+    delete process.env.MISSING_ORIGINS;
+    const param = defineList("MISSING_ORIGINS");
+    expect(https.resolveCorsOrigin(param)).to.equal(false);
+  });
+
+  it("should disable CORS when StringParam is missing at runtime", () => {
+    delete process.env.MISSING_ORIGIN;
+    const param = defineString("MISSING_ORIGIN");
+    expect(https.resolveCorsOrigin(param)).to.equal(false);
+  });
+
+  it("should disable CORS when origin is an empty array", () => {
+    expect(https.resolveCorsOrigin([])).to.equal(false);
+  });
+
+  it("should disable CORS when origin is an empty string", () => {
+    expect(https.resolveCorsOrigin("")).to.equal(false);
   });
 });
 
