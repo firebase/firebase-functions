@@ -21,11 +21,15 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { PathPattern } from "../../../src/common/utilities/path-pattern";
 import * as database from "../../../src/v2/providers/database";
 import { expectType } from "../../common/metaprogramming";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { CloudEvent, onInit } from "../../../src/v2/core";
+import * as params from "../../../src/params";
+import * as logger from "../../../src/logger";
+import { stackToWire } from "../../../src/runtime/manifest";
 
 const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   data: {
@@ -46,7 +50,17 @@ const RAW_RTDB_EVENT: database.RawRTDBCloudEvent = {
   authtype: "unauthenticated",
 };
 
+const TEST_RTDB_INSTANCE_ENV_VAR = "TEST_RTDB_INSTANCE_FOR_GETOPTS";
+const RESOLVED_RTDB_INSTANCE = "resolved-instance";
+
 describe("database", () => {
+  afterEach(() => {
+    params.clearParams();
+    sinon.restore();
+    delete process.env.FUNCTIONS_CONTROL_API;
+    delete process.env[TEST_RTDB_INSTANCE_ENV_VAR];
+  });
+
   describe("makeParams", () => {
     it("should make params with basic path", () => {
       const event: database.RawRTDBCloudEvent = {
@@ -146,6 +160,15 @@ describe("database", () => {
         },
       });
     });
+
+    it("should preserve instance Expression", () => {
+      const p = params.defineString(TEST_RTDB_INSTANCE_ENV_VAR);
+
+      expect(database.getOpts({ ref: "/foo", instance: p })).to.deep.include({
+        path: "foo",
+        instance: p,
+      });
+    });
   });
 
   describe("makeEndpoint", () => {
@@ -204,6 +227,37 @@ describe("database", () => {
           },
           eventFilterPathPatterns: {
             ref: "foo/bar",
+          },
+          retry: false,
+        },
+      });
+    });
+
+    it("should create an endpoint with an instance Expression as a path pattern", () => {
+      const instance = params.defineString(TEST_RTDB_INSTANCE_ENV_VAR);
+      const ep = database.makeEndpoint(
+        database.writtenEventType,
+        {
+          region: "us-central1",
+          labels: { 1: "2" },
+        },
+        new PathPattern("foo/bar"),
+        instance
+      );
+
+      expect(ep).to.deep.equal({
+        ...MINIMAL_V2_ENDPOINT,
+        platform: "gcfv2",
+        labels: {
+          1: "2",
+        },
+        region: ["us-central1"],
+        eventTrigger: {
+          eventType: database.writtenEventType,
+          eventFilters: {},
+          eventFilterPathPatterns: {
+            ref: "foo/bar",
+            instance,
           },
           retry: false,
         },
@@ -542,6 +596,66 @@ describe("database", () => {
           retry: false,
         },
       });
+    });
+
+    it("should create a function with instance Expression without deployment warning", () => {
+      process.env.FUNCTIONS_CONTROL_API = "true";
+      const warnSpy = sinon.spy(logger, "warn");
+      const instance = params.defineString(TEST_RTDB_INSTANCE_ENV_VAR);
+
+      const func = database.onValueCreated(
+        {
+          ref: "/foo/{bar}/",
+          instance,
+        },
+        () => 2
+      );
+
+      expect(warnSpy.callCount).to.equal(0);
+      expect(func.__endpoint.eventTrigger.eventFilters).to.deep.equal({});
+      expect(func.__endpoint.eventTrigger.eventFilterPathPatterns).to.deep.equal({
+        ref: "foo/{bar}",
+        instance,
+      });
+
+      const wire = stackToWire({
+        specVersion: "v1alpha1",
+        requiredAPIs: [],
+        endpoints: {
+          exprInstance: func.__endpoint,
+        },
+      }) as any;
+
+      expect(wire.endpoints.exprInstance.eventTrigger.eventFilterPathPatterns.instance).to.equal(
+        `{{ params.${TEST_RTDB_INSTANCE_ENV_VAR} }}`
+      );
+      expect(warnSpy.callCount).to.equal(0);
+    });
+
+    it("should resolve instance Expression at runtime", async () => {
+      process.env[TEST_RTDB_INSTANCE_ENV_VAR] = RESOLVED_RTDB_INSTANCE;
+      const instance = params.defineString(TEST_RTDB_INSTANCE_ENV_VAR);
+      const valueSpy = sinon.spy(instance, "value");
+      let capturedEvent: database.DatabaseEvent<any, { bar: string }>;
+
+      const func = database.onValueCreated(
+        {
+          ref: "/foo/{bar}/",
+          instance,
+        },
+        (event) => {
+          capturedEvent = event;
+        }
+      );
+
+      await func({
+        ...RAW_RTDB_EVENT,
+        instance: RESOLVED_RTDB_INSTANCE,
+        ref: "foo/bar-value",
+      } as any);
+
+      expect(valueSpy.callCount).to.equal(1);
+      expect(capturedEvent.params).to.deep.equal({ bar: "bar-value" });
     });
   });
 
