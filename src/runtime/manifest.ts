@@ -152,7 +152,7 @@ export interface ManifestLifecycleAction {
   };
   http?: {
     function?: string;
-    url?: string | Expression<string>;
+    url?: string;
     method?: string;
     headers?: Record<string, string>;
     body?: unknown;

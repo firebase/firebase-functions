@@ -41,6 +41,13 @@ export type LifecycleAction =
   | { call: CallAction; task?: never; http?: never }
   | { http: HttpAction; task?: never; call?: never };
 
+/**
+ * Use a global singleton to manage the list of declared lifecycle hooks.
+ *
+ * This ensures that lifecycle hooks are shared between CJS and ESM builds,
+ * avoiding the "dual-package hazard" where the src/bin/firebase-functions.ts (CJS) sees
+ * an empty list while the user's code (ESM) populates a different list.
+ */
 const majorVersion =
   // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
   typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
@@ -88,7 +95,7 @@ export function afterUpdate(action: LifecycleAction): void {
 }
 
 /**
- * Helper to clear declared lifecycle hooks (primarily for testing).
+ * Helper to clear declared lifecycle hooks.
  * @internal
  */
 export function clearDeclaredLifecycleHooks(): void {
