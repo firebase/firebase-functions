@@ -194,9 +194,6 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
     }
   };
   traverse(wireStack.endpoints);
-  if (wireStack.lifecycleHooks) {
-    traverse(wireStack.lifecycleHooks);
-  }
   return wireStack;
 }
 
