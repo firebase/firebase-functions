@@ -439,12 +439,12 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
 
   let enforceAppCheck = opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck;
   if (enforceAppCheck instanceof Expression) {
-    enforceAppCheck = enforceAppCheck.value();
+    enforceAppCheck = enforceAppCheck.runtimeValue();
   }
 
   let consumeAppCheckToken = opts.consumeAppCheckToken;
   if (consumeAppCheckToken instanceof Expression) {
-    consumeAppCheckToken = consumeAppCheckToken.value();
+    consumeAppCheckToken = consumeAppCheckToken.runtimeValue();
   }
 
   let func: any = onCallHandler(
