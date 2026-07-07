@@ -70,7 +70,7 @@ export const declaredLifecycleHooks: Record<string, LifecycleAction> = globalSym
 
 /**
  * Registers an action to be executed automatically post-deployment when resources in this codebase
- * are installed for the first time.
+ * are deployed for the first time.
  *
  * @param action The lifecycle action to execute.
  */
