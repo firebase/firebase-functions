@@ -70,15 +70,15 @@ export const declaredLifecycleHooks: Record<string, LifecycleAction> = globalSym
 
 /**
  * Registers an action to be executed automatically post-deployment when resources in this codebase
- * are installed for the initial time.
+ * are deployed for the first time.
  *
  * @param action The lifecycle action to execute.
  */
-export function afterInstall(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterInstall) {
-    throw new Error("Only one afterInstall lifecycle hook is allowed per codebase.");
+export function afterFirstDeploy(action: LifecycleAction): void {
+  if (declaredLifecycleHooks.afterFirstDeploy) {
+    throw new Error("Only one afterFirstDeploy lifecycle hook is allowed per codebase.");
   }
-  declaredLifecycleHooks.afterInstall = action;
+  declaredLifecycleHooks.afterFirstDeploy = action;
 }
 
 /**
@@ -87,11 +87,11 @@ export function afterInstall(action: LifecycleAction): void {
  *
  * @param action The lifecycle action to execute.
  */
-export function afterUpdate(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterUpdate) {
-    throw new Error("Only one afterUpdate lifecycle hook is allowed per codebase.");
+export function afterRedeploy(action: LifecycleAction): void {
+  if (declaredLifecycleHooks.afterRedeploy) {
+    throw new Error("Only one afterRedeploy lifecycle hook is allowed per codebase.");
   }
-  declaredLifecycleHooks.afterUpdate = action;
+  declaredLifecycleHooks.afterRedeploy = action;
 }
 
 /**
