@@ -83,7 +83,7 @@ export { traceContext } from "../common/trace";
 import * as params from "../params";
 export { params };
 
-export { afterInstall, afterUpdate } from "../lifecycle";
+export { afterFirstDeploy, afterRedeploy } from "../lifecycle";
 
 // NOTE: Required to support the Functions Emulator which monkey patches `functions.config()`
 // TODO(danielylee): Remove in next major release.
