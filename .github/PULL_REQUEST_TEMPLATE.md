@@ -28,3 +28,26 @@ before sending PRs. We cannot accept code without this.
 ### Code sample
 
 <!-- Proposing an API change? Provide code samples showing how the API will be used. -->
+
+### Release notes
+
+<!-- 
+  Your PR description must contain a "relnote:" line. 
+  Our CI release notes linter will verify this before allowing a merge.
+
+  Please keep EXACTLY ONE of the options below:
+-->
+
+relnotes: none
+
+<!-- 
+  Alternative Options (Replace the "relnote: none" line above with one of these if applicable):
+
+  1. For a user-facing change:
+     relnote: Added support for second-generation memory allocation optimizations
+
+  2. For a manual/legacy override (stops the script from automatically appending this PR number):
+     relnote: Consolidated memory allocation upgrades (#884, #885)
+
+  Multiple relnotes may be included in a single PR, each with their own relnote line
+-->

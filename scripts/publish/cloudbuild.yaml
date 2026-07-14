@@ -55,6 +55,11 @@ steps:
   - name: "gcr.io/cloud-builders/git"
     args: ["clone", "git@github.com:${_REPOSITORY_ORG}/${_REPOSITORY_NAME}"]
 
+  # Fetch all tags so stateless history calculations resolve correctly.
+  - name: "gcr.io/cloud-builders/git"
+    dir: "${_REPOSITORY_NAME}"
+    args: ["fetch", "--tags"]
+
   # Set up the Git configuration.
   - name: "gcr.io/cloud-builders/git"
     dir: "${_REPOSITORY_NAME}"
@@ -76,13 +81,23 @@ steps:
   # Publish the package.
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
-    args: ["bash", "./scripts/publish.sh", "${_VERSION}"]
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        # Map our Cloud Build environment variables for the shell script execution
+        export GITHUB_TOKEN=$$GITHUB_TOKEN
+        
+        ./scripts/publish_worker.sh ${_BUMP_TYPE} \
+          ${_PRERELEASE:+--prerelease} \
+          ${_DRY_RUN:+--dry-run} \
+          ${_BRANCH:+--branch $_BRANCH} \
+          --org=${_REPOSITORY_ORG} \
+          --repository=${_REPOSITORY_NAME} \
+          ${_SDK:+--sdk $_SDK} \
+          ${_DIST_TAG}
+
     secretEnv: ["GITHUB_TOKEN"]
-    env:
-      - "REPOSITORY_ORG=${_REPOSITORY_ORG}"
-      - "REPOSITORY_NAME=${_REPOSITORY_NAME}"
-      - "DRY_RUN=${_DRY_RUN}"
-      - "PRE_RELEASE=${_PRE_RELEASE}"
 
 options:
   volumes:
@@ -90,13 +105,16 @@ options:
       path: /root/.ssh
 
 substitutions:
-  _VERSION: ""
-  _PRE_RELEASE: ""
+  _BUMP_TYPE: "patch"
+  _PRERELEASE: ""
   _DRY_RUN: ""
+  _DIST_TAG: "latest"
   _KEY_RING: "npm-publish-keyring"
   _KEY_NAME: "publish"
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
+  _BRANCH: ""
+  _SDK: "" # Defaults to _REPOSITORY_NAME inside the script if left empty
 
 availableSecrets:
   secretManager:
