@@ -611,6 +611,27 @@ describe("identity", () => {
       func(mockEvent);
       expect(called).to.be.true;
     });
+
+    it("should gracefully handle explicit { value: null } inside raw.data without throwing", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.data).to.be.undefined;
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { value: null } as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
   });
 
   describe("onUserDeleted", () => {

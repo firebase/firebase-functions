@@ -427,7 +427,16 @@ function unpackAndNormalizeUserRecord(rawData: unknown): User | undefined {
     return undefined;
   }
   const dataObj = rawData as Record<string, unknown>;
-  const rawUser = dataObj.value ?? dataObj.oldValue ?? dataObj.old_value ?? dataObj;
+  let rawUser: unknown;
+  if ("value" in dataObj) {
+    rawUser = dataObj.value;
+  } else if ("oldValue" in dataObj) {
+    rawUser = dataObj.oldValue;
+  } else if ("old_value" in dataObj) {
+    rawUser = dataObj.old_value;
+  } else {
+    rawUser = dataObj;
+  }
   if (!rawUser || typeof rawUser !== "object") {
     return undefined;
   }
