@@ -422,23 +422,41 @@ function getOptsAndHandler(
 const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
 
 /** @hidden */
+function unpackAndNormalizeUserRecord(rawData: unknown): User | undefined {
+  if (!rawData || typeof rawData !== "object") {
+    return undefined;
+  }
+  const dataObj = rawData as Record<string, unknown>;
+  const rawUser = dataObj.value ?? dataObj.oldValue ?? dataObj.old_value ?? dataObj;
+  if (!rawUser || typeof rawUser !== "object") {
+    return undefined;
+  }
+  const userData = { ...(rawUser as Record<string, unknown>) };
+  if (userData.photoUrl && !userData.photoURL) {
+    userData.photoURL = userData.photoUrl;
+  }
+  if (userData.metadata && typeof userData.metadata === "object") {
+    const meta = { ...(userData.metadata as Record<string, unknown>) };
+    if (meta.createTime && !meta.createdAt && !meta.creationTime) {
+      meta.creationTime = meta.createTime;
+    }
+    userData.metadata = meta;
+  }
+  return userRecordConstructor(userData);
+}
+
+/**
+ * Normalizes raw CloudEvents from Eventarc into AuthEvent<User>.
+ * Eventarc wraps v2 Authentication user payloads inside an `AuthEventData`
+ * protobuf envelope (`value` for creation events, `oldValue` for deletion events).
+ * We unbox the envelope (falling back to `raw.data` for unit tests) and normalize
+ * protobuf-specific field names (`createTime` -> `creationTime`, `photoUrl` -> `photoURL`).
+ * @hidden
+ */
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   const event: AuthEvent<User> = { ...raw } as any;
-  if (raw.data) {
-    const dataObj = raw.data as Record<string, unknown>;
-    const rawUser = (dataObj.value || dataObj.oldValue || dataObj.old_value || dataObj) as Record<
-      string,
-      unknown
-    >;
-    const userData = { ...rawUser };
-    if (userData.metadata && typeof userData.metadata === "object") {
-      const meta = { ...(userData.metadata as Record<string, unknown>) };
-      if (meta.createTime && !meta.createdAt && !meta.creationTime) {
-        meta.creationTime = meta.createTime;
-      }
-      userData.metadata = meta;
-    }
-    event.data = userRecordConstructor(userData);
+  if (raw.data !== undefined && raw.data !== null) {
+    event.data = unpackAndNormalizeUserRecord(raw.data);
   }
   const rawAny = raw as any;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
