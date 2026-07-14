@@ -425,7 +425,20 @@ const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   const event: AuthEvent<User> = { ...raw } as any;
   if (raw.data) {
-    event.data = userRecordConstructor(raw.data as Record<string, unknown>);
+    const dataObj = raw.data as Record<string, unknown>;
+    const rawUser = (dataObj.value || dataObj.oldValue || dataObj.old_value || dataObj) as Record<
+      string,
+      unknown
+    >;
+    const userData = { ...rawUser };
+    if (userData.metadata && typeof userData.metadata === "object") {
+      const meta = { ...(userData.metadata as Record<string, unknown>) };
+      if (meta.createTime && !meta.createdAt && !meta.creationTime) {
+        meta.creationTime = meta.createTime;
+      }
+      userData.metadata = meta;
+    }
+    event.data = userRecordConstructor(userData);
   }
   const rawAny = raw as any;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
