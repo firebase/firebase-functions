@@ -218,7 +218,7 @@ else
   
   while read -r sha; do
     COMMIT_SUBJECT=$(git log -1 --format="%s" "$sha")
-    PR_SUFFIX=$(echo "$COMMIT_SUBJECT" | grep -oE '\(#[0-9]+\)$')
+    PR_SUFFIX=$(echo "$COMMIT_SUBJECT" | grep -oE '\(#[0-9]+\)$' || true)
 
     while read -r line; do
       if [ -n "$line" ]; then

@@ -4,6 +4,9 @@ on:
   pull_request:
     types: [opened, edited, synchronized, reopened]
 
+permissions:
+  contents: read
+
 jobs:
   lint-pr-body:
     runs-on: ubuntu-latest
