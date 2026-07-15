@@ -14,11 +14,11 @@ show_usage() {
   echo ""
   echo "Options:"
   echo "  --prerelease              Flag the build as a release candidate"
-  echo "  --dry-run                 Run tests/checks, but skip external writes (no npm/git push)"
+  echo "  --no-dry-run              Perform real write actions (npm publish, git tag, github release)"
+  echo "  --force                   Force a release even if there are no new commits since last release"
   echo "  --branch <name>           The Git branch to check out (defaults to cloned HEAD)"
   echo "  --org <name>              GitHub Organization override (defaults to 'firebase')"
   echo "  --repository <name>       GitHub Repository override (defaults to 'firebase-functions')"
-  echo "  --sdk <name>              Name override for Twitter announcements (defaults to repo name)"
   echo "  --dist-tag <tag>          The npm distribution tag (defaults to 'latest')"
   echo "  --project <project>       The GCP project used to run the deploy pipeline"
   exit 1
@@ -39,11 +39,11 @@ fi
 
 # Set default values
 IS_PRERELEASE=false
-DRY_RUN=false
+DRY_RUN=true
+FORCE_RELEASE=false
 TARGET_BRANCH=""
 ORG="firebase"
 REPO="firebase-functions"
-SDK=""
 DIST_TAG="latest"
 TARGET_PROJECT="firebase-functions-publishing"
 
@@ -54,8 +54,12 @@ while [ "$#" -gt 0 ]; do
       IS_PRERELEASE=true
       shift
       ;;
-    --dry-run)
-      DRY_RUN=true
+    --no-dry-run)
+      DRY_RUN=false
+      shift
+      ;;
+    --force)
+      FORCE_RELEASE=true
       shift
       ;;
     --branch)
@@ -68,10 +72,6 @@ while [ "$#" -gt 0 ]; do
       ;;
     --repository)
       REPO="$2"
-      shift 2
-      ;;
-    --sdk)
-      SDK="$2"
       shift 2
       ;;
     --dist-tag)
@@ -92,10 +92,6 @@ while [ "$#" -gt 0 ]; do
   esac
 done
 
-if [ -z "$SDK" ]; then
-  SDK="$REPO"
-fi
-
 # ==============================================================================
 # MODE A: LOCAL ORCHESTRATOR MODE (Runs on your machine)
 # ==============================================================================
@@ -115,11 +111,11 @@ if [ -z "$BUILD_ID" ]; then
   # 2. Build parameter mapping
   SUBSTITUTIONS="_BUMP_TYPE=$BUMP_TYPE"
   [ "$IS_PRERELEASE" = true ] && SUBSTITUTIONS+=",_PRERELEASE=true"
-  [ "$DRY_RUN" = true ] && SUBSTITUTIONS+=",_DRY_RUN=true"
+  SUBSTITUTIONS+=",_DRY_RUN=$DRY_RUN"
+  [ "$FORCE_RELEASE" = true ] && SUBSTITUTIONS+=",_FORCE=true"
   [ -n "$TARGET_BRANCH" ] && SUBSTITUTIONS+=",_BRANCH=$TARGET_BRANCH"
   SUBSTITUTIONS+=",_REPOSITORY_ORG=$ORG"
   SUBSTITUTIONS+=",_REPOSITORY_NAME=$REPO"
-  SUBSTITUTIONS+=",_SDK=$SDK"
   SUBSTITUTIONS+=",_DIST_TAG=$DIST_TAG"
 
   echo "--------------------------------------------------------"
@@ -127,9 +123,9 @@ if [ -z "$BUILD_ID" ]; then
   echo "  Bump Type:        $BUMP_TYPE"
   echo "  Is Prerelease:    $IS_PRERELEASE"
   echo "  Is Dry Run:       $DRY_RUN"
+  echo "  Force Release:    $FORCE_RELEASE"
   echo "  Target Branch:    ${TARGET_BRANCH:-[default]}"
   echo "  GitHub Host:      $ORG/$REPO"
-  echo "  Twitter SDK:      $SDK"
   echo "  NPM Tag:          $DIST_TAG"
   echo "--------------------------------------------------------"
 
@@ -172,6 +168,7 @@ echo "Current stable version on npm: $STABLE_VERSION"
 echo "Target distribution tag:       $DIST_TAG"
 echo "Is Prerelease:                 $IS_PRERELEASE"
 echo "Dry Run Mode:                  $DRY_RUN"
+echo "Force Release:                 $FORCE_RELEASE"
 echo "GitHub Repo Target:            $ORG/$REPO"
 echo "--------------------------------------------------------"
 
@@ -209,91 +206,20 @@ for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep
   fi
 done
 
-if [ -z "$PREVIOUS_TAG" ]; then
-  echo "⚠️ Warning: No stable SemVer tags found. Analyzing full history..."
-  CHANGELOG_NOTES="Initial release v$NEXT_VERSION."
-else
-  echo "Identified stable base: $PREVIOUS_TAG. Harvesting notes up to HEAD..."
-  
-  # First pass: Identify all reverted PRs and SHAs in the interval
-  REVERTED_PRS=" "
-  REVERTED_SHAS=" "
-  while read -r sha; do
-    COMMIT_SUBJECT=$(git log -1 --format="%s" "$sha")
-    if [[ "$COMMIT_SUBJECT" =~ ^Revert[[:space:]]\" ]]; then
-      # Extract PR number from revert subject: e.g. Revert "feat: foo (#123)" -> 123
-      REVERTED_PR=$(echo "$COMMIT_SUBJECT" | grep -oE '\(#[0-9]+\)' | tr -d '(#)' || true)
-      if [ -n "$REVERTED_PR" ]; then
-        REVERTED_PRS+="$REVERTED_PR "
-      fi
-
-      # Extract reverted commit SHA from the body: e.g. "This reverts commit 8ec5..."
-      REVERTED_SHA=$(git log -1 --format="%b" "$sha" | grep -iE 'this reverts commit' | sed -E 's/.*[Tt]his reverts commit[[:space:]]+([0-9a-fA-F]+).*/\1/' || true)
-      if [ -n "$REVERTED_SHA" ]; then
-        RESOLVED_SHA=$(git rev-parse "$REVERTED_SHA" 2>/dev/null || echo "$REVERTED_SHA")
-        REVERTED_SHAS+="$RESOLVED_SHA "
-        
-        # Also try to get the PR number associated with the reverted commit
-        REVERTED_SHA_SUBJECT=$(git log -1 --format="%s" "$RESOLVED_SHA" 2>/dev/null || true)
-        if [ -n "$REVERTED_SHA_SUBJECT" ]; then
-          REVERTED_SHA_PR=$(echo "$REVERTED_SHA_SUBJECT" | grep -oE '\(#[0-9]+\)' | tr -d '(#)' || true)
-          if [ -n "$REVERTED_SHA_PR" ]; then
-            REVERTED_PRS+="$REVERTED_SHA_PR "
-          fi
-        fi
-      fi
+if [ -n "$PREVIOUS_TAG" ]; then
+  COMMITS_COUNT=$(git rev-list "${PREVIOUS_TAG}..HEAD" | wc -l | xargs)
+  if [ "$COMMITS_COUNT" -eq 0 ]; then
+    if [ "$FORCE_RELEASE" = true ]; then
+      echo "⚠️ Warning: No new commits found since last tag ($PREVIOUS_TAG), but continuing due to --force flag."
+    else
+      echo "❌ Error: No new commits found since the last release tag ($PREVIOUS_TAG). Aborting release. Use --force to override."
+      exit 1
     fi
-  done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
-
-  echo "Identified reverted PRs: $REVERTED_PRS"
-  echo "Identified reverted SHAs: $REVERTED_SHAS"
-
-  CHANGELOG_NOTES=""
-  while read -r sha; do
-    # Check if this SHA was reverted
-    FULL_SHA=$(git rev-parse "$sha")
-    if [[ "$REVERTED_SHAS" =~ " $FULL_SHA " ]]; then
-      echo "⏭️ Skipping release notes for reverted commit: $sha"
-      continue
-    fi
-
-    COMMIT_SUBJECT=$(git log -1 --format="%s" "$sha")
-    
-    # Skip revert commits themselves
-    if [[ "$COMMIT_SUBJECT" =~ ^Revert[[:space:]]\" ]]; then
-      continue
-    fi
-
-    PR_SUFFIX=$(echo "$COMMIT_SUBJECT" | grep -oE '\(#[0-9]+\)$' || true)
-    if [ -n "$PR_SUFFIX" ]; then
-      PR_NUM=$(echo "$PR_SUFFIX" | tr -d '(#)')
-      if [[ "$REVERTED_PRS" =~ " $PR_NUM " ]]; then
-        echo "⏭️ Skipping release notes for reverted PR: #$PR_NUM"
-        continue
-      fi
-    fi
-
-    while read -r line; do
-      if [ -n "$line" ]; then
-        if echo "$line" | grep -qE '\(#[0-9]+\)$'; then
-          CHANGELOG_NOTES+="- $line"$'\n'
-        elif [ -n "$PR_SUFFIX" ]; then
-          CHANGELOG_NOTES+="- $line $PR_SUFFIX"$'\n'
-        else
-          CHANGELOG_NOTES+="- $line"$'\n'
-        fi
-      fi
-    done < <(git log -1 --format="%b" "$sha" | \
-             grep -iE '^relnotes?:' | \
-             grep -vi 'relnotes?:[[:space:]]*none' | \
-             sed -E 's/^[Rr]elnotes?:[[:space:]]*//g' | \
-             sed -E 's/[[:space:]]*$//')
-  done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
+  fi
 fi
 
-if [ -z "$CHANGELOG_NOTES" ]; then
-  CHANGELOG_NOTES="- Internal maintenance updates and chore improvements."
-fi
+# Generate release notes using the standalone changelog script
+CHANGELOG_NOTES=$(./scripts/changelog.sh)
 
 echo "----------------- Generated Release Notes -----------------"
 echo -e "$CHANGELOG_NOTES"
@@ -327,16 +253,6 @@ else
     $GH_RELEASE_FLAGS
 
   rm release_notes.md
-fi
-
-# 8. Twitter Broadcast
-if [ "$IS_PRERELEASE" = false ]; then
-  if [ "$DRY_RUN" = true ]; then
-    echo "🔍 [Dry Run] Skipping Twitter broadcast..."
-  else
-    echo "Broadcasting stable release to social networks..."
-    # node scripts/tweet.js "$SDK@$NEXT_VERSION has been published!"
-  fi
 fi
 
 if [ "$DRY_RUN" = true ]; then
