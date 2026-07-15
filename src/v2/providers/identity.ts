@@ -378,12 +378,14 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
 /**
  * The user data payload for an Auth Event. this is the standard "UserRecord"
  * from the firebase Admin SDK.
+ * @internal
  */
 export type User = AdminUserRecord;
 
 /**
  * The event object passed to the handler funcation for Firebase Authentication
  * events.
+ * @internal
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
   /** The project identifier */
@@ -393,7 +395,10 @@ export interface AuthEvent<T> extends CloudEvent<T> {
   tenantId?: string;
 }
 
-/** Options for configuring a Firebase Authentication Trigger */
+/**
+ * Options for configuring a Firebase Authentication Trigger
+ * @internal
+ */
 export interface AuthOptions extends options.EventHandlerOptions {
   /**
    * The Id of the Identity Platform tenant to scope the function to.
@@ -404,7 +409,10 @@ export interface AuthOptions extends options.EventHandlerOptions {
   tenantId?: string | Expression<string> | typeof RESET_VALUE;
 }
 
-// constant to represent the absence of tenant ID.
+/**
+ * constant to represent the absence of tenant ID.
+ * @internal
+ */
 export const IS_NOT_TENANT = RESET_VALUE;
 
 // Helper to handle overloaded function signature
@@ -546,6 +554,7 @@ const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @beta
+ * @internal
  *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
@@ -557,6 +566,7 @@ export function onUserCreated(
  * Handles user creation events in Firebase Authentication.
  *
  * @beta
+ * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -581,6 +591,7 @@ const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @beta
+ * @internal
  *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
@@ -592,6 +603,7 @@ export function onUserDeleted(
  * Handles user deletion events in Firebase Authentication.
  *
  * @beta
+ * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
