@@ -31,16 +31,16 @@ before sending PRs. We cannot accept code without this.
 
 ### Release notes
 
-<!-- 
-  Your PR description must contain a "relnote:" line. 
+<!--
+  Your PR description must contain a "relnote:" line.
   Our CI release notes linter will verify this before allowing a merge.
 
   Please keep EXACTLY ONE of the options below:
 -->
 
-relnotes: none
+relnote: none
 
-<!-- 
+<!--
   Alternative Options (Replace the "relnote: none" line above with one of these if applicable):
 
   1. For a user-facing change:

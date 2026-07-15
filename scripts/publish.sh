@@ -136,7 +136,7 @@ if [ -z "$BUILD_ID" ]; then
   echo "Dispatched to Cloud Build..."
   gcloud builds submit \
     --project="$TARGET_PROJECT" \
-    --config="cloudbuild.yaml" \
+    --config="scripts/publish/cloudbuild.yaml" \
     --substitutions="$SUBSTITUTIONS"
   exit 0
 fi
@@ -220,21 +220,21 @@ else
     COMMIT_SUBJECT=$(git log -1 --format="%s" "$sha")
     PR_SUFFIX=$(echo "$COMMIT_SUBJECT" | grep -oE '\(#[0-9]+\)$')
 
-    RELNOTE_BODY=$(git log -1 --format="%b" "$sha" | \
-                   grep -iE '^relnotes?:' | \
-                   grep -vi 'relnotes?:[[:space:]]*none' | \
-                   sed -E 's/^[Rr]elnotes?:[[:space:]]*//g' | \
-                   sed -E 's/[[:space:]]*$//')
-
-    if [ -n "$RELNOTE_BODY" ]; then
-      if echo "$RELNOTE_BODY" | grep -qE '\(#[0-9]+\)$'; then
-        CHANGELOG_NOTES+="- $RELNOTE_BODY"$'\n'
-      elif [ -n "$PR_SUFFIX" ]; then
-        CHANGELOG_NOTES+="- $RELNOTE_BODY $PR_SUFFIX"$'\n'
-      else
-        CHANGELOG_NOTES+="- $RELNOTE_BODY"$'\n'
+    while read -r line; do
+      if [ -n "$line" ]; then
+        if echo "$line" | grep -qE '\(#[0-9]+\)$'; then
+          CHANGELOG_NOTES+="- $line"$'\n'
+        elif [ -n "$PR_SUFFIX" ]; then
+          CHANGELOG_NOTES+="- $line $PR_SUFFIX"$'\n'
+        else
+          CHANGELOG_NOTES+="- $line"$'\n'
+        fi
       fi
-    fi
+    done < <(git log -1 --format="%b" "$sha" | \
+             grep -iE '^relnotes?:' | \
+             grep -vi 'relnotes?:[[:space:]]*none' | \
+             sed -E 's/^[Rr]elnotes?:[[:space:]]*//g' | \
+             sed -E 's/[[:space:]]*$//')
   done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
 fi
 
