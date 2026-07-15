@@ -421,8 +421,12 @@ function getOptsAndHandler(
 // Matches both absolute paths (/projects/...) and relative paths (projects/...)
 const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
 
-/** @hidden */
-function unpackAndNormalizeUserRecord(rawData: unknown): User | undefined {
+/**
+ * Converts the v2 Eventarc (`AuthEventData`) protobuf wire protocol (`value`/`oldValue`, `createTime`, `photoUrl`)
+ * into the v1 `LegacyEvent` wire protocol expected by `userRecordConstructor`.
+ * @hidden
+ */
+function convertV2EventToV1Event(rawData: unknown): User | undefined {
   if (!rawData || typeof rawData !== "object") {
     return undefined;
   }
@@ -465,7 +469,7 @@ function unpackAndNormalizeUserRecord(rawData: unknown): User | undefined {
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   const event: AuthEvent<User> = { ...raw } as any;
   if (raw.data !== undefined && raw.data !== null) {
-    event.data = unpackAndNormalizeUserRecord(raw.data);
+    event.data = convertV2EventToV1Event(raw.data);
   }
   const rawAny = raw as any;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
