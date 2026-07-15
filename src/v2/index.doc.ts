@@ -1,5 +1,4 @@
 /**
- * @internal
  * Documentation-only entry point. This file is not part of the public API
  * and is used only by api-extractor to generate reference documentation.
  * It includes exports that are not part of the main `index.ts` entry point
