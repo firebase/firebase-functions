@@ -527,6 +527,111 @@ describe("identity", () => {
       expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal(param);
       clearParams();
     });
+
+    it("should unpack user from protobuf v2 value envelope with normalized fields", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.data.uid).to.equal("1qEveruhwnbiG1B9taHIBMmOVE83");
+        expect(event.data.email).to.equal("testuser@example.com");
+        expect(event.data.emailVerified).to.be.true;
+        expect(event.data.displayName).to.equal("Test User");
+        expect(event.data.photoURL).to.equal("http://example.com/photo.jpg");
+        expect(event.data.metadata.creationTime).to.equal("Sun, 01 Jan 2023 00:00:00 GMT");
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: {
+          value: {
+            uid: "1qEveruhwnbiG1B9taHIBMmOVE83",
+            email: "testuser@example.com",
+            emailVerified: true,
+            displayName: "Test User",
+            photoURL: "http://example.com/photo.jpg",
+            metadata: {
+              createTime: "2023-01-01T00:00:00Z",
+            },
+          },
+        } as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should normalize photoUrl (proto3 JSON) to photoURL", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.data.photoURL).to.equal("http://example.com/proto-photo.jpg");
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: {
+          value: {
+            uid: "photo-uid",
+            photoUrl: "http://example.com/proto-photo.jpg",
+          },
+        } as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should gracefully handle null/malformed raw.data without throwing", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.data).to.be.undefined;
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: null as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should gracefully handle explicit { value: null } inside raw.data without throwing", () => {
+      let called = false;
+      const func = identity.onUserCreated((event) => {
+        called = true;
+        expect(event.data).to.be.undefined;
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { value: null } as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
   });
 
   describe("onUserDeleted", () => {
@@ -579,6 +684,64 @@ describe("identity", () => {
           },
         } as any,
         tenantid: "my-tenant",
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should unpack user from protobuf v2 oldValue envelope on execution", () => {
+      let called = false;
+      const func = identity.onUserDeleted((event) => {
+        called = true;
+        expect(event.data.uid).to.equal("my-deleted-uid");
+        expect(event.data.email).to.equal("deleted@example.com");
+        expect(event.data.metadata.creationTime).to.equal("Sun, 01 Jan 2023 00:00:00 GMT");
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: {
+          oldValue: {
+            uid: "my-deleted-uid",
+            email: "deleted@example.com",
+            metadata: {
+              createTime: "2023-01-01T00:00:00Z",
+            },
+          },
+        } as any,
+      };
+
+      func(mockEvent);
+      expect(called).to.be.true;
+    });
+
+    it("should unpack user from old_value (snake_case) envelope on execution", () => {
+      let called = false;
+      const func = identity.onUserDeleted((event) => {
+        called = true;
+        expect(event.data.uid).to.equal("snake-deleted-uid");
+        expect(event.data.email).to.equal("snake-deleted@example.com");
+        return null;
+      });
+
+      const mockEvent = {
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: {
+          old_value: {
+            uid: "snake-deleted-uid",
+            email: "snake-deleted@example.com",
+          },
+        } as any,
       };
 
       func(mockEvent);

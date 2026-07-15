@@ -96,7 +96,8 @@ export class UserRecordMetadata implements auth.UserMetadata {
 }
 
 /**
- * Helper function that creates a `UserRecord` class from data sent over the wire.
+ * Helper function that creates a `UserRecord` class from the wire protocol of the v1 `LegacyEvent`
+ * (or normalized wire data).
  * @param wireData data sent over the wire
  * @returns an instance of `UserRecord` with correct toJSON functions
  */
