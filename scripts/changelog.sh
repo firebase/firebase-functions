@@ -88,8 +88,4 @@ while read -r sha; do
            sed -E 's/[[:space:]]*$//')
 done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
 
-if [ -z "$CHANGELOG_NOTES" ]; then
-  CHANGELOG_NOTES="- Internal maintenance updates and chore improvements."
-fi
-
 echo -e "$CHANGELOG_NOTES"

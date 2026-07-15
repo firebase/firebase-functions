@@ -206,20 +206,18 @@ for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep
   fi
 done
 
-if [ -n "$PREVIOUS_TAG" ]; then
-  COMMITS_COUNT=$(git rev-list "${PREVIOUS_TAG}..HEAD" | wc -l | xargs)
-  if [ "$COMMITS_COUNT" -eq 0 ]; then
-    if [ "$FORCE_RELEASE" = true ]; then
-      echo "⚠️ Warning: No new commits found since last tag ($PREVIOUS_TAG), but continuing due to --force flag."
-    else
-      echo "❌ Error: No new commits found since the last release tag ($PREVIOUS_TAG). Aborting release. Use --force to override."
-      exit 1
-    fi
-  fi
-fi
-
 # Generate release notes using the standalone changelog script
 CHANGELOG_NOTES=$(./scripts/changelog.sh)
+
+if [ -z "$CHANGELOG_NOTES" ]; then
+  if [ "$FORCE_RELEASE" = true ]; then
+    echo "⚠️ Warning: No release notes (relnote comments) found since the last release tag ($PREVIOUS_TAG), but continuing due to --force flag."
+    CHANGELOG_NOTES="- Internal maintenance updates and chore improvements."
+  else
+    echo "❌ Error: No release notes (relnote comments) found since the last release tag ($PREVIOUS_TAG). Aborting release. Use --force to override."
+    exit 1
+  fi
+fi
 
 echo "----------------- Generated Release Notes -----------------"
 echo -e "$CHANGELOG_NOTES"
