@@ -233,6 +233,11 @@
       "import": "./lib/esm/v2/index.mjs",
       "require": "./lib/v2/index.js"
     },
+    "./v2/lifecycle": {
+      "types": "./lib/lifecycle/index.d.ts",
+      "import": "./lib/esm/lifecycle/index.mjs",
+      "require": "./lib/lifecycle/index.js"
+    },
     "./v2/core": {
       "types": "./lib/v2/core.d.ts",
       "import": "./lib/esm/v2/core.mjs",
@@ -497,6 +502,9 @@
       ],
       "v2/identity": [
         "lib/v2/providers/identity"
+      ],
+      "v2/lifecycle": [
+        "lib/lifecycle/index"
       ],
       "v2/options": [
         "lib/v2/options"
