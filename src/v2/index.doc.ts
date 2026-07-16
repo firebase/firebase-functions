@@ -18,3 +18,6 @@ export * from "./index";
 // Explicitly export the hidden dataconnect module wrapper for documentation generation
 // This shadows the `dataconnect` export from `./index`.
 export * as dataconnect from "./dataconnect.doc";
+
+// Explicitly export the lifecycle module for documentation generation
+export * as lifecycle from "../lifecycle";
