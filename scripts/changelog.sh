@@ -49,6 +49,24 @@ while read -r sha; do
 done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
 
 CHANGELOG_NOTES=""
+
+process_note() {
+  local note="$1"
+  note=$(echo "$note" | sed -E 's/[[:space:]]*$//')
+  
+  if [[ -z "$note" || "$note" =~ ^[[:space:]]*$ || "$note" =~ ^[Nn]one$ ]]; then
+    return
+  fi
+  
+  if echo "$note" | grep -qE '\(#[0-9]+\)$'; then
+    CHANGELOG_NOTES+="- $note"$'\n'
+  elif [ -n "$PR_SUFFIX" ]; then
+    CHANGELOG_NOTES+="- $note $PR_SUFFIX"$'\n'
+  else
+    CHANGELOG_NOTES+="- $note"$'\n'
+  fi
+}
+
 while read -r sha; do
   # Check if this SHA was reverted
   FULL_SHA=$(git rev-parse "$sha")
@@ -71,21 +89,29 @@ while read -r sha; do
     fi
   fi
 
+  current_note=""
   while read -r line; do
-    if [ -n "$line" ]; then
-      if echo "$line" | grep -qE '\(#[0-9]+\)$'; then
-        CHANGELOG_NOTES+="- $line"$'\n'
-      elif [ -n "$PR_SUFFIX" ]; then
-        CHANGELOG_NOTES+="- $line $PR_SUFFIX"$'\n'
+    line=$(echo "$line" | sed -E 's/\r$//')
+    
+    if [[ "$line" =~ ^[Rr]elnotes?:[[:space:]]*(.*) ]]; then
+      next_note="${BASH_REMATCH[1]}"
+      if [ -n "$current_note" ]; then
+        process_note "$current_note"
+      fi
+      current_note="$next_note"
+    elif [ -n "$current_note" ]; then
+      if [[ "$line" =~ ^[[:space:]]*$ || "$line" =~ ^# ]]; then
+        process_note "$current_note"
+        current_note=""
       else
-        CHANGELOG_NOTES+="- $line"$'\n'
+        current_note="$current_note $line"
       fi
     fi
-  done < <(git log -1 --format="%b" "$sha" | \
-           grep -iE '^relnotes?:' | \
-           grep -vi 'relnotes?:[[:space:]]*none' | \
-           sed -E 's/^[Rr]elnotes?:[[:space:]]*//g' | \
-           sed -E 's/[[:space:]]*$//')
+  done < <(git log -1 --format="%b" "$sha")
+  
+  if [ -n "$current_note" ]; then
+    process_note "$current_note"
+  fi
 done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
 
 echo -e "$CHANGELOG_NOTES"
