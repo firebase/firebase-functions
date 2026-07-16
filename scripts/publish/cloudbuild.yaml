@@ -5,7 +5,7 @@ steps:
       [
         "kms",
         "decrypt",
-        "--ciphertext-file=deploy_key.enc",
+        "--ciphertext-file=scripts/publish/deploy_key.enc",
         "--plaintext-file=/root/.ssh/id_rsa",
         "--location=global",
         "--keyring=${_KEY_RING}",
@@ -18,7 +18,7 @@ steps:
       [
         "kms",
         "decrypt",
-        "--ciphertext-file=npmrc.enc",
+        "--ciphertext-file=scripts/publish/npmrc.enc",
         "--plaintext-file=npmrc",
         "--location=global",
         "--keyring=${_KEY_RING}",
