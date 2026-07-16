@@ -140,11 +140,13 @@ describe("Params value extraction", () => {
   });
 
   it("extracts the special case FUNCTION_REGION / functionRegion / region from process.env", () => {
-    process.env.FUNCTION_REGION = "us-east1";
-    expect(params.functionRegion.value()).to.equal("us-east1");
-    expect(params.region.value()).to.equal("us-east1");
-
-    delete process.env.FUNCTION_REGION;
+    try {
+      process.env.FUNCTION_REGION = "us-east1";
+      expect(params.functionRegion.value()).to.equal("us-east1");
+      expect(params.region.value()).to.equal("us-east1");
+    } finally {
+      delete process.env.FUNCTION_REGION;
+    }
     expect(params.functionRegion.value()).to.equal("");
     expect(params.region.value()).to.equal("");
   });
