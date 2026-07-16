@@ -71,10 +71,9 @@ steps:
         export GITHUB_TOKEN=$$GITHUB_TOKEN
 
         ./scripts/publish.sh ${_BUMP_TYPE} \
-          ${_PRERELEASE:+--prerelease} \
+          $([ "${_PRERELEASE}" = "true" ] && echo "--prerelease") \
           $([ "${_DRY_RUN}" = "false" ] && echo "--no-dry-run") \
-          ${_FORCE:+--force} \
-          ${_BRANCH:+--branch $_BRANCH} \
+          $([ "${_FORCE}" = "true" ] && echo "--force") \
           --org=${_REPOSITORY_ORG} \
           --repository=${_REPOSITORY_NAME} \
           ${_DIST_TAG}
@@ -88,16 +87,15 @@ options:
 
 substitutions:
   _BUMP_TYPE: "patch"
-  _PRERELEASE: ""
+  _PRERELEASE: "false"
   _DRY_RUN: "true"
-  _FORCE: ""
+  _FORCE: "false"
   _DIST_TAG: "latest"
   _KEY_RING: "npm-publish-keyring"
   _KEY_NAME: "publish"
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
   _BRANCH: ""
-  _SDK: "" # Defaults to _REPOSITORY_NAME inside the script if left empty
 
 availableSecrets:
   secretManager:
