@@ -11,7 +11,7 @@ import {
 } from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
 import { clearGlobalRequiredAPIs } from "../../src/common/api";
-import { afterInstall, afterUpdate, clearDeclaredLifecycleHooks } from "../../src/lifecycle";
+import { afterFirstDeploy, afterRedeploy, clearDeclaredLifecycleHooks } from "../../src/lifecycle";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
 import { BooleanParam, IntParam, StringParam } from "../../src/params/types";
@@ -559,14 +559,14 @@ describe("loadStack", () => {
   });
 
   describe("loadStack with lifecycleHooks", () => {
-    it("captures top-level afterInstall and afterUpdate calls into ManifestStack.lifecycleHooks", async () => {
-      afterInstall({
+    it("captures top-level afterFirstDeploy and afterRedeploy calls into ManifestStack.lifecycleHooks", async () => {
+      afterFirstDeploy({
         task: {
           function: "runInitialSetup",
           body: { seedData: "default_catalog" },
         },
       });
-      afterUpdate({
+      afterRedeploy({
         call: {
           function: "migrateSchema",
           params: { targetVersion: "v2.4" },
@@ -575,13 +575,13 @@ describe("loadStack", () => {
 
       const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
       expect(stack.lifecycleHooks).to.deep.equal({
-        afterInstall: {
+        afterFirstDeploy: {
           task: {
             function: "runInitialSetup",
             body: { seedData: "default_catalog" },
           },
         },
-        afterUpdate: {
+        afterRedeploy: {
           call: {
             function: "migrateSchema",
             params: { targetVersion: "v2.4" },
@@ -591,7 +591,7 @@ describe("loadStack", () => {
     });
 
     it("captures http lifecycle hooks with function and url into ManifestStack.lifecycleHooks", async () => {
-      afterInstall({
+      afterFirstDeploy({
         http: {
           function: "seedDatabase",
           method: "POST",
@@ -599,7 +599,7 @@ describe("loadStack", () => {
           body: { force: true },
         },
       });
-      afterUpdate({
+      afterRedeploy({
         http: {
           url: "https://example.com/webhook",
           method: "POST",
@@ -609,7 +609,7 @@ describe("loadStack", () => {
 
       const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
       expect(stack.lifecycleHooks).to.deep.equal({
-        afterInstall: {
+        afterFirstDeploy: {
           http: {
             function: "seedDatabase",
             method: "POST",
@@ -617,7 +617,7 @@ describe("loadStack", () => {
             body: { force: true },
           },
         },
-        afterUpdate: {
+        afterRedeploy: {
           http: {
             url: "https://example.com/webhook",
             method: "POST",
@@ -628,7 +628,7 @@ describe("loadStack", () => {
     });
 
     it("preserves falsy but valid JSON values (like 0, false, empty string) in hook payloads", async () => {
-      afterInstall({
+      afterFirstDeploy({
         task: {
           function: "runInitialSetup",
           body: { force: false, code: 0, tag: "" },
@@ -637,7 +637,7 @@ describe("loadStack", () => {
 
       const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
       expect(stack.lifecycleHooks).to.deep.equal({
-        afterInstall: {
+        afterFirstDeploy: {
           task: {
             function: "runInitialSetup",
             body: { force: false, code: 0, tag: "" },

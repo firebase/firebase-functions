@@ -723,7 +723,7 @@ export function resolveCorsOrigin(corsOption?: CorsOption): cors.CorsOptions["or
   let origin: CorsOption | undefined;
   if (corsOption instanceof Expression) {
     try {
-      origin = corsOption.value();
+      origin = corsOption.runtimeValue();
     } catch (e) {
       logger.warn(`Failed to resolve CORS parameter: ${e}`);
       origin = false;

@@ -152,7 +152,7 @@ export interface ManifestLifecycleAction {
   };
   http?: {
     function?: string;
-    url?: string | Expression<string>;
+    url?: string;
     method?: string;
     headers?: Record<string, string>;
     body?: unknown;
@@ -194,9 +194,6 @@ export function stackToWire(stack: ManifestStack): Record<string, unknown> {
     }
   };
   traverse(wireStack.endpoints);
-  if (wireStack.lifecycleHooks) {
-    traverse(wireStack.lifecycleHooks);
-  }
   return wireStack;
 }
 

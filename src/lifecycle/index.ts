@@ -41,6 +41,13 @@ export type LifecycleAction =
   | { call: CallAction; task?: never; http?: never }
   | { http: HttpAction; task?: never; call?: never };
 
+/**
+ * Use a global singleton to manage the list of declared lifecycle hooks.
+ *
+ * This ensures that lifecycle hooks are shared between CJS and ESM builds,
+ * avoiding the "dual-package hazard" where the src/bin/firebase-functions.ts (CJS) sees
+ * an empty list while the user's code (ESM) populates a different list.
+ */
 const majorVersion =
   // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
   typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
@@ -63,15 +70,15 @@ export const declaredLifecycleHooks: Record<string, LifecycleAction> = globalSym
 
 /**
  * Registers an action to be executed automatically post-deployment when resources in this codebase
- * are installed for the initial time.
+ * are deployed for the first time.
  *
  * @param action The lifecycle action to execute.
  */
-export function afterInstall(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterInstall) {
-    throw new Error("Only one afterInstall lifecycle hook is allowed per codebase.");
+export function afterFirstDeploy(action: LifecycleAction): void {
+  if (declaredLifecycleHooks.afterFirstDeploy) {
+    throw new Error("Only one afterFirstDeploy lifecycle hook is allowed per codebase.");
   }
-  declaredLifecycleHooks.afterInstall = action;
+  declaredLifecycleHooks.afterFirstDeploy = action;
 }
 
 /**
@@ -80,15 +87,15 @@ export function afterInstall(action: LifecycleAction): void {
  *
  * @param action The lifecycle action to execute.
  */
-export function afterUpdate(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterUpdate) {
-    throw new Error("Only one afterUpdate lifecycle hook is allowed per codebase.");
+export function afterRedeploy(action: LifecycleAction): void {
+  if (declaredLifecycleHooks.afterRedeploy) {
+    throw new Error("Only one afterRedeploy lifecycle hook is allowed per codebase.");
   }
-  declaredLifecycleHooks.afterUpdate = action;
+  declaredLifecycleHooks.afterRedeploy = action;
 }
 
 /**
- * Helper to clear declared lifecycle hooks (primarily for testing).
+ * Helper to clear declared lifecycle hooks.
  * @internal
  */
 export function clearDeclaredLifecycleHooks(): void {
