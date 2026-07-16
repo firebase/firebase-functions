@@ -378,12 +378,14 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
 /**
  * The user data payload for an Auth Event. this is the standard "UserRecord"
  * from the firebase Admin SDK.
+ * @internal
  */
 export type User = AdminUserRecord;
 
 /**
  * The event object passed to the handler funcation for Firebase Authentication
  * events.
+ * @internal
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
   /** The project identifier */
@@ -393,7 +395,10 @@ export interface AuthEvent<T> extends CloudEvent<T> {
   tenantId?: string;
 }
 
-/** Options for configuring a Firebase Authentication Trigger */
+/**
+ * Options for configuring a Firebase Authentication Trigger
+ * @internal
+ */
 export interface AuthOptions extends options.EventHandlerOptions {
   /**
    * The Id of the Identity Platform tenant to scope the function to.
@@ -404,7 +409,10 @@ export interface AuthOptions extends options.EventHandlerOptions {
   tenantId?: string | Expression<string> | typeof RESET_VALUE;
 }
 
-// constant to represent the absence of tenant ID.
+/**
+ * constant to represent the absence of tenant ID.
+ * @internal
+ */
 export const IS_NOT_TENANT = RESET_VALUE;
 
 // Helper to handle overloaded function signature
@@ -421,11 +429,55 @@ function getOptsAndHandler(
 // Matches both absolute paths (/projects/...) and relative paths (projects/...)
 const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
 
-/** @hidden */
+/**
+ * Converts the v2 Eventarc (`AuthEventData`) protobuf wire protocol (`value`/`oldValue`, `createTime`, `photoUrl`)
+ * into the v1 `LegacyEvent` wire protocol expected by `userRecordConstructor`.
+ * @hidden
+ */
+function convertV2EventToV1Event(rawData: unknown): User | undefined {
+  if (!rawData || typeof rawData !== "object") {
+    return undefined;
+  }
+  const dataObj = rawData as Record<string, unknown>;
+  let rawUser: unknown;
+  if ("value" in dataObj) {
+    rawUser = dataObj.value;
+  } else if ("oldValue" in dataObj) {
+    rawUser = dataObj.oldValue;
+  } else if ("old_value" in dataObj) {
+    rawUser = dataObj.old_value;
+  } else {
+    rawUser = dataObj;
+  }
+  if (!rawUser || typeof rawUser !== "object") {
+    return undefined;
+  }
+  const userData = { ...(rawUser as Record<string, unknown>) };
+  if (userData.photoUrl && !userData.photoURL) {
+    userData.photoURL = userData.photoUrl;
+  }
+  if (userData.metadata && typeof userData.metadata === "object") {
+    const meta = { ...(userData.metadata as Record<string, unknown>) };
+    if (meta.createTime && !meta.createdAt && !meta.creationTime) {
+      meta.creationTime = meta.createTime;
+    }
+    userData.metadata = meta;
+  }
+  return userRecordConstructor(userData);
+}
+
+/**
+ * Normalizes raw CloudEvents from Eventarc into AuthEvent<User>.
+ * Eventarc wraps v2 Authentication user payloads inside an `AuthEventData`
+ * protobuf envelope (`value` for creation events, `oldValue` for deletion events).
+ * We unbox the envelope (falling back to `raw.data` for unit tests) and normalize
+ * protobuf-specific field names (`createTime` -> `creationTime`, `photoUrl` -> `photoURL`).
+ * @hidden
+ */
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   const event: AuthEvent<User> = { ...raw } as any;
-  if (raw.data) {
-    event.data = userRecordConstructor(raw.data as Record<string, unknown>);
+  if (raw.data !== undefined && raw.data !== null) {
+    event.data = convertV2EventToV1Event(raw.data);
   }
   const rawAny = raw as any;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
@@ -502,6 +554,7 @@ const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @beta
+ * @internal
  *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
@@ -513,6 +566,7 @@ export function onUserCreated(
  * Handles user creation events in Firebase Authentication.
  *
  * @beta
+ * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -537,6 +591,7 @@ const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
  * @beta
+ * @internal
  *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
@@ -548,6 +603,7 @@ export function onUserDeleted(
  * Handles user deletion events in Firebase Authentication.
  *
  * @beta
+ * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
