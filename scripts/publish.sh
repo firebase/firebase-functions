@@ -174,10 +174,23 @@ echo "--------------------------------------------------------"
 
 # Update package.json version dynamically in runner memory
 if [ "$IS_PRERELEASE" = true ]; then
-  PRE_BUMP_TYPE="pre${BUMP_TYPE}"
-  echo "Preparing prerelease version change using '$PRE_BUMP_TYPE' (preid: rc)..."
-  npm version "$STABLE_VERSION" --no-git-tag-version
-  npm version "$PRE_BUMP_TYPE" --preid="rc" --no-git-tag-version
+  TARGET_PRE_BASE=$(node -e "const semver = require('semver'); console.log(semver.inc('$STABLE_VERSION', 'pre${BUMP_TYPE}', 'rc'))")
+  TARGET_STABLE_LIMIT=$(node -e "const semver = require('semver'); console.log(semver.inc('$STABLE_VERSION', '$BUMP_TYPE'))")
+  
+  echo "Checking npm for existing prerelease versions in the range >=$TARGET_PRE_BASE <$TARGET_STABLE_LIMIT..."
+  LATEST_PRE_VERSION=$(npm view "$PACKAGE_NAME@>=$TARGET_PRE_BASE <$TARGET_STABLE_LIMIT" version 2>/dev/null | tail -n 1 | grep -oE "[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+" | head -n 1 || true)
+  
+  if [ -n "$LATEST_PRE_VERSION" ]; then
+    echo "Found existing prerelease: v$LATEST_PRE_VERSION on npm."
+    echo "Preparing prerelease increment on top of existing prerelease..."
+    npm version "$LATEST_PRE_VERSION" --no-git-tag-version
+    npm version prerelease --preid="rc" --no-git-tag-version
+  else
+    PRE_BUMP_TYPE="pre${BUMP_TYPE}"
+    echo "No existing prerelease found. Preparing new prerelease using '$PRE_BUMP_TYPE'..."
+    npm version "$STABLE_VERSION" --no-git-tag-version
+    npm version "$PRE_BUMP_TYPE" --preid="rc" --no-git-tag-version
+  fi
 else
   echo "Preparing stable version change using '$BUMP_TYPE'..."
   npm version "$STABLE_VERSION" --no-git-tag-version
