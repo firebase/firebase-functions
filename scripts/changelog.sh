@@ -58,7 +58,7 @@ process_note() {
     return
   fi
   
-  if echo "$note" | grep -qE '\(#[0-9]+\)$'; then
+  if echo "$note" | grep -qE '\((#[0-9]+(,[[:space:]]*#[0-9]+)*)\)$'; then
     CHANGELOG_NOTES+="- $note"$'\n'
   elif [ -n "$PR_SUFFIX" ]; then
     CHANGELOG_NOTES+="- $note $PR_SUFFIX"$'\n'
