@@ -153,6 +153,7 @@ export interface MessagePublishedData<T = any> {
 /**
  * A v1-compatible Pub/Sub Message.
  * Note: This is a plain object mimicking the v1 Message structure, not an instance of the v1 Message class.
+ * @hidden
  * @typeParam T - Type of `json` payload.
  */
 export interface V1PubSubMessage<T = any> {
