@@ -1,73 +1,50 @@
 steps:
-  # Decrypt the SSH key.
-  - name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "kms",
-        "decrypt",
-        "--ciphertext-file=scripts/publish/deploy_key.enc",
-        "--plaintext-file=/root/.ssh/id_rsa",
-        "--location=global",
-        "--keyring=${_KEY_RING}",
-        "--key=${_KEY_NAME}",
-      ]
-
-  # Decrypt the npm credentials.
-  - name: "gcr.io/cloud-builders/gcloud"
-    args:
-      [
-        "kms",
-        "decrypt",
-        "--ciphertext-file=scripts/publish/npmrc.enc",
-        "--plaintext-file=npmrc",
-        "--location=global",
-        "--keyring=${_KEY_RING}",
-        "--key=${_KEY_NAME}",
-      ]
-
-  # Set up git with key and domain.
+  # 1. Set up SSH key and Git config.
   - name: "gcr.io/cloud-builders/git"
     entrypoint: "bash"
     args:
       - "-c"
       - |
+        mkdir -p /root/.ssh
+        echo "$$SSH_KEY" > /root/.ssh/id_rsa
         chmod 600 /root/.ssh/id_rsa
         cat <<EOF >/root/.ssh/config
         Hostname github.com
         IdentityFile /root/.ssh/id_rsa
         EOF
         ssh-keyscan github.com >> /root/.ssh/known_hosts
+    secretEnv: ["SSH_KEY"]
 
-  # Clone the repository.
+  # 2. Clone the repository.
   - name: "gcr.io/cloud-builders/git"
     args: ["clone", "git@github.com:${_REPOSITORY_ORG}/${_REPOSITORY_NAME}"]
 
-  # Fetch all tags so stateless history calculations resolve correctly.
+  # 3. Fetch all tags so stateless history calculations resolve correctly.
   - name: "gcr.io/cloud-builders/git"
     dir: "${_REPOSITORY_NAME}"
     args: ["fetch", "--tags"]
 
-  # Set up the Git configuration.
+  # 4. Set up the Git configuration.
   - name: "gcr.io/cloud-builders/git"
     dir: "${_REPOSITORY_NAME}"
-    args: ["config", "--global", "user.email", "firebase-oss-bot@google.com"]
-  - name: "gcr.io/cloud-builders/git"
-    dir: "${_REPOSITORY_NAME}"
-    args: ["config", "--global", "user.name", "Google Open Source Bot"]
-
-  # Set up the npm credentials.
-  - name: "gcr.io/$PROJECT_ID/package-builder"
     entrypoint: "bash"
-    args: ["-c", "cp -v npmrc ~/.npmrc"]
-
-  # Publish the package.
-  - name: "gcr.io/$PROJECT_ID/package-builder"
-    dir: "${_REPOSITORY_NAME}"
-    entrypoint: bash
     args:
       - "-c"
       - |
-        # Map our Cloud Build environment variables for the shell script execution
+        git config --global user.email "firebase-oss-bot@google.com"
+        git config --global user.name "Google Open Source Bot"
+
+  # 5. Publish the package.
+  - name: "gcr.io/$PROJECT_ID/package-builder"
+    dir: "${_REPOSITORY_NAME}"
+    entrypoint: bash
+    env:
+      - "BUILD_ID=${BUILD_ID}"
+    args:
+      - "-c"
+      - |
+        echo "$$NPMRC_CONTENT" > ~/.npmrc
+
         export GITHUB_TOKEN=$$GITHUB_TOKEN
 
         ./scripts/publish.sh ${_BUMP_TYPE} \
@@ -78,8 +55,7 @@ steps:
           --org=${_REPOSITORY_ORG} \
           --repository=${_REPOSITORY_NAME} \
           ${_DIST_TAG}
-
-    secretEnv: ["GITHUB_TOKEN"]
+    secretEnv: ["GITHUB_TOKEN", "NPMRC_CONTENT"]
 
 options:
   volumes:
@@ -92,8 +68,6 @@ substitutions:
   _DRY_RUN: "true"
   _FORCE: "false"
   _DIST_TAG: "latest"
-  _KEY_RING: "npm-publish-keyring"
-  _KEY_NAME: "publish"
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
   _BRANCH: ""
@@ -102,3 +76,7 @@ availableSecrets:
   secretManager:
     - versionName: projects/firebase-functions-publishing/secrets/firebase-functions-github-pat/versions/latest
       env: "GITHUB_TOKEN"
+    - versionName: projects/firebase-functions-publishing/secrets/firebase-functions-deploy-key/versions/latest
+      env: "SSH_KEY"
+    - versionName: projects/firebase-functions-publishing/secrets/firebase-functions-npm-token/versions/latest
+      env: "NPMRC_CONTENT"
