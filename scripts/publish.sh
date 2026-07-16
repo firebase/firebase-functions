@@ -142,6 +142,17 @@ fi
 # ==============================================================================
 echo "☁️  [Worker Mode] Cloud Build environment detected (Build ID: $BUILD_ID)."
 
+# Pre-flight runner tool checks
+if ! command -v jq &> /dev/null; then
+  echo "❌ Error: 'jq' utility is not installed. Please install jq to run the worker."
+  exit 1
+fi
+
+if ! command -v gh &> /dev/null; then
+  echo "❌ Error: 'gh' CLI tool is not installed. Please install GitHub CLI (gh) to run the worker."
+  exit 1
+fi
+
 # 1. Optional Branch Checkout
 if [ -n "$TARGET_BRANCH" ]; then
   echo "Checking out target branch: $TARGET_BRANCH..."
@@ -159,12 +170,16 @@ echo "Executing test suite..."
 npm test
 
 # 3. Stateless Version Discovery
-PACKAGE_NAME=$(node -p "require('./package.json').name")
-STABLE_VERSION=$(npm view "$PACKAGE_NAME" version)
+PACKAGE_NAME=$(jq -r '.name' package.json)
+STABLE_VERSION=$(npm view "$PACKAGE_NAME" versions --json | jq -r '[.[] | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))] | .[-1]')
+
+# Find the absolute latest version overall on npm (including prereleases)
+LATEST_VERSION=$(npm view "$PACKAGE_NAME" versions --json | jq -r '[.[] | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+(-rc\\.[0-9]+)?$"))] | .[-1]')
 
 echo "--------------------------------------------------------"
 echo "Package Name:                  $PACKAGE_NAME"
 echo "Current stable version on npm: $STABLE_VERSION"
+echo "Latest version on npm:         $LATEST_VERSION"
 echo "Target distribution tag:       $DIST_TAG"
 echo "Is Prerelease:                 $IS_PRERELEASE"
 echo "Dry Run Mode:                  $DRY_RUN"
@@ -172,49 +187,35 @@ echo "Force Release:                 $FORCE_RELEASE"
 echo "GitHub Repo Target:            $ORG/$REPO"
 echo "--------------------------------------------------------"
 
-# Update package.json version dynamically in runner memory
+# Initialize local package.json to the latest published version
+npm version "$LATEST_VERSION" --no-git-tag-version
+
+# Perform the appropriate version bump
 if [ "$IS_PRERELEASE" = true ]; then
-  PRE_BUMP_TYPE="pre${BUMP_TYPE}"
-  echo "Preparing prerelease version change using '$PRE_BUMP_TYPE' (preid: rc)..."
-  npm version "$STABLE_VERSION" --no-git-tag-version
-  npm version "$PRE_BUMP_TYPE" --preid="rc" --no-git-tag-version
+  if [ "$LATEST_VERSION" != "$STABLE_VERSION" ]; then
+    npm version prerelease --preid="rc" --no-git-tag-version
+  else
+    npm version "pre${BUMP_TYPE}" --preid="rc" --no-git-tag-version
+  fi
 else
-  echo "Preparing stable version change using '$BUMP_TYPE'..."
-  npm version "$STABLE_VERSION" --no-git-tag-version
   npm version "$BUMP_TYPE" --no-git-tag-version
 fi
 
-NEXT_VERSION=$(node -p "require('./package.json').version")
+NEXT_VERSION=$(jq -r '.version' package.json)
 echo "Next target version computed: v$NEXT_VERSION"
 
-# 4. NPM Publish Execution
-if [ "$DRY_RUN" = true ]; then
-  echo "🔍 [Dry Run] Skipping npm publish --tag $DIST_TAG"
-else
-  echo "Publishing package to npm under tag: $DIST_TAG..."
-  npm publish --tag "$DIST_TAG"
-fi
-
-# 5. Stateless Changelog Generation (Strict SemVer Tracking)
+# 4. Stateless Changelog Generation (Strict SemVer Tracking)
 echo "Calculating history interval to extract release notes..."
 
-PREVIOUS_TAG=""
-for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep -o 'tag: [^,)]*' | sed 's/tag: //'); do
-  if echo "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-    PREVIOUS_TAG="$tag"
-    break
-  fi
-done
-
 # Generate release notes using the standalone changelog script
-CHANGELOG_NOTES=$(./scripts/changelog.sh)
+CHANGELOG_NOTES=$(./scripts/changelog.sh "v$STABLE_VERSION")
 
 if [ -z "$CHANGELOG_NOTES" ]; then
   if [ "$FORCE_RELEASE" = true ]; then
-    echo "⚠️ Warning: No release notes (relnote comments) found since the last release tag ($PREVIOUS_TAG), but continuing due to --force flag."
+    echo "⚠️ Warning: No release notes (relnote comments) found since the last release tag (v$STABLE_VERSION), but continuing due to --force flag."
     CHANGELOG_NOTES="- Internal maintenance updates and chore improvements."
   else
-    echo "❌ Error: No release notes (relnote comments) found since the last release tag ($PREVIOUS_TAG). Aborting release. Use --force to override."
+    echo "❌ Error: No release notes (relnote comments) found since the last release tag (v$STABLE_VERSION). Aborting release. Use --force to override."
     exit 1
   fi
 fi
@@ -223,7 +224,7 @@ echo "----------------- Generated Release Notes -----------------"
 echo -e "$CHANGELOG_NOTES"
 echo "-----------------------------------------------------------"
 
-# 6. Push Git Tag (Establish upstream state)
+# 5. Push Git Tag (Establish upstream state)
 if [ "$DRY_RUN" = true ]; then
   echo "🔍 [Dry Run] Skipping creation of tracking tag: v$NEXT_VERSION"
 else
@@ -232,7 +233,7 @@ else
   git push origin "v$NEXT_VERSION"
 fi
 
-# 7. Create GitHub Release
+# 6. Create GitHub Release
 if [ "$DRY_RUN" = true ]; then
   echo "🔍 [Dry Run] Skipping creation of GitHub Release."
 else
@@ -244,6 +245,7 @@ else
     GH_RELEASE_FLAGS="--prerelease"
   fi
 
+  echo "Creating release using GitHub CLI (gh)..."
   gh release create "v$NEXT_VERSION" \
     --repo "$ORG/$REPO" \
     --title "v$NEXT_VERSION" \
@@ -253,8 +255,12 @@ else
   rm release_notes.md
 fi
 
+# 7. NPM Publish Execution
 if [ "$DRY_RUN" = true ]; then
+  echo "🔍 [Dry Run] Skipping npm publish --tag $DIST_TAG"
   echo "🏁 Dry run completed successfully! No modifications were made to remote systems."
 else
+  echo "Publishing package to npm under tag: $DIST_TAG..."
+  npm publish --tag "$DIST_TAG"
   echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
 fi
