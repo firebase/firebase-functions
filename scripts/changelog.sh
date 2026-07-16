@@ -52,13 +52,17 @@ CHANGELOG_NOTES=""
 
 process_note() {
   local note="$1"
-  note=$(echo "$note" | sed -E 's/[[:space:]]*$//')
+  # Trim trailing whitespace using pure bash parameter expansion
+  note="${note%"${note##*[![:space:]]}"}"
   
-  if [[ -z "$note" || "$note" =~ ^[[:space:]]*$ || "$note" =~ ^[Nn]one$ ]]; then
+  # Case-insensitive check for 'none'
+  if [[ -z "$note" || "$note" =~ ^[[:space:]]*$ || "$note" =~ ^[Nn][Oo][Nn][Ee]$ ]]; then
     return
   fi
   
-  if echo "$note" | grep -qE '\((#[0-9]+(,[[:space:]]*#[0-9]+)*)\)$'; then
+  # Check for PR suffix using native bash regex to avoid spawning grep
+  local pr_regex='\((#[0-9]+(,[[:space:]]*#[0-9]+)*)\)$'
+  if [[ "$note" =~ $pr_regex ]]; then
     CHANGELOG_NOTES+="- $note"$'\n'
   elif [ -n "$PR_SUFFIX" ]; then
     CHANGELOG_NOTES+="- $note $PR_SUFFIX"$'\n'
@@ -91,7 +95,7 @@ while read -r sha; do
 
   current_note=""
   while read -r line; do
-    line=$(echo "$line" | sed -E 's/\r$//')
+    line="${line%$'\r'}"
     
     if [[ "$line" =~ ^[Rr]elnotes?:[[:space:]]*(.*) ]]; then
       next_note="${BASH_REMATCH[1]}"
