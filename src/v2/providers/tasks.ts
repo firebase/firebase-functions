@@ -241,7 +241,7 @@ export function onTaskDispatched<Args = any>(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts, "task");
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "scheduledOrTask");
       const taskQueueTrigger: Record<string, unknown> = {};
       copyIfPresent(taskQueueTrigger, opts, "retryConfig", "rateLimits");
       convertIfPresent(
@@ -268,7 +268,7 @@ export function onTaskDispatched<Args = any>(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts, "task");
+  const specificOpts = options.optionsToEndpoint(opts, "scheduledOrTask");
 
   func.__endpoint = {
     platform: "gcfv2",
