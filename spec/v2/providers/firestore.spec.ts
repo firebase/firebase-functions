@@ -872,6 +872,35 @@ describe("firestore", () => {
 
       expect(snapshot.data()).to.deep.eq({ hello: "a new world" });
     });
+
+    // Regression test for https://github.com/firebase/firebase-functions/issues/1922
+    it("should not throw and should build the resource path from event fields (not event.source) for a json encoded deleted event", () => {
+      const rawEvent: firestore.RawFirestoreEvent = {
+        ...makeEvent(deletedData),
+        datacontenttype: "application/json",
+        // Simulates a CloudEvent whose `source` attribute arrived corrupted upstream.
+        source: "//pubsub.googleapis.com/",
+      };
+
+      const snapshot = firestore.createSnapshot(rawEvent);
+
+      expect(snapshot.exists).to.be.false;
+      expect(snapshot.ref.path).to.eq("foo/fGRodw71mHutZ4wGDuT8");
+    });
+
+    it("should not throw for a document ID with a trailing space when event.source is malformed", () => {
+      const rawEvent: firestore.RawFirestoreEvent = {
+        ...makeEvent(deletedData),
+        datacontenttype: "application/json",
+        source: "//pubsub.googleapis.com/",
+        document: "foo/Test Document ",
+      };
+
+      const snapshot = firestore.createSnapshot(rawEvent);
+
+      expect(snapshot.exists).to.be.false;
+      expect(snapshot.ref.path).to.eq("foo/Test Document ");
+    });
   });
 
   describe("createBeforeSnapshot", () => {
@@ -933,6 +962,35 @@ describe("firestore", () => {
       const snapshot = firestore.createBeforeSnapshot(rawEvent);
 
       expect(snapshot.data()).to.deep.eq({});
+    });
+
+    // Regression test for https://github.com/firebase/firebase-functions/issues/1922
+    it("should not throw and should build the resource path from event fields (not event.source) for a json encoded created event", () => {
+      const rawEvent: firestore.RawFirestoreEvent = {
+        ...makeEvent(createdData),
+        datacontenttype: "application/json",
+        // Simulates a CloudEvent whose `source` attribute arrived corrupted upstream.
+        source: "//pubsub.googleapis.com/",
+      };
+
+      const snapshot = firestore.createBeforeSnapshot(rawEvent);
+
+      expect(snapshot.exists).to.be.false;
+      expect(snapshot.ref.path).to.eq("foo/fGRodw71mHutZ4wGDuT8");
+    });
+
+    it("should not throw for a document ID with a trailing space when event.source is malformed", () => {
+      const rawEvent: firestore.RawFirestoreEvent = {
+        ...makeEvent(createdData),
+        datacontenttype: "application/json",
+        source: "//pubsub.googleapis.com/",
+        document: "foo/Test Document ",
+      };
+
+      const snapshot = firestore.createBeforeSnapshot(rawEvent);
+
+      expect(snapshot.exists).to.be.false;
+      expect(snapshot.ref.path).to.eq("foo/Test Document ");
     });
   });
 
