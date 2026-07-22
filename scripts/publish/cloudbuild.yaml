@@ -54,7 +54,7 @@ steps:
           $([ -n "${_BRANCH}" ] && echo "--branch ${_BRANCH}") \
           --org=${_REPOSITORY_ORG} \
           --repository=${_REPOSITORY_NAME} \
-          ${_DIST_TAG}
+          $([ -n "${_DIST_TAG}" ] && echo "--dist-tag ${_DIST_TAG}")
     secretEnv: ["GITHUB_TOKEN", "NPMRC_CONTENT"]
 
 options:
@@ -67,7 +67,7 @@ substitutions:
   _PRERELEASE: "false"
   _DRY_RUN: "true"
   _FORCE: "false"
-  _DIST_TAG: "latest"
+  _DIST_TAG: ""
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
   _BRANCH: ""
