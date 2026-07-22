@@ -19,7 +19,7 @@ show_usage() {
   echo "  --branch <name>           The Git branch to check out (defaults to cloned HEAD)"
   echo "  --org <name>              GitHub Organization override (defaults to 'firebase')"
   echo "  --repository <name>       GitHub Repository override (defaults to 'firebase-functions')"
-  echo "  --dist-tag <tag>          The npm distribution tag (defaults to 'latest')"
+  echo "  --dist-tag <tag>          The npm distribution tag (defaults to 'next' if --prerelease, otherwise 'latest')"
   echo "  --project <project>       The GCP project used to run the deploy pipeline"
   exit 1
 }
@@ -44,7 +44,7 @@ FORCE_RELEASE=false
 TARGET_BRANCH=""
 ORG="firebase"
 REPO="firebase-functions"
-DIST_TAG="latest"
+DIST_TAG=""
 TARGET_PROJECT="firebase-functions-publishing"
 
 # Parse optional arguments
@@ -91,6 +91,15 @@ while [ "$#" -gt 0 ]; do
       ;;
   esac
 done
+
+# Default distribution tag based on prerelease mode if not explicitly supplied
+if [ -z "$DIST_TAG" ]; then
+  if [ "$IS_PRERELEASE" = true ]; then
+    DIST_TAG="next"
+  else
+    DIST_TAG="latest"
+  fi
+fi
 
 # ==============================================================================
 # MODE A: LOCAL ORCHESTRATOR MODE (Runs on your machine)
@@ -258,9 +267,16 @@ fi
 # 7. NPM Publish Execution
 if [ "$DRY_RUN" = true ]; then
   echo "🔍 [Dry Run] Skipping npm publish --tag $DIST_TAG"
+  if [ "$IS_PRERELEASE" = false ] && [ "$DIST_TAG" = "latest" ]; then
+    echo "🔍 [Dry Run] Skipping npm dist-tag add ${PACKAGE_NAME}@${NEXT_VERSION} next"
+  fi
   echo "🏁 Dry run completed successfully! No modifications were made to remote systems."
 else
   echo "Publishing package to npm under tag: $DIST_TAG..."
   npm publish --tag "$DIST_TAG"
+  if [ "$IS_PRERELEASE" = false ] && [ "$DIST_TAG" = "latest" ]; then
+    echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
+    npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next
+  fi
   echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
 fi
