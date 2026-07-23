@@ -108,14 +108,16 @@ describe("assertTimeoutSecondsValid", () => {
   it("is a no-op when timeoutSeconds is undefined", () => {
     expect(() => assertTimeoutSecondsValid({}, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({}, "https")).to.not.throw();
-    expect(() => assertTimeoutSecondsValid({}, "task")).to.not.throw();
+    expect(() => assertTimeoutSecondsValid({}, "scheduledOrTask")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({}, "identity")).to.not.throw();
   });
 
   it("accepts values within each kind's limit", () => {
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 540 }, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 3600 }, "https")).to.not.throw();
-    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1800 }, "task")).to.not.throw();
+    expect(() =>
+      assertTimeoutSecondsValid({ timeoutSeconds: 1800 }, "scheduledOrTask")
+    ).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 0 }, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1 }, "event")).to.not.throw();
     expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 7 }, "identity")).to.not.throw();
@@ -133,9 +135,9 @@ describe("assertTimeoutSecondsValid", () => {
     );
   });
 
-  it("throws when timeoutSeconds exceeds the task-queue limit", () => {
-    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1801 }, "task")).to.throw(
-      /between 0 and 1800 for task queue functions/
+  it("throws when timeoutSeconds exceeds the scheduled/task-queue limit", () => {
+    expect(() => assertTimeoutSecondsValid({ timeoutSeconds: 1801 }, "scheduledOrTask")).to.throw(
+      /between 0 and 1800 for scheduled or task queue functions/
     );
   });
 
@@ -188,7 +190,7 @@ describe("assertTimeoutSecondsValid", () => {
       /between 0 and 540 for event-handling functions/
     );
     expect(() => assertTimeoutSecondsValid({}, "https")).to.not.throw();
-    expect(() => assertTimeoutSecondsValid({}, "task")).to.throw();
+    expect(() => assertTimeoutSecondsValid({}, "scheduledOrTask")).to.throw();
     expect(() => assertTimeoutSecondsValid({}, "identity")).to.throw();
   });
 
@@ -223,7 +225,7 @@ describe("optionsToEndpoint timeout validation", () => {
     expect(() => optionsToEndpoint({ timeoutSeconds: 3601 }, "https")).to.throw(
       /between 0 and 3600/
     );
-    expect(() => optionsToEndpoint({ timeoutSeconds: 1801 }, "task")).to.throw(
+    expect(() => optionsToEndpoint({ timeoutSeconds: 1801 }, "scheduledOrTask")).to.throw(
       /between 0 and 1800/
     );
     expect(() => optionsToEndpoint({ timeoutSeconds: 8 }, "identity")).to.throw(/between 0 and 7/);
@@ -232,7 +234,7 @@ describe("optionsToEndpoint timeout validation", () => {
   it("is a no-op for in-range timeouts when kind is provided", () => {
     expect(() => optionsToEndpoint({ timeoutSeconds: 540 }, "event")).to.not.throw();
     expect(() => optionsToEndpoint({ timeoutSeconds: 3600 }, "https")).to.not.throw();
-    expect(() => optionsToEndpoint({ timeoutSeconds: 1800 }, "task")).to.not.throw();
+    expect(() => optionsToEndpoint({ timeoutSeconds: 1800 }, "scheduledOrTask")).to.not.throw();
     expect(() => optionsToEndpoint({ timeoutSeconds: 7 }, "identity")).to.not.throw();
   });
 });
@@ -253,7 +255,7 @@ describe("optionsToTriggerAnnotations timeout validation", () => {
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 3601 }, "https")).to.throw(
       /between 0 and 3600/
     );
-    expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 1801 }, "task")).to.throw(
+    expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 1801 }, "scheduledOrTask")).to.throw(
       /between 0 and 1800/
     );
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 8 }, "identity")).to.throw(
@@ -264,7 +266,9 @@ describe("optionsToTriggerAnnotations timeout validation", () => {
   it("is a no-op for in-range timeouts when kind is provided", () => {
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 540 }, "event")).to.not.throw();
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 3600 }, "https")).to.not.throw();
-    expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 1800 }, "task")).to.not.throw();
+    expect(() =>
+      optionsToTriggerAnnotations({ timeoutSeconds: 1800 }, "scheduledOrTask")
+    ).to.not.throw();
     expect(() => optionsToTriggerAnnotations({ timeoutSeconds: 7 }, "identity")).to.not.throw();
   });
 });

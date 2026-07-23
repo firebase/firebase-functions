@@ -44,7 +44,7 @@ export { RESET_VALUE } from "../common/options";
 
 /**
  * Maximum timeout in seconds for event-handling functions (e.g. Firestore,
- * Realtime Database, Pub/Sub, Storage, Eventarc, alerts, scheduler).
+ * Realtime Database, Pub/Sub, Storage, Eventarc, alerts).
  * See https://firebase.google.com/docs/functions/manage-functions
  * @internal
  */
@@ -57,10 +57,10 @@ export const MAX_EVENT_TIMEOUT_SECONDS = 540;
 export const MAX_HTTPS_TIMEOUT_SECONDS = 3600;
 
 /**
- * Maximum timeout in seconds for Task Queue functions.
+ * Maximum timeout in seconds for scheduled and Task Queue functions.
  * @internal
  */
-export const MAX_TASK_TIMEOUT_SECONDS = 1800;
+export const MAX_SCHEDULED_OR_TASK_TIMEOUT_SECONDS = 1800;
 
 /**
  * Maximum timeout in seconds for Identity blocking functions.
@@ -72,7 +72,7 @@ export const MAX_IDENTITY_TIMEOUT_SECONDS = 7;
  * Function category used to pick a `timeoutSeconds` upper bound.
  * @internal
  */
-export type TimeoutKind = "event" | "https" | "task" | "identity";
+export type TimeoutKind = "event" | "https" | "scheduledOrTask" | "identity";
 
 /**
  * List of all regions supported by Cloud Functions (2nd gen).
@@ -199,7 +199,7 @@ export interface GlobalOptions {
    * The maximum timeout for a function depends on the type of function:
    * Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue and scheduled functions have a maximum
    * timeout of 1,800s (30 minutes).
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -412,9 +412,9 @@ export function assertTimeoutSecondsValid(
       max = MAX_HTTPS_TIMEOUT_SECONDS;
       label = "HTTPS and callable";
       break;
-    case "task":
-      max = MAX_TASK_TIMEOUT_SECONDS;
-      label = "task queue";
+    case "scheduledOrTask":
+      max = MAX_SCHEDULED_OR_TASK_TIMEOUT_SECONDS;
+      label = "scheduled or task queue";
       break;
     case "identity":
       max = MAX_IDENTITY_TIMEOUT_SECONDS;
