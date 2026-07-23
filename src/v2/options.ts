@@ -60,7 +60,7 @@ export const MAX_HTTPS_TIMEOUT_SECONDS = 3600;
  * Maximum timeout in seconds for scheduled and Task Queue functions.
  * @internal
  */
-export const MAX_SCHEDULE_OR_TASK_TIMEOUT_SECONDS = 1800;
+export const MAX_SCHEDULED_OR_TASK_TIMEOUT_SECONDS = 1800;
 
 /**
  * Maximum timeout in seconds for Identity blocking functions.
@@ -199,7 +199,7 @@ export interface GlobalOptions {
    * The maximum timeout for a function depends on the type of function:
    * Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue and scheduled functions have a maximum
    * timeout of 1,800s (30 minutes).
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -413,7 +413,7 @@ export function assertTimeoutSecondsValid(
       label = "HTTPS and callable";
       break;
     case "scheduledOrTask":
-      max = MAX_SCHEDULE_OR_TASK_TIMEOUT_SECONDS;
+      max = MAX_SCHEDULED_OR_TASK_TIMEOUT_SECONDS;
       label = "scheduled or task queue";
       break;
     case "identity":
