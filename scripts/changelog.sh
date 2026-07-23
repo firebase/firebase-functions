@@ -5,13 +5,15 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR/.."
 
-PREVIOUS_TAG=""
-for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep -o 'tag: [^,)]*' | sed 's/tag: //'); do
-  if echo "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-    PREVIOUS_TAG="$tag"
-    break
-  fi
-done
+PREVIOUS_TAG="$1"
+if [ -z "$PREVIOUS_TAG" ]; then
+  for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep -o 'tag: [^,)]*' | sed 's/tag: //'); do
+    if echo "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+      PREVIOUS_TAG="$tag"
+      break
+    fi
+  done
+fi
 
 if [ -z "$PREVIOUS_TAG" ]; then
   echo "Initial release."
@@ -49,6 +51,28 @@ while read -r sha; do
 done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
 
 CHANGELOG_NOTES=""
+
+process_note() {
+  local note="$1"
+  # Trim trailing whitespace using pure bash parameter expansion
+  note="${note%"${note##*[![:space:]]}"}"
+  
+  # Case-insensitive check for 'none'
+  if [[ -z "$note" || "$note" =~ ^[[:space:]]*$ || "$note" =~ ^[Nn][Oo][Nn][Ee]$ ]]; then
+    return
+  fi
+  
+  # Check for PR suffix using native bash regex to avoid spawning grep
+  local pr_regex='\((#[0-9]+(,[[:space:]]*#[0-9]+)*)\)$'
+  if [[ "$note" =~ $pr_regex ]]; then
+    CHANGELOG_NOTES+="- $note"$'\n'
+  elif [ -n "$PR_SUFFIX" ]; then
+    CHANGELOG_NOTES+="- $note $PR_SUFFIX"$'\n'
+  else
+    CHANGELOG_NOTES+="- $note"$'\n'
+  fi
+}
+
 while read -r sha; do
   # Check if this SHA was reverted
   FULL_SHA=$(git rev-parse "$sha")
@@ -71,21 +95,29 @@ while read -r sha; do
     fi
   fi
 
+  current_note=""
   while read -r line; do
-    if [ -n "$line" ]; then
-      if echo "$line" | grep -qE '\(#[0-9]+\)$'; then
-        CHANGELOG_NOTES+="- $line"$'\n'
-      elif [ -n "$PR_SUFFIX" ]; then
-        CHANGELOG_NOTES+="- $line $PR_SUFFIX"$'\n'
+    line="${line%$'\r'}"
+    
+    if [[ "$line" =~ ^[Rr]elnotes?:[[:space:]]*(.*) ]]; then
+      next_note="${BASH_REMATCH[1]}"
+      if [ -n "$current_note" ]; then
+        process_note "$current_note"
+      fi
+      current_note="$next_note"
+    elif [ -n "$current_note" ]; then
+      if [[ "$line" =~ ^[[:space:]]*$ || "$line" =~ ^# ]]; then
+        process_note "$current_note"
+        current_note=""
       else
-        CHANGELOG_NOTES+="- $line"$'\n'
+        current_note="$current_note $line"
       fi
     fi
-  done < <(git log -1 --format="%b" "$sha" | \
-           grep -iE '^relnotes?:' | \
-           grep -vi 'relnotes?:[[:space:]]*none' | \
-           sed -E 's/^[Rr]elnotes?:[[:space:]]*//g' | \
-           sed -E 's/[[:space:]]*$//')
+  done < <(git log -1 --format="%b" "$sha")
+  
+  if [ -n "$current_note" ]; then
+    process_note "$current_note"
+  fi
 done < <(git rev-list "${PREVIOUS_TAG}..HEAD")
 
 echo -e "$CHANGELOG_NOTES"
