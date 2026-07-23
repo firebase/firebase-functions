@@ -5,13 +5,15 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$DIR/.."
 
-PREVIOUS_TAG=""
-for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep -o 'tag: [^,)]*' | sed 's/tag: //'); do
-  if echo "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-    PREVIOUS_TAG="$tag"
-    break
-  fi
-done
+PREVIOUS_TAG="$1"
+if [ -z "$PREVIOUS_TAG" ]; then
+  for tag in $(git log --tags --simplify-by-decoration --pretty="format:%d" | grep -o 'tag: [^,)]*' | sed 's/tag: //'); do
+    if echo "$tag" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+      PREVIOUS_TAG="$tag"
+      break
+    fi
+  done
+fi
 
 if [ -z "$PREVIOUS_TAG" ]; then
   echo "Initial release."
