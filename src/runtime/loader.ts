@@ -67,16 +67,18 @@ export function extractStack(
   endpoints: Record<string, ManifestEndpoint>,
   requiredAPIs: ManifestRequiredAPI[],
   extensions: Record<string, ManifestExtension>,
-  prefix = ""
+  endpointIdPrefix = "",
+  entryPointPrefix = ""
 ) {
   for (const [name, valAsUnknown] of Object.entries(module)) {
     // We're introspecting untrusted code here. Any is appropraite
     const val: any = valAsUnknown;
     if (typeof val === "function" && val.__endpoint && typeof val.__endpoint === "object") {
-      const funcName = prefix + name;
-      endpoints[funcName] = {
+      const endpointId = endpointIdPrefix + name;
+      const entryPoint = entryPointPrefix + name;
+      endpoints[endpointId] = {
         ...val.__endpoint,
-        entryPoint: funcName.replace(/-/g, "."),
+        entryPoint,
       };
       if (val.__requiredAPIs && Array.isArray(val.__requiredAPIs)) {
         requiredAPIs.push(...val.__requiredAPIs);
@@ -94,7 +96,14 @@ export function extractStack(
         events: val.events || [],
       };
     } else if (isObject(val)) {
-      extractStack(val, endpoints, requiredAPIs, extensions, prefix + name + "-");
+      extractStack(
+        val,
+        endpoints,
+        requiredAPIs,
+        extensions,
+        endpointIdPrefix + name + "-",
+        entryPointPrefix + name + "."
+      );
     }
   }
 }
