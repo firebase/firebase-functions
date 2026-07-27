@@ -31,7 +31,17 @@ const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 let firestoreInstance: any;
 
-/** @hidden */
+/**
+ * Helper to construct a value protobuf or return the document resource path.
+ *
+ * @param data - The Firestore event data payload.
+ * @param resource - The slash-separated document resource path (e.g.
+ * `projects/{project}/databases/{database}/documents/{document_path}`). This is used as the fallback
+ * when the document name or data is not present in the payload (e.g., for non-existent/deleted snapshots).
+ * @param valueFieldName - The key in `data` to extract the document fields from ('value' or 'oldValue').
+ * @returns A protobuf-like object representing the document, or the fallback resource path string.
+ * @hidden
+ */
 function _getValueProto(data: any, resource: string, valueFieldName: string) {
   const value = data?.[valueFieldName];
   if (
@@ -90,7 +100,7 @@ export function createBeforeSnapshotFromProtobuf(
 /** @internal */
 export function createSnapshotFromJson(
   data: any,
-  source: string,
+  path: string,
   createTime: string | undefined,
   updateTime: string | undefined,
   databaseId?: string
@@ -100,7 +110,7 @@ export function createSnapshotFromJson(
       ? firestore.getFirestore(getApp(), databaseId)
       : firestore.getFirestore(getApp());
   }
-  const valueProto = _getValueProto(data, source, "value");
+  const valueProto = _getValueProto(data, path, "value");
   let timeString = createTime || updateTime;
 
   if (!timeString) {
@@ -115,7 +125,7 @@ export function createSnapshotFromJson(
 /** @internal */
 export function createBeforeSnapshotFromJson(
   data: any,
-  source: string,
+  path: string,
   createTime: string | undefined,
   updateTime: string | undefined,
   databaseId?: string
@@ -126,7 +136,7 @@ export function createBeforeSnapshotFromJson(
       : firestore.getFirestore(getApp());
   }
 
-  const oldValueProto = _getValueProto(data, source, "oldValue");
+  const oldValueProto = _getValueProto(data, path, "oldValue");
   const oldReadTime = dateToTimestampProto(createTime || updateTime);
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, "json");
 }
