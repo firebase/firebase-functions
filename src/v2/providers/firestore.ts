@@ -779,8 +779,8 @@ export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot 
     return createSnapshotFromJson(
       event.data,
       getPath(event),
-      (event.data as RawFirestoreData).value?.createTime,
-      (event.data as RawFirestoreData).value?.updateTime,
+      (event.data as RawFirestoreData)?.value?.createTime,
+      (event.data as RawFirestoreData)?.value?.updateTime,
       event.database
     );
   } else {
@@ -803,8 +803,8 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
     return createBeforeSnapshotFromJson(
       event.data,
       getPath(event),
-      (event.data as RawFirestoreData).oldValue?.createTime,
-      (event.data as RawFirestoreData).oldValue?.updateTime,
+      (event.data as RawFirestoreData)?.oldValue?.createTime,
+      (event.data as RawFirestoreData)?.oldValue?.updateTime,
       event.database
     );
   } else {

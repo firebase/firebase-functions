@@ -29,7 +29,10 @@ import { dateToTimestampProto } from "../../common/utilities/encoder";
 /** static-complied protobufs */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
-let firestoreInstance: any;
+/** @internal */
+interface Firestore extends firestore.Firestore {
+  snapshot_(value: unknown, readTime: unknown, encoding: string): any;
+}
 
 /**
  * Helper to construct a value protobuf or return the document resource path.
@@ -63,9 +66,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 
 /** @internal */
 export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp(), databaseId);
-  }
+  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
   try {
     const dataBuffer = Buffer.from(data);
     const firestoreDecoded = DocumentEventData.decode(dataBuffer);
@@ -83,9 +84,7 @@ export function createBeforeSnapshotFromProtobuf(
   path: string,
   databaseId: string
 ) {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp(), databaseId);
-  }
+  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
   try {
     const dataBuffer = Buffer.from(data);
     const firestoreDecoded = DocumentEventData.decode(dataBuffer);
@@ -105,11 +104,9 @@ export function createSnapshotFromJson(
   updateTime: string | undefined,
   databaseId?: string
 ) {
-  if (!firestoreInstance) {
-    firestoreInstance = databaseId
-      ? firestore.getFirestore(getApp(), databaseId)
-      : firestore.getFirestore(getApp());
-  }
+  const firestoreInstance = (
+    databaseId ? firestore.getFirestore(getApp(), databaseId) : firestore.getFirestore(getApp())
+  ) as Firestore;
   const valueProto = _getValueProto(data, path, "value");
   let timeString = createTime || updateTime;
 
@@ -130,11 +127,9 @@ export function createBeforeSnapshotFromJson(
   updateTime: string | undefined,
   databaseId?: string
 ) {
-  if (!firestoreInstance) {
-    firestoreInstance = databaseId
-      ? firestore.getFirestore(getApp(), databaseId)
-      : firestore.getFirestore(getApp());
-  }
+  const firestoreInstance = (
+    databaseId ? firestore.getFirestore(getApp(), databaseId) : firestore.getFirestore(getApp())
+  ) as Firestore;
 
   const oldValueProto = _getValueProto(data, path, "oldValue");
   const oldReadTime = dateToTimestampProto(createTime || updateTime);
