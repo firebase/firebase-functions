@@ -437,15 +437,8 @@ export function onCall<T = any, Return = any | Promise<any>, Stream = unknown>(
   // fix the length of handler to make the call to handler consistent
   const fixedLen = (req: CallableRequest<T>, resp?: CallableResponse<Stream>) => handler(req, resp);
 
-  let enforceAppCheck = opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck;
-  if (enforceAppCheck instanceof Expression) {
-    enforceAppCheck = enforceAppCheck.runtimeValue();
-  }
-
-  let consumeAppCheckToken = opts.consumeAppCheckToken;
-  if (consumeAppCheckToken instanceof Expression) {
-    consumeAppCheckToken = consumeAppCheckToken.runtimeValue();
-  }
+  const enforceAppCheck = opts.enforceAppCheck ?? options.getGlobalOptions().enforceAppCheck;
+  const consumeAppCheckToken = opts.consumeAppCheckToken;
 
   let func: any = onCallHandler(
     {
