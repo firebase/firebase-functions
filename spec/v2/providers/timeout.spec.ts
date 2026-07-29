@@ -67,7 +67,7 @@ describe("v2 provider timeout validation", () => {
     {
       name: "tasks.onTaskDispatched rejects task timeouts above 1800s",
       build: () => tasks.onTaskDispatched({ timeoutSeconds: 1801 }, () => null),
-      expectedError: /between 0 and 1800 for task queue functions/,
+      expectedError: /between 0 and 1800 for scheduled or task queue functions/,
     },
     {
       name: "pubsub.onMessagePublished rejects event timeouts above 540s",
@@ -112,10 +112,10 @@ describe("v2 provider timeout validation", () => {
       expectedError: /between 0 and 540 for event-handling functions/,
     },
     {
-      name: "scheduler.onSchedule rejects event timeouts above 540s",
+      name: "scheduler.onSchedule rejects schedule timeouts above 1800s",
       build: () =>
-        scheduler.onSchedule({ schedule: "* * * * *", timeoutSeconds: 3600 }, () => null),
-      expectedError: /between 0 and 540 for event-handling functions/,
+        scheduler.onSchedule({ schedule: "* * * * *", timeoutSeconds: 1801 }, () => null),
+      expectedError: /between 0 and 1800 for scheduled or task queue functions/,
     },
     {
       name: "testLab.onTestMatrixCompleted rejects event timeouts above 540s",
