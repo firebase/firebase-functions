@@ -29,7 +29,9 @@ const EXPRESSION_TAG = Symbol.for("firebase-functions:Expression:Tag");
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
-export abstract class Expression<T extends string | number | boolean | string[]> {
+export abstract class Expression<
+  T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>
+> {
   /**
    * Handle the "Dual-Package Hazard" .
    *
@@ -144,13 +146,15 @@ export class TransformedStringExpression extends Expression<string> {
   }
 }
 
-export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
+export function valueOf<
+  T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>
+>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
 
-export function celOf<T extends string | number | boolean | string[]>(
-  arg: T | Expression<T>
-): T | string {
+export function celOf<
+  T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>
+>(arg: T | Expression<T>): T | string {
   return arg instanceof Expression ? arg.toCEL() : arg;
 }
 
@@ -171,13 +175,17 @@ export function transform(
  * - Arrays are represented as []-delimited, parsable JSON
  * - Numbers and booleans are not quoted explicitly
  */
-function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
+function refOf<T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>>(
+  arg: T | Expression<T>
+): string {
   if (arg instanceof Expression) {
     return arg.toString();
   } else if (typeof arg === "string") {
     return `"${arg}"`;
   } else if (Array.isArray(arg)) {
-    return JSON.stringify(arg);
+    // RegExp has no useful JSON representation (JSON.stringify(/foo/) === "{}"),
+    // so fall back to its string form instead of silently dropping the pattern.
+    return JSON.stringify(arg.map((item) => (item instanceof RegExp ? item.toString() : item)));
   } else {
     return arg.toString();
   }
@@ -187,7 +195,7 @@ function refOf<T extends string | number | boolean | string[]>(arg: T | Expressi
  * A CEL expression corresponding to a ternary operator, e.g {{ cond ? ifTrue : ifFalse }}
  */
 export class TernaryExpression<
-  T extends string | number | boolean | string[]
+  T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>
 > extends Expression<T> {
   constructor(
     private readonly test: Expression<boolean>,
@@ -263,7 +271,7 @@ export class CompareExpression<
   }
 
   /** Returns a `TernaryExpression` which can resolve to one of two values, based on the resolution of this comparison. */
-  thenElse<retT extends string | number | boolean | string[]>(
+  thenElse<retT extends string | number | boolean | string[] | RegExp | Array<string | RegExp>>(
     ifTrue: retT | Expression<retT>,
     ifFalse: retT | Expression<retT>
   ) {
@@ -719,11 +727,14 @@ export class BooleanParam extends Param<boolean> {
   }
 
   /** @deprecated */
-  then<T extends string | number | boolean>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
+  then<T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>>(
+    ifTrue: T | Expression<T>,
+    ifFalse: T | Expression<T>
+  ) {
     return this.thenElse(ifTrue, ifFalse);
   }
 
-  thenElse<T extends string | number | boolean>(
+  thenElse<T extends string | number | boolean | string[] | RegExp | Array<string | RegExp>>(
     ifTrue: T | Expression<T>,
     ifFalse: T | Expression<T>
   ) {

@@ -715,6 +715,8 @@ export type CorsOption =
   | string
   | Expression<string>
   | Expression<string[]>
+  | Expression<RegExp>
+  | Expression<Array<string | RegExp>>
   | boolean
   | RegExp
   | Array<string | RegExp>;

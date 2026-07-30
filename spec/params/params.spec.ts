@@ -258,6 +258,29 @@ describe("Params value extraction", () => {
     expect(trueExpr.thenElse(twentytwo, 0).value()).to.equal(22);
     expect(falseExpr.thenElse(1, twentytwo).value()).to.equal(22);
   });
+
+  it("can select between RegExp/RegExp[] literals via a ternary expression", () => {
+    const localPattern = /^http:\/\/localhost:8080$/;
+    const prodPattern = /^https:\/\/example\.com$/;
+    const trueExpr = params.defineString("A_STRING").equals(params.defineString("SAME_STRING"));
+    const falseExpr = params.defineInt("AN_INT").equals(params.defineInt("DIFF_INT"));
+
+    expect(trueExpr.thenElse(localPattern, prodPattern).value()).to.equal(localPattern);
+    expect(falseExpr.thenElse(localPattern, prodPattern).value()).to.equal(prodPattern);
+
+    const localPatterns = [localPattern];
+    const prodPatterns = [prodPattern];
+    expect(trueExpr.thenElse(localPatterns, prodPatterns).value()).to.equal(localPatterns);
+    expect(falseExpr.thenElse(localPatterns, prodPatterns).value()).to.equal(prodPatterns);
+
+    // Nested thenElse, mirroring a boolean-param-selected CORS origin config.
+    const stagingExpr = params.defineBoolean("TRUE");
+    const nested = trueExpr.thenElse(
+      localPatterns,
+      stagingExpr.thenElse(prodPatterns, [/^https:\/\/other\.example\.com$/])
+    );
+    expect(nested.value()).to.equal(localPatterns);
+  });
 });
 
 describe("defineJsonSecret", () => {
@@ -456,6 +479,22 @@ describe("Params as CEL", () => {
     expect(
       cmpExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()
     ).to.equal("{{ params.A != params.B ? params.FOO : params.BAR }}");
+  });
+
+  it("represents RegExp array branches as their string form, not '{}'", () => {
+    const booleanExpr = params.defineBoolean("BOOL");
+    const localPattern = /^http:\/\/localhost$/;
+    const prodPattern = /^https:\/\/example\.com$/;
+    const cel = booleanExpr.thenElse([localPattern], [prodPattern]).toCEL();
+
+    // Regression check: JSON.stringify(regexArray) alone would render each RegExp
+    // as "{}", silently dropping the pattern.
+    expect(cel).to.not.include("{}");
+    expect(cel).to.equal(
+      `{{ params.BOOL ? ${JSON.stringify([localPattern.toString()])} : ${JSON.stringify([
+        prodPattern.toString(),
+      ])} }}`
+    );
   });
 });
 
