@@ -182,6 +182,8 @@ function refOf<T extends string | number | boolean | string[] | RegExp | Array<s
     return arg.toString();
   } else if (typeof arg === "string") {
     return `"${arg}"`;
+  } else if (arg instanceof RegExp) {
+    return JSON.stringify(arg.toString());
   } else if (Array.isArray(arg)) {
     // RegExp has no useful JSON representation (JSON.stringify(/foo/) === "{}"),
     // so fall back to its string form instead of silently dropping the pattern.

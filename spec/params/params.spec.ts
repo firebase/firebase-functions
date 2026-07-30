@@ -496,6 +496,21 @@ describe("Params as CEL", () => {
       ])} }}`
     );
   });
+
+  it("represents a bare RegExp branch as a quoted string form, not unquoted source", () => {
+    const booleanExpr = params.defineBoolean("BOOL");
+    const localPattern = /^http:\/\/localhost$/;
+    const prodPattern = /^https:\/\/example\.com$/;
+    const cel = booleanExpr.thenElse(localPattern, prodPattern).toCEL();
+
+    // Regression check: arg.toString() alone would render the RegExp as an
+    // unquoted /pattern/, which is not a valid CEL string literal.
+    expect(cel).to.equal(
+      `{{ params.BOOL ? ${JSON.stringify(localPattern.toString())} : ${JSON.stringify(
+        prodPattern.toString()
+      )} }}`
+    );
+  });
 });
 
 describe("expr template tag", () => {
