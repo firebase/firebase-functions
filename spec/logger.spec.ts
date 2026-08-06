@@ -1,6 +1,8 @@
 import { expect } from "chai";
 
 import * as logger from "../src/logger";
+import { setGlobalOptions } from "../src/v2";
+import { getGlobalOptions } from "../src/v2/options";
 
 describe("logger", () => {
   const stdoutWrite = process.stdout.write.bind(process.stdout);
@@ -215,6 +217,49 @@ describe("logger", () => {
             expectStderr(entry);
           });
         }
+      });
+    });
+  });
+
+  describe("error logging stacktrace", () => {
+    const defaultOptions = getGlobalOptions();
+
+    beforeEach(() => {
+      setGlobalOptions(defaultOptions);
+    });
+
+    afterEach(() => {
+      setGlobalOptions(defaultOptions);
+    });
+
+    it("default behavior is to include stacktrace in error logs", () => {
+      // If this test fails, it means there's a breaking change.
+      const message = "Test error with stacktrace";
+      logger.error(message);
+      const messageOutput = JSON.parse(lastErr.trim()).message;
+      expect(messageOutput).to.include(`Error: ${message}`);
+    });
+
+    it("when disableErrorLoggingStacktrace is set to false, should include stacktrace in error logs", () => {
+      const message = "Test error with stacktrace";
+      setGlobalOptions({
+        disableErrorLoggingStacktrace: false,
+      });
+      logger.error(message);
+      const messageOutput = JSON.parse(lastErr.trim()).message;
+
+      expect(messageOutput).to.include(`Error: ${message}`);
+    });
+
+    it("when disableErrorLoggingStacktrace is set to true, should not include stacktrace in error logs", () => {
+      const message = "Test error with stacktrace disabled";
+      setGlobalOptions({
+        disableErrorLoggingStacktrace: true,
+      });
+      logger.error(message);
+      expectStderr({
+        severity: "ERROR",
+        message: message,
       });
     });
   });
