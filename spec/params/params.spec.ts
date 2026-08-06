@@ -274,12 +274,17 @@ describe("Params value extraction", () => {
     expect(falseExpr.thenElse(localPatterns, prodPatterns).value()).to.equal(prodPatterns);
 
     // Nested thenElse, mirroring a boolean-param-selected CORS origin config.
+    // The outer test is false so that the nested expression is the one resolved.
+    const otherPatterns = [/^https:\/\/other\.example\.com$/];
     const stagingExpr = params.defineBoolean("TRUE");
-    const nested = trueExpr.thenElse(
-      localPatterns,
-      stagingExpr.thenElse(prodPatterns, [/^https:\/\/other\.example\.com$/])
-    );
-    expect(nested.value()).to.equal(localPatterns);
+    expect(
+      falseExpr.thenElse(localPatterns, stagingExpr.thenElse(prodPatterns, otherPatterns)).value()
+    ).to.equal(prodPatterns);
+    expect(
+      falseExpr
+        .thenElse(localPatterns, stagingExpr.equals(false).thenElse(prodPatterns, otherPatterns))
+        .value()
+    ).to.equal(otherPatterns);
   });
 });
 
