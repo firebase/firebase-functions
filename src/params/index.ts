@@ -47,6 +47,7 @@ export type {
   SelectInput,
   SelectOptions,
   MultiSelectInput,
+  ExpressionValue,
   Param,
   SecretParam,
   JsonSecretParam,
