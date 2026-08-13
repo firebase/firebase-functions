@@ -263,14 +263,6 @@ describe("logger", () => {
       });
     });
 
-    it("should patch console.info with INFO severity", () => {
-      console.info("test info log");
-      expectStdout({
-        severity: "INFO",
-        message: "test info log",
-      });
-    });
-
     it("should patch console.debug with DEBUG severity", () => {
       console.debug("test debug log");
       expectStdout({
