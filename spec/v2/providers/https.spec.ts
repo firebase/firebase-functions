@@ -749,7 +749,7 @@ describe("onCall", () => {
         { fn: specificValue, status: 403 },
       ];
       for (const test of cases) {
-        const resp = await runHandler(test.fn, request({ auth: test.auth }));
+        const resp = await runHandler(test.fn as any, request({ auth: test.auth }));
         expect(resp.status).to.equal(test.status);
       }
     });

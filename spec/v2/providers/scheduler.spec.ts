@@ -146,6 +146,21 @@ describe("schedule", () => {
       ]);
     });
 
+    it("should accept timeoutSeconds up to the 1800s scheduled-function limit", () => {
+      const schfn = schedule.onSchedule(
+        { schedule: "* * * * *", timeoutSeconds: 1800 },
+        () => undefined
+      );
+
+      expect(schfn.__endpoint.timeoutSeconds).to.eq(1800);
+    });
+
+    it("should reject timeoutSeconds above the 1800s scheduled-function limit", () => {
+      expect(() =>
+        schedule.onSchedule({ schedule: "* * * * *", timeoutSeconds: 1801 }, () => undefined)
+      ).to.throw(/between 0 and 1800 for scheduled or task queue functions/);
+    });
+
     it("should create a schedule function with preserveExternalChanges", () => {
       const schfn = schedule.onSchedule(
         {
