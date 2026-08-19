@@ -28,7 +28,7 @@ export declare interface BaseParams {
 /**
  * Fields common to all Schema types.
  *
- * @internal
+ * @public
  */
 export declare interface BaseSchema {
   /** Optional. Description of the value. */
