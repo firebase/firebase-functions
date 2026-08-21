@@ -218,7 +218,7 @@ export interface AIBlockingEvent<T = any> extends CloudEvent<T> {
 type MaybeAsync<T> = T | Promise<T>;
 
 /**
- * A blocking function returned by AI event handlers.
+ * A Cloud Function that handles AI blocking events.
  */
 export type BlockingFunction = HttpsFunction;
 

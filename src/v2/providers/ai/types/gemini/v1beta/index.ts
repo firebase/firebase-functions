@@ -382,7 +382,7 @@ export declare interface GenerateContentCandidate {
  * @public
  */
 export declare interface GenerateContentRequest extends BaseParams {
-  /** Array of content parts that make up the prompt. */
+  /** Array of conversation turns (Content) that make up the prompt. */
   contents: Content[];
   /** Optional tools that the model may use to generate content. */
   tools?: Tool[];
