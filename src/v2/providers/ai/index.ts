@@ -40,6 +40,9 @@ import * as logger from "../../../logger";
 
 export { HttpsError };
 
+/**
+ * Mapping from FunctionsErrorCode strings to numeric RPC status codes.
+ */
 export const rpcCodeMap: Record<FunctionsErrorCode, number> = {
   ok: 0,
   cancelled: 1,
@@ -82,32 +85,72 @@ export {
 };
 type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
 
+/**
+ * Options for configuring AI webhook triggers.
+ */
 export interface WebhookOptions<Regional extends boolean = false>
   extends Omit<EventHandlerOptions, "location"> {
+  /**
+   * Region where functions should be deployed.
+   */
   location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
+  /**
+   * Whether to handle regional webhooks.
+   */
   regionalWebhook?: Regional;
 }
 
+/**
+ * Information about a prompt template.
+ */
 export interface PromptTemplateInfo {
+  /** The name of the prompt template. */
   templateName?: string;
 }
 
+/**
+ * Authentication type of the caller.
+ */
 export type AuthType = "app_user" | "unauthenticated" | "unknown";
 
+/**
+ * Event type for beforeGenerate triggers.
+ */
 export const beforeGenerateEventType = "google.firebase.ailogic.v1.beforeGenerate";
+/**
+ * Event type for afterGenerate triggers.
+ */
 export const afterGenerateEventType = "google.firebase.ailogic.v1.afterGenerate";
 
+/**
+ * Union of all valid AI request payloads.
+ */
 export type AnyValidAIRequest =
   | GeminiV1BetaGenerateContentRequest
   | VertexV1Beta1GenerateContentRequest;
+/**
+ * Union of all valid AI response payloads.
+ */
 export type AnyValidAIResponse =
   | GeminiV1BetaGenerateContentResponse
   | VertexV1Beta1GenerateContentResponse;
 
+/**
+ * Identifier for the Gemini v1beta API.
+ */
 export const geminiV1Beta = "google.ai.generativelanguage.v1beta";
+/**
+ * Identifier for the Vertex AI v1beta1 API.
+ */
 export const vertexV1Beta1 = "google.cloud.aiplatform.v1beta1";
+/**
+ * Supported AI API types.
+ */
 export type SupportedAPI = typeof geminiV1Beta | typeof vertexV1Beta1;
 
+/**
+ * Generic type resolving to the corresponding AI request type based on the API identifier.
+ */
 export type AIRequest<API> = string extends API
   ? AnyValidAIRequest
   : API extends typeof geminiV1Beta
@@ -116,6 +159,9 @@ export type AIRequest<API> = string extends API
   ? VertexV1Beta1GenerateContentRequest
   : never;
 
+/**
+ * Generic type resolving to the corresponding AI response type based on the API identifier.
+ */
 export type AIResponse<API> = string extends API
   ? AnyValidAIResponse
   : API extends typeof geminiV1Beta
@@ -124,31 +170,56 @@ export type AIResponse<API> = string extends API
   ? VertexV1Beta1GenerateContentResponse
   : never;
 
+/**
+ * Data payload for beforeGenerateContent events.
+ */
 export interface BeforeGenerateContentData<API extends string = string> {
+  /** The AI model name. */
   model: string;
+  /** Template metadata if a prompt template is used. */
   template?: PromptTemplateInfo;
+  /** The AI API identifier. */
   api: SupportedAPI;
+  /** The incoming generate content request. */
   request: AIRequest<API>;
 }
 
+/**
+ * Data payload for afterGenerateContent events.
+ */
 export interface AfterGenerateContentData<API extends string = string>
   extends BeforeGenerateContentData<API> {
+  /** The generated content response. */
   response: AIResponse<API>;
 }
 
+/**
+ * Event context and payload delivered to AI blocking handlers.
+ */
 export interface AIBlockingEvent<T = any> extends CloudEvent<T> {
+  /** The authentication type of the caller. */
   authType: AuthType;
+  /** The user ID if authenticated. */
   authId?: string;
+  /** The auth claims token payload. */
   authClaims?: any;
+  /** The resource name. */
   resourceName?: string;
+  /** The Firebase app ID. */
   appId?: string;
+  /** The display name of the user. */
   displayName?: string;
+  /** The Android package name if request originates from Android. */
   androidPackageName?: string;
+  /** The iOS bundle ID if request originates from iOS. */
   iosBundleId?: string;
 }
 
 type MaybeAsync<T> = T | Promise<T>;
 
+/**
+ * A blocking function returned by AI event handlers.
+ */
 export type BlockingFunction = HttpsFunction;
 
 /**
