@@ -615,6 +615,29 @@ describe("onCall", () => {
     }
   });
 
+  it("should not warn when using Expression-based enforceAppCheck during deployment", async () => {
+    const loggerSpy = sinon.spy(logger, "warn");
+    const enforceAppCheck = defineBoolean("ENFORCE_APP_CHECK");
+
+    try {
+      process.env.ENFORCE_APP_CHECK = "true";
+      process.env.FUNCTIONS_CONTROL_API = "true";
+
+      const func = https.onCall({ enforceAppCheck }, () => 42);
+
+      const req = request({ headers: { origin: "example.com" } }); // No app check token
+      const resp = await runHandler(func, req);
+
+      expect(resp.status).to.equal(401);
+      expect(loggerSpy.called).to.be.false;
+    } finally {
+      delete process.env.ENFORCE_APP_CHECK;
+      delete process.env.FUNCTIONS_CONTROL_API;
+      clearParams();
+      loggerSpy.restore();
+    }
+  });
+
   it("overrides CORS headers if debug feature is enabled", async () => {
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
 
