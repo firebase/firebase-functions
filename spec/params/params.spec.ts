@@ -139,6 +139,18 @@ describe("Params value extraction", () => {
     delete process.env.FIREBASE_CONFIG;
   });
 
+  it("extracts the special case FUNCTION_REGION / functionRegion / region from process.env", () => {
+    try {
+      process.env.FUNCTION_REGION = "us-east1";
+      expect(params.functionRegion.value()).to.equal("us-east1");
+      expect(params.region.value()).to.equal("us-east1");
+    } finally {
+      delete process.env.FUNCTION_REGION;
+    }
+    expect(params.functionRegion.value()).to.equal("");
+    expect(params.region.value()).to.equal("");
+  });
+
   it("falls back on the javascript zero values in case of type mismatch", () => {
     const stringToInt = params.defineInt("A_STRING");
     expect(stringToInt.value()).to.equal(0);
@@ -378,6 +390,14 @@ describe("Params as CEL", () => {
     expect(params.storageBucket.equals(str).toCEL()).to.equal(
       `{{ params.STORAGE_BUCKET == params.A_STRING }}`
     );
+    expect(params.functionRegion.toCEL()).to.equal(`{{ params.FUNCTION_REGION }}`);
+    expect(params.functionRegion.equals("foo").toCEL()).to.equal(
+      `{{ params.FUNCTION_REGION == "foo" }}`
+    );
+    expect(params.functionRegion.equals(str).toCEL()).to.equal(
+      `{{ params.FUNCTION_REGION == params.A_STRING }}`
+    );
+    expect(params.region.toCEL()).to.equal(`{{ params.FUNCTION_REGION }}`);
   });
 
   it("identity expressions", () => {

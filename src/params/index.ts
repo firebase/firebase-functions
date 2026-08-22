@@ -138,6 +138,19 @@ export const storageBucket: Param<string> = new InternalExpression(
   "STORAGE_BUCKET",
   (env: NodeJS.ProcessEnv) => JSON.parse(env.FIREBASE_CONFIG || "{}")?.storageBucket || ""
 );
+/**
+ * A built-in parameter that resolves to the Cloud region, without prompting
+ * the deployer.
+ */
+export const functionRegion: Param<string> = new InternalExpression(
+  "FUNCTION_REGION",
+  (env: NodeJS.ProcessEnv) => env.FUNCTION_REGION || ""
+);
+/**
+ * A built-in parameter that resolves to the Cloud region, without prompting
+ * the deployer. Alias for {@link functionRegion}.
+ */
+export const region: Param<string> = functionRegion;
 
 /**
  * Declares a secret param, that will persist values only in Cloud Secret Manager.
