@@ -307,6 +307,89 @@ describe("onRequest", () => {
     }
   });
 
+  it("should allow a RegExp[] chosen dynamically via a ternary expression", async () => {
+    const isStaging = defineBoolean("IS_STAGING");
+    const localPattern = /^http:\/\/localhost:8080$/;
+    const stagingPattern = /^https:\/\/staging\.example\.com$/;
+
+    try {
+      process.env.IS_STAGING = "true";
+      const func = https.onRequest(
+        {
+          cors: isStaging.equals(true).thenElse([stagingPattern], [localPattern]),
+        },
+        (req, res) => {
+          res.send("42");
+        }
+      );
+      const req = request({
+        headers: {
+          referrer: "https://staging.example.com",
+          "content-type": "application/json",
+          origin: "https://staging.example.com",
+        },
+        method: "OPTIONS",
+      });
+
+      const response = await runHandler(func, req);
+
+      expect(response.status).to.equal(204);
+      expect(response.headers).to.deep.equal({
+        "Access-Control-Allow-Origin": "https://staging.example.com",
+        "Access-Control-Allow-Methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "Content-Length": "0",
+        Vary: "Origin, Access-Control-Request-Headers",
+      });
+    } finally {
+      delete process.env.IS_STAGING;
+      clearParams();
+    }
+  });
+
+  it("should resolve the other RegExp[] branch when the ternary expression is false", async () => {
+    const isStaging = defineBoolean("IS_STAGING");
+    const localPattern = /^http:\/\/localhost:8080$/;
+    const stagingPattern = /^https:\/\/staging\.example\.com$/;
+
+    try {
+      process.env.IS_STAGING = "false";
+      const func = https.onRequest(
+        {
+          cors: isStaging.equals(true).thenElse([stagingPattern], [localPattern]),
+        },
+        (req, res) => {
+          res.send("42");
+        }
+      );
+      const preflight = (origin: string) =>
+        request({
+          headers: {
+            referrer: origin,
+            "content-type": "application/json",
+            origin,
+          },
+          method: "OPTIONS",
+        });
+
+      const allowed = await runHandler(func, preflight("http://localhost:8080"));
+
+      expect(allowed.status).to.equal(204);
+      expect(allowed.headers).to.deep.equal({
+        "Access-Control-Allow-Origin": "http://localhost:8080",
+        "Access-Control-Allow-Methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+        "Content-Length": "0",
+        Vary: "Origin, Access-Control-Request-Headers",
+      });
+
+      const denied = await runHandler(func, preflight("https://staging.example.com"));
+
+      expect(denied.headers).to.not.have.property("Access-Control-Allow-Origin");
+    } finally {
+      delete process.env.IS_STAGING;
+      clearParams();
+    }
+  });
+
   it("should add CORS headers if debug feature is enabled", async () => {
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
 
