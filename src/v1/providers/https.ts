@@ -42,7 +42,7 @@ import { withInit } from "../../common/onInit";
 import { wrapTraceContext } from "../../v2/trace";
 
 export { HttpsError };
-export type { Request, CallableContext, FunctionsErrorCode };
+export type { Request, CallableContext, FunctionsErrorCode, CorsOption };
 
 export interface HttpsOptions {
   /**

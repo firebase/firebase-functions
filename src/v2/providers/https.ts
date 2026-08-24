@@ -51,7 +51,7 @@ import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
-export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
+export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode, CorsOption };
 export { HttpsError };
 
 /**

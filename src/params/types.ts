@@ -181,6 +181,7 @@ export function transform(
  * - Expressions delegate to the `.toString()` method, which is used by the WireManifest
  * - Strings have to be quoted explicitly
  * - Arrays are represented as []-delimited, parsable JSON
+ * - RegExps are emitted as their quoted `toString()` form, e.g. `"/foo$/"`
  * - Numbers and booleans are not quoted explicitly
  */
 function refOf<T extends ExpressionValue>(arg: T | Expression<T>): string {
