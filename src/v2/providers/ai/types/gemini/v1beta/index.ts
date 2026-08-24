@@ -392,8 +392,8 @@ export declare interface GenerateContentRequest extends BaseParams {
   cachedContent?: string;
 }
 /**
- * Individual response from {@link GenerativeModel.generateContent} and
- * {@link GenerativeModel.generateContentStream}.
+ * Individual response from `generateContent` and
+ * `generateContentStream`.
  * `generateContentStream()` will return one in each chunk until
  * the stream is done.
  * @public

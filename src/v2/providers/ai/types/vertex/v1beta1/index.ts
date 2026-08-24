@@ -103,11 +103,11 @@ export interface Schema {
  * Params used to call the generateContent method.
  */
 export declare interface GenerateContentRequest extends BaseModelParams {
-  /** Array of {@link Content}.*/
+  /** Array of `Content`. */
   contents: Content[];
   /**
    * Optional. The user provided system instructions for the model.
-   * Note: only text should be used in parts of {@link Content}
+   * Note: only text should be used in parts of `Content`.
    */
   systemInstruction?: string | Content;
   /**
@@ -464,14 +464,14 @@ declare enum FinishReason {
  * Response from the model supporting multiple candidates.
  */
 export declare interface GenerateContentResponse {
-  /** Array of {@link GenerateContentCandidate}. */
+  /** Array of `GenerateContentCandidate`. */
   candidates?: GenerateContentCandidate[];
   /**
    * Optional. This is only populated if there are no candidates due to a
-   * safety block. {@link PromptFeedback}.
+   * safety block.
    */
   promptFeedback?: PromptFeedback;
-  /** Optional. {@link UsageMetadata}. */
+  /** Optional. Usage metadata. */
   usageMetadata?: UsageMetadata;
 }
 /**
