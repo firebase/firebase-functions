@@ -34,8 +34,6 @@ import { withInit } from "../../../common/onInit";
 import { initV2Endpoint } from "../../../runtime/manifest";
 import * as options from "../../options";
 
-import { Expression } from "../../../params";
-import { ResetValue } from "../../../common/options";
 import * as logger from "../../../logger";
 
 export { HttpsError };
@@ -80,13 +78,7 @@ export {
   type GeminiV1BetaGenerateContentRequest,
   type GeminiV1BetaGenerateContentResponse,
 };
-type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
-
-export interface WebhookOptions<Regional extends boolean = false>
-  extends Omit<EventHandlerOptions, "location"> {
-  location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
-  regionalWebhook?: Regional;
-}
+export interface WebhookOptions extends EventHandlerOptions {}
 
 export interface PromptTemplateInfo {
   templateName?: string;
@@ -157,8 +149,8 @@ export function beforeGenerateContent(
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
 ): BlockingFunction;
 
-export function beforeGenerateContent<Regional extends boolean = false>(
-  options: WebhookOptions<Regional>,
+export function beforeGenerateContent(
+  options: WebhookOptions,
   callback: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -249,9 +241,6 @@ export function beforeGenerateContent(
     },
     blockingTrigger: {
       eventType: beforeGenerateEventType,
-      options: {
-        regionalWebhook: opts.regionalWebhook,
-      },
     },
   };
 
@@ -264,8 +253,8 @@ export function afterGenerateContent(
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
 ): BlockingFunction;
 
-export function afterGenerateContent<Regional extends boolean = false>(
-  options: WebhookOptions<Regional>,
+export function afterGenerateContent(
+  options: WebhookOptions,
   callback: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
@@ -356,9 +345,6 @@ export function afterGenerateContent(
     },
     blockingTrigger: {
       eventType: afterGenerateEventType,
-      options: {
-        regionalWebhook: opts.regionalWebhook,
-      },
     },
   };
 

@@ -105,6 +105,10 @@ export interface Schema {
 export declare interface GenerateContentRequest extends BaseModelParams {
   /** Array of {@link Content}.*/
   contents: Content[];
+  /** Optional. Array of {@link Tool}. */
+  tools?: Tool[];
+  /** Optional. This config is shared for all tools provided in the request. */
+  toolConfig?: ToolConfig;
   /**
    * Optional. The user provided system instructions for the model.
    * Note: only text should be used in parts of {@link Content}
@@ -115,11 +119,6 @@ export declare interface GenerateContentRequest extends BaseModelParams {
    * This is the name of a `CachedContent` and not the cache object itself.
    */
   cachedContent?: string;
-  /**
-   * Optional. Custom metadata labels for organizing API calls and managing costs at scale. See
-   * https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/add-labels-to-api-calls
-   */
-  labels?: Record<string, string>;
 }
 /**
  * Base params for initializing a model or calling GenerateContent.
