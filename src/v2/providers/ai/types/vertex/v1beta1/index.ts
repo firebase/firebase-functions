@@ -105,10 +105,6 @@ export interface Schema {
 export declare interface GenerateContentRequest extends BaseModelParams {
   /** Array of `Content`. */
   contents: Content[];
-  /** Optional. Array of {@link Tool}. */
-  tools?: Tool[];
-  /** Optional. This config is shared for all tools provided in the request. */
-  toolConfig?: ToolConfig;
   /**
    * Optional. The user provided system instructions for the model.
    * Note: only text should be used in parts of `Content`.
