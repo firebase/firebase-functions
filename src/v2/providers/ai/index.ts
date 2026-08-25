@@ -41,7 +41,7 @@ import * as logger from "../../../logger";
 export { HttpsError };
 
 /**
- * Mapping from FunctionsErrorCode strings to numeric RPC status codes.
+ * Mapping from `FunctionsErrorCode` strings to numeric RPC status codes.
  */
 export const rpcCodeMap: Record<FunctionsErrorCode, number> = {
   ok: 0,
@@ -91,7 +91,7 @@ type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? strin
 export interface WebhookOptions<Regional extends boolean = false>
   extends Omit<EventHandlerOptions, "location"> {
   /**
-   * Region where functions should be deployed. Deployed to us-central1 by default.
+   * Region where functions should be deployed. Deployed to `us-central1` by default.
    */
   location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
   /**
@@ -109,16 +109,16 @@ export interface PromptTemplateInfo {
 }
 
 /**
- * Authentication state for the caller: "app_user", "unauthenticated", or "unknown".
+ * Authentication state for the caller: `"app_user"`, `"unauthenticated"`, or `"unknown"`.
  */
 export type AuthType = "app_user" | "unauthenticated" | "unknown";
 
 /**
- * Event type for beforeGenerate triggers.
+ * Event type for `beforeGenerate` triggers.
  */
 export const beforeGenerateEventType = "google.firebase.ailogic.v1.beforeGenerate";
 /**
- * Event type for afterGenerate triggers.
+ * Event type for `afterGenerate` triggers.
  */
 export const afterGenerateEventType = "google.firebase.ailogic.v1.afterGenerate";
 
@@ -136,11 +136,11 @@ export type AnyValidAIResponse =
   | VertexV1Beta1GenerateContentResponse;
 
 /**
- * Identifier for the Gemini Developer API (geminiV1Beta).
+ * Identifier for the Gemini Developer API (`geminiV1Beta`).
  */
 export const geminiV1Beta = "google.ai.generativelanguage.v1beta";
 /**
- * Identifier for the Agent Platform Gemini API (formerly Vertex AI) (vertexV1Beta1).
+ * Identifier for the Agent Platform Gemini API (formerly Vertex AI) (`vertexV1Beta1`).
  */
 export const vertexV1Beta1 = "google.cloud.aiplatform.v1beta1";
 /**
@@ -171,25 +171,25 @@ export type AIResponse<API> = string extends API
   : never;
 
 /**
- * Data payload for beforeGenerateContent events.
+ * Data payload for `beforeGenerateContent` events.
  */
 export interface BeforeGenerateContentData<API extends string = string> {
-  /** The full model resource path (for example, projects/PROJECT_ID/locations/global/publishers/google/models/gemini-2.0-flash). */
+  /** The full model resource path (for example, `projects/{PROJECT_ID}/locations/global/publishers/google/models/gemini-3.5-flash`). */
   model: string;
   /** Metadata about the server prompt template used, if applicable. */
   template?: PromptTemplateInfo;
-  /** The Gemini API provider: geminiV1Beta (Gemini Developer API) or vertexV1Beta1 (Agent Platform Gemini API (formerly Vertex AI)). */
+  /** The Gemini API provider: `geminiV1Beta` (Gemini Developer API) or `vertexV1Beta1` (Agent Platform Gemini API (formerly Vertex AI)). */
   api: SupportedAPI;
-  /** The outgoing request payload (available for beforeGenerateContent only). */
+  /** The outgoing request payload. */
   request: AIRequest<API>;
 }
 
 /**
- * Data payload for afterGenerateContent events.
+ * Data payload for `afterGenerateContent` events.
  */
 export interface AfterGenerateContentData<API extends string = string>
   extends BeforeGenerateContentData<API> {
-  /** The model's response payload (available for afterGenerateContent only). */
+  /** The model's response payload. */
   response: AIResponse<API>;
 }
 
@@ -197,7 +197,7 @@ export interface AfterGenerateContentData<API extends string = string>
  * Event context and metadata delivered to AI blocking handlers.
  */
 export interface AIBlockingEvent<T = any> extends CloudEvent<T> {
-  /** Authentication state for the caller: "app_user", "unauthenticated", or "unknown". */
+  /** Authentication state for the caller: `"app_user"`, `"unauthenticated"`, or `"unknown"`. */
   authType: AuthType;
   /** The caller's Firebase Authentication UID, if signed in. */
   authId?: string;
@@ -209,16 +209,16 @@ export interface AIBlockingEvent<T = any> extends CloudEvent<T> {
   appId?: string;
   /** The display name of the calling app, if set. */
   displayName?: string;
-  /** Set when the caller is an Android app. */
+  /** The package name of the calling app (applicable only for apps that target Android platforms). */
   androidPackageName?: string;
-  /** Set when the caller is an Apple platforms app. */
+  /** The bundle ID of the calling app (applicable only for apps that target Apple platforms). */
   iosBundleId?: string;
 }
 
 type MaybeAsync<T> = T | Promise<T>;
 
 /**
- * A Cloud Function that handles AI blocking events.
+ * A function that handles AI blocking events.
  */
 export type BlockingFunction = HttpsFunction;
 
