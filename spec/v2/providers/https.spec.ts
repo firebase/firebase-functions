@@ -28,9 +28,10 @@ import * as options from "../../../src/v2/options";
 import * as https from "../../../src/v2/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
+import { expectType } from "../../common/metaprogramming";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
-import { Handler } from "express";
+import { Handler, Response as ExpressResponse } from "express";
 import { genkit } from "genkit";
 import {
   clearParams,
@@ -904,5 +905,12 @@ describe("onCallGenkit", () => {
     const ai = genkit({});
     const flow = ai.defineFlow("test", () => 42);
     https.onCallGenkit(flow);
+  });
+});
+
+describe("Response", () => {
+  it("re-exports the express Response type along with its type parameters", () => {
+    expectType<ExpressResponse<{ ok: boolean }>>({} as https.Response<{ ok: boolean }>);
+    expectType<https.Response<{ ok: boolean }>>({} as ExpressResponse<{ ok: boolean }>);
   });
 });

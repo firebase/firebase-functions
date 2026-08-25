@@ -52,6 +52,7 @@ import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
 export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode, CorsOption };
+export type { Response } from "express";
 export { HttpsError };
 
 /**
