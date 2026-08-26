@@ -34,8 +34,6 @@ import { withInit } from "../../../common/onInit";
 import { initV2Endpoint } from "../../../runtime/manifest";
 import * as options from "../../options";
 
-import { Expression } from "../../../params";
-import { ResetValue } from "../../../common/options";
 import * as logger from "../../../logger";
 
 export { HttpsError };
@@ -83,22 +81,10 @@ export {
   type GeminiV1BetaGenerateContentRequest,
   type GeminiV1BetaGenerateContentResponse,
 };
-type MultipleLocationsIf<Allowed extends boolean> = Allowed extends true ? string[] : never;
-
 /**
  * Options for configuring AI webhook triggers.
  */
-export interface WebhookOptions<Regional extends boolean = false>
-  extends Omit<EventHandlerOptions, "location"> {
-  /**
-   * Region where functions should be deployed. Deployed to `us-central1` by default.
-   */
-  location?: string | Expression<string> | MultipleLocationsIf<Regional> | ResetValue;
-  /**
-   * Whether to handle regional webhooks.
-   */
-  regionalWebhook?: Regional;
-}
+export interface WebhookOptions extends EventHandlerOptions {}
 
 /**
  * Metadata about the server prompt template used, if applicable.
@@ -239,8 +225,8 @@ export function beforeGenerateContent(
  * @param callback - Event handler run before content generation.
  * @returns A blocking function that can be exported and deployed.
  */
-export function beforeGenerateContent<Regional extends boolean = false>(
-  options: WebhookOptions<Regional>,
+export function beforeGenerateContent(
+  options: WebhookOptions,
   callback: (
     event: AIBlockingEvent<BeforeGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIRequest>>
@@ -331,9 +317,6 @@ export function beforeGenerateContent(
     },
     blockingTrigger: {
       eventType: beforeGenerateEventType,
-      options: {
-        regionalWebhook: opts.regionalWebhook,
-      },
     },
   };
 
@@ -357,8 +340,8 @@ export function afterGenerateContent(
  * @param callback - Event handler run after content generation.
  * @returns A blocking function that can be exported and deployed.
  */
-export function afterGenerateContent<Regional extends boolean = false>(
-  options: WebhookOptions<Regional>,
+export function afterGenerateContent(
+  options: WebhookOptions,
   callback: (
     event: AIBlockingEvent<AfterGenerateContentData>
   ) => MaybeAsync<void | Partial<AnyValidAIResponse>>
@@ -449,9 +432,6 @@ export function afterGenerateContent(
     },
     blockingTrigger: {
       eventType: afterGenerateEventType,
-      options: {
-        regionalWebhook: opts.regionalWebhook,
-      },
     },
   };
 

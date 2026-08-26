@@ -396,10 +396,7 @@ export declare interface GenerateContentRequest extends BaseParams {
   cachedContent?: string;
 }
 /**
- * Individual response from `generateContent` and
- * `generateContentStream`.
- * `generateContentStream()` will return one in each chunk until
- * the stream is done.
+ * Individual response from `generateContent`.
  * @public
  */
 export declare interface GenerateContentResponse {

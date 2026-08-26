@@ -115,11 +115,6 @@ export declare interface GenerateContentRequest extends BaseModelParams {
    * This is the name of a `CachedContent` and not the cache object itself.
    */
   cachedContent?: string;
-  /**
-   * Optional. Custom metadata labels for organizing API calls and managing costs at scale. See
-   * https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/add-labels-to-api-calls
-   */
-  labels?: Record<string, string>;
 }
 /**
  * Base params for initializing a model or calling GenerateContent.
