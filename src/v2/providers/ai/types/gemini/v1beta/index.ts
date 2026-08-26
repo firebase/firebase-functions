@@ -396,7 +396,7 @@ export declare interface GenerateContentRequest extends BaseParams {
   cachedContent?: string;
 }
 /**
- * Individual response from {@link GenerativeModel.generateContent}.
+ * Individual response from `generateContent`.
  * @public
  */
 export declare interface GenerateContentResponse {

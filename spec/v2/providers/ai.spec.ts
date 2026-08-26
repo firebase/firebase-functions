@@ -255,9 +255,15 @@ describe("v2.ai", () => {
       });
     });
   });
-  describe("Typings", () => {
-    it("should allow webhooks to specify a single region", () => {
-      ai.beforeGenerateContent({ region: "us-central1" }, () => {});
+  describe("Typings & Options", () => {
+    it("should allow webhooks to specify a single region and populate __endpoint", () => {
+      const func = ai.beforeGenerateContent({ region: "us-central1" }, () => {});
+      expect(func.__endpoint.region).to.deep.equal(["us-central1"]);
+    });
+
+    it("should allow webhooks to specify multiple regions and populate __endpoint", () => {
+      const func = ai.afterGenerateContent({ region: ["us-central1", "europe-west1"] }, () => {});
+      expect(func.__endpoint.region).to.deep.equal(["us-central1", "europe-west1"]);
     });
   });
 });
