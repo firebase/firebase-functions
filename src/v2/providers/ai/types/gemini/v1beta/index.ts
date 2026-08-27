@@ -382,9 +382,13 @@ export declare interface GenerateContentCandidate {
  * @public
  */
 export declare interface GenerateContentRequest extends BaseParams {
+  /** Array of conversation turns (Content) that make up the prompt. */
   contents: Content[];
+  /** Optional tools that the model may use to generate content. */
   tools?: Tool[];
+  /** Optional tool configuration. */
   toolConfig?: ToolConfig;
+  /** Optional system instructions for the model. */
   systemInstruction?: string | Part | Content;
   /**
    * This is the name of a `CachedContent` and not the cache object itself.
@@ -392,10 +396,7 @@ export declare interface GenerateContentRequest extends BaseParams {
   cachedContent?: string;
 }
 /**
- * Individual response from `generateContent` and
- * `generateContentStream`.
- * `generateContentStream()` will return one in each chunk until
- * the stream is done.
+ * Individual response from `generateContent`.
  * @public
  */
 export declare interface GenerateContentResponse {
