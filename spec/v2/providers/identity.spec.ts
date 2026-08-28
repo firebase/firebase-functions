@@ -749,11 +749,11 @@ describe("identity", () => {
           return "handled";
         });
 
-        const resultNull = await func.run(null as any);
+        const resultNull = await func.run(null);
         expect(resultNull).to.equal("handled");
         expect(received).to.be.null;
 
-        const resultUndef = await func.run(undefined as any);
+        const resultUndef = await func.run(undefined);
         expect(resultUndef).to.equal("handled");
         expect(received).to.be.undefined;
       });

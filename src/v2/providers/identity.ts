@@ -512,10 +512,11 @@ export function getV1AuthContext(event: AuthEvent<User>) {
     eventId: event.id,
     timestamp: event.time,
     eventType:
-      {
-        [USER_CREATED_EVENT]: "providers/firebase.auth/eventTypes/user.create",
-        [USER_DELETED_EVENT]: "providers/firebase.auth/eventTypes/user.delete",
-      }[event.type as string] || event.type,
+      event.type === USER_CREATED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.create"
+        : event.type === USER_DELETED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.delete"
+        : event.type,
     resource: {
       service: FIREBASE_AUTH_SERVICE,
       name: resourceName,
