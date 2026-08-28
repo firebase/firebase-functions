@@ -632,6 +632,93 @@ describe("identity", () => {
       func(mockEvent);
       expect(called).to.be.true;
     });
+
+    describe("v1-compatible getters", () => {
+      it("should provide v1-compatible getters on the event object", () => {
+        let capturedEvent: any;
+        const func = identity.onUserCreated((e) => {
+          capturedEvent = e;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            value: {
+              uid: "user-uid-123",
+              email: "test@example.com",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "event-id",
+          timestamp: "2023-01-01T00:00:00Z",
+          eventType: "providers/firebase.auth/eventTypes/user.create",
+          resource: {
+            service: "firebaseauth.googleapis.com",
+            name: "projects/my-project",
+          },
+          params: {},
+        });
+
+        expect(capturedEvent.user.uid).to.equal("user-uid-123");
+        expect(capturedEvent.user.email).to.equal("test@example.com");
+      });
+
+      it("should support v1 destructuring assignment ({ user, context })", () => {
+        let destructuredUser: any;
+        let destructuredContext: any;
+        const func = identity.onUserCreated(({ user, context }) => {
+          destructuredUser = user;
+          destructuredContext = context;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            value: {
+              uid: "destructured-uid",
+              email: "destructured@example.com",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(destructuredUser.uid).to.equal("destructured-uid");
+        expect(destructuredContext.eventId).to.equal("event-id");
+      });
+
+      it("preserves backward compatibility for user tests passing POJOs without v1 getters", async () => {
+        const func = identity.onUserCreated((event) => {
+          return event.data.uid;
+        });
+
+        const vanillaV2Event: identity.AuthEvent<identity.User> = {
+          specversion: "1.0",
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "vanilla-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            uid: "vanilla-uid",
+          } as any,
+        };
+
+        const result = await func.run(vanillaV2Event);
+        expect(result).to.equal("vanilla-uid");
+      });
+    });
   });
 
   describe("onUserDeleted", () => {
@@ -746,6 +833,74 @@ describe("identity", () => {
 
       func(mockEvent);
       expect(called).to.be.true;
+    });
+
+    describe("v1-compatible getters", () => {
+      it("should provide v1-compatible getters on the event object", () => {
+        let capturedEvent: any;
+        const func = identity.onUserDeleted((e) => {
+          capturedEvent = e;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id-del",
+          type: "google.firebase.auth.user.v2.deleted",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            oldValue: {
+              uid: "user-uid-del",
+              email: "del@example.com",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "event-id-del",
+          timestamp: "2023-01-01T00:00:00Z",
+          eventType: "providers/firebase.auth/eventTypes/user.delete",
+          resource: {
+            service: "firebaseauth.googleapis.com",
+            name: "projects/my-project",
+          },
+          params: {},
+        });
+
+        expect(capturedEvent.user.uid).to.equal("user-uid-del");
+        expect(capturedEvent.user.email).to.equal("del@example.com");
+      });
+
+      it("should support v1 destructuring assignment ({ user, context })", () => {
+        let destructuredUser: any;
+        let destructuredContext: any;
+        const func = identity.onUserDeleted(({ user, context }) => {
+          destructuredUser = user;
+          destructuredContext = context;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id-del",
+          type: "google.firebase.auth.user.v2.deleted",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            oldValue: {
+              uid: "destructured-del-uid",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(destructuredUser.uid).to.equal("destructured-del-uid");
+        expect(destructuredContext.eventType).to.equal(
+          "providers/firebase.auth/eventTypes/user.delete"
+        );
+      });
     });
   });
 
