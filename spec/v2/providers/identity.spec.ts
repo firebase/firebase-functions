@@ -741,6 +741,22 @@ describe("identity", () => {
           eventId: "run-event-id",
         });
       });
+
+      it("handles calling .run() with null or undefined gracefully", async () => {
+        let received: any;
+        const func = identity.onUserCreated((event) => {
+          received = event;
+          return "handled";
+        });
+
+        const resultNull = await func.run(null as any);
+        expect(resultNull).to.equal("handled");
+        expect(received).to.be.null;
+
+        const resultUndef = await func.run(undefined as any);
+        expect(resultUndef).to.equal("handled");
+        expect(received).to.be.undefined;
+      });
     });
   });
 

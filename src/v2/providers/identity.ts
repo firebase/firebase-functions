@@ -548,10 +548,12 @@ function makeAuthTrigger(
   }) as CloudFunction<AuthEvent<User>>;
 
   func.run = ((event: AuthEvent<User>) => {
-    const compatEvent = addV1Compat(event, {
-      context: () => getV1AuthContext(event),
-      user: () => event.data,
-    });
+    const compatEvent = event
+      ? addV1Compat(event, {
+          context: () => getV1AuthContext(event),
+          user: () => event.data,
+        })
+      : event;
     return handlerFunc(compatEvent);
   }) as any;
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
