@@ -429,6 +429,10 @@ function getOptsAndHandler(
 
 // Matches both absolute paths (/projects/...) and relative paths (projects/...)
 const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
+const IDENTITY_TOOLKIT_SOURCE_PREFIX = "//identitytoolkit.googleapis.com/";
+const FIREBASE_AUTH_SERVICE = "firebaseauth.googleapis.com";
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
 
 /**
  * Converts the v2 Eventarc (`AuthEventData`) protobuf wire protocol (`value`/`oldValue`, `createTime`, `photoUrl`)
@@ -498,11 +502,9 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
 
 /** @internal */
 export function getV1AuthContext(event: AuthEvent<User>) {
-  const service = "firebaseauth.googleapis.com";
-  const sourcePrefix = `//identitytoolkit.googleapis.com/`;
   let resourceName = event.source || "";
-  if (resourceName.startsWith(sourcePrefix)) {
-    resourceName = resourceName.substring(sourcePrefix.length);
+  if (resourceName.startsWith(IDENTITY_TOOLKIT_SOURCE_PREFIX)) {
+    resourceName = resourceName.substring(IDENTITY_TOOLKIT_SOURCE_PREFIX.length);
   } else if (event.project) {
     resourceName = `projects/${event.project}`;
   }
@@ -515,7 +517,7 @@ export function getV1AuthContext(event: AuthEvent<User>) {
         [USER_DELETED_EVENT]: "providers/firebase.auth/eventTypes/user.delete",
       }[event.type as string] || event.type,
     resource: {
-      service,
+      service: FIREBASE_AUTH_SERVICE,
       name: resourceName,
     },
     params: {},
@@ -576,8 +578,6 @@ function makeAuthTrigger(
   func.__endpoint = endpoint;
   return func;
 }
-
-const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
 
 /**
  * Handles user creation events in Firebase Authentication.
@@ -641,8 +641,6 @@ export function onUserCreated(
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
 }
-
-const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
 
 /**
  * Handles user deletion events in Firebase Authentication.
