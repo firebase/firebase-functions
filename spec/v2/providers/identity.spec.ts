@@ -718,6 +718,29 @@ describe("identity", () => {
         const result = await func.run(vanillaV2Event);
         expect(result).to.equal("vanilla-uid");
       });
+
+      it("supports calling .run() on destructured handlers with vanilla POJO mock events", async () => {
+        const func = identity.onUserCreated(({ user, context }) => {
+          return { uid: user.uid, eventId: context.eventId };
+        });
+
+        const vanillaV2Event: identity.AuthEvent<identity.User> = {
+          specversion: "1.0",
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "run-event-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            uid: "run-destructured-uid",
+          } as any,
+        };
+
+        const result = await func.run(vanillaV2Event);
+        expect(result).to.deep.equal({
+          uid: "run-destructured-uid",
+          eventId: "run-event-id",
+        });
+      });
     });
   });
 
@@ -900,6 +923,29 @@ describe("identity", () => {
         expect(destructuredContext.eventType).to.equal(
           "providers/firebase.auth/eventTypes/user.delete"
         );
+      });
+
+      it("supports calling .run() on destructured handlers with vanilla POJO mock events", async () => {
+        const func = identity.onUserDeleted(({ user, context }) => {
+          return { uid: user.uid, eventType: context.eventType };
+        });
+
+        const vanillaV2Event: identity.AuthEvent<identity.User> = {
+          specversion: "1.0",
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "run-del-event-id",
+          type: "google.firebase.auth.user.v2.deleted",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            uid: "run-destructured-del-uid",
+          } as any,
+        };
+
+        const result = await func.run(vanillaV2Event);
+        expect(result).to.deep.equal({
+          uid: "run-destructured-del-uid",
+          eventType: "providers/firebase.auth/eventTypes/user.delete",
+        });
       });
     });
   });

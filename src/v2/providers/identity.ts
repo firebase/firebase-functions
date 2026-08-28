@@ -547,7 +547,13 @@ function makeAuthTrigger(
     return wrappedHandler(compatEvent);
   }) as CloudFunction<AuthEvent<User>>;
 
-  func.run = handlerFunc;
+  func.run = ((event: AuthEvent<User>) => {
+    const compatEvent = addV1Compat(event, {
+      context: () => getV1AuthContext(event),
+      user: () => event.data,
+    });
+    return handlerFunc(compatEvent);
+  }) as any;
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {
