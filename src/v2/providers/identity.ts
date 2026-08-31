@@ -416,10 +416,19 @@ export interface AuthOptions extends options.EventHandlerOptions {
  */
 export const IS_NOT_TENANT = RESET_VALUE;
 
+/**
+ * Event handler type for Authentication triggers that supports both standard `AuthEvent`
+ * and V1 compatibility destructuring (`{ user, context }`).
+ * @internal
+ */
+export type AuthEventHandler = (
+  event: AuthEvent<User> & V1Compat<"user", User>
+) => any | Promise<any>;
+
 // Helper to handle overloaded function signature
 function getOptsAndHandler(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ) {
   if (typeof optsOrHandler === "function") {
     return { opts: {}, handler: optsOrHandler };
@@ -528,8 +537,8 @@ export function getV1AuthContext(event: AuthEvent<User>) {
 /** @hidden */
 function makeAuthTrigger(
   eventType: string,
-  optsOrHandler: AuthOptions | ((event: any) => any | Promise<any>),
-  handler?: (event: any) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
 
@@ -549,12 +558,15 @@ function makeAuthTrigger(
   }) as CloudFunction<AuthEvent<User>>;
 
   func.run = ((event: AuthEvent<User>) => {
-    const compatEvent = event
-      ? addV1Compat(event, {
-          context: () => getV1AuthContext(event),
-          user: () => event.data,
-        })
-      : event;
+    if (!event) {
+      return handlerFunc(event as Parameters<AuthEventHandler>[0]);
+    }
+    const existingUser = (event as any).user;
+    const existingContext = (event as any).context;
+    const compatEvent = addV1Compat(event, {
+      context: () => existingContext ?? getV1AuthContext(event),
+      user: () => event.data ?? existingUser,
+    });
     return handlerFunc(compatEvent);
   }) as any;
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
@@ -645,8 +657,8 @@ export function onUserCreated(
   handler: (event: AuthEvent<User>) => any | Promise<any>
 ): CloudFunction<AuthEvent<User>>;
 export function onUserCreated(
-  optsOrHandler: AuthOptions | ((event: any) => any | Promise<any>),
-  handler?: (event: any) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
 }
@@ -708,8 +720,8 @@ export function onUserDeleted(
   handler: (event: AuthEvent<User>) => any | Promise<any>
 ): CloudFunction<AuthEvent<User>>;
 export function onUserDeleted(
-  optsOrHandler: AuthOptions | ((event: any) => any | Promise<any>),
-  handler?: (event: any) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_DELETED_EVENT, optsOrHandler, handler);
 }

@@ -742,6 +742,23 @@ describe("identity", () => {
         });
       });
 
+      it("supports calling .run() with an object that already has user and context", async () => {
+        const func = identity.onUserCreated(({ user, context }) => {
+          return { uid: user.uid, eventId: context.eventId };
+        });
+
+        const directCompatObject = {
+          user: { uid: "direct-uid" } as any,
+          context: { eventId: "direct-event-id" } as any,
+        };
+
+        const result = await func.run(directCompatObject as any);
+        expect(result).to.deep.equal({
+          uid: "direct-uid",
+          eventId: "direct-event-id",
+        });
+      });
+
       it("handles calling .run() with null or undefined gracefully", async () => {
         let received: any;
         const func = identity.onUserCreated((event) => {
