@@ -77,7 +77,7 @@ while [ "$#" -gt 0 ]; do
       shift 2
       ;;
     *)
-      echo "❌ Error: Unknown argument '$1'"
+      echo "❌ Error: Unknown argument '$1'" >&2
       show_usage
       ;;
   esac
