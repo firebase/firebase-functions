@@ -43,14 +43,25 @@ export type LifecycleAction =
 
 import { globalManifest } from "../runtime/manifest";
 
-function getDeclaredHooks(): Record<string, LifecycleAction> {
+/**
+ * Gets or creates the mutable lifecycle hooks record directly on `globalManifest`.
+ * Used exclusively for write operations (e.g., registering a hook) so that
+ * `globalManifest.lifecycleHooks` is created lazily on demand.
+ */
+function getOrCreateDeclaredLifecycleHooks(): Record<string, LifecycleAction> {
   if (!globalManifest.lifecycleHooks || typeof globalManifest.lifecycleHooks !== "object") {
     globalManifest.lifecycleHooks = {};
   }
   return globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
 }
 
-function getExistingDeclaredHooks(): Record<string, LifecycleAction> {
+/**
+ * Gets the existing lifecycle hooks record on `globalManifest` if defined,
+ * or returns a fallback empty object without mutating `globalManifest`.
+ * Used for read-only operations (e.g., property lookup, keys, descriptors)
+ * to avoid emitting an unwanted empty `lifecycleHooks: {}` into the manifest.
+ */
+function getExistingDeclaredLifecycleHooks(): Record<string, LifecycleAction> {
   if (!globalManifest.lifecycleHooks || typeof globalManifest.lifecycleHooks !== "object") {
     return {};
   }
@@ -73,32 +84,36 @@ export const declaredLifecycleHooks: Record<string, LifecycleAction> = new Proxy
   {
     get(_, prop) {
       if (typeof prop === "string") {
-        return getExistingDeclaredHooks()[prop];
+        return getExistingDeclaredLifecycleHooks()[prop];
       }
       return undefined;
     },
     set(_, prop, value) {
       if (typeof prop === "string") {
-        getDeclaredHooks()[prop] = value as LifecycleAction;
+        getOrCreateDeclaredLifecycleHooks()[prop] = value as LifecycleAction;
         return true;
       }
       return false;
     },
     deleteProperty(_, prop) {
-      if (typeof prop === "string") {
-        delete getExistingDeclaredHooks()[prop];
+      if (typeof prop === "string" && globalManifest.lifecycleHooks) {
+        const hooks = globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
+        delete hooks[prop];
+        if (Object.keys(hooks).length === 0) {
+          delete globalManifest.lifecycleHooks;
+        }
         return true;
       }
       return false;
     },
     has(_, prop) {
-      return Reflect.has(getExistingDeclaredHooks(), prop);
+      return Reflect.has(getExistingDeclaredLifecycleHooks(), prop);
     },
     ownKeys() {
-      return Reflect.ownKeys(getExistingDeclaredHooks());
+      return Reflect.ownKeys(getExistingDeclaredLifecycleHooks());
     },
     getOwnPropertyDescriptor(_, prop) {
-      const hooks = getExistingDeclaredHooks();
+      const hooks = getExistingDeclaredLifecycleHooks();
       if (typeof prop === "string" && prop in hooks) {
         return {
           enumerable: true,
@@ -119,7 +134,7 @@ export const declaredLifecycleHooks: Record<string, LifecycleAction> = new Proxy
  * @param action The lifecycle action to execute.
  */
 export function afterFirstDeploy(action: LifecycleAction): void {
-  const hooks = getDeclaredHooks();
+  const hooks = getOrCreateDeclaredLifecycleHooks();
   if (hooks.afterFirstDeploy) {
     throw new Error("Only one afterFirstDeploy lifecycle hook is allowed per codebase.");
   }
@@ -133,7 +148,7 @@ export function afterFirstDeploy(action: LifecycleAction): void {
  * @param action The lifecycle action to execute.
  */
 export function afterRedeploy(action: LifecycleAction): void {
-  const hooks = getDeclaredHooks();
+  const hooks = getOrCreateDeclaredLifecycleHooks();
   if (hooks.afterRedeploy) {
     throw new Error("Only one afterRedeploy lifecycle hook is allowed per codebase.");
   }

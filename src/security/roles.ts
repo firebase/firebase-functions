@@ -22,9 +22,11 @@
 
 import { globalManifest } from "../runtime/manifest";
 
-function getDeclaredRolesList(): string[] {
+const EMPTY_ROLES: readonly string[] = Object.freeze([]);
+
+function getDeclaredRolesList(): readonly string[] {
   if (!Array.isArray(globalManifest.requiredRoles)) {
-    return [];
+    return EMPTY_ROLES;
   }
   return globalManifest.requiredRoles as string[];
 }

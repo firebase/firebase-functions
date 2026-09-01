@@ -197,6 +197,9 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
     requiresAPI(req.api as GoogleCloudApi, req.reason);
   }
 
+  // The v1alpha1 stack manifest specification expects `extensions: {}` and `requiredAPIs: []`
+  // to always be present on ManifestStack (even if empty), whereas other optional fields
+  // (e.g., params, requiredRoles, lifecycleHooks) are only included when declared.
   const existingExtensions =
     globalManifest.extensions && typeof globalManifest.extensions === "object"
       ? (globalManifest.extensions as Record<string, ManifestExtension>)

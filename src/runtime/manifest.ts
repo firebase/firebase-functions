@@ -194,12 +194,7 @@ export const globalManifest: Record<string, unknown> = globalSymbols[GLOBAL_MANI
  */
 export function clearGlobalManifest(): void {
   for (const key of Object.keys(globalManifest)) {
-    const val = globalManifest[key];
-    if (val instanceof Set) {
-      val.clear();
-    } else {
-      delete globalManifest[key];
-    }
+    delete globalManifest[key];
   }
 }
 
