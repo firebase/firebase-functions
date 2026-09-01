@@ -8,6 +8,7 @@ import {
   ManifestExtension,
   ManifestRequiredAPI,
   ManifestStack,
+  clearGlobalManifest,
 } from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
 import { clearGlobalRequiredAPIs } from "../../src/common/api";
@@ -336,6 +337,7 @@ describe("loadStack", () => {
   let prev;
 
   beforeEach(() => {
+    clearGlobalManifest();
     // TODO: When __trigger annotation is removed and GCLOUD_PROJECT is not required at runtime, remove this.
     prev = process.env.GCLOUD_PROJECT;
     process.env.GCLOUD_PROJECT = "test-project";
@@ -343,6 +345,7 @@ describe("loadStack", () => {
 
   afterEach(() => {
     process.env.GCLOUD_PROJECT = prev;
+    clearGlobalManifest();
     clearGlobalRequiredAPIs();
     clearParams();
     clearDeclaredLifecycleHooks();
@@ -616,6 +619,28 @@ describe("loadStack", () => {
           },
         },
       });
+    });
+  });
+
+  describe("loadStack with forwards-compatible globalManifest properties", () => {
+    it("destructures arbitrary future wire properties into ManifestStack", async () => {
+      const globalManifestSymbol = Symbol.for("firebase-functions:manifest");
+      const globalSymbols = globalThis as unknown as Record<symbol, Record<string, unknown>>;
+      const manifest = globalSymbols[globalManifestSymbol];
+
+      manifest.requiredRoles = ["roles/storage.admin", "roles/aiplatform.user"];
+      manifest.futureFeatureConfig = { enabled: true, mode: "fast" };
+      manifest.customStackMetadata = "version-2";
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.requiredRoles).to.deep.equal(["roles/storage.admin", "roles/aiplatform.user"]);
+      expect(stack.futureFeatureConfig).to.deep.equal({ enabled: true, mode: "fast" });
+      expect(stack.customStackMetadata).to.equal("version-2");
+
+      clearGlobalManifest();
+      expect(manifest.futureFeatureConfig).to.be.undefined;
+      expect(manifest.customStackMetadata).to.be.undefined;
+      expect(manifest.requiredRoles).to.be.undefined;
     });
   });
 });

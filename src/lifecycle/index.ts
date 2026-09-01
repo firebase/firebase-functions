@@ -41,32 +41,16 @@ export type LifecycleAction =
   | { call: CallAction; task?: never; http?: never }
   | { http: HttpAction; task?: never; call?: never };
 
-/**
- * Use a global singleton to manage the list of declared lifecycle hooks.
- *
- * This ensures that lifecycle hooks are shared between CJS and ESM builds,
- * avoiding the "dual-package hazard" where the src/bin/firebase-functions.ts (CJS) sees
- * an empty list while the user's code (ESM) populates a different list.
- */
-const majorVersion =
-  // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
-  typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
-    ? // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
-      __FIREBASE_FUNCTIONS_MAJOR_VERSION__
-    : "0";
+import { globalManifest } from "../runtime/manifest";
 
-const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:lifecycle:declaredHooks:v${majorVersion}`);
-const globalSymbols = globalThis as unknown as Record<symbol, Record<string, LifecycleAction>>;
-
-if (!globalSymbols[GLOBAL_SYMBOL]) {
-  globalSymbols[GLOBAL_SYMBOL] = {};
+function getDeclaredHooks(): Record<string, LifecycleAction> {
+  if (!globalManifest.lifecycleHooks || typeof globalManifest.lifecycleHooks !== "object") {
+    globalManifest.lifecycleHooks = {};
+  }
+  return globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
 }
 
-/**
- * Singleton dictionary of declared lifecycle hooks.
- * @internal
- */
-export const declaredLifecycleHooks: Record<string, LifecycleAction> = globalSymbols[GLOBAL_SYMBOL];
+export const declaredLifecycleHooks: Record<string, LifecycleAction> = {};
 
 /**
  * Registers an action to be executed automatically post-deployment when resources in this codebase
@@ -75,9 +59,11 @@ export const declaredLifecycleHooks: Record<string, LifecycleAction> = globalSym
  * @param action The lifecycle action to execute.
  */
 export function afterFirstDeploy(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterFirstDeploy) {
+  const hooks = getDeclaredHooks();
+  if (hooks.afterFirstDeploy) {
     throw new Error("Only one afterFirstDeploy lifecycle hook is allowed per codebase.");
   }
+  hooks.afterFirstDeploy = action;
   declaredLifecycleHooks.afterFirstDeploy = action;
 }
 
@@ -88,9 +74,11 @@ export function afterFirstDeploy(action: LifecycleAction): void {
  * @param action The lifecycle action to execute.
  */
 export function afterRedeploy(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterRedeploy) {
+  const hooks = getDeclaredHooks();
+  if (hooks.afterRedeploy) {
     throw new Error("Only one afterRedeploy lifecycle hook is allowed per codebase.");
   }
+  hooks.afterRedeploy = action;
   declaredLifecycleHooks.afterRedeploy = action;
 }
 
@@ -102,4 +90,5 @@ export function clearDeclaredLifecycleHooks(): void {
   for (const key of Object.keys(declaredLifecycleHooks)) {
     delete declaredLifecycleHooks[key];
   }
+  delete globalManifest.lifecycleHooks;
 }

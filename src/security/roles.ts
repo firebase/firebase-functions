@@ -20,17 +20,53 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { globalManifest } from "../runtime/manifest";
+
+function getDeclaredRolesList(): string[] {
+  if (!Array.isArray(globalManifest.requiredRoles)) {
+    return [];
+  }
+  return globalManifest.requiredRoles as string[];
+}
+
 /**
  * Global set of declared IAM roles required by this codebase.
- * Accumulated in-memory during manifest generation.
+ * Accumulated in-memory in globalManifest on globalThis during manifest generation.
  */
-export const declaredRoles = new Set<string>();
+export const declaredRoles = {
+  get size(): number {
+    return getDeclaredRolesList().length;
+  },
+  add(role: string): void {
+    registerRole(role);
+  },
+  has(role: string): boolean {
+    return getDeclaredRolesList().includes(role);
+  },
+  clear(): void {
+    delete globalManifest.requiredRoles;
+  },
+  [Symbol.iterator](): IterableIterator<string> {
+    return getDeclaredRolesList()[Symbol.iterator]();
+  },
+  forEach(callback: (value: string, value2: string, set: typeof declaredRoles) => void): void {
+    for (const role of getDeclaredRolesList()) {
+      callback(role, role, declaredRoles);
+    }
+  },
+};
 
 /**
  * Registers a role to be required by this codebase.
- * Automatically deduplicates using the Set.
+ * Automatically deduplicates roles in globalManifest.requiredRoles.
  * @internal
  */
-export function registerRole(role: string) {
-  declaredRoles.add(role);
+export function registerRole(role: string): void {
+  if (!Array.isArray(globalManifest.requiredRoles)) {
+    globalManifest.requiredRoles = [];
+  }
+  const roles = globalManifest.requiredRoles as string[];
+  if (!roles.includes(role)) {
+    roles.push(role);
+  }
 }
