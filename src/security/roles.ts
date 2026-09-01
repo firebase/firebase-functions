@@ -31,7 +31,12 @@ function getDeclaredRolesList(): string[] {
 
 /**
  * Global set of declared IAM roles required by this codebase.
- * Accumulated in-memory in globalManifest on globalThis during manifest generation.
+ *
+ * NOTE: This cannot be a native `Set` because `globalManifest.requiredRoles`
+ * is stored directly as a wire-ready `string[]` on `globalThis` so that
+ * any manifest loader (even older harness versions) can simply spread
+ * `...globalManifest` without needing role-specific Set-to-Array conversion.
+ * `declaredRoles` implements the full `Set` interface for backwards compatibility.
  */
 export const declaredRoles = {
   get size(): number {
@@ -40,11 +45,34 @@ export const declaredRoles = {
   add(role: string): void {
     registerRole(role);
   },
+  delete(role: string): boolean {
+    if (!Array.isArray(globalManifest.requiredRoles)) {
+      return false;
+    }
+    const roles = globalManifest.requiredRoles as string[];
+    const idx = roles.indexOf(role);
+    if (idx !== -1) {
+      roles.splice(idx, 1);
+      return true;
+    }
+    return false;
+  },
   has(role: string): boolean {
     return getDeclaredRolesList().includes(role);
   },
   clear(): void {
     delete globalManifest.requiredRoles;
+  },
+  keys(): IterableIterator<string> {
+    return getDeclaredRolesList()[Symbol.iterator]();
+  },
+  values(): IterableIterator<string> {
+    return getDeclaredRolesList()[Symbol.iterator]();
+  },
+  *entries(): IterableIterator<[string, string]> {
+    for (const role of getDeclaredRolesList()) {
+      yield [role, role];
+    }
   },
   [Symbol.iterator](): IterableIterator<string> {
     return getDeclaredRolesList()[Symbol.iterator]();

@@ -50,7 +50,67 @@ function getDeclaredHooks(): Record<string, LifecycleAction> {
   return globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
 }
 
-export const declaredLifecycleHooks: Record<string, LifecycleAction> = {};
+function getExistingDeclaredHooks(): Record<string, LifecycleAction> {
+  if (!globalManifest.lifecycleHooks || typeof globalManifest.lifecycleHooks !== "object") {
+    return {};
+  }
+  return globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
+}
+
+/**
+ * Shared dictionary of declared lifecycle hooks.
+ *
+ * NOTE: A Proxy is necessary here because `lifecycleHooks` is only initialized
+ * on `globalManifest` when hooks are registered (to avoid emitting empty `{}`
+ * into the manifest). The Proxy dynamically delegates all property reads, writes,
+ * and key enumerations directly to `globalManifest.lifecycleHooks` on `globalThis`,
+ * ensuring dual-package hazard protection across ESM/CJS or duplicate module contexts.
+ *
+ * @internal
+ */
+export const declaredLifecycleHooks: Record<string, LifecycleAction> = new Proxy(
+  {},
+  {
+    get(_, prop) {
+      if (typeof prop === "string") {
+        return getExistingDeclaredHooks()[prop];
+      }
+      return undefined;
+    },
+    set(_, prop, value) {
+      if (typeof prop === "string") {
+        getDeclaredHooks()[prop] = value as LifecycleAction;
+        return true;
+      }
+      return false;
+    },
+    deleteProperty(_, prop) {
+      if (typeof prop === "string") {
+        delete getExistingDeclaredHooks()[prop];
+        return true;
+      }
+      return false;
+    },
+    has(_, prop) {
+      return Reflect.has(getExistingDeclaredHooks(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(getExistingDeclaredHooks());
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      const hooks = getExistingDeclaredHooks();
+      if (typeof prop === "string" && prop in hooks) {
+        return {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: hooks[prop],
+        };
+      }
+      return undefined;
+    },
+  }
+);
 
 /**
  * Registers an action to be executed automatically post-deployment when resources in this codebase
@@ -64,7 +124,6 @@ export function afterFirstDeploy(action: LifecycleAction): void {
     throw new Error("Only one afterFirstDeploy lifecycle hook is allowed per codebase.");
   }
   hooks.afterFirstDeploy = action;
-  declaredLifecycleHooks.afterFirstDeploy = action;
 }
 
 /**
@@ -79,7 +138,6 @@ export function afterRedeploy(action: LifecycleAction): void {
     throw new Error("Only one afterRedeploy lifecycle hook is allowed per codebase.");
   }
   hooks.afterRedeploy = action;
-  declaredLifecycleHooks.afterRedeploy = action;
 }
 
 /**
@@ -87,8 +145,5 @@ export function afterRedeploy(action: LifecycleAction): void {
  * @internal
  */
 export function clearDeclaredLifecycleHooks(): void {
-  for (const key of Object.keys(declaredLifecycleHooks)) {
-    delete declaredLifecycleHooks[key];
-  }
   delete globalManifest.lifecycleHooks;
 }
