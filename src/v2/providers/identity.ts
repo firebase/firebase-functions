@@ -46,6 +46,7 @@ import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 import { CloudEvent, CloudFunction } from "../core";
+import { addV1Compat, V1Compat } from "../compat";
 import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
 import { userRecordConstructor } from "../../common/providers/identity";
 
@@ -415,10 +416,19 @@ export interface AuthOptions extends options.EventHandlerOptions {
  */
 export const IS_NOT_TENANT = RESET_VALUE;
 
+/**
+ * Event handler type for Authentication triggers that supports both standard `AuthEvent`
+ * and V1 compatibility destructuring (`{ user, context }`).
+ * @internal
+ */
+export type AuthEventHandler = (
+  event: AuthEvent<User> & V1Compat<"user", User>
+) => any | Promise<any>;
+
 // Helper to handle overloaded function signature
 function getOptsAndHandler(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ) {
   if (typeof optsOrHandler === "function") {
     return { opts: {}, handler: optsOrHandler };
@@ -428,6 +438,10 @@ function getOptsAndHandler(
 
 // Matches both absolute paths (/projects/...) and relative paths (projects/...)
 const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
+const IDENTITY_TOOLKIT_SOURCE_PREFIX = "//identitytoolkit.googleapis.com/";
+const FIREBASE_AUTH_SERVICE = "firebaseauth.googleapis.com";
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
 
 /**
  * Converts the v2 Eventarc (`AuthEventData`) protobuf wire protocol (`value`/`oldValue`, `createTime`, `photoUrl`)
@@ -495,11 +509,36 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   return event;
 }
 
+/** @internal */
+export function getV1AuthContext(event: AuthEvent<User>) {
+  let resourceName = event.source || "";
+  if (resourceName.startsWith(IDENTITY_TOOLKIT_SOURCE_PREFIX)) {
+    resourceName = resourceName.substring(IDENTITY_TOOLKIT_SOURCE_PREFIX.length);
+  } else if (event.project) {
+    resourceName = `projects/${event.project}`;
+  }
+  return {
+    eventId: event.id,
+    timestamp: event.time,
+    eventType:
+      event.type === USER_CREATED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.create"
+        : event.type === USER_DELETED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.delete"
+        : event.type,
+    resource: {
+      service: FIREBASE_AUTH_SERVICE,
+      name: resourceName,
+    },
+    params: {},
+  };
+}
+
 /** @hidden */
 function makeAuthTrigger(
   eventType: string,
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
 
@@ -511,10 +550,25 @@ function makeAuthTrigger(
 
   const func = ((raw: CloudEvent<unknown>) => {
     const event = getAuthEvent(raw);
-    return wrappedHandler(event);
+    const compatEvent = addV1Compat(event, {
+      context: () => getV1AuthContext(event),
+      user: () => event.data,
+    });
+    return wrappedHandler(compatEvent);
   }) as CloudFunction<AuthEvent<User>>;
 
-  func.run = handlerFunc;
+  func.run = ((event: AuthEvent<User>) => {
+    if (!event) {
+      return handlerFunc(event as Parameters<AuthEventHandler>[0]);
+    }
+    const existingUser = (event as any).user;
+    const existingContext = (event as any).context;
+    const compatEvent = addV1Compat(event, {
+      context: () => existingContext ?? getV1AuthContext(event),
+      user: () => event.data ?? existingUser,
+    });
+    return handlerFunc(compatEvent);
+  }) as any;
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {
@@ -546,8 +600,20 @@ function makeAuthTrigger(
   return func;
 }
 
-const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
-
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ *
+ * @beta
+ * @internal
+ *
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user creation events in Firebase Authentication.
  *
@@ -574,17 +640,43 @@ export function onUserCreated(
  */
 export function onUserCreated(
   opts: AuthOptions,
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * @beta
+ * @internal
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  opts: AuthOptions,
   handler: (event: AuthEvent<User>) => any | Promise<any>
 ): CloudFunction<AuthEvent<User>>;
 export function onUserCreated(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
 }
 
-const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
-
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ *
+ * @beta
+ * @internal
+ *
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user deletion events in Firebase Authentication.
  *
@@ -611,11 +703,25 @@ export function onUserDeleted(
  */
 export function onUserDeleted(
   opts: AuthOptions,
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * @beta
+ * @internal
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
   handler: (event: AuthEvent<User>) => any | Promise<any>
 ): CloudFunction<AuthEvent<User>>;
 export function onUserDeleted(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_DELETED_EVENT, optsOrHandler, handler);
 }

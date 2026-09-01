@@ -29,9 +29,22 @@ import { dateToTimestampProto } from "../../common/utilities/encoder";
 /** static-complied protobufs */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
-let firestoreInstance: any;
+/** @internal */
+interface Firestore extends firestore.Firestore {
+  snapshot_(value: unknown, readTime: unknown, encoding: string): any;
+}
 
-/** @hidden */
+/**
+ * Helper to construct a value protobuf or return the document resource path.
+ *
+ * @param data - The Firestore event data payload.
+ * @param resource - The slash-separated document resource path (e.g.
+ * `projects/{project}/databases/{database}/documents/{document_path}`). This is used as the fallback
+ * when the document name or data is not present in the payload (e.g., for non-existent/deleted snapshots).
+ * @param valueFieldName - The key in `data` to extract the document fields from ('value' or 'oldValue').
+ * @returns A protobuf-like object representing the document, or the fallback resource path string.
+ * @hidden
+ */
 function _getValueProto(data: any, resource: string, valueFieldName: string) {
   const value = data?.[valueFieldName];
   if (
@@ -53,9 +66,7 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 
 /** @internal */
 export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp(), databaseId);
-  }
+  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
   try {
     const dataBuffer = Buffer.from(data);
     const firestoreDecoded = DocumentEventData.decode(dataBuffer);
@@ -73,9 +84,7 @@ export function createBeforeSnapshotFromProtobuf(
   path: string,
   databaseId: string
 ) {
-  if (!firestoreInstance) {
-    firestoreInstance = firestore.getFirestore(getApp(), databaseId);
-  }
+  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
   try {
     const dataBuffer = Buffer.from(data);
     const firestoreDecoded = DocumentEventData.decode(dataBuffer);
@@ -90,17 +99,15 @@ export function createBeforeSnapshotFromProtobuf(
 /** @internal */
 export function createSnapshotFromJson(
   data: any,
-  source: string,
+  path: string,
   createTime: string | undefined,
   updateTime: string | undefined,
   databaseId?: string
 ) {
-  if (!firestoreInstance) {
-    firestoreInstance = databaseId
-      ? firestore.getFirestore(getApp(), databaseId)
-      : firestore.getFirestore(getApp());
-  }
-  const valueProto = _getValueProto(data, source, "value");
+  const firestoreInstance = (
+    databaseId ? firestore.getFirestore(getApp(), databaseId) : firestore.getFirestore(getApp())
+  ) as Firestore;
+  const valueProto = _getValueProto(data, path, "value");
   let timeString = createTime || updateTime;
 
   if (!timeString) {
@@ -115,18 +122,16 @@ export function createSnapshotFromJson(
 /** @internal */
 export function createBeforeSnapshotFromJson(
   data: any,
-  source: string,
+  path: string,
   createTime: string | undefined,
   updateTime: string | undefined,
   databaseId?: string
 ) {
-  if (!firestoreInstance) {
-    firestoreInstance = databaseId
-      ? firestore.getFirestore(getApp(), databaseId)
-      : firestore.getFirestore(getApp());
-  }
+  const firestoreInstance = (
+    databaseId ? firestore.getFirestore(getApp(), databaseId) : firestore.getFirestore(getApp())
+  ) as Firestore;
 
-  const oldValueProto = _getValueProto(data, source, "oldValue");
+  const oldValueProto = _getValueProto(data, path, "oldValue");
   const oldReadTime = dateToTimestampProto(createTime || updateTime);
   return firestoreInstance.snapshot_(oldValueProto, oldReadTime, "json");
 }
