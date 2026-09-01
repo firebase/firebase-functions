@@ -65,7 +65,16 @@ import type { WireParamSpec } from "./types";
 
 type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
 
-export const declaredParams: SecretOrExpr[] = [];
+const GLOBAL_PARAMS_SYMBOL = Symbol.for("firebase-functions:params:declaredParams");
+const globalSymbols = globalThis as unknown as Record<symbol, SecretOrExpr[]>;
+if (!globalSymbols[GLOBAL_PARAMS_SYMBOL]) {
+  globalSymbols[GLOBAL_PARAMS_SYMBOL] = [];
+}
+
+/**
+ * Shared list of declared parameters backed by globalThis across module contexts.
+ */
+export const declaredParams: SecretOrExpr[] = globalSymbols[GLOBAL_PARAMS_SYMBOL];
 
 /**
  * Use a helper to manage the list such that parameters are uniquely
