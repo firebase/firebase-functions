@@ -61,7 +61,5 @@ export function getGlobalRequiredAPIs(): ManifestRequiredAPI[] {
  * @internal
  */
 export function clearGlobalRequiredAPIs(): void {
-  if (Array.isArray(globalManifest.requiredAPIs)) {
-    (globalManifest.requiredAPIs as ManifestRequiredAPI[]).length = 0;
-  }
+  delete globalManifest.requiredAPIs;
 }

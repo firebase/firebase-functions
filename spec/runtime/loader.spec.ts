@@ -11,7 +11,6 @@ import {
   clearGlobalManifest,
 } from "../../src/runtime/manifest";
 import { clearParams } from "../../src/params";
-import { clearGlobalRequiredAPIs } from "../../src/common/api";
 import { afterFirstDeploy, afterRedeploy, clearDeclaredLifecycleHooks } from "../../src/lifecycle";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
 import { MINIMAL_SCHEDULE_TRIGGER, MINIMIAL_TASK_QUEUE_TRIGGER } from "../v1/providers/fixtures";
@@ -346,7 +345,6 @@ describe("loadStack", () => {
   afterEach(() => {
     process.env.GCLOUD_PROJECT = prev;
     clearGlobalManifest();
-    clearGlobalRequiredAPIs();
     clearParams();
     clearDeclaredLifecycleHooks();
     // Purge the require cache for fixture modules so that when a file is loaded
