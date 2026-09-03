@@ -24,12 +24,26 @@ import * as logger from "../logger";
 
 const EXPRESSION_TAG = Symbol.for("firebase-functions:Expression:Tag");
 
+/**
+ * The types an `Expression` can resolve to. `string`, `number`, `boolean` and
+ * `string[]` cover the values a param itself can hold; `RegExp` and
+ * `Array<string | RegExp>` are additionally allowed so that expressions can
+ * select between literals for options that accept them, such as `cors`.
+ */
+export type ExpressionValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | RegExp
+  | Array<string | RegExp>;
+
 /*
  * A CEL expression which can be evaluated during function deployment, and
  * resolved to a value of the generic type parameter: i.e, you can pass
  * an Expression<number> as the value of an option that normally accepts numbers.
  */
-export abstract class Expression<T extends string | number | boolean | string[]> {
+export abstract class Expression<T extends ExpressionValue> {
   /**
    * Handle the "Dual-Package Hazard" .
    *
@@ -144,13 +158,11 @@ export class TransformedStringExpression extends Expression<string> {
   }
 }
 
-export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
+export function valueOf<T extends ExpressionValue>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
 
-export function celOf<T extends string | number | boolean | string[]>(
-  arg: T | Expression<T>
-): T | string {
+export function celOf<T extends ExpressionValue>(arg: T | Expression<T>): T | string {
   return arg instanceof Expression ? arg.toCEL() : arg;
 }
 
@@ -169,15 +181,20 @@ export function transform(
  * - Expressions delegate to the `.toString()` method, which is used by the WireManifest
  * - Strings have to be quoted explicitly
  * - Arrays are represented as []-delimited, parsable JSON
+ * - RegExps are emitted as their quoted `toString()` form, e.g. `"/foo$/"`
  * - Numbers and booleans are not quoted explicitly
  */
-function refOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): string {
+function refOf<T extends ExpressionValue>(arg: T | Expression<T>): string {
   if (arg instanceof Expression) {
     return arg.toString();
   } else if (typeof arg === "string") {
     return `"${arg}"`;
+  } else if (arg instanceof RegExp) {
+    return JSON.stringify(arg.toString());
   } else if (Array.isArray(arg)) {
-    return JSON.stringify(arg);
+    // RegExp has no useful JSON representation (JSON.stringify(/foo/) === "{}"),
+    // so fall back to its string form instead of silently dropping the pattern.
+    return JSON.stringify(arg.map((item) => (item instanceof RegExp ? item.toString() : item)));
   } else {
     return arg.toString();
   }
@@ -186,9 +203,7 @@ function refOf<T extends string | number | boolean | string[]>(arg: T | Expressi
 /**
  * A CEL expression corresponding to a ternary operator, e.g {{ cond ? ifTrue : ifFalse }}
  */
-export class TernaryExpression<
-  T extends string | number | boolean | string[]
-> extends Expression<T> {
+export class TernaryExpression<T extends ExpressionValue> extends Expression<T> {
   constructor(
     private readonly test: Expression<boolean>,
     private readonly ifTrue: T | Expression<T>,
@@ -263,7 +278,7 @@ export class CompareExpression<
   }
 
   /** Returns a `TernaryExpression` which can resolve to one of two values, based on the resolution of this comparison. */
-  thenElse<retT extends string | number | boolean | string[]>(
+  thenElse<retT extends ExpressionValue>(
     ifTrue: retT | Expression<retT>,
     ifFalse: retT | Expression<retT>
   ) {
@@ -719,14 +734,11 @@ export class BooleanParam extends Param<boolean> {
   }
 
   /** @deprecated */
-  then<T extends string | number | boolean>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
+  then<T extends ExpressionValue>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
     return this.thenElse(ifTrue, ifFalse);
   }
 
-  thenElse<T extends string | number | boolean>(
-    ifTrue: T | Expression<T>,
-    ifFalse: T | Expression<T>
-  ) {
+  thenElse<T extends ExpressionValue>(ifTrue: T | Expression<T>, ifFalse: T | Expression<T>) {
     return new TernaryExpression(this, ifTrue, ifFalse);
   }
 }
