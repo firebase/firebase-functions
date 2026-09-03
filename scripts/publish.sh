@@ -19,7 +19,6 @@ show_usage() {
   echo "  --branch <name>           The Git branch to check out (defaults to cloned HEAD)"
   echo "  --org <name>              GitHub Organization override (defaults to 'firebase')"
   echo "  --repository <name>       GitHub Repository override (defaults to 'firebase-functions')"
-  echo "  --dist-tag <tag>          The npm distribution tag (defaults to 'next' if --prerelease, otherwise 'latest')"
   echo "  --project <project>       The GCP project used to run the deploy pipeline"
   exit 1
 }
@@ -44,7 +43,6 @@ FORCE_RELEASE=false
 TARGET_BRANCH=""
 ORG="firebase"
 REPO="firebase-functions"
-DIST_TAG=""
 TARGET_PROJECT="firebase-functions-publishing"
 
 # Parse optional arguments
@@ -74,32 +72,16 @@ while [ "$#" -gt 0 ]; do
       REPO="$2"
       shift 2
       ;;
-    --dist-tag)
-      DIST_TAG="$2"
-      shift 2
-      ;;
     --project)
       TARGET_PROJECT="$2"
       shift 2
       ;;
     *)
-      # Legacy positional fallback for tags (e.g. "latest" passed at the end)
-      if [[ ! "$1" =~ ^- ]]; then
-        DIST_TAG="$1"
-      fi
-      shift
+      echo "❌ Error: Unknown argument '$1'" >&2
+      show_usage
       ;;
   esac
 done
-
-# Default distribution tag based on prerelease mode if not explicitly supplied
-if [ -z "$DIST_TAG" ]; then
-  if [ "$IS_PRERELEASE" = true ]; then
-    DIST_TAG="next"
-  else
-    DIST_TAG="latest"
-  fi
-fi
 
 # ==============================================================================
 # MODE A: LOCAL ORCHESTRATOR MODE (Runs on your machine)
@@ -125,7 +107,6 @@ if [ -z "$BUILD_ID" ]; then
   [ -n "$TARGET_BRANCH" ] && SUBSTITUTIONS+=",_BRANCH=$TARGET_BRANCH"
   SUBSTITUTIONS+=",_REPOSITORY_ORG=$ORG"
   SUBSTITUTIONS+=",_REPOSITORY_NAME=$REPO"
-  SUBSTITUTIONS+=",_DIST_TAG=$DIST_TAG"
 
   echo "--------------------------------------------------------"
   echo "Dispatched Release Parameters:"
@@ -135,7 +116,6 @@ if [ -z "$BUILD_ID" ]; then
   echo "  Force Release:    $FORCE_RELEASE"
   echo "  Target Branch:    ${TARGET_BRANCH:-[default]}"
   echo "  GitHub Host:      $ORG/$REPO"
-  echo "  NPM Tag:          $DIST_TAG"
   echo "--------------------------------------------------------"
 
   echo "Dispatched to Cloud Build..."
@@ -189,7 +169,6 @@ echo "--------------------------------------------------------"
 echo "Package Name:                  $PACKAGE_NAME"
 echo "Current stable version on npm: $STABLE_VERSION"
 echo "Latest version on npm:         $LATEST_VERSION"
-echo "Target distribution tag:       $DIST_TAG"
 echo "Is Prerelease:                 $IS_PRERELEASE"
 echo "Dry Run Mode:                  $DRY_RUN"
 echo "Force Release:                 $FORCE_RELEASE"
@@ -266,15 +245,20 @@ fi
 
 # 7. NPM Publish Execution
 if [ "$DRY_RUN" = true ]; then
-  echo "🔍 [Dry Run] Skipping npm publish --tag $DIST_TAG"
-  if [ "$IS_PRERELEASE" = false ] && [ "$DIST_TAG" = "latest" ]; then
+  if [ "$IS_PRERELEASE" = true ]; then
+    echo "🔍 [Dry Run] Skipping npm publish --tag next"
+  else
+    echo "🔍 [Dry Run] Skipping npm publish --tag latest"
     echo "🔍 [Dry Run] Skipping npm dist-tag add ${PACKAGE_NAME}@${NEXT_VERSION} next"
   fi
   echo "🏁 Dry run completed successfully! No modifications were made to remote systems."
 else
-  echo "Publishing package to npm under tag: $DIST_TAG..."
-  npm publish --tag "$DIST_TAG"
-  if [ "$IS_PRERELEASE" = false ] && [ "$DIST_TAG" = "latest" ]; then
+  if [ "$IS_PRERELEASE" = true ]; then
+    echo "Publishing package to npm under tag: next..."
+    npm publish --tag next
+  else
+    echo "Publishing package to npm under tag: latest..."
+    npm publish --tag latest
     echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
     npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next
   fi
