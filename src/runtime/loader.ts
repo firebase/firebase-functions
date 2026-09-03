@@ -23,16 +23,13 @@ import * as path from "path";
 import * as url from "url";
 
 import {
+  globalManifest,
   ManifestEndpoint,
   ManifestExtension,
   ManifestRequiredAPI,
   ManifestStack,
 } from "./manifest";
-
-import * as params from "../params";
-import { declaredRoles } from "../security/roles";
-import { getGlobalRequiredAPIs, clearGlobalRequiredAPIs } from "../common/api";
-import { declaredLifecycleHooks, clearDeclaredLifecycleHooks } from "../lifecycle";
+import { requiresAPI, GoogleCloudApi } from "../common/api";
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -195,25 +192,32 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
   const mod = await loadModule(functionsDir);
 
   extractStack(mod, endpoints, requiredAPIs, extensions);
-  requiredAPIs.push(...getGlobalRequiredAPIs());
-  clearGlobalRequiredAPIs();
+
+  for (const req of requiredAPIs) {
+    requiresAPI(req.api as GoogleCloudApi, req.reason);
+  }
+
+  // The v1alpha1 stack manifest specification expects `extensions: {}` and `requiredAPIs: []`
+  // to always be present on ManifestStack (even if empty), whereas other optional fields
+  // (e.g., params, requiredRoles, lifecycleHooks) are only included when declared.
+  const existingExtensions =
+    globalManifest.extensions && typeof globalManifest.extensions === "object"
+      ? (globalManifest.extensions as Record<string, ManifestExtension>)
+      : {};
+  globalManifest.extensions = {
+    ...extensions,
+    ...existingExtensions,
+  };
+
+  if (!globalManifest.requiredAPIs) {
+    globalManifest.requiredAPIs = [];
+  }
 
   const stack: ManifestStack = {
-    endpoints,
     specVersion: "v1alpha1",
-    requiredAPIs: mergeRequiredAPIs(requiredAPIs),
-    extensions,
+    endpoints,
+    ...globalManifest,
   };
-  if (params.declaredParams.length > 0) {
-    stack.params = params.declaredParams.map((p) => p.toSpec());
-  }
-  if (declaredRoles.size > 0) {
-    stack.requiredRoles = Array.from(declaredRoles);
-  }
 
-  if (Object.keys(declaredLifecycleHooks).length > 0) {
-    stack.lifecycleHooks = { ...declaredLifecycleHooks };
-  }
-  clearDeclaredLifecycleHooks();
   return stack;
 }

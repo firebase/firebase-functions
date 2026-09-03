@@ -20,9 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { ManifestRequiredAPI } from "../runtime/manifest";
-
-let globalRequiredAPIs: ManifestRequiredAPI[] = [];
+import { globalManifest, ManifestRequiredAPI } from "../runtime/manifest";
 
 export type GoogleCloudApi = `${string}.googleapis.com`;
 
@@ -35,19 +33,33 @@ export function requiresAPI(api: GoogleCloudApi, reason = ""): void {
   if (!api || typeof api !== "string" || !api.endsWith(".googleapis.com")) {
     throw new Error("requiresAPI: 'api' must be a non-empty string ending with '.googleapis.com'.");
   }
-  globalRequiredAPIs.push({ api, reason });
+  if (!Array.isArray(globalManifest.requiredAPIs)) {
+    globalManifest.requiredAPIs = [];
+  }
+  const list = globalManifest.requiredAPIs as ManifestRequiredAPI[];
+  const existing = list.find((item) => item.api === api);
+  if (existing) {
+    if (reason && !existing.reason.includes(reason)) {
+      existing.reason = existing.reason ? `${existing.reason} ${reason}` : reason;
+    }
+  } else {
+    list.push({ api, reason });
+  }
 }
 
 /**
  * @internal
  */
 export function getGlobalRequiredAPIs(): ManifestRequiredAPI[] {
-  return globalRequiredAPIs;
+  if (!Array.isArray(globalManifest.requiredAPIs)) {
+    return [];
+  }
+  return globalManifest.requiredAPIs as ManifestRequiredAPI[];
 }
 
 /**
  * @internal
  */
 export function clearGlobalRequiredAPIs(): void {
-  globalRequiredAPIs = [];
+  delete globalManifest.requiredAPIs;
 }
