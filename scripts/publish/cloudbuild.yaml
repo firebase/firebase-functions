@@ -52,8 +52,8 @@ steps:
           $([ "${_DRY_RUN}" = "false" ] && echo "--no-dry-run") \
           $([ "${_FORCE}" = "true" ] && echo "--force") \
           $([ -n "${_BRANCH}" ] && echo "--branch ${_BRANCH}") \
-          --org=${_REPOSITORY_ORG} \
-          --repository=${_REPOSITORY_NAME}
+          --org "${_REPOSITORY_ORG}" \
+          --repository "${_REPOSITORY_NAME}"
     secretEnv: ["GITHUB_TOKEN", "NPMRC_CONTENT"]
 
 options:
