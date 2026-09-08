@@ -379,14 +379,14 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
 /**
  * The user data payload for a Firebase Authentication event. This is the standard `UserRecord`
  * from the Firebase Admin SDK.
- * @public
+ * @beta
  */
 export type User = AdminUserRecord;
 
 /**
  * The event object passed to the handler function for Firebase Authentication
  * events.
- * @public
+ * @beta
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
   /** The project identifier. */
@@ -398,7 +398,7 @@ export interface AuthEvent<T> extends CloudEvent<T> {
 
 /**
  * Options for configuring a Firebase Authentication trigger.
- * @public
+ * @beta
  */
 export interface AuthOptions extends options.EventHandlerOptions {
   /**
@@ -412,14 +412,14 @@ export interface AuthOptions extends options.EventHandlerOptions {
 
 /**
  * Constant to represent the absence of a tenant ID.
- * @public
+ * @beta
  */
 export const IS_NOT_TENANT = RESET_VALUE;
 
 /**
  * Event handler type for Firebase Authentication triggers that supports both standard `AuthEvent`
  * and 1st gen compatibility destructuring (`{ user, context }`).
- * @public
+ * @beta
  */
 export type AuthEventHandler = (
   event: AuthEvent<User> & V1Compat<"user", User>
@@ -605,6 +605,8 @@ function makeAuthTrigger(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
  *
+ * @beta
+ *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
  */
@@ -616,6 +618,8 @@ export function onUserCreated(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
  *
+ * @beta
+ *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
  */
@@ -626,6 +630,8 @@ export function onUserCreated(
  * Handles user creation events in Firebase Authentication.
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -639,6 +645,8 @@ export function onUserCreated(
  * Handles user creation events in Firebase Authentication.
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -660,6 +668,8 @@ export function onUserCreated(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
  *
+ * @beta
+ *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
  */
@@ -671,6 +681,8 @@ export function onUserDeleted(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
  *
+ * @beta
+ *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
  */
@@ -681,6 +693,8 @@ export function onUserDeleted(
  * Handles user deletion events in Firebase Authentication.
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
@@ -694,6 +708,8 @@ export function onUserDeleted(
  * Handles user deletion events in Firebase Authentication.
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
