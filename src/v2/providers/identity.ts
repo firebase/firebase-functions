@@ -377,49 +377,49 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
 }
 
 /**
- * The user data payload for an Auth Event. this is the standard "UserRecord"
- * from the firebase Admin SDK.
- * @internal
+ * The user data payload for an Auth Event. This is the standard "UserRecord"
+ * from the Firebase Admin SDK.
+ * @public
  */
 export type User = AdminUserRecord;
 
 /**
- * The event object passed to the handler funcation for Firebase Authentication
+ * The event object passed to the handler function for Firebase Authentication
  * events.
- * @internal
+ * @public
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
   /** The project identifier */
   project?: string;
 
-  /** The ID of the Identity Platform Tenant Associated with the event. If Applicable */
+  /** The ID of the Identity Platform Tenant associated with the event, if applicable. */
   tenantId?: string;
 }
 
 /**
- * Options for configuring a Firebase Authentication Trigger
- * @internal
+ * Options for configuring a Firebase Authentication Trigger.
+ * @public
  */
 export interface AuthOptions extends options.EventHandlerOptions {
   /**
-   * The Id of the Identity Platform tenant to scope the function to.
-   * If not set, the function triggers on users across all tenants
+   * The ID of the Identity Platform tenant to scope the function to.
+   * If not set, the function triggers on users across all tenants.
    * Set to `IS_NOT_TENANT` to only trigger on users in the default
-   * project(no tenant).
+   * project (no tenant).
    */
   tenantId?: string | Expression<string> | typeof RESET_VALUE;
 }
 
 /**
- * constant to represent the absence of tenant ID.
- * @internal
+ * Constant to represent the absence of tenant ID.
+ * @public
  */
 export const IS_NOT_TENANT = RESET_VALUE;
 
 /**
  * Event handler type for Authentication triggers that supports both standard `AuthEvent`
  * and V1 compatibility destructuring (`{ user, context }`).
- * @internal
+ * @public
  */
 export type AuthEventHandler = (
   event: AuthEvent<User> & V1Compat<"user", User>
@@ -605,9 +605,6 @@ function makeAuthTrigger(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
- * @beta
- * @internal
- *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
  */
@@ -619,9 +616,6 @@ export function onUserCreated(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
- * @beta
- * @internal
- *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
  */
@@ -630,9 +624,6 @@ export function onUserCreated(
 ): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user creation events in Firebase Authentication.
- *
- * @beta
- * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -644,9 +635,6 @@ export function onUserCreated(
 ): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user creation events in Firebase Authentication.
- *
- * @beta
- * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -668,9 +656,6 @@ export function onUserCreated(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
- * @beta
- * @internal
- *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
  */
@@ -682,9 +667,6 @@ export function onUserDeleted(
  *
  * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
  *
- * @beta
- * @internal
- *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
  */
@@ -693,9 +675,6 @@ export function onUserDeleted(
 ): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user deletion events in Firebase Authentication.
- *
- * @beta
- * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
@@ -707,9 +686,6 @@ export function onUserDeleted(
 ): CloudFunction<AuthEvent<User>>;
 /**
  * Handles user deletion events in Firebase Authentication.
- *
- * @beta
- * @internal
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
