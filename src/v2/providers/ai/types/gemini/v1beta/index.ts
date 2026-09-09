@@ -384,10 +384,14 @@ export declare interface GenerateContentCandidate {
 export declare interface GenerateContentRequest extends BaseParams {
   /** Array of conversation turns (Content) that make up the prompt. */
   contents: Content[];
-  /** Optional tools that the model may use to generate content. */
+  /** Optional tools (such as function declarations) the model can interact with to assist in generating a response. */
   tools?: Tool[];
   /** Optional tool configuration. */
   toolConfig?: ToolConfig;
+  /** Optional safety settings. */
+  safetySettings?: SafetySetting[];
+  /** Optional generation configuration. */
+  generationConfig?: GenerationConfig;
   /** Optional system instructions for the model. */
   systemInstruction?: string | Part | Content;
   /**
