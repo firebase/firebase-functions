@@ -54,7 +54,6 @@ export type {
   BooleanParam,
   IntParam,
   ListParam,
-  WireParamSpec,
 } from "./types";
 
 export { Expression };
