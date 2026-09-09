@@ -10,6 +10,7 @@ import {
   ManifestStack,
   clearGlobalManifest,
 } from "../../src/runtime/manifest";
+import * as params from "../../src/params";
 import { clearParams } from "../../src/params";
 import { afterFirstDeploy, afterRedeploy, clearDeclaredLifecycleHooks } from "../../src/lifecycle";
 import { MINIMAL_V1_ENDPOINT, MINIMAL_V2_ENDPOINT } from "../fixtures";
@@ -347,6 +348,17 @@ describe("loadStack", () => {
     clearGlobalManifest();
     clearParams();
     clearDeclaredLifecycleHooks();
+    // Clear any synthetic legacy version symbols (e.g. :v6, :v7) mock-injected onto globalThis
+    // by compatibility tests so they do not pollute subsequent tests in the shared Node process.
+    for (const sym of Object.getOwnPropertySymbols(globalThis)) {
+      const desc = sym.description || sym.toString();
+      if (desc.includes("firebase-functions:params:declaredParams:v")) {
+        const arr = (globalThis as unknown as Record<symbol, unknown>)[sym];
+        if (Array.isArray(arr)) {
+          arr.length = 0;
+        }
+      }
+    }
     // Purge the require cache for fixture modules so that when a file is loaded
     // a second time via absolute path, it re-executes and successfully runs its global side-effects.
     for (const key of Object.keys(require.cache)) {
@@ -639,6 +651,80 @@ describe("loadStack", () => {
       expect(manifest.futureFeatureConfig).to.be.undefined;
       expect(manifest.customStackMetadata).to.be.undefined;
       expect(manifest.requiredRoles).to.be.undefined;
+    });
+  });
+
+  describe("loadStack with backwards-compatible legacy params", () => {
+    it("ingests params declared on legacy versioned symbols into ManifestStack", async () => {
+      const legacySymbol = Symbol.for("firebase-functions:params:declaredParams:v6");
+      const globalSymbols = globalThis as unknown as Record<symbol, any[]>;
+      if (!globalSymbols[legacySymbol]) {
+        globalSymbols[legacySymbol] = [];
+      }
+
+      globalSymbols[legacySymbol].push(new StringParam("LEGACY_API_KEY", { default: "secret123" }));
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.params).to.deep.include({
+        name: "LEGACY_API_KEY",
+        type: "string",
+        default: "secret123",
+      });
+    });
+
+    it("mirrors params registered by new code to legacy versioned symbol", async () => {
+      const legacySymbol = Symbol.for("firebase-functions:params:declaredParams:v0");
+      const globalSymbols = globalThis as unknown as Record<symbol, any[]>;
+
+      params.defineInt("NEW_PARAM_MIRRORED", { default: 42 });
+
+      expect(globalSymbols[legacySymbol]).to.be.an("array");
+      expect(globalSymbols[legacySymbol].some((p) => p.name === "NEW_PARAM_MIRRORED")).to.be.true;
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+      expect(stack.params).to.deep.include({
+        name: "NEW_PARAM_MIRRORED",
+        type: "int",
+        default: 42,
+      });
+
+      clearParams();
+      clearGlobalManifest();
+      expect(globalSymbols[legacySymbol]).to.have.lengthOf(0);
+    });
+
+    it("never creates duplicate params in manifest when present on both global manifest and legacy symbols", async () => {
+      // 1. Declare param via new API (populates globalManifest.params and mirrors to GLOBAL_SYMBOL)
+      params.defineString("SHARED_PARAM_NAME", { default: "from_new_sdk" });
+
+      // 2. Also simulate an older nested module registering the same param name on legacy :v7 symbol
+      const legacyV7Symbol = Symbol.for("firebase-functions:params:declaredParams:v7");
+      const globalSymbols = globalThis as unknown as Record<symbol, any[]>;
+      if (!globalSymbols[legacyV7Symbol]) {
+        globalSymbols[legacyV7Symbol] = [];
+      }
+      globalSymbols[legacyV7Symbol].push(
+        new StringParam("SHARED_PARAM_NAME", { default: "from_old_sdk" })
+      );
+      // And a unique legacy param
+      globalSymbols[legacyV7Symbol].push(
+        new StringParam("UNIQUE_OLD_PARAM", { default: "old_val" })
+      );
+
+      const stack = await loader.loadStack("./spec/fixtures/sources/commonjs");
+
+      // Verify that SHARED_PARAM_NAME appears exactly once
+      const matches = (stack.params || []).filter((p) => p.name === "SHARED_PARAM_NAME");
+      expect(matches).to.have.lengthOf(1);
+      // Should preserve the version registered first (from new SDK in globalManifest)
+      expect(matches[0].default).to.equal("from_new_sdk");
+
+      // Verify UNIQUE_OLD_PARAM was also ingested
+      const oldMatches = (stack.params || []).filter((p) => p.name === "UNIQUE_OLD_PARAM");
+      expect(oldMatches).to.have.lengthOf(1);
+
+      // Total params should be exactly 2
+      expect(stack.params).to.have.lengthOf(2);
     });
   });
 });

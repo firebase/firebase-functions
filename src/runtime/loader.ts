@@ -30,6 +30,7 @@ import {
   ManifestStack,
 } from "./manifest";
 import { requiresAPI, GoogleCloudApi } from "../common/api";
+import type { WireParamSpec } from "../params/types";
 
 /**
  * Dynamically load import function to prevent TypeScript from
@@ -211,6 +212,30 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
 
   if (!globalManifest.requiredAPIs) {
     globalManifest.requiredAPIs = [];
+  }
+
+  // Ingest parameters declared on legacy versioned symbols (e.g. by older SDK modules in nested packages)
+  // that were not already declared via the shared global manifest, preventing duplicates.
+  const legacySymbols = Object.getOwnPropertySymbols(globalThis).filter((sym) =>
+    (sym.description || sym.toString()).includes("firebase-functions:params:declaredParams:v")
+  );
+
+  for (const sym of legacySymbols) {
+    const legacyParams = (globalThis as unknown as Record<symbol, unknown>)[sym];
+    if (Array.isArray(legacyParams)) {
+      for (const p of legacyParams) {
+        if (typeof p?.toSpec === "function") {
+          const spec = p.toSpec();
+          if (!Array.isArray(globalManifest.params)) {
+            globalManifest.params = [];
+          }
+          const manifestParams = globalManifest.params as WireParamSpec<any>[];
+          if (!manifestParams.some((m) => m.name === spec.name)) {
+            manifestParams.push(spec);
+          }
+        }
+      }
+    }
   }
 
   const stack: ManifestStack = {
