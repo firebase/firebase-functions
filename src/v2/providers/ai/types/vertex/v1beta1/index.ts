@@ -105,6 +105,14 @@ export interface Schema {
 export declare interface GenerateContentRequest extends BaseModelParams {
   /** Array of `Content`. */
   contents: Content[];
+  /** Optional tools (such as function declarations) the model can interact with to assist in generating a response. */
+  tools?: Tool[];
+  /** Optional tool configuration. */
+  toolConfig?: ToolConfig;
+  /** Optional safety settings. */
+  safetySettings?: SafetySetting[];
+  /** Optional generation configuration. */
+  generationConfig?: GenerationConfig;
   /**
    * Optional. The user provided system instructions for the model.
    * Note: only text should be used in parts of `Content`.
@@ -124,7 +132,7 @@ export declare interface BaseModelParams {
   safetySettings?: SafetySetting[];
   /** Optional.  {@link GenerationConfig}. */
   generationConfig?: GenerationConfig;
-  /** Optional. Array of {@link Tool}. */
+  /** Optional tools (such as function declarations) the model can interact with to assist in generating a response. */
   tools?: Tool[];
   /** Optional. This config is shared for all tools provided in the request. */
   toolConfig?: ToolConfig;
