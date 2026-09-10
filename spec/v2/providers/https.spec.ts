@@ -391,6 +391,36 @@ describe("onRequest", () => {
     }
   });
 
+  it("should never serialize cors into the wire manifest", () => {
+    // A RegExp has no CEL literal form, so cors expressions are only safe as long as
+    // they stay out of the manifest and are resolved per-request instead.
+    const isStaging = defineBoolean("IS_STAGING");
+    const cors = isStaging
+      .equals(true)
+      .thenElse([/^https:\/\/staging\.example\.com$/], [/^http:\/\/localhost:8080$/]);
+
+    try {
+      const onRequestFunc = https.onRequest({ cors }, (req, res) => {
+        res.send("42");
+      });
+      const onCallFunc = https.onCall({ cors }, () => 42);
+
+      for (const serialized of [
+        JSON.stringify(onRequestFunc.__endpoint),
+        JSON.stringify(onCallFunc.__endpoint),
+        JSON.stringify(onCallFunc.__trigger),
+      ]) {
+        // Positive control: these really are the populated manifests.
+        expect(serialized).to.match(/"(https|callable)Trigger"/);
+        expect(serialized).to.not.contain("cors");
+        expect(serialized).to.not.contain("example.com");
+        expect(serialized).to.not.contain("localhost");
+      }
+    } finally {
+      clearParams();
+    }
+  });
+
   it("should add CORS headers if debug feature is enabled", async () => {
     sinon.stub(debug, "isDebugFeatureEnabled").withArgs("enableCors").returns(true);
 
