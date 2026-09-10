@@ -711,6 +711,15 @@ type v2CallableHandler<Req, Res, Stream> = (
   response?: CallableResponse<Stream>
 ) => Res;
 
+/**
+ * The origins allowed to make cross-origin requests to an HTTPS function.
+ *
+ * @remarks
+ * `true` allows every origin and `false` allows none. A `string` or `RegExp`
+ * allows origins matching that value, and an `Array` allows origins matching at
+ * least one of its entries. Any of these may instead be an {@link Expression},
+ * so that a param chooses the origins at deploy time.
+ */
 export type CorsOption =
   | string
   | Expression<string>
