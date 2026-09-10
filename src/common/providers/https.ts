@@ -723,6 +723,8 @@ type v2CallableHandler<Req, Res, Stream> = (
 export type CorsOption =
   | string
   | Expression<string>
+  // Assignable to Expression<Array<string | RegExp>> already, since Expression is
+  // covariant in T. Kept so the published .d.ts names the `defineList` case.
   | Expression<string[]>
   | Expression<RegExp>
   | Expression<Array<string | RegExp>>
