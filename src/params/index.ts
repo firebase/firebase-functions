@@ -60,7 +60,12 @@ export type {
 export { Expression };
 export type { ParamOptions, SecretParamOptions };
 
+import { globalManifest } from "../runtime/manifest";
+import type { WireParamSpec } from "./types";
+
 type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
+
+const GLOBAL_PARAMS_SYMBOL = Symbol.for("firebase-functions:params:declaredParams");
 
 /**
  * Use a global singleton to manage the list of declared parameters.
@@ -75,14 +80,21 @@ const majorVersion =
     ? // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
       __FIREBASE_FUNCTIONS_MAJOR_VERSION__
     : "0";
-const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:params:declaredParams:v${majorVersion}`);
-const globalSymbols = globalThis as unknown as Record<symbol, SecretOrExpr[]>;
 
+const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:params:declaredParams:v${majorVersion}`);
+
+const globalSymbols = globalThis as unknown as Record<symbol, SecretOrExpr[]>;
+if (!globalSymbols[GLOBAL_PARAMS_SYMBOL]) {
+  globalSymbols[GLOBAL_PARAMS_SYMBOL] = [];
+}
 if (!globalSymbols[GLOBAL_SYMBOL]) {
   globalSymbols[GLOBAL_SYMBOL] = [];
 }
 
-export const declaredParams: SecretOrExpr[] = globalSymbols[GLOBAL_SYMBOL];
+/**
+ * Shared list of declared parameters backed by globalThis across module contexts.
+ */
+export const declaredParams: SecretOrExpr[] = globalSymbols[GLOBAL_PARAMS_SYMBOL];
 
 /**
  * Use a helper to manage the list such that parameters are uniquely
@@ -96,6 +108,25 @@ function registerParam(param: SecretOrExpr) {
     }
   }
   declaredParams.push(param);
+
+  const legacyList = globalSymbols[GLOBAL_SYMBOL];
+  for (let i = 0; i < legacyList.length; i++) {
+    if (legacyList[i].name === param.name) {
+      legacyList.splice(i, 1);
+    }
+  }
+  legacyList.push(param);
+
+  if (!Array.isArray(globalManifest.params)) {
+    globalManifest.params = [];
+  }
+  const manifestParams = globalManifest.params as WireParamSpec<any>[];
+  for (let i = 0; i < manifestParams.length; i++) {
+    if (manifestParams[i].name === param.name) {
+      manifestParams.splice(i, 1);
+    }
+  }
+  manifestParams.push(param.toSpec());
 }
 
 /**
@@ -103,7 +134,11 @@ function registerParam(param: SecretOrExpr) {
  * @internal
  */
 export function clearParams() {
-  declaredParams.splice(0, declaredParams.length);
+  declaredParams.length = 0;
+  if (globalSymbols[GLOBAL_SYMBOL]) {
+    globalSymbols[GLOBAL_SYMBOL].length = 0;
+  }
+  delete globalManifest.params;
 }
 
 /**

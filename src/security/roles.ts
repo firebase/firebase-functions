@@ -20,17 +20,83 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+import { globalManifest } from "../runtime/manifest";
+
+const EMPTY_ROLES: readonly string[] = Object.freeze([]);
+
+function getDeclaredRolesList(): readonly string[] {
+  if (!Array.isArray(globalManifest.requiredRoles)) {
+    return EMPTY_ROLES;
+  }
+  return globalManifest.requiredRoles as string[];
+}
+
 /**
  * Global set of declared IAM roles required by this codebase.
- * Accumulated in-memory during manifest generation.
+ *
+ * NOTE: This cannot be a native `Set` because `globalManifest.requiredRoles`
+ * is stored directly as a wire-ready `string[]` on `globalThis` so that
+ * any manifest loader (even older harness versions) can simply spread
+ * `...globalManifest` without needing role-specific Set-to-Array conversion.
+ * `declaredRoles` implements the full `Set` interface for backwards compatibility.
  */
-export const declaredRoles = new Set<string>();
+export const declaredRoles = {
+  get size(): number {
+    return getDeclaredRolesList().length;
+  },
+  add(role: string): void {
+    registerRole(role);
+  },
+  delete(role: string): boolean {
+    if (!Array.isArray(globalManifest.requiredRoles)) {
+      return false;
+    }
+    const roles = globalManifest.requiredRoles as string[];
+    const idx = roles.indexOf(role);
+    if (idx !== -1) {
+      roles.splice(idx, 1);
+      return true;
+    }
+    return false;
+  },
+  has(role: string): boolean {
+    return getDeclaredRolesList().includes(role);
+  },
+  clear(): void {
+    delete globalManifest.requiredRoles;
+  },
+  keys(): IterableIterator<string> {
+    return getDeclaredRolesList()[Symbol.iterator]();
+  },
+  values(): IterableIterator<string> {
+    return getDeclaredRolesList()[Symbol.iterator]();
+  },
+  *entries(): IterableIterator<[string, string]> {
+    for (const role of getDeclaredRolesList()) {
+      yield [role, role];
+    }
+  },
+  [Symbol.iterator](): IterableIterator<string> {
+    return getDeclaredRolesList()[Symbol.iterator]();
+  },
+  forEach(callback: (value: string, value2: string, set: typeof declaredRoles) => void): void {
+    for (const role of getDeclaredRolesList()) {
+      callback(role, role, declaredRoles);
+    }
+  },
+};
 
 /**
  * Registers a role to be required by this codebase.
- * Automatically deduplicates using the Set.
+ * Automatically deduplicates roles in globalManifest.requiredRoles.
  * @internal
  */
-export function registerRole(role: string) {
-  declaredRoles.add(role);
+export function registerRole(role: string): void {
+  if (!Array.isArray(globalManifest.requiredRoles)) {
+    globalManifest.requiredRoles = [];
+  }
+  const roles = globalManifest.requiredRoles as string[];
+  if (!roles.includes(role)) {
+    roles.push(role);
+  }
 }

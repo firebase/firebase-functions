@@ -21,8 +21,7 @@
 // SOFTWARE.
 
 import { RESET_VALUE, ResettableKeys, ResetValue } from "../common/options";
-import { Expression } from "../params";
-import { WireParamSpec, SecretParam } from "../params/types";
+import { Expression, WireParamSpec, SecretParam } from "../params/types";
 
 /**
  * A definition of an extension as appears in the Manifest.
@@ -166,11 +165,37 @@ export interface ManifestLifecycleAction {
 export interface ManifestStack {
   specVersion: "v1alpha1";
   params?: WireParamSpec<any>[];
-  requiredAPIs: ManifestRequiredAPI[];
+  requiredAPIs?: ManifestRequiredAPI[];
   endpoints: Record<string, ManifestEndpoint>;
   extensions?: Record<string, ManifestExtension>;
   requiredRoles?: string[];
   lifecycleHooks?: Record<string, ManifestLifecycleAction>;
+  [key: string]: unknown;
+}
+
+const GLOBAL_MANIFEST_SYMBOL = Symbol.for("firebase-functions:manifest");
+const globalSymbols = globalThis as unknown as Record<symbol, Record<string, unknown>>;
+
+if (!globalSymbols[GLOBAL_MANIFEST_SYMBOL]) {
+  globalSymbols[GLOBAL_MANIFEST_SYMBOL] = {};
+}
+
+/**
+ * Shared global manifest object on globalThis.
+ * Contains all global stack/manifest declarations (requiredRoles, requiredAPIs, params, lifecycleHooks, etc.)
+ * so that they can be directly destructured into the final ManifestStack.
+ * @internal
+ */
+export const globalManifest: Record<string, unknown> = globalSymbols[GLOBAL_MANIFEST_SYMBOL];
+
+/**
+ * Clears all entries from the shared global manifest.
+ * @internal
+ */
+export function clearGlobalManifest(): void {
+  for (const key of Object.keys(globalManifest)) {
+    delete globalManifest[key];
+  }
 }
 
 /**
