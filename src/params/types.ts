@@ -428,7 +428,7 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
  * Representation of parameters for the stack over the wire.
  * @remarks
  * N.B: a WireParamSpec is just a ParamSpec with default expressions converted into a CEL literal
- * @internal
+ * @alpha
  */
 export type WireParamSpec<T extends string | number | boolean | string[]> = {
   name: string;
