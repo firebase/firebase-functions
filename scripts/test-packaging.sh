@@ -38,10 +38,16 @@ fi
 echo "Setting up test project in $WORK_DIR..."
 pushd "$WORK_DIR" > /dev/null
 npm init -y > /dev/null
-npm install "$TARBALL_PATH"
+TYPESCRIPT_VERSION=$(node -p "require(process.argv[1]).devDependencies.typescript" "$SCRIPT_DIR/../package.json")
+npm install "$TARBALL_PATH" "typescript@$TYPESCRIPT_VERSION"
 
 echo "Running verification script..."
 cp "$SCRIPT_DIR/verify-exports.mjs" .
 node verify-exports.mjs
+
+echo "Verifying TypeScript declarations without esModuleInterop..."
+cp "$SCRIPT_DIR/packaging-test/index.ts" .
+cp "$SCRIPT_DIR/packaging-test/tsconfig.json" .
+./node_modules/.bin/tsc --project tsconfig.json
 
 popd > /dev/null
