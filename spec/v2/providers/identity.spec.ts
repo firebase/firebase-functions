@@ -444,8 +444,35 @@ describe("identity", () => {
     });
 
     it("should handle IS_NOT_TENANT option", () => {
-      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => null);
-      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+      let calledCount = 0;
+      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => {
+        calledCount++;
+        return null;
+      });
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.be.undefined;
+
+      // Should execute for non-tenant events
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-1",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { uid: "user-1" } as any,
+      });
+      expect(calledCount).to.equal(1);
+
+      // Should ignore events that have a tenantid
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-2",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { uid: "user-2" } as any,
+        tenantid: "some-tenant",
+      } as any);
+      expect(calledCount).to.equal(1);
     });
 
     it("should populate project and tenantId on execution", () => {
@@ -799,8 +826,35 @@ describe("identity", () => {
     });
 
     it("should handle IS_NOT_TENANT option", () => {
-      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => null);
-      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+      let calledCount = 0;
+      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => {
+        calledCount++;
+        return null;
+      });
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.be.undefined;
+
+      // Should execute for non-tenant events
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-1",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: { uid: "user-1" } as any,
+      });
+      expect(calledCount).to.equal(1);
+
+      // Should ignore events that have a tenantid
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-2",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: { uid: "user-2" } as any,
+        tenantid: "some-tenant",
+      } as any);
+      expect(calledCount).to.equal(1);
     });
 
     it("should populate project and tenantId on execution", () => {

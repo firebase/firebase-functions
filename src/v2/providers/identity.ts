@@ -550,6 +550,9 @@ function makeAuthTrigger(
 
   const func = ((raw: CloudEvent<unknown>) => {
     const event = getAuthEvent(raw);
+    if (opts.tenantId === IS_NOT_TENANT && event.tenantId) {
+      return;
+    }
     const compatEvent = addV1Compat(event, {
       context: () => getV1AuthContext(event),
       user: () => event.data,
@@ -560,6 +563,9 @@ function makeAuthTrigger(
   func.run = ((event: AuthEvent<User>) => {
     if (!event) {
       return handlerFunc(event as Parameters<AuthEventHandler>[0]);
+    }
+    if (opts.tenantId === IS_NOT_TENANT && event.tenantId) {
+      return;
     }
     const existingUser = (event as any).user;
     const existingContext = (event as any).context;
@@ -589,12 +595,8 @@ function makeAuthTrigger(
       region: "global",
     },
   };
-  if (opts.tenantId !== undefined) {
-    if (opts.tenantId === IS_NOT_TENANT) {
-      endpoint.eventTrigger.eventFilters["tenantid"] = "";
-    } else {
-      endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
-    }
+  if (opts.tenantId !== undefined && opts.tenantId !== IS_NOT_TENANT) {
+    endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
   }
   func.__endpoint = endpoint;
   return func;
