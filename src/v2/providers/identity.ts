@@ -480,6 +480,15 @@ function convertV2EventToV1Event(rawData: unknown): User | undefined {
   return userRecordConstructor(userData);
 }
 
+/** Internal helper interface for extracting tenant IDs and compat fields from raw or mock events. */
+interface RawAuthEventShape {
+  tenantId?: string;
+  tenantid?: string;
+  user?: User;
+  context?: ReturnType<typeof getV1AuthContext>;
+  data?: { tenantId?: string };
+}
+
 /**
  * Normalizes raw CloudEvents from Eventarc into AuthEvent<User>.
  * Eventarc wraps v2 Authentication user payloads inside an `AuthEventData`
@@ -489,13 +498,13 @@ function convertV2EventToV1Event(rawData: unknown): User | undefined {
  * @hidden
  */
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
-  const event: AuthEvent<User> = { ...raw } as any;
+  const event = { ...raw } as unknown as AuthEvent<User>;
   if (raw.data !== undefined && raw.data !== null) {
     event.data = convertV2EventToV1Event(raw.data);
   }
-  const rawAny = raw as any;
+  const rawShape = raw as unknown as RawAuthEventShape;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
-  const tenantId = rawAny.tenantid || rawAny.tenantId || event.data?.tenantId;
+  const tenantId = rawShape.tenantid || rawShape.tenantId || event.data?.tenantId;
   if (tenantId) {
     event.tenantId = tenantId;
   }
@@ -564,22 +573,20 @@ function makeAuthTrigger(
     if (!event) {
       return handlerFunc(event as Parameters<AuthEventHandler>[0]);
     }
-    const existingUser = (event as any).user;
+    const eventShape = event as unknown as RawAuthEventShape;
+    const existingUser = eventShape.user;
     const tenantId =
-      event.tenantId ||
-      (event as any).tenantid ||
-      existingUser?.tenantId ||
-      (event.data as any)?.tenantId;
+      event.tenantId || eventShape.tenantid || existingUser?.tenantId || eventShape.data?.tenantId;
     if (opts.tenantId === IS_NOT_TENANT && tenantId) {
       return;
     }
-    const existingContext = (event as any).context;
+    const existingContext = eventShape.context;
     const compatEvent = addV1Compat(event, {
       context: () => existingContext ?? getV1AuthContext(event),
       user: () => event.data ?? existingUser,
     });
     return handlerFunc(compatEvent);
-  }) as any;
+  }) as CloudFunction<AuthEvent<User>>["run"];
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {

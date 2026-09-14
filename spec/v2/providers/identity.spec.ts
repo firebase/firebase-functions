@@ -458,7 +458,7 @@ describe("identity", () => {
         id: "event-id-1",
         type: "google.firebase.auth.user.v2.created",
         time: new Date().toISOString(),
-        data: { uid: "user-1" } as any,
+        data: { uid: "user-1" },
       });
       expect(calledCount).to.equal(1);
 
@@ -469,20 +469,32 @@ describe("identity", () => {
         id: "event-id-2",
         type: "google.firebase.auth.user.v2.created",
         time: new Date().toISOString(),
-        data: { uid: "user-2" } as any,
+        data: { uid: "user-2" },
         tenantid: "some-tenant",
-      } as any);
+      } as unknown as identity.AuthEvent<identity.User>);
       expect(calledCount).to.equal(1);
 
       // Should also filter out tenant events in func.run across all mock formats
-      func.run({ tenantId: "some-tenant", data: { uid: "u3" } } as any);
-      func.run({ tenantid: "some-tenant", data: { uid: "u4" } } as any);
-      func.run({ user: { tenantId: "some-tenant", uid: "u5" } } as any);
-      func.run({ data: { tenantId: "some-tenant", uid: "u6" } } as any);
+      func.run({
+        tenantId: "some-tenant",
+        data: { uid: "u3" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        tenantid: "some-tenant",
+        data: { uid: "u4" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        user: { tenantId: "some-tenant", uid: "u5" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        data: { tenantId: "some-tenant", uid: "u6" },
+      } as unknown as identity.AuthEvent<identity.User>);
       expect(calledCount).to.equal(1);
 
       // Should execute in func.run when no tenantId is present
-      func.run({ data: { uid: "u7" } } as any);
+      func.run({
+        data: { uid: "u7" },
+      } as unknown as identity.AuthEvent<identity.User>);
       expect(calledCount).to.equal(2);
     });
 
@@ -851,7 +863,7 @@ describe("identity", () => {
         id: "event-id-1",
         type: "google.firebase.auth.user.v2.deleted",
         time: new Date().toISOString(),
-        data: { uid: "user-1" } as any,
+        data: { uid: "user-1" },
       });
       expect(calledCount).to.equal(1);
 
@@ -862,20 +874,32 @@ describe("identity", () => {
         id: "event-id-2",
         type: "google.firebase.auth.user.v2.deleted",
         time: new Date().toISOString(),
-        data: { uid: "user-2" } as any,
+        data: { uid: "user-2" },
         tenantid: "some-tenant",
-      } as any);
+      } as unknown as identity.AuthEvent<identity.User>);
       expect(calledCount).to.equal(1);
 
       // Should also filter out tenant events in func.run across all mock formats
-      func.run({ tenantId: "some-tenant", data: { uid: "u3" } } as any);
-      func.run({ tenantid: "some-tenant", data: { uid: "u4" } } as any);
-      func.run({ user: { tenantId: "some-tenant", uid: "u5" } } as any);
-      func.run({ data: { tenantId: "some-tenant", uid: "u6" } } as any);
+      func.run({
+        tenantId: "some-tenant",
+        data: { uid: "u3" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        tenantid: "some-tenant",
+        data: { uid: "u4" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        user: { tenantId: "some-tenant", uid: "u5" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        data: { tenantId: "some-tenant", uid: "u6" },
+      } as unknown as identity.AuthEvent<identity.User>);
       expect(calledCount).to.equal(1);
 
       // Should execute in func.run when no tenantId is present
-      func.run({ data: { uid: "u7" } } as any);
+      func.run({
+        data: { uid: "u7" },
+      } as unknown as identity.AuthEvent<identity.User>);
       expect(calledCount).to.equal(2);
     });
 
