@@ -473,6 +473,17 @@ describe("identity", () => {
         tenantid: "some-tenant",
       } as any);
       expect(calledCount).to.equal(1);
+
+      // Should also filter out tenant events in func.run across all mock formats
+      func.run({ tenantId: "some-tenant", data: { uid: "u3" } } as any);
+      func.run({ tenantid: "some-tenant", data: { uid: "u4" } } as any);
+      func.run({ user: { tenantId: "some-tenant", uid: "u5" } } as any);
+      func.run({ data: { tenantId: "some-tenant", uid: "u6" } } as any);
+      expect(calledCount).to.equal(1);
+
+      // Should execute in func.run when no tenantId is present
+      func.run({ data: { uid: "u7" } } as any);
+      expect(calledCount).to.equal(2);
     });
 
     it("should populate project and tenantId on execution", () => {
@@ -855,6 +866,17 @@ describe("identity", () => {
         tenantid: "some-tenant",
       } as any);
       expect(calledCount).to.equal(1);
+
+      // Should also filter out tenant events in func.run across all mock formats
+      func.run({ tenantId: "some-tenant", data: { uid: "u3" } } as any);
+      func.run({ tenantid: "some-tenant", data: { uid: "u4" } } as any);
+      func.run({ user: { tenantId: "some-tenant", uid: "u5" } } as any);
+      func.run({ data: { tenantId: "some-tenant", uid: "u6" } } as any);
+      expect(calledCount).to.equal(1);
+
+      // Should execute in func.run when no tenantId is present
+      func.run({ data: { uid: "u7" } } as any);
+      expect(calledCount).to.equal(2);
     });
 
     it("should populate project and tenantId on execution", () => {

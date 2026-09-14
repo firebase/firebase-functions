@@ -495,7 +495,7 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   }
   const rawAny = raw as any;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
-  const tenantId = rawAny.tenantid || rawAny.tenantId;
+  const tenantId = rawAny.tenantid || rawAny.tenantId || event.data?.tenantId;
   if (tenantId) {
     event.tenantId = tenantId;
   }
@@ -564,10 +564,15 @@ function makeAuthTrigger(
     if (!event) {
       return handlerFunc(event as Parameters<AuthEventHandler>[0]);
     }
-    if (opts.tenantId === IS_NOT_TENANT && event.tenantId) {
+    const existingUser = (event as any).user;
+    const tenantId =
+      event.tenantId ||
+      (event as any).tenantid ||
+      existingUser?.tenantId ||
+      (event.data as any)?.tenantId;
+    if (opts.tenantId === IS_NOT_TENANT && tenantId) {
       return;
     }
-    const existingUser = (event as any).user;
     const existingContext = (event as any).context;
     const compatEvent = addV1Compat(event, {
       context: () => existingContext ?? getV1AuthContext(event),
