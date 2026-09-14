@@ -444,8 +444,58 @@ describe("identity", () => {
     });
 
     it("should handle IS_NOT_TENANT option", () => {
-      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => null);
-      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+      let calledCount = 0;
+      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => {
+        calledCount++;
+        return null;
+      });
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.be.undefined;
+
+      // Should execute for non-tenant events
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-1",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { uid: "user-1" },
+      });
+      expect(calledCount).to.equal(1);
+
+      // Should ignore events that have a tenantid
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-2",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { uid: "user-2" },
+        tenantid: "some-tenant",
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should also filter out tenant events in func.run across all mock formats
+      func.run({
+        tenantId: "some-tenant",
+        data: { uid: "u3" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        tenantid: "some-tenant",
+        data: { uid: "u4" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        user: { tenantId: "some-tenant", uid: "u5" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        data: { tenantId: "some-tenant", uid: "u6" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should execute in func.run when no tenantId is present
+      func.run({
+        data: { uid: "u7" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(2);
     });
 
     it("should populate project and tenantId on execution", () => {
@@ -799,8 +849,58 @@ describe("identity", () => {
     });
 
     it("should handle IS_NOT_TENANT option", () => {
-      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => null);
-      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+      let calledCount = 0;
+      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => {
+        calledCount++;
+        return null;
+      });
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.be.undefined;
+
+      // Should execute for non-tenant events
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-1",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: { uid: "user-1" },
+      });
+      expect(calledCount).to.equal(1);
+
+      // Should ignore events that have a tenantid
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-2",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: { uid: "user-2" },
+        tenantid: "some-tenant",
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should also filter out tenant events in func.run across all mock formats
+      func.run({
+        tenantId: "some-tenant",
+        data: { uid: "u3" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        tenantid: "some-tenant",
+        data: { uid: "u4" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        user: { tenantId: "some-tenant", uid: "u5" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        data: { tenantId: "some-tenant", uid: "u6" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should execute in func.run when no tenantId is present
+      func.run({
+        data: { uid: "u7" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(2);
     });
 
     it("should populate project and tenantId on execution", () => {
