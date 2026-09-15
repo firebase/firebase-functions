@@ -468,7 +468,12 @@ describe("loadStack", () => {
               },
             },
             { name: "SUPER_SECRET_FLAG", type: "secret" },
-            { name: "OPTIONAL_SECRET", type: "secret", optional: true, description: "no backing Secret resource" },
+            {
+              name: "OPTIONAL_SECRET",
+              type: "secret",
+              optional: true,
+              description: "no backing Secret resource",
+            },
             { name: "OPTIONAL_FALSE_FOR_SOME_REASON", type: "secret", optional: false },
           ],
         },
