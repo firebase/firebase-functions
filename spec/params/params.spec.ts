@@ -49,6 +49,17 @@ describe("Params spec extraction", () => {
     expect(jsonSpec.description).to.equal("A very JSON secret value");
     expect(jsonSpec.optional).to.be.false;
   });
+
+  const jsonSecretOpt = params.defineJsonSecret("TEST_JSON_SECRET_OPTIONAL", {
+    label: "My JSON Secret",
+    description: "A very JSON secret value",
+    optional: true,
+  });
+  const jsonSpecOpt = jsonSecretOpt.toSpec();
+  expect(jsonSpecOpt.name).to.equal("TEST_JSON_SECRET_OPTIONAL");
+  expect(jsonSpecOpt.label).to.equal("My JSON Secret");
+  expect(jsonSpecOpt.description).to.equal("A very JSON secret value");
+  expect(jsonSpecOpt.optional).to.be.true;
 });
 
 describe("Params value extraction", () => {
