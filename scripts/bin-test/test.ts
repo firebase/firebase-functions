@@ -459,6 +459,23 @@ describe("functions.yaml", function () {
           extensions: {},
         },
       },
+      {
+        name: "quoted hyphen export",
+        modulePath: "./scripts/bin-test/sources/esm-quoted-hyphen",
+        expected: {
+          endpoints: {
+            "dummystore-bot": {
+              ...DEFAULT_V1_OPTIONS,
+              platform: "gcfv1",
+              entryPoint: "dummystore-bot",
+              httpsTrigger: {},
+            },
+          },
+          requiredAPIs: [],
+          specVersion: "v1alpha1",
+          extensions: {},
+        },
+      },
     ];
 
     for (const tc of testcases) {
