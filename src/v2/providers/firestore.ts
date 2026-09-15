@@ -110,6 +110,7 @@ export type QueryDocumentSnapshot = firestore.QueryDocumentSnapshot;
 
 /**
  * AuthType defines the possible values for the authType field in a Firestore event with auth context.
+ *
  * - service_account: a non-user principal used to identify a workload or machine user.
  * - api_key: a non-user client API key.
  * - system: an obscured identity used when Cloud Platform or another system triggered the event. Examples include a database record which was deleted based on a TTL.
@@ -137,11 +138,17 @@ export interface FirestoreEvent<T, Params = Record<string, string>> extends Clou
   params: Params;
 }
 
+/**
+ * A CloudEvent for Firestore triggers that include authentication context.
+ *
+ * Firestore `*WithAuthContext` triggers populate `authType` and, when available,
+ * `authId` with the principal that caused the document change.
+ */
 export interface FirestoreAuthEvent<T, Params = Record<string, string>>
   extends FirestoreEvent<T, Params> {
-  /** The type of principal that triggered the event */
+  /** The type of principal that triggered the event. */
   authType: AuthType;
-  /** The unique identifier for the principal */
+  /** The unique identifier for the principal, when available. */
   authId?: string;
 }
 
@@ -285,7 +292,8 @@ export function onDocumentWrittenWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created, updated, or deleted in Firestore.
- * This trigger also provides the authentication context of the principal who triggered the event.
+ * This trigger also provides the authentication context of the principal who triggered the event
+ * through `event.authType` and `event.authId`.
  *
  * @param documentOrOpts - Options or a string document path.
  * @param handler - Event handler which is run every time a Firestore create, update, or delete occurs.
@@ -430,6 +438,8 @@ export function onDocumentCreatedWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is created in Firestore.
+ * This trigger also provides the authentication context of the principal who created the document
+ * through `event.authType` and `event.authId`.
  *
  * @param documentOrOpts - Options or a string document path.
  * @param handler - Event handler which is run every time a Firestore create occurs.
@@ -574,6 +584,8 @@ export function onDocumentUpdatedWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is updated in Firestore.
+ * This trigger also provides the authentication context of the principal who updated the document
+ * through `event.authType` and `event.authId`.
  *
  * @param documentOrOpts - Options or a string document path.
  * @param handler - Event handler which is run every time a Firestore update occurs.
@@ -720,6 +732,8 @@ export function onDocumentDeletedWithAuthContext<Document extends string>(
 
 /**
  * Event handler that triggers when a document is deleted in Firestore.
+ * This trigger also provides the authentication context of the principal who deleted the document
+ * through `event.authType` and `event.authId`.
  *
  * @param documentOrOpts - Options or a string document path.
  * @param handler - Event handler which is run every time a Firestore delete occurs.
