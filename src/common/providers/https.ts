@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import cors from "cors";
+import * as cors from "cors";
 import * as express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
@@ -796,7 +796,7 @@ export function onCallHandler<Req = any, Res = any, Stream = unknown>(
         ...options.cors,
         origin,
       };
-      cors(corsOptions as cors.CorsOptions)(req, res, () => {
+      cors.default(corsOptions)(req, res, () => {
         resolve(wrapped(req, res));
       });
     });
