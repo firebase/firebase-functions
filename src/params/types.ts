@@ -614,7 +614,7 @@ export class JsonSecretParam<T = any> {
     const val = process.env[this.name];
     if (val === undefined) {
       if (this.options.optional) {
-        return {} as T;
+        return undefined as T;
       }
       throw new Error(
         `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
