@@ -25,6 +25,7 @@ describe("Params spec extraction", () => {
     expect(spec.name).to.equal("TEST_SECRET");
     expect(spec.label).to.equal("My Secret");
     expect(spec.description).to.equal("A very secret value");
+    expect(spec.optional).to.be.undefined;
 
     const jsonSecret = params.defineJsonSecret("TEST_JSON_SECRET", {
       label: "My JSON Secret",
@@ -34,6 +35,19 @@ describe("Params spec extraction", () => {
     expect(jsonSpec.name).to.equal("TEST_JSON_SECRET");
     expect(jsonSpec.label).to.equal("My JSON Secret");
     expect(jsonSpec.description).to.equal("A very JSON secret value");
+    expect(spec.optional).to.be.undefined;
+  });
+
+  it("serializes optional secret params to the same spec but with optional: true", () => {
+    const optSecret = params.defineOptionalSecret("TEST_SECRET", {
+      label: "My Secret",
+      description: "A very secret value",
+    });
+    const spec = optSecret.toSpec();
+    expect(spec.name).to.equal("TEST_SECRET");
+    expect(spec.label).to.equal("My Secret");
+    expect(spec.description).to.equal("A very secret value");
+    expect(spec.optional).to.be.true;
   });
 });
 

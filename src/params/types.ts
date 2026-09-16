@@ -144,10 +144,16 @@ export class TransformedStringExpression extends Expression<string> {
   }
 }
 
+/**
+ *
+ */
 export function valueOf<T extends string | number | boolean | string[]>(arg: T | Expression<T>): T {
   return arg instanceof Expression ? arg.runtimeValue() : arg;
 }
 
+/**
+ *
+ */
 export function celOf<T extends string | number | boolean | string[]>(
   arg: T | Expression<T>
 ): T | string {
@@ -422,6 +428,8 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
   input?: ParamInput<T>;
   /** Optional format annotation for additional type information (e.g., "json" for JSON-encoded secrets). */
   format?: string;
+  /** Secrets only. If true, allows the user to decline to create a backing Cloud Secret Manager resource, resulting in undefined runtime value. */
+  optional?: boolean;
 };
 
 /**
@@ -438,12 +446,13 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   type: ParamValueType;
   input?: ParamInput<T>;
   format?: string;
+  optional?: boolean;
 };
 
-/** Configuration options which can be used to customize the prompting behavior of a parameter. */
+/** Configuration options which can be used to customize the prompting behavior of a non-secret parameter. */
 export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   ParamSpec<T>,
-  "name" | "type"
+  "name" | "type" | "optional"
 >;
 
 /** Configuration options which can be used to customize the behavior of a secret parameter. */
@@ -578,6 +587,46 @@ export class SecretParam {
 
   /** Returns the secret's value at runtime. Throws an error if accessed during deployment. */
   value(): string {
+    if (process.env.FUNCTIONS_CONTROL_API === "true") {
+      throw new Error(
+        `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
+      );
+    }
+    return this.runtimeValue();
+  }
+}
+
+export class OptionalSecretParam {
+  static type: ParamValueType = "secret";
+  name: string;
+
+  constructor(name: string, readonly options: SecretParamOptions = {}) {
+    this.name = name;
+  }
+
+  /** @internal */
+  runtimeValue(): string | unknown {
+    const val = process.env[this.name];
+    if (val === undefined) {
+      logger.info(
+        `No value found for optional secret parameter "${this.name}". Either it was left intentionally unbound, or you must add the secret to the function's dependency array.`
+      );
+    }
+    return val || "";
+  }
+
+  /** @internal */
+  toSpec(): ParamSpec<string> {
+    return {
+      type: "secret",
+      optional: true,
+      name: this.name,
+      ...this.options,
+    };
+  }
+
+  /** Returns the secret's value at runtime. Throws an error if accessed during deployment. */
+  value(): string | unknown {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
       throw new Error(
         `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
