@@ -35,7 +35,7 @@ describe("Params spec extraction", () => {
     expect(jsonSpec.name).to.equal("TEST_JSON_SECRET");
     expect(jsonSpec.label).to.equal("My JSON Secret");
     expect(jsonSpec.description).to.equal("A very JSON secret value");
-    expect(spec.optional).to.be.undefined;
+    expect(jsonSpec.optional).to.be.undefined;
   });
 
   it("serializes optional secret params to the same spec but with optional: true", () => {
