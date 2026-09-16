@@ -28,7 +28,7 @@ import { Expression, WireParamSpec, SecretParam } from "../params/types";
  * Exactly one of ref or localPath must be present.
  */
 export interface ManifestExtension {
-  params: Record<string, string | SecretParam>;
+  params: Record<string, string | SecretParam<string | undefined>>;
   ref?: string;
   localPath?: string;
   events: string[];

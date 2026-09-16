@@ -422,6 +422,8 @@ export type ParamSpec<T extends string | number | boolean | string[]> = {
   input?: ParamInput<T>;
   /** Optional format annotation for additional type information (e.g., "json" for JSON-encoded secrets). */
   format?: string;
+  /** Whether the secret parameter is optional. */
+  optional?: boolean;
 };
 
 /**
@@ -438,12 +440,13 @@ export type WireParamSpec<T extends string | number | boolean | string[]> = {
   type: ParamValueType;
   input?: ParamInput<T>;
   format?: string;
+  optional?: boolean;
 };
 
 /** Configuration options which can be used to customize the prompting behavior of a parameter. */
 export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
   ParamSpec<T>,
-  "name" | "type"
+  "name" | "type" | "optional"
 >;
 
 /** Configuration options which can be used to customize the behavior of a secret parameter. */
@@ -452,6 +455,8 @@ export interface SecretParamOptions {
   label?: string;
   /** An optional long-form description of the parameter to be displayed while prompting. */
   description?: string;
+  /** Whether the secret parameter is optional. When true, runtimeValue() returns undefined if the secret is not set. */
+  optional?: boolean;
 }
 
 /**
@@ -548,7 +553,7 @@ export abstract class Param<T extends string | number | boolean | string[]> exte
  * the secrets array while defining a Function to make their values accessible
  * during execution of that Function.
  */
-export class SecretParam {
+export class SecretParam<T = string> {
   static type: ParamValueType = "secret";
   name: string;
 
@@ -557,14 +562,17 @@ export class SecretParam {
   }
 
   /** @internal */
-  runtimeValue(): string {
+  runtimeValue(): T {
     const val = process.env[this.name];
     if (val === undefined) {
-      logger.warn(
-        `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
-      );
+      if (!this.options.optional) {
+        logger.warn(
+          `No value found for secret parameter "${this.name}". A function can only access a secret if you include the secret in the function's dependency array.`
+        );
+      }
+      return (this.options.optional ? undefined : "") as T;
     }
-    return val || "";
+    return val as T;
   }
 
   /** @internal */
@@ -577,7 +585,7 @@ export class SecretParam {
   }
 
   /** Returns the secret's value at runtime. Throws an error if accessed during deployment. */
-  value(): string {
+  value(): T {
     if (process.env.FUNCTIONS_CONTROL_API === "true") {
       throw new Error(
         `Cannot access the value of secret "${this.name}" during function deployment. Secret values are only available at runtime.`
@@ -598,7 +606,7 @@ export class JsonSecretParam<T = any> {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string, readonly options: SecretParamOptions = {}) {
+  constructor(name: string, readonly options: Omit<SecretParamOptions, "optional"> = {}) {
     this.name = name;
   }
 
@@ -645,7 +653,10 @@ export class JsonSecretParam<T = any> {
  * A union type representing all valid secret parameter types that can be used
  * in a function's `secrets` configuration array.
  */
-export type SupportedSecretParam = string | SecretParam | JsonSecretParam<unknown>;
+export type SupportedSecretParam =
+  | string
+  | SecretParam<string | undefined>
+  | JsonSecretParam<unknown>;
 
 /**
  *  A parametrized value of String type that will be read from .env files

@@ -260,6 +260,63 @@ describe("Params value extraction", () => {
   });
 });
 
+describe("defineSecret optional option", () => {
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.OPTIONAL_SECRET;
+    delete process.env.REQUIRED_SECRET;
+  });
+
+  it("returns undefined when optional secret is not set in environment", () => {
+    const optionalSecret = params.defineSecret("OPTIONAL_SECRET", { optional: true });
+    const val: string | undefined = optionalSecret.value();
+    expect(val).to.be.undefined;
+  });
+
+  it("returns string value when optional secret is set in environment", () => {
+    process.env.OPTIONAL_SECRET = "my-optional-secret-value";
+    const optionalSecret = params.defineSecret("OPTIONAL_SECRET", { optional: true });
+    const val: string | undefined = optionalSecret.value();
+    expect(val).to.equal("my-optional-secret-value");
+  });
+
+  it("preserves strict string typing for required secrets and default SecretParam type", () => {
+    process.env.REQUIRED_SECRET = "my-required-secret-value";
+    const requiredSecret: params.SecretParam = params.defineSecret("REQUIRED_SECRET");
+    const val: string = requiredSecret.value();
+    expect(val).to.equal("my-required-secret-value");
+
+    const explicitFalseSecret: params.SecretParam = params.defineSecret("REQUIRED_SECRET", {
+      optional: false,
+    });
+    const val2: string = explicitFalseSecret.value();
+    expect(val2).to.equal("my-required-secret-value");
+
+    const optionalSecret = params.defineSecret("OPTIONAL_SECRET", { optional: true });
+    const optionalVal: string | undefined = optionalSecret.value();
+    expect(optionalVal).to.be.undefined;
+  });
+
+  it("includes optional in toSpec() when set", () => {
+    const optionalSecret = params.defineSecret("OPTIONAL_SECRET", {
+      label: "Optional Secret",
+      optional: true,
+    });
+    expect(optionalSecret.toSpec()).to.deep.equal({
+      type: "secret",
+      name: "OPTIONAL_SECRET",
+      label: "Optional Secret",
+      optional: true,
+    });
+  });
+
+  it("rejects optional option on defineJsonSecret at compile time", () => {
+    // @ts-expect-error optional is not supported on JsonSecretParam
+    const jsonSecret = params.defineJsonSecret("TEST_JSON", { optional: true });
+    expect(jsonSecret.name).to.equal("TEST_JSON");
+  });
+});
+
 describe("defineJsonSecret", () => {
   beforeEach(() => {
     process.env.VALID_JSON = JSON.stringify({ key: "value", nested: { foo: "bar" } });

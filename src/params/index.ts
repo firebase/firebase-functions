@@ -62,7 +62,7 @@ export type { ParamOptions, SecretParamOptions };
 import { globalManifest } from "../runtime/manifest";
 import type { WireParamSpec } from "./types";
 
-type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
+type SecretOrExpr = Param<any> | SecretParam<string | undefined> | JsonSecretParam<any>;
 
 const GLOBAL_PARAMS_SYMBOL = Symbol.for("firebase-functions:params:declaredParams");
 
@@ -178,12 +178,20 @@ export const storageBucket: Param<string> = new InternalExpression(
  * Declares a secret param, that will persist values only in Cloud Secret Manager.
  * Secrets are stored internally as bytestrings. Use `ParamOptions.as` to provide type
  * hinting during parameter resolution.
- *
  * @param name The name of the environment variable to use to load the parameter.
- * @returns A parameter with a `string` return type for `.value`.
+ * @param options Configuration options for the parameter.
+ * @returns A parameter with a `string` (or `string | undefined` if optional) return type for `.value`.
  */
-export function defineSecret(name: string, options: SecretParamOptions = {}): SecretParam {
-  const param = new SecretParam(name, options);
+export function defineSecret(
+  name: string,
+  options: SecretParamOptions & { optional: true }
+): SecretParam<string | undefined>;
+export function defineSecret(name: string, options?: SecretParamOptions): SecretParam<string>;
+export function defineSecret(
+  name: string,
+  options: SecretParamOptions = {}
+): SecretParam<string | undefined> {
+  const param = new SecretParam<string | undefined>(name, options);
   registerParam(param);
   return param;
 }
@@ -202,7 +210,7 @@ export function defineSecret(name: string, options: SecretParamOptions = {}): Se
  */
 export function defineJsonSecret<T = any>(
   name: string,
-  options: SecretParamOptions = {}
+  options: Omit<SecretParamOptions, "optional"> = {}
 ): JsonSecretParam<T> {
   const param = new JsonSecretParam<T>(name, options);
   registerParam(param);
