@@ -184,12 +184,19 @@ export const storageBucket: Param<string> = new InternalExpression(
  */
 export function defineSecret(
   name: string,
-  options: SecretParamOptions & { optional: true }
+  options: SecretParamOptions<true>
 ): SecretParam<string | undefined>;
-export function defineSecret(name: string, options?: SecretParamOptions): SecretParam<string>;
 export function defineSecret(
   name: string,
-  options: SecretParamOptions = {}
+  options?: SecretParamOptions<false>
+): SecretParam<string>;
+export function defineSecret(
+  name: string,
+  options?: SecretParamOptions<boolean>
+): SecretParam<string | undefined>;
+export function defineSecret(
+  name: string,
+  options: SecretParamOptions<boolean> = {}
 ): SecretParam<string | undefined> {
   const param = new SecretParam<string | undefined>(name, options);
   registerParam(param);
@@ -210,7 +217,7 @@ export function defineSecret(
  */
 export function defineJsonSecret<T = any>(
   name: string,
-  options: Omit<SecretParamOptions, "optional"> = {}
+  options: Omit<SecretParamOptions<boolean>, "optional"> = {}
 ): JsonSecretParam<T> {
   const param = new JsonSecretParam<T>(name, options);
   registerParam(param);

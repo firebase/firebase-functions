@@ -327,21 +327,35 @@ describe("defineSecret optional option", () => {
     expect(requiredSecret.value()).to.equal("configured-value");
   });
 
-  it("demonstrates type/runtime mismatch when passing a pre-defined SecretParamOptions variable with optional: true", () => {
-    // Because preDefinedOpts is annotated as SecretParamOptions (optional?: boolean),
-    // TypeScript widens `true` to `boolean | undefined`. It fails Overload 1 ({ optional: true })
-    // and falls through to Overload 2, typing the return value as SecretParam<string>.
-    const preDefinedOpts: params.SecretParamOptions = { optional: true };
-    const secret: params.SecretParam<string> = params.defineSecret(
-      "OPTIONAL_SECRET",
-      preDefinedOpts
+  it("prevents type/runtime mismatch at compile time when using pre-defined SecretParamOptions variables", () => {
+    // 1. Existing callers using default SecretParamOptions (Optional = false) without `optional` get SecretParam<string>
+    const existingCallerOpts: params.SecretParamOptions = { label: "My Required Key" };
+    const reqSecret: params.SecretParam<string> = params.defineSecret(
+      "REQUIRED_SECRET",
+      existingCallerOpts
     );
+    expect(reqSecret.value()).to.equal("");
 
-    // TypeScript believes `val` is strictly a string, but at runtime `options.optional` is true,
-    // so runtimeValue() returns `undefined` instead of `""`, causing string methods to throw TypeError.
-    const val: string = secret.value();
-    expect(val).to.be.undefined;
-    expect(() => val.trim()).to.throw(TypeError);
+    // 2. Attempting to assign { optional: true } to default SecretParamOptions (which defaults to Optional = false)
+    // is rejected by TypeScript at compile time:
+    // @ts-expect-error Type 'true' is not assignable to type 'false'
+    const _invalidOpts: params.SecretParamOptions = { optional: true };
+    expect(_invalidOpts.optional).to.be.true;
+
+    // 3. Explicitly typing as SecretParamOptions<true> or SecretParamOptions<boolean> resolves to SecretParam<string | undefined>
+    const validOptionalOpts: params.SecretParamOptions<true> = { optional: true };
+    const optSecret: params.SecretParam<string | undefined> = params.defineSecret(
+      "OPTIONAL_SECRET",
+      validOptionalOpts
+    );
+    expect(optSecret.value()).to.be.undefined;
+
+    const dynamicOpts: params.SecretParamOptions<boolean> = { optional: true };
+    const dynSecret: params.SecretParam<string | undefined> = params.defineSecret(
+      "OPTIONAL_SECRET",
+      dynamicOpts
+    );
+    expect(dynSecret.value()).to.be.undefined;
   });
 
   it("rejects optional option on defineJsonSecret at compile time", () => {

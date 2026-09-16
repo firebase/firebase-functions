@@ -450,13 +450,13 @@ export type ParamOptions<T extends string | number | boolean | string[]> = Omit<
 >;
 
 /** Configuration options which can be used to customize the behavior of a secret parameter. */
-export interface SecretParamOptions {
+export interface SecretParamOptions<Optional extends boolean = false> {
   /** An optional human-readable string to be used as a replacement for the parameter's name when prompting. */
   label?: string;
   /** An optional long-form description of the parameter to be displayed while prompting. */
   description?: string;
   /** Whether the secret parameter is optional. When true, runtimeValue() returns undefined if the secret is not set. */
-  optional?: boolean;
+  optional?: Optional;
 }
 
 /**
@@ -557,7 +557,7 @@ export class SecretParam<T = string> {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string, readonly options: SecretParamOptions = {}) {
+  constructor(name: string, readonly options: SecretParamOptions<boolean> = {}) {
     this.name = name;
   }
 
@@ -606,7 +606,7 @@ export class JsonSecretParam<T = any> {
   static type: ParamValueType = "secret";
   name: string;
 
-  constructor(name: string, readonly options: Omit<SecretParamOptions, "optional"> = {}) {
+  constructor(name: string, readonly options: Omit<SecretParamOptions<boolean>, "optional"> = {}) {
     this.name = name;
   }
 
