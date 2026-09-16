@@ -310,6 +310,40 @@ describe("defineSecret optional option", () => {
     });
   });
 
+  it("handles optional: false as a required secret (returns empty string when unset)", () => {
+    const requiredSecret: params.SecretParam<string> = params.defineSecret("REQUIRED_SECRET", {
+      optional: false,
+    });
+    const unsetVal: string = requiredSecret.value();
+    expect(unsetVal).to.equal("");
+    expect(unsetVal.trim()).to.equal("");
+    expect(requiredSecret.toSpec()).to.deep.equal({
+      type: "secret",
+      name: "REQUIRED_SECRET",
+      optional: false,
+    });
+
+    process.env.REQUIRED_SECRET = "configured-value";
+    expect(requiredSecret.value()).to.equal("configured-value");
+  });
+
+  it("demonstrates type/runtime mismatch when passing a pre-defined SecretParamOptions variable with optional: true", () => {
+    // Because preDefinedOpts is annotated as SecretParamOptions (optional?: boolean),
+    // TypeScript widens `true` to `boolean | undefined`. It fails Overload 1 ({ optional: true })
+    // and falls through to Overload 2, typing the return value as SecretParam<string>.
+    const preDefinedOpts: params.SecretParamOptions = { optional: true };
+    const secret: params.SecretParam<string> = params.defineSecret(
+      "OPTIONAL_SECRET",
+      preDefinedOpts
+    );
+
+    // TypeScript believes `val` is strictly a string, but at runtime `options.optional` is true,
+    // so runtimeValue() returns `undefined` instead of `""`, causing string methods to throw TypeError.
+    const val: string = secret.value();
+    expect(val).to.be.undefined;
+    expect(() => val.trim()).to.throw(TypeError);
+  });
+
   it("rejects optional option on defineJsonSecret at compile time", () => {
     // @ts-expect-error optional is not supported on JsonSecretParam
     const jsonSecret = params.defineJsonSecret("TEST_JSON", { optional: true });
