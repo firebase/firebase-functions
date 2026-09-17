@@ -260,7 +260,7 @@ else
     echo "Publishing package to npm under tag: latest..."
     npm publish --tag latest
     echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
-    npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next
+    npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
   fi
   echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
 fi
