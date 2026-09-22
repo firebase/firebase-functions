@@ -61,18 +61,38 @@ export function getOpts(args: string | ScheduleOptions): SeparatedOpts {
       opts: {},
     };
   }
-  return {
+  // Careful: only copy over the fields the caller actually set. `copyIfPresent` treats a
+  // present-but-undefined field as an explicit value, so materializing the keys here would
+  // overwrite the RESET_VALUE placeholders that `initV2ScheduleTrigger` writes for options the
+  // user left out -- which is how "reset to the platform default" is expressed on the wire.
+  const retryConfig: NonNullable<SeparatedOpts["retryConfig"]> = {};
+  if (args.retryCount !== undefined) {
+    retryConfig.retryCount = args.retryCount;
+  }
+  if (args.maxRetrySeconds !== undefined) {
+    retryConfig.maxRetrySeconds = args.maxRetrySeconds;
+  }
+  if (args.minBackoffSeconds !== undefined) {
+    retryConfig.minBackoffSeconds = args.minBackoffSeconds;
+  }
+  if (args.maxBackoffSeconds !== undefined) {
+    retryConfig.maxBackoffSeconds = args.maxBackoffSeconds;
+  }
+  if (args.maxDoublings !== undefined) {
+    retryConfig.maxDoublings = args.maxDoublings;
+  }
+
+  const separated: SeparatedOpts = {
     schedule: args.schedule,
-    timeZone: args.timeZone,
-    retryConfig: {
-      retryCount: args.retryCount,
-      maxRetrySeconds: args.maxRetrySeconds,
-      minBackoffSeconds: args.minBackoffSeconds,
-      maxBackoffSeconds: args.maxBackoffSeconds,
-      maxDoublings: args.maxDoublings,
-    },
     opts: args,
   };
+  if (args.timeZone !== undefined) {
+    separated.timeZone = args.timeZone;
+  }
+  if (Object.keys(retryConfig).length) {
+    separated.retryConfig = retryConfig;
+  }
+  return separated;
 }
 
 /**

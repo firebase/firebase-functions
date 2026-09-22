@@ -170,19 +170,14 @@ describe("schedule", () => {
         () => console.log(1)
       );
 
+      // Leaving the schedule options out of the manifest is what tells the CLI to keep whatever
+      // is already configured, so nothing may be filled in here.
       expect(schfn.__endpoint).to.deep.eq({
         platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
           schedule: "* * * * *",
-          timeZone: undefined,
-          retryConfig: {
-            retryCount: undefined,
-            maxRetrySeconds: undefined,
-            minBackoffSeconds: undefined,
-            maxBackoffSeconds: undefined,
-            maxDoublings: undefined,
-          },
+          retryConfig: {},
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
