@@ -778,9 +778,9 @@ export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot 
   } else if (event.datacontenttype?.includes("application/json")) {
     return createSnapshotFromJson(
       event.data,
-      event.source,
-      (event.data as RawFirestoreData).value?.createTime,
-      (event.data as RawFirestoreData).value?.updateTime,
+      getPath(event),
+      (event.data as RawFirestoreData)?.value?.createTime,
+      (event.data as RawFirestoreData)?.value?.updateTime,
       event.database
     );
   } else {
@@ -802,9 +802,9 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
   } else if (event.datacontenttype?.includes("application/json")) {
     return createBeforeSnapshotFromJson(
       event.data,
-      event.source,
-      (event.data as RawFirestoreData).oldValue?.createTime,
-      (event.data as RawFirestoreData).oldValue?.updateTime,
+      getPath(event),
+      (event.data as RawFirestoreData)?.oldValue?.createTime,
+      (event.data as RawFirestoreData)?.oldValue?.updateTime,
       event.database
     );
   } else {

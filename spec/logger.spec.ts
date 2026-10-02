@@ -218,4 +218,92 @@ describe("logger", () => {
       });
     });
   });
+
+  describe("compat", () => {
+    const originalConsole = {
+      debug: console.debug,
+      info: console.info,
+      log: console.log,
+      warn: console.warn,
+      error: console.error,
+    };
+
+    before(async () => {
+      // Patch global console methods
+      await import("../src/logger/compat");
+    });
+
+    beforeEach(() => {
+      lastOut = "";
+      lastErr = "";
+    });
+
+    after(() => {
+      // Restore original console methods so other tests remain unaffected
+      console.debug = originalConsole.debug;
+      console.info = originalConsole.info;
+      console.log = originalConsole.log;
+      console.warn = originalConsole.warn;
+      console.error = originalConsole.error;
+    });
+
+    it("should patch console.log with INFO severity", () => {
+      console.log("test info log");
+      expectStdout({
+        severity: "INFO",
+        message: "test info log",
+      });
+    });
+
+    it("should patch console.log with no arguments", () => {
+      console.log();
+      expectStdout({
+        severity: "INFO",
+        message: "",
+      });
+    });
+
+    it("should patch console.debug with DEBUG severity", () => {
+      console.debug("test debug log");
+      expectStdout({
+        severity: "DEBUG",
+        message: "test debug log",
+      });
+    });
+
+    it("should patch console.warn with WARNING severity", () => {
+      console.warn("test warning log");
+      expectStderr({
+        severity: "WARNING",
+        message: "test warning log",
+      });
+    });
+
+    it("should patch console.error with ERROR severity without creating synthetic stack trace for string messages", () => {
+      // String error messages should not have synthetic Error stacks added (Issue #1945)
+      console.error("test error message");
+      expectStderr({
+        severity: "ERROR",
+        message: "test error message",
+      });
+    });
+
+    it("should patch console.error for Error objects preserving the original stack", () => {
+      // Error instances should retain their original stack trace without double wrapping
+      const err = new Error("real error");
+      console.error(err);
+      const parsed = JSON.parse(lastErr.trim()) as logger.LogEntry;
+      expect(parsed.severity).to.eq("ERROR");
+      expect(parsed.message).to.contain("Error: real error");
+      expect(parsed.message).to.not.contain("Error: Error: real error");
+    });
+
+    it("should format multiple arguments in console.error", () => {
+      console.error("failed with code %d: %s", 500, "internal error");
+      expectStderr({
+        severity: "ERROR",
+        message: "failed with code 500: internal error",
+      });
+    });
+  });
 });

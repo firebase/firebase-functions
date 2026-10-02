@@ -1,162 +1,266 @@
 #!/bin/bash
 set -e
 
-printusage() {
-  echo "publish.sh <version>"
-  echo "REPOSITORY_ORG and REPOSITORY_NAME should be set in the environment."
-  echo "e.g. REPOSITORY_ORG=user, REPOSITORY_NAME=repo"
+# Ensure we run from the repository root
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIR/.."
+
+show_usage() {
+  echo "Firebase Functions Release Manager (Polymorphic)"
+  echo "Usage: ./scripts/publish.sh <major|minor|patch> [options]"
   echo ""
-  echo "Arguments:"
-  echo "  version: 'patch', 'minor', or 'major'."
+  echo "Required Positional Argument:"
+  echo "  <major|minor|patch>       The type of SemVer version bump"
+  echo ""
+  echo "Options:"
+  echo "  --prerelease              Flag the build as a release candidate"
+  echo "  --no-dry-run              Perform real write actions (npm publish, git tag, github release)"
+  echo "  --force                   Force a release even if there are no new commits since last release"
+  echo "  --branch <name>           The Git branch to check out (defaults to cloned HEAD)"
+  echo "  --org <name>              GitHub Organization override (defaults to 'firebase')"
+  echo "  --repository <name>       GitHub Repository override (defaults to 'firebase-functions')"
+  echo "  --project <project>       The GCP project used to run the deploy pipeline"
+  exit 1
 }
 
-VERSION=$1
-if [[ $VERSION == "" ]]; then
-  printusage
-  exit 1
-elif [[ ! ($VERSION == "patch" || $VERSION == "minor" || $VERSION == "major" || $VERSION == "prerelease") ]]; then
-  printusage
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  show_usage
+fi
+
+BUMP_TYPE=$1
+shift
+
+# Validate positional argument
+if [[ ! "$BUMP_TYPE" =~ ^(major|minor|patch)$ ]]; then
+  echo "❌ Error: Invalid bump type '$BUMP_TYPE'. Must be 'major', 'minor', or 'patch'."
   exit 1
 fi
 
-if [[ $REPOSITORY_ORG == "" ]]; then
-  printusage
-  exit 1
-fi
-if [[ $REPOSITORY_NAME == "" ]]; then
-  printusage
-  exit 1
-fi
+# Set default values
+IS_PRERELEASE=false
+DRY_RUN=true
+FORCE_RELEASE=false
+TARGET_BRANCH=""
+ORG="firebase"
+REPO="firebase-functions"
+TARGET_PROJECT="firebase-functions-publishing"
 
-WDIR=$(pwd)
+# Parse optional arguments
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --prerelease)
+      IS_PRERELEASE=true
+      shift
+      ;;
+    --no-dry-run)
+      DRY_RUN=false
+      shift
+      ;;
+    --force)
+      FORCE_RELEASE=true
+      shift
+      ;;
+    --branch)
+      TARGET_BRANCH="$2"
+      shift 2
+      ;;
+    --org)
+      ORG="$2"
+      shift 2
+      ;;
+    --repository)
+      REPO="$2"
+      shift 2
+      ;;
+    --project)
+      TARGET_PROJECT="$2"
+      shift 2
+      ;;
+    *)
+      echo "❌ Error: Unknown argument '$1'" >&2
+      show_usage
+      ;;
+  esac
+done
 
-echo "Checking for commands..."
-trap "echo 'Missing hub.'; exit 1" ERR
-which hub &> /dev/null
-trap - ERR
-
-trap "echo 'Missing node.'; exit 1" ERR
-which node &> /dev/null
-trap - ERR
-
-trap "echo 'Missing jq.'; exit 1" ERR
-which jq &> /dev/null
-trap - ERR
-echo "Checked for commands."
-
-echo "Checking for Twitter credentials..."
-trap "echo 'Missing Twitter credentials.'; exit 1" ERR
-test -f "${WDIR}/scripts/twitter.json"
-trap - ERR
-echo "Checked for Twitter credentials..."
-
-echo "Checking for logged-in npm user..."
-trap "echo 'Please login to npm using \`npm login --registry https://wombat-dressing-room.appspot.com\`'; exit 1" ERR
-npm whoami --registry https://wombat-dressing-room.appspot.com
-trap - ERR
-echo "Checked for logged-in npm user."
-
-echo "Moving to temporary directory.."
-TEMPDIR=$(mktemp -d)
-echo "[DEBUG] ${TEMPDIR}"
-cd "${TEMPDIR}"
-echo "Moved to temporary directory."
-
-echo "Cloning repository..."
-git clone "git@github.com:${REPOSITORY_ORG}/${REPOSITORY_NAME}.git"
-cd "${REPOSITORY_NAME}"
-echo "Cloned repository."
-
-if [[ $PRE_RELEASE == "" ]]; then
-  echo "Making sure there is a changelog..."
-  if [[ ! -s CHANGELOG.md ]]; then
-    echo "CHANGELOG.md is empty. aborting."
+# ==============================================================================
+# MODE A: LOCAL ORCHESTRATOR MODE (Runs on your machine)
+# ==============================================================================
+if [ -z "$BUILD_ID" ]; then
+  echo "🖥️  [Orchestrator Mode] Local terminal execution detected."
+  
+  # 1. Pre-flight CLI checks
+  if ! command -v gcloud &> /dev/null; then
+    echo "❌ Error: 'gcloud' CLI tool is not installed."
     exit 1
   fi
-  echo "Made sure there is a changelog."
+  if [ -z "$(gcloud config get-value account 2>/dev/null)" ]; then
+    echo "❌ Error: No active Google Cloud account detected. Run 'gcloud auth login'."
+    exit 1
+  fi
+  
+  # 2. Build parameter mapping
+  SUBSTITUTIONS="_BUMP_TYPE=$BUMP_TYPE"
+  SUBSTITUTIONS+=",_PRERELEASE=$IS_PRERELEASE"
+  SUBSTITUTIONS+=",_DRY_RUN=$DRY_RUN"
+  SUBSTITUTIONS+=",_FORCE=$FORCE_RELEASE"
+  [ -n "$TARGET_BRANCH" ] && SUBSTITUTIONS+=",_BRANCH=$TARGET_BRANCH"
+  SUBSTITUTIONS+=",_REPOSITORY_ORG=$ORG"
+  SUBSTITUTIONS+=",_REPOSITORY_NAME=$REPO"
+
+  echo "--------------------------------------------------------"
+  echo "Dispatched Release Parameters:"
+  echo "  Bump Type:        $BUMP_TYPE"
+  echo "  Is Prerelease:    $IS_PRERELEASE"
+  echo "  Is Dry Run:       $DRY_RUN"
+  echo "  Force Release:    $FORCE_RELEASE"
+  echo "  Target Branch:    ${TARGET_BRANCH:-[default]}"
+  echo "  GitHub Host:      $ORG/$REPO"
+  echo "--------------------------------------------------------"
+
+  echo "Dispatched to Cloud Build..."
+  gcloud builds submit \
+    --project="$TARGET_PROJECT" \
+    --config="scripts/publish/cloudbuild.yaml" \
+    --substitutions="$SUBSTITUTIONS"
+  exit 0
 fi
 
-echo "Running npm ci..."
+# ==============================================================================
+# MODE B: CLOUD WORKER MODE (Runs inside the Cloud Build Docker container)
+# ==============================================================================
+echo "☁️  [Worker Mode] Cloud Build environment detected (Build ID: $BUILD_ID)."
+
+# Pre-flight runner tool checks
+if ! command -v jq &> /dev/null; then
+  echo "❌ Error: 'jq' utility is not installed. Please install jq to run the worker."
+  exit 1
+fi
+
+if ! command -v gh &> /dev/null; then
+  echo "❌ Error: 'gh' CLI tool is not installed. Please install GitHub CLI (gh) to run the worker."
+  exit 1
+fi
+
+# 1. Optional Branch Checkout
+if [ -n "$TARGET_BRANCH" ]; then
+  echo "Checking out target branch: $TARGET_BRANCH..."
+  git checkout "$TARGET_BRANCH"
+fi
+
+# 2. Clean compilation & test cycle
+echo "Running clean installation..."
 npm ci
-echo "Ran npm ci."
 
-echo "Running tests..."
-npm test
-npm run test:bin
-echo "Ran tests."
-
-echo "Running publish build..."
+echo "Compiling workspace..."
 npm run build
-echo "Ran publish build."
 
-echo "Making a $VERSION version..."
-if [[ $PRE_RELEASE != "" ]]; then
-  if [[ $VERSION == "prerelease" ]]; then
-    npm version prerelease --preid=rc
+echo "Executing test suite..."
+npm test
+
+# 3. Stateless Version Discovery
+PACKAGE_NAME=$(jq -r '.name' package.json)
+STABLE_VERSION=$(npm view "$PACKAGE_NAME" versions --json | jq -r '[.[] | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))] | .[-1]')
+
+# Find the absolute latest version overall on npm (including prereleases)
+LATEST_VERSION=$(npm view "$PACKAGE_NAME" versions --json | jq -r '[.[] | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+(-rc\\.[0-9]+)?$"))] | .[-1]')
+
+echo "--------------------------------------------------------"
+echo "Package Name:                  $PACKAGE_NAME"
+echo "Current stable version on npm: $STABLE_VERSION"
+echo "Latest version on npm:         $LATEST_VERSION"
+echo "Is Prerelease:                 $IS_PRERELEASE"
+echo "Dry Run Mode:                  $DRY_RUN"
+echo "Force Release:                 $FORCE_RELEASE"
+echo "GitHub Repo Target:            $ORG/$REPO"
+echo "--------------------------------------------------------"
+
+# Initialize local package.json to the latest published version
+npm version "$LATEST_VERSION" --no-git-tag-version
+
+# Perform the appropriate version bump
+if [ "$IS_PRERELEASE" = true ]; then
+  if [ "$LATEST_VERSION" != "$STABLE_VERSION" ]; then
+    npm version prerelease --preid="rc" --no-git-tag-version
   else
-    npm version pre$VERSION --preid=rc
+    npm version "pre${BUMP_TYPE}" --preid="rc" --no-git-tag-version
   fi
 else
-  npm version $VERSION
-fi
-NEW_VERSION=$(jq -r ".version" package.json)
-echo "Made a $NEW_VERSION version."
-
-echo "Making the release notes..."
-RELEASE_NOTES_FILE=$(mktemp)
-echo "[DEBUG] ${RELEASE_NOTES_FILE}"
-echo "v${NEW_VERSION}" >> "${RELEASE_NOTES_FILE}"
-echo "" >> "${RELEASE_NOTES_FILE}"
-cat CHANGELOG.md >> "${RELEASE_NOTES_FILE}"
-echo "Made the release notes."
-
-echo "Publishing to npm..."
-PUBLISH_ARGS=()
-if [[ -n "$DRY_RUN" ]]; then
-  echo "DRY RUN: running publish with --dry-run"
-  PUBLISH_ARGS+=(--dry-run)
+  npm version "$BUMP_TYPE" --no-git-tag-version
 fi
 
-if [[ -n "$PRE_RELEASE" ]]; then
-  PUBLISH_ARGS+=(--tag next)
+NEXT_VERSION=$(jq -r '.version' package.json)
+echo "Next target version computed: v$NEXT_VERSION"
+
+# 4. Stateless Changelog Generation (Strict SemVer Tracking)
+echo "Calculating history interval to extract release notes..."
+
+# Generate release notes using the standalone changelog script
+CHANGELOG_NOTES=$(./scripts/changelog.sh "v$STABLE_VERSION")
+
+if [ -z "$CHANGELOG_NOTES" ]; then
+  if [ "$FORCE_RELEASE" = true ]; then
+    echo "⚠️ Warning: No release notes (relnote comments) found since the last release tag (v$STABLE_VERSION), but continuing due to --force flag."
+    CHANGELOG_NOTES="- Internal maintenance updates and chore improvements."
+  else
+    echo "❌ Error: No release notes (relnote comments) found since the last release tag (v$STABLE_VERSION). Aborting release. Use --force to override."
+    exit 1
+  fi
 fi
 
-npm publish "${PUBLISH_ARGS[@]}"
-echo "Published to npm."
+echo "----------------- Generated Release Notes -----------------"
+echo -e "$CHANGELOG_NOTES"
+echo "-----------------------------------------------------------"
 
-echo "Pushing to GitHub..."
-git push origin master --tags
-echo "Pushed to GitHub."
-
-if [[ $PRE_RELEASE != "" ]]; then
-  echo "Published a pre-release version. Skipping post-release actions."
-  exit
+# 5. Push Git Tag (Establish upstream state)
+if [ "$DRY_RUN" = true ]; then
+  echo "🔍 [Dry Run] Skipping creation of tracking tag: v$NEXT_VERSION"
+else
+  echo "Pushing lightweight tracking tag to origin..."
+  git tag "v$NEXT_VERSION"
+  git push origin "v$NEXT_VERSION"
 fi
 
-if [[ $DRY_RUN != "" ]]; then
-  echo "All other commands are mutations, and we are doing a dry run."
-  echo "Terminating."
-  exit
+# 6. Create GitHub Release
+if [ "$DRY_RUN" = true ]; then
+  echo "🔍 [Dry Run] Skipping creation of GitHub Release."
+else
+  echo "Generating GitHub Release notes..."
+  echo "$CHANGELOG_NOTES" > release_notes.md
+
+  GH_RELEASE_FLAGS=""
+  if [ "$IS_PRERELEASE" = true ]; then
+    GH_RELEASE_FLAGS="--prerelease"
+  fi
+
+  echo "Creating release using GitHub CLI (gh)..."
+  gh release create "v$NEXT_VERSION" \
+    --repo "$ORG/$REPO" \
+    --title "v$NEXT_VERSION" \
+    --notes-file release_notes.md \
+    $GH_RELEASE_FLAGS
+
+  rm release_notes.md
 fi
 
-echo "Cleaning up release notes..."
-rm CHANGELOG.md
-touch CHANGELOG.md
-git commit -m "[firebase-release] Removed change log and reset repo after ${NEW_VERSION} release" CHANGELOG.md
-echo "Cleaned up release notes."
-
-echo "Pushing to GitHub..."
-# Push the changelog cleanup commit.
-git push origin master --tags
-echo "Pushed to GitHub."
-
-echo "Publishing release notes..."
-hub release create --file "${RELEASE_NOTES_FILE}" "v${NEW_VERSION}"
-echo "Published release notes."
-
-# Temporarily disable Twitter integration
-#echo "Making the tweet..."
-#npm install --no-save twitter@1.7.1
-#cp -v "${WDIR}/scripts/twitter.json" "${TEMPDIR}/${REPOSITORY_NAME}/scripts/"
-#node ./scripts/tweet.js ${NEW_VERSION}
-#echo "Made the tweet."
+# 7. NPM Publish Execution
+if [ "$DRY_RUN" = true ]; then
+  if [ "$IS_PRERELEASE" = true ]; then
+    echo "🔍 [Dry Run] Skipping npm publish --tag next"
+  else
+    echo "🔍 [Dry Run] Skipping npm publish --tag latest"
+    echo "🔍 [Dry Run] Skipping npm dist-tag add ${PACKAGE_NAME}@${NEXT_VERSION} next"
+  fi
+  echo "🏁 Dry run completed successfully! No modifications were made to remote systems."
+else
+  if [ "$IS_PRERELEASE" = true ]; then
+    echo "Publishing package to npm under tag: next..."
+    npm publish --tag next
+  else
+    echo "Publishing package to npm under tag: latest..."
+    npm publish --tag latest
+    echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
+    npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
+  fi
+  echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
+fi

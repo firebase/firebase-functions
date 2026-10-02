@@ -24,12 +24,14 @@ import { format } from "util";
 import { CONSOLE_SEVERITY, UNPATCHED_CONSOLE } from "./common";
 
 /** @hidden */
-function patchedConsole(severity: string): (data: any, ...args: any[]) => void {
-  return function (data: any, ...args: any[]): void {
-    let message = format(data, ...args);
-    if (severity === "ERROR") {
-      message = new Error(message).stack || message;
-    }
+function patchedConsole(severity: string): (...args: unknown[]) => void {
+  return function (...args: unknown[]): void {
+    // Format arguments matching standard Node console.* behavior.
+    // Unlike logger.error, we intentionally do NOT synthesize an Error stack for
+    // console.error so that Node.js runtime warnings (e.g. MaxListenersExceededWarning)
+    // and standard console.error string logs are not misclassified as unhandled exceptions
+    // in Cloud Error Reporting.
+    const message = format(...args);
 
     UNPATCHED_CONSOLE[CONSOLE_SEVERITY[severity]](JSON.stringify({ severity, message }));
   };

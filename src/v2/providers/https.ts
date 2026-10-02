@@ -54,6 +54,7 @@ import * as logger from "../../logger";
 
 export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
 export { CALLABLE_RAW_REQUEST };
+export type { Response } from "express";
 export { HttpsError };
 
 /**

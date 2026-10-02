@@ -326,7 +326,7 @@ describe("onTaskDispatched", () => {
 
   it("rejects timeoutSeconds above the 1800s task-queue limit", () => {
     expect(() => onTaskDispatched({ timeoutSeconds: 1801 }, () => null)).to.throw(
-      /between 0 and 1800 for task queue functions/
+      /between 0 and 1800 for scheduled or task queue functions/
     );
   });
 

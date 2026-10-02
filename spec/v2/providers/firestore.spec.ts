@@ -872,6 +872,17 @@ describe("firestore", () => {
 
       expect(snapshot.data()).to.deep.eq({ hello: "a new world" });
     });
+
+    it("should create snapshot with correct path even if value is missing and source is database URL", () => {
+      const rawEvent: firestore.RawFirestoreEvent = makeEvent(deletedData);
+      rawEvent.datacontenttype = "application/json";
+      rawEvent.source = "//firestore.googleapis.com/projects/my-project/databases/my-db";
+
+      const snapshot = firestore.createSnapshot(rawEvent);
+
+      expect(snapshot.exists).to.be.false;
+      expect(snapshot.ref.path).to.eq("foo/fGRodw71mHutZ4wGDuT8");
+    });
   });
 
   describe("createBeforeSnapshot", () => {
@@ -933,6 +944,17 @@ describe("firestore", () => {
       const snapshot = firestore.createBeforeSnapshot(rawEvent);
 
       expect(snapshot.data()).to.deep.eq({});
+    });
+
+    it("should create before snapshot with correct path even if oldValue is missing and source is database URL", () => {
+      const rawEvent: firestore.RawFirestoreEvent = makeEvent(createdData);
+      rawEvent.datacontenttype = "application/json";
+      rawEvent.source = "//firestore.googleapis.com/projects/my-project/databases/my-db";
+
+      const snapshot = firestore.createBeforeSnapshot(rawEvent);
+
+      expect(snapshot.exists).to.be.false;
+      expect(snapshot.ref.path).to.eq("foo/fGRodw71mHutZ4wGDuT8");
     });
   });
 

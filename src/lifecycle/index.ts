@@ -41,37 +41,104 @@ export type LifecycleAction =
   | { call: CallAction; task?: never; http?: never }
   | { http: HttpAction; task?: never; call?: never };
 
-const majorVersion =
-  // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
-  typeof __FIREBASE_FUNCTIONS_MAJOR_VERSION__ !== "undefined"
-    ? // @ts-expect-error __FIREBASE_FUNCTIONS_MAJOR_VERSION__ is injected at build time
-      __FIREBASE_FUNCTIONS_MAJOR_VERSION__
-    : "0";
+import { globalManifest } from "../runtime/manifest";
 
-const GLOBAL_SYMBOL = Symbol.for(`firebase-functions:lifecycle:declaredHooks:v${majorVersion}`);
-const globalSymbols = globalThis as unknown as Record<symbol, Record<string, LifecycleAction>>;
-
-if (!globalSymbols[GLOBAL_SYMBOL]) {
-  globalSymbols[GLOBAL_SYMBOL] = {};
+/**
+ * Gets or creates the mutable lifecycle hooks record directly on `globalManifest`.
+ * Used exclusively for write operations (e.g., registering a hook) so that
+ * `globalManifest.lifecycleHooks` is created lazily on demand.
+ */
+function getOrCreateDeclaredLifecycleHooks(): Record<string, LifecycleAction> {
+  if (!globalManifest.lifecycleHooks || typeof globalManifest.lifecycleHooks !== "object") {
+    globalManifest.lifecycleHooks = {};
+  }
+  return globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
 }
 
 /**
- * Singleton dictionary of declared lifecycle hooks.
+ * Gets the existing lifecycle hooks record on `globalManifest` if defined,
+ * or returns a fallback empty object without mutating `globalManifest`.
+ * Used for read-only operations (e.g., property lookup, keys, descriptors)
+ * to avoid emitting an unwanted empty `lifecycleHooks: {}` into the manifest.
+ */
+function getExistingDeclaredLifecycleHooks(): Record<string, LifecycleAction> {
+  if (!globalManifest.lifecycleHooks || typeof globalManifest.lifecycleHooks !== "object") {
+    return {};
+  }
+  return globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
+}
+
+/**
+ * Shared dictionary of declared lifecycle hooks.
+ *
+ * NOTE: A Proxy is necessary here because `lifecycleHooks` is only initialized
+ * on `globalManifest` when hooks are registered (to avoid emitting empty `{}`
+ * into the manifest). The Proxy dynamically delegates all property reads, writes,
+ * and key enumerations directly to `globalManifest.lifecycleHooks` on `globalThis`,
+ * ensuring dual-package hazard protection across ESM/CJS or duplicate module contexts.
+ *
  * @internal
  */
-export const declaredLifecycleHooks: Record<string, LifecycleAction> = globalSymbols[GLOBAL_SYMBOL];
+export const declaredLifecycleHooks: Record<string, LifecycleAction> = new Proxy(
+  {},
+  {
+    get(_, prop) {
+      if (typeof prop === "string") {
+        return getExistingDeclaredLifecycleHooks()[prop];
+      }
+      return undefined;
+    },
+    set(_, prop, value) {
+      if (typeof prop === "string") {
+        getOrCreateDeclaredLifecycleHooks()[prop] = value as LifecycleAction;
+        return true;
+      }
+      return false;
+    },
+    deleteProperty(_, prop) {
+      if (typeof prop === "string" && globalManifest.lifecycleHooks) {
+        const hooks = globalManifest.lifecycleHooks as Record<string, LifecycleAction>;
+        delete hooks[prop];
+        if (Object.keys(hooks).length === 0) {
+          delete globalManifest.lifecycleHooks;
+        }
+        return true;
+      }
+      return false;
+    },
+    has(_, prop) {
+      return Reflect.has(getExistingDeclaredLifecycleHooks(), prop);
+    },
+    ownKeys() {
+      return Reflect.ownKeys(getExistingDeclaredLifecycleHooks());
+    },
+    getOwnPropertyDescriptor(_, prop) {
+      const hooks = getExistingDeclaredLifecycleHooks();
+      if (typeof prop === "string" && prop in hooks) {
+        return {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: hooks[prop],
+        };
+      }
+      return undefined;
+    },
+  }
+);
 
 /**
  * Registers an action to be executed automatically post-deployment when resources in this codebase
- * are installed for the initial time.
+ * are deployed for the first time.
  *
  * @param action The lifecycle action to execute.
  */
-export function afterInstall(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterInstall) {
-    throw new Error("Only one afterInstall lifecycle hook is allowed per codebase.");
+export function afterFirstDeploy(action: LifecycleAction): void {
+  const hooks = getOrCreateDeclaredLifecycleHooks();
+  if (hooks.afterFirstDeploy) {
+    throw new Error("Only one afterFirstDeploy lifecycle hook is allowed per codebase.");
   }
-  declaredLifecycleHooks.afterInstall = action;
+  hooks.afterFirstDeploy = action;
 }
 
 /**
@@ -80,19 +147,18 @@ export function afterInstall(action: LifecycleAction): void {
  *
  * @param action The lifecycle action to execute.
  */
-export function afterUpdate(action: LifecycleAction): void {
-  if (declaredLifecycleHooks.afterUpdate) {
-    throw new Error("Only one afterUpdate lifecycle hook is allowed per codebase.");
+export function afterRedeploy(action: LifecycleAction): void {
+  const hooks = getOrCreateDeclaredLifecycleHooks();
+  if (hooks.afterRedeploy) {
+    throw new Error("Only one afterRedeploy lifecycle hook is allowed per codebase.");
   }
-  declaredLifecycleHooks.afterUpdate = action;
+  hooks.afterRedeploy = action;
 }
 
 /**
- * Helper to clear declared lifecycle hooks (primarily for testing).
+ * Helper to clear declared lifecycle hooks.
  * @internal
  */
 export function clearDeclaredLifecycleHooks(): void {
-  for (const key of Object.keys(declaredLifecycleHooks)) {
-    delete declaredLifecycleHooks[key];
-  }
+  delete globalManifest.lifecycleHooks;
 }
