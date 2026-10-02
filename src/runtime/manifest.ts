@@ -66,7 +66,7 @@ export interface ManifestEndpoint {
   labels?: Record<string, string>;
   ingressSettings?: string | Expression<string> | ResetValue;
   environmentVariables?: Record<string, string>;
-  secretEnvironmentVariables?: Array<{ key: string; secret?: string }>;
+  secretEnvironmentVariables?: Array<{ key: string; secret?: string }> | ResetValue;
 
   httpsTrigger?: {
     invoker?: string[];
@@ -231,6 +231,7 @@ const RESETTABLE_OPTIONS: ResettableKeys<ManifestEndpoint> = {
   concurrency: null,
   serviceAccountEmail: null,
   vpc: null,
+  secretEnvironmentVariables: null,
 };
 
 interface ManifestOptions {
