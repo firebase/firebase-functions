@@ -33,7 +33,6 @@ import { isDebugFeatureEnabled } from "../../common/debug";
 import { ResetValue } from "../../common/options";
 import {
   CALLABLE_RAW_REQUEST,
-  CALLABLE_RESPONSE_SIGNAL,
   type CallableRequest,
   type CallableResponse,
   type FunctionsErrorCode,
@@ -54,7 +53,7 @@ import { withInit } from "../../common/onInit";
 import * as logger from "../../logger";
 
 export type { Request, CallableRequest, CallableResponse, FunctionsErrorCode };
-export { CALLABLE_RAW_REQUEST, CALLABLE_RESPONSE_SIGNAL };
+export { CALLABLE_RAW_REQUEST };
 export { HttpsError };
 
 /**
@@ -525,6 +524,7 @@ interface ZodType<T = any> {
 
 interface GenkitRunOptions {
   context?: any;
+  abortSignal?: AbortSignal;
 }
 
 type GenkitAction<
@@ -593,14 +593,16 @@ export function onCallGenkit<A extends GenkitAction>(
       } = {};
       copyIfPresent(context, req, "auth", "app", "instanceIdToken");
       context[CALLABLE_RAW_REQUEST] = req.rawRequest;
-      context[CALLABLE_RESPONSE_SIGNAL] = res?.signal;
 
       if (!req.acceptsStreaming) {
-        const { result } = await action.run(req.data, { context });
+        const { result } = await action.run(req.data, { context, abortSignal: res?.signal });
         return result;
       }
 
-      const { stream, output } = action.stream(req.data, { context });
+      const { stream, output } = action.stream(req.data, {
+        context,
+        abortSignal: res?.signal,
+      });
       for await (const chunk of stream) {
         await res.sendChunk(chunk);
       }

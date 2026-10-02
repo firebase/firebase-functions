@@ -719,7 +719,7 @@ describe("onCall", () => {
 
 describe("onCallGenkit", () => {
   it("calls with JSON requests", async () => {
-    let gotContext: any;
+    let gotOpts: any;
     const flow = {
       __action: {
         name: "test",
@@ -728,7 +728,7 @@ describe("onCallGenkit", () => {
       stream: sinon.stub(),
     };
     flow.run.callsFake((data, opts) => {
-      gotContext = opts.context;
+      gotOpts = opts;
       expect(data).to.equal("answer");
       return { result: 42 };
     });
@@ -739,13 +739,12 @@ describe("onCallGenkit", () => {
     const req = request({ data: "answer" });
     const res = await runHandler(f, req);
     expect(JSON.parse(res.body)).to.deep.equal({ result: 42 });
-    expect(gotContext[https.CALLABLE_RAW_REQUEST]).to.equal(req);
-    expect(gotContext[https.CALLABLE_RESPONSE_SIGNAL]).to.be.instanceOf(AbortSignal);
+    expect(gotOpts.context[https.CALLABLE_RAW_REQUEST]).to.equal(req);
+    expect(gotOpts.abortSignal).to.be.instanceOf(AbortSignal);
   });
 
-  it("exposes rawRequest and response signal through Symbol.for lookups", async () => {
+  it("exposes rawRequest through a Symbol.for lookup", async () => {
     let gotRawRequest: unknown;
-    let gotResponseSignal: unknown;
     const flow = {
       __action: {
         name: "test",
@@ -756,7 +755,6 @@ describe("onCallGenkit", () => {
     flow.run.callsFake((data, opts) => {
       expect(data).to.equal("answer");
       gotRawRequest = opts.context[Symbol.for("firebase.callable.rawRequest")];
-      gotResponseSignal = opts.context[Symbol.for("firebase.callable.responseSignal")];
       return { result: 42 };
     });
     flow.stream.throws("Unexpected stream");
@@ -767,11 +765,10 @@ describe("onCallGenkit", () => {
     const res = await runHandler(f, req);
     expect(JSON.parse(res.body)).to.deep.equal({ result: 42 });
     expect(gotRawRequest).to.equal(req);
-    expect(gotResponseSignal).to.be.instanceOf(AbortSignal);
   });
 
-  it("forwards rawRequest and response signal into streaming Genkit action context", async () => {
-    let gotContext: any;
+  it("forwards rawRequest and abortSignal to streaming Genkit actions", async () => {
+    let gotOpts: any;
     const flow = {
       __action: {
         name: "test",
@@ -781,7 +778,7 @@ describe("onCallGenkit", () => {
     };
     flow.run.onFirstCall().throws();
     flow.stream.callsFake((data, opts) => {
-      gotContext = opts.context;
+      gotOpts = opts;
       expect(data).to.equal("answer");
       return {
         stream: (async function* () {
@@ -798,14 +795,14 @@ describe("onCallGenkit", () => {
 
     const req = request({ data: "answer", headers: { accept: "text/event-stream" } });
     const res = await runHandler(f, req);
-    expect(gotContext[https.CALLABLE_RAW_REQUEST]).to.equal(req);
-    expect(gotContext[https.CALLABLE_RESPONSE_SIGNAL]).to.be.instanceOf(AbortSignal);
+    expect(gotOpts.context[https.CALLABLE_RAW_REQUEST]).to.equal(req);
+    expect(gotOpts.abortSignal).to.be.instanceOf(AbortSignal);
     expect(res.body).to.equal(
       ['data: {"message":1}', 'data: {"message":2}', 'data: {"result":42}', ""].join("\n\n")
     );
   });
 
-  it("aborts the forwarded response signal when the client disconnects", async () => {
+  it("aborts the abortSignal of a streaming Genkit action when the client disconnects", async () => {
     let capturedSignal: AbortSignal;
     let resolveOutput: (value: number) => void;
     const output = new Promise<number>((resolve) => {
@@ -824,7 +821,7 @@ describe("onCallGenkit", () => {
     };
     flow.run.onFirstCall().throws();
     flow.stream.callsFake((_data, opts) => {
-      capturedSignal = opts.context[https.CALLABLE_RESPONSE_SIGNAL] as AbortSignal;
+      capturedSignal = opts.abortSignal;
       notifyStreamStarted();
       return {
         stream: (async function* () {
@@ -854,7 +851,7 @@ describe("onCallGenkit", () => {
     expect(res.body).to.be.undefined;
   });
 
-  it("aborts the forwarded response signal for non-streaming Genkit actions", async () => {
+  it("aborts the abortSignal of a non-streaming Genkit action when the client disconnects", async () => {
     let capturedSignal: AbortSignal;
     let resolveResult: (value: { result: number }) => void;
     const result = new Promise<{ result: number }>((resolve) => {
@@ -872,7 +869,7 @@ describe("onCallGenkit", () => {
       stream: sinon.stub(),
     };
     flow.run.callsFake((_data, opts) => {
-      capturedSignal = opts.context[Symbol.for("firebase.callable.responseSignal")] as AbortSignal;
+      capturedSignal = opts.abortSignal;
       notifyRunStarted();
       return result;
     });
@@ -891,6 +888,32 @@ describe("onCallGenkit", () => {
 
     const res = await resPromise;
     expect(res.body).to.be.undefined;
+  });
+
+  it("aborts the abortSignal a real Genkit flow receives when the client disconnects", async () => {
+    let flowSignal: AbortSignal;
+    let notifyFlowStarted: () => void;
+    const flowStarted = new Promise<void>((resolve) => {
+      notifyFlowStarted = resolve;
+    });
+    const ai = genkit({});
+    const flow = ai.defineFlow("abortable", async (_input, { abortSignal }) => {
+      flowSignal = abortSignal;
+      notifyFlowStarted();
+      await new Promise<void>((resolve) => abortSignal.addEventListener("abort", () => resolve()));
+      return "aborted";
+    });
+
+    const f = https.onCallGenkit(flow);
+    const req = request({ data: null, headers: { accept: "text/event-stream" } });
+    const resPromise = runHandler(f, req);
+
+    await flowStarted;
+    expect(flowSignal.aborted).to.equal(false);
+
+    req.emit("close");
+    expect(flowSignal.aborted).to.equal(true);
+    await resPromise;
   });
 
   it("Exports types that are compatible with the genkit library (compilation is success)", () => {
