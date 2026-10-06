@@ -411,13 +411,13 @@
         "lib/v2/providers/https"
       ],
       "ai": [
-        "lib/v2/providers/ai"
+        "lib/v2/providers/ai/index"
       ],
       "ai/types/gemini/v1beta": [
-        "lib/v2/providers/ai/types/gemini/v1beta"
+        "lib/v2/providers/ai/types/gemini/v1beta/index"
       ],
       "ai/types/vertex/v1beta1": [
-        "lib/v2/providers/ai/types/vertex/v1beta1"
+        "lib/v2/providers/ai/types/vertex/v1beta1/index"
       ],
       "pubsub": [
         "lib/v2/providers/pubsub"
@@ -513,13 +513,13 @@
         "lib/v2/providers/https"
       ],
       "v2/ai": [
-        "lib/v2/providers/ai"
+        "lib/v2/providers/ai/index"
       ],
       "v2/ai/types/gemini/v1beta": [
-        "lib/v2/providers/ai/types/gemini/v1beta"
+        "lib/v2/providers/ai/types/gemini/v1beta/index"
       ],
       "v2/ai/types/vertex/v1beta1": [
-        "lib/v2/providers/ai/types/vertex/v1beta1"
+        "lib/v2/providers/ai/types/vertex/v1beta1/index"
       ],
       "v2/pubsub": [
         "lib/v2/providers/pubsub"

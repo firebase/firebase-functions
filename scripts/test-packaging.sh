@@ -3,7 +3,7 @@ set -eux
 
 # Argument 1: Path to a pre-built tarball.
 # If not provided, the script will run 'npm run build' and 'npm pack' locally.
-PREBUILT_TARBALL="$1"
+PREBUILT_TARBALL="${1:-}"
 
 # Setup cleanup
 WORK_DIR=$(mktemp -d)
@@ -43,5 +43,12 @@ npm install "$TARBALL_PATH"
 echo "Running verification script..."
 cp "$SCRIPT_DIR/verify-exports.mjs" .
 node verify-exports.mjs
+
+echo "Installing TypeScript consumer dependencies..."
+npm install --no-save typescript@5 @types/node firebase-admin
+
+echo "Running TypeScript declaration verification..."
+cp "$SCRIPT_DIR/verify-types.mjs" .
+node verify-types.mjs
 
 popd > /dev/null
