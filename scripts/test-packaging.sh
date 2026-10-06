@@ -27,6 +27,7 @@ if [ -n "$PREBUILT_TARBALL" ]; then
 else
   echo "Building project..."
   cd "$SCRIPT_DIR/.."
+  rm -rf lib
   npm run build
 
   echo "Packing project..."
@@ -45,10 +46,16 @@ cp "$SCRIPT_DIR/verify-exports.mjs" .
 node verify-exports.mjs
 
 echo "Installing TypeScript consumer dependencies..."
-npm install --no-save typescript@5 @types/node firebase-admin
+npm install typescript@5 @types/node@18 firebase-admin@13
 
-echo "Running TypeScript declaration verification..."
+echo "Running TypeScript declaration verification (standard entrypoints)..."
 cp "$SCRIPT_DIR/verify-types.mjs" .
 node verify-types.mjs
+
+echo "Installing optional peer dependencies for GraphQL type verification..."
+npm install graphql@16
+
+echo "Running TypeScript declaration verification (all entrypoints including optional peers)..."
+node verify-types.mjs --include-optional-peers
 
 popd > /dev/null

@@ -491,9 +491,6 @@
       "v2/alerts/performance": [
         "lib/v2/providers/alerts/performance"
       ],
-      "v2/base": [
-        "lib/v2/base"
-      ],
       "v2/database": [
         "lib/v2/providers/database"
       ],
