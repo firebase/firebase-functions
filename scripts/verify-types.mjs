@@ -23,7 +23,7 @@ const entryPoints = exports.filter(e => !e.endsWith('.json'));
 
 const importLines = [];
 for (const [i, exp] of entryPoints.entries()) {
-  const importPath = exp === '.' ? 'firebase-functions' : `firebase-functions/${exp.replace('./', '')}`;
+  const importPath = exp === '.' ? 'firebase-functions' : `firebase-functions/${exp.replace(/^\.\//, '')}`;
   if (OPTIONAL_PEER_ENTRYPOINTS.has(importPath)) {
     continue;
   }
@@ -31,9 +31,7 @@ for (const [i, exp] of entryPoints.entries()) {
 }
 
 const consumerFile = path.resolve(process.cwd(), CONSUMER_TEST_FILE);
-fs.writeFileSync(consumerFile, `${importLines.join('\n')}\n`);
-
-console.log(`\n--- Verifying TypeScript Declarations (${importLines.length} entry points) ---`);
+const tscPath = path.resolve(process.cwd(), 'node_modules/typescript/bin/tsc');
 
 const configs = [
   {
@@ -71,13 +69,22 @@ const configs = [
 
 let hasError = false;
 
-for (const { label, args } of configs) {
-  try {
-    execFileSync('npx', ['tsc', ...args], { stdio: 'inherit' });
-    console.log(`✅ TypeScript check passed: ${label}`);
-  } catch (_err) {
-    console.error(`❌ TypeScript check failed: ${label}`);
-    hasError = true;
+fs.writeFileSync(consumerFile, `${importLines.join('\n')}\n`);
+try {
+  console.log(`\n--- Verifying TypeScript Declarations (${importLines.length} entry points) ---`);
+
+  for (const { label, args } of configs) {
+    try {
+      execFileSync(process.execPath, [tscPath, ...args], { stdio: 'inherit' });
+      console.log(`✅ TypeScript check passed: ${label}`);
+    } catch (_err) {
+      console.error(`❌ TypeScript check failed: ${label}`);
+      hasError = true;
+    }
+  }
+} finally {
+  if (fs.existsSync(consumerFile)) {
+    fs.unlinkSync(consumerFile);
   }
 }
 
