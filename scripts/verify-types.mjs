@@ -136,6 +136,10 @@ for (const [i, exportSubpath] of entryPoints.entries()) {
 }
 
 const tscPath = path.resolve(process.cwd(), 'node_modules/typescript/bin/tsc');
+if (!fs.existsSync(tscPath)) {
+  console.error(`❌ Could not find TypeScript compiler binary at ${tscPath}`);
+  process.exit(1);
+}
 
 // Step 3: Run `tsc --noEmit --skipLibCheck false --strict` across all 3 real-world module
 // resolution modes so every `.d.ts` file and internal import is type-checked:
