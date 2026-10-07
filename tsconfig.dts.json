@@ -1,0 +1,14 @@
+{
+  // Validates that emitted declaration files in `lib/` compile cleanly against each other
+  // without dangling imports (e.g., from `@internal` declarations stripped by tsconfig.release.json).
+  "compilerOptions": {
+    "noEmit": true,
+    "skipLibCheck": false,
+    "lib": ["es2022", "dom"],
+    "module": "commonjs",
+    "target": "es2022",
+    "esModuleInterop": true,
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": ["lib/**/*.d.ts"]
+}

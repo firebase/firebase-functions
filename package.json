@@ -562,7 +562,7 @@
     "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/reference/functions/2nd-gen/node",
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown --project functions && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
-    "build": "tsdown && tsc -p tsconfig.release.json",
+    "build": "tsdown && tsc -p tsconfig.release.json && tsc -p tsconfig.dts.json",
     "build:pack": "rm -rf lib && npm install && npm run build && npm pack",
     "build:watch": "npm run build -- -w",
     "format": "npm run format:ts && npm run format:other",
