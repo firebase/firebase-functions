@@ -58,6 +58,7 @@ const expectedEndpointBase = {
   serviceAccountEmail: {},
   timeoutSeconds: {},
   vpc: {},
+  secretEnvironmentVariables: {},
   labels: {},
 };
 
