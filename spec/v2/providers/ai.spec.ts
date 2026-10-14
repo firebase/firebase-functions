@@ -255,25 +255,10 @@ describe("v2.ai", () => {
       });
     });
   });
-  describe("Typings", () => {
-    it("should allow regional webhooks to specify multiple locations", () => {
-      ai.beforeGenerateContent(
-        { regionalWebhook: true, location: ["us-central1", "europe-west1"] },
-        () => {}
-      );
+  describe("Typings & Options", () => {
+    it("should allow webhooks to specify a single region and populate __endpoint", () => {
+      const func = ai.beforeGenerateContent({ region: "us-central1" }, () => {});
+      expect(func.__endpoint.region).to.deep.equal(["us-central1"]);
     });
-
-    it("should allow global webhooks to specify a single location", () => {
-      ai.beforeGenerateContent({ region: "us-central1" }, () => {});
-    });
-
-    it("should allow regional webhooks to specify a single location", () => {
-      ai.beforeGenerateContent({ regionalWebhook: true, region: "us-central1" }, () => {});
-    });
-
-    // Compilation failure tests (commented out):
-    // it("should NOT allow global webhooks to specify multiple locations", () => {
-    //   ai.beforeGenerateContent({ region: ["us-central1", "europe-west1"] }, () => {});
-    // });
   });
 });

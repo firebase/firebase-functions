@@ -98,10 +98,13 @@ export interface EventContext<Params = Record<string, string>> {
    * For more detail including token keys, see the
    * {@link https://firebase.google.com/docs/reference/rules/rules#properties | security rules reference}.
    *
-   * This field is only populated for Realtime Database triggers and Callable
-   * functions. For an unauthenticated user, this field is null. For Firebase
+   * This field is only populated for Realtime Database triggers. For an
+   * unauthenticated Realtime Database user, this field is `null`. For Firebase
    * admin users and event types that do not provide user information, this field
-   * does not exist.
+   * is not set.
+   *
+   * Callable functions use {@link https.CallableContext.auth} instead of
+   * `EventContext.auth`.
    */
   auth?: {
     uid: string;
@@ -122,8 +125,8 @@ export interface EventContext<Params = Record<string, string>> {
    *
    * - `UNAUTHENTICATED`: Unauthenticated action
    *
-   * - `null`: For event types that do not provide user information (all except
-   *   Realtime Database).
+   * This field is only populated for Realtime Database triggers. For event
+   * types that do not provide user information, this field is not set.
    */
   authType?: "ADMIN" | "USER" | "UNAUTHENTICATED";
 

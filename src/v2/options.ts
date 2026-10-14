@@ -32,6 +32,7 @@ import {
   serviceAccountFromShorthand,
 } from "../common/encoding";
 import { RESET_VALUE, ResetValue } from "../common/options";
+import { assertNever } from "../common/utilities/assertions";
 import { ManifestEndpoint } from "../runtime/manifest";
 import { TriggerAnnotation } from "./core";
 import { declaredParams, Expression } from "../params";
@@ -40,6 +41,38 @@ import { HttpsOptions } from "./providers/https";
 import * as logger from "../logger";
 
 export { RESET_VALUE } from "../common/options";
+
+/**
+ * Maximum timeout in seconds for event-handling functions (e.g. Firestore,
+ * Realtime Database, Pub/Sub, Storage, Eventarc, alerts).
+ * See https://firebase.google.com/docs/functions/manage-functions
+ * @internal
+ */
+export const MAX_EVENT_TIMEOUT_SECONDS = 540;
+
+/**
+ * Maximum timeout in seconds for HTTPS and callable functions.
+ * @internal
+ */
+export const MAX_HTTPS_TIMEOUT_SECONDS = 3600;
+
+/**
+ * Maximum timeout in seconds for scheduled and Task Queue functions.
+ * @internal
+ */
+export const MAX_SCHEDULED_OR_TASK_TIMEOUT_SECONDS = 1800;
+
+/**
+ * Maximum timeout in seconds for Identity blocking functions.
+ * @internal
+ */
+export const MAX_IDENTITY_TIMEOUT_SECONDS = 7;
+
+/**
+ * Function category used to pick a `timeoutSeconds` upper bound.
+ * @internal
+ */
+export type TimeoutKind = "event" | "https" | "scheduledOrTask" | "identity";
 
 /**
  * List of all regions supported by Cloud Functions (2nd gen).
@@ -161,10 +194,12 @@ export interface GlobalOptions {
    * HTTPS functions can specify a higher timeout.
    *
    * @remarks
-   * The minimum timeout for a 2nd gen function is 1s. The maximum timeout for a
-   * function depends on the type of function: Event handling functions have a
+   * The minimum timeout for a 2nd gen (and 1st gen) function is 0s; this has the precise
+   * meaning of being 'un-set' and ends up defaulting to 60s.
+   * The maximum timeout for a function depends on the type of function:
+   * Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue and scheduled functions have a maximum
    * timeout of 1,800s (30 minutes).
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -274,17 +309,22 @@ export interface GlobalOptions {
   preserveExternalChanges?: boolean;
 }
 
-let globalOptions: GlobalOptions | undefined;
+const GLOBAL_OPTIONS_SYMBOL = Symbol.for("firebase-functions:v2:globalOptions");
+const globalOptionSymbols = globalThis as unknown as Record<symbol, { value?: GlobalOptions }>;
+
+if (!globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL]) {
+  globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL] = {};
+}
 
 /**
  * Sets default options for all functions written using the 2nd gen SDK.
  * @param options Options to set as default
  */
 export function setGlobalOptions(options: GlobalOptions) {
-  if (globalOptions) {
+  if (globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value) {
     logger.warn("Calling setGlobalOptions twice leads to undefined behavior");
   }
-  globalOptions = options;
+  globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value = options;
 }
 
 /**
@@ -293,7 +333,15 @@ export function setGlobalOptions(options: GlobalOptions) {
  * @internal
  */
 export function getGlobalOptions(): GlobalOptions {
-  return globalOptions || {};
+  return globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value || {};
+}
+
+/**
+ * Reset global options for testing.
+ * @internal
+ */
+export function clearGlobalOptions(): void {
+  delete globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value;
 }
 
 /**
@@ -335,12 +383,77 @@ export interface EventHandlerOptions extends Omit<GlobalOptions, "enforceAppChec
 }
 
 /**
+ * Validate that `timeoutSeconds` (resolved with global option fallback) is
+ * finite and within the accepted range for the given function kind. Throws a
+ * plain `Error` matching the v1 `assertRuntimeOptionsValid` shape so the
+ * problem surfaces at function-definition time instead of at deploy time.
+ * `Expression`, `RESET_VALUE`, and `undefined` are skipped. Literal numbers
+ * are range checked, and other types are rejected.
+ * @internal
+ */
+export function assertTimeoutSecondsValid(
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  kind: TimeoutKind
+): void {
+  const timeoutSeconds =
+    opts.timeoutSeconds === undefined ? getGlobalOptions().timeoutSeconds : opts.timeoutSeconds;
+  if (typeof timeoutSeconds !== "number") {
+    if (
+      timeoutSeconds === undefined ||
+      timeoutSeconds instanceof Expression ||
+      timeoutSeconds instanceof ResetValue
+    ) {
+      return;
+    }
+    throw new Error(
+      `timeoutSeconds must be a number, Expression, or RESET_VALUE. Got ${typeof timeoutSeconds}.`
+    );
+  }
+  // Handle the case where timeoutSeconds is NaN
+  if (!Number.isFinite(timeoutSeconds)) {
+    throw new Error(`timeoutSeconds must be a finite number. Got ${timeoutSeconds}.`);
+  }
+
+  let max: number;
+  let label: string;
+  switch (kind) {
+    case "event":
+      max = MAX_EVENT_TIMEOUT_SECONDS;
+      label = "event-handling";
+      break;
+    case "https":
+      max = MAX_HTTPS_TIMEOUT_SECONDS;
+      label = "HTTPS and callable";
+      break;
+    case "scheduledOrTask":
+      max = MAX_SCHEDULED_OR_TASK_TIMEOUT_SECONDS;
+      label = "scheduled or task queue";
+      break;
+    case "identity":
+      max = MAX_IDENTITY_TIMEOUT_SECONDS;
+      label = "blocking";
+      break;
+    default:
+      assertNever(kind);
+  }
+  if (timeoutSeconds < 0 || timeoutSeconds > max) {
+    throw new Error(
+      `timeoutSeconds must be between 0 and ${max} for ${label} functions. Got ${timeoutSeconds}.`
+    );
+  }
+}
+
+/**
  * Apply GlobalOptions to trigger definitions.
  * @internal
  */
 export function optionsToTriggerAnnotations(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  kind?: TimeoutKind
 ): TriggerAnnotation {
+  if (kind !== undefined) {
+    assertTimeoutSecondsValid(opts, kind);
+  }
   const annotation: TriggerAnnotation = {};
   copyIfPresent(
     annotation,
@@ -398,8 +511,12 @@ export function optionsToTriggerAnnotations(
  * @internal
  */
 export function optionsToEndpoint(
-  opts: GlobalOptions | EventHandlerOptions | HttpsOptions
+  opts: GlobalOptions | EventHandlerOptions | HttpsOptions,
+  kind?: TimeoutKind
 ): ManifestEndpoint {
+  if (kind !== undefined) {
+    assertTimeoutSecondsValid(opts, kind);
+  }
   const endpoint: ManifestEndpoint = {};
   copyIfPresent(
     endpoint,
@@ -495,3 +612,5 @@ export function __getSpec(): {
     params: declaredParams.map((p) => p.toSpec()),
   };
 }
+export { requiresRole } from "./security";
+export type { Role } from "./security";

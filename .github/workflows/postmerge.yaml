@@ -20,6 +20,9 @@ concurrency:
   group: postmerge-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   CI: true
 
@@ -27,18 +30,20 @@ jobs:
   postmerge:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
         with:
           node-version: 24
 
-      - uses: google-github-actions/auth@v0
+      - uses: google-github-actions/auth@09cecabe1f169596b81c2ef22b40faff87acc460 # v0
         with:
           credentials_json: "${{ secrets.CF3_INTEGRATION_TEST_GOOGLE_CREDENTIALS }}"
           create_credentials_file: true
 
       - name: "Set up Cloud SDK"
-        uses: google-github-actions/setup-gcloud@v0
+        uses: google-github-actions/setup-gcloud@20c93dacc1d70ddbce76c63ab32c35595345bdd1 # v0
 
       - name: "Setup Firebase CLI"
         run: npm i -g firebase-tools

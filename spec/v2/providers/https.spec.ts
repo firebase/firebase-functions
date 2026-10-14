@@ -28,11 +28,19 @@ import * as options from "../../../src/v2/options";
 import * as https from "../../../src/v2/providers/https";
 import { expectedResponseHeaders, MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
+import { expectType } from "../../common/metaprogramming";
 import { FULL_ENDPOINT, MINIMAL_V2_ENDPOINT, FULL_OPTIONS, FULL_TRIGGER } from "./fixtures";
 import { onInit } from "../../../src/v2/core";
-import { Handler } from "express";
+import { Handler, Response as ExpressResponse } from "express";
 import { genkit } from "genkit";
-import { clearParams, defineBoolean, defineList, Expression } from "../../../src/params";
+import {
+  clearParams,
+  defineBoolean,
+  defineList,
+  defineString,
+  Expression,
+} from "../../../src/params";
+import { logger } from "../../../src/logger";
 
 function request(args: {
   data?: any;
@@ -57,6 +65,41 @@ function request(args: {
   const ret = new MockRequest({ data: args.data || {} }, headers);
   ret.method = args.method || "POST";
   return ret;
+}
+
+async function testWarningForCorsExpression(
+  createFunc: (options: { cors: Expression<string[]> }) => https.HttpsFunction,
+  origin: string
+) {
+  const loggerSpy = sinon.spy(logger, "warn");
+  const projectId = defineString("PROJECT_ID");
+
+  try {
+    process.env.PROJECT_ID = "test-project";
+    process.env.FUNCTIONS_CONTROL_API = "true";
+
+    const corsExpression = projectId.equals("test-project").thenElse([origin], []);
+    const func = createFunc({ cors: corsExpression });
+
+    const req = request({
+      headers: {
+        referrer: origin,
+        "content-type": "application/json",
+        origin: origin,
+      },
+      method: "OPTIONS",
+    });
+
+    const response = await runHandler(func, req);
+
+    expect(response.status).to.equal(204);
+    expect(loggerSpy.called).to.be.false;
+  } finally {
+    delete process.env.PROJECT_ID;
+    delete process.env.FUNCTIONS_CONTROL_API;
+    clearParams();
+    loggerSpy.restore();
+  }
 }
 
 describe("onRequest", () => {
@@ -336,6 +379,35 @@ describe("onRequest", () => {
     await runHandler(func, req);
     expect(hello).to.equal("world");
   });
+
+  it("should not warn when using Expression-based cors config during deployment", async () => {
+    await testWarningForCorsExpression(
+      (opts) =>
+        https.onRequest(opts, (req, res) => {
+          res.send("42");
+        }),
+      "http://localhost:8000"
+    );
+  });
+
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onRequest({ cors: stringParam }, () => {});
+    const funcList = https.onRequest({ cors: listParam }, () => {});
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() =>
+      https.onRequest({ timeoutSeconds: 3601 }, (_req, res) => {
+        res.end();
+      })
+    ).to.throw(/between 0 and 3600 for HTTPS and callable functions/);
+  });
 });
 
 describe("onCall", () => {
@@ -605,6 +677,30 @@ describe("onCall", () => {
     expect(hello).to.equal("world");
   });
 
+  it("should not warn when using Expression-based cors config during deployment", async () => {
+    await testWarningForCorsExpression(
+      (opts) => https.onCall(opts, () => 42),
+      "http://localhost:5173"
+    );
+  });
+
+  it("should not crash when a string or list parameter is passed in", () => {
+    const stringParam = defineString("ALLOWED_ORIGIN");
+    const listParam = defineList("ALLOWED_ORIGINS");
+
+    const funcString = https.onCall({ cors: stringParam }, () => 42);
+    const funcList = https.onCall({ cors: listParam }, () => 42);
+
+    expect(funcString).to.be.a("function");
+    expect(funcList).to.be.a("function");
+  });
+
+  it("rejects timeoutSeconds above the 3600s HTTPS limit", () => {
+    expect(() => https.onCall({ timeoutSeconds: 3601 }, () => 42)).to.throw(
+      /between 0 and 3600 for HTTPS and callable functions/
+    );
+  });
+
   describe("authPolicy", () => {
     before(() => {
       sinon.stub(debug, "isDebugFeatureEnabled").withArgs("skipTokenVerification").returns(true);
@@ -654,7 +750,7 @@ describe("onCall", () => {
         { fn: specificValue, status: 403 },
       ];
       for (const test of cases) {
-        const resp = await runHandler(test.fn, request({ auth: test.auth }));
+        const resp = await runHandler(test.fn as any, request({ auth: test.auth }));
         expect(resp.status).to.equal(test.status);
       }
     });
@@ -726,5 +822,12 @@ describe("onCallGenkit", () => {
     const ai = genkit({});
     const flow = ai.defineFlow("test", () => 42);
     https.onCallGenkit(flow);
+  });
+});
+
+describe("Response", () => {
+  it("re-exports the express Response type along with its type parameters", () => {
+    expectType<ExpressResponse<{ ok: boolean }>>({} as https.Response<{ ok: boolean }>);
+    expectType<https.Response<{ ok: boolean }>>({} as ExpressResponse<{ ok: boolean }>);
   });
 });

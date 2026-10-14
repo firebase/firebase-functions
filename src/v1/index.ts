@@ -61,3 +61,4 @@ import * as params from "../params";
 export { params };
 
 export { onInit } from "../common/onInit";
+export { requiresAPI } from "../common/api";

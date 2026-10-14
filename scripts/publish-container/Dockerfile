@@ -1,4 +1,4 @@
-FROM node:22.21.1
+FROM node:22
 
 # Install dependencies
 RUN apt-get update && \
@@ -7,6 +7,8 @@ RUN apt-get update && \
 # Install npm at latest.
 RUN npm install --global npm@latest
 
-# Install hub
-RUN curl -fsSL --output hub.tgz https://github.com/github/hub/releases/download/v2.13.0/hub-linux-amd64-2.13.0.tgz
-RUN tar --strip-components=2 -C /usr/bin -xf hub.tgz hub-linux-amd64-2.13.0/bin/hub
+
+# Install gh
+RUN curl -fsSL --output gh.tgz https://github.com/cli/cli/releases/download/v2.52.0/gh_2.52.0_linux_amd64.tar.gz && \
+    tar --strip-components=1 -C /usr -xf gh.tgz && \
+    rm gh.tgz

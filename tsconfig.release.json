@@ -5,7 +5,7 @@
   "compilerOptions": {
     "declaration": true,
     "emitDeclarationOnly": true,
-    "lib": ["es2022"],
+    "lib": ["es2022", "dom"],
     "module": "commonjs",
     "noImplicitAny": false,
     "noUnusedLocals": true,

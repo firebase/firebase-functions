@@ -28,6 +28,7 @@
  * @packageDocumentation
  */
 
+import * as ai from "./providers/ai";
 import * as alerts from "./providers/alerts";
 import * as database from "./providers/database";
 import * as eventarc from "./providers/eventarc";
@@ -46,6 +47,7 @@ import * as dataconnect from "./providers/dataconnect";
 // To avoid forcing developers who import from the top-level firebase-functions namespace to install these dependencies,
 // we require developers who want to use the graphql provider to import directly from firebase-functions/dataconnect/graphql.
 export {
+  ai,
   alerts,
   database,
   storage,
@@ -62,7 +64,8 @@ export {
 };
 
 export { logger } from "../logger";
-export { setGlobalOptions } from "./options";
+export { setGlobalOptions, requiresRole } from "./options";
+export { requiresAPI } from "../common/api";
 export type {
   GlobalOptions,
   SupportedRegion,
@@ -70,6 +73,7 @@ export type {
   VpcEgressSetting,
   IngressSetting,
   EventHandlerOptions,
+  Role,
 } from "./options";
 
 export { onInit } from "./core";
