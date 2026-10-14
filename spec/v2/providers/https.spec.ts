@@ -134,6 +134,19 @@ describe("onRequest", () => {
     });
   });
 
+  it("should reset secrets when none are declared", () => {
+    const handler = (req: unknown, res: { send: (code: number) => void }) => {
+      res.send(200);
+    };
+    const withoutSecrets = https.onRequest(handler);
+    const withSecrets = https.onRequest({ secrets: ["API_KEY"] }, handler);
+    const preserved = https.onRequest({ preserveExternalChanges: true }, handler);
+
+    expect(withoutSecrets.__endpoint.secretEnvironmentVariables).to.equal(options.RESET_VALUE);
+    expect(withSecrets.__endpoint.secretEnvironmentVariables).to.deep.equal([{ key: "API_KEY" }]);
+    expect(preserved.__endpoint).not.to.have.property("secretEnvironmentVariables");
+  });
+
   it("should create a complex trigger/endpoint with appropriate values", () => {
     const result = https.onRequest(
       {
