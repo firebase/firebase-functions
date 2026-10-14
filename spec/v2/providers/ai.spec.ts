@@ -260,5 +260,17 @@ describe("v2.ai", () => {
       const func = ai.beforeGenerateContent({ region: "us-central1" }, () => {});
       expect(func.__endpoint.region).to.deep.equal(["us-central1"]);
     });
+
+    it("should expose run on beforeGenerateContent that calls the handler with the event", async () => {
+      const event = { data: { model: "gemini-pro" } } as any;
+      const func = ai.beforeGenerateContent((e) => ({ model: e.data.model } as any));
+      expect(await (func as any).run(event)).to.deep.equal({ model: "gemini-pro" });
+    });
+
+    it("should expose run on afterGenerateContent that calls the handler with the event", async () => {
+      const event = { data: { model: "gemini-pro" } } as any;
+      const func = ai.afterGenerateContent((e) => ({ model: e.data.model } as any));
+      expect(await (func as any).run(event)).to.deep.equal({ model: "gemini-pro" });
+    });
   });
 });
