@@ -411,13 +411,13 @@
         "lib/v2/providers/https"
       ],
       "ai": [
-        "lib/v2/providers/ai"
+        "lib/v2/providers/ai/index"
       ],
       "ai/types/gemini/v1beta": [
-        "lib/v2/providers/ai/types/gemini/v1beta"
+        "lib/v2/providers/ai/types/gemini/v1beta/index"
       ],
       "ai/types/vertex/v1beta1": [
-        "lib/v2/providers/ai/types/vertex/v1beta1"
+        "lib/v2/providers/ai/types/vertex/v1beta1/index"
       ],
       "pubsub": [
         "lib/v2/providers/pubsub"
@@ -491,9 +491,6 @@
       "v2/alerts/performance": [
         "lib/v2/providers/alerts/performance"
       ],
-      "v2/base": [
-        "lib/v2/base"
-      ],
       "v2/database": [
         "lib/v2/providers/database"
       ],
@@ -513,13 +510,13 @@
         "lib/v2/providers/https"
       ],
       "v2/ai": [
-        "lib/v2/providers/ai"
+        "lib/v2/providers/ai/index"
       ],
       "v2/ai/types/gemini/v1beta": [
-        "lib/v2/providers/ai/types/gemini/v1beta"
+        "lib/v2/providers/ai/types/gemini/v1beta/index"
       ],
       "v2/ai/types/vertex/v1beta1": [
-        "lib/v2/providers/ai/types/vertex/v1beta1"
+        "lib/v2/providers/ai/types/vertex/v1beta1/index"
       ],
       "v2/pubsub": [
         "lib/v2/providers/pubsub"
@@ -565,7 +562,7 @@
     "docgen:v2:toc": "ts-node docgen/toc.ts --input docgen/v2 --output docgen/v2/markdown/toc --path /docs/reference/functions/2nd-gen/node",
     "docgen:v2:gen": "api-documenter-fire markdown -i docgen/v2 -o docgen/v2/markdown --project functions && npm run docgen:v2:toc",
     "docgen:v2": "npm run build && npm run docgen:v2:extract && npm run docgen:v2:gen",
-    "build": "tsdown && tsc -p tsconfig.release.json",
+    "build": "tsdown && tsc -p tsconfig.release.json && tsc -p tsconfig.dts.json",
     "build:pack": "rm -rf lib && npm install && npm run build && npm pack",
     "build:watch": "npm run build -- -w",
     "format": "npm run format:ts && npm run format:other",
