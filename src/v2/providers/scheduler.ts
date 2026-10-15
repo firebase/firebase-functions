@@ -21,11 +21,11 @@
 // SOFTWARE.
 
 import * as express from "express";
-import { format } from "util";
 
 import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
+import { logUnhandledError } from "../../common/utilities/log-unhandled-error";
 import {
   initV2Endpoint,
   initV2ScheduleTrigger,
@@ -35,7 +35,6 @@ import {
 import { HttpsFunction } from "./https";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
-import * as logger from "../../logger";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import { EventContext } from "../../v1/cloud-functions";
@@ -217,12 +216,7 @@ export function onSchedule(
       await handler(event);
       res.status(200).send();
     } catch (err) {
-      // logger.error takes a trailing plain object as the structured entry and replaces its message.
-      if (err instanceof Error) {
-        logger.error("Unhandled error", err);
-      } else {
-        logger.error(format("Unhandled error", err));
-      }
+      logUnhandledError(err);
       res.status(500).send();
     }
   };

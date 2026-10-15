@@ -25,6 +25,7 @@ import * as express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
 import * as logger from "../../logger";
+import { logUnhandledError } from "../utilities/log-unhandled-error";
 
 // TODO(inlined): Decide whether we want to un-version apps or whether we want a
 // different strategy
@@ -993,7 +994,7 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
         let httpErr = err;
         if (!(err instanceof HttpsError)) {
           // This doesn't count as an 'explicit' error.
-          logger.error("Unhandled error", err);
+          logUnhandledError(err);
           httpErr = new HttpsError("internal", "INTERNAL");
         }
         const { status } = httpErr.httpErrorCode;
@@ -1032,7 +1033,7 @@ export function withErrorHandler(
     try {
       await handler(req, res);
     } catch (err) {
-      logger.error("Unhandled error", err);
+      logUnhandledError(err);
       if (!res.headersSent) {
         res.status(500).send("Internal Server Error");
       }

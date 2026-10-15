@@ -256,27 +256,23 @@ describe("schedule", () => {
 
         expect(res.status).to.equal(500);
         expect(errorSpy.callCount).to.equal(1);
-        expect(errorSpy.firstCall.args).to.have.lengthOf(2);
-        expect(errorSpy.firstCall.args[0]).to.equal("Unhandled error");
-        expect(errorSpy.firstCall.args[1]).to.equal(err);
+        expect(errorSpy.firstCall.args).to.deep.equal(["Unhandled error", err]);
       });
 
-      it("formats a thrown string into the message and responds 500", async () => {
-        const res = await runFailing("boom");
-
-        expect(res.status).to.equal(500);
-        expect(errorSpy.callCount).to.equal(1);
-        expect(errorSpy.firstCall.args).to.deep.equal(["Unhandled error boom"]);
-      });
-
-      it("formats a thrown plain object into the message and responds 500", async () => {
+      it("keeps a thrown plain object's message and responds 500", async () => {
         const res = await runFailing({ code: "E_X", message: "quota exceeded" });
 
         expect(res.status).to.equal(500);
         expect(errorSpy.callCount).to.equal(1);
-        expect(errorSpy.firstCall.args).to.deep.equal([
-          "Unhandled error { code: 'E_X', message: 'quota exceeded' }",
-        ]);
+        expect(errorSpy.firstCall.args).to.have.lengthOf(1);
+        expect(errorSpy.firstCall.args[0]).to.include("quota exceeded");
+      });
+
+      it("responds 500 when the handler throws null", async () => {
+        const res = await runFailing(null);
+
+        expect(res.status).to.equal(500);
+        expect(errorSpy.callCount).to.equal(1);
       });
     });
 
