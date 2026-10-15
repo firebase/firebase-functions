@@ -216,7 +216,7 @@ export function onSchedule(
       await handler(event);
       res.status(200).send();
     } catch (err) {
-      logger.error((err as Error).message);
+      logger.error("Unhandled error", err);
       res.status(500).send();
     }
   };

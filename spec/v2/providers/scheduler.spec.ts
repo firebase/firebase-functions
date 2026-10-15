@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import * as sinon from "sinon";
+import * as logger from "../../../src/logger";
 import { ManifestEndpoint } from "../../../src/runtime/manifest";
 import * as options from "../../../src/v2/options";
 import * as schedule from "../../../src/v2/providers/scheduler";
@@ -227,6 +229,47 @@ describe("schedule", () => {
       expect(hello).to.be.undefined;
       await runHandler(func, req as any);
       expect(hello).to.equal("world");
+    });
+
+    describe("handler errors", () => {
+      let errorStub: sinon.SinonStub;
+
+      beforeEach(() => {
+        errorStub = sinon.stub(logger, "error");
+      });
+
+      afterEach(() => {
+        errorStub.restore();
+      });
+
+      async function runFailing(thrown: unknown) {
+        const schfn = schedule.onSchedule("* * * * *", () => {
+          throw thrown;
+        });
+        const req = new MockRequest({}, {});
+        req.method = "POST";
+        return runHandler(schfn, req as any);
+      }
+
+      it("logs the thrown Error object and responds 500", async () => {
+        const err = new Error("boom");
+
+        const res = await runFailing(err);
+
+        expect(res.status).to.equal(500);
+        expect(errorStub.callCount).to.equal(1);
+        expect(errorStub.firstCall.args).to.have.lengthOf(2);
+        expect(errorStub.firstCall.args[0]).to.equal("Unhandled error");
+        expect(errorStub.firstCall.args[1]).to.equal(err);
+      });
+
+      it("logs a thrown non-Error value and responds 500", async () => {
+        const res = await runFailing("boom");
+
+        expect(res.status).to.equal(500);
+        expect(errorStub.callCount).to.equal(1);
+        expect(errorStub.firstCall.args).to.deep.equal(["Unhandled error", "boom"]);
+      });
     });
 
     describe("v1-compatible getters", () => {
