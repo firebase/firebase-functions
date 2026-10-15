@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
-import { defineString, defineList } from "../../../src/params";
+import { clearParams, defineBoolean, defineList, defineString } from "../../../src/params";
 
 import * as functions from "../../../src/v1";
 import * as https from "../../../src/v1/providers/https";
@@ -113,6 +113,32 @@ describe("CloudHttpsBuilder", () => {
 
       expect(funcString).to.be.a("function");
       expect(funcList).to.be.a("function");
+    });
+
+    it("should never serialize cors into the wire manifest", () => {
+      // A RegExp has no CEL literal form, so cors expressions are only safe as long as
+      // they stay out of the manifest and are resolved per-request instead.
+      const isStaging = defineBoolean("IS_STAGING");
+      const cors = isStaging
+        .equals(true)
+        .thenElse([/^https:\/\/staging\.example\.com$/], [/^http:\/\/localhost:8080$/]);
+
+      try {
+        const func = functions.https.onRequest({ cors }, () => {});
+
+        for (const serialized of [
+          JSON.stringify(func.__endpoint),
+          JSON.stringify(func.__trigger),
+        ]) {
+          // Positive control: these really are the populated manifests.
+          expect(serialized).to.match(/"(https|callable)Trigger"/);
+          expect(serialized).to.not.contain("cors");
+          expect(serialized).to.not.contain("example.com");
+          expect(serialized).to.not.contain("localhost");
+        }
+      } finally {
+        clearParams();
+      }
     });
   });
 });
