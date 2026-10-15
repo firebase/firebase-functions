@@ -25,6 +25,7 @@ import * as express from "express";
 import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
 import { timezone } from "../../common/timezone";
+import { logUnhandledError } from "../../common/utilities/log-unhandled-error";
 import {
   initV2Endpoint,
   initV2ScheduleTrigger,
@@ -34,7 +35,6 @@ import {
 import { HttpsFunction } from "./https";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
-import * as logger from "../../logger";
 import * as options from "../options";
 import { withInit } from "../../common/onInit";
 import { EventContext } from "../../v1/cloud-functions";
@@ -216,7 +216,7 @@ export function onSchedule(
       await handler(event);
       res.status(200).send();
     } catch (err) {
-      logger.error((err as Error).message);
+      logUnhandledError(err);
       res.status(500).send();
     }
   };

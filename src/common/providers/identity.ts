@@ -23,6 +23,7 @@
 import * as express from "express";
 import * as auth from "firebase-admin/auth";
 import * as logger from "../../logger";
+import { logUnhandledError } from "../utilities/log-unhandled-error";
 import { EventContext } from "../../v1/cloud-functions";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
@@ -940,7 +941,7 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
       let httpErr: HttpsError = err;
       if (!(httpErr instanceof HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        logger.error("Unhandled error", err);
+        logUnhandledError(err);
         httpErr = new HttpsError("internal", "An unexpected error occurred.");
       }
 
