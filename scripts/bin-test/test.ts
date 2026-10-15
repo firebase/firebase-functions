@@ -21,6 +21,7 @@ const DEFAULT_OPTIONS = {
   vpc: null,
   serviceAccountEmail: null,
   ingressSettings: null,
+  secretEnvironmentVariables: null,
 };
 
 const DEFAULT_V1_OPTIONS = { ...DEFAULT_OPTIONS };
