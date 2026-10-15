@@ -98,6 +98,32 @@ describe("optionsToEndpoint", () => {
     const endpoint = optionsToEndpoint({ networkInterface: RESET_VALUE });
     expect(endpoint.vpc).to.equal(RESET_VALUE);
   });
+
+  // null is not in the option types but is accepted at runtime as a reset.
+  for (const [name, reset] of [
+    ["RESET_VALUE", RESET_VALUE],
+    ["null", null as unknown as typeof RESET_VALUE],
+  ] as const) {
+    it(`should allow vpcConnector ${name} with networkInterface set`, () => {
+      const endpoint = optionsToEndpoint({
+        vpcConnector: reset,
+        networkInterface: { network: "my-network" },
+      });
+      expect(endpoint.vpc).to.deep.equal({
+        networkInterfaces: [{ network: "my-network" }],
+      });
+    });
+
+    it(`should allow networkInterface ${name} with vpcConnector set`, () => {
+      const endpoint = optionsToEndpoint({
+        vpcConnector: "my-connector",
+        networkInterface: reset,
+      });
+      expect(endpoint.vpc).to.deep.equal({
+        connector: "my-connector",
+      });
+    });
+  }
 });
 
 describe("assertTimeoutSecondsValid", () => {
