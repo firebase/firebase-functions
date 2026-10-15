@@ -56,7 +56,7 @@ export interface EventarcTriggerOptions extends options.EventHandlerOptions {
    * If not specified, the default Firebase channel will be used:
    * `projects/{project}/locations/us-central1/channels/firebase`
    */
-  channel?: string;
+  channel?: string | Expression<string>;
 
   /**
    * Eventarc event exact match filter.
