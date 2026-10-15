@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import * as express from "express";
+import { format } from "util";
 
 import { copyIfPresent } from "../../common/encoding";
 import { ResetValue } from "../../common/options";
@@ -216,7 +217,12 @@ export function onSchedule(
       await handler(event);
       res.status(200).send();
     } catch (err) {
-      logger.error("Unhandled error", err);
+      // logger.error takes a trailing plain object as the structured entry and replaces its message.
+      if (err instanceof Error) {
+        logger.error("Unhandled error", err);
+      } else {
+        logger.error(format("Unhandled error", err));
+      }
       res.status(500).send();
     }
   };

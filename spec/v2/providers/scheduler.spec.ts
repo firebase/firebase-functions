@@ -232,23 +232,21 @@ describe("schedule", () => {
     });
 
     describe("handler errors", () => {
-      let errorStub: sinon.SinonStub;
+      let errorSpy: sinon.SinonSpy;
 
       beforeEach(() => {
-        errorStub = sinon.stub(logger, "error");
+        errorSpy = sinon.spy(logger, "error");
       });
 
       afterEach(() => {
-        errorStub.restore();
+        errorSpy.restore();
       });
 
       async function runFailing(thrown: unknown) {
         const schfn = schedule.onSchedule("* * * * *", () => {
           throw thrown;
         });
-        const req = new MockRequest({}, {});
-        req.method = "POST";
-        return runHandler(schfn, req as any);
+        return runHandler(schfn, new MockRequest({}, {}) as any);
       }
 
       it("logs the thrown Error object and responds 500", async () => {
@@ -257,18 +255,28 @@ describe("schedule", () => {
         const res = await runFailing(err);
 
         expect(res.status).to.equal(500);
-        expect(errorStub.callCount).to.equal(1);
-        expect(errorStub.firstCall.args).to.have.lengthOf(2);
-        expect(errorStub.firstCall.args[0]).to.equal("Unhandled error");
-        expect(errorStub.firstCall.args[1]).to.equal(err);
+        expect(errorSpy.callCount).to.equal(1);
+        expect(errorSpy.firstCall.args).to.have.lengthOf(2);
+        expect(errorSpy.firstCall.args[0]).to.equal("Unhandled error");
+        expect(errorSpy.firstCall.args[1]).to.equal(err);
       });
 
-      it("logs a thrown non-Error value and responds 500", async () => {
+      it("formats a thrown string into the message and responds 500", async () => {
         const res = await runFailing("boom");
 
         expect(res.status).to.equal(500);
-        expect(errorStub.callCount).to.equal(1);
-        expect(errorStub.firstCall.args).to.deep.equal(["Unhandled error", "boom"]);
+        expect(errorSpy.callCount).to.equal(1);
+        expect(errorSpy.firstCall.args).to.deep.equal(["Unhandled error boom"]);
+      });
+
+      it("formats a thrown plain object into the message and responds 500", async () => {
+        const res = await runFailing({ code: "E_X", message: "quota exceeded" });
+
+        expect(res.status).to.equal(500);
+        expect(errorSpy.callCount).to.equal(1);
+        expect(errorSpy.firstCall.args).to.deep.equal([
+          "Unhandled error { code: 'E_X', message: 'quota exceeded' }",
+        ]);
       });
     });
 
