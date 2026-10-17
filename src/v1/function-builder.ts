@@ -265,17 +265,25 @@ export function region(
 /**
  * Configure runtime options for the function.
  * @param runtimeOptions Object with optional fields:
- * 1. `memory`: amount of memory to allocate to the function, possible values
+ *
+ *
+ * • `memory`: amount of memory to allocate to the function, possible values
  *    are: '128MB', '256MB', '512MB', '1GB', '2GB', '4GB', and '8GB'.
- * 2. `timeoutSeconds`: timeout for the function in seconds, possible values are
+ *
+ * • `timeoutSeconds`: timeout for the function in seconds, possible values are
  *    0 to 540.
- * 3. `failurePolicy`: failure policy of the function, with boolean `true` being
+ *
+ * • `failurePolicy`: failure policy of the function, with boolean `true` being
  *    equivalent to providing an empty retry object.
- * 4. `vpcConnector`: id of a VPC connector in same project and region.
- * 5. `vpcConnectorEgressSettings`: when a vpcConnector is set, control which
+ *
+ * • `vpcConnector`: id of a VPC connector in same project and region.
+ *
+ * • `vpcConnectorEgressSettings`: when a vpcConnector is set, control which
  *    egress traffic is sent through the vpcConnector.
- * 6. `serviceAccount`: Specific service account for the function.
- * 7. `ingressSettings`: ingress settings for the function, which control where a HTTPS
+ *
+ * • `serviceAccount`: Specific service account for the function.
+ *
+ * • `ingressSettings`: ingress settings for the function, which control where a HTTPS
  *    function can be called from.
  *
  * Value must not be null.
