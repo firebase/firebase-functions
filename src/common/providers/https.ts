@@ -34,6 +34,7 @@ import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
 import { TaskContext } from "./tasks";
 import { Expression } from "../../params";
+import { valueOf } from "../../params/types";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
@@ -675,12 +676,12 @@ async function checkAppCheckToken(
     if (isDebugFeatureEnabled("skipTokenVerification")) {
       const decodedToken = unsafeDecodeAppCheckToken(appCheckToken);
       appCheckData = { appId: decodedToken.app_id, token: decodedToken };
-      if (options.consumeAppCheckToken) {
+      if (valueOf(options.consumeAppCheckToken)) {
         appCheckData.alreadyConsumed = false;
       }
     } else {
       const appCheck = getAppCheck(getApp());
-      if (options.consumeAppCheckToken) {
+      if (valueOf(options.consumeAppCheckToken)) {
         if (appCheck.verifyToken?.length === 1) {
           const errorMsg =
             "Unsupported version of the Admin SDK." +
@@ -768,8 +769,8 @@ export type CorsInfo = Omit<cors.CorsOptions, "origin"> & {
 /** @internal **/
 export interface CallableOptions<T = any> {
   cors: CorsInfo;
-  enforceAppCheck?: boolean;
-  consumeAppCheckToken?: boolean;
+  enforceAppCheck?: boolean | Expression<boolean>;
+  consumeAppCheckToken?: boolean | Expression<boolean>;
   /* @deprecated */
   authPolicy?: (token: AuthData | null, data: T) => boolean | Promise<boolean>;
   /**
@@ -882,7 +883,7 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
         throw new HttpsError("unauthenticated", "Unauthenticated");
       }
       if (tokenStatus.app === "INVALID") {
-        if (options.enforceAppCheck) {
+        if (valueOf(options.enforceAppCheck)) {
           throw new HttpsError("unauthenticated", "Unauthenticated");
         } else {
           logger.warn(
@@ -890,7 +891,7 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
           );
         }
       }
-      if (tokenStatus.app === "MISSING" && options.enforceAppCheck) {
+      if (tokenStatus.app === "MISSING" && valueOf(options.enforceAppCheck)) {
         throw new HttpsError("unauthenticated", "Unauthenticated");
       }
 
