@@ -166,7 +166,6 @@ export function onDispatchHandler<Req = any>(
   return async (req: https.Request, res: express.Response): Promise<void> => {
     try {
       if (!https.isValidRequest(req)) {
-        logger.error("Invalid request, unable to process.");
         throw new https.HttpsError("invalid-argument", "Bad Request");
       }
 
