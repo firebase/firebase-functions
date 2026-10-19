@@ -846,7 +846,6 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
 
     try {
       if (!isValidRequest(req)) {
-        logger.error("Invalid request, unable to process.");
         throw new HttpsError("invalid-argument", "Bad Request");
       }
 

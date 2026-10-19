@@ -8,6 +8,7 @@ import { defineString, defineList } from "../../../src/params";
 import { getApp, setApp } from "../../../src/common/app";
 import * as debug from "../../../src/common/debug";
 import * as https from "../../../src/common/providers/https";
+import * as logger from "../../../src/logger";
 import * as mocks from "../../fixtures/credential/key.json";
 import {
   expectedResponseHeaders,
@@ -178,6 +179,37 @@ describe("onCallHandler", () => {
         },
       },
     });
+  });
+
+  it("should log an invalid request as a warning, not an error", async () => {
+    const errorSpy = sinon.spy(logger, "error");
+    const warnSpy = sinon.spy(logger, "warn");
+    try {
+      const req = mockRequest(null);
+      req.method = "GET";
+      await runCallableTest({
+        httpRequest: req,
+        expectedData: null,
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 400,
+          headers: expectedResponseHeaders,
+          body: {
+            error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
+          },
+        },
+      });
+      expect(errorSpy.called).to.be.false;
+      expect(warnSpy.calledWith("Request has invalid method.", "GET")).to.be.true;
+    } finally {
+      errorSpy.restore();
+      warnSpy.restore();
+    }
   });
 
   it("should ignore charset", () => {
