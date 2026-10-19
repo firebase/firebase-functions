@@ -28,6 +28,7 @@
  * @packageDocumentation
  */
 
+import * as ai from "./providers/ai";
 import * as alerts from "./providers/alerts";
 import * as database from "./providers/database";
 import * as eventarc from "./providers/eventarc";
@@ -46,6 +47,7 @@ import * as dataconnect from "./providers/dataconnect";
 // To avoid forcing developers who import from the top-level firebase-functions namespace to install these dependencies,
 // we require developers who want to use the graphql provider to import directly from firebase-functions/dataconnect/graphql.
 export {
+  ai,
   alerts,
   database,
   storage,

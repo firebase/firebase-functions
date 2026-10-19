@@ -28,7 +28,7 @@ export declare interface BaseParams {
 /**
  * Fields common to all Schema types.
  *
- * @internal
+ * @public
  */
 export declare interface BaseSchema {
   /** Optional. Description of the value. */
@@ -382,9 +382,17 @@ export declare interface GenerateContentCandidate {
  * @public
  */
 export declare interface GenerateContentRequest extends BaseParams {
+  /** Array of conversation turns (Content) that make up the prompt. */
   contents: Content[];
+  /** Optional tools (such as function declarations) the model can interact with to assist in generating a response. */
   tools?: Tool[];
+  /** Optional tool configuration. */
   toolConfig?: ToolConfig;
+  /** Optional safety settings. */
+  safetySettings?: SafetySetting[];
+  /** Optional generation configuration. */
+  generationConfig?: GenerationConfig;
+  /** Optional system instructions for the model. */
   systemInstruction?: string | Part | Content;
   /**
    * This is the name of a `CachedContent` and not the cache object itself.
@@ -392,10 +400,7 @@ export declare interface GenerateContentRequest extends BaseParams {
   cachedContent?: string;
 }
 /**
- * Individual response from {@link GenerativeModel.generateContent} and
- * {@link GenerativeModel.generateContentStream}.
- * `generateContentStream()` will return one in each chunk until
- * the stream is done.
+ * Individual response from `generateContent`.
  * @public
  */
 export declare interface GenerateContentResponse {

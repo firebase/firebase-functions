@@ -46,6 +46,7 @@ import * as options from "../options";
 import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
 import { CloudEvent, CloudFunction } from "../core";
+import { addV1Compat, V1Compat } from "../compat";
 import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
 import { userRecordConstructor } from "../../common/providers/identity";
 
@@ -61,7 +62,7 @@ interface InternalOptions {
 }
 
 /**
- * All function options plus idToken, accessToken, and refreshToken.
+ * All function options plus `idToken`, `accessToken`, and `refreshToken`.
  */
 export interface BlockingOptions {
   /** Pass the ID Token credential to the function. */
@@ -74,7 +75,7 @@ export interface BlockingOptions {
   refreshToken?: boolean;
 
   /**
-   * If true, do not deploy or emulate this function.
+   * If `true`, do not deploy or emulate this function.
    */
   omit?: boolean | Expression<boolean>;
 
@@ -120,7 +121,7 @@ export interface BlockingOptions {
    *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
-   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * A value of `null` restores the default concurrency (80 when `cpu` >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
@@ -134,7 +135,7 @@ export interface BlockingOptions {
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
-   * to the value "gcf_gen1"
+   * to the value `"gcf_gen1"`.
    */
   cpu?: number | "gcf_gen1";
 
@@ -253,7 +254,7 @@ export function beforeEmailSent(
 
 /**
  * Handles an event that is triggered before an email is sent to a user.
- * @param optsOrHandler- Either an object containing function options, or an event handler that is run before an email is sent to a user.
+ * @param optsOrHandler - Either an object containing function options, or an event handler that is run before an email is sent to a user.
  * @param handler - Event handler that is run before an email is sent to a user.
  */
 export function beforeEmailSent(
@@ -376,49 +377,58 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
 }
 
 /**
- * The user data payload for an Auth Event. this is the standard "UserRecord"
- * from the firebase Admin SDK.
- * @internal
+ * The user data payload for a Firebase Authentication event. This is the standard `UserRecord`
+ * from the Firebase Admin SDK.
+ * @beta
  */
 export type User = AdminUserRecord;
 
 /**
- * The event object passed to the handler funcation for Firebase Authentication
+ * The event object passed to the handler function for Firebase Authentication
  * events.
- * @internal
+ * @beta
  */
 export interface AuthEvent<T> extends CloudEvent<T> {
-  /** The project identifier */
+  /** The project identifier. */
   project?: string;
 
-  /** The ID of the Identity Platform Tenant Associated with the event. If Applicable */
+  /** The ID of the Identity Platform tenant associated with the event, if applicable. */
   tenantId?: string;
 }
 
 /**
- * Options for configuring a Firebase Authentication Trigger
- * @internal
+ * Options for configuring a Firebase Authentication trigger.
+ * @beta
  */
 export interface AuthOptions extends options.EventHandlerOptions {
   /**
-   * The Id of the Identity Platform tenant to scope the function to.
-   * If not set, the function triggers on users across all tenants
+   * The ID of the Identity Platform tenant to scope the function to.
+   * If not set, the function triggers on users across all tenants.
    * Set to `IS_NOT_TENANT` to only trigger on users in the default
-   * project(no tenant).
+   * project (no tenant).
    */
-  tenantId?: string | Expression<string> | typeof RESET_VALUE;
+  tenantId?: string | Expression<string> | typeof IS_NOT_TENANT;
 }
 
 /**
- * constant to represent the absence of tenant ID.
- * @internal
+ * Constant to represent the absence of a tenant ID.
+ * @beta
  */
 export const IS_NOT_TENANT = RESET_VALUE;
 
+/**
+ * Event handler type for Firebase Authentication triggers that supports both standard `AuthEvent`
+ * and 1st gen compatibility destructuring (`{ user, context }`).
+ * @beta
+ */
+export type AuthEventHandler = (
+  event: AuthEvent<User> & V1Compat<"user", User>
+) => any | Promise<any>;
+
 // Helper to handle overloaded function signature
 function getOptsAndHandler(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ) {
   if (typeof optsOrHandler === "function") {
     return { opts: {}, handler: optsOrHandler };
@@ -428,6 +438,10 @@ function getOptsAndHandler(
 
 // Matches both absolute paths (/projects/...) and relative paths (projects/...)
 const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
+const IDENTITY_TOOLKIT_SOURCE_PREFIX = "//identitytoolkit.googleapis.com/";
+const FIREBASE_AUTH_SERVICE = "firebaseauth.googleapis.com";
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
 
 /**
  * Converts the v2 Eventarc (`AuthEventData`) protobuf wire protocol (`value`/`oldValue`, `createTime`, `photoUrl`)
@@ -466,6 +480,15 @@ function convertV2EventToV1Event(rawData: unknown): User | undefined {
   return userRecordConstructor(userData);
 }
 
+/** Internal helper interface for extracting tenant IDs and compat fields from raw or mock events. */
+interface RawAuthEventShape {
+  tenantId?: string;
+  tenantid?: string;
+  user?: User;
+  context?: ReturnType<typeof getV1AuthContext>;
+  data?: { tenantId?: string };
+}
+
 /**
  * Normalizes raw CloudEvents from Eventarc into AuthEvent<User>.
  * Eventarc wraps v2 Authentication user payloads inside an `AuthEventData`
@@ -475,13 +498,13 @@ function convertV2EventToV1Event(rawData: unknown): User | undefined {
  * @hidden
  */
 function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
-  const event: AuthEvent<User> = { ...raw } as any;
+  const event = { ...raw } as unknown as AuthEvent<User>;
   if (raw.data !== undefined && raw.data !== null) {
     event.data = convertV2EventToV1Event(raw.data);
   }
-  const rawAny = raw as any;
+  const rawShape = raw as unknown as RawAuthEventShape;
   // Support both lowercase (CloudEvents standard) and camelCase (local testing)
-  const tenantId = rawAny.tenantid || rawAny.tenantId;
+  const tenantId = rawShape.tenantid || rawShape.tenantId || event.data?.tenantId;
   if (tenantId) {
     event.tenantId = tenantId;
   }
@@ -495,11 +518,36 @@ function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
   return event;
 }
 
+/** @internal */
+export function getV1AuthContext(event: AuthEvent<User>) {
+  let resourceName = event.source || "";
+  if (resourceName.startsWith(IDENTITY_TOOLKIT_SOURCE_PREFIX)) {
+    resourceName = resourceName.substring(IDENTITY_TOOLKIT_SOURCE_PREFIX.length);
+  } else if (event.project) {
+    resourceName = `projects/${event.project}`;
+  }
+  return {
+    eventId: event.id,
+    timestamp: event.time,
+    eventType:
+      event.type === USER_CREATED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.create"
+        : event.type === USER_DELETED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.delete"
+        : event.type,
+    resource: {
+      service: FIREBASE_AUTH_SERVICE,
+      name: resourceName,
+    },
+    params: {},
+  };
+}
+
 /** @hidden */
 function makeAuthTrigger(
   eventType: string,
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
 
@@ -511,10 +559,34 @@ function makeAuthTrigger(
 
   const func = ((raw: CloudEvent<unknown>) => {
     const event = getAuthEvent(raw);
-    return wrappedHandler(event);
+    if (opts.tenantId === IS_NOT_TENANT && event.tenantId) {
+      return;
+    }
+    const compatEvent = addV1Compat(event, {
+      context: () => getV1AuthContext(event),
+      user: () => event.data,
+    });
+    return wrappedHandler(compatEvent);
   }) as CloudFunction<AuthEvent<User>>;
 
-  func.run = handlerFunc;
+  func.run = ((event: AuthEvent<User>) => {
+    if (!event) {
+      return handlerFunc(event as Parameters<AuthEventHandler>[0]);
+    }
+    const eventShape = event as unknown as RawAuthEventShape;
+    const existingUser = eventShape.user;
+    const tenantId =
+      event.tenantId || eventShape.tenantid || existingUser?.tenantId || eventShape.data?.tenantId;
+    if (opts.tenantId === IS_NOT_TENANT && tenantId) {
+      return;
+    }
+    const existingContext = eventShape.context;
+    const compatEvent = addV1Compat(event, {
+      context: () => existingContext ?? getV1AuthContext(event),
+      user: () => event.data ?? existingUser,
+    });
+    return handlerFunc(compatEvent);
+  }) as CloudFunction<AuthEvent<User>>["run"];
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOptsEndpoint = options.optionsToEndpoint(opts);
   const endpoint: ManifestEndpoint = {
@@ -535,26 +607,32 @@ function makeAuthTrigger(
       region: "global",
     },
   };
-  if (opts.tenantId !== undefined) {
-    if (opts.tenantId === IS_NOT_TENANT) {
-      endpoint.eventTrigger.eventFilters["tenantid"] = "";
-    } else {
-      endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
-    }
+  if (opts.tenantId !== undefined && opts.tenantId !== IS_NOT_TENANT) {
+    endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
   }
   func.__endpoint = endpoint;
   return func;
 }
 
-const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
-
 /**
  * Handles user creation events in Firebase Authentication.
  *
- * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
  *
  * @beta
- * @internal
+ *
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param handler - Event handler which is run every time a new user is created.
  * @returns A Cloud Function that you can export.
@@ -565,8 +643,24 @@ export function onUserCreated(
 /**
  * Handles user creation events in Firebase Authentication.
  *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
  * @beta
- * @internal
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler which is run every time a new user is created.
@@ -577,21 +671,31 @@ export function onUserCreated(
   handler: (event: AuthEvent<User>) => any | Promise<any>
 ): CloudFunction<AuthEvent<User>>;
 export function onUserCreated(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
 }
 
-const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
-
 /**
  * Handles user deletion events in Firebase Authentication.
  *
- * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in options.
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
  *
  * @beta
- * @internal
+ *
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param handler - Event handler that is run every time a user is deleted.
  * @returns A Cloud Function that you can export.
@@ -602,8 +706,24 @@ export function onUserDeleted(
 /**
  * Handles user deletion events in Firebase Authentication.
  *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
  * @beta
- * @internal
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
  *
  * @param opts - Object containing function options.
  * @param handler - Event handler that is run every time a user is deleted.
@@ -614,8 +734,8 @@ export function onUserDeleted(
   handler: (event: AuthEvent<User>) => any | Promise<any>
 ): CloudFunction<AuthEvent<User>>;
 export function onUserDeleted(
-  optsOrHandler: AuthOptions | ((event: AuthEvent<User>) => any | Promise<any>),
-  handler?: (event: AuthEvent<User>) => any | Promise<any>
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
 ): CloudFunction<AuthEvent<User>> {
   return makeAuthTrigger(USER_DELETED_EVENT, optsOrHandler, handler);
 }

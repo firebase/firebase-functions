@@ -309,17 +309,22 @@ export interface GlobalOptions {
   preserveExternalChanges?: boolean;
 }
 
-let globalOptions: GlobalOptions | undefined;
+const GLOBAL_OPTIONS_SYMBOL = Symbol.for("firebase-functions:v2:globalOptions");
+const globalOptionSymbols = globalThis as unknown as Record<symbol, { value?: GlobalOptions }>;
+
+if (!globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL]) {
+  globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL] = {};
+}
 
 /**
  * Sets default options for all functions written using the 2nd gen SDK.
  * @param options Options to set as default
  */
 export function setGlobalOptions(options: GlobalOptions) {
-  if (globalOptions) {
+  if (globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value) {
     logger.warn("Calling setGlobalOptions twice leads to undefined behavior");
   }
-  globalOptions = options;
+  globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value = options;
 }
 
 /**
@@ -328,7 +333,15 @@ export function setGlobalOptions(options: GlobalOptions) {
  * @internal
  */
 export function getGlobalOptions(): GlobalOptions {
-  return globalOptions || {};
+  return globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value || {};
+}
+
+/**
+ * Reset global options for testing.
+ * @internal
+ */
+export function clearGlobalOptions(): void {
+  delete globalOptionSymbols[GLOBAL_OPTIONS_SYMBOL].value;
 }
 
 /**

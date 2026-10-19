@@ -444,8 +444,58 @@ describe("identity", () => {
     });
 
     it("should handle IS_NOT_TENANT option", () => {
-      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => null);
-      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+      let calledCount = 0;
+      const func = identity.onUserCreated({ tenantId: identity.IS_NOT_TENANT }, () => {
+        calledCount++;
+        return null;
+      });
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.be.undefined;
+
+      // Should execute for non-tenant events
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-1",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { uid: "user-1" },
+      });
+      expect(calledCount).to.equal(1);
+
+      // Should ignore events that have a tenantid
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-2",
+        type: "google.firebase.auth.user.v2.created",
+        time: new Date().toISOString(),
+        data: { uid: "user-2" },
+        tenantid: "some-tenant",
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should also filter out tenant events in func.run across all mock formats
+      func.run({
+        tenantId: "some-tenant",
+        data: { uid: "u3" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        tenantid: "some-tenant",
+        data: { uid: "u4" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        user: { tenantId: "some-tenant", uid: "u5" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        data: { tenantId: "some-tenant", uid: "u6" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should execute in func.run when no tenantId is present
+      func.run({
+        data: { uid: "u7" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(2);
     });
 
     it("should populate project and tenantId on execution", () => {
@@ -632,6 +682,149 @@ describe("identity", () => {
       func(mockEvent);
       expect(called).to.be.true;
     });
+
+    describe("v1-compatible getters", () => {
+      it("should provide v1-compatible getters on the event object", () => {
+        let capturedEvent: any;
+        const func = identity.onUserCreated((e) => {
+          capturedEvent = e;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            value: {
+              uid: "user-uid-123",
+              email: "test@example.com",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "event-id",
+          timestamp: "2023-01-01T00:00:00Z",
+          eventType: "providers/firebase.auth/eventTypes/user.create",
+          resource: {
+            service: "firebaseauth.googleapis.com",
+            name: "projects/my-project",
+          },
+          params: {},
+        });
+
+        expect(capturedEvent.user.uid).to.equal("user-uid-123");
+        expect(capturedEvent.user.email).to.equal("test@example.com");
+      });
+
+      it("should support v1 destructuring assignment ({ user, context })", () => {
+        let destructuredUser: any;
+        let destructuredContext: any;
+        const func = identity.onUserCreated(({ user, context }) => {
+          destructuredUser = user;
+          destructuredContext = context;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            value: {
+              uid: "destructured-uid",
+              email: "destructured@example.com",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(destructuredUser.uid).to.equal("destructured-uid");
+        expect(destructuredContext.eventId).to.equal("event-id");
+      });
+
+      it("preserves backward compatibility for user tests passing POJOs without v1 getters", async () => {
+        const func = identity.onUserCreated((event) => {
+          return event.data.uid;
+        });
+
+        const vanillaV2Event: identity.AuthEvent<identity.User> = {
+          specversion: "1.0",
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "vanilla-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            uid: "vanilla-uid",
+          } as any,
+        };
+
+        const result = await func.run(vanillaV2Event);
+        expect(result).to.equal("vanilla-uid");
+      });
+
+      it("supports calling .run() on destructured handlers with vanilla POJO mock events", async () => {
+        const func = identity.onUserCreated(({ user, context }) => {
+          return { uid: user.uid, eventId: context.eventId };
+        });
+
+        const vanillaV2Event: identity.AuthEvent<identity.User> = {
+          specversion: "1.0",
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "run-event-id",
+          type: "google.firebase.auth.user.v2.created",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            uid: "run-destructured-uid",
+          } as any,
+        };
+
+        const result = await func.run(vanillaV2Event);
+        expect(result).to.deep.equal({
+          uid: "run-destructured-uid",
+          eventId: "run-event-id",
+        });
+      });
+
+      it("supports calling .run() with an object that already has user and context", async () => {
+        const func = identity.onUserCreated(({ user, context }) => {
+          return { uid: user.uid, eventId: context.eventId };
+        });
+
+        const directCompatObject = {
+          user: { uid: "direct-uid" } as any,
+          context: { eventId: "direct-event-id" } as any,
+        };
+
+        const result = await func.run(directCompatObject as any);
+        expect(result).to.deep.equal({
+          uid: "direct-uid",
+          eventId: "direct-event-id",
+        });
+      });
+
+      it("handles calling .run() with null or undefined gracefully", async () => {
+        let received: any;
+        const func = identity.onUserCreated((event) => {
+          received = event;
+          return "handled";
+        });
+
+        const resultNull = await func.run(null);
+        expect(resultNull).to.equal("handled");
+        expect(received).to.be.null;
+
+        const resultUndef = await func.run(undefined);
+        expect(resultUndef).to.equal("handled");
+        expect(received).to.be.undefined;
+      });
+    });
   });
 
   describe("onUserDeleted", () => {
@@ -656,8 +849,58 @@ describe("identity", () => {
     });
 
     it("should handle IS_NOT_TENANT option", () => {
-      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => null);
-      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.equal("");
+      let calledCount = 0;
+      const func = identity.onUserDeleted({ tenantId: identity.IS_NOT_TENANT }, () => {
+        calledCount++;
+        return null;
+      });
+      expect(func.__endpoint.eventTrigger?.eventFilters?.tenantid).to.be.undefined;
+
+      // Should execute for non-tenant events
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-1",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: { uid: "user-1" },
+      });
+      expect(calledCount).to.equal(1);
+
+      // Should ignore events that have a tenantid
+      func({
+        specversion: "1.0" as const,
+        source: "//identitytoolkit.googleapis.com/projects/my-project",
+        id: "event-id-2",
+        type: "google.firebase.auth.user.v2.deleted",
+        time: new Date().toISOString(),
+        data: { uid: "user-2" },
+        tenantid: "some-tenant",
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should also filter out tenant events in func.run across all mock formats
+      func.run({
+        tenantId: "some-tenant",
+        data: { uid: "u3" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        tenantid: "some-tenant",
+        data: { uid: "u4" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        user: { tenantId: "some-tenant", uid: "u5" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      func.run({
+        data: { tenantId: "some-tenant", uid: "u6" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(1);
+
+      // Should execute in func.run when no tenantId is present
+      func.run({
+        data: { uid: "u7" },
+      } as unknown as identity.AuthEvent<identity.User>);
+      expect(calledCount).to.equal(2);
     });
 
     it("should populate project and tenantId on execution", () => {
@@ -746,6 +989,97 @@ describe("identity", () => {
 
       func(mockEvent);
       expect(called).to.be.true;
+    });
+
+    describe("v1-compatible getters", () => {
+      it("should provide v1-compatible getters on the event object", () => {
+        let capturedEvent: any;
+        const func = identity.onUserDeleted((e) => {
+          capturedEvent = e;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id-del",
+          type: "google.firebase.auth.user.v2.deleted",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            oldValue: {
+              uid: "user-uid-del",
+              email: "del@example.com",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(capturedEvent.context).to.deep.equal({
+          eventId: "event-id-del",
+          timestamp: "2023-01-01T00:00:00Z",
+          eventType: "providers/firebase.auth/eventTypes/user.delete",
+          resource: {
+            service: "firebaseauth.googleapis.com",
+            name: "projects/my-project",
+          },
+          params: {},
+        });
+
+        expect(capturedEvent.user.uid).to.equal("user-uid-del");
+        expect(capturedEvent.user.email).to.equal("del@example.com");
+      });
+
+      it("should support v1 destructuring assignment ({ user, context })", () => {
+        let destructuredUser: any;
+        let destructuredContext: any;
+        const func = identity.onUserDeleted(({ user, context }) => {
+          destructuredUser = user;
+          destructuredContext = context;
+        });
+
+        const mockEvent = {
+          specversion: "1.0" as const,
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "event-id-del",
+          type: "google.firebase.auth.user.v2.deleted",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            oldValue: {
+              uid: "destructured-del-uid",
+            },
+          } as any,
+        };
+
+        func(mockEvent);
+
+        expect(destructuredUser.uid).to.equal("destructured-del-uid");
+        expect(destructuredContext.eventType).to.equal(
+          "providers/firebase.auth/eventTypes/user.delete"
+        );
+      });
+
+      it("supports calling .run() on destructured handlers with vanilla POJO mock events", async () => {
+        const func = identity.onUserDeleted(({ user, context }) => {
+          return { uid: user.uid, eventType: context.eventType };
+        });
+
+        const vanillaV2Event: identity.AuthEvent<identity.User> = {
+          specversion: "1.0",
+          source: "//identitytoolkit.googleapis.com/projects/my-project",
+          id: "run-del-event-id",
+          type: "google.firebase.auth.user.v2.deleted",
+          time: "2023-01-01T00:00:00Z",
+          data: {
+            uid: "run-destructured-del-uid",
+          } as any,
+        };
+
+        const result = await func.run(vanillaV2Event);
+        expect(result).to.deep.equal({
+          uid: "run-destructured-del-uid",
+          eventType: "providers/firebase.auth/eventTypes/user.delete",
+        });
+      });
     });
   });
 
