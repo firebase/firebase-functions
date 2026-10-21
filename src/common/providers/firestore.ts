@@ -64,6 +64,29 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
   return proto;
 }
 
+/**
+ * Returns the full document name carried in the event payload, if any.
+ *
+ * The payload is the only UTF-8-safe source for the document path: the `document` CloudEvent
+ * attribute arrives as an HTTP header, which Node decodes as latin1.
+ * @internal
+ */
+export function documentNameFromPayload(
+  data: unknown,
+  datacontenttype?: string
+): string | undefined {
+  try {
+    if (datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(data)) {
+      const decoded = DocumentEventData.decode(Buffer.from(data as Uint8Array));
+      return decoded.value?.name || decoded.oldValue?.name || undefined;
+    }
+    const json = data as { value?: { name?: string }; oldValue?: { name?: string } } | undefined;
+    return json?.value?.name || json?.oldValue?.name || undefined;
+  } catch (_e) {
+    return undefined;
+  }
+}
+
 /** @internal */
 export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
   const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;

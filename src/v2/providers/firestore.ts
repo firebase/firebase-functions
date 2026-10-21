@@ -34,6 +34,7 @@ import {
   createBeforeSnapshotFromProtobuf,
   createSnapshotFromJson,
   createSnapshotFromProtobuf,
+  documentNameFromPayload,
 } from "../../common/providers/firestore";
 import { wrapTraceContext } from "../trace";
 import { withInit } from "../../common/onInit";
@@ -816,6 +817,13 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
 }
 
 /** @internal */
+export function documentPathFromEvent(event: RawFirestoreEvent): string {
+  const name = documentNameFromPayload(event.data, event.datacontenttype);
+  const prefix = `projects/${event.project}/databases/${event.database}/documents/`;
+  return name?.startsWith(prefix) ? name.slice(prefix.length) : event.document;
+}
+
+/** @internal */
 export function makeParams(document: string, documentPattern: PathPattern) {
   return {
     ...documentPattern.extractMatches(document),
@@ -1019,7 +1027,8 @@ export function onOperation<
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const rawEvent = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const event = { ...rawEvent, document: documentPathFromEvent(rawEvent) };
     const documentPattern = new PathPattern(
       typeof document === "string" ? document : document.value()
     );
@@ -1094,7 +1103,8 @@ export function onChangedOperation<
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const rawEvent = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const event = { ...rawEvent, document: documentPathFromEvent(rawEvent) };
     const documentPattern = new PathPattern(
       typeof document === "string" ? document : document.value()
     );
