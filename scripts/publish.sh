@@ -13,6 +13,7 @@ show_usage() {
   echo "  <major|minor|patch>       The type of SemVer version bump"
   echo ""
   echo "Options:"
+  echo "  --use-oss-gate            Publish to the OSS Exit Gate"
   echo "  --prerelease              Flag the build as a release candidate"
   echo "  --no-dry-run              Perform real write actions (npm publish, git tag, github release)"
   echo "  --force                   Force a release even if there are no new commits since last release"
@@ -44,10 +45,15 @@ TARGET_BRANCH=""
 ORG="firebase"
 REPO="firebase-functions"
 TARGET_PROJECT="firebase-functions-publishing"
+USE_OSS_GATE=false
 
 # Parse optional arguments
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    --use-oss-gate)
+      USE_OSS_GATE=true
+      shift
+      ;;
     --prerelease)
       IS_PRERELEASE=true
       shift
@@ -243,7 +249,21 @@ else
   rm release_notes.md
 fi
 
-# 7. NPM Publish Execution
+# 7. OSS Exit Gate setup
+if [ "USE_OSS_GATE" = true ]; then
+  # Install the auth helper without saving to package.json.
+  npm install --no-save google-artifactregistry-auth
+
+  # Configure .npmrc for Artifact Registry
+  cp .npmrc .npmrc.bak
+  echo "registry=https://us-npm.pkg.dev/oss-exit-gate-prod/firebase-functions--npm/" >> .npmrc
+  echo "//us-npm.pkg.dev/oss-exit-gate-prod/firebase-functions--npm/:always-auth=true" >> .npmrc
+
+  # Authenticate with Artifact Registry
+  npx google-artifactregistry-auth
+fi
+
+# 8. NPM Publish Execution
 if [ "$DRY_RUN" = true ]; then
   if [ "$IS_PRERELEASE" = true ]; then
     echo "🔍 [Dry Run] Skipping npm publish --tag next"
@@ -263,4 +283,18 @@ else
     npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
   fi
   echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
+fi
+
+# 9. Trigger Exit Gate
+if [ "USE_OSS_GATE" = true ]; then
+  if [ "$IS_PRERELEASE" = true ]; then
+    echo '{ "publish_all": true, "registry_config": {"npm": {"tags": ["next"] } } }' > manifest.json
+  else
+    echo '{ "publish_all": true, "registry_config": {"npm": {"tags": ["latest"] } } }' > manifest.json
+  fi
+  MANIFEST_NAME="manifest-$(date +%Y%m%d%H%M%S).json"
+  gcloud storage cp manifest.json "gs://oss-exit-gate-prod-projects-bucket/firebase-functions/npm/manifests/${MANIFEST_NAME}"
+
+  rm .npmrc 
+  mv .npmrc.bak .npmrc
 fi
