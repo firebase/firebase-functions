@@ -94,7 +94,7 @@ export function stripRelativeMarkdownLinks(dir: string): void {
     const fullPath = join(dir, entry);
     const stat = statSync(fullPath);
     if (stat.isDirectory()) {
-      if (entry !== 'toc' && !entry.startsWith('.')) {
+      if (entry !== 'toc' && entry !== 'node_modules' && !entry.startsWith('.')) {
         stripRelativeMarkdownLinks(fullPath);
       }
     } else if (entry.endsWith('.md')) {
@@ -161,7 +161,8 @@ export function generateToc({
   );
 
   const mdDir = markdownFolder || resolve(outputFolder, '..');
-  if (FileSystem.exists(mdDir)) {
+  const isFallback = !markdownFolder;
+  if ((!isFallback || resolve(mdDir) !== process.cwd()) && FileSystem.exists(mdDir)) {
     stripRelativeMarkdownLinks(mdDir);
   }
 }
