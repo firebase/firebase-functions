@@ -17,6 +17,10 @@ function getSafeFileName(f: string): string {
   return f.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
 }
 
+/**
+ * Resolves the reference path name for an API item in the Table of Contents.
+ * DevSite reference page URLs are extensionless, so the .md extension is omitted.
+ */
 export function getFilenameForApiItem(
   apiItem: ApiItem,
   addFileNameSuffix: boolean
@@ -88,6 +92,18 @@ interface ITocItem {
   section?: ITocItem[];
 }
 
+/**
+ * Strips .md extensions from relative markdown links in generated docs.
+ *
+ * DevSite will soon stop automatically rewriting .md link extensions to HTML.
+ * Furthermore, api-documenter-fire emits relative links prefixed with './'
+ * (e.g. [Change](./firebase-functions.change.md#class)), which DevSite's link
+ * processor bypasses.
+ *
+ * This function post-processes generated markdown files in-place so internal
+ * relative links navigate cleanly on DevSite, while preserving external URLs
+ * (https://, http://, //), anchors, query parameters, and link titles.
+ */
 export function stripRelativeMarkdownLinks(dir: string): void {
   const entries = readdirSync(dir);
   for (const entry of entries) {
@@ -160,6 +176,8 @@ export function generateToc({
     )
   );
 
+  // Post-process the generated markdown directory (the parent of the toc output folder)
+  // to strip .md extensions from relative links before docs are published to DevSite.
   const mdDir = markdownFolder || resolve(outputFolder, '..');
   const isFallback = !markdownFolder;
   if ((!isFallback || resolve(mdDir) !== process.cwd()) && FileSystem.exists(mdDir)) {
