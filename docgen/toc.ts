@@ -10,7 +10,7 @@ import {ApiItem, ApiItemKind, ApiModel, ApiPackage, ApiParameterListMixin,} from
 import {ModuleSource} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import {FileSystem, PackageName} from '@rushstack/node-core-library';
 import yargs from 'yargs';
-import {writeFileSync} from 'fs';
+import {readdirSync, readFileSync, statSync, writeFileSync} from 'fs';
 import {join, resolve} from 'path';
 
 function getSafeFileName(f: string): string {
@@ -22,7 +22,7 @@ export function getFilenameForApiItem(
   addFileNameSuffix: boolean
 ): string {
   if (apiItem.kind === ApiItemKind.Model) {
-    return 'index.md';
+    return 'index';
   }
 
   let baseName: string = '';
@@ -71,13 +71,14 @@ export function getFilenameForApiItem(
         break;
     }
   }
-  return baseName + '.md';
+  return baseName;
 }
 
 export interface ITocGenerationOptions {
   inputFolder: string;
   g3Path: string;
   outputFolder: string;
+  markdownFolder?: string;
   addFileNameSuffix: boolean;
 }
 
@@ -87,10 +88,33 @@ interface ITocItem {
   section?: ITocItem[];
 }
 
+export function stripRelativeMarkdownLinks(dir: string): void {
+  const entries = readdirSync(dir);
+  for (const entry of entries) {
+    const fullPath = join(dir, entry);
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) {
+      if (entry !== 'toc' && !entry.startsWith('.')) {
+        stripRelativeMarkdownLinks(fullPath);
+      }
+    } else if (entry.endsWith('.md')) {
+      const content = readFileSync(fullPath, 'utf8');
+      const updated = content.replace(
+        /(\]\((?!https?:|\/\/)[^)#:?\s]+)\.md(?=[#)?\s])/g,
+        '$1'
+      );
+      if (content !== updated) {
+        writeFileSync(fullPath, updated, 'utf8');
+      }
+    }
+  }
+}
+
 export function generateToc({
   inputFolder,
   g3Path,
   outputFolder,
+  markdownFolder,
   addFileNameSuffix,
 }: ITocGenerationOptions) {
   const apiModel: ApiModel = new ApiModel();
@@ -131,9 +155,15 @@ export function generateToc({
       { toc: entryPointToc },
       {
         quotingType: '"',
+        lineWidth: -1,
       }
     )
   );
+
+  const mdDir = markdownFolder || resolve(outputFolder, '..');
+  if (FileSystem.exists(mdDir)) {
+    stripRelativeMarkdownLinks(mdDir);
+  }
 }
 
 function generateTocRecursively(
@@ -167,7 +197,7 @@ function generateTocRecursively(
     }
 }
 
-const { input, output, path } = yargs(process.argv.slice(2))
+const { input, output, path, markdown } = yargs(process.argv.slice(2))
   .option('input', {
     alias: 'i',
     describe: 'input folder containing the *.api.json files to be processed.',
@@ -183,6 +213,11 @@ const { input, output, path } = yargs(process.argv.slice(2))
     describe: 'specifies the path where the reference docs resides (e.g. g3)',
     default: '/',
   })
+  .option('markdown', {
+    alias: 'm',
+    describe: 'directory containing markdown files to strip .md extensions from relative links',
+    type: 'string',
+  })
   .help().argv;
 
 FileSystem.ensureFolder(output);
@@ -190,5 +225,6 @@ generateToc({
   inputFolder: input,
   g3Path: path,
   outputFolder: output,
+  markdownFolder: markdown,
   addFileNameSuffix: false,
 });
