@@ -26,7 +26,7 @@ import { CloudEvent, CloudFunction } from "../../core";
 import { Expression } from "../../../params";
 import { wrapTraceContext } from "../../trace";
 import * as options from "../../options";
-import { SecretParam } from "../../../params/types";
+import { SupportedSecretParam } from "../../../params/types";
 import { withInit } from "../../../common/onInit";
 
 /**
@@ -110,7 +110,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -180,7 +180,7 @@ export interface FirebaseAlertOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean | Expression<boolean> | ResetValue;
@@ -235,7 +235,7 @@ export function getEndpointAnnotation(
   appId?: string
 ): ManifestEndpoint {
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOpts = options.optionsToEndpoint(opts);
+  const specificOpts = options.optionsToEndpoint(opts, "event");
   const endpoint: ManifestEndpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",

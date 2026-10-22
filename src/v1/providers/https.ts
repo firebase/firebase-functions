@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 import * as express from "express";
+import cors from "cors";
+import { isDebugFeatureEnabled } from "../../common/debug";
 
 import { convertIfPresent, convertInvoker } from "../../common/encoding";
 import {
@@ -28,7 +30,10 @@ import {
   FunctionsErrorCode,
   HttpsError,
   onCallHandler,
+  resolveCorsOrigin,
+  type CorsOption,
   Request,
+  withErrorHandler,
 } from "../../common/providers/https";
 import { HttpsFunction, optionsToEndpoint, optionsToTrigger, Runnable } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
@@ -36,17 +41,37 @@ import { initV1Endpoint } from "../../runtime/manifest";
 import { withInit } from "../../common/onInit";
 import { wrapTraceContext } from "../../v2/trace";
 
-export { Request, CallableContext, FunctionsErrorCode, HttpsError };
+export { HttpsError };
+export type { Request, CallableContext, FunctionsErrorCode };
+
+export interface HttpsOptions {
+  /**
+   * If true, allows CORS on requests to this function.
+   * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
+   * If this is an `Array`, allows requests from domains matching at least one entry of the array.
+   */
+  cors?: CorsOption;
+}
 
 /**
  * Handle HTTP requests.
- * @param handler A function that takes a request and response object,
+ * @param optsOrHandler Options or a function that takes a request and response object,
  * same signature as an Express app.
  */
 export function onRequest(
-  handler: (req: Request, resp: express.Response) => void | Promise<void>
+  optsOrHandler: HttpsOptions | ((req: Request, resp: express.Response) => void | Promise<void>),
+  handler?: (req: Request, resp: express.Response) => void | Promise<void>
 ): HttpsFunction {
-  return _onRequestWithOptions(handler, {});
+  let opts: HttpsOptions;
+  let userHandler: (req: Request, resp: express.Response) => void | Promise<void>;
+  if (typeof optsOrHandler === "function") {
+    opts = {};
+    userHandler = optsOrHandler;
+  } else {
+    opts = optsOrHandler;
+    userHandler = handler!;
+  }
+  return _onRequestWithOptions(userHandler, opts);
 }
 
 /**
@@ -62,11 +87,27 @@ export function onCall(
 /** @internal */
 export function _onRequestWithOptions(
   handler: (req: Request, resp: express.Response) => void | Promise<void>,
-  options: DeploymentOptions
+  options: DeploymentOptions & HttpsOptions
 ): HttpsFunction {
+  if (isDebugFeatureEnabled("enableCors") || "cors" in options) {
+    const userProvidedHandler = handler;
+    handler = (req: Request, res: express.Response): void | Promise<void> => {
+      return new Promise((resolve) => {
+        res.on("finish", resolve);
+        // Because this function is called per request (not at global scope),
+        // it is safe to read and resolve the CORS parameter here.
+        const origin = resolveCorsOrigin(options.cors);
+        const middleware = cors({ origin });
+        middleware(req, res, () => {
+          resolve(userProvidedHandler(req, res));
+        });
+      });
+    };
+  }
+
   // lets us add __endpoint without altering handler:
   const cloudFunction: any = (req: Request, res: express.Response) => {
-    return wrapTraceContext(withInit(handler))(req, res);
+    return wrapTraceContext(withInit(withErrorHandler(handler)))(req, res);
   };
   cloudFunction.__trigger = {
     ...optionsToTrigger(options),
@@ -102,9 +143,8 @@ export function _onCallWithOptions(
   handler: (data: any, context: CallableContext) => any | Promise<any>,
   options: DeploymentOptions
 ): HttpsFunction & Runnable<any> {
-  // onCallHandler sniffs the function length of the passed-in callback
-  // and the user could have only tried to listen to data. Wrap their handler
-  // in another handler to avoid accidentally triggering the v2 API
+  // fix the length of handler to make the call to handler consistent
+  // in the onCallHandler
   const fixedLen = (data: any, context: CallableContext) => {
     return withInit(handler)(data, context);
   };
@@ -115,7 +155,8 @@ export function _onCallWithOptions(
         consumeAppCheckToken: options.consumeAppCheckToken,
         cors: { origin: true, methods: "POST" },
       },
-      fixedLen
+      fixedLen,
+      "gcfv1"
     )
   );
 

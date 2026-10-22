@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import * as params from "../../src/params";
+import { transform } from "../../src/params/types";
 
 describe("Params spec extraction", () => {
   it("converts Expressions in the param default to strings", () => {
@@ -13,6 +14,26 @@ describe("Params spec extraction", () => {
   it("converts RegExps in string validation parameters to strings", () => {
     const foo = params.defineString("FOO", { input: { text: { validationRegex: /\d{5}/ } } });
     expect(foo.toSpec().input).to.deep.equal({ text: { validationRegex: "\\d{5}" } });
+  });
+
+  it("includes label and description for secret params", () => {
+    const secret = params.defineSecret("TEST_SECRET", {
+      label: "My Secret",
+      description: "A very secret value",
+    });
+    const spec = secret.toSpec();
+    expect(spec.name).to.equal("TEST_SECRET");
+    expect(spec.label).to.equal("My Secret");
+    expect(spec.description).to.equal("A very secret value");
+
+    const jsonSecret = params.defineJsonSecret("TEST_JSON_SECRET", {
+      label: "My JSON Secret",
+      description: "A very JSON secret value",
+    });
+    const jsonSpec = jsonSecret.toSpec();
+    expect(jsonSpec.name).to.equal("TEST_JSON_SECRET");
+    expect(jsonSpec.label).to.equal("My JSON Secret");
+    expect(jsonSpec.description).to.equal("A very JSON secret value");
   });
 });
 
@@ -31,6 +52,12 @@ describe("Params value extraction", () => {
     process.env.BAD_LIST = JSON.stringify(["a", 22, "c"]);
     process.env.ESCAPED_LIST = JSON.stringify(["f\to\no"]);
     process.env.A_SECRET_STRING = "123456supersecret";
+    process.env.STRIPE_CONFIG = JSON.stringify({
+      apiKey: "sk_test_123",
+      webhookSecret: "whsec_456",
+      clientId: "ca_789",
+    });
+    process.env.INVALID_JSON_SECRET = "not valid json{";
   });
 
   afterEach(() => {
@@ -49,6 +76,8 @@ describe("Params value extraction", () => {
     delete process.env.BAD_LIST;
     delete process.env.ESCAPED_LIST;
     delete process.env.A_SECRET_STRING;
+    delete process.env.STRIPE_CONFIG;
+    delete process.env.INVALID_JSON_SECRET;
   });
 
   it("extracts identity params from the environment", () => {
@@ -74,6 +103,14 @@ describe("Params value extraction", () => {
     expect(listParamWithEscapes.value()).to.deep.equal(["f\to\no"]);
     const secretParam = params.defineSecret("A_SECRET_STRING");
     expect(secretParam.value()).to.equal("123456supersecret");
+
+    const jsonSecretParam = params.defineJsonSecret("STRIPE_CONFIG");
+    const secretValue = jsonSecretParam.value();
+    expect(secretValue).to.deep.equal({
+      apiKey: "sk_test_123",
+      webhookSecret: "whsec_456",
+      clientId: "ca_789",
+    });
   });
 
   it("extracts the special case internal params from env.FIREBASE_CONFIG", () => {
@@ -223,6 +260,96 @@ describe("Params value extraction", () => {
   });
 });
 
+describe("defineJsonSecret", () => {
+  beforeEach(() => {
+    process.env.VALID_JSON = JSON.stringify({ key: "value", nested: { foo: "bar" } });
+    process.env.INVALID_JSON = "not valid json{";
+    process.env.EMPTY_OBJECT = JSON.stringify({});
+    process.env.ARRAY_JSON = JSON.stringify([1, 2, 3]);
+  });
+
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.VALID_JSON;
+    delete process.env.INVALID_JSON;
+    delete process.env.EMPTY_OBJECT;
+    delete process.env.ARRAY_JSON;
+    delete process.env.FUNCTIONS_CONTROL_API;
+  });
+
+  it("parses valid JSON secrets correctly", () => {
+    const jsonSecret = params.defineJsonSecret("VALID_JSON");
+    const value = jsonSecret.value();
+    expect(value).to.deep.equal({ key: "value", nested: { foo: "bar" } });
+  });
+
+  it("throws an error when JSON is invalid", () => {
+    const jsonSecret = params.defineJsonSecret("INVALID_JSON");
+    expect(() => jsonSecret.value()).to.throw(
+      '"INVALID_JSON" could not be parsed as JSON. Please verify its value in Secret Manager.'
+    );
+  });
+
+  it("throws an error when secret is not found", () => {
+    const jsonSecret = params.defineJsonSecret("NON_EXISTENT");
+    expect(() => jsonSecret.value()).to.throw(
+      'No value found for secret parameter "NON_EXISTENT". A function can only access a secret if you include the secret in the function\'s dependency array.'
+    );
+  });
+
+  it("handles empty object JSON", () => {
+    const jsonSecret = params.defineJsonSecret("EMPTY_OBJECT");
+    const value = jsonSecret.value();
+    expect(value).to.deep.equal({});
+  });
+
+  it("handles array JSON", () => {
+    const jsonSecret = params.defineJsonSecret("ARRAY_JSON");
+    const value = jsonSecret.value();
+    expect(value).to.deep.equal([1, 2, 3]);
+  });
+
+  it("throws an error when accessed during deployment", () => {
+    process.env.FUNCTIONS_CONTROL_API = "true";
+    const jsonSecret = params.defineJsonSecret("VALID_JSON");
+    expect(() => jsonSecret.value()).to.throw(
+      'Cannot access the value of secret "VALID_JSON" during function deployment. Secret values are only available at runtime.'
+    );
+  });
+
+  it("supports destructuring of JSON objects", () => {
+    process.env.STRIPE_CONFIG = JSON.stringify({
+      apiKey: "sk_test_123",
+      webhookSecret: "whsec_456",
+      clientId: "ca_789",
+    });
+
+    const stripeConfig = params.defineJsonSecret("STRIPE_CONFIG");
+    const { apiKey, webhookSecret, clientId } = stripeConfig.value();
+
+    expect(apiKey).to.equal("sk_test_123");
+    expect(webhookSecret).to.equal("whsec_456");
+    expect(clientId).to.equal("ca_789");
+
+    delete process.env.STRIPE_CONFIG;
+  });
+
+  it("registers the param in declaredParams", () => {
+    const initialLength = params.declaredParams.length;
+    const jsonSecret = params.defineJsonSecret("TEST_SECRET");
+    expect(params.declaredParams.length).to.equal(initialLength + 1);
+    expect(params.declaredParams[params.declaredParams.length - 1]).to.equal(jsonSecret);
+  });
+
+  it("has correct type and format annotation in toSpec", () => {
+    const jsonSecret = params.defineJsonSecret("TEST_SECRET");
+    const spec = jsonSecret.toSpec();
+    expect(spec.type).to.equal("secret");
+    expect(spec.name).to.equal("TEST_SECRET");
+    expect(spec.format).to.equal("json");
+  });
+});
+
 describe("Params as CEL", () => {
   it("internal expressions behave like strings", () => {
     const str = params.defineString("A_STRING");
@@ -329,5 +456,95 @@ describe("Params as CEL", () => {
     expect(
       cmpExpr.thenElse(params.defineString("FOO"), params.defineString("BAR")).toCEL()
     ).to.equal("{{ params.A != params.B ? params.FOO : params.BAR }}");
+  });
+});
+
+describe("expr template tag", () => {
+  beforeEach(() => {
+    process.env.PROJECT = "my-project";
+    process.env.TOPIC = "my-topic";
+  });
+
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.PROJECT;
+    delete process.env.TOPIC;
+  });
+
+  it("handles no interpolation", () => {
+    const e = params.expr`literal`;
+    expect(e.runtimeValue()).to.equal("literal");
+    expect(e.toCEL()).to.equal("literal");
+  });
+
+  it("handles interpolation at the start", () => {
+    const project = params.defineString("PROJECT");
+    const e = params.expr`${project}/literal`;
+    expect(e.runtimeValue()).to.equal("my-project/literal");
+    expect(e.toCEL()).to.equal("{{ params.PROJECT }}/literal");
+  });
+
+  it("handles interpolation at the end", () => {
+    const topic = params.defineString("TOPIC");
+    const e = params.expr`literal/${topic}`;
+    expect(e.runtimeValue()).to.equal("literal/my-topic");
+    expect(e.toCEL()).to.equal("literal/{{ params.TOPIC }}");
+  });
+
+  it("handles interpolation at the start and end", () => {
+    const project = params.defineString("PROJECT");
+    const topic = params.defineString("TOPIC");
+    const e = params.expr`${project}/${topic}`;
+    expect(e.runtimeValue()).to.equal("my-project/my-topic");
+    expect(e.toCEL()).to.equal("{{ params.PROJECT }}/{{ params.TOPIC }}");
+  });
+
+  it("handles interpolation only", () => {
+    const project = params.defineString("PROJECT");
+    const e = params.expr`${project}`;
+    expect(e.runtimeValue()).to.equal("my-project");
+    expect(e.toCEL()).to.equal("{{ params.PROJECT }}");
+  });
+
+  it("handles multiple interpolations", () => {
+    const project = params.defineString("PROJECT");
+    const topic = params.defineString("TOPIC");
+    const e = params.expr`projects/${project}/topics/${topic}`;
+    expect(e.runtimeValue()).to.equal("projects/my-project/topics/my-topic");
+    expect(e.toCEL()).to.equal("projects/{{ params.PROJECT }}/topics/{{ params.TOPIC }}");
+  });
+
+  it("handles string literals in interpolation", () => {
+    const e = params.expr`literal/${"string"}/literal`;
+    expect(e.runtimeValue()).to.equal("literal/string/literal");
+    expect(e.toCEL()).to.equal("literal/string/literal");
+  });
+});
+
+describe("transform", () => {
+  beforeEach(() => {
+    process.env.FOO = "bar";
+  });
+
+  afterEach(() => {
+    params.clearParams();
+    delete process.env.FOO;
+  });
+
+  it("transforms a string literal", () => {
+    const e = transform("foo", (s) => s.toUpperCase());
+    expect(e.runtimeValue()).to.equal("FOO");
+    expect(e.toCEL()).to.equal("FOO");
+  });
+
+  it("transforms an Expression", () => {
+    const foo = params.defineString("FOO");
+    const e = transform(foo, (s) => s.toUpperCase());
+    expect(e.runtimeValue()).to.equal("BAR");
+    expect(e.toCEL()).to.equal("{{ params.FOO }}");
+
+    const e2 = transform(params.expr`hello ${foo}`, (s) => s.toUpperCase());
+    expect(e2.runtimeValue()).to.equal("HELLO BAR");
+    expect(e2.toCEL()).to.equal("HELLO {{ params.FOO }}");
   });
 });

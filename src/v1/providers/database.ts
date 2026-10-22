@@ -27,8 +27,10 @@ import { ParamsOf } from "../../common/params";
 import { DataSnapshot } from "../../common/providers/database";
 import { normalizePath } from "../../common/utilities/path";
 import { applyChange } from "../../common/utilities/utils";
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
+import { Expression, transform } from "../../params/types";
+import { expr } from "../../params";
 
 export { DataSnapshot };
 
@@ -55,7 +57,7 @@ const emulatorDatabaseURLRegex = new RegExp("^http://.*ns=([^&]+)");
  *   to watch for write events.
  * @returns Firebase Realtime Database instance builder interface.
  */
-export function instance(instance: string) {
+export function instance(instance: string | Expression<string>) {
   return _instanceWithOptions(instance, {});
 }
 
@@ -91,13 +93,13 @@ export function instance(instance: string) {
  * @param path The path within the Database to watch for write events.
  * @returns Firebase Realtime Database builder interface.
  */
-export function ref<Ref extends string>(path: Ref) {
+export function ref<Ref extends string>(path: Ref | Expression<string>) {
   return _refWithOptions(path, {});
 }
 
 /** @internal */
 export function _instanceWithOptions(
-  instance: string,
+  instance: string | Expression<string>,
   options: DeploymentOptions
 ): InstanceBuilder {
   return new InstanceBuilder(instance, options);
@@ -109,15 +111,15 @@ export function _instanceWithOptions(
  * Access via [`database.instance()`](providers_database_.html#instance).
  */
 export class InstanceBuilder {
-  constructor(private instance: string, private options: DeploymentOptions) {}
+  constructor(private instance: string | Expression<string>, private options: DeploymentOptions) {}
 
   /**
    * @returns Firebase Realtime Database reference builder interface.
    */
-  ref<Ref extends string>(path: Ref): RefBuilder<Ref> {
-    const normalized = normalizePath(path);
+  ref<Ref extends string>(path: Ref | Expression<string>): RefBuilder<Ref> {
+    const normalized = transform(path, normalizePath);
     return new RefBuilder<Ref>(
-      () => `projects/_/instances/${this.instance}/refs/${normalized}`,
+      () => expr`projects/_/instances/${this.instance}/refs/${normalized}`,
       this.options
     );
   }
@@ -125,11 +127,11 @@ export class InstanceBuilder {
 
 /** @internal */
 export function _refWithOptions<Ref extends string>(
-  path: Ref,
+  path: Ref | Expression<string>,
   options: DeploymentOptions
 ): RefBuilder<Ref> {
   const resourceGetter = () => {
-    const normalized = normalizePath(path);
+    const normalized = transform(path, normalizePath);
     const databaseURL = firebaseConfig().databaseURL;
     if (!databaseURL) {
       throw new Error(
@@ -155,7 +157,7 @@ export function _refWithOptions<Ref extends string>(
       throw new Error("Invalid value for config firebase.databaseURL: " + databaseURL);
     }
 
-    return `projects/_/instances/${instance}/refs/${normalized}`;
+    return expr`projects/_/instances/${instance}/refs/${normalized}`;
   };
 
   return new RefBuilder<Ref>(resourceGetter, options);
@@ -167,7 +169,10 @@ export function _refWithOptions<Ref extends string>(
  * Access via [`functions.database.ref()`](functions.database#.ref).
  */
 export class RefBuilder<Ref extends string> {
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Realtime Database write
@@ -217,7 +222,7 @@ export class RefBuilder<Ref extends string> {
       context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    const dataConstructor = (raw: Event) => {
+    const dataConstructor = (raw: LegacyEvent) => {
       const [dbInstance, path] = extractInstanceAndPath(
         raw.context.resource.name,
         raw.context.domain
@@ -241,7 +246,7 @@ export class RefBuilder<Ref extends string> {
       context: EventContext<ParamsOf<Ref>>
     ) => PromiseLike<any> | any
   ): CloudFunction<DataSnapshot> {
-    const dataConstructor = (raw: Event) => {
+    const dataConstructor = (raw: LegacyEvent) => {
       const [dbInstance, path] = extractInstanceAndPath(
         raw.context.resource.name,
         raw.context.domain
@@ -254,7 +259,7 @@ export class RefBuilder<Ref extends string> {
   private onOperation<T>(
     handler: (data: T, context: EventContext) => PromiseLike<any> | any,
     eventType: string,
-    dataConstructor: (raw: Event | Event) => any
+    dataConstructor: (raw: LegacyEvent | LegacyEvent) => any
   ): CloudFunction<T> {
     return makeCloudFunction({
       handler,
@@ -268,7 +273,7 @@ export class RefBuilder<Ref extends string> {
     });
   }
 
-  private changeConstructor = (raw: Event): Change<DataSnapshot> => {
+  private changeConstructor = (raw: LegacyEvent): Change<DataSnapshot> => {
     const [dbInstance, path] = extractInstanceAndPath(
       raw.context.resource.name,
       raw.context.domain

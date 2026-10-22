@@ -60,11 +60,11 @@ export type NullSafe<S extends null | undefined | string> = S extends null
  * A type that extracts parameter name enclosed in bracket as string.
  * Ignore wildcard matches
  *
- * For example, Extract<"{uid}"> is "uid".
- * For example, Extract<"{uid=*}"> is "uid".
- * For example, Extract<"{uid=**}"> is "uid".
+ * For example, VarName<"{uid}"> is "uid".
+ * For example, VarName<"{uid=*}"> is "uid".
+ * For example, VarName<"{uid=**}"> is "uid".
  */
-export type Extract<Part extends string> = Part extends `{${infer Param}=**}`
+export type VarName<Part extends string> = Part extends `{${infer Param}=**}`
   ? Param
   : Part extends `{${infer Param}=*}`
   ? Param
@@ -90,7 +90,7 @@ export type ParamsOf<PathPattern extends string | Expression<string>> =
         // N.B. I'm not sure why PathPattern isn't detected to not be an
         // Expression<string> per the check above. Since we have the check above
         // The Exclude call should be safe.
-        [Key in Extract<
+        [Key in VarName<
           Split<NullSafe<Exclude<PathPattern, Expression<string>>>, "/">[number]
         >]: string;
       };

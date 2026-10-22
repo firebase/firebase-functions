@@ -31,6 +31,7 @@ export const MINIMAL_V2_ENDPOINT: ManifestEndpoint = {
   serviceAccountEmail: RESET_VALUE,
   timeoutSeconds: RESET_VALUE,
   vpc: RESET_VALUE,
+  secretEnvironmentVariables: RESET_VALUE,
 };
 
 export const MINIMAL_V1_ENDPOINT: ManifestEndpoint = {
@@ -41,6 +42,7 @@ export const MINIMAL_V1_ENDPOINT: ManifestEndpoint = {
   serviceAccountEmail: RESET_VALUE,
   timeoutSeconds: RESET_VALUE,
   vpc: RESET_VALUE,
+  secretEnvironmentVariables: RESET_VALUE,
 };
 
 export const FULL_ENDPOINT: ManifestEndpoint = {

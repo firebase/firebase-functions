@@ -20,8 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import { CloudFunction, Event, EventContext, makeCloudFunction } from "../cloud-functions";
+import { CloudFunction, LegacyEvent, EventContext, makeCloudFunction } from "../cloud-functions";
 import { DeploymentOptions } from "../function-configuration";
+import { Expression } from "../../params/types";
+import { expr } from "../../params";
 
 /** @internal */
 export const provider = "google.analytics";
@@ -36,17 +38,20 @@ export const service = "app-measurement.com";
  *
  * @returns Analytics event builder interface.
  */
-export function event(analyticsEventType: string) {
+export function event(analyticsEventType: string | Expression<string>) {
   return _eventWithOptions(analyticsEventType, {});
 }
 
 /** @internal */
-export function _eventWithOptions(analyticsEventType: string, options: DeploymentOptions) {
+export function _eventWithOptions(
+  analyticsEventType: string | Expression<string>,
+  options: DeploymentOptions
+) {
   return new AnalyticsEventBuilder(() => {
     if (!process.env.GCLOUD_PROJECT) {
       throw new Error("process.env.GCLOUD_PROJECT is not set.");
     }
-    return "projects/" + process.env.GCLOUD_PROJECT + "/events/" + analyticsEventType;
+    return expr`projects/${process.env.GCLOUD_PROJECT}/events/${analyticsEventType}`;
   }, options);
 }
 
@@ -56,8 +61,11 @@ export function _eventWithOptions(analyticsEventType: string, options: Deploymen
  * Access via `functions.analytics.event()`.
  */
 export class AnalyticsEventBuilder {
-  /** @hidden */
-  constructor(private triggerResource: () => string, private options: DeploymentOptions) {}
+  /** @internal */
+  constructor(
+    private triggerResource: () => string | Expression<string>,
+    private options: DeploymentOptions
+  ) {}
 
   /**
    * Event handler that fires every time a Firebase Analytics event occurs.
@@ -70,7 +78,7 @@ export class AnalyticsEventBuilder {
   onLog(
     handler: (event: AnalyticsEvent, context: EventContext) => PromiseLike<any> | any
   ): CloudFunction<AnalyticsEvent> {
-    const dataConstructor = (raw: Event) => {
+    const dataConstructor = (raw: LegacyEvent) => {
       return new AnalyticsEvent(raw.data);
     };
     return makeCloudFunction({
@@ -135,6 +143,23 @@ export class AnalyticsEvent {
   }
 }
 
+function isValidUserProperty(property: unknown): property is { value: unknown } {
+  if (property == null || typeof property !== "object" || !("value" in property)) {
+    return false;
+  }
+
+  const { value } = property;
+  if (value == null) {
+    return false;
+  }
+
+  if (typeof value === "object" && Object.keys(value).length === 0) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Interface representing the user who triggered the events.
  */
@@ -179,8 +204,10 @@ export class UserDimensions {
     // The following fields do need transformations of some sort.
     copyTimestampToString(wireFormat, this, "firstOpenTimestampMicros", "firstOpenTime");
     this.userProperties = {}; // With no entries in the wire format, present an empty (as opposed to absent) map.
-    copyField(wireFormat, this, "userProperties", (r) => {
-      const entries = Object.entries(r).map(([k, v]) => [k, new UserPropertyValue(v)]);
+    copyField(wireFormat, this, "userProperties", (r: unknown) => {
+      const entries = Object.entries(r as Record<string, unknown>)
+        .filter(([, v]) => isValidUserProperty(v))
+        .map(([k, v]) => [k, new UserPropertyValue(v)]);
       return Object.fromEntries(entries);
     });
     copyField(wireFormat, this, "bundleInfo", (r) => new ExportBundleInfo(r) as any);
@@ -454,9 +481,20 @@ function mapKeys<Obj, Transform extends (key: keyof Obj) => any>(
 // method always returns a string, similarly to avoid loss of precision, unlike the less-conservative
 // 'unwrapValue' method just below.
 /** @hidden */
-function unwrapValueAsString(wrapped: any): string {
-  const key: string = Object.keys(wrapped)[0];
-  return wrapped[key].toString();
+function unwrapValueAsString(wrapped: unknown): string {
+  if (!wrapped || typeof wrapped !== "object") {
+    return "";
+  }
+  const keys = Object.keys(wrapped);
+  if (keys.length === 0) {
+    return "";
+  }
+  const key: string = keys[0];
+  const value = (wrapped as Record<string, unknown>)[key];
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return value.toString();
 }
 
 // Ditto as the method above, but returning the values in the idiomatic JavaScript type (string for strings,

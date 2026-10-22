@@ -1,18 +1,20 @@
-import * as jwt from 'jsonwebtoken';
-import * as jwkToPem from 'jwk-to-pem';
-import * as nock from 'nock';
+import { EventEmitter } from 'node:stream';
+
+import jwt from 'jsonwebtoken';
+import jwkToPem from 'jwk-to-pem';
+import nock from 'nock';
 import * as mockJWK from '../fixtures/credential/jwk.json';
 import * as mockKey from '../fixtures/credential/key.json';
 
 // MockRequest mocks an https.Request.
-export class MockRequest {
+export class MockRequest extends EventEmitter {
   public method: 'POST' | 'GET' | 'OPTIONS' = 'POST';
 
   constructor(
     readonly body: any,
     readonly headers: { [name: string]: string }
   ) {
-    // This block intentionally left blank.
+    super()
   }
 
   public header(name: string): string {

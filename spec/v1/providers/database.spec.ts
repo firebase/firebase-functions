@@ -494,20 +494,31 @@ describe("DataSnapshot", () => {
     it("should deal with null-values appropriately", () => {
       populate(null);
       expect(subject.val()).to.be.null;
+      expect(subject.child("a").val()).to.be.null;
+      expect(subject.child("a/b").val()).to.be.null;
 
       populate({ myKey: null });
       expect(subject.val()).to.be.null;
+      expect(subject.child("myKey").val()).to.be.null;
+      expect(subject.child("myKey/a").val()).to.be.null;
+      expect(subject.child("myKey/a/b").val()).to.be.null;
+      expect(subject.child("a").val()).to.be.null;
+      expect(subject.child("a/b").val()).to.be.null;
     });
 
     it("should deal with empty object values appropriately", () => {
       populate({});
       expect(subject.val()).to.be.null;
+      expect(subject.child("a").val()).to.be.null;
 
       populate({ myKey: {} });
       expect(subject.val()).to.be.null;
+      expect(subject.child("myKey").val()).to.be.null;
 
       populate({ myKey: { child: null } });
       expect(subject.val()).to.be.null;
+      expect(subject.child("myKey").val()).to.be.null;
+      expect(subject.child("myKey/child").val()).to.be.null;
     });
 
     it("should deal with empty array values appropriately", () => {

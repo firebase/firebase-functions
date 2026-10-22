@@ -24,7 +24,7 @@
 
 # vars
 PROTOS_DIR="$(pwd)"
-WORK_DIR=`mktemp -d`
+WORK_DIR=$(mktemp -d)
 
 # deletes the temp directory on exit
 function cleanup {
@@ -36,10 +36,6 @@ function cleanup {
 
 # register the cleanup function to be called on the EXIT signal
 trap cleanup EXIT
-
-# Capture location of pbjs / pbts before we pushd.
-PBJS="$(npm bin)/pbjs"
-PBTS="$(npm bin)/pbts"
 
 # enter working directory
 pushd "$WORK_DIR"
@@ -69,7 +65,32 @@ cp googleapis/google/type/latlng.proto \
 
 popd
 
-"${PBJS}" -t static-module -w commonjs -o compiledFirestore.js \
+PBJS="npx pbjs"
+PBTS="npx pbts"
+
+# Generate CommonJS
+${PBJS} -t static-module -w commonjs -o compiledFirestore.js \
   data.proto any.proto
 
-"${PBTS}" -o compiledFirestore.d.ts compiledFirestore.js
+# Generate ESM
+${PBJS} -t static-module -w es6 -o compiledFirestore.mjs \
+  data.proto any.proto
+
+# Generate Types
+${PBTS} -o compiledFirestore.d.ts compiledFirestore.js
+#
+# Fix imports for Node ESM in the generated .mjs file.
+# See: https://github.com/protobufjs/protobuf.js/issues/1929
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # 1. Append .js extension: Node ESM requires full paths for subpath imports not in 'exports'.
+  sed -i '' 's|protobufjs/minimal|protobufjs/minimal.js|g' compiledFirestore.mjs
+  # 2. Use default import: protobufjs is CJS. 'import * as' creates a namespace where
+  #    module.exports is under .default. Generated code expects $protobuf to be module.exports directly.
+  sed -i '' 's|import \* as \$protobuf|import \$protobuf|g' compiledFirestore.mjs
+else
+  # 1. Append .js extension.
+  sed -i 's|protobufjs/minimal|protobufjs/minimal.js|g' compiledFirestore.mjs
+  # 2. Use default import.
+  sed -i 's|import \* as \$protobuf|import \$protobuf|g' compiledFirestore.mjs
+fi
+

@@ -24,25 +24,34 @@
  * Cloud functions to handle events from Google Cloud Identity Platform.
  * @packageDocumentation
  */
-import { ResetValue } from "../../common/options";
+import { ResetValue, RESET_VALUE } from "../../common/options";
 import {
   AuthBlockingEvent,
   AuthBlockingEventType,
   AuthUserRecord,
   BeforeCreateResponse,
   BeforeSignInResponse,
+  BeforeEmailResponse,
+  BeforeSmsResponse,
+  HandlerV2,
   HttpsError,
   wrapHandler,
+  MaybeAsync,
 } from "../../common/providers/identity";
 import { BlockingFunction } from "../../v1/cloud-functions";
 import { wrapTraceContext } from "../trace";
 import { Expression } from "../../params";
-import { initV2Endpoint } from "../../runtime/manifest";
+import { initV2Endpoint, ManifestEndpoint } from "../../runtime/manifest";
 import * as options from "../options";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { withInit } from "../../common/onInit";
+import { CloudEvent, CloudFunction } from "../core";
+import { addV1Compat, V1Compat } from "../compat";
+import { UserRecord as AdminUserRecord } from "firebase-admin/auth";
+import { userRecordConstructor } from "../../common/providers/identity";
 
-export { AuthUserRecord, AuthBlockingEvent, HttpsError };
+export { HttpsError };
+export type { AuthUserRecord, AuthBlockingEvent };
 
 /** @hidden Internally used when parsing the options. */
 interface InternalOptions {
@@ -53,7 +62,7 @@ interface InternalOptions {
 }
 
 /**
- * All function options plus idToken, accessToken, and refreshToken.
+ * All function options plus `idToken`, `accessToken`, and `refreshToken`.
  */
 export interface BlockingOptions {
   /** Pass the ID Token credential to the function. */
@@ -66,7 +75,7 @@ export interface BlockingOptions {
   refreshToken?: boolean;
 
   /**
-   * If true, do not deploy or emulate this function.
+   * If `true`, do not deploy or emulate this function.
    */
   omit?: boolean | Expression<boolean>;
 
@@ -88,7 +97,7 @@ export interface BlockingOptions {
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -112,7 +121,7 @@ export interface BlockingOptions {
    *
    * @remarks
    * Can only be applied to functions running on Cloud Functions v2.
-   * A value of null restores the default concurrency (80 when CPU >= 1, 1 otherwise).
+   * A value of `null` restores the default concurrency (80 when `cpu` >= 1, 1 otherwise).
    * Concurrency cannot be set to any value other than 1 if `cpu` is less than 1.
    * The maximum value for concurrency is 1,000.
    */
@@ -126,7 +135,7 @@ export interface BlockingOptions {
    * This is different from the defaults when using the gcloud utility and is different from
    * the fixed amount assigned in Google Cloud Functions generation 1.
    * To revert to the CPU amounts used in gcloud or in Cloud Functions generation 1, set this
-   * to the value "gcf_gen1"
+   * to the value `"gcf_gen1"`.
    */
   cpu?: number | "gcf_gen1";
 
@@ -158,87 +167,134 @@ export interface BlockingOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 }
 
 /**
  * Handles an event that is triggered before a user is created.
- * @param handler - Event handler which is run every time before a user is created
+ * @param handler - Event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction;
 
 /**
  * Handles an event that is triggered before a user is created.
- * @param opts - Object containing function options
- * @param handler - Event handler which is run every time before a user is created
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction;
 
 /**
- * Handles an event that is triggered before a user is created
- * @param optsOrHandler - Either an object containing function options, or an event handler (run before user creation)
- * @param handler? - If defined, an event handler which is run every time before a user is created
+ * Handles an event that is triggered before a user is created.
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user creation).
+ * @param handler? - If defined, an event handler which is run every time before a user is created.
  */
 export function beforeUserCreated(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeCreateResponse | Promise<BeforeCreateResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeCreateResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeCreate", optsOrHandler, handler);
 }
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param handler - Event handler which is run every time before a user is signed in
+ * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction;
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param opts - Object containing function options
- * @param handler - Event handler which is run every time before a user is signed in
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
   opts: BlockingOptions,
-  handler: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction;
 
 /**
  * Handles an event that is triggered before a user is signed in.
- * @param optsOrHandler - Either an object containing function options, or an event handler (run before user signin)
- * @param handler - Event handler which is run every time before a user is signed in
+ * @param optsOrHandler - Either an object containing function options, or an event handler (run before user signin).
+ * @param handler - Event handler which is run every time before a user is signed in.
  */
 export function beforeUserSignedIn(
   optsOrHandler:
     | BlockingOptions
-    | ((
-        event: AuthBlockingEvent
-      ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>),
-  handler?: (
-    event: AuthBlockingEvent
-  ) => BeforeSignInResponse | Promise<BeforeSignInResponse> | void | Promise<void>
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSignInResponse | void>
 ): BlockingFunction {
   return beforeOperation("beforeSignIn", optsOrHandler, handler);
+}
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeEmailSent(
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeEmailSent(
+  opts: Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">,
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an email is sent to a user.
+ * @param optsOrHandler - Either an object containing function options, or an event handler that is run before an email is sent to a user.
+ * @param handler - Event handler that is run before an email is sent to a user.
+ */
+export function beforeEmailSent(
+  optsOrHandler:
+    | Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeEmailResponse | void>
+): BlockingFunction {
+  return beforeOperation("beforeSendEmail", optsOrHandler, handler);
+}
+/**
+ * Handles an event that is triggered before an SMS is sent to a user.
+ * @param handler - Event handler that is run before an SMS is sent to a user.
+ */
+export function beforeSmsSent(
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an SMS is sent to a user.
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run before an SMS is sent to a user.
+ */
+export function beforeSmsSent(
+  opts: Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">,
+  handler: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+): BlockingFunction;
+
+/**
+ * Handles an event that is triggered before an SMS is sent to a user.
+ * @param optsOrHandler - Either an object containing function options, or an event handler that is run before an SMS is sent to a user.
+ * @param handler - Event handler that is run before an SMS is sent to a user.
+ */
+export function beforeSmsSent(
+  optsOrHandler:
+    | Omit<BlockingOptions, "idToken" | "accessToken" | "refreshToken">
+    | ((event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>),
+  handler?: (event: AuthBlockingEvent) => MaybeAsync<BeforeSmsResponse | void>
+): BlockingFunction {
+  return beforeOperation("beforeSendSms", optsOrHandler, handler);
 }
 
 /** @hidden */
@@ -248,48 +304,32 @@ export function beforeOperation(
     | BlockingOptions
     | ((
         event: AuthBlockingEvent
-      ) =>
-        | BeforeCreateResponse
-        | BeforeSignInResponse
-        | void
-        | Promise<BeforeCreateResponse>
-        | Promise<BeforeSignInResponse>
-        | Promise<void>),
-  handler: (
-    event: AuthBlockingEvent
-  ) =>
-    | BeforeCreateResponse
-    | BeforeSignInResponse
-    | void
-    | Promise<BeforeCreateResponse>
-    | Promise<BeforeSignInResponse>
-    | Promise<void>
+      ) => MaybeAsync<
+        BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+      >),
+  handler: HandlerV2
 ): BlockingFunction {
   if (!handler || typeof optsOrHandler === "function") {
     handler = optsOrHandler as (
       event: AuthBlockingEvent
-    ) =>
-      | BeforeCreateResponse
-      | BeforeSignInResponse
-      | void
-      | Promise<BeforeCreateResponse>
-      | Promise<BeforeSignInResponse>
-      | Promise<void>;
+    ) => MaybeAsync<
+      BeforeCreateResponse | BeforeSignInResponse | BeforeEmailResponse | BeforeSmsResponse | void
+    >;
     optsOrHandler = {};
   }
 
-  const { opts, accessToken, idToken, refreshToken } = getOpts(optsOrHandler);
+  const { opts, ...blockingOptions } = getOpts(optsOrHandler);
 
   // Create our own function that just calls the provided function so we know for sure that
   // handler takes one argument. This is something common/providers/identity depends on.
-  const wrappedHandler = (event: AuthBlockingEvent) => handler(event);
-  const func: any = wrapTraceContext(withInit(wrapHandler(eventType, wrappedHandler)));
+  const annotatedHandler = Object.assign(handler, { platform: "gcfv2" as const });
+  const func: any = wrapTraceContext(withInit(wrapHandler(eventType, annotatedHandler)));
 
   const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 
   /** Endpoint */
   const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
-  const specificOptsEndpoint = options.optionsToEndpoint(opts);
+  const specificOptsEndpoint = options.optionsToEndpoint(opts, "identity");
   func.__endpoint = {
     ...initV2Endpoint(options.getGlobalOptions(), opts),
     platform: "gcfv2",
@@ -302,9 +342,7 @@ export function beforeOperation(
     blockingTrigger: {
       eventType: legacyEventType,
       options: {
-        accessToken,
-        idToken,
-        refreshToken,
+        ...((eventType === "beforeCreate" || eventType === "beforeSignIn") && blockingOptions),
       },
     },
   };
@@ -336,4 +374,368 @@ export function getOpts(blockingOptions: BlockingOptions): InternalOptions {
     idToken,
     refreshToken,
   };
+}
+
+/**
+ * The user data payload for a Firebase Authentication event. This is the standard `UserRecord`
+ * from the Firebase Admin SDK.
+ * @beta
+ */
+export type User = AdminUserRecord;
+
+/**
+ * The event object passed to the handler function for Firebase Authentication
+ * events.
+ * @beta
+ */
+export interface AuthEvent<T> extends CloudEvent<T> {
+  /** The project identifier. */
+  project?: string;
+
+  /** The ID of the Identity Platform tenant associated with the event, if applicable. */
+  tenantId?: string;
+}
+
+/**
+ * Options for configuring a Firebase Authentication trigger.
+ * @beta
+ */
+export interface AuthOptions extends options.EventHandlerOptions {
+  /**
+   * The ID of the Identity Platform tenant to scope the function to.
+   * If not set, the function triggers on users across all tenants.
+   * Set to `IS_NOT_TENANT` to only trigger on users in the default
+   * project (no tenant).
+   */
+  tenantId?: string | Expression<string> | typeof IS_NOT_TENANT;
+}
+
+/**
+ * Constant to represent the absence of a tenant ID.
+ * @beta
+ */
+export const IS_NOT_TENANT = RESET_VALUE;
+
+/**
+ * Event handler type for Firebase Authentication triggers that supports both standard `AuthEvent`
+ * and 1st gen compatibility destructuring (`{ user, context }`).
+ * @beta
+ */
+export type AuthEventHandler = (
+  event: AuthEvent<User> & V1Compat<"user", User>
+) => any | Promise<any>;
+
+// Helper to handle overloaded function signature
+function getOptsAndHandler(
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
+) {
+  if (typeof optsOrHandler === "function") {
+    return { opts: {}, handler: optsOrHandler };
+  }
+  return { opts: optsOrHandler, handler: handler };
+}
+
+// Matches both absolute paths (/projects/...) and relative paths (projects/...)
+const PROJECT_ID_REGEX = /(?:^|\/)projects\/([^\/]+)/;
+const IDENTITY_TOOLKIT_SOURCE_PREFIX = "//identitytoolkit.googleapis.com/";
+const FIREBASE_AUTH_SERVICE = "firebaseauth.googleapis.com";
+const USER_CREATED_EVENT = "google.firebase.auth.user.v2.created";
+const USER_DELETED_EVENT = "google.firebase.auth.user.v2.deleted";
+
+/**
+ * Converts the v2 Eventarc (`AuthEventData`) protobuf wire protocol (`value`/`oldValue`, `createTime`, `photoUrl`)
+ * into the v1 `LegacyEvent` wire protocol expected by `userRecordConstructor`.
+ * @hidden
+ */
+function convertV2EventToV1Event(rawData: unknown): User | undefined {
+  if (!rawData || typeof rawData !== "object") {
+    return undefined;
+  }
+  const dataObj = rawData as Record<string, unknown>;
+  let rawUser: unknown;
+  if ("value" in dataObj) {
+    rawUser = dataObj.value;
+  } else if ("oldValue" in dataObj) {
+    rawUser = dataObj.oldValue;
+  } else if ("old_value" in dataObj) {
+    rawUser = dataObj.old_value;
+  } else {
+    rawUser = dataObj;
+  }
+  if (!rawUser || typeof rawUser !== "object") {
+    return undefined;
+  }
+  const userData = { ...(rawUser as Record<string, unknown>) };
+  if (userData.photoUrl && !userData.photoURL) {
+    userData.photoURL = userData.photoUrl;
+  }
+  if (userData.metadata && typeof userData.metadata === "object") {
+    const meta = { ...(userData.metadata as Record<string, unknown>) };
+    if (meta.createTime && !meta.createdAt && !meta.creationTime) {
+      meta.creationTime = meta.createTime;
+    }
+    userData.metadata = meta;
+  }
+  return userRecordConstructor(userData);
+}
+
+/** Internal helper interface for extracting tenant IDs and compat fields from raw or mock events. */
+interface RawAuthEventShape {
+  tenantId?: string;
+  tenantid?: string;
+  user?: User;
+  context?: ReturnType<typeof getV1AuthContext>;
+  data?: { tenantId?: string };
+}
+
+/**
+ * Normalizes raw CloudEvents from Eventarc into AuthEvent<User>.
+ * Eventarc wraps v2 Authentication user payloads inside an `AuthEventData`
+ * protobuf envelope (`value` for creation events, `oldValue` for deletion events).
+ * We unbox the envelope (falling back to `raw.data` for unit tests) and normalize
+ * protobuf-specific field names (`createTime` -> `creationTime`, `photoUrl` -> `photoURL`).
+ * @hidden
+ */
+function getAuthEvent(raw: CloudEvent<unknown>): AuthEvent<User> {
+  const event = { ...raw } as unknown as AuthEvent<User>;
+  if (raw.data !== undefined && raw.data !== null) {
+    event.data = convertV2EventToV1Event(raw.data);
+  }
+  const rawShape = raw as unknown as RawAuthEventShape;
+  // Support both lowercase (CloudEvents standard) and camelCase (local testing)
+  const tenantId = rawShape.tenantid || rawShape.tenantId || event.data?.tenantId;
+  if (tenantId) {
+    event.tenantId = tenantId;
+  }
+  if (raw.source) {
+    // Defensive check against pathological source strings (e.g. emulators/custom events)
+    const match = raw.source.match(PROJECT_ID_REGEX);
+    if (match) {
+      event.project = match[1];
+    }
+  }
+  return event;
+}
+
+/** @internal */
+export function getV1AuthContext(event: AuthEvent<User>) {
+  let resourceName = event.source || "";
+  if (resourceName.startsWith(IDENTITY_TOOLKIT_SOURCE_PREFIX)) {
+    resourceName = resourceName.substring(IDENTITY_TOOLKIT_SOURCE_PREFIX.length);
+  } else if (event.project) {
+    resourceName = `projects/${event.project}`;
+  }
+  return {
+    eventId: event.id,
+    timestamp: event.time,
+    eventType:
+      event.type === USER_CREATED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.create"
+        : event.type === USER_DELETED_EVENT
+        ? "providers/firebase.auth/eventTypes/user.delete"
+        : event.type,
+    resource: {
+      service: FIREBASE_AUTH_SERVICE,
+      name: resourceName,
+    },
+    params: {},
+  };
+}
+
+/** @hidden */
+function makeAuthTrigger(
+  eventType: string,
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
+): CloudFunction<AuthEvent<User>> {
+  const { opts, handler: handlerFunc } = getOptsAndHandler(optsOrHandler, handler);
+
+  if (typeof handlerFunc !== "function") {
+    throw new Error("The handler must be a function.");
+  }
+
+  const wrappedHandler = wrapTraceContext(withInit(handlerFunc));
+
+  const func = ((raw: CloudEvent<unknown>) => {
+    const event = getAuthEvent(raw);
+    if (opts.tenantId === IS_NOT_TENANT && event.tenantId) {
+      return;
+    }
+    const compatEvent = addV1Compat(event, {
+      context: () => getV1AuthContext(event),
+      user: () => event.data,
+    });
+    return wrappedHandler(compatEvent);
+  }) as CloudFunction<AuthEvent<User>>;
+
+  func.run = ((event: AuthEvent<User>) => {
+    if (!event) {
+      return handlerFunc(event as Parameters<AuthEventHandler>[0]);
+    }
+    const eventShape = event as unknown as RawAuthEventShape;
+    const existingUser = eventShape.user;
+    const tenantId =
+      event.tenantId || eventShape.tenantid || existingUser?.tenantId || eventShape.data?.tenantId;
+    if (opts.tenantId === IS_NOT_TENANT && tenantId) {
+      return;
+    }
+    const existingContext = eventShape.context;
+    const compatEvent = addV1Compat(event, {
+      context: () => existingContext ?? getV1AuthContext(event),
+      user: () => event.data ?? existingUser,
+    });
+    return handlerFunc(compatEvent);
+  }) as CloudFunction<AuthEvent<User>>["run"];
+  const baseOptsEndpoint = options.optionsToEndpoint(options.getGlobalOptions());
+  const specificOptsEndpoint = options.optionsToEndpoint(opts);
+  const endpoint: ManifestEndpoint = {
+    ...initV2Endpoint(options.getGlobalOptions(), opts),
+    platform: "gcfv2",
+    ...baseOptsEndpoint,
+    ...specificOptsEndpoint,
+    labels: {
+      ...baseOptsEndpoint?.labels,
+      ...specificOptsEndpoint?.labels,
+    },
+    eventTrigger: {
+      eventType,
+      eventFilters: {},
+      retry: opts.retry ?? false, // Default retry policy
+      // Firebase Auth event triggers are global by nature, and Eventarc requires the trigger
+      // region to be set to "global" even if the Cloud Function is deployed regionally.
+      region: "global",
+    },
+  };
+  if (opts.tenantId !== undefined && opts.tenantId !== IS_NOT_TENANT) {
+    endpoint.eventTrigger.eventFilters["tenantid"] = opts.tenantId as string | Expression<string>;
+  }
+  func.__endpoint = endpoint;
+  return func;
+}
+
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user creation events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler which is run every time a new user is created.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserCreated(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+export function onUserCreated(
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
+): CloudFunction<AuthEvent<User>> {
+  return makeAuthTrigger(USER_CREATED_EVENT, optsOrHandler, handler);
+}
+
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User> & V1Compat<"user", User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+/**
+ * Handles user deletion events in Firebase Authentication.
+ *
+ * To filter for users not associated with a tenant, use the `IS_NOT_TENANT` constant in `opts`.
+ *
+ * @beta
+ *
+ * @param opts - Object containing function options.
+ * @param handler - Event handler that is run every time a user is deleted.
+ * @returns A Cloud Function that you can export.
+ */
+export function onUserDeleted(
+  opts: AuthOptions,
+  handler: (event: AuthEvent<User>) => any | Promise<any>
+): CloudFunction<AuthEvent<User>>;
+export function onUserDeleted(
+  optsOrHandler: AuthOptions | AuthEventHandler,
+  handler?: AuthEventHandler
+): CloudFunction<AuthEvent<User>> {
+  return makeAuthTrigger(USER_DELETED_EVENT, optsOrHandler, handler);
 }

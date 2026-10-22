@@ -40,16 +40,26 @@ export interface RunHandlerResult {
  * data populated into the response.
  */
 export function runHandler(
-  handler: express.Handler,
+  handler: (
+    req: https.Request,
+    res: express.Response,
+    next?: express.NextFunction
+  ) => void | Promise<void>,
   request: https.Request
 ): Promise<RunHandlerResult> {
   return new Promise((resolve) => {
     // MockResponse mocks an express.Response.
     // This class lives here so it can reference resolve and reject.
     class MockResponse {
+      private sentBody: string | undefined;
       private statusCode = 0;
       private headers: { [name: string]: string } = {};
       private callback: () => void;
+      private writeCalled = false;
+
+      constructor() {
+        request.on("close", () => this.end());
+      }
 
       public status(code: number) {
         this.statusCode = code;
@@ -65,30 +75,55 @@ export function runHandler(
         return this.headers[name];
       }
 
-      public send(body: any) {
+      public send(sendBody: any) {
+        if (this.writeCalled) {
+          throw Error("Cannot set headers after they are sent to the client");
+        }
+
+        const toSend = typeof sendBody === "object" ? JSON.stringify(sendBody) : sendBody;
+        const body =
+          typeof this.sentBody === "undefined" ? toSend : this.sentBody + String(toSend || "");
+        this.end(body);
+      }
+
+      public write(writeBody: any, cb?: () => void) {
+        this.writeCalled = true;
+
+        if (typeof this.sentBody === "undefined") {
+          this.sentBody = writeBody;
+        } else {
+          this.sentBody += typeof writeBody === "object" ? JSON.stringify(writeBody) : writeBody;
+        }
+        if (cb) {
+          setImmediate(cb);
+        }
+        return true;
+      }
+
+      public end(body?: unknown) {
+        if (body) {
+          this.write(body);
+        }
         resolve({
           status: this.statusCode,
           headers: this.headers,
-          body,
+          body: this.sentBody,
         });
+
         if (this.callback) {
           this.callback();
         }
       }
 
-      public end() {
-        this.send(undefined);
-      }
-
       public on(event: string, callback: () => void) {
-        if (event !== "finish") {
-          throw new Error("MockResponse only implements the finish event");
+        if (event !== "finish" && event !== "close") {
+          throw new Error("MockResponse only implements close and finish event");
         }
         this.callback = callback;
       }
     }
     const response = new MockResponse();
-    handler(request, response as any, () => undefined);
+    return void handler(request, response as any, () => undefined);
   });
 }
 

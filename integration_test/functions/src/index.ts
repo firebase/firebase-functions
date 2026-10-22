@@ -3,8 +3,7 @@ import { GoogleAuth } from "google-auth-library";
 import { Request, Response } from "express";
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
-import * as fs from "fs";
-import fetch from "node-fetch";
+import fs from "fs";
 
 import * as v1 from "./v1";
 import * as v2 from "./v2";

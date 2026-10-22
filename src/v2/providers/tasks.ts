@@ -33,16 +33,17 @@ import {
   RateLimits,
   Request,
   RetryConfig,
+  TaskContext,
 } from "../../common/providers/tasks";
 import * as options from "../options";
 import { wrapTraceContext } from "../trace";
 import { HttpsFunction } from "./https";
 import { Expression } from "../../params";
-import { SecretParam } from "../../params/types";
+import { SupportedSecretParam } from "../../params/types";
 import { initV2Endpoint, initTaskQueueTrigger } from "../../runtime/manifest";
 import { withInit } from "../../common/onInit";
 
-export { AuthData, Request, RateLimits, RetryConfig };
+export type { AuthData, Request, RateLimits, RetryConfig };
 
 export interface TaskQueueOptions extends options.EventHandlerOptions {
   /** How a task should be retried in the event of a non-2xx return. */
@@ -84,7 +85,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
    * The minimum timeout for a gen 2 function is 1s. The maximum timeout for a
    * function depends on the type of function: Event handling functions have a
    * maximum timeout of 540s (9 minutes). HTTPS and callable functions have a
-   * maximum timeout of 36,00s (1 hour). Task queue functions have a maximum
+   * maximum timeout of 3,600s (1 hour). Task queue and scheduled functions have a maximum
    * timeout of 1,800s (30 minutes)
    */
   timeoutSeconds?: number | Expression<number> | ResetValue;
@@ -154,7 +155,7 @@ export interface TaskQueueOptions extends options.EventHandlerOptions {
   /*
    * Secrets to bind to a function.
    */
-  secrets?: (string | SecretParam)[];
+  secrets?: SupportedSecretParam[];
 
   /** Whether failed executions should be delivered again. */
   retry?: boolean;
@@ -182,7 +183,29 @@ export interface TaskQueueFunction<T = any> extends HttpsFunction {
  * @returns A function you can export and deploy.
  */
 export function onTaskDispatched<Args = any>(
+  handler: (request: Request<Args> & { context: TaskContext }) => void | Promise<void>
+): TaskQueueFunction<Args>;
+
+/**
+ * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+ * @param handler - A callback to handle task requests.
+ * @typeParam Args - The interface for the request's `data` field.
+ * @returns A function you can export and deploy.
+ */
+export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
+): TaskQueueFunction<Args>;
+
+/**
+ * Creates a handler for tasks sent to a Google Cloud Tasks queue.
+ * @param options - Configuration for the task queue or Cloud Function.
+ * @param handler - A callback to handle task requests.
+ * @typeParam Args - The interface for the request's `data` field.
+ * @returns A function you can export and deploy.
+ */
+export function onTaskDispatched<Args = any>(
+  options: TaskQueueOptions,
+  handler: (request: Request<Args> & { context: TaskContext }) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 
 /**
@@ -197,8 +220,8 @@ export function onTaskDispatched<Args = any>(
   handler: (request: Request<Args>) => void | Promise<void>
 ): TaskQueueFunction<Args>;
 export function onTaskDispatched<Args = any>(
-  optsOrHandler: TaskQueueOptions | ((request: Request<Args>) => void | Promise<void>),
-  handler?: (request: Request<Args>) => void | Promise<void>
+  optsOrHandler: TaskQueueOptions | ((request: any) => void | Promise<void>),
+  handler?: (request: any) => void | Promise<void>
 ): TaskQueueFunction<Args> {
   let opts: TaskQueueOptions;
   if (arguments.length === 1) {
@@ -218,7 +241,7 @@ export function onTaskDispatched<Args = any>(
       const baseOpts = options.optionsToTriggerAnnotations(options.getGlobalOptions());
       // global options calls region a scalar and https allows it to be an array,
       // but optionsToTriggerAnnotations handles both cases.
-      const specificOpts = options.optionsToTriggerAnnotations(opts as options.GlobalOptions);
+      const specificOpts = options.optionsToTriggerAnnotations(opts, "scheduledOrTask");
       const taskQueueTrigger: Record<string, unknown> = {};
       copyIfPresent(taskQueueTrigger, opts, "retryConfig", "rateLimits");
       convertIfPresent(
@@ -245,7 +268,7 @@ export function onTaskDispatched<Args = any>(
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   // global options calls region a scalar and https allows it to be an array,
   // but optionsToManifestEndpoint handles both cases.
-  const specificOpts = options.optionsToEndpoint(opts as options.GlobalOptions);
+  const specificOpts = options.optionsToEndpoint(opts, "scheduledOrTask");
 
   func.__endpoint = {
     platform: "gcfv2",
@@ -282,7 +305,6 @@ export function onTaskDispatched<Args = any>(
     convertInvoker
   );
   convertIfPresent(func.__endpoint.taskQueueTrigger, opts, "invoker", "invoker", convertInvoker);
-  copyIfPresent(func.__endpoint.taskQueueTrigger, opts, "retry", "retry");
 
   func.__requiredAPIs = [
     {

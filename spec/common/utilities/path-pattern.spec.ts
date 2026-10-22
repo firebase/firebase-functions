@@ -125,5 +125,22 @@ describe("path-pattern", () => {
         a: "match_a",
       });
     });
+    // handle URL encoded params (e.g. emojis)
+    it("should correctly decode URL encoded params", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/{b}/end");
+
+      expect(pp.extractMatches("%F0%9F%98%80/something/another%20thing/end")).to.deep.equal({
+        a: "😀",
+        b: "another thing",
+      });
+    });
+
+    it("should safely handle malformed URL encoded params", () => {
+      const pp = new pathPattern.PathPattern("{a}/something/end");
+
+      expect(pp.extractMatches("%XX/something/end")).to.deep.equal({
+        a: "%XX",
+      });
+    });
   });
 });

@@ -1,0 +1,37 @@
+name: Lint Release Notes
+
+on:
+  pull_request:
+    types: [opened, edited, synchronized, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-pr-body:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR Release Notes
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "Analyzing PR description for release notes..."
+
+          # 1. Check if the body contains a 'relnote:' or 'relnotes:' line (case-insensitive)
+          if ! echo "$PR_BODY" | grep -qiE '^[Rr]elnotes?:'; then
+            echo "❌ Error: Could not find a 'relnote:' or 'relnotes:' line in the PR description."
+            echo "Please ensure your PR description includes a line matching: 'relnote: <your note>' or 'relnote: none'"
+            exit 1
+          fi
+
+          # 2. Extract the actual note content to ensure it isn't blank
+          # This grabs the line, strips the prefix, and trims trailing/leading spaces
+          NOTE_CONTENT=$(echo "$PR_BODY" | grep -iE '^[Rr]elnotes?:' | head -n 1 | sed -E 's/^[Rr]elnotes?:[[:space:]]*//g' | xargs)
+
+          if [ -z "$NOTE_CONTENT" ]; then
+            echo "❌ Error: The 'relnote:' field is empty."
+            echo "Please provide a brief release note or write 'relnote: none' if this change doesn't require one."
+            exit 1
+          fi
+
+          echo "✅ Success! Found valid release note: '$NOTE_CONTENT'"

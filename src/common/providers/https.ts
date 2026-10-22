@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-import * as cors from "cors";
+import cors from "cors";
 import * as express from "express";
 import { DecodedAppCheckToken } from "firebase-admin/app-check";
 
@@ -33,6 +33,7 @@ import { DecodedIdToken, getAuth } from "firebase-admin/auth";
 import { getApp } from "../app";
 import { isDebugFeatureEnabled } from "../debug";
 import { TaskContext } from "./tasks";
+import { Expression } from "../../params";
 
 const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 
@@ -40,6 +41,8 @@ const JWT_REGEX = /^[a-zA-Z0-9\-_=]+?\.[a-zA-Z0-9\-_=]+?\.([a-zA-Z0-9\-_=]+)?$/;
 export const CALLABLE_AUTH_HEADER = "x-callable-context-auth";
 /** @internal */
 export const ORIGINAL_AUTH_HEADER = "x-original-auth";
+/** @internal */
+export const DEFAULT_HEARTBEAT_SECONDS = 30;
 
 /** An express request with the wire format representation of the request body. */
 export interface Request extends express.Request {
@@ -76,8 +79,12 @@ export interface AppCheckData {
  * The interface for Auth tokens verified in Callable functions
  */
 export interface AuthData {
+  /** The user's uid from the request's ID token. */
   uid: string;
+  /** The decoded claims of the ID token after verification. */
   token: DecodedIdToken;
+  /** The raw ID token as parsed from the header. */
+  rawToken: string;
 }
 
 // This type is the direct v1 callable interface and is also an interface
@@ -121,7 +128,7 @@ export interface CallableRequest<T = any> {
   data: T;
 
   /**
-   * The result of decoding and verifying a Firebase AppCheck token.
+   * The result of decoding and verifying a Firebase App Check token.
    */
   app?: AppCheckData;
 
@@ -139,6 +146,35 @@ export interface CallableRequest<T = any> {
    * The raw request handled by the callable.
    */
   rawRequest: Request;
+
+  /**
+   * Whether this is a streaming request.
+   * Code can be optimized by not trying to generate a stream of chunks to
+   * call `response.sendChunk` if `request.acceptsStreaming` is false.
+   * It is always safe, however, to call `response.sendChunk` as this will
+   * noop if `acceptsStreaming` is false.
+   */
+  acceptsStreaming: boolean;
+}
+
+/**
+ * `CallableProxyResponse` allows streaming response chunks and listening to signals
+ * triggered in events such as a disconnect.
+ */
+export interface CallableResponse<T = unknown> {
+  /**
+   * Writes a chunk of the response body to the client. This method can be called
+   * multiple times to stream data progressively.
+   * Returns a promise of whether the data was written. This can be false, for example,
+   * if the request was not a streaming request. Rejects if there is a network error.
+   */
+  sendChunk: (chunk: T) => Promise<boolean>;
+
+  /**
+   * An `AbortSignal` that is triggered when the client disconnects or the
+   * request is terminated prematurely.
+   */
+  signal: AbortSignal;
 }
 
 /**
@@ -508,7 +544,7 @@ export function unsafeDecodeToken(token: string): unknown {
       if (typeof obj === "object") {
         payload = obj;
       }
-    } catch (e) {
+    } catch (_e) {
       // ignore error
     }
   }
@@ -562,13 +598,9 @@ async function checkTokens(
     auth: "INVALID",
   };
 
-  await Promise.all([
-    Promise.resolve().then(async () => {
-      verifications.auth = await checkAuthToken(req, ctx);
-    }),
-    Promise.resolve().then(async () => {
-      verifications.app = await checkAppCheckToken(req, ctx, options);
-    }),
+  [verifications.auth, verifications.app] = await Promise.all([
+    checkAuthToken(req, ctx),
+    checkAppCheckToken(req, ctx, options),
   ]);
 
   const logPayload = {
@@ -619,6 +651,7 @@ export async function checkAuthToken(
     ctx.auth = {
       uid: authToken.uid,
       token: authToken,
+      rawToken: idToken,
     };
     return "VALID";
   } catch (err) {
@@ -673,37 +706,144 @@ async function checkAppCheckToken(
 }
 
 type v1CallableHandler = (data: any, context: CallableContext) => any | Promise<any>;
-type v2CallableHandler<Req, Res> = (request: CallableRequest<Req>) => Res;
+type v2CallableHandler<Req, Res, Stream> = (
+  request: CallableRequest<Req>,
+  response?: CallableResponse<Stream>
+) => Res;
+
+export type CorsOption =
+  | string
+  | Expression<string>
+  | Expression<string[]>
+  | boolean
+  | RegExp
+  | Array<string | RegExp>;
+
+export function resolveCorsOrigin(corsOption?: CorsOption): cors.CorsOptions["origin"] {
+  let origin: CorsOption | undefined;
+  if (corsOption instanceof Expression) {
+    try {
+      origin = corsOption.runtimeValue();
+    } catch (e) {
+      logger.warn(`Failed to resolve CORS parameter: ${e}`);
+      origin = false;
+    }
+  } else {
+    origin = corsOption;
+  }
+
+  if (Array.isArray(origin) && origin.length === 0) {
+    logger.warn("CORS parameter resolved to an empty array. Disabling CORS.");
+    origin = false;
+  }
+
+  if (origin === "") {
+    logger.warn("CORS parameter resolved to an empty string. Disabling CORS.");
+    origin = false;
+  }
+
+  if (isDebugFeatureEnabled("enableCors")) {
+    // Respect `cors: false` to turn off cors even if debug feature is enabled.
+    origin = origin === false ? false : true;
+  }
+
+  if (origin === undefined) {
+    origin = true;
+  }
+
+  // Arrays cause the access-control-allow-origin header to be dynamic based
+  // on the origin header of the request. If there is only one element in the
+  // array, this is unnecessary.
+  if (Array.isArray(origin) && origin.length === 1) {
+    origin = origin[0];
+  }
+
+  return origin;
+}
+
+export type CorsInfo = Omit<cors.CorsOptions, "origin"> & {
+  origin?: CorsOption;
+};
 
 /** @internal **/
-export interface CallableOptions {
-  cors: cors.CorsOptions;
+export interface CallableOptions<T = any> {
+  cors: CorsInfo;
   enforceAppCheck?: boolean;
   consumeAppCheckToken?: boolean;
+  /* @deprecated */
+  authPolicy?: (token: AuthData | null, data: T) => boolean | Promise<boolean>;
+  /**
+   * Time in seconds between sending heartbeat messages to keep the connection
+   * alive. Set to `null` to disable heartbeats.
+   *
+   * Defaults to 30 seconds.
+   */
+  heartbeatSeconds?: number | null;
 }
 
 /** @internal */
-export function onCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
-  handler: v1CallableHandler | v2CallableHandler<Req, Res>
+export function onCallHandler<Req = any, Res = any, Stream = unknown>(
+  options: CallableOptions<Req>,
+  handler: v1CallableHandler | v2CallableHandler<Req, Res, Stream>,
+  version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
-  const wrapped = wrapOnCallHandler(options, handler);
+  const wrapped = wrapOnCallHandler(options, handler, version);
   return (req: Request, res: express.Response) => {
     return new Promise((resolve) => {
       res.on("finish", resolve);
-      cors(options.cors)(req, res, () => {
+      const origin = resolveCorsOrigin(options.cors.origin);
+      const corsOptions = {
+        ...options.cors,
+        origin,
+      };
+      cors(corsOptions as cors.CorsOptions)(req, res, () => {
         resolve(wrapped(req, res));
       });
     });
   };
 }
 
+function encodeSSE(data: unknown): string {
+  return `data: ${JSON.stringify(data)}\n\n`;
+}
+
 /** @internal */
-function wrapOnCallHandler<Req = any, Res = any>(
-  options: CallableOptions,
-  handler: v1CallableHandler | v2CallableHandler<Req, Res>
+function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
+  options: CallableOptions<Req>,
+  handler: v1CallableHandler | v2CallableHandler<Req, Res, Stream>,
+  version: "gcfv1" | "gcfv2"
 ): (req: Request, res: express.Response) => Promise<void> {
   return async (req: Request, res: express.Response): Promise<void> => {
+    const abortController = new AbortController();
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+
+    const heartbeatSeconds =
+      options.heartbeatSeconds === undefined ? DEFAULT_HEARTBEAT_SECONDS : options.heartbeatSeconds;
+
+    const clearScheduledHeartbeat = () => {
+      if (heartbeatInterval) {
+        clearTimeout(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+    };
+
+    const scheduleHeartbeat = () => {
+      clearScheduledHeartbeat();
+      if (!abortController.signal.aborted) {
+        heartbeatInterval = setTimeout(() => {
+          if (!abortController.signal.aborted) {
+            res.write(": ping\n\n");
+            scheduleHeartbeat();
+          }
+        }, heartbeatSeconds * 1000);
+      }
+    };
+
+    res.on("close", () => {
+      clearScheduledHeartbeat();
+      abortController.abort();
+    });
+
     try {
       if (!isValidRequest(req)) {
         logger.error("Invalid request, unable to process.");
@@ -719,7 +859,7 @@ function wrapOnCallHandler<Req = any, Res = any>(
       // The original monkey-patched code lived in the functionsEmulatorRuntime
       // (link: https://github.com/firebase/firebase-tools/blob/accea7abda3cc9fa6bb91368e4895faf95281c60/src/emulator/functionsEmulatorRuntime.ts#L480)
       // and was not compatible with how monorepos separate out packages (see https://github.com/firebase/firebase-tools/issues/5210).
-      if (isDebugFeatureEnabled("skipTokenVerification") && handler.length === 2) {
+      if (isDebugFeatureEnabled("skipTokenVerification") && version === "gcfv1") {
         const authContext = context.rawRequest.header(CALLABLE_AUTH_HEADER);
         if (authContext) {
           logger.debug("Callable functions auth override", {
@@ -763,38 +903,139 @@ function wrapOnCallHandler<Req = any, Res = any>(
         context.instanceIdToken = req.header("Firebase-Instance-ID-Token");
       }
 
+      const acceptsStreaming = req.header("accept") === "text/event-stream";
+
+      if (acceptsStreaming && version === "gcfv1") {
+        // streaming responses are not supported in v1 callable
+        throw new HttpsError("invalid-argument", "Unsupported Accept header 'text/event-stream'");
+      }
+
       const data: Req = decode(req.body.data);
+      if (options.authPolicy) {
+        const authorized = await options.authPolicy(context.auth ?? null, data);
+        if (!authorized) {
+          throw new HttpsError("permission-denied", "Permission Denied");
+        }
+      }
       let result: Res;
-      if (handler.length === 2) {
-        result = await handler(data, context);
+      if (version === "gcfv1") {
+        result = await (handler as v1CallableHandler)(data, context);
       } else {
         const arg: CallableRequest<Req> = {
           ...context,
           data,
+          acceptsStreaming,
         };
+
+        const responseProxy: CallableResponse<Stream> = {
+          sendChunk(chunk: Stream): Promise<boolean> {
+            // if client doesn't accept sse-protocol, response.write() is no-op.
+            if (!acceptsStreaming) {
+              return Promise.resolve(false);
+            }
+            // if connection is already closed, response.write() is no-op.
+            if (abortController.signal.aborted) {
+              return Promise.resolve(false);
+            }
+            const formattedData = encodeSSE({ message: chunk });
+            let resolve: (wrote: boolean) => void;
+            let reject: (err: Error) => void;
+            const p = new Promise<boolean>((res, rej) => {
+              resolve = res;
+              reject = rej;
+            });
+            const wrote = res.write(formattedData, (error) => {
+              if (error) {
+                reject(error);
+                return;
+              }
+              resolve(wrote);
+            });
+
+            // Reset heartbeat timer after successful write
+            if (wrote && heartbeatInterval !== null && heartbeatSeconds > 0) {
+              scheduleHeartbeat();
+            }
+
+            return p;
+          },
+          signal: abortController.signal,
+        };
+        if (acceptsStreaming) {
+          // SSE always responds with 200
+          res.status(200);
+
+          if (heartbeatSeconds !== null && heartbeatSeconds > 0) {
+            scheduleHeartbeat();
+          }
+        }
         // For some reason the type system isn't picking up that the handler
         // is a one argument function.
-        result = await (handler as any)(arg);
+        result = await (handler as any)(arg, responseProxy);
+        clearScheduledHeartbeat();
       }
-
-      // Encode the result as JSON to preserve types like Dates.
-      result = encode(result);
-
-      // If there was some result, encode it in the body.
-      const responseBody: HttpResponseBody = { result };
-      res.status(200).send(responseBody);
+      if (!abortController.signal.aborted) {
+        // Encode the result as JSON to preserve types like Dates.
+        result = encode(result);
+        // If there was some result, encode it in the body.
+        const responseBody: HttpResponseBody = { result };
+        if (acceptsStreaming) {
+          res.write(encodeSSE(responseBody));
+          res.end();
+        } else {
+          res.status(200).send(responseBody);
+        }
+      } else {
+        res.end();
+      }
     } catch (err) {
-      let httpErr = err;
-      if (!(err instanceof HttpsError)) {
-        // This doesn't count as an 'explicit' error.
-        logger.error("Unhandled error", err);
-        httpErr = new HttpsError("internal", "INTERNAL");
+      if (!abortController.signal.aborted) {
+        let httpErr = err;
+        if (!(err instanceof HttpsError)) {
+          // This doesn't count as an 'explicit' error.
+          logger.error("Unhandled error", err);
+          httpErr = new HttpsError("internal", "INTERNAL");
+        }
+        const { status } = httpErr.httpErrorCode;
+        const body = { error: httpErr.toJSON() };
+        if (version === "gcfv2" && req.header("accept") === "text/event-stream") {
+          res.write(encodeSSE(body));
+          res.end();
+        } else {
+          res.status(status).send(body);
+        }
+      } else {
+        res.end();
       }
+    } finally {
+      clearScheduledHeartbeat();
+    }
+  };
+}
 
-      const { status } = httpErr.httpErrorCode;
-      const body = { error: httpErr.toJSON() };
-
-      res.status(status).send(body);
+/**
+ * Wraps an HTTP handler with a safety net for unhandled errors.
+ *
+ * This wrapper catches both synchronous errors and rejected Promises from `async` handlers.
+ * Without this, an unhandled error in an `async` handler would cause the request to hang
+ * until the platform timeout, as Express (v4) does not await handlers.
+ *
+ * It logs the error and returns a 500 Internal Server Error to the client if the response
+ * headers have not yet been sent.
+ *
+ * @internal
+ */
+export function withErrorHandler(
+  handler: (req: Request, res: express.Response) => void | Promise<void>
+): (req: Request, res: express.Response) => Promise<void> {
+  return async (req: Request, res: express.Response) => {
+    try {
+      await handler(req, res);
+    } catch (err) {
+      logger.error("Unhandled error", err);
+      if (!res.headersSent) {
+        res.status(500).send("Internal Server Error");
+      }
     }
   };
 }

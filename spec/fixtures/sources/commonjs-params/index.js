@@ -21,7 +21,10 @@ params.defineInt("ANOTHER_INT", {
   },
 });
 
-params.defineList("LIST_PARAM", {input: { multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}})
+params.defineList("LIST_PARAM", {input: { multiSelect: { options: [{ value: "c" }, { value: "d" }, { value: "e" }]}}});
+
+params.defineString("NON_EMPTY_STRING", {input: { text: { nonEmpty: true } } } );
+params.defineList("NON_EMPTY_MULTISTRING", {input: {  multiSelect: { nonEmpty: true, options: [{ value: "a" }, { value: "b" }]}}});
 
 params.defineSecret("SUPER_SECRET_FLAG");
 

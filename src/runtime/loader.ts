@@ -23,21 +23,21 @@ import * as path from "path";
 import * as url from "url";
 
 import {
+  globalManifest,
   ManifestEndpoint,
   ManifestExtension,
   ManifestRequiredAPI,
   ManifestStack,
 } from "./manifest";
-
-import * as params from "../params";
+import { requiresAPI, GoogleCloudApi } from "../common/api";
+import type { WireParamSpec } from "../params/types";
 
 /**
  * Dynamically load import function to prevent TypeScript from
  * transpiling into a require.
- *
  * See https://github.com/microsoft/TypeScript/issues/43329.
- *
  */
+
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function("modulePath", "return import(modulePath)") as (
   modulePath: string
@@ -48,8 +48,8 @@ async function loadModule(functionsDir: string) {
   try {
     return require(path.resolve(absolutePath));
   } catch (e) {
-    if (e.code === "ERR_REQUIRE_ESM") {
-      // This is an ESM package!
+    if (e.code === "ERR_REQUIRE_ESM" || e.code === "ERR_REQUIRE_ASYNC_MODULE") {
+      // This is an ESM package, or one containing top-level awaits!
       const modulePath = require.resolve(absolutePath);
       // Resolve module path to file:// URL. Required for windows support.
       const moduleURL = url.pathToFileURL(modulePath).href;
@@ -194,14 +194,55 @@ export async function loadStack(functionsDir: string): Promise<ManifestStack> {
 
   extractStack(mod, endpoints, requiredAPIs, extensions);
 
-  const stack: ManifestStack = {
-    endpoints,
-    specVersion: "v1alpha1",
-    requiredAPIs: mergeRequiredAPIs(requiredAPIs),
-    extensions,
-  };
-  if (params.declaredParams.length > 0) {
-    stack.params = params.declaredParams.map((p) => p.toSpec());
+  for (const req of requiredAPIs) {
+    requiresAPI(req.api as GoogleCloudApi, req.reason);
   }
+
+  // The v1alpha1 stack manifest specification expects `extensions: {}` and `requiredAPIs: []`
+  // to always be present on ManifestStack (even if empty), whereas other optional fields
+  // (e.g., params, requiredRoles, lifecycleHooks) are only included when declared.
+  const existingExtensions =
+    globalManifest.extensions && typeof globalManifest.extensions === "object"
+      ? (globalManifest.extensions as Record<string, ManifestExtension>)
+      : {};
+  globalManifest.extensions = {
+    ...extensions,
+    ...existingExtensions,
+  };
+
+  if (!globalManifest.requiredAPIs) {
+    globalManifest.requiredAPIs = [];
+  }
+
+  // Ingest parameters declared on legacy versioned symbols (e.g. by older SDK modules in nested packages)
+  // that were not already declared via the shared global manifest, preventing duplicates.
+  const legacySymbols = Object.getOwnPropertySymbols(globalThis).filter((sym) =>
+    (sym.description || sym.toString()).includes("firebase-functions:params:declaredParams:v")
+  );
+
+  for (const sym of legacySymbols) {
+    const legacyParams = (globalThis as unknown as Record<symbol, unknown>)[sym];
+    if (Array.isArray(legacyParams)) {
+      for (const p of legacyParams) {
+        if (typeof p?.toSpec === "function") {
+          const spec = p.toSpec();
+          if (!Array.isArray(globalManifest.params)) {
+            globalManifest.params = [];
+          }
+          const manifestParams = globalManifest.params as WireParamSpec<any>[];
+          if (!manifestParams.some((m) => m.name === spec.name)) {
+            manifestParams.push(spec);
+          }
+        }
+      }
+    }
+  }
+
+  const stack: ManifestStack = {
+    specVersion: "v1alpha1",
+    endpoints,
+    ...globalManifest,
+  };
+
   return stack;
 }

@@ -23,12 +23,12 @@
 import { expect } from "chai";
 import { UserRecord } from "../../../src/common/providers/identity";
 import * as functions from "../../../src/v1";
-import { CloudFunction, Event } from "../../../src/v1/cloud-functions";
+import { CloudFunction, LegacyEvent } from "../../../src/v1/cloud-functions";
 import * as auth from "../../../src/v1/providers/auth";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
 
 describe("Auth Functions", () => {
-  const event: Event = {
+  const event: LegacyEvent = {
     data: {
       metadata: {
         creationTime: "2016-12-15T19:37:37.059Z",
@@ -289,6 +289,186 @@ describe("Auth Functions", () => {
           timeoutSeconds: 90,
           blockingTrigger: {
             eventType: "providers/cloud.auth/eventTypes/user.beforeSignIn",
+            options: {
+              accessToken: true,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__requiredAPIs).to.deep.equal([
+          {
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
+          },
+        ]);
+      });
+    });
+
+    describe("beforeEmail", () => {
+      it("should create function without options", () => {
+        const fn = auth.user().beforeEmail(() => Promise.resolve());
+
+        expect(fn.__trigger).to.deep.equal({
+          labels: {},
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+            options: {
+              accessToken: false,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__endpoint).to.deep.equal({
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
+          labels: {},
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+            options: {
+              accessToken: false,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__requiredAPIs).to.deep.equal([
+          {
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
+          },
+        ]);
+      });
+
+      it("should create the function with options", () => {
+        const fn = functions
+          .region("us-east1")
+          .runWith({
+            timeoutSeconds: 90,
+            memory: "256MB",
+          })
+          .auth.user({
+            blockingOptions: {
+              accessToken: true,
+              refreshToken: false,
+            },
+          })
+          .beforeEmail(() => Promise.resolve());
+
+        expect(fn.__trigger).to.deep.equal({
+          labels: {},
+          regions: ["us-east1"],
+          availableMemoryMb: 256,
+          timeout: "90s",
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+            options: {
+              accessToken: true,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__endpoint).to.deep.equal({
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
+          labels: {},
+          region: ["us-east1"],
+          availableMemoryMb: 256,
+          timeoutSeconds: 90,
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendEmail",
+            options: {
+              accessToken: true,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__requiredAPIs).to.deep.equal([
+          {
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
+          },
+        ]);
+      });
+    });
+
+    describe("beforeSms", () => {
+      it("should create function without options", () => {
+        const fn = auth.user().beforeSms(() => Promise.resolve());
+
+        expect(fn.__trigger).to.deep.equal({
+          labels: {},
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
+            options: {
+              accessToken: false,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__endpoint).to.deep.equal({
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
+          labels: {},
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
+            options: {
+              accessToken: false,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__requiredAPIs).to.deep.equal([
+          {
+            api: "identitytoolkit.googleapis.com",
+            reason: "Needed for auth blocking functions",
+          },
+        ]);
+      });
+
+      it("should create the function with options", () => {
+        const fn = functions
+          .region("us-east1")
+          .runWith({
+            timeoutSeconds: 90,
+            memory: "256MB",
+          })
+          .auth.user({
+            blockingOptions: {
+              accessToken: true,
+              refreshToken: false,
+            },
+          })
+          .beforeSms(() => Promise.resolve());
+
+        expect(fn.__trigger).to.deep.equal({
+          labels: {},
+          regions: ["us-east1"],
+          availableMemoryMb: 256,
+          timeout: "90s",
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
+            options: {
+              accessToken: true,
+              idToken: false,
+              refreshToken: false,
+            },
+          },
+        });
+        expect(fn.__endpoint).to.deep.equal({
+          ...MINIMAL_V1_ENDPOINT,
+          platform: "gcfv1",
+          labels: {},
+          region: ["us-east1"],
+          availableMemoryMb: 256,
+          timeoutSeconds: 90,
+          blockingTrigger: {
+            eventType: "providers/cloud.auth/eventTypes/user.beforeSendSms",
             options: {
               accessToken: true,
               idToken: false,

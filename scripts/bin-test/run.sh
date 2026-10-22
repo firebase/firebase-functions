@@ -2,7 +2,9 @@
 set -ex # Immediately exit on failure
 
 # Link the Functions SDK for the testing environment.
-npm run build
+if [ "$SKIP_BUILD" != "true" ]; then
+    npm run build
+fi
 npm link
 
 # Link the extensions SDKs for the testing environment.
