@@ -81,7 +81,7 @@ export interface ITocGenerationOptions {
   inputFolder: string;
   g3Path: string;
   outputFolder: string;
-  markdownFolder?: string;
+  markdownFolder: string;
   addFileNameSuffix: boolean;
 }
 
@@ -169,11 +169,10 @@ export function generateToc({
   );
 
   // Post-process generated markdown files to clean relative link extensions.
-  const mdDir = markdownFolder || resolve(outputFolder, '..');
-  const isFallback = !markdownFolder;
-  if ((!isFallback || resolve(mdDir) !== process.cwd()) && FileSystem.exists(mdDir)) {
-    stripRelativeMarkdownLinks(mdDir);
+  if (!FileSystem.exists(markdownFolder)) {
+    throw new Error(`Markdown folder not found: ${markdownFolder}`);
   }
+  stripRelativeMarkdownLinks(markdownFolder);
 }
 
 function generateTocRecursively(
@@ -228,6 +227,7 @@ const { input, output, path, markdown } = yargs(process.argv.slice(2))
     describe: 'directory containing markdown files to strip .md extensions from relative links',
     type: 'string',
   })
+  .demandOption('markdown', 'Please provide the directory containing markdown files via --markdown')
   .help().argv;
 
 FileSystem.ensureFolder(output);
