@@ -35,7 +35,7 @@ steps:
         git config --global user.name "Google Open Source Bot"
 
   # 5. Publish the package to NPM (wombat or OSS Exit Gate).
-  # TODO(vsfan): Look at what's being dumped into .npmrc by NPMRC_CONTENT secret and check for OSS Exit Gate conflicts. 
+  # TODO(vsfan): Look at what's being dumped into .npmrc by NPMRC_CONTENT secret and check for OSS Exit Gate conflicts.
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
     entrypoint: bash
@@ -58,16 +58,21 @@ steps:
           --repository "${_REPOSITORY_NAME}"
     secretEnv: ["GITHUB_TOKEN", "NPMRC_CONTENT"]
 
-  # 6. Trigger the Exit Gate push via gcloud cp. No-op if not running in Exit Gate mode.
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+  # 6. Upload manifest.json to GCS for OSS Exit Gate publishes (no-op otherwise).
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:slim"
     dir: "${_REPOSITORY_NAME}"
     entrypoint: "bash"
     args:
       - "-c"
       - |
-        ./scripts/write_exit_gate_manifest.sh \
-          $([ "${_DRY_RUN}" = "false" ] && echo "--no-dry-run") \
-          $([ "${_USE_OSS_GATE}" = "true" ] && echo "--use-oss-gate") \
+        if [ "${_USE_OSS_GATE}" = "true" ] && [ "${_DRY_RUN}" = "false" ]; then
+          test -s manifest.json
+          MANIFEST_NAME="manifest-$(date +%Y%m%d%H%M%S).json"
+          gcloud storage cp manifest.json \
+            "gs://oss-exit-gate-prod-projects-bucket/firebase-functions/npm/manifests/$${MANIFEST_NAME}"
+        else
+          echo "Skipping OSS Exit Gate manifest upload (_USE_OSS_GATE=${_USE_OSS_GATE}, _DRY_RUN=${_DRY_RUN})."
+        fi
 
 options:
   volumes:
