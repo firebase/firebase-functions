@@ -113,15 +113,17 @@ if [ -z "$BUILD_ID" ]; then
   [ -n "$TARGET_BRANCH" ] && SUBSTITUTIONS+=",_BRANCH=$TARGET_BRANCH"
   SUBSTITUTIONS+=",_REPOSITORY_ORG=$ORG"
   SUBSTITUTIONS+=",_REPOSITORY_NAME=$REPO"
+  SUBSTITUTIONS+=",_USE_OSS_GATE=$USE_OSS_GATE"
 
   echo "--------------------------------------------------------"
   echo "Dispatched Release Parameters:"
-  echo "  Bump Type:        $BUMP_TYPE"
-  echo "  Is Prerelease:    $IS_PRERELEASE"
-  echo "  Is Dry Run:       $DRY_RUN"
-  echo "  Force Release:    $FORCE_RELEASE"
-  echo "  Target Branch:    ${TARGET_BRANCH:-[default]}"
-  echo "  GitHub Host:      $ORG/$REPO"
+  echo "  Bump Type:           $BUMP_TYPE"
+  echo "  Is Prerelease:       $IS_PRERELEASE"
+  echo "  Is Dry Run:          $DRY_RUN"
+  echo "  Force Release:       $FORCE_RELEASE"
+  echo "  Target Branch:       ${TARGET_BRANCH:-[default]}"
+  echo "  GitHub Host:         $ORG/$REPO"
+  echo "  Is OSS Gate release: $USE_OSS_GATE"
   echo "--------------------------------------------------------"
 
   echo "Dispatched to Cloud Build..."
@@ -265,9 +267,6 @@ if [ "$USE_OSS_GATE" = true ]; then
   # Remove the hardcoded Wombat registry from publishConfig
   # TODO(vsfan): Once we're confident in Exit Gate, remove from package.json
   npm pkg delete publishConfig.registry
-
-  # Undo the changes we've made to local state at script exit
-  trap 'rm -f .npmrc manifest.json && git checkout -- package.json || true' EXIT
 fi
 
 # 8. NPM Publish Execution
@@ -292,11 +291,11 @@ else
       npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
     fi
   fi
-  echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
+  echo "NPM publish of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
 fi
 
-# 9. Trigger Exit Gate
-if [ "$USE_OSS_GATE" = true && "$DRY_RUN" = false ]; then
+# 9. Create Exit Gate Manifest. It will be uploaded in a separate step.
+if [[ "$USE_OSS_GATE" = true && "$DRY_RUN" = false ]]; then
   if [ "$IS_PRERELEASE" = true ]; then
     NPM_TAGS='["next"]'
   else
@@ -311,6 +310,4 @@ if [ "$USE_OSS_GATE" = true && "$DRY_RUN" = false ]; then
       publishing_groups: [{ packages: [{ name: $name, version: $version }] }],
       registry_config: { npm: { tags: $tags } }
     }' > manifest.json
-  MANIFEST_NAME="manifest-$(date +%Y%m%d%H%M%S).json"
-  gcloud storage cp manifest.json "gs://oss-exit-gate-prod-projects-bucket/firebase-functions/npm/manifests/${MANIFEST_NAME}"
 fi

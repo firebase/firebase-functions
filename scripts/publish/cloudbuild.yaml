@@ -34,7 +34,8 @@ steps:
         git config --global user.email "firebase-oss-bot@google.com"
         git config --global user.name "Google Open Source Bot"
 
-  # 5. Publish the package.
+  # 5. Publish the package to NPM (wombat or OSS Exit Gate).
+  # TODO(vsfan): Look at what's being dumped into .npmrc by NPMRC_CONTENT secret and check for OSS Exit Gate conflicts. 
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
     entrypoint: bash
@@ -52,9 +53,21 @@ steps:
           $([ "${_DRY_RUN}" = "false" ] && echo "--no-dry-run") \
           $([ "${_FORCE}" = "true" ] && echo "--force") \
           $([ -n "${_BRANCH}" ] && echo "--branch ${_BRANCH}") \
+          $([ "${_USE_OSS_GATE}" = "true" ] && echo "--use-oss-gate") \
           --org "${_REPOSITORY_ORG}" \
           --repository "${_REPOSITORY_NAME}"
     secretEnv: ["GITHUB_TOKEN", "NPMRC_CONTENT"]
+
+  # 6. Trigger the Exit Gate push via gcloud cp. No-op if not running in Exit Gate mode.
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    dir: "${_REPOSITORY_NAME}"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        ./scripts/write_exit_gate_manifest.sh \
+          $([ "${_DRY_RUN}" = "false" ] && echo "--no-dry-run") \
+          $([ "${_USE_OSS_GATE}" = "true" ] && echo "--use-oss-gate") \
 
 options:
   volumes:
@@ -69,6 +82,7 @@ substitutions:
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
   _BRANCH: ""
+  _USE_OSS_GATE: "false"
 
 availableSecrets:
   secretManager:
