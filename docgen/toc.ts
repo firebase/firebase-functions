@@ -10,7 +10,7 @@ import {ApiItem, ApiItemKind, ApiModel, ApiPackage, ApiParameterListMixin,} from
 import {ModuleSource} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import {FileSystem, PackageName} from '@rushstack/node-core-library';
 import yargs from 'yargs';
-import {readdirSync, readFileSync, statSync, writeFileSync} from 'fs';
+import {readdirSync, readFileSync, writeFileSync} from 'fs';
 import {join, resolve} from 'path';
 
 function getSafeFileName(f: string): string {
@@ -92,23 +92,18 @@ interface ITocItem {
 }
 
 /**
- * Strips .md extensions from relative markdown links in generated docs
+ * Strips .md extensions from relative markdown links in generated docs within the directory
  * (e.g. [Change](./change.md#class) -> [Change](./change#class)) so links
  * navigate correctly when hosted. External URLs and anchors are preserved.
  */
 export function stripRelativeMarkdownLinks(dir: string): void {
-  const entries = readdirSync(dir);
+  const entries = readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
-    const fullPath = join(dir, entry);
-    const stat = statSync(fullPath);
-    if (stat.isDirectory()) {
-      if (entry !== 'toc' && entry !== 'node_modules' && !entry.startsWith('.')) {
-        stripRelativeMarkdownLinks(fullPath);
-      }
-    } else if (entry.endsWith('.md')) {
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      const fullPath = join(dir, entry.name);
       const content = readFileSync(fullPath, 'utf8');
       const updated = content.replace(
-        /(\]\((?!https?:|\/\/)[^)#:?\s]+)\.md(?=[#)?\s])/g,
+        /(\]\((?!\/\/)[^)#:?\s]+)\.md(?=[#)?\s])/g,
         '$1'
       );
       if (content !== updated) {
