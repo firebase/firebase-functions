@@ -250,7 +250,7 @@ else
 fi
 
 # 7. OSS Exit Gate setup
-if [ "USE_OSS_GATE" = true ]; then
+if [ "$USE_OSS_GATE" = true ]; then
   # Install the auth helper without saving to package.json.
   npm install --no-save google-artifactregistry-auth
 
@@ -261,6 +261,13 @@ if [ "USE_OSS_GATE" = true ]; then
 
   # Authenticate with Artifact Registry
   npx google-artifactregistry-auth
+
+  # Remove the hardcoded Wombat registry from publishConfig
+  # TODO(vsfan): Once we're confident in Exit Gate, remove from package.json
+  npm pkg delete publishConfig.registry
+
+  # Undo the changes we've made to local state at script exit
+  trap 'rm -f .npmrc manifest.json && git checkout -- package.json || true' EXIT
 fi
 
 # 8. NPM Publish Execution
@@ -279,22 +286,31 @@ else
   else
     echo "Publishing package to npm under tag: latest..."
     npm publish --tag latest
-    echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
-    npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
+    if [ "$USE_OSS_GATE" = false ]; then
+      # N.B: For OSS Exit Gate releases, tags are part of the uploaded JSON manifest 
+      echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
+      npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
+    fi
   fi
   echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
 fi
 
 # 9. Trigger Exit Gate
-if [ "USE_OSS_GATE" = true ]; then
+if [ "$USE_OSS_GATE" = true && "$DRY_RUN" = false ]; then
   if [ "$IS_PRERELEASE" = true ]; then
-    echo '{ "publish_all": true, "registry_config": {"npm": {"tags": ["next"] } } }' > manifest.json
+    NPM_TAGS='["next"]'
   else
-    echo '{ "publish_all": true, "registry_config": {"npm": {"tags": ["latest"] } } }' > manifest.json
+    NPM_TAGS='["latest", "next"]'
   fi
+  jq -n \
+    --arg name "$PACKAGE_NAME" \
+    --arg version "$NEXT_VERSION" \
+    --argjson tags "$NPM_TAGS" \
+    '{
+      publish_all: false,
+      publishing_groups: [{ packages: [{ name: $name, version: $version }] }],
+      registry_config: { npm: { tags: $tags } }
+    }' > manifest.json
   MANIFEST_NAME="manifest-$(date +%Y%m%d%H%M%S).json"
   gcloud storage cp manifest.json "gs://oss-exit-gate-prod-projects-bucket/firebase-functions/npm/manifests/${MANIFEST_NAME}"
-
-  rm .npmrc 
-  mv .npmrc.bak .npmrc
 fi
