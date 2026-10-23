@@ -257,7 +257,6 @@ if [ "$USE_OSS_GATE" = true ]; then
   npm install --no-save google-artifactregistry-auth
 
   # Configure .npmrc for Artifact Registry
-  cp .npmrc .npmrc.bak
   echo "registry=https://us-npm.pkg.dev/oss-exit-gate-prod/firebase-functions--npm/" >> .npmrc
   echo "//us-npm.pkg.dev/oss-exit-gate-prod/firebase-functions--npm/:always-auth=true" >> .npmrc
 
