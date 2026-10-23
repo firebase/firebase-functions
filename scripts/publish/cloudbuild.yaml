@@ -19,10 +19,18 @@ steps:
   - name: "gcr.io/cloud-builders/git"
     args: ["clone", "git@github.com:${_REPOSITORY_ORG}/${_REPOSITORY_NAME}"]
 
-  # 3. Fetch all tags so stateless history calculations resolve correctly.
+  # 3. Fetch all tags (and check out target branch if specified).
+  # N.B: Checking out the target branch here only enables testing changes made to this script itself in a non-master branch.
   - name: "gcr.io/cloud-builders/git"
     dir: "${_REPOSITORY_NAME}"
-    args: ["fetch", "--tags"]
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        git fetch --tags
+        if [ -n "${_BRANCH}" ]; then
+          git checkout "${_BRANCH}"
+        fi
 
   # 4. Set up the Git configuration.
   - name: "gcr.io/cloud-builders/git"
