@@ -159,29 +159,7 @@ describe("onCallHandler", () => {
     });
   });
 
-  it("should reject bad method", () => {
-    const req = mockRequest(null);
-    req.method = "GET";
-    return runCallableTest({
-      httpRequest: req,
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      expectedHttpResponse: {
-        status: 400,
-        headers: expectedResponseHeaders,
-        body: {
-          error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
-        },
-      },
-    });
-  });
-
-  it("should log an invalid request as a warning, not an error", async () => {
+  it("should reject bad method and log it as a warning, not an error", async () => {
     const errorSpy = sinon.spy(logger, "error");
     const warnSpy = sinon.spy(logger, "warn");
     try {

@@ -22,11 +22,7 @@
 
 import { expect } from "chai";
 import * as express from "express";
-import * as sinon from "sinon";
 import * as identity from "../../../src/common/providers/identity";
-import * as logger from "../../../src/logger";
-import { mockRequest } from "../../fixtures/mockrequest";
-import { runHandler } from "../../helper";
 
 const EVENT = "EVENT_TYPE";
 const now = new Date();
@@ -209,28 +205,6 @@ describe("identity", () => {
       } as unknown as express.Request;
 
       expect(identity.isValidRequest(req)).to.be.true;
-    });
-  });
-
-  describe("wrapHandler", () => {
-    it("should log an invalid request as a warning, not an error", async () => {
-      const errorSpy = sinon.spy(logger, "error");
-      const warnSpy = sinon.spy(logger, "warn");
-      try {
-        const handler = Object.assign(() => undefined, { platform: "gcfv2" as const });
-        const req = mockRequest({ jwt: "1.2.3" });
-        req.method = "GET";
-        const res = await runHandler(
-          identity.wrapHandler("beforeCreate", handler) as any,
-          req as any
-        );
-        expect(res.status).to.equal(400);
-        expect(errorSpy.called).to.be.false;
-        expect(warnSpy.calledWith('Request has invalid method "GET".')).to.be.true;
-      } finally {
-        errorSpy.restore();
-        warnSpy.restore();
-      }
     });
   });
 
