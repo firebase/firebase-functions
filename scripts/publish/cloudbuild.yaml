@@ -43,7 +43,6 @@ steps:
         git config --global user.name "Google Open Source Bot"
 
   # 5. Publish the package to NPM (wombat or OSS Exit Gate).
-  # TODO(vsfan): Look at what's being dumped into .npmrc by NPMRC_CONTENT secret and check for OSS Exit Gate conflicts.
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
     entrypoint: bash
