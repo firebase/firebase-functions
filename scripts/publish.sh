@@ -294,7 +294,7 @@ else
 fi
 
 # 9. Create Exit Gate Manifest. It will be uploaded in a separate step.
-if [[ "$USE_OSS_GATE" = true && "$DRY_RUN" = false ]]; then
+if [ "$USE_OSS_GATE" = true ]; then
   if [ "$IS_PRERELEASE" = true ]; then
     NPM_TAGS='["next"]'
   else

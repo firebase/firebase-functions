@@ -27,6 +27,7 @@ steps:
     args:
       - "-c"
       - |
+        set -euo pipefail
         git fetch --tags
         if [ -n "${_BRANCH}" ]; then
           git checkout "${_BRANCH}"
