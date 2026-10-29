@@ -614,7 +614,7 @@
     "graphql": "^16.12.0",
     "jsonwebtoken": "^9.0.0",
     "jwk-to-pem": "^2.0.5",
-    "mocha": "^11.7.6",
+    "mocha": "^12.0.3",
     "mock-require": "^3.0.3",
     "nock": "^13.2.9",
     "portfinder": "^1.0.28",
