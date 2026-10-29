@@ -2,10 +2,13 @@
 
 **_ATTENTION_**: Running this test will wipe the contents of the Firebase project(s) you run it against. Make sure you use disposable Firebase project(s)!
 
+Set env variable for the test project:
+export GCLOUD_PROJECT=<project_id>
+
 Run the integration test as follows:
 
 ```bash
-./run_tests.sh <project_id> [<project_id2>]
+./run_tests.sh
 ```
 
 Test runs cycles of testing, once for Node.js 14 and another for Node.js 16.
