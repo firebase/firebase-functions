@@ -411,7 +411,8 @@ export function isValidRequest(req: Request): req is HttpRequest {
 
   // The body must have data.
   if (typeof req.body.data === "undefined") {
-    logger.warn("Request body is missing data.", req.body);
+    // Runs before auth is checked, so never log the body.
+    logger.warn("Request body is missing data.");
     return false;
   }
 
