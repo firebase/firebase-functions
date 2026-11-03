@@ -885,7 +885,6 @@ export function wrapHandler(eventType: AuthBlockingEventType, handler: AuthBlock
     try {
       const projectId = process.env.GCLOUD_PROJECT;
       if (!isValidRequest(req)) {
-        logger.error("Invalid request, unable to process");
         throw new HttpsError("invalid-argument", "Bad Request");
       }
 
