@@ -1125,6 +1125,25 @@ describe("encoding/decoding", () => {
     ).to.equal(-9223372036854775000);
   });
 
+  it("does not log or throw data that cannot be decoded", () => {
+    const errorSpy = sinon.spy(logger, "error");
+    try {
+      for (const data of [
+        { "@type": "unknown", value: "secretValue" },
+        { "@type": "type.googleapis.com/google.protobuf.Int64Value", value: "secretValue" },
+      ]) {
+        expect(() => https.decode(data))
+          .to.throw("Data cannot be decoded from JSON.")
+          .with.property("message")
+          .that.does.not.contain("secretValue");
+      }
+      expect(errorSpy.callCount).to.equal(2);
+      expect(JSON.stringify(errorSpy.args)).to.not.contain("secretValue");
+    } finally {
+      errorSpy.restore();
+    }
+  });
+
   it("encodes unsigned long", () => {
     expect(https.encode(9223372036854800000)).to.equal(9223372036854800000);
   });
