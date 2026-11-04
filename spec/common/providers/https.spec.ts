@@ -250,7 +250,7 @@ describe("onCallHandler", () => {
     });
   });
 
-  it("should reject a body without data and not log the body", async () => {
+  it("should reject a body without data and log only its key names", async () => {
     const warnSpy = sinon.spy(logger, "warn");
     try {
       const req = mockRequest(undefined);
@@ -272,8 +272,9 @@ describe("onCallHandler", () => {
           },
         },
       });
-      expect(warnSpy.calledWithExactly("Request body is missing data.")).to.be.true;
-      expect(warnSpy.calledWithMatch(sinon.match.any, sinon.match.has("secret"))).to.be.false;
+      expect(warnSpy.calledWithExactly("Request body is missing data.", { fields: ["secret"] })).to
+        .be.true;
+      expect(JSON.stringify(warnSpy.args)).to.not.contain("secretValue");
     } finally {
       warnSpy.restore();
     }
