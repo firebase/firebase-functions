@@ -13,6 +13,7 @@ show_usage() {
   echo "  <major|minor|patch>       The type of SemVer version bump"
   echo ""
   echo "Options:"
+  echo "  --use-oss-gate            Publish to the OSS Exit Gate"
   echo "  --prerelease              Flag the build as a release candidate"
   echo "  --no-dry-run              Perform real write actions (npm publish, git tag, github release)"
   echo "  --force                   Force a release even if there are no new commits since last release"
@@ -44,10 +45,15 @@ TARGET_BRANCH=""
 ORG="firebase"
 REPO="firebase-functions"
 TARGET_PROJECT="firebase-functions-publishing"
+USE_OSS_GATE=false
 
 # Parse optional arguments
 while [ "$#" -gt 0 ]; do
   case "$1" in
+    --use-oss-gate)
+      USE_OSS_GATE=true
+      shift
+      ;;
     --prerelease)
       IS_PRERELEASE=true
       shift
@@ -107,15 +113,17 @@ if [ -z "$BUILD_ID" ]; then
   [ -n "$TARGET_BRANCH" ] && SUBSTITUTIONS+=",_BRANCH=$TARGET_BRANCH"
   SUBSTITUTIONS+=",_REPOSITORY_ORG=$ORG"
   SUBSTITUTIONS+=",_REPOSITORY_NAME=$REPO"
+  SUBSTITUTIONS+=",_USE_OSS_GATE=$USE_OSS_GATE"
 
   echo "--------------------------------------------------------"
   echo "Dispatched Release Parameters:"
-  echo "  Bump Type:        $BUMP_TYPE"
-  echo "  Is Prerelease:    $IS_PRERELEASE"
-  echo "  Is Dry Run:       $DRY_RUN"
-  echo "  Force Release:    $FORCE_RELEASE"
-  echo "  Target Branch:    ${TARGET_BRANCH:-[default]}"
-  echo "  GitHub Host:      $ORG/$REPO"
+  echo "  Bump Type:           $BUMP_TYPE"
+  echo "  Is Prerelease:       $IS_PRERELEASE"
+  echo "  Is Dry Run:          $DRY_RUN"
+  echo "  Force Release:       $FORCE_RELEASE"
+  echo "  Target Branch:       ${TARGET_BRANCH:-[default]}"
+  echo "  GitHub Host:         $ORG/$REPO"
+  echo "  Is OSS Gate release: $USE_OSS_GATE"
   echo "--------------------------------------------------------"
 
   echo "Dispatched to Cloud Build..."
@@ -243,7 +251,24 @@ else
   rm release_notes.md
 fi
 
-# 7. NPM Publish Execution
+# 7. OSS Exit Gate setup
+if [ "$USE_OSS_GATE" = true ]; then
+  # Install the auth helper without saving to package.json.
+  npm install --no-save google-artifactregistry-auth
+
+  # Configure .npmrc for Artifact Registry
+  echo "registry=https://us-npm.pkg.dev/oss-exit-gate-prod/firebase-functions--npm/" >> .npmrc
+  echo "//us-npm.pkg.dev/oss-exit-gate-prod/firebase-functions--npm/:always-auth=true" >> .npmrc
+
+  # Authenticate with Artifact Registry
+  npx google-artifactregistry-auth
+
+  # Remove the hardcoded Wombat registry from publishConfig
+  # TODO(vsfan): Once we're confident in Exit Gate, remove from package.json
+  npm pkg delete publishConfig.registry
+fi
+
+# 8. NPM Publish Execution
 if [ "$DRY_RUN" = true ]; then
   if [ "$IS_PRERELEASE" = true ]; then
     echo "🔍 [Dry Run] Skipping npm publish --tag next"
@@ -259,8 +284,29 @@ else
   else
     echo "Publishing package to npm under tag: latest..."
     npm publish --tag latest
-    echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
-    npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
+    if [ "$USE_OSS_GATE" = false ]; then
+      # N.B: For OSS Exit Gate releases, tags are part of the uploaded JSON manifest 
+      echo "Updating 'next' dist-tag to point to ${PACKAGE_NAME}@${NEXT_VERSION}..."
+      npm dist-tag add "${PACKAGE_NAME}@${NEXT_VERSION}" next --registry "$(jq -r '.publishConfig.registry' package.json)"
+    fi
   fi
-  echo "🚀 Release of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
+  echo "NPM publish of $PACKAGE_NAME@$NEXT_VERSION successfully completed!"
+fi
+
+# 9. Create Exit Gate Manifest. It will be uploaded in a separate step.
+if [ "$USE_OSS_GATE" = true ]; then
+  if [ "$IS_PRERELEASE" = true ]; then
+    NPM_TAGS='["next"]'
+  else
+    NPM_TAGS='["latest", "next"]'
+  fi
+  jq -n \
+    --arg name "$PACKAGE_NAME" \
+    --arg version "$NEXT_VERSION" \
+    --argjson tags "$NPM_TAGS" \
+    '{
+      publish_all: false,
+      publishing_groups: [{ packages: [{ name: $name, version: $version }] }],
+      registry_config: { npm: { tags: $tags } }
+    }' > manifest.json
 fi
