@@ -19,10 +19,19 @@ steps:
   - name: "gcr.io/cloud-builders/git"
     args: ["clone", "git@github.com:${_REPOSITORY_ORG}/${_REPOSITORY_NAME}"]
 
-  # 3. Fetch all tags so stateless history calculations resolve correctly.
+  # 3. Fetch all tags (and check out target branch if specified).
+  # N.B: Checking out the target branch here only enables testing changes made to this script itself in a non-master branch.
   - name: "gcr.io/cloud-builders/git"
     dir: "${_REPOSITORY_NAME}"
-    args: ["fetch", "--tags"]
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        set -euo pipefail
+        git fetch --tags
+        if [ -n "${_BRANCH}" ]; then
+          git checkout "${_BRANCH}"
+        fi
 
   # 4. Set up the Git configuration.
   - name: "gcr.io/cloud-builders/git"
@@ -34,7 +43,7 @@ steps:
         git config --global user.email "firebase-oss-bot@google.com"
         git config --global user.name "Google Open Source Bot"
 
-  # 5. Publish the package.
+  # 5. Publish the package to NPM (wombat or OSS Exit Gate).
   - name: "gcr.io/$PROJECT_ID/package-builder"
     dir: "${_REPOSITORY_NAME}"
     entrypoint: bash
@@ -52,9 +61,26 @@ steps:
           $([ "${_DRY_RUN}" = "false" ] && echo "--no-dry-run") \
           $([ "${_FORCE}" = "true" ] && echo "--force") \
           $([ -n "${_BRANCH}" ] && echo "--branch ${_BRANCH}") \
+          $([ "${_USE_OSS_GATE}" = "true" ] && echo "--use-oss-gate") \
           --org "${_REPOSITORY_ORG}" \
           --repository "${_REPOSITORY_NAME}"
     secretEnv: ["GITHUB_TOKEN", "NPMRC_CONTENT"]
+
+  # 6. Upload manifest.json to GCS for OSS Exit Gate publishes (no-op otherwise).
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk:slim"
+    dir: "${_REPOSITORY_NAME}"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        if [ "${_USE_OSS_GATE}" = "true" ] && [ "${_DRY_RUN}" = "false" ]; then
+          test -s manifest.json
+          MANIFEST_NAME="manifest-$(date +%Y%m%d%H%M%S).json"
+          gcloud storage cp manifest.json \
+            "gs://oss-exit-gate-prod-projects-bucket/firebase-functions/npm/manifests/$${MANIFEST_NAME}"
+        else
+          echo "Skipping OSS Exit Gate manifest upload (_USE_OSS_GATE=${_USE_OSS_GATE}, _DRY_RUN=${_DRY_RUN})."
+        fi
 
 options:
   volumes:
@@ -69,6 +95,7 @@ substitutions:
   _REPOSITORY_ORG: "firebase"
   _REPOSITORY_NAME: "firebase-functions"
   _BRANCH: ""
+  _USE_OSS_GATE: "false"
 
 availableSecrets:
   secretManager:
