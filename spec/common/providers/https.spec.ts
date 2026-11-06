@@ -250,6 +250,36 @@ describe("onCallHandler", () => {
     });
   });
 
+  it("should reject a body without data and log only its key names", async () => {
+    const warnSpy = sinon.spy(logger, "warn");
+    try {
+      const req = mockRequest(undefined);
+      req.body.secret = "secretValue";
+      await runCallableTest({
+        httpRequest: req,
+        expectedData: null,
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 400,
+          headers: expectedResponseHeaders,
+          body: {
+            error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
+          },
+        },
+      });
+      expect(warnSpy.calledWithExactly("Request body is missing data.", { fields: ["secret"] })).to
+        .be.true;
+      expect(JSON.stringify(warnSpy.args)).to.not.contain("secretValue");
+    } finally {
+      warnSpy.restore();
+    }
+  });
+
   it("should handle unhandled error", () => {
     return runCallableTest({
       httpRequest: mockRequest(null),
