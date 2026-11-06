@@ -80,6 +80,18 @@ describe("schedule", () => {
         },
       });
     });
+
+    it("should not fabricate keys for options that were not set", () => {
+      expect(schedule.getOpts({ schedule: "* * * * *" })).to.deep.eq({
+        schedule: "* * * * *",
+        opts: { schedule: "* * * * *" },
+      });
+      expect(schedule.getOpts({ schedule: "* * * * *", retryCount: 3 })).to.deep.eq({
+        schedule: "* * * * *",
+        retryConfig: { retryCount: 3 },
+        opts: { schedule: "* * * * *", retryCount: 3 },
+      });
+    });
   });
 
   describe("onSchedule", () => {
@@ -170,19 +182,14 @@ describe("schedule", () => {
         () => console.log(1)
       );
 
+      // Leaving the schedule options out of the manifest is what tells the CLI to keep whatever
+      // is already configured, so nothing may be filled in here.
       expect(schfn.__endpoint).to.deep.eq({
         platform: "gcfv2",
         labels: {},
         scheduleTrigger: {
           schedule: "* * * * *",
-          timeZone: undefined,
-          retryConfig: {
-            retryCount: undefined,
-            maxRetrySeconds: undefined,
-            minBackoffSeconds: undefined,
-            maxBackoffSeconds: undefined,
-            maxDoublings: undefined,
-          },
+          retryConfig: {},
         },
       });
       expect(schfn.__requiredAPIs).to.deep.eq([
@@ -191,6 +198,36 @@ describe("schedule", () => {
           reason: "Needed for scheduled functions.",
         },
       ]);
+    });
+
+    it("should emit the same reset values for the object form as for the string form", () => {
+      const stringForm = schedule.onSchedule("* * * * *", () => undefined);
+      const objectForm = schedule.onSchedule({ schedule: "* * * * *" }, () => undefined);
+
+      expect(objectForm.__endpoint.scheduleTrigger).to.deep.eq({
+        ...MINIMAL_SCHEDULE_TRIGGER,
+        schedule: "* * * * *",
+      });
+      expect(objectForm.__endpoint.scheduleTrigger).to.deep.eq(stringForm.__endpoint.scheduleTrigger);
+    });
+
+    it("should still reset the options that were left out of an object form", () => {
+      const schfn = schedule.onSchedule(
+        { schedule: "* * * * *", retryCount: 3 },
+        () => undefined
+      );
+
+      expect(schfn.__endpoint.scheduleTrigger).to.deep.eq({
+        schedule: "* * * * *",
+        timeZone: options.RESET_VALUE,
+        retryConfig: {
+          retryCount: 3,
+          maxRetrySeconds: options.RESET_VALUE,
+          minBackoffSeconds: options.RESET_VALUE,
+          maxBackoffSeconds: options.RESET_VALUE,
+          maxDoublings: options.RESET_VALUE,
+        },
+      });
     });
 
     it("should have a .run method", async () => {
