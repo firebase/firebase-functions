@@ -309,4 +309,6 @@ if [ "$USE_OSS_GATE" = true ]; then
       publishing_groups: [{ packages: [{ name: $name, version: $version }] }],
       registry_config: { npm: { tags: $tags } }
     }' > manifest.json
+  echo "Manifest generated to trigger Exit Gate publishing:"
+  cat manifest.json
 fi
