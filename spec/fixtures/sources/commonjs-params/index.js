@@ -27,6 +27,7 @@ params.defineString("NON_EMPTY_STRING", {input: { text: { nonEmpty: true } } } )
 params.defineList("NON_EMPTY_MULTISTRING", {input: {  multiSelect: { nonEmpty: true, options: [{ value: "a" }, { value: "b" }]}}});
 
 params.defineSecret("SUPER_SECRET_FLAG");
+params.defineOptionalSecret("OPTIONAL_SECRET", {description: "optional"});
 
 // N.B: invocation of the precanned internal params should not affect the manifest
 
