@@ -2,6 +2,7 @@ import * as logger from "../logger";
 
 let initCallback: (() => unknown) | null = null;
 let didInit = false;
+let initPromise: Promise<void> | null = null;
 
 /**
  * Registers a callback that should be run when in a production environment
@@ -17,6 +18,26 @@ export function onInit(callback: () => unknown) {
   }
   initCallback = callback;
   didInit = false;
+  initPromise = null;
+}
+
+function runInit(): Promise<void> {
+  if (initPromise === null) {
+    const pending = (async () => {
+      if (initCallback) {
+        await initCallback();
+      }
+      didInit = true;
+    })();
+    initPromise = pending;
+    pending.catch(() => {
+      // Only clear our own promise; onInit may have replaced it meanwhile.
+      if (initPromise === pending) {
+        initPromise = null;
+      }
+    });
+  }
+  return initPromise;
 }
 
 type Resolved<T> = T extends Promise<infer V> ? V : T;
@@ -25,10 +46,7 @@ type Resolved<T> = T extends Promise<infer V> ? V : T;
 export function withInit<T extends (...args: unknown[]) => unknown>(func: T) {
   return async (...args: Parameters<T>): Promise<Resolved<ReturnType<T>>> => {
     if (!didInit) {
-      if (initCallback) {
-        await initCallback();
-      }
-      didInit = true;
+      await runInit();
     }
 
     // Note: This cast is actually inaccurate because it may be a promise, but
