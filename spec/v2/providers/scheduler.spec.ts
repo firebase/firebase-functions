@@ -21,6 +21,8 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import * as sinon from "sinon";
+import * as logger from "../../../src/logger";
 import { ManifestEndpoint } from "../../../src/runtime/manifest";
 import * as options from "../../../src/v2/options";
 import * as schedule from "../../../src/v2/providers/scheduler";
@@ -227,6 +229,51 @@ describe("schedule", () => {
       expect(hello).to.be.undefined;
       await runHandler(func, req as any);
       expect(hello).to.equal("world");
+    });
+
+    describe("handler errors", () => {
+      let errorSpy: sinon.SinonSpy;
+
+      beforeEach(() => {
+        errorSpy = sinon.spy(logger, "error");
+      });
+
+      afterEach(() => {
+        errorSpy.restore();
+      });
+
+      async function runFailing(thrown: unknown) {
+        const schfn = schedule.onSchedule("* * * * *", () => {
+          throw thrown;
+        });
+        return runHandler(schfn, new MockRequest({}, {}) as any);
+      }
+
+      it("logs the thrown Error object and responds 500", async () => {
+        const err = new Error("boom");
+
+        const res = await runFailing(err);
+
+        expect(res.status).to.equal(500);
+        expect(errorSpy.callCount).to.equal(1);
+        expect(errorSpy.firstCall.args).to.deep.equal(["Unhandled error", err]);
+      });
+
+      it("keeps a thrown plain object's message and responds 500", async () => {
+        const res = await runFailing({ code: "E_X", message: "quota exceeded" });
+
+        expect(res.status).to.equal(500);
+        expect(errorSpy.callCount).to.equal(1);
+        expect(errorSpy.firstCall.args).to.have.lengthOf(1);
+        expect(errorSpy.firstCall.args[0]).to.include("quota exceeded");
+      });
+
+      it("responds 500 when the handler throws null", async () => {
+        const res = await runFailing(null);
+
+        expect(res.status).to.equal(500);
+        expect(errorSpy.callCount).to.equal(1);
+      });
     });
 
     describe("v1-compatible getters", () => {
