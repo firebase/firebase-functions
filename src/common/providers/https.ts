@@ -491,14 +491,15 @@ export function decode(data: any): any {
         // worth all the extra code to detect that case.
         const value = parseFloat(data.value);
         if (isNaN(value)) {
-          logger.error("Data cannot be decoded from JSON.", data);
-          throw new Error(`Data cannot be decoded from JSON: ${data}`);
+          // Runs before any auth policy is checked, so never log the data.
+          logger.error("Data cannot be decoded from JSON.");
+          throw new Error("Data cannot be decoded from JSON.");
         }
         return value;
       }
       default: {
-        logger.error("Data cannot be decoded from JSON.", data);
-        throw new Error(`Data cannot be decoded from JSON: ${data}`);
+        logger.error("Data cannot be decoded from JSON.");
+        throw new Error("Data cannot be decoded from JSON.");
       }
     }
   }
