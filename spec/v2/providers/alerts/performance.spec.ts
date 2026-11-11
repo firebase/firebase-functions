@@ -46,23 +46,44 @@ describe("performance", () => {
           retry: false,
         },
       });
+    });
 
-      it("calls init function", async () => {
-        const event: CloudEvent<string> = {
-          specversion: "1.0",
-          id: "id",
-          source: "source",
-          type: "type",
-          time: "now",
-          data: "data",
-        };
+    it("calls init function", async () => {
+      const event: CloudEvent<unknown> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: { payload: {} },
+      };
 
-        let hello: string;
-        onInit(() => (hello = "world"));
-        expect(hello).to.be.undefined;
-        await performance.onThresholdAlertPublished(() => null)(event);
-        expect(hello).to.equal("world");
-      });
+      let hello: string;
+      onInit(() => (hello = "world"));
+      expect(hello).to.be.undefined;
+      await performance.onThresholdAlertPublished(() => null)(event);
+      expect(hello).to.equal("world");
+    });
+
+    it("returns the handler's result and propagates its errors", async () => {
+      const event: CloudEvent<unknown> = {
+        specversion: "1.0",
+        id: "id",
+        source: "source",
+        type: "type",
+        time: "now",
+        data: { payload: {} },
+      };
+
+      expect(await performance.onThresholdAlertPublished(() => "done")(event)).to.equal("done");
+
+      let error: Error | undefined;
+      try {
+        await performance.onThresholdAlertPublished(() => Promise.reject(new Error("boom")))(event);
+      } catch (err) {
+        error = err as Error;
+      }
+      expect(error?.message).to.equal("boom");
     });
 
     it("should create a function with appid in opts", () => {
