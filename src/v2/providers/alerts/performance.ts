@@ -139,7 +139,7 @@ export function onThresholdAlertPublished(
     const event = convertAlertAndApp(raw) as PerformanceEvent<ThresholdAlertPayload>;
     const convertedPayload = convertPayload(event.data.payload);
     event.data.payload = convertedPayload;
-    return wrapTraceContext(withInit(handler(event)));
+    return wrapTraceContext(withInit(handler))(event);
   };
 
   func.run = handler;
