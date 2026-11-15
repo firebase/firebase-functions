@@ -76,6 +76,26 @@ describe("Change", () => {
         },
       });
     });
+
+    it("should handle several masked fields under the same parent", () => {
+      const sparseBefore = {
+        obj: {
+          a: 3,
+          b: 4,
+        },
+      };
+      const expected = {
+        foo: "bar",
+        num: 2,
+        obj: {
+          a: 3,
+          b: 4,
+        },
+      };
+      expect(change.applyFieldMask(sparseBefore, after, "obj.a,obj.b")).to.deep.equal(expected);
+      expect(change.applyFieldMask(sparseBefore, after, "obj.b,obj.a")).to.deep.equal(expected);
+      expect(after.obj).to.deep.equal({ a: 1, b: 2 });
+    });
   });
 
   describe("fromJSON", () => {
@@ -87,6 +107,16 @@ describe("Change", () => {
       expect(created instanceof change.Change).to.equal(true);
       expect(created.before).to.deep.equal({ foo: "bar" });
       expect(created.after).to.deep.equal({ foo: "faz" });
+    });
+
+    it("should rebuild `before` from a field mask with nested sibling paths", () => {
+      const created = change.Change.fromJSON<any>({
+        before: { obj: { a: 3, b: 4 } },
+        after: { foo: "bar", obj: { a: 1, b: 2 } },
+        fieldMask: "obj.a,obj.b",
+      });
+      expect(created.before).to.deep.equal({ foo: "bar", obj: { a: 3, b: 4 } });
+      expect(created.after).to.deep.equal({ foo: "bar", obj: { a: 1, b: 2 } });
     });
 
     it("should apply the customizer function to `before` and `after`", () => {
