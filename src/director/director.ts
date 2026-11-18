@@ -37,17 +37,12 @@ export class Director {
   private cutoff: Date;
   private options: DirectorOptions;
 
-  constructor(Date, DirectorOptions?);
-  constructor(string, DirectorOptions?);
-
-  constructor(cutoffDate?: Date, cutoffString?: string, options?: DirectorOptions) {
-    if (cutoffDate) {
-      this.cutoff = cutoffDate;
-    } else if (cutoffString) {
-      this.cutoff = new Date(cutoffString);
+  constructor(cutoff: Date|string, options?: DirectorOptions) {
+    if (cutoff instanceof Date) {
+      this.cutoff = cutoff;
     } else {
-      throw Error("Director constructor called without either cutoff parameter.");
-    }
+      this.cutoff = new Date(cutoff);
+    } 
     this.options = options ?? {type: 'upgrade'};
   }
 

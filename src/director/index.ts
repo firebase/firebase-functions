@@ -1,4 +1,2 @@
-export type {
-  Director,
-  DirectorOptions
-} from "./director";
+export { Director } from "./director";
+export type { DirectorOptions } from "./director";
