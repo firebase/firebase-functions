@@ -39,6 +39,9 @@ export class Director {
     } else {
       throw new Error("Director constructor requires a valid cutoff Date or ISO 8601 string.");
     }
+    if (Number.isNaN(this.cutoffTimeMs)) {
+      throw new Error(`Invalid timestamp: ${String(cutoff)}`);
+    }
     this.options = options ?? { type: "upgrade" };
   }
 
