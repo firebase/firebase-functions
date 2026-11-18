@@ -361,6 +361,9 @@
   },
   "typesVersions": {
     "*": {
+      "director": [
+        "lib/director/index"
+      ],
       "lifecycle": [
         "lib/lifecycle/index"
       ],
