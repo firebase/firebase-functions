@@ -36,7 +36,7 @@
     "./director": {
       "types": "./lib/director/index.d.ts",
       "import": "./lib/esm/director/index.mjs",
-      "require": "./lib/director/index.js"   
+      "require": "./lib/director/index.js"
     },
     "./lifecycle": {
       "types": "./lib/lifecycle/index.d.ts",
