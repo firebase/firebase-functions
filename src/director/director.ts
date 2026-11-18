@@ -22,10 +22,19 @@
 
 import type { EventContext } from "../v1/cloud-functions";
 import type { CloudEvent } from "../v2/core";
+import { Message } from "../v2/providers/pubsub";
 
 export interface DirectorOptions {
   type?: "upgrade" | "downgrade";
+
+  /**
+   * Override the generation-sniffing behavior. For testing only.
+   * @internal
+   */
+  generation?: "1" | "2";
 }
+
+type EventTime = EventContext | CloudEvent<unknown> | Date;
 
 export class Director {
   private cutoffTimeMs: number;
@@ -37,12 +46,16 @@ export class Director {
     } else if (typeof cutoff === "string" && cutoff.trim().length > 0) {
       this.cutoffTimeMs = Date.parse(cutoff);
     } else {
-      throw new Error("Director constructor requires a valid cutoff Date or ISO 8601 string.");
+      throw new Error(
+        "Director constructor requires a valid cutoff Date, ISO 8601 string, or string parameter."
+      );
     }
     if (Number.isNaN(this.cutoffTimeMs)) {
       throw new Error(`Invalid timestamp: ${String(cutoff)}`);
     }
-    this.options = options ?? { type: "upgrade" };
+
+    this.options = options ?? {};
+    this.options.type ??= "upgrade";
   }
 
   /**
@@ -58,31 +71,62 @@ export class Director {
    * (when downgrading for v2) or a timestamp otherwise extracted from the
    * underlying event. Wall-clock time can result in double processing or
    * unprocessed events.
+   *
+   * N.B: This function is async to leave room for implementing dynamic
+   * health-checking of the fallover function if that turns out to be a
+   * desired feature.
    */
-  shouldProcess(eventTime: EventContext | CloudEvent<unknown> | Date): boolean {
-    const isV2Env = this.isV2Env();
+  async shouldProcess(eventTime: EventTime): Promise<boolean> {
+    const isV2Env = this.isV2Env(eventTime);
     const isAfterCutoff = this.eventTimestampMs(eventTime) > this.cutoffTimeMs;
     const envShouldRunAfterCutoff =
       (this.options.type === "upgrade" && isV2Env) ||
       (this.options.type === "downgrade" && !isV2Env);
-    return isAfterCutoff ? envShouldRunAfterCutoff : !envShouldRunAfterCutoff;
+    return Promise.resolve(isAfterCutoff ? envShouldRunAfterCutoff : !envShouldRunAfterCutoff);
   }
 
-  private isV2Env(): boolean {
+  private isV2Env(eventTime: EventTime): boolean {
+    if (typeof this.options.generation !== "undefined") {
+      return this.options.generation === "2";
+    }
+    if (this.isCloudEvent(eventTime)) {
+      return true;
+    }
     return typeof process.env.K_CONFIGURATION !== "undefined";
   }
 
-  private eventTimestampMs(eventTime: EventContext | CloudEvent<unknown> | Date): number {
+  /**
+   * Extracts the canonical time a v1/v2 event was triggered at.
+   * Simple except in the case of v2 pubSub functions, since the event
+   * timestamp is the Eventarc envelope time and we have to read the
+   * event payload for the triggering time.
+   */
+  private eventTimestampMs(eventTime: EventTime): number {
     if (eventTime instanceof Date) {
       return eventTime.getTime();
     } else if (this.isCloudEvent(eventTime)) {
-      return Date.parse(eventTime.time);
+      const triggeredAt =
+        eventTime.type === "google.cloud.pubsub.topic.v1.messagePublished"
+          ? this.v2PubSubTime(eventTime)
+          : eventTime.time;
+      return Date.parse(triggeredAt);
     } else {
       return Date.parse(eventTime.timestamp);
     }
   }
 
-  private isCloudEvent(input: CloudEvent<unknown> | EventContext): input is CloudEvent<unknown> {
-    return (input as CloudEvent<unknown>).specversion === "1.0";
+  private v2PubSubTime(pubSubEvent: CloudEvent<unknown>): string {
+    const eventData = pubSubEvent.data as Message<unknown>;
+    return eventData.publishTime;
+  }
+
+  /**
+   * Returns whether shouldProcess() was called with a CloudEvent from v2
+   * or an EventContext from v1 or a raw Date (testing code?)
+   */
+  private isCloudEvent(
+    input: EventContext | CloudEvent<unknown> | Date
+  ): input is CloudEvent<unknown> {
+    return !(input instanceof Date) && (input as CloudEvent<unknown>).specversion === "1.0";
   }
 }
