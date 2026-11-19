@@ -49,7 +49,7 @@ export function applyFieldMask(sparseBefore: any, after: any, fieldMask: string)
     const head = parts[0];
     const tail = parts.slice(1).join(".");
     if (parts.length > 1) {
-      before[head] = applyFieldMask(sparseBefore?.[head], after[head], tail);
+      before[head] = applyFieldMask(sparseBefore?.[head], before[head], tail);
       continue;
     }
     const val = sparseBefore?.[head];
