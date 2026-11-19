@@ -1,0 +1,27 @@
+name: Knowledge base
+
+# Fails when a concept in .agents/knowledge names a file, symbol or glob that no
+# longer exists, so code changes that rename or remove them update the concepts
+# too.
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check the knowledge base
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Check that the concepts match the code
+        run: ./scripts/knowledge.sh check
