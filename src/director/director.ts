@@ -29,12 +29,11 @@ export interface DirectorOptions {
 
   /**
    * Override the generation-sniffing behavior. For testing only.
-   * @internal
    */
   generation?: "1" | "2";
 }
 
-type EventTime = EventContext | CloudEvent<unknown> | Date;
+type EventTimeSource = EventContext | CloudEvent<unknown> | Date;
 
 export class Director {
   private cutoffTimeMs: number;
@@ -44,7 +43,7 @@ export class Director {
     if (cutoff instanceof Date) {
       this.cutoffTimeMs = cutoff.getTime();
     } else if (typeof cutoff === "string" && cutoff.trim().length > 0) {
-      this.cutoffTimeMs = Date.parse(cutoff);
+      this.cutoffTimeMs = Date.parse(cutoff.trim());
     } else {
       throw new Error("Director constructor requires a valid cutoff Date or ISO 8601 string.");
     }
@@ -75,7 +74,7 @@ export class Director {
    * desired feature.
    */
   // eslint-disable-next-line @typescript-eslint/require-await
-  async shouldProcess(eventTime: EventTime): Promise<boolean> {
+  async shouldProcess(eventTime: EventTimeSource): Promise<boolean> {
     const isV2Env = this.isV2Env(eventTime);
     const eventTriggeredAt = this.eventTimestampMs(eventTime);
     if (Number.isNaN(eventTriggeredAt)) {
@@ -88,7 +87,7 @@ export class Director {
     return isAfterCutoff ? envShouldRunAfterCutoff : !envShouldRunAfterCutoff;
   }
 
-  private isV2Env(eventTime: EventTime): boolean {
+  private isV2Env(eventTime: EventTimeSource): boolean {
     if (typeof this.options.generation !== "undefined") {
       return this.options.generation === "2";
     }
@@ -104,7 +103,7 @@ export class Director {
    * timestamp is the Eventarc envelope time and we have to read the
    * event payload for the triggering time.
    */
-  private eventTimestampMs(eventTime: EventTime): number {
+  private eventTimestampMs(eventTime: EventTimeSource): number {
     if (eventTime instanceof Date) {
       return eventTime.getTime();
     } else if (this.isCloudEvent(eventTime)) {
