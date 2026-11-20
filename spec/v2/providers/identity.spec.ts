@@ -20,12 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 import { expect } from "chai";
+import * as sinon from "sinon";
 import * as identity from "../../../src/v2/providers/identity";
 import { MINIMAL_V2_ENDPOINT } from "../../fixtures";
 import { onInit } from "../../../src/v2/core";
 import { MockRequest } from "../../fixtures/mockrequest";
 import { runHandler } from "../../helper";
 import { defineString, clearParams } from "../../../src/params";
+import * as logger from "../../../src/logger";
 
 const IDENTITY_TOOLKIT_API = "identitytoolkit.googleapis.com";
 const REGION = "us-west1";
@@ -128,6 +130,25 @@ describe("identity", () => {
       expect(hello).to.be.undefined;
       await runHandler(func, req as any);
       expect(hello).to.equal("world");
+    });
+
+    it("should reject bad method and log it as a warning, not an error", async () => {
+      const errorSpy = sinon.spy(logger, "error");
+      const warnSpy = sinon.spy(logger, "warn");
+      try {
+        const func = identity.beforeUserCreated(() => null);
+        const req = new MockRequest({ data: {} }, { "content-type": "application/json" });
+        req.method = "GET";
+
+        const res = await runHandler(func, req as any);
+
+        expect(res.status).to.equal(400);
+        expect(errorSpy.called).to.be.false;
+        expect(warnSpy.calledWith('Request has invalid method "GET".')).to.be.true;
+      } finally {
+        errorSpy.restore();
+        warnSpy.restore();
+      }
     });
   });
 

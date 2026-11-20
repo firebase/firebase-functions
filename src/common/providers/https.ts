@@ -411,7 +411,8 @@ export function isValidRequest(req: Request): req is HttpRequest {
 
   // The body must have data.
   if (typeof req.body.data === "undefined") {
-    logger.warn("Request body is missing data.", req.body);
+    // Runs before auth is checked: key names only, never values.
+    logger.warn("Request body is missing data.", { fields: Object.keys(req.body) });
     return false;
   }
 
@@ -846,7 +847,6 @@ function wrapOnCallHandler<Req = any, Res = any, Stream = unknown>(
 
     try {
       if (!isValidRequest(req)) {
-        logger.error("Invalid request, unable to process.");
         throw new HttpsError("invalid-argument", "Bad Request");
       }
 

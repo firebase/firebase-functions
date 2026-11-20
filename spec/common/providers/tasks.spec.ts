@@ -22,10 +22,12 @@
 
 import { expect } from "chai";
 import { App, initializeApp } from "firebase-admin/app";
+import * as sinon from "sinon";
 
 import { getApp, setApp } from "../../../src/common/app";
 import * as https from "../../../src/common/providers/https";
 import { onDispatchHandler, Request, TaskContext } from "../../../src/common/providers/tasks";
+import * as logger from "../../../src/logger";
 import * as mocks from "../../fixtures/credential/key.json";
 import { generateIdToken, generateUnsignedIdToken, mockRequest } from "../../fixtures/mockrequest";
 import { checkAuthContext, runHandler } from "../../helper";
@@ -117,14 +119,23 @@ describe("onEnqueueHandler", () => {
     });
   });
 
-  it("should reject bad method", () => {
-    const req = mockRequest(null);
-    req.method = "GET";
-    return runTaskTest({
-      httpRequest: req,
-      expectedData: null,
-      expectedStatus: 400,
-    });
+  it("should reject bad method and log it as a warning, not an error", async () => {
+    const errorSpy = sinon.spy(logger, "error");
+    const warnSpy = sinon.spy(logger, "warn");
+    try {
+      const req = mockRequest(null);
+      req.method = "GET";
+      await runTaskTest({
+        httpRequest: req,
+        expectedData: null,
+        expectedStatus: 400,
+      });
+      expect(errorSpy.called).to.be.false;
+      expect(warnSpy.calledWith("Request has invalid method.", "GET")).to.be.true;
+    } finally {
+      errorSpy.restore();
+      warnSpy.restore();
+    }
   });
 
   it("should ignore charset", () => {

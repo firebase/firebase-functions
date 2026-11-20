@@ -8,6 +8,7 @@ import { defineString, defineList } from "../../../src/params";
 import { getApp, setApp } from "../../../src/common/app";
 import * as debug from "../../../src/common/debug";
 import * as https from "../../../src/common/providers/https";
+import * as logger from "../../../src/logger";
 import * as mocks from "../../fixtures/credential/key.json";
 import {
   expectedResponseHeaders,
@@ -158,26 +159,35 @@ describe("onCallHandler", () => {
     });
   });
 
-  it("should reject bad method", () => {
-    const req = mockRequest(null);
-    req.method = "GET";
-    return runCallableTest({
-      httpRequest: req,
-      expectedData: null,
-      callableFunction: () => {
-        return;
-      },
-      callableFunction2: () => {
-        return;
-      },
-      expectedHttpResponse: {
-        status: 400,
-        headers: expectedResponseHeaders,
-        body: {
-          error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
+  it("should reject bad method and log it as a warning, not an error", async () => {
+    const errorSpy = sinon.spy(logger, "error");
+    const warnSpy = sinon.spy(logger, "warn");
+    try {
+      const req = mockRequest(null);
+      req.method = "GET";
+      await runCallableTest({
+        httpRequest: req,
+        expectedData: null,
+        callableFunction: () => {
+          return;
         },
-      },
-    });
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 400,
+          headers: expectedResponseHeaders,
+          body: {
+            error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
+          },
+        },
+      });
+      expect(errorSpy.called).to.be.false;
+      expect(warnSpy.calledWith("Request has invalid method.", "GET")).to.be.true;
+    } finally {
+      errorSpy.restore();
+      warnSpy.restore();
+    }
   });
 
   it("should ignore charset", () => {
@@ -238,6 +248,36 @@ describe("onCallHandler", () => {
         },
       },
     });
+  });
+
+  it("should reject a body without data and log only its key names", async () => {
+    const warnSpy = sinon.spy(logger, "warn");
+    try {
+      const req = mockRequest(undefined);
+      req.body.secret = "secretValue";
+      await runCallableTest({
+        httpRequest: req,
+        expectedData: null,
+        callableFunction: () => {
+          return;
+        },
+        callableFunction2: () => {
+          return;
+        },
+        expectedHttpResponse: {
+          status: 400,
+          headers: expectedResponseHeaders,
+          body: {
+            error: { message: "Bad Request", status: "INVALID_ARGUMENT" },
+          },
+        },
+      });
+      expect(warnSpy.calledWithExactly("Request body is missing data.", { fields: ["secret"] })).to
+        .be.true;
+      expect(JSON.stringify(warnSpy.args)).to.not.contain("secretValue");
+    } finally {
+      warnSpy.restore();
+    }
   });
 
   it("should handle unhandled error", () => {

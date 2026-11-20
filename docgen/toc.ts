@@ -10,19 +10,22 @@ import {ApiItem, ApiItemKind, ApiModel, ApiPackage, ApiParameterListMixin,} from
 import {ModuleSource} from '@microsoft/tsdoc/lib-commonjs/beta/DeclarationReference';
 import {FileSystem, PackageName} from '@rushstack/node-core-library';
 import yargs from 'yargs';
-import {writeFileSync} from 'fs';
+import {readdirSync, readFileSync, writeFileSync} from 'fs';
 import {join, resolve} from 'path';
 
 function getSafeFileName(f: string): string {
   return f.replace(/[^a-z0-9_\-\.]/gi, '_').toLowerCase();
 }
 
+/**
+ * Resolves the path name for an API item in the Table of Contents (without .md extension).
+ */
 export function getFilenameForApiItem(
   apiItem: ApiItem,
   addFileNameSuffix: boolean
 ): string {
   if (apiItem.kind === ApiItemKind.Model) {
-    return 'index.md';
+    return 'index';
   }
 
   let baseName: string = '';
@@ -71,13 +74,14 @@ export function getFilenameForApiItem(
         break;
     }
   }
-  return baseName + '.md';
+  return baseName;
 }
 
 export interface ITocGenerationOptions {
   inputFolder: string;
   g3Path: string;
   outputFolder: string;
+  markdownFolder: string;
   addFileNameSuffix: boolean;
 }
 
@@ -87,10 +91,33 @@ interface ITocItem {
   section?: ITocItem[];
 }
 
+/**
+ * Strips .md extensions from relative markdown links in generated docs within the directory
+ * (e.g. [Change](./change.md#class) -> [Change](./change#class)) so links
+ * navigate correctly when hosted. External URLs and anchors are preserved.
+ */
+export function stripRelativeMarkdownLinks(dir: string): void {
+  const entries = readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isFile() && entry.name.endsWith('.md')) {
+      const fullPath = join(dir, entry.name);
+      const content = readFileSync(fullPath, 'utf8');
+      const updated = content.replace(
+        /(\]\((?!\/\/)[^)#:?\s]+)\.md(?=[#)?\s])/g,
+        '$1'
+      );
+      if (content !== updated) {
+        writeFileSync(fullPath, updated, 'utf8');
+      }
+    }
+  }
+}
+
 export function generateToc({
   inputFolder,
   g3Path,
   outputFolder,
+  markdownFolder,
   addFileNameSuffix,
 }: ITocGenerationOptions) {
   const apiModel: ApiModel = new ApiModel();
@@ -131,9 +158,16 @@ export function generateToc({
       { toc: entryPointToc },
       {
         quotingType: '"',
+        lineWidth: -1,
       }
     )
   );
+
+  // Post-process generated markdown files to clean relative link extensions.
+  if (!FileSystem.exists(markdownFolder)) {
+    throw new Error(`Markdown folder not found: ${markdownFolder}`);
+  }
+  stripRelativeMarkdownLinks(markdownFolder);
 }
 
 function generateTocRecursively(
@@ -167,7 +201,7 @@ function generateTocRecursively(
     }
 }
 
-const { input, output, path } = yargs(process.argv.slice(2))
+const { input, output, path, markdown } = yargs(process.argv.slice(2))
   .option('input', {
     alias: 'i',
     describe: 'input folder containing the *.api.json files to be processed.',
@@ -183,6 +217,12 @@ const { input, output, path } = yargs(process.argv.slice(2))
     describe: 'specifies the path where the reference docs resides (e.g. g3)',
     default: '/',
   })
+  .option('markdown', {
+    alias: 'm',
+    describe: 'directory containing markdown files to strip .md extensions from relative links',
+    type: 'string',
+  })
+  .demandOption('markdown', 'Please provide the directory containing markdown files via --markdown')
   .help().argv;
 
 FileSystem.ensureFolder(output);
@@ -190,5 +230,6 @@ generateToc({
   inputFolder: input,
   g3Path: path,
   outputFolder: output,
+  markdownFolder: markdown,
   addFileNameSuffix: false,
 });
