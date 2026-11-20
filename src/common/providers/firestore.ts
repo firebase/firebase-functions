@@ -29,6 +29,23 @@ import { dateToTimestampProto } from "../../common/utilities/encoder";
 /** static-complied protobufs */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
+/**
+ * Each event's payload is read by the path lookup and by up to two snapshot builders, so the
+ * decoded message is cached against the original payload object.
+ */
+const decodedPayloads = new WeakMap<object, google.events.cloud.firestore.v1.DocumentEventData>();
+
+function decodeDocumentEventData(data: Uint8Array) {
+  let decoded = typeof data === "object" ? decodedPayloads.get(data) : undefined;
+  if (!decoded) {
+    decoded = DocumentEventData.decode(Buffer.from(data));
+    if (typeof data === "object") {
+      decodedPayloads.set(data, decoded);
+    }
+  }
+  return decoded;
+}
+
 /** @internal */
 interface Firestore extends firestore.Firestore {
   snapshot_(value: unknown, readTime: unknown, encoding: string): any;
@@ -64,12 +81,34 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
   return proto;
 }
 
+/**
+ * Returns the full document name carried in the event payload, if any.
+ *
+ * The payload is the only UTF-8-safe source for the document path: the `document` CloudEvent
+ * attribute arrives as an HTTP header, which Node decodes as latin1.
+ * @internal
+ */
+export function documentNameFromPayload(
+  data: unknown,
+  datacontenttype?: string
+): string | undefined {
+  try {
+    if (datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(data)) {
+      const decoded = decodeDocumentEventData(data as Uint8Array);
+      return decoded.value?.name || decoded.oldValue?.name || undefined;
+    }
+    const json = data as { value?: { name?: string }; oldValue?: { name?: string } } | undefined;
+    return json?.value?.name || json?.oldValue?.name || undefined;
+  } catch (_e) {
+    return undefined;
+  }
+}
+
 /** @internal */
 export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
   const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
   try {
-    const dataBuffer = Buffer.from(data);
-    const firestoreDecoded = DocumentEventData.decode(dataBuffer);
+    const firestoreDecoded = decodeDocumentEventData(data);
 
     return firestoreInstance.snapshot_(firestoreDecoded.value || path, null, "protobufJS");
   } catch (err: unknown) {
@@ -86,8 +125,7 @@ export function createBeforeSnapshotFromProtobuf(
 ) {
   const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
   try {
-    const dataBuffer = Buffer.from(data);
-    const firestoreDecoded = DocumentEventData.decode(dataBuffer);
+    const firestoreDecoded = decodeDocumentEventData(data);
 
     return firestoreInstance.snapshot_(firestoreDecoded.oldValue || path, null, "protobufJS");
   } catch (err: unknown) {
