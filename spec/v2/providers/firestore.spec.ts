@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { google } from "../../../protos/compiledFirestore";
 import { Timestamp } from "firebase-admin/firestore";
 import * as firestore from "../../../src/v2/providers/firestore";
@@ -1083,6 +1084,31 @@ describe("firestore", () => {
       await func(event);
 
       expect(seen).to.deep.eq({ params: { bar: "中文" }, document: "foo/中文" });
+    });
+
+    it("should decode a protobuf payload once per event", async () => {
+      const decode = sinon.spy(DocumentEventData, "decode");
+      try {
+        const func = firestore.onChangedOperation(
+          firestore.writtenEventType,
+          "foo/{bar}",
+          () => undefined
+        );
+        const event = makeEvent(
+          makeEncodedProtobuf(
+            DocumentEventData.create({
+              value: doc("foo/Helvétios"),
+              oldValue: doc("foo/Helvétios"),
+            })
+          )
+        );
+
+        await func(event);
+
+        expect(decode.callCount).to.eq(1);
+      } finally {
+        decode.restore();
+      }
     });
   });
 
