@@ -42,13 +42,15 @@ import { withInit } from "../../common/onInit";
 import { wrapTraceContext } from "../../v2/trace";
 
 export { HttpsError };
-export type { Request, CallableContext, FunctionsErrorCode };
+export type { Request, CallableContext, FunctionsErrorCode, CorsOption };
 
 export interface HttpsOptions {
   /**
    * If true, allows CORS on requests to this function.
    * If this is a `string` or `RegExp`, allows requests from domains that match the provided value.
    * If this is an `Array`, allows requests from domains matching at least one entry of the array.
+   * Any of these can also be an `Expression`, so a param can choose the origins per project, e.g.
+   * `params.defineBoolean("IS_STAGING").thenElse(/staging\.example\.com$/, /^https:\/\/example\.com$/)`.
    */
   cors?: CorsOption;
 }
