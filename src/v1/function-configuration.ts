@@ -248,6 +248,16 @@ export interface RuntimeOptions {
   enforceAppCheck?: boolean;
 
   /**
+   * Determines whether Firebase Auth is enforced. Defaults to true.
+   *
+   * @remarks
+   * When true, requests with invalid auth tokens autorespond with a 401
+   * (Unauthorized) error.
+   * When false, requests with invalid tokens set context.auth to undefined.
+   */
+  enforceAuth?: boolean;
+
+  /**
    * Determines whether Firebase App Check token is consumed on request. Defaults to false.
    *
    * @remarks
