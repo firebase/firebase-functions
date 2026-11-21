@@ -33,6 +33,7 @@ import {
   Param,
   ParamOptions,
   SecretParam,
+  OptionalSecretParam,
   JsonSecretParam,
   StringParam,
   ListParam,
@@ -49,6 +50,7 @@ export type {
   MultiSelectInput,
   Param,
   SecretParam,
+  OptionalSecretParam,
   JsonSecretParam,
   StringParam,
   BooleanParam,
@@ -62,7 +64,7 @@ export type { ParamOptions, SecretParamOptions };
 import { globalManifest } from "../runtime/manifest";
 import type { WireParamSpec } from "./types";
 
-type SecretOrExpr = Param<any> | SecretParam | JsonSecretParam<any>;
+type SecretOrExpr = Param<any> | SecretParam | OptionalSecretParam | JsonSecretParam<any>;
 
 const GLOBAL_PARAMS_SYMBOL = Symbol.for("firebase-functions:params:declaredParams");
 
@@ -178,12 +180,30 @@ export const storageBucket: Param<string> = new InternalExpression(
  * Declares a secret param, that will persist values only in Cloud Secret Manager.
  * Secrets are stored internally as bytestrings. Use `ParamOptions.as` to provide type
  * hinting during parameter resolution.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @returns A parameter with a `string` return type for `.value`.
  */
 export function defineSecret(name: string, options: SecretParamOptions = {}): SecretParam {
   const param = new SecretParam(name, options);
+  registerParam(param);
+  return param;
+}
+
+/**
+ * Declares an optional secret param that will persist values only in Cloud Secret Manager.
+ * Secrets are stored internally as bytestrings. Use `ParamOptions.as` to provide type
+ * hinting during parameter resolution.
+ *
+ * Users may decline to set values for optional secret params during deployment. If so,
+ * .value() will return unknown at runtime.
+ * @param name The name of the environment variable to use to load the parameter.
+ * @returns A parameter with a `string|unknown` return type for `.value`.
+ */
+export function defineOptionalSecret(
+  name: string,
+  options: SecretParamOptions = {}
+): OptionalSecretParam {
+  const param = new OptionalSecretParam(name, options);
   registerParam(param);
   return param;
 }
@@ -195,7 +215,6 @@ export function defineSecret(name: string, options: SecretParamOptions = {}): Se
  *
  * The secret value must be a valid JSON string. At runtime, the value will be automatically parsed
  * and returned as a JavaScript object. If the value is not set or is not valid JSON, an error will be thrown.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @returns A parameter whose `.value()` method returns the parsed JSON object.
  * ```
@@ -211,7 +230,6 @@ export function defineJsonSecret<T = any>(
 
 /**
  * Declare a string parameter.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @param options Configuration options for the parameter.
  * @returns A parameter with a `string` return type for `.value`.
@@ -224,7 +242,6 @@ export function defineString(name: string, options: ParamOptions<string> = {}): 
 
 /**
  * Declare a boolean parameter.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @param options Configuration options for the parameter.
  * @returns A parameter with a `boolean` return type for `.value`.
@@ -237,7 +254,6 @@ export function defineBoolean(name: string, options: ParamOptions<boolean> = {})
 
 /**
  * Declare an integer parameter.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @param options Configuration options for the parameter.
  * @returns A parameter with a `number` return type for `.value`.
@@ -250,11 +266,9 @@ export function defineInt(name: string, options: ParamOptions<number> = {}): Int
 
 /**
  * Declare a float parameter.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @param options Configuration options for the parameter.
  * @returns A parameter with a `number` return type for `.value`.
- *
  * @internal
  */
 export function defineFloat(name: string, options: ParamOptions<number> = {}): FloatParam {
@@ -265,7 +279,6 @@ export function defineFloat(name: string, options: ParamOptions<number> = {}): F
 
 /**
  * Declare a list parameter.
- *
  * @param name The name of the environment variable to use to load the parameter.
  * @param options Configuration options for the parameter.
  * @returns A parameter with a `string[]` return type for `.value`.
@@ -279,7 +292,6 @@ export function defineList(name: string, options: ParamOptions<string[]> = {}): 
 /**
  * Creates an Expression representing a string, which can interpolate
  * other Expressions into it using template literal syntax.
- *
  * @example
  * ```
  * const topicParam = defineString('TOPIC');
