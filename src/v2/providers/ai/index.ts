@@ -301,8 +301,8 @@ export function beforeGenerateContent(
     }
   };
 
-  func.run = handler;
   func = wrapTraceContext(withInit(func));
+  func.run = handler;
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts, "https");
@@ -416,8 +416,8 @@ export function afterGenerateContent(
     }
   };
 
-  func.run = handler;
   func = wrapTraceContext(withInit(func));
+  func.run = handler;
 
   const baseOpts = options.optionsToEndpoint(options.getGlobalOptions());
   const specificOpts = options.optionsToEndpoint(opts, "https");
