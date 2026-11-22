@@ -540,7 +540,7 @@ export function optionsToEndpoint(
 
   if (connector !== undefined || vpcEgress !== undefined || networkInterface !== undefined) {
     const resetConnector = connector === null || connector instanceof ResetValue;
-    const hasConnector = !!connector;
+    const hasConnector = !!connector && !resetConnector;
     const resetNetwork = networkInterface === null || networkInterface instanceof ResetValue;
     const hasNetwork = !!networkInterface && !resetNetwork;
 
@@ -560,11 +560,15 @@ export function optionsToEndpoint(
       endpoint.vpc = RESET_VALUE;
     } else {
       const vpc: ManifestEndpoint["vpc"] = {};
-      convertIfPresent(vpc, opts, "connector", "vpcConnector");
+      if (!resetConnector) {
+        convertIfPresent(vpc, opts, "connector", "vpcConnector");
+      }
       if (vpcEgress !== undefined) {
         vpc.egressSettings = vpcEgress;
       }
-      convertIfPresent(vpc, opts, "networkInterfaces", "networkInterface", (a) => [a]);
+      if (!resetNetwork) {
+        convertIfPresent(vpc, opts, "networkInterfaces", "networkInterface", (a) => [a]);
+      }
       endpoint.vpc = vpc;
     }
   }
