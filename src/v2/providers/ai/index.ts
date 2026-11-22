@@ -31,6 +31,7 @@ import { HttpsFunction, HttpsError, FunctionsErrorCode } from "../https";
 import { EventHandlerOptions } from "../../options";
 import { wrapTraceContext } from "../../trace";
 import { withInit } from "../../../common/onInit";
+import { logUnhandledError } from "../../../common/utilities/log-unhandled-error";
 import { initV2Endpoint } from "../../../runtime/manifest";
 import * as options from "../../options";
 
@@ -286,7 +287,7 @@ export function beforeGenerateContent(
       }
       res.status(200).send(responseBody);
     } catch (err: unknown) {
-      logger.error("Unhandled error:", err);
+      logUnhandledError(err);
       if (err instanceof HttpsError) {
         res.status(500).send({
           code: rpcCodeMap[err.code] || 13,
@@ -401,7 +402,7 @@ export function afterGenerateContent(
       }
       res.status(200).send(responseBody);
     } catch (err: unknown) {
-      logger.error("Unhandled error:", err);
+      logUnhandledError(err);
       if (err instanceof HttpsError) {
         res.status(500).send({
           code: rpcCodeMap[err.code] || 13,

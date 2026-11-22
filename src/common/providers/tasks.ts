@@ -24,6 +24,7 @@ import * as express from "express";
 import { DecodedIdToken } from "firebase-admin/auth";
 
 import * as logger from "../../logger";
+import { logUnhandledError } from "../utilities/log-unhandled-error";
 import * as https from "./https";
 import { Expression } from "../../params";
 import { ResetValue } from "../options";
@@ -230,7 +231,7 @@ export function onDispatchHandler<Req = any>(
       let httpErr: https.HttpsError = err;
       if (!(err instanceof https.HttpsError)) {
         // This doesn't count as an 'explicit' error.
-        logger.error("Unhandled error", err);
+        logUnhandledError(err);
         httpErr = new https.HttpsError("internal", "INTERNAL");
       }
 
