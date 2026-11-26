@@ -201,4 +201,19 @@ describe("#onDispatch", () => {
     expect(response.status).to.equal(204);
     expect(gotData).to.deep.equal({ foo: "bar" });
   });
+
+  it("calls init function", async () => {
+    const func = taskQueue().onDispatch(() => null);
+    const req = new MockRequest(
+      { data: {} },
+      { "content-type": "application/json", authorization: "Bearer abc" }
+    );
+    req.method = "POST";
+
+    let hello;
+    functions.onInit(() => (hello = "world"));
+    expect(hello).to.be.undefined;
+    await runHandler(func, req as any);
+    expect(hello).to.equal("world");
+  });
 });

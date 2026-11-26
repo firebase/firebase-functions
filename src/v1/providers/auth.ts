@@ -37,6 +37,7 @@ import {
   UserRecordMetadata,
   wrapHandler,
 } from "../../common/providers/identity";
+import { withInit } from "../../common/onInit";
 import {
   BlockingFunction,
   CloudFunction,
@@ -212,7 +213,7 @@ export class UserBuilder {
     const refreshToken = this.userOptions?.blockingOptions?.refreshToken || false;
 
     const annotatedHandler = Object.assign(handler, { platform: "gcfv1" as const });
-    const func: any = wrapHandler(eventType, annotatedHandler);
+    const func: any = withInit(wrapHandler(eventType, annotatedHandler));
 
     const legacyEventType = `providers/cloud.auth/eventTypes/user.${eventType}`;
 

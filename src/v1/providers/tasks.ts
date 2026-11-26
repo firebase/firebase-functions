@@ -23,6 +23,7 @@
 import * as express from "express";
 
 import { convertIfPresent, convertInvoker, copyIfPresent } from "../../common/encoding";
+import { withInit } from "../../common/onInit";
 import { Request } from "../../common/providers/https";
 import {
   onDispatchHandler,
@@ -107,7 +108,7 @@ export class TaskQueueBuilder {
     // and the user could have only tried to listen to data. Wrap their handler
     // in another handler to avoid accidentally triggering the v2 API
     const fixedLen = (data: any, context: TaskContext) => handler(data, context);
-    const func: any = onDispatchHandler(fixedLen);
+    const func: any = withInit(onDispatchHandler(fixedLen));
 
     func.__trigger = {
       ...optionsToTrigger(this.depOpts || {}),

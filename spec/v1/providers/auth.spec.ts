@@ -26,6 +26,8 @@ import * as functions from "../../../src/v1";
 import { CloudFunction, LegacyEvent } from "../../../src/v1/cloud-functions";
 import * as auth from "../../../src/v1/providers/auth";
 import { MINIMAL_V1_ENDPOINT } from "../../fixtures";
+import { MockRequest } from "../../fixtures/mockrequest";
+import { runHandler } from "../../helper";
 
 describe("Auth Functions", () => {
   const event: LegacyEvent = {
@@ -483,6 +485,29 @@ describe("Auth Functions", () => {
           },
         ]);
       });
+    });
+
+    describe("blocking functions onInit", () => {
+      const blockingFunctions = {
+        beforeCreate: () => auth.user().beforeCreate(() => null),
+        beforeSignIn: () => auth.user().beforeSignIn(() => null),
+        beforeEmail: () => auth.user().beforeEmail(() => null),
+        beforeSms: () => auth.user().beforeSms(() => null),
+      };
+
+      for (const [name, makeFunction] of Object.entries(blockingFunctions)) {
+        it(`${name} calls init function`, async () => {
+          const func = makeFunction();
+          const req = new MockRequest({ data: {} }, { "content-type": "application/json" });
+          req.method = "POST";
+
+          let hello;
+          functions.onInit(() => (hello = "world"));
+          expect(hello).to.be.undefined;
+          await runHandler(func, req as any);
+          expect(hello).to.equal("world");
+        });
+      }
     });
 
     describe("#_dataConstructor", () => {
