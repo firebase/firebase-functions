@@ -1110,6 +1110,104 @@ describe("firestore", () => {
         decode.restore();
       }
     });
+
+    it("should give handlers a UTF-8 subject", async () => {
+      let subject: string | undefined;
+      const func = firestore.onDocumentCreated("foo/{bar}", (event) => {
+        subject = event.subject;
+      });
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+      event.subject = asHeader("documents/foo/Helvétios");
+
+      await func(event);
+
+      expect(subject).to.eq("documents/foo/Helvétios");
+    });
+
+    it("should keep a subject that does not match the document attribute", async () => {
+      let subject: string | undefined;
+      const func = firestore.onDocumentCreated("foo/{bar}", (event) => {
+        subject = event.subject;
+      });
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+      event.subject = "something/else";
+
+      await func(event);
+
+      expect(subject).to.eq("something/else");
+    });
+
+    it("should give auth context handlers UTF-8 params and keep the auth fields", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const func = firestore.onDocumentCreatedWithAuthContext("foo/{bar}", (event) => {
+        seen = {
+          params: event.params,
+          document: event.document,
+          authType: event.authType,
+          authId: event.authId,
+        };
+      });
+      const event = makeAuthEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+
+      await func(event);
+
+      expect(seen).to.deep.eq({
+        params: { bar: "Helvétios" },
+        document: "foo/Helvétios",
+        authType: "unknown",
+        authId: "userId",
+      });
+    });
+
+    it("should give handlers on a named database UTF-8 params", async () => {
+      let seen: { params: Record<string, string>; database: string } | undefined;
+      const func = firestore.onDocumentCreated(
+        { document: "foo/{bar}", database: "other-db" },
+        (event) => {
+          seen = { params: event.params, database: event.database };
+        }
+      );
+      const event = makeEvent(
+        makeEncodedProtobuf(
+          DocumentEventData.create({
+            value: {
+              ...doc("foo/中文"),
+              name: "projects/my-project/databases/other-db/documents/foo/中文",
+            },
+          })
+        )
+      );
+      event.database = "other-db";
+      event.document = asHeader("foo/中文");
+
+      await func(event);
+
+      expect(seen).to.deep.eq({ params: { bar: "中文" }, database: "other-db" });
+    });
+
+    it("should decode a corrupt payload once and reject", async () => {
+      const decode = sinon.spy(DocumentEventData, "decode");
+      try {
+        const func = firestore.onDocumentCreated("foo/{bar}", () => undefined);
+        const event = makeEvent(Buffer.from([0xff, 0xff, 0xff, 0x0f]));
+
+        await expect(Promise.resolve().then(() => func(event))).to.be.rejectedWith(
+          /invalid wire type/
+        );
+        expect(decode.callCount).to.eq(1);
+      } finally {
+        decode.restore();
+      }
+    });
   });
 
   describe("makeFirestoreEvent", () => {

@@ -29,21 +29,17 @@ import { dateToTimestampProto } from "../../common/utilities/encoder";
 /** static-complied protobufs */
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
-/**
- * Each event's payload is read by the path lookup and by up to two snapshot builders, so the
- * decoded message is cached against the original payload object.
- */
-const decodedPayloads = new WeakMap<object, google.events.cloud.firestore.v1.DocumentEventData>();
+/** @internal */
+export type DecodedDocumentEventData = google.events.cloud.firestore.v1.IDocumentEventData;
 
-function decodeDocumentEventData(data: Uint8Array) {
-  let decoded = typeof data === "object" ? decodedPayloads.get(data) : undefined;
-  if (!decoded) {
-    decoded = DocumentEventData.decode(Buffer.from(data));
-    if (typeof data === "object") {
-      decodedPayloads.set(data, decoded);
-    }
+/** @internal */
+export function decodeDocumentEventData(data: Uint8Array): DecodedDocumentEventData {
+  try {
+    return DocumentEventData.decode(Buffer.from(data));
+  } catch (err: unknown) {
+    logger.error("Failed to decode Firestore event protobuf.");
+    throw err;
   }
-  return decoded;
 }
 
 /** @internal */
@@ -81,57 +77,24 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
   return proto;
 }
 
-/**
- * Returns the full document name carried in the event payload, if any.
- *
- * The payload is the only UTF-8-safe source for the document path: the `document` CloudEvent
- * attribute arrives as an HTTP header, which Node decodes as latin1.
- * @internal
- */
-export function documentNameFromPayload(
-  data: unknown,
-  datacontenttype?: string
-): string | undefined {
-  try {
-    if (datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(data)) {
-      const decoded = decodeDocumentEventData(data as Uint8Array);
-      return decoded.value?.name || decoded.oldValue?.name || undefined;
-    }
-    const json = data as { value?: { name?: string }; oldValue?: { name?: string } } | undefined;
-    return json?.value?.name || json?.oldValue?.name || undefined;
-  } catch (_e) {
-    return undefined;
-  }
-}
-
 /** @internal */
-export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
-  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
-  try {
-    const firestoreDecoded = decodeDocumentEventData(data);
-
-    return firestoreInstance.snapshot_(firestoreDecoded.value || path, null, "protobufJS");
-  } catch (err: unknown) {
-    logger.error("Failed to decode protobuf and create a snapshot.");
-    throw err;
-  }
-}
-
-/** @internal */
-export function createBeforeSnapshotFromProtobuf(
-  data: Uint8Array,
+export function createSnapshotFromProtobuf(
+  decoded: DecodedDocumentEventData,
   path: string,
   databaseId: string
 ) {
   const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
-  try {
-    const firestoreDecoded = decodeDocumentEventData(data);
+  return firestoreInstance.snapshot_(decoded.value || path, null, "protobufJS");
+}
 
-    return firestoreInstance.snapshot_(firestoreDecoded.oldValue || path, null, "protobufJS");
-  } catch (err: unknown) {
-    logger.error("Failed to decode protobuf and create a before snapshot.");
-    throw err;
-  }
+/** @internal */
+export function createBeforeSnapshotFromProtobuf(
+  decoded: DecodedDocumentEventData,
+  path: string,
+  databaseId: string
+) {
+  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
+  return firestoreInstance.snapshot_(decoded.oldValue || path, null, "protobufJS");
 }
 
 /** @internal */
