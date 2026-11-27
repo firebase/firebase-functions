@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 import { expect } from "chai";
+import * as sinon from "sinon";
 import { google } from "../../../protos/compiledFirestore";
 import { Timestamp } from "firebase-admin/firestore";
 import * as firestore from "../../../src/v2/providers/firestore";
@@ -975,6 +976,237 @@ describe("firestore", () => {
       expect(params).to.deep.eq({
         bar: "fGRodw71mHutZ4wGDuT8",
       });
+    });
+  });
+
+  describe("documentPathFromEvent", () => {
+    // Node decodes HTTP headers as latin1, so this is what the `document` attribute looks like
+    // when the path contains non-ASCII characters.
+    const asHeader = (s: string) => Buffer.from(s, "utf-8").toString("latin1");
+    const name = (path: string) => `projects/my-project/databases/my-db/documents/${path}`;
+    const doc = (path: string) => ({
+      name: name(path),
+      createTime: Timestamp.fromDate(new Date("2023-03-10T00:58:40.349Z")),
+      updateTime: Timestamp.fromDate(new Date("2023-03-10T00:58:40.349Z")),
+    });
+
+    for (const id of ["Helvétios", "SDÅV", "中文", "😀", "हिन्दी"]) {
+      it(`should read ${id} from a protobuf payload instead of the header`, () => {
+        const event = makeEvent(
+          makeEncodedProtobuf(DocumentEventData.create({ value: { name: name(`foo/${id}`) } }))
+        );
+        event.document = asHeader(`foo/${id}`);
+
+        expect(firestore.documentPathFromEvent(event)).to.eq(`foo/${id}`);
+      });
+    }
+
+    it("should keep IDs that only look like mojibake", () => {
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: { name: name("foo/Ã©") } }))
+      );
+      event.document = asHeader("foo/Ã©");
+
+      expect(firestore.documentPathFromEvent(event)).to.eq("foo/Ã©");
+    });
+
+    it("should read oldValue when the document was deleted", () => {
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ oldValue: { name: name("foo/Électre") } }))
+      );
+      event.document = asHeader("foo/Électre");
+
+      expect(firestore.documentPathFromEvent(event)).to.eq("foo/Électre");
+    });
+
+    it("should read a JSON payload", () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        document: asHeader("foo/Helvétios"),
+        data: { value: { name: name("foo/Helvétios") } as any },
+      };
+
+      expect(firestore.documentPathFromEvent(event)).to.eq("foo/Helvétios");
+    });
+
+    it("should fall back to the document attribute when the payload has no name", () => {
+      const event: firestore.RawFirestoreEvent = {
+        ...eventBase,
+        datacontenttype: "application/json",
+        data: { value: null, oldValue: null },
+      };
+
+      expect(firestore.documentPathFromEvent(event)).to.eq("foo/fGRodw71mHutZ4wGDuT8");
+    });
+
+    it("should fall back to the document attribute when the name is for another database", () => {
+      const event = makeEvent(
+        makeEncodedProtobuf(
+          DocumentEventData.create({
+            value: { name: "projects/my-project/databases/other-db/documents/foo/bar" },
+          })
+        )
+      );
+
+      expect(firestore.documentPathFromEvent(event)).to.eq("foo/fGRodw71mHutZ4wGDuT8");
+    });
+
+    it("should give handlers UTF-8 params and document for a created document", async () => {
+      let seen: { params: Record<string, string>; document: string } | undefined;
+      const func = firestore.onOperation(firestore.createdEventType, "foo/{bar}", (event) => {
+        seen = { params: event.params, document: event.document };
+      });
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+
+      await func(event);
+
+      expect(seen).to.deep.eq({ params: { bar: "Helvétios" }, document: "foo/Helvétios" });
+    });
+
+    it("should give handlers UTF-8 params and document for a deleted document change", async () => {
+      let seen: { params: Record<string, string>; document: string } | undefined;
+      const func = firestore.onChangedOperation(
+        firestore.writtenEventType,
+        "foo/{bar}",
+        (event) => {
+          seen = { params: event.params, document: event.document };
+        }
+      );
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ oldValue: doc("foo/中文") }))
+      );
+      event.document = asHeader("foo/中文");
+
+      await func(event);
+
+      expect(seen).to.deep.eq({ params: { bar: "中文" }, document: "foo/中文" });
+    });
+
+    it("should decode a protobuf payload once per event", async () => {
+      const decode = sinon.spy(DocumentEventData, "decode");
+      try {
+        const func = firestore.onChangedOperation(
+          firestore.writtenEventType,
+          "foo/{bar}",
+          () => undefined
+        );
+        const event = makeEvent(
+          makeEncodedProtobuf(
+            DocumentEventData.create({
+              value: doc("foo/Helvétios"),
+              oldValue: doc("foo/Helvétios"),
+            })
+          )
+        );
+
+        await func(event);
+
+        expect(decode.callCount).to.eq(1);
+      } finally {
+        decode.restore();
+      }
+    });
+
+    it("should give handlers a UTF-8 subject", async () => {
+      let subject: string | undefined;
+      const func = firestore.onDocumentCreated("foo/{bar}", (event) => {
+        subject = event.subject;
+      });
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+      event.subject = asHeader("documents/foo/Helvétios");
+
+      await func(event);
+
+      expect(subject).to.eq("documents/foo/Helvétios");
+    });
+
+    it("should keep a subject that does not match the document attribute", async () => {
+      let subject: string | undefined;
+      const func = firestore.onDocumentCreated("foo/{bar}", (event) => {
+        subject = event.subject;
+      });
+      const event = makeEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+      event.subject = "something/else";
+
+      await func(event);
+
+      expect(subject).to.eq("something/else");
+    });
+
+    it("should give auth context handlers UTF-8 params and keep the auth fields", async () => {
+      let seen: Record<string, unknown> | undefined;
+      const func = firestore.onDocumentCreatedWithAuthContext("foo/{bar}", (event) => {
+        seen = {
+          params: event.params,
+          document: event.document,
+          authType: event.authType,
+          authId: event.authId,
+        };
+      });
+      const event = makeAuthEvent(
+        makeEncodedProtobuf(DocumentEventData.create({ value: doc("foo/Helvétios") }))
+      );
+      event.document = asHeader("foo/Helvétios");
+
+      await func(event);
+
+      expect(seen).to.deep.eq({
+        params: { bar: "Helvétios" },
+        document: "foo/Helvétios",
+        authType: "unknown",
+        authId: "userId",
+      });
+    });
+
+    it("should give handlers on a named database UTF-8 params", async () => {
+      let seen: { params: Record<string, string>; database: string } | undefined;
+      const func = firestore.onDocumentCreated(
+        { document: "foo/{bar}", database: "other-db" },
+        (event) => {
+          seen = { params: event.params, database: event.database };
+        }
+      );
+      const event = makeEvent(
+        makeEncodedProtobuf(
+          DocumentEventData.create({
+            value: {
+              ...doc("foo/中文"),
+              name: "projects/my-project/databases/other-db/documents/foo/中文",
+            },
+          })
+        )
+      );
+      event.database = "other-db";
+      event.document = asHeader("foo/中文");
+
+      await func(event);
+
+      expect(seen).to.deep.eq({ params: { bar: "中文" }, database: "other-db" });
+    });
+
+    it("should decode a corrupt payload once and reject", async () => {
+      const decode = sinon.spy(DocumentEventData, "decode");
+      try {
+        const func = firestore.onDocumentCreated("foo/{bar}", () => undefined);
+        const event = makeEvent(Buffer.from([0xff, 0xff, 0xff, 0x0f]));
+
+        await expect(Promise.resolve().then(() => func(event))).to.be.rejectedWith(
+          /invalid wire type/
+        );
+        expect(decode.callCount).to.eq(1);
+      } finally {
+        decode.restore();
+      }
     });
   });
 

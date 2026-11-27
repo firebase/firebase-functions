@@ -34,6 +34,8 @@ import {
   createBeforeSnapshotFromProtobuf,
   createSnapshotFromJson,
   createSnapshotFromProtobuf,
+  DecodedDocumentEventData,
+  decodeDocumentEventData,
 } from "../../common/providers/firestore";
 import { wrapTraceContext } from "../trace";
 import { withInit } from "../../common/onInit";
@@ -771,10 +773,41 @@ function getPath(event: RawFirestoreEvent): string {
   return `projects/${event.project}/databases/${event.database}/documents/${event.document}`;
 }
 
+/** @hidden */
+function isProtobufEvent(event: RawFirestoreEvent): boolean {
+  return !!event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data);
+}
+
+/** @hidden */
+function decodedPayload(
+  event: RawFirestoreEvent,
+  decoded?: DecodedDocumentEventData
+): DecodedDocumentEventData {
+  return decoded ?? decodeDocumentEventData(event.data as Uint8Array);
+}
+
+/**
+ * Decodes a protobuf payload so the handler wrapper can share one decoded message between the
+ * path lookup and the snapshot builders.
+ * @internal
+ */
+export function decodeEvent(event: RawFirestoreEvent): DecodedDocumentEventData | undefined {
+  return event.data && isProtobufEvent(event)
+    ? decodeDocumentEventData(event.data as Uint8Array)
+    : undefined;
+}
+
 /** @internal */
-export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
-  if (event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data)) {
-    return createSnapshotFromProtobuf(event.data as Uint8Array, getPath(event), event.database);
+export function createSnapshot(
+  event: RawFirestoreEvent,
+  decoded?: DecodedDocumentEventData
+): QueryDocumentSnapshot {
+  if (isProtobufEvent(event)) {
+    return createSnapshotFromProtobuf(
+      decodedPayload(event, decoded),
+      getPath(event),
+      event.database
+    );
   } else if (event.datacontenttype?.includes("application/json")) {
     return createSnapshotFromJson(
       event.data,
@@ -792,10 +825,13 @@ export function createSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot 
 }
 
 /** @internal */
-export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSnapshot {
-  if (event.datacontenttype?.includes("application/protobuf") || Buffer.isBuffer(event.data)) {
+export function createBeforeSnapshot(
+  event: RawFirestoreEvent,
+  decoded?: DecodedDocumentEventData
+): QueryDocumentSnapshot {
+  if (isProtobufEvent(event)) {
     return createBeforeSnapshotFromProtobuf(
-      event.data as Uint8Array,
+      decodedPayload(event, decoded),
       getPath(event),
       event.database
     );
@@ -815,6 +851,46 @@ export function createBeforeSnapshot(event: RawFirestoreEvent): QueryDocumentSna
   }
 }
 
+/**
+ * Returns the document path, preferring the full name carried in the payload.
+ *
+ * The payload is the only UTF-8-safe source for the path: the `document` CloudEvent attribute
+ * arrives as an HTTP header, which Node decodes as latin1.
+ * @internal
+ */
+export function documentPathFromEvent(
+  event: RawFirestoreEvent,
+  decoded?: DecodedDocumentEventData
+): string {
+  let payload:
+    | { value?: { name?: string | null } | null; oldValue?: { name?: string | null } | null }
+    | undefined;
+  if (decoded) {
+    payload = decoded;
+  } else if (event.data && isProtobufEvent(event)) {
+    payload = decodeDocumentEventData(event.data as Uint8Array);
+  } else {
+    payload = event.data as RawFirestoreData | undefined;
+  }
+  const name = payload?.value?.name || payload?.oldValue?.name;
+  const prefix = `projects/${event.project}/databases/${event.database}/documents/`;
+  return name?.startsWith(prefix) ? name.slice(prefix.length) : event.document;
+}
+
+/**
+ * Replaces the header-derived `document` and `subject` with the path read from the payload.
+ * @internal
+ */
+export function withPayloadDocument<T extends RawFirestoreEvent>(
+  event: T,
+  decoded?: DecodedDocumentEventData
+): T {
+  const document = documentPathFromEvent(event, decoded);
+  const subject =
+    event.subject === `documents/${event.document}` ? `documents/${document}` : event.subject;
+  return { ...event, document, subject };
+}
+
 /** @internal */
 export function makeParams(document: string, documentPattern: PathPattern) {
   return {
@@ -826,14 +902,15 @@ export function makeParams(document: string, documentPattern: PathPattern) {
 export function makeFirestoreEvent<Params>(
   eventType: string,
   event: RawFirestoreEvent | RawFirestoreAuthEvent,
-  params: Params
+  params: Params,
+  decoded?: DecodedDocumentEventData
 ):
   | FirestoreEvent<QueryDocumentSnapshot | undefined, Params>
   | FirestoreAuthEvent<QueryDocumentSnapshot | undefined, Params> {
   const data = event.data
     ? eventType === createdEventType || eventType === createdEventWithAuthContextType
-      ? createSnapshot(event)
-      : createBeforeSnapshot(event)
+      ? createSnapshot(event, decoded)
+      : createBeforeSnapshot(event, decoded)
     : undefined;
   const firestoreEvent: FirestoreEvent<QueryDocumentSnapshot | undefined, Params> = {
     ...event,
@@ -861,12 +938,13 @@ export function makeFirestoreEvent<Params>(
 /** @internal */
 export function makeChangedFirestoreEvent<Params>(
   event: RawFirestoreEvent | RawFirestoreAuthEvent,
-  params: Params
+  params: Params,
+  decoded?: DecodedDocumentEventData
 ):
   | FirestoreEvent<Change<DocumentSnapshot> | undefined, Params>
   | FirestoreAuthEvent<Change<DocumentSnapshot> | undefined, Params> {
   const data = event.data
-    ? Change.fromObjects(createBeforeSnapshot(event), createSnapshot(event))
+    ? Change.fromObjects(createBeforeSnapshot(event, decoded), createSnapshot(event, decoded))
     : undefined;
   const firestoreEvent: FirestoreEvent<Change<QueryDocumentSnapshot> | undefined, Params> = {
     ...event,
@@ -1019,12 +1097,14 @@ export function onOperation<
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const rawEvent = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const decoded = decodeEvent(rawEvent);
+    const event = withPayloadDocument(rawEvent, decoded);
     const documentPattern = new PathPattern(
       typeof document === "string" ? document : document.value()
     );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent = makeFirestoreEvent(eventType, event, params);
+    const firestoreEvent = makeFirestoreEvent(eventType, event, params, decoded);
 
     const patchedEvent = addV1Compat(firestoreEvent, {
       context: () => getV1Context(firestoreEvent),
@@ -1094,12 +1174,14 @@ export function onChangedOperation<
 
   // wrap the handler
   const func = (raw: CloudEvent<unknown>) => {
-    const event = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const rawEvent = raw as RawFirestoreEvent | RawFirestoreAuthEvent;
+    const decoded = decodeEvent(rawEvent);
+    const event = withPayloadDocument(rawEvent, decoded);
     const documentPattern = new PathPattern(
       typeof document === "string" ? document : document.value()
     );
     const params = makeParams(event.document, documentPattern) as unknown as ParamsOf<Document>;
-    const firestoreEvent = makeChangedFirestoreEvent(event, params);
+    const firestoreEvent = makeChangedFirestoreEvent(event, params, decoded);
 
     const patchedEvent = addV1Compat(firestoreEvent, {
       context: () => getV1Context(firestoreEvent),

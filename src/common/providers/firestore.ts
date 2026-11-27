@@ -30,6 +30,19 @@ import { dateToTimestampProto } from "../../common/utilities/encoder";
 const DocumentEventData = google.events.cloud.firestore.v1.DocumentEventData;
 
 /** @internal */
+export type DecodedDocumentEventData = google.events.cloud.firestore.v1.IDocumentEventData;
+
+/** @internal */
+export function decodeDocumentEventData(data: Uint8Array): DecodedDocumentEventData {
+  try {
+    return DocumentEventData.decode(Buffer.from(data));
+  } catch (err: unknown) {
+    logger.error("Failed to decode Firestore event protobuf.");
+    throw err;
+  }
+}
+
+/** @internal */
 interface Firestore extends firestore.Firestore {
   snapshot_(value: unknown, readTime: unknown, encoding: string): any;
 }
@@ -65,35 +78,23 @@ function _getValueProto(data: any, resource: string, valueFieldName: string) {
 }
 
 /** @internal */
-export function createSnapshotFromProtobuf(data: Uint8Array, path: string, databaseId: string) {
-  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
-  try {
-    const dataBuffer = Buffer.from(data);
-    const firestoreDecoded = DocumentEventData.decode(dataBuffer);
-
-    return firestoreInstance.snapshot_(firestoreDecoded.value || path, null, "protobufJS");
-  } catch (err: unknown) {
-    logger.error("Failed to decode protobuf and create a snapshot.");
-    throw err;
-  }
-}
-
-/** @internal */
-export function createBeforeSnapshotFromProtobuf(
-  data: Uint8Array,
+export function createSnapshotFromProtobuf(
+  decoded: DecodedDocumentEventData,
   path: string,
   databaseId: string
 ) {
   const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
-  try {
-    const dataBuffer = Buffer.from(data);
-    const firestoreDecoded = DocumentEventData.decode(dataBuffer);
+  return firestoreInstance.snapshot_(decoded.value || path, null, "protobufJS");
+}
 
-    return firestoreInstance.snapshot_(firestoreDecoded.oldValue || path, null, "protobufJS");
-  } catch (err: unknown) {
-    logger.error("Failed to decode protobuf and create a before snapshot.");
-    throw err;
-  }
+/** @internal */
+export function createBeforeSnapshotFromProtobuf(
+  decoded: DecodedDocumentEventData,
+  path: string,
+  databaseId: string
+) {
+  const firestoreInstance = firestore.getFirestore(getApp(), databaseId) as Firestore;
+  return firestoreInstance.snapshot_(decoded.oldValue || path, null, "protobufJS");
 }
 
 /** @internal */
